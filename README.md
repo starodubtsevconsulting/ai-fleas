@@ -1,5 +1,9 @@
 # AI
 
+This is the umbrella repository for Starodubtsev Consulting's public AI projects and related reference material. It provides one entry point to the separate repositories that make up the public collection, including **AI Commands** and **AI Workflows**, while also keeping shared information such as local-model and hardware benchmarks.
+
+The individual projects remain separate repositories so they can evolve and be used independently. This repository connects them, explains how they relate, and provides a home for AI-related material that does not belong to one specific implementation project.
+
 ```mermaid
 flowchart TD
   Actor["Actor: person exploring the public AI collection"]
