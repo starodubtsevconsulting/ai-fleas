@@ -14,6 +14,11 @@ I tested two Qwen models through Hermes, measured speed, memory, and agent/tool 
 
 ---
 
+*Upon the shelf a quiet servant wakes,*
+*While distant minds attend the harder call;*
+*It spends no coin for every task it takes,*
+*And leaves the greater thought to govern all.*
+
 **P.S. — Stoic quote of the day**
 
 > “Waste no more time arguing what a good man should be. Be one.”
