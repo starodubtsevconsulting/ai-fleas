@@ -1,5 +1,11 @@
 # AI
 
+This is the umbrella repository for useful public pieces of the **AI Workflow Suite** and related AI work from Starodubtsev Consulting. The projects are kept in separate repositories so each piece can evolve and be used independently, while this repository provides a simple entry point to understand how they fit together.
+
+The public collection currently includes **AI Commands** and **AI Workflows**, with additional useful pieces published as they become ready. Feel free to explore, contribute, or ask questions.
+
+This umbrella repository also contains shared AI reference material that does not belong to one specific implementation project, including **[local model and hardware benchmarks](benchmarks/local-models/README.md)**.
+
 ```mermaid
 flowchart TD
   Actor["Actor: person exploring the public AI collection"]
