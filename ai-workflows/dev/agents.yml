@@ -1,0 +1,81 @@
+schemaVersion: workflow-logical-agents.v1
+workflowId: dev
+logicalProjectIdPattern: <profile-id>-dev[-<suffix>]
+teamPolicy: agents/team.md
+
+policy:
+  authority: agents/team.md
+  routing: agents/shared-execution-routing.md
+  permissionEnvelope: agents/permission-envelope.md
+  elasticPool: agents/elastic-agent-pool.md
+  contextClone: agents/role-context-clone.md
+
+initializer:
+  agentId: admin
+  roleDefinition: ../_common/roles/admin.md
+  lifecycle: persistent-control
+  humanFacing: human-owned
+  communicationMode: direct-human-administration-only
+  readinessToken: ADMIN_READY
+  governedRosterOwner: manager
+
+agents:
+  - agentId: designer-reviewer
+    roleDefinition: ../_common/roles/designer-reviewer.md
+    aliases: [designer reviewer, designer/reviewer]
+    lifecycle: persistent-control
+    humanFacing: primary
+    communicationMode: human-dialogue-and-canonical-packets
+    readinessToken: DESIGNER_REVIEWER_READY
+    requiresTicket: false
+  - agentId: judge
+    roleDefinition: ../_common/roles/judge.md
+    aliases: [judge, workflow judge]
+    lifecycle: persistent-control
+    humanFacing: oversight-only
+    communicationMode: direct-human-governance-only
+    readinessToken: WORKFLOW_GOVERNANCE_JUDGE_READY
+    requiresTicket: false
+  - agentId: manager
+    roleDefinition: ../_common/roles/manager.md
+    aliases: [manager, ask manager]
+    lifecycle: persistent-control
+    humanFacing: false
+    communicationMode: internal-canonical-packets-only
+    readinessToken: MANAGER_READY
+    requiresTicket: false
+  - agentId: coder
+    roleDefinition: ../_common/roles/coder.md
+    aliases: [coder]
+    lifecycle: disposable-worker
+    humanFacing: false
+    communicationMode: internal-canonical-packets-only
+    readinessToken: CODER_READY
+    requiresTicket: true
+    elasticPool: { enabled: true, minReady: 0, maxActive: 3 }
+  - agentId: command-runner
+    roleDefinition: ../_common/roles/command-runner.md
+    aliases: [command runner, command-runner]
+    lifecycle: disposable-worker
+    humanFacing: false
+    communicationMode: internal-canonical-packets-only
+    readinessToken: COMMAND_RUNNER_READY
+    requiresTicket: true
+    elasticPool: { enabled: true, minReady: 1, maxActive: 4 }
+  - agentId: ui-acceptance-tester
+    roleDefinition: ../_common/roles/ui-acceptance-tester.md
+    aliases: [ui tester, ui-acceptance-tester]
+    lifecycle: disposable-worker
+    humanFacing: false
+    communicationMode: internal-canonical-packets-only
+    readinessToken: UI_ACCEPTANCE_TESTER_READY
+    requiresTicket: true
+
+dependencies:
+  - { consumerAgentId: designer-reviewer, providerAgentId: manager, kind: capability-provider }
+  - { consumerAgentId: designer-reviewer, providerAgentId: coder, kind: capability-provider }
+  - { consumerAgentId: designer-reviewer, providerAgentId: command-runner, kind: capability-provider }
+  - { consumerAgentId: designer-reviewer, providerAgentId: ui-acceptance-tester, kind: capability-provider }
+  - { consumerAgentId: coder, providerAgentId: designer-reviewer, kind: return-coordinator }
+  - { consumerAgentId: command-runner, providerAgentId: designer-reviewer, kind: return-coordinator }
+  - { consumerAgentId: ui-acceptance-tester, providerAgentId: designer-reviewer, kind: return-coordinator }

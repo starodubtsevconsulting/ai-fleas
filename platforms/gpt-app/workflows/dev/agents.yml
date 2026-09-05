@@ -4,6 +4,8 @@ workflow: dev
 logical_project_pattern: <profile-id>-dev[-<suffix>]
 initialization: ../../agents/initialization.md
 portable_contract: ../../../../ai-workflows/agents.md
+portable_manifest: ../../../../ai-workflows/dev/agents.yml
+team_policy: ../../../../ai-workflows/dev/agents/team.md
 
 agents:
   - role: admin
