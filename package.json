@@ -1,0 +1,10 @@
+{
+  "name": "ai-fleas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Public AI Fleas commands, workflow rules, and profile contracts",
+  "license": "MIT",
+  "dependencies": {
+    "yaml": "2.9.0"
+  }
+}

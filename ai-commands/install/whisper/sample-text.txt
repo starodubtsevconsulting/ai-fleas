@@ -1,0 +1,131 @@
+
+WHISPER VOICE CONFIGURATION SCRIPT
+Purpose: Record dialogue so Whisper (ASR) can clearly detect speakers and produce machine‑parsable output.
+
+Recording format:
+sample_rate: 16000
+format: WAV
+bit_depth: 16
+channels: mono
+no background noise
+no overlapping speech
+
+Pause rules:
+Narrator pause: 600 ms
+Dialogue pause: 400 ms
+
+------------------------------------
+VOICE CONFIGURATION
+------------------------------------
+
+Narrator
+gender: male
+pitch: low (90–110 Hz)
+speed: slow (0.85–0.9)
+accent: neutral English
+tone: calm / storytelling
+
+Robert
+gender: male
+pitch: medium (120–140 Hz)
+speed: normal (1.0)
+accent: neutral English
+tone: deliberate / thoughtful
+
+Maria
+gender: female
+pitch: higher (200–230 Hz)
+speed: slightly faster (1.05)
+accent: mild Eastern European / Slavic
+tone: warm / curious
+
+Important:
+Each speaker MUST say their name before the line.
+
+Example:
+Narrator:
+Maria:
+Robert:
+
+------------------------------------
+SCRIPT
+------------------------------------
+
+SCENE_START
+
+Narrator:
+Two figures were sitting in the outdoor kitchen. A mesh hung in the doorway to keep the flies out.
+Even after most of them had been chased outside, two flies still remained, flying in slow loops.
+The pair periodically landed on the edge of the table, crawling closer to the board where the fish was laid out,
+which Robert was methodically consuming.
+
+Narrator:
+The conversation was about a UFO that someone had supposedly seen nearby.
+From the yard outside came the clamor of roosters and geese.
+
+Maria:
+Do you like feesh?
+
+Robert:
+Fish? I like the taste of the flesh.
+
+Narrator:
+He replied, picking thin bones from between his teeth.
+He needed to make sure he was understood correctly.
+
+Maria:
+You ever see UFO?
+
+Robert:
+Seen? I look at the sky carefully every evening.
+Honestly, I believe I saw an unidentified flying object.
+
+Narrator:
+He said, emphasizing every word so Maria would understand him correctly.
+Maria liked the way Robert expressed his thoughts.
+She smiled, her voice soft and colorful.
+
+Maria:
+And vot did it look like?
+
+Robert:
+It was a round, glowing spot.
+I'm sure it wasn't a plane or a star.
+
+Narrator:
+Maria leaned forward, listening intently.
+
+Maria:
+And can you say exactly vere you saw it?
+
+Robert:
+Of course.
+It was in the west, right above the forest.
+I'm sure of it because I watch the sunset from that spot every evening.
+
+Narrator:
+Maria nodded, looking at him thoughtfully.
+
+Maria:
+I hear many people saw something similar in those parts.
+You not first.
+
+Narrator:
+Robert nodded and continued explaining his observations,
+trying to be as precise as possible so Maria would understand the accuracy of his words.
+She listened to him with admiration.
+
+Narrator:
+The conversation about the sunset, the forest, the unidentified flying object in their area
+added a special warmth, a quiet coziness, and a soul‑tickling depth of mystery to the evening,
+especially since not much usually happens around their place.
+
+Maria:
+You know, Robert, you notice everysing so precise.
+I like how you tell it.
+Everysing is so clear... and clear‑ly.
+
+Narrator:
+Robert smiled in return, pleased that his words were understood.
+
+SCENE_END

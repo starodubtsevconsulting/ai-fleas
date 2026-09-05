@@ -1,0 +1,46 @@
+id: accounting
+label: Accounting
+tags:
+  - accounting
+  - money
+entry: accounting.workflow.md
+frontend:
+  type: angular-standalone-component
+  entry: accounting-frontend/src/accounting-workflow-app.component.ts
+backend:
+  mode: process
+  command: cd ../../ai-launcher && npx tsx --tsconfig ../ai-workflows/accounting/accounting-backend/tsconfig.json ../ai-workflows/accounting/accounting-backend/server/main.ts
+  host: 127.0.0.1
+  port: 5001
+  health_path: /health
+  # Health alone is insufficient: this proves the runtime's API/spec surface
+  # is mounted without depending on project-specific Workflow Center data.
+  ready_path: /api-json
+  shutdown_path: /shutdown
+  shutdown_policy: stop
+  shutdown_timeout_ms: 5000
+  autostart: lazy
+mcp:
+  enabled: true
+  command: node
+  args: mcp/src/server.mjs
+  host: 127.0.0.1
+  port: 0
+  endpoint_path: /mcp
+  transport: streamable-http
+events:
+  path: events
+validations:
+  - name: project-recommended
+    trigger: workflow-loaded
+    condition: no-scoped-projects
+    event: workflow:project-recommended-missing-v1
+    contribution: workflow-project-recommended-missing
+    presenter: inline-center-advisory
+    severity: warning
+    label: Workflow project
+    value: No project selected
+    detail: Create or select a project for this workflow to load its project-specific workspace.
+required_commands:
+  - statements
+  - taxes

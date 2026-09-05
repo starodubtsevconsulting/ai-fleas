@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice Report</title>
+  <link rel="stylesheet" href="../../../shared/launcher/command-launcher.css">
+  <link rel="stylesheet" href="./voice-report-launcher.css">
+</head>
+<body>
+  <main class="launcher-shell voice-report-shell">
+    <header class="launcher-topbar">
+      <div>
+        <h1>Voice Report</h1>
+        <p class="launcher-context" id="audioPath">Waiting for report audio.</p>
+      </div>
+      <div class="launcher-actions">
+        <button id="replay" class="launcher-primary" type="button">Replay</button>
+        <button id="pause" class="launcher-ghost" type="button">Pause</button>
+      </div>
+    </header>
+    <section class="voice-report-workspace">
+      <section class="voice-report-stage launcher-panel">
+        <div
+          class="read-aloud-face"
+          id="readAloudFace"
+          data-testid="voice-report-read-aloud-face"
+          style="--mouth-open: 0.18; --mouth-shift: 0px; --mouth-lip-opacity: 0.9; --mouth-lip-scale: 1; --mouth-highlight-opacity: 0.78; --mouth-highlight-shift: 0px;"
+        >
+          <svg viewBox="0 0 180 180" role="img" aria-label="Voice report agent">
+            <defs>
+              <radialGradient id="voiceReportAgentFaceGlow" cx="50%" cy="30%" r="70%">
+                <stop offset="0" stop-color="#eef6ff" />
+                <stop offset="0.54" stop-color="var(--agent-face-mid)" />
+                <stop offset="1" stop-color="var(--agent-face-end)" />
+              </radialGradient>
+              <linearGradient id="voiceReportAgentFrameGlow" x1="0" x2="1">
+                <stop offset="0" stop-color="#72d6a2" stop-opacity="0.12" />
+                <stop offset="0.48" stop-color="var(--agent-accent)" stop-opacity="0.22" />
+                <stop offset="1" stop-color="#e7c66b" stop-opacity="0.12" />
+              </linearGradient>
+            </defs>
+            <rect class="agent-screen" x="15" y="20" width="150" height="134" rx="32" />
+            <path class="agent-antenna" d="M90 20V9" />
+            <circle class="agent-antenna-dot" cx="90" cy="7" r="5" />
+            <g class="agent-head">
+              <rect class="agent-face-plate" x="42" y="46" width="96" height="83" rx="28" />
+              <path class="agent-shine" d="M57 62c13-11 38-15 62-8" />
+              <g class="agent-eyes">
+                <circle cx="73" cy="84" r="7" />
+                <circle cx="107" cy="84" r="7" />
+              </g>
+              <g class="agent-mouth">
+                <ellipse class="mouth-open" cx="90" cy="113" rx="19" ry="8" />
+                <path class="mouth-lip" d="M73 111c8 7 26 7 34 0" />
+                <path class="mouth-highlight" d="M79 109c6 3 16 3 22 0" />
+              </g>
+            </g>
+            <g class="agent-signal" aria-hidden="true">
+              <path d="M136 80c8 10 8 22 0 32" />
+              <path d="M148 70c15 18 15 43 0 62" />
+            </g>
+          </svg>
+          <div class="read-aloud-face-state" id="readAloudFaceState">Agent ready</div>
+        </div>
+        <div>
+          <div class="launcher-section-title">Status</div>
+          <div id="state" class="state">Loading...</div>
+          <p class="launcher-muted">The transcript remains visible while the audio plays.</p>
+        </div>
+      </section>
+      <section class="voice-report-content launcher-panel">
+        <div class="launcher-section-title">Transcript</div>
+        <div id="subtitleLine" class="subtitle-line"></div>
+        <details class="transcript" open>
+          <summary>Full text</summary>
+          <div id="transcriptCopy" class="copy"></div>
+        </details>
+      </section>
+    </section>
+  </main>
+  <audio id="reportAudio" autoplay></audio>
+  <script src="./voice-report-mouth-dynamics.js"></script>
+  <script src="./voice-report-launcher.js"></script>
+</body>
+</html>

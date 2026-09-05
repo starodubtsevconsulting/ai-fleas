@@ -1,0 +1,27 @@
+id: lyrics-timestamp
+name: Lyrics Timestamp
+workflow: multimedia
+launch: app.sh
+ui:
+  panels:
+    - id: lyrics-timestamp
+      label: Lyrics Timestamp
+      mount:
+        kind: iframe
+        entry: launcher/panel/index.html
+      placement:
+        workflow: multimedia
+        surface: video-release-pipeline
+        stepId: lyrics-timestamp
+      context:
+        - selectedVideoPath
+        - preferredLyricsPath
+        - preferredAudioPath
+        - preferredOutputPath
+      capabilities:
+        - loadExisting
+        - map
+        - save
+        - audioData
+        - pickFile
+        - pickDirectory

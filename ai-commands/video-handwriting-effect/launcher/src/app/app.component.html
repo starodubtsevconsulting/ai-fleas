@@ -1,0 +1,172 @@
+<main class="shell">
+  <header class="topbar">
+    <div>
+      <h1>Handwriting Render</h1>
+      <p>{{ commandDir() }}</p>
+      <p class="launch-context" *ngIf="launchBreadcrumb()">{{ launchBreadcrumb() }}</p>
+    </div>
+    <div class="actions">
+      <button type="button" class="ghost" (click)="openOutput()">Open output</button>
+      <button type="button" class="danger" *ngIf="running()" (click)="stop()">Stop</button>
+      <button type="button" class="primary" [disabled]="!canRun()" [attr.title]="validationIssues().join(' ' )" (click)="run()">{{ running() ? 'Running' : 'Run' }}</button>
+    </div>
+  </header>
+
+  <section class="workspace">
+    <form class="panel controls" (ngSubmit)="run()">
+      <div class="field two">
+        <label>
+          <span>Font</span>
+          <select [ngModel]="form().fontName" (ngModelChange)="patch({fontName: $event})" name="fontName">
+            <option *ngFor="let font of fonts()" [value]="font">{{ font }}</option>
+            <option *ngIf="fonts().length === 0" value="font-1">font-1</option>
+          </select>
+        </label>
+        <label>
+          <span>Lines</span>
+          <input readonly [ngModel]="form().maxLines || 'none'" name="lines" title="Selected lyric lines">
+        </label>
+      </div>
+
+      <label class="field path-field">
+        <span>Text file</span>
+        <div>
+          <input [ngModel]="form().textFile" (ngModelChange)="patch({textFile: $event})" name="textFile">
+          <button type="button" class="icon-button" title="Choose text file" (click)="chooseTextFile()">...</button>
+        </div>
+      </label>
+
+      <label class="field path-field">
+        <span>Output folder</span>
+        <div>
+          <input [ngModel]="form().dist" (ngModelChange)="patch({dist: $event})" name="dist">
+          <button type="button" class="icon-button" title="Choose output folder" (click)="chooseOutputPath()">...</button>
+        </div>
+      </label>
+
+      <div class="validation" *ngIf="validationIssues().length > 0" data-testid="render-validation">
+        <div *ngFor="let issue of validationIssues()">{{ issue }}</div>
+      </div>
+
+      <div class="field three resolution-row">
+        <label>
+          <span>Resolution</span>
+          <select [ngModel]="form().resolutionPreset" (ngModelChange)="setResolutionPreset($event)" name="resolutionPreset">
+            <option *ngFor="let preset of resolutionPresets" [value]="preset.value">{{ preset.label }}</option>
+          </select>
+        </label>
+        <label>
+          <span>Width</span>
+          <input type="number" min="1" [ngModel]="form().width" (ngModelChange)="patchResolution({width: +$event})" name="width">
+        </label>
+        <label>
+          <span>Height</span>
+          <input type="number" min="1" [ngModel]="form().height" (ngModelChange)="patchResolution({height: +$event})" name="height">
+        </label>
+      </div>
+
+      <div class="field two">
+        <label>
+          <span>Video mode</span>
+          <select [ngModel]="form().videoMode" (ngModelChange)="patch({videoMode: $event})" name="videoMode">
+            <option value="single">single</option>
+            <option value="per-line">per-line</option>
+          </select>
+        </label>
+        <label>
+          <span>Jobs</span>
+          <input [ngModel]="form().jobs" (ngModelChange)="patch({jobs: $event})" name="jobs">
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <label class="toggle">
+          <input type="checkbox" [ngModel]="form().transparent" (ngModelChange)="patch({transparent: $event}); applyTransparentDefaults()" name="transparent">
+          <span>Transparent overlay</span>
+        </label>
+      </div>
+
+      <div class="field two">
+        <label>
+          <span>Ink color</span>
+          <div class="color-field">
+            <input class="color-picker" type="color" [ngModel]="inkHex()" (ngModelChange)="setInkHex($event)" name="inkColorPicker" title="Pick ink color">
+            <input [ngModel]="form().inkColor" (ngModelChange)="patch({inkColor: $event})" name="inkColor">
+          </div>
+        </label>
+        <label>
+          <span>Letter height</span>
+          <input type="number" min="1" [ngModel]="form().letterHeight" (ngModelChange)="patch({letterHeight: +$event})" name="letterHeight">
+        </label>
+      </div>
+
+      <div class="field three">
+        <label>
+          <span>Position</span>
+          <select [ngModel]="form().textPosition" (ngModelChange)="patch({textPosition: $event})" name="textPosition">
+            <option value="bottom">bottom</option>
+            <option value="center">center</option>
+            <option value="top">top</option>
+          </select>
+        </label>
+        <label>
+          <span>Align</span>
+          <select [ngModel]="form().textAlign" (ngModelChange)="patch({textAlign: $event})" name="textAlign">
+            <option value="center">center</option>
+            <option value="left">left</option>
+          </select>
+        </label>
+        <label>
+          <span>Bottom margin</span>
+          <input type="number" min="0" [ngModel]="form().bottomMargin" (ngModelChange)="patch({bottomMargin: +$event})" name="bottomMargin">
+        </label>
+      </div>
+
+      <div class="field two">
+        <label>
+          <span>Tail symbols</span>
+          <input type="number" min="0" [ngModel]="form().tailSymbols" (ngModelChange)="patch({tailSymbols: +$event})" name="tailSymbols">
+        </label>
+        <label>
+          <span>Reveal style</span>
+          <select [ngModel]="form().revealStyle" (ngModelChange)="patch({revealStyle: $event})" name="revealStyle">
+            <option value="stroke">stroke</option>
+            <option value="crop">crop</option>
+          </select>
+        </label>
+      </div>
+    </form>
+
+    <section class="panel side">
+      <h2>Command</h2>
+      <pre>{{ commandPreview() }}</pre>
+      <div class="tabs" role="tablist" aria-label="Render output">
+        <button type="button" role="tab" [class.active]="activeOutputTab() === 'lyrics'" [attr.aria-selected]="activeOutputTab() === 'lyrics'" (click)="setOutputTab('lyrics')">Lyrics</button>
+        <button type="button" role="tab" [class.active]="activeOutputTab() === 'log'" [attr.aria-selected]="activeOutputTab() === 'log'" (click)="setOutputTab('log')">Log</button>
+      </div>
+      <div class="log" [class.empty]="activeOutputTab() === 'log' ? logs().length === 0 : !textPreview().available" [class.preview]="activeOutputTab() === 'lyrics'">
+        <ng-container *ngIf="activeOutputTab() === 'log'; else lyricsPreview">
+          <div *ngIf="logs().length === 0">{{ renderStarted() || running() ? 'Render starting.' : 'No logs yet.' }}</div>
+          <div *ngFor="let line of logs()">{{ line }}</div>
+        </ng-container>
+        <ng-template #lyricsPreview>
+          <div class="preview-path" *ngIf="textPreview().path">
+            <label class="select-all-lines">
+              <input type="checkbox" [ngModel]="allPreviewLinesSelected()" (ngModelChange)="toggleAllLines($event)" name="allPreviewLines">
+              <span>{{ textPreview().path }}</span>
+            </label>
+          </div>
+          <div class="lyrics-preview" *ngIf="textPreview().available; else previewEmpty">
+            <div class="lyrics-line" *ngFor="let line of previewLines()">
+              <input class="line-select" *ngIf="line.number !== null" type="checkbox" [ngModel]="isLineSelected(line.number)" (ngModelChange)="toggleLine(line.number, $event)" [name]="'line-' + line.number">
+              <span class="line-select-placeholder" *ngIf="line.number === null"></span>
+              <span class="line-number">{{ line.number || '' }}</span>
+              <span class="line-text" [class.truncated]="line.number === null">{{ line.text }}</span>
+            </div>
+          </div>
+          <ng-template #previewEmpty><div>{{ textPreview().message }}</div></ng-template>
+        </ng-template>
+      </div>
+    </section>
+  </section>
+</main>
