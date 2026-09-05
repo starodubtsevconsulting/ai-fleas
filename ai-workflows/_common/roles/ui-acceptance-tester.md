@@ -21,7 +21,7 @@ flowchart TD
 | Property           | Value                                     |
 | ------------------ | ----------------------------------------- |
 | Canonical role     | `ui-acceptance-tester`                    |
-| Display label      | `🖥️ ui-acceptance-tester`                 |
+| Display label      | Defined by the selected platform adapter  |
 | Human-facing       | `not human-facing (internal packet-only)` |
 | Communication mode | internal canonical packets only           |
 

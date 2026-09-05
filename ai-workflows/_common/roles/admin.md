@@ -20,11 +20,11 @@ flowchart TD
 | Property               | Value                                                               |
 | ---------------------- | ------------------------------------------------------------------- |
 | Canonical identity     | `admin`                                                             |
-| Display label          | `🔑 Admin`                                                          |
+| Display label          | Defined by the selected platform adapter                            |
 | Human-facing           | `human-facing (administrative only)`                                |
-| Lifecycle              | persistent control task; preserved across workflow reinitialization |
-| Model                  | `gpt-5.6-sol`                                                       |
-| Reasoning              | `high`                                                              |
+| Lifecycle              | Persistent control agent; concrete lifecycle is adapter-defined     |
+| Model                  | Defined by the selected platform adapter                            |
+| Reasoning              | Defined by the selected platform adapter                            |
 | Routable workflow role | no                                                                  |
 
 ## Capability declaration

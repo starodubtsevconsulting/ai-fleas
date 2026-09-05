@@ -17,9 +17,9 @@ This repository is the public rules and contracts layer for AI Fleas. Keep all c
 - When the human asks to initialize from `ai-fleas`, load this repository's `AGENTS.md`, the explicitly selected profile,
   and the public commands and workflows selected by that profile. Do not discover or infer a launcher, platform, profile,
   or companion repository merely because it exists nearby.
-- A plain `init` or `initialize` request initializes repository, profile, workflow, and project context only. It does not
-  authorize creating, replacing, messaging, archiving, or otherwise mutating managed-agent tasks. Managed-agent lifecycle
-  work requires a separate explicit human request naming that action and an explicitly configured host initializer.
+- A plain `init` or `initialize` request initializes repository, profile, workflow, and project context. When the selected
+  profile, workflow, complete logical project, and `agent_platform` are explicit, the selected adapter defines whether
+  `init` also initializes the team. Otherwise ask for the missing selection and mutate no managed agents.
 - AI Fleas is self-contained as a rules system. An operational profile may be local and Git-ignored; it does not create a
   dependency on a host implementation.
 - The selected profile defines the authorized workflows, commands, projects, and work scope. The current request selects
@@ -32,6 +32,9 @@ This repository is the public rules and contracts layer for AI Fleas. Keep all c
 - Host-specific companions such as `ai-fleas-gptapp` or `ai-fleas-my-platform` are optional consumers. Load one only when
   the selected profile or an explicit human instruction names it. A companion may add mechanics or host-owned rules but
   must not replace, weaken, or duplicate AI Fleas rules.
+- Resolve `agent_platform` by exact ID through `platforms/registry.yml` or an explicitly supplied external registry. Never
+  infer an adapter from a sibling folder. Platform-specific agent lifecycle and role realization belong under that
+  adapter; portable workflow roles must not assume concrete task, bot, session, messaging, or archival mechanics.
 
 ## Changes
 

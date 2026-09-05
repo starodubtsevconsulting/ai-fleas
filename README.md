@@ -12,6 +12,7 @@ depends on the private platform.
 - `ai-commands/` contains portable command contracts and their self-contained implementations.
 - `ai-workflows/` contains reusable workflow rules, roles, guides, and declarative contracts.
 - `ai-profile/` defines the profile structure and provides a sanitized example.
+- `platforms/` defines the adapter contract and tracked public agent-platform implementations such as `gpt-app`.
 
 Files intended for this repository must be safe to publish. Machine paths, credentials, private providers, client data,
 runtime state, UI/backend implementations, and private adapters belong in AI Fleas Platform.
@@ -22,19 +23,20 @@ commands. A consuming platform may bind those mechanics in a separate private im
 
 ## Initialization and host extensions
 
-AI Fleas can be used directly by an AI host without an additional platform repository. Start the AI task in the repository
-where the work will happen, load this repository's rules, and select an AI Profile. The profile—not the host application or
-the location of a shell command—defines the active workflows, commands, projects, and permitted work scope.
+AI Fleas always runs through an agent platform. It ships with the public `gpt-app` adapter, so GPT/Codex App users do not
+need an additional platform repository. Start the AI task in the repository where the work will happen, load this
+repository's rules, and select an AI Profile. The profile—not the shell working directory—defines the platform, active
+workflows, commands, projects, and permitted work scope.
 
 A direct setup is self-contained:
 
 1. Create or copy an AI Profile using `ai-profile/example/` as the structure.
-2. Configure that profile with the workflows, commands, projects, and scope available to the user.
+2. Select an exact registered `agent_platform` and configure the workflows, commands, projects, and scope.
 3. Start the AI host with the intended work repository as its project root and the selected profile as configuration.
 4. Keep writes inside that project root unless the profile and the user's request explicitly authorize cross-repository
    work.
 
-An organization may also build a host-specific companion such as `ai-fleas-gptapp` or `ai-fleas-my-platform`. A companion
+An organization may also build a host-specific companion such as `ai-fleas-my-platform`. A companion
 may provide a launcher, UI, backend, transport, persistence, provider integration, or private profiles. It consumes and
 implements the contracts in AI Fleas; it must not silently replace, weaken, or duplicate the common rules. Host-specific
 rules are appropriate only for behavior owned by that host itself.
