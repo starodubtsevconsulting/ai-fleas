@@ -79,21 +79,23 @@ entry and closure boundaries without becoming a proxy between the delivery roles
 ## Helper prompts
 
 The profile is supplied from outside this reusable workflow. See
-[Workspace projects and external knowledge](../../ai-profile/README.md#workspace-projects-and-external-knowledge). Under the conventional logical-project name
-`<profile-id>-dev`, the segment before the final hyphen is the profile ID and `dev` is this workflow ID.
+[Workspace projects and external knowledge](../../ai-profile/README.md#workspace-projects-and-external-knowledge).
+Valid Dev logical-project names are `<profile-id>-dev` and `<profile-id>-dev-<suffix>`. The exact selected profile and
+workflow establish the required prefix; any remaining suffix is an opaque scope identifier and may not be used to infer
+or replace the profile or workflow.
 
 | User prompt                                                                             | Scope resolution                                                     | Expected result                                                      |
 | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `Initialize <profile-id>-dev workflow` or `Initialize <profile-id>-dev workflow agents` | Resolve the externally supplied profile and validate workflow `dev`. | Create the complete declared team only when none is active.          |
-| `Initialize agents` from a task already bound to `<profile-id>-dev`                     | Use the task's verified logical-project binding.                     | Create the complete declared `<profile-id>-dev` team.                |
+| `Initialize <profile-id>-dev[-<suffix>] workflow` or `Initialize <profile-id>-dev[-<suffix>] workflow agents` | Resolve the externally supplied profile, validate workflow `dev`, and preserve the complete logical-project ID. | Create the complete declared team only when none is active. |
+| `Initialize agents` from a task already bound to `<profile-id>-dev[-<suffix>]`          | Use the task's verified complete logical-project binding.            | Create the team in that exact logical project, including its suffix. |
 | `Initialize dev workflow` from an unbound task                                          | Workflow is known but profile is missing.                            | Ask which profile and perform zero mutation.                         |
-| `Reinitialize <profile-id>-dev workflow`                                                | Resolve the exact externally bound logical project.                  | Archive the complete active team, then create a fresh complete team. |
-| `Archive <profile-id>-dev workflow`                                                     | Resolve the exact externally bound logical project.                  | Archive the complete active team and create nothing.                 |
-| `Delete` or `remove all <profile-id>-dev agents`                                        | Treat delete/remove as archive aliases.                              | Archive the complete active team; preserve history.                  |
+| `Reinitialize <profile-id>-dev[-<suffix>] workflow`                                     | Resolve the exact complete logical project.                          | Archive the complete active team, then create a fresh complete team. |
+| `Archive <profile-id>-dev[-<suffix>] workflow`                                          | Resolve the exact complete logical project.                          | Archive the complete active team and create nothing.                 |
+| `Delete` or `remove all <profile-id>-dev[-<suffix>] agents`                             | Treat delete/remove as archive aliases.                              | Archive the complete active team; preserve history.                  |
 
-Case, spaces, and the conventional omitted hyphen may be normalized only when they resolve to exactly one configured logical
-project. Misspellings that could identify more than one scope are `BLOCKED`. A task
-may omit the profile only when its runtime identity is already bound to exactly one validated logical project.
+Case and spacing may be normalized only when they resolve to exactly one configured logical project. The complete suffix
+must otherwise be preserved exactly. Misspellings that could identify more than one scope are `BLOCKED`. A task may omit
+the profile only when its runtime identity is already bound to exactly one validated logical project.
 
 ## Router
 

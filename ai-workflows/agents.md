@@ -78,8 +78,12 @@ flowchart TD
   Blocked --> Outcome
 ```
 
-An initialized team belongs to one logical agent project named `<profile-id>-<workflow-id>` or, for an explicitly
-selected isolated instance, `<profile-id>-<workflow-id>-<instance-id>`. The base profile/workflow prefix is mandatory.
+An initialized team belongs to one logical agent project named `<profile-id>-<workflow-id>` or
+`<profile-id>-<workflow-id>-<suffix>`. The base profile/workflow prefix is mandatory, and any nonempty suffix is allowed
+when it is part of the exact selected logical-project binding. A suffix may identify a repository, workstream, ticket,
+client, environment, or another profile-owned distinction; it does not change the profile or workflow identity.
+Implementations must validate the known profile and workflow first and then treat the remaining suffix as opaque. They
+must not infer profile or workflow identity by splitting on the final hyphen.
 That project is the team's communication and
 policy boundary in the GPT/Codex app. Roles initialized in it are
 workflow-scoped: they may communicate with declared peers in the same logical
@@ -93,7 +97,8 @@ work packet selects one exact authorized project/repository and matching
 workspace path according to the selected workflow. The same workflow team may
 therefore operate across the profile's authorized work targets without being
 recreated. Repository and folder coordinates scope the current work; the
-`<profile-id>-<workflow-id>` project scopes the agents and their communication.
+`<profile-id>-<workflow-id>` prefix scopes the workflow identity; the complete logical project ID, including any suffix,
+scopes the agents and their communication.
 
 The exact coordinate header below is the mechanical verification of this
 simple rule. Common contracts must not replace it with profile-specific prose.
