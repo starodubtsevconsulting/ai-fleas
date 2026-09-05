@@ -5,3 +5,15 @@ project binding, exact task-ID receipts, task messaging, model and reasoning sel
 
 It consumes portable workflow and role contracts from `ai-workflows/`. GPT-specific mechanics and role overlays stay here
 and may narrow, but never broaden, those contracts.
+
+The portable vocabulary maps as follows:
+
+| Portable concept | GPT/Codex App realization |
+| --- | --- |
+| logical agent | configured workflow role binding |
+| agent instance | user-visible Codex task |
+| instance ID | app-returned task/thread ID |
+| runtime scope | Codex project ID |
+| activate | create and initialize a task |
+| deactivate | recoverably archive the exact task ID |
+| send/receive | exact task-ID message delivery |

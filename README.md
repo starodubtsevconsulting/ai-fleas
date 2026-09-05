@@ -21,6 +21,16 @@ Public workflow manifests describe only portable identity, rule entry points, an
 not declare MCP servers, transports, endpoints, frontend/backend processes, event storage, or host-specific runtime
 commands. A consuming platform may bind those mechanics in a separate private implementation catalog.
 
+The agent model has three layers:
+
+1. A **role** defines portable responsibility, authority, constraints, inputs, outputs, and handoffs.
+2. A **logical agent** assigns a role within a workflow roster without choosing a host runtime.
+3. A **platform binding** realizes that logical agent as a GPT/Codex task, Hermes bot, launcher-owned agent, or another
+   platform object and owns its model, runtime identity, transport, presentation, and lifecycle mechanics.
+
+Roles and logical agents are reusable across platforms. Platform bindings may strengthen runtime verification but may
+not broaden role authority or change workflow ownership.
+
 ## Initialization and host extensions
 
 AI Fleas always runs through an agent platform. It ships with the public `gpt-app` adapter, so GPT/Codex App users do not

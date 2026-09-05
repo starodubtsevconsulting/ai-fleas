@@ -56,7 +56,7 @@ mapped initialized role; a direct host must still preserve the independent revie
 
 | Gate                                                                            | Required owner       | Required evidence                                                                                              |
 | ------------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Ticket resolution and required staffing                                         | Manager              | Exact ticket ID, lifecycle facts, and initialized worker task IDs.                                             |
+| Ticket resolution and required staffing                                         | Manager              | Exact ticket ID, lifecycle facts, and initialized worker instance IDs.                                             |
 | Requirements, acceptance criteria, and implementation design                    | Designer/Reviewer    | Exact specification, scope, acceptance criteria, and implementation packet.                                    |
 | Product and test-source implementation                                          | Coder                | Changed paths and implementation receipt.                                                                      |
 | Focused, unit, integration, build, and automated end-to-end execution           | Command Runner       | Exact commands, results, and artifacts returned to the verified caller.                                        |
@@ -87,19 +87,19 @@ or replace the profile or workflow.
 | User prompt                                                                             | Scope resolution                                                     | Expected result                                                      |
 | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | `Initialize <profile-id>-dev[-<suffix>] workflow` or `Initialize <profile-id>-dev[-<suffix>] workflow agents` | Resolve the externally supplied profile, validate workflow `dev`, and preserve the complete logical-project ID. | Create the complete declared team only when none is active. |
-| `Initialize agents` from a task already bound to `<profile-id>-dev[-<suffix>]`          | Use the task's verified complete logical-project binding.            | Create the team in that exact logical project, including its suffix. |
-| `Initialize dev workflow` from an unbound task                                          | Workflow is known but profile is missing.                            | Ask which profile and perform zero mutation.                         |
-| `Reinitialize <profile-id>-dev[-<suffix>] workflow`                                     | Resolve the exact complete logical project.                          | Archive the complete active team, then create a fresh complete team. |
-| `Archive <profile-id>-dev[-<suffix>] workflow`                                          | Resolve the exact complete logical project.                          | Archive the complete active team and create nothing.                 |
-| `Delete` or `remove all <profile-id>-dev[-<suffix>] agents`                             | Treat delete/remove as archive aliases.                              | Archive the complete active team; preserve history.                  |
+| `Initialize agents` from an instance already bound to `<profile-id>-dev[-<suffix>]`     | Use the instance's verified complete logical-project binding.        | Activate the team in that exact logical project, including its suffix. |
+| `Initialize dev workflow` from an unbound context                                       | Workflow is known but profile is missing.                            | Ask which profile and perform zero mutation.                         |
+| `Reinitialize <profile-id>-dev[-<suffix>] workflow`                                     | Resolve the exact complete logical project.                          | Deactivate the active team, then activate a fresh complete team.     |
+| `Deactivate <profile-id>-dev[-<suffix>] workflow`                                       | Resolve the exact complete logical project.                          | Deactivate the complete active team and activate nothing.            |
+| `Delete`, `remove`, or `archive all <profile-id>-dev[-<suffix>] agents`                 | Treat the words as a platform-neutral deactivation request.          | Use the adapter's safest preservation behavior for the complete team. |
 
 Case and spacing may be normalized only when they resolve to exactly one configured logical project. The complete suffix
-must otherwise be preserved exactly. Misspellings that could identify more than one scope are `BLOCKED`. A task may omit
-the profile only when its runtime identity is already bound to exactly one validated logical project.
+must otherwise be preserved exactly. Misspellings that could identify more than one scope are `BLOCKED`. An agent
+instance may omit the profile only when its runtime identity is already bound to exactly one validated logical project.
 
 ## Router
 
-- For explicit Codex role-chat setup, read
+- For explicit managed-agent setup, read
   [workflow agent initialization](agents/init.md) and its
   [live test](agents/init-live-test.md).
 - For an explicitly authorized isolated capacity test, use
