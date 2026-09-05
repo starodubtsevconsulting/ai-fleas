@@ -1,0 +1,20 @@
+[
+  {
+    "id": "reporter",
+    "speaker": "Female Voice Reporter",
+    "aliases": ["reporter", "female-reporter", "female", "narrator", "host"],
+    "voice": "en-US-AriaNeural",
+    "gender": "female",
+    "rate": "+18%",
+    "pitch": "+0Hz"
+  },
+  {
+    "id": "male-reporter",
+    "speaker": "Male Voice Reporter",
+    "aliases": ["male-reporter", "male", "andrew"],
+    "voice": "en-US-AndrewNeural",
+    "gender": "male",
+    "rate": "+18%",
+    "pitch": "+0Hz"
+  }
+]

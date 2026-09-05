@@ -1,0 +1,7 @@
+dependencies:
+  - consumerAgentId: role-a
+    providerAgentId: role-b
+    kind: capability-provider
+    requirement: capability-bound
+    capabilities:
+      - example-capability

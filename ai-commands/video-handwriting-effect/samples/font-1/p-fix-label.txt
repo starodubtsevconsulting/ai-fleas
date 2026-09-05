@@ -1,0 +1,6 @@
+# threshold: 80
+# glyph-gap: 5
+# min-col-ink: 1
+# min-row-ink: 1
+# y-offset: 44
+p

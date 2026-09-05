@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Lyrics Timestamp</title>
+  <link rel="stylesheet" href="../../../shared/launcher/command-launcher.css">
+  <style>
+    .lyrics-timestamp-workspace {
+      grid-template-columns: minmax(320px, 400px) minmax(520px, 1fr);
+    }
+
+    .lyrics-results {
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .playback-bar {
+      display: grid;
+      grid-template-columns: auto minmax(150px, max-content) minmax(160px, 1fr);
+      grid-template-rows: auto 42px;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 12px 0;
+    }
+
+    .playback-time {
+      color: var(--launcher-text-muted);
+      font-family: var(--launcher-mono);
+      font-size: 12px;
+      min-width: 150px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .playback-progress {
+      --progress-thumb-size: 14px;
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+      height: var(--progress-thumb-size);
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .playback-progress::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--launcher-border);
+    }
+
+    .playback-progress::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: var(--progress-thumb-size);
+      height: var(--progress-thumb-size);
+      margin-top: -4px;
+      border: 2px solid #10151b;
+      border-radius: 50%;
+      background: var(--launcher-primary);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+    }
+
+    .playback-progress::-moz-range-track {
+      width: 100%;
+      height: 6px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--launcher-border);
+    }
+
+    .playback-progress::-moz-range-thumb {
+      width: var(--progress-thumb-size);
+      height: var(--progress-thumb-size);
+      border: 2px solid #10151b;
+      border-radius: 50%;
+      background: var(--launcher-primary);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+    }
+
+    .waveform-canvas {
+      grid-column: 3;
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--launcher-border);
+      border-radius: var(--launcher-control-radius);
+      background: #10151b;
+      display: block;
+    }
+
+    .lyrics-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 12px 12px 0;
+    }
+
+    .lyrics-tab {
+      min-width: 92px;
+    }
+
+    .lyrics-tab.active {
+      border-color: var(--launcher-primary);
+      background: var(--launcher-primary-muted);
+    }
+
+    .lyrics-view {
+      min-height: 0;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    .timestamp-list {
+      height: 100%;
+      overflow: auto;
+      border: 1px solid var(--launcher-border);
+      border-radius: var(--launcher-control-radius);
+      background: var(--launcher-surface-strong);
+    }
+
+    .timestamp-row {
+      display: grid;
+      grid-template-columns: 56px 168px 168px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--launcher-border);
+      font-size: 13px;
+    }
+
+    .timestamp-row[data-index] {
+      cursor: pointer;
+    }
+
+    .timestamp-row[data-index]:hover {
+      background: #1d2630;
+    }
+
+    .timestamp-row:last-child {
+      border-bottom: 0;
+    }
+
+    .timestamp-row.header {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #151b22;
+      color: var(--launcher-text-muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .timestamp-row.is-active {
+      background: var(--launcher-primary-muted);
+      box-shadow: inset 3px 0 0 var(--launcher-primary);
+    }
+
+    .timestamp-row.is-past {
+      color: var(--launcher-text-subtle);
+    }
+
+    .timestamp-time-cell {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .timestamp-time-editor {
+      width: 100%;
+      min-width: 0;
+      height: 30px;
+      padding: 4px 6px;
+      font-family: var(--launcher-mono);
+      font-size: 12px;
+    }
+
+    .timestamp-sync-button {
+      min-width: 44px;
+      height: 30px;
+      padding: 4px 7px;
+      font-size: 11px;
+    }
+
+    .timestamp-line-text {
+      min-width: 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .raw-output {
+      width: 100%;
+      height: 100%;
+      padding: 12px;
+      white-space: pre;
+    }
+
+    .path-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+    }
+
+    @media (max-width: 700px) {
+      .playback-bar {
+        grid-template-columns: auto minmax(150px, 1fr);
+      }
+
+      .playback-progress {
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+
+      .waveform-canvas {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .timestamp-row {
+        grid-template-columns: 42px 146px 146px minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="launcher-shell">
+    <header class="launcher-topbar">
+      <div>
+        <h1>Lyrics Timestamp</h1>
+        <p class="launcher-context" id="context">Loading command context...</p>
+      </div>
+      <div class="launcher-actions">
+        <button id="run" class="launcher-primary" type="button">Run</button>
+        <button id="save" class="launcher-ghost" type="button" disabled>Save</button>
+      </div>
+    </header>
+    <section class="launcher-workspace lyrics-timestamp-workspace">
+      <aside class="launcher-panel launcher-controls">
+        <h2>Inputs</h2>
+        <label class="launcher-label-text" for="lyricsFile">Lyrics file</label>
+        <div class="path-row">
+          <input id="lyricsFile" autocomplete="off">
+          <button id="pickLyrics" class="launcher-ghost" type="button">Browse</button>
+        </div>
+        <label class="launcher-label-text" for="audioFile">Audio file</label>
+        <div class="path-row">
+          <input id="audioFile" autocomplete="off">
+          <button id="pickAudio" class="launcher-ghost" type="button">Browse</button>
+        </div>
+        <label class="launcher-label-text" for="timingHintsFile">Timing hints file</label>
+        <div class="path-row">
+          <input id="timingHintsFile" autocomplete="off">
+          <button id="pickHints" class="launcher-ghost" type="button">Browse</button>
+        </div>
+        <h2>Output</h2>
+        <label class="launcher-label-text" for="dist">Output folder</label>
+        <div class="path-row">
+          <input id="dist" autocomplete="off">
+          <button id="pickDist" class="launcher-ghost" type="button">Browse</button>
+        </div>
+        <div class="launcher-grid-2">
+          <div>
+            <label class="launcher-label-text" for="tailMs">Tail ms</label>
+            <input id="tailMs" type="number" min="0" step="50" value="250">
+          </div>
+          <div>
+            <label class="launcher-label-text" for="format">Format</label>
+            <select id="format">
+              <option value="json,srt">JSON + SRT</option>
+              <option value="json">JSON</option>
+            </select>
+          </div>
+        </div>
+        <div class="launcher-warning">Without timing hints, mapping is a low-confidence proportional baseline. Timing hints anchor known lyric lines exactly and fill the remaining spans.</div>
+        <div class="launcher-status" id="status"></div>
+      </aside>
+      <section class="launcher-panel lyrics-results">
+        <div class="playback-bar">
+          <button id="playAudio" class="launcher-primary" type="button" disabled>Play</button>
+          <div id="playbackTime" class="playback-time">00:00.000 / 00:00.000</div>
+          <input id="playbackProgress" class="playback-progress" type="range" min="0" max="0" value="0" step="0.001" disabled>
+          <canvas id="waveform" class="waveform-canvas" width="900" height="76" aria-label="Audio level waveform"></canvas>
+        </div>
+        <div class="lyrics-tabs">
+          <button class="lyrics-tab active" data-tab="mapped" type="button">Mapped lyrics</button>
+          <button class="lyrics-tab" data-tab="json" type="button">Raw JSON</button>
+          <button class="lyrics-tab" data-tab="srt" type="button">SRT</button>
+        </div>
+        <div class="lyrics-view">
+          <div id="mapped" class="timestamp-list"></div>
+          <pre id="json" class="launcher-code raw-output" hidden></pre>
+          <pre id="srt" class="launcher-code raw-output" hidden></pre>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script src="lyrics-timestamp-timing.js"></script>
+  <script>
+    const ids = ['lyricsFile', 'audioFile', 'timingHintsFile', 'dist', 'tailMs', 'format'];
+    const state = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
+    const status = document.getElementById('status');
+    const mapped = document.getElementById('mapped');
+    const rawJson = document.getElementById('json');
+    const rawSrt = document.getElementById('srt');
+    const run = document.getElementById('run');
+    const save = document.getElementById('save');
+    const playAudio = document.getElementById('playAudio');
+    const playbackTime = document.getElementById('playbackTime');
+    const playbackProgress = document.getElementById('playbackProgress');
+    const waveform = document.getElementById('waveform');
+    const waveformContext = waveform.getContext('2d');
+    const audio = new Audio();
+    let mappedLines = [];
+    let activeLineIndex = -1;
+    let requestedPlaybackMs = 0;
+    let latestPreview = null;
+    let loadedExistingMapping = false;
+    let waveformPeaks = [];
+    let waveformAudioPath = '';
+
+    function input() {
+      return {
+        lyricsFile: state.lyricsFile.value.trim(),
+        audioFile: state.audioFile.value.trim(),
+        timingHintsFile: state.timingHintsFile.value.trim(),
+        dist: state.dist.value.trim(),
+        tailMs: Number(state.tailMs.value || 250),
+        format: state.format.value
+      };
+    }
+
+
+    function invalidatePreview() {
+      latestPreview = null;
+      loadedExistingMapping = false;
+      save.disabled = true;
+      run.disabled = false;
+    }
+
+    for (const inputElement of Object.values(state)) {
+      inputElement.addEventListener('input', invalidatePreview);
+      inputElement.addEventListener('change', invalidatePreview);
+    }
+
+    function setStatus(text, error = false) {
+      status.textContent = text;
+      status.classList.toggle('error', error);
+    }
+
+    function secondsValue(ms) {
+      return (Math.max(0, Math.round(Number(ms) || 0)) / 1000).toFixed(3);
+    }
+
+    function msToClock(ms) {
+      const total = Math.max(0, Math.floor(Number(ms) || 0));
+      const minutes = Math.floor(total / 60000);
+      const seconds = Math.floor((total % 60000) / 1000);
+      const millis = total % 1000;
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
+    }
+
+    function pathToFileUrl(filePath) {
+      const normalized = String(filePath || '').replace(/\\/g, '/');
+      return `file://${normalized.split('/').map((part, index) => index === 0 ? part : encodeURIComponent(part)).join('/')}`;
+    }
+
+    async function audioSourceUrl(audioPath) {
+      if (window.lyricsTimestamp.audioUrl) {
+        return window.lyricsTimestamp.audioUrl(audioPath);
+      }
+      return pathToFileUrl(audioPath);
+    }
+
+    function configureHostControls() {
+      if (window.lyricsTimestamp.canBrowse !== false) {
+        return;
+      }
+      for (const id of ['pickLyrics', 'pickAudio', 'pickHints', 'pickDist']) {
+        const button = document.getElementById(id);
+        button.disabled = true;
+        button.title = 'Native file browsing is available in the standalone command window. Edit the path field directly here.';
+      }
+    }
+
+
+    function srtTimestamp(ms) {
+      const total = Math.max(0, Math.floor(Number(ms) || 0));
+      const hours = Math.floor(total / 3600000);
+      const minutes = Math.floor((total % 3600000) / 60000);
+      const seconds = Math.floor((total % 60000) / 1000);
+      const millis = total % 1000;
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')},${String(millis).padStart(3, '0')}`;
+    }
+
+    function srtFromLines(lines = []) {
+      return lines.map((line) => [
+        String(line.index),
+        `${srtTimestamp(line.startMs)} --> ${srtTimestamp(line.endMs)}`,
+        line.text
+      ].join('\n')).join('\n\n') + (lines.length ? '\n' : '');
+    }
+
+    function refreshPreviewArtifacts() {
+      if (!latestPreview?.payload) return;
+      latestPreview.payload.lines = mappedLines;
+      latestPreview.srt = srtFromLines(mappedLines);
+      rawJson.textContent = JSON.stringify(latestPreview.payload, null, 2);
+      rawSrt.textContent = latestPreview.srt;
+      save.disabled = false;
+    }
+
+    function syncLineEditor(lineIndex) {
+      const line = mappedLines[lineIndex];
+      const row = mapped.querySelector(`.timestamp-row[data-line-index="${lineIndex}"]`);
+      if (!line || !row) return;
+      row.title = `Seek to ${msToClock(line.startMs)}`;
+      const startInput = row.querySelector('[data-field="startMs"]');
+      const endInput = row.querySelector('[data-field="endMs"]');
+      if (startInput) startInput.value = secondsValue(line.startMs);
+      if (endInput) endInput.value = secondsValue(line.endMs);
+    }
+
+    function updateLineTiming(lineIndex, field, seconds, displayMs) {
+      const line = mappedLines[lineIndex];
+      if (!line) return;
+      const changedIndexes = window.LyricsTimestampTiming.applyTimingEdit(mappedLines, lineIndex, field, seconds);
+      for (const changedIndex of changedIndexes) {
+        syncLineEditor(changedIndex);
+      }
+      refreshPreviewArtifacts();
+      updatePlaybackDisplay(Number.isFinite(displayMs) ? displayMs : undefined);
+    }
+
+    async function saveCurrentPreview(statusPrefix = 'Wrote') {
+      if (!latestPreview) return null;
+      save.disabled = true;
+      const result = await window.lyricsTimestamp.save(input(), latestPreview);
+      setStatus(`${statusPrefix} ${result.jsonPath}${result.srtPath ? `\nWrote ${result.srtPath}` : ''}`);
+      return result;
+    }
+
+    async function syncLineTimingToPlayback(lineIndex, field) {
+      const targetMs = currentPlaybackMs();
+      updateLineTiming(lineIndex, field, targetMs / 1000, targetMs);
+      try {
+        await saveCurrentPreview('Synced and saved');
+      } catch (error) {
+        save.disabled = false;
+        setStatus(error.message || String(error), true);
+      }
+    }
+
+
+    function resizeWaveformCanvas() {
+      const rect = waveform.getBoundingClientRect();
+      const width = Math.max(1, Math.round(rect.width * window.devicePixelRatio));
+      const height = Math.max(1, Math.round(rect.height * window.devicePixelRatio));
+      if (waveform.width !== width || waveform.height !== height) {
+        waveform.width = width;
+        waveform.height = height;
+      }
+    }
+
+    function drawWaveform(currentMs = requestedPlaybackMs) {
+      resizeWaveformCanvas();
+      const width = waveform.width;
+      const height = waveform.height;
+      waveformContext.clearRect(0, 0, width, height);
+      waveformContext.fillStyle = '#10151b';
+      waveformContext.fillRect(0, 0, width, height);
+      const center = height / 2;
+      if (waveformPeaks.length === 0) {
+        waveformContext.strokeStyle = '#26323d';
+        waveformContext.beginPath();
+        waveformContext.moveTo(0, center);
+        waveformContext.lineTo(width, center);
+        waveformContext.stroke();
+      } else {
+        const barWidth = Math.max(1, width / waveformPeaks.length);
+        waveformContext.fillStyle = '#5da3c7';
+        waveformPeaks.forEach((peak, index) => {
+          const barHeight = Math.max(1, peak * (height - 8));
+          waveformContext.fillRect(index * barWidth, center - barHeight / 2, Math.ceil(barWidth), barHeight);
+        });
+      }
+      const durationMs = playbackDurationMs();
+      if (durationMs > 0) {
+        const x = Math.max(0, Math.min(width - 1, (currentMs / durationMs) * width));
+        waveformContext.strokeStyle = '#f5d06f';
+        waveformContext.lineWidth = Math.max(1, window.devicePixelRatio);
+        waveformContext.beginPath();
+        waveformContext.moveTo(x, 0);
+        waveformContext.lineTo(x, height);
+        waveformContext.stroke();
+      }
+    }
+
+    function peaksFromAudioBuffer(audioBuffer, bucketCount = 240) {
+      const channelData = audioBuffer.getChannelData(0);
+      const samplesPerBucket = Math.max(1, Math.floor(channelData.length / bucketCount));
+      const peaks = [];
+      for (let bucket = 0; bucket < bucketCount; bucket += 1) {
+        const start = bucket * samplesPerBucket;
+        const end = Math.min(channelData.length, start + samplesPerBucket);
+        let peak = 0;
+        for (let index = start; index < end; index += 1) {
+          peak = Math.max(peak, Math.abs(channelData[index]));
+        }
+        peaks.push(peak);
+      }
+      const maxPeak = Math.max(0.001, ...peaks);
+      return peaks.map((peak) => peak / maxPeak);
+    }
+
+    async function loadWaveform(audioPath) {
+      if (!audioPath || waveformAudioPath === audioPath) {
+        drawWaveform();
+        return;
+      }
+      waveformAudioPath = audioPath;
+      waveformPeaks = [];
+      drawWaveform();
+      try {
+        if (!window.AudioContext && !window.webkitAudioContext) return;
+        if (!window.lyricsTimestamp.audioData) return;
+        const audioData = await window.lyricsTimestamp.audioData(audioPath);
+        const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+        const context = new AudioContextCtor();
+        const buffer = await context.decodeAudioData(audioData.slice(0));
+        waveformPeaks = peaksFromAudioBuffer(buffer);
+        await context.close?.();
+      } catch {
+        waveformPeaks = [];
+      }
+      drawWaveform();
+    }
+
+
+    function currentPlaybackMs() {
+      return Math.max(0, Math.round((Number(playbackProgress.value) || 0) * 1000));
+    }
+
+    function playbackDurationMs() {
+      return Number.isFinite(audio.duration) ? audio.duration * 1000 : (mappedLines.at(-1)?.endMs || 0);
+    }
+
+    function playbackLabel(currentMs = requestedPlaybackMs) {
+      return `${msToClock(currentMs)} / ${msToClock(playbackDurationMs())}`;
+    }
+
+    function updatePlaybackBounds() {
+      const duration = Number.isFinite(audio.duration) ? audio.duration : Math.max(0, (mappedLines.at(-1)?.endMs || 0) / 1000);
+      playbackProgress.max = String(duration || 0);
+      playbackTime.textContent = playbackLabel(requestedPlaybackMs);
+    }
+
+    function updatePlaybackDisplay(currentMsOverride) {
+      const currentMs = Number.isFinite(currentMsOverride) ? currentMsOverride : (Number.isFinite(audio.currentTime) ? audio.currentTime * 1000 : requestedPlaybackMs);
+      const duration = Number.isFinite(audio.duration) ? audio.duration : Math.max(0, (mappedLines.at(-1)?.endMs || 0) / 1000);
+      requestedPlaybackMs = currentMs;
+      playbackTime.textContent = playbackLabel(currentMs);
+      playbackProgress.max = String(duration || 0);
+      playbackProgress.value = String(currentMs / 1000);
+      highlightLine(currentMs);
+      drawWaveform(currentMs);
+    }
+
+    function seekToMs(targetMs) {
+      const nextMs = Math.max(0, Number(targetMs) || 0);
+      const nextSeconds = nextMs / 1000;
+      audio.currentTime = nextSeconds;
+      showTab('mapped');
+      updatePlaybackDisplay(nextMs);
+    }
+
+    function highlightLine(currentMs) {
+      const rows = [...mapped.querySelectorAll('.timestamp-row[data-index]')];
+      const nextActive = mappedLines.findIndex((line) => currentMs >= line.startMs && currentMs <= line.endMs);
+      rows.forEach((row, index) => {
+        const line = mappedLines[index];
+        row.classList.toggle('is-active', index === nextActive);
+        row.classList.toggle('is-past', line ? currentMs > line.endMs : false);
+      });
+      if (nextActive >= 0 && nextActive !== activeLineIndex) {
+        rows[nextActive]?.scrollIntoView({ block: 'nearest' });
+      }
+      activeLineIndex = nextActive;
+    }
+
+    async function configureAudioForCurrentInput() {
+      const audioPath = state.audioFile.value.trim();
+      audio.pause();
+      if (audio.removeAttribute) {
+        audio.removeAttribute('src');
+      } else {
+        audio.src = '';
+      }
+      playAudio.textContent = 'Play';
+      if (!audioPath || mappedLines.length === 0) {
+        playAudio.disabled = true;
+        playbackProgress.disabled = true;
+        waveformPeaks = [];
+        waveformAudioPath = '';
+        drawWaveform();
+        return;
+      }
+      try {
+        audio.src = await audioSourceUrl(audioPath);
+        loadWaveform(audioPath);
+        playAudio.disabled = false;
+        playbackProgress.disabled = false;
+        updatePlaybackBounds();
+        drawWaveform(requestedPlaybackMs);
+      } catch (error) {
+        playAudio.disabled = true;
+        playbackProgress.disabled = true;
+        setStatus(error.message || String(error), true);
+      }
+    }
+
+    function renderMapped(lines = []) {
+      mappedLines = lines;
+      activeLineIndex = -1;
+      const rows = [
+        '<div class="timestamp-row header"><div>#</div><div>Start s</div><div>End s</div><div>Lyric</div></div>',
+        ...lines.map((line, index) => `<div class="timestamp-row" data-line-index="${index}" data-index="${line.index}" title="Seek to ${msToClock(line.startMs)}"><div>${line.index}</div><div class="timestamp-time-cell"><input class="timestamp-time-editor" data-field="startMs" type="number" min="0" step="0.001" value="${secondsValue(line.startMs)}" aria-label="Start time seconds for line ${line.index}"><button class="timestamp-sync-button launcher-ghost" data-field="startMs" type="button" title="Use current playback time for start">Now</button></div><div class="timestamp-time-cell"><input class="timestamp-time-editor" data-field="endMs" type="number" min="0" step="0.001" value="${secondsValue(line.endMs)}" aria-label="End time seconds for line ${line.index}"><button class="timestamp-sync-button launcher-ghost" data-field="endMs" type="button" title="Use current playback time for end">Now</button></div><div class="timestamp-line-text"></div></div>`)
+      ];
+      mapped.innerHTML = rows.join('');
+      const textCells = mapped.querySelectorAll('.timestamp-line-text');
+      lines.forEach((line, index) => {
+        textCells[index].textContent = line.text;
+      });
+      for (const row of mapped.querySelectorAll('.timestamp-row[data-line-index]')) {
+        row.addEventListener('click', (event) => {
+          if (event.target.closest('input, button')) return;
+          const line = mappedLines[Number(row.dataset.lineIndex)];
+          if (!line) return;
+          seekToMs(line.startMs);
+        });
+      }
+      for (const editor of mapped.querySelectorAll('.timestamp-time-editor')) {
+        editor.addEventListener('click', (event) => event.stopPropagation());
+        editor.addEventListener('input', () => updateLineTiming(Number(editor.closest('.timestamp-row').dataset.lineIndex), editor.dataset.field, editor.value));
+        editor.addEventListener('change', () => updateLineTiming(Number(editor.closest('.timestamp-row').dataset.lineIndex), editor.dataset.field, editor.value));
+      }
+      for (const button of mapped.querySelectorAll('.timestamp-sync-button')) {
+        button.addEventListener('click', (event) => {
+          event.stopPropagation();
+          syncLineTimingToPlayback(Number(button.closest('.timestamp-row').dataset.lineIndex), button.dataset.field);
+        });
+      }
+      updatePlaybackBounds();
+      configureAudioForCurrentInput();
+    }
+
+    function showTab(tab) {
+      for (const button of document.querySelectorAll('.lyrics-tab')) {
+        button.classList.toggle('active', button.dataset.tab === tab);
+      }
+      mapped.hidden = tab !== 'mapped';
+      rawJson.hidden = tab !== 'json';
+      rawSrt.hidden = tab !== 'srt';
+    }
+
+    for (const button of document.querySelectorAll('.lyrics-tab')) {
+      button.addEventListener('click', () => showTab(button.dataset.tab));
+    }
+
+    document.getElementById('pickLyrics').addEventListener('click', async () => {
+      const value = await window.lyricsTimestamp.pickLyrics(state.lyricsFile.value);
+      if (value) {
+        state.lyricsFile.value = value;
+        invalidatePreview();
+      }
+    });
+
+    document.getElementById('pickAudio').addEventListener('click', async () => {
+      const value = await window.lyricsTimestamp.pickAudio(state.audioFile.value);
+      if (value) {
+        state.audioFile.value = value;
+        invalidatePreview();
+        configureAudioForCurrentInput();
+      }
+    });
+
+    document.getElementById('pickHints').addEventListener('click', async () => {
+      const value = await window.lyricsTimestamp.pickHints(state.timingHintsFile.value);
+      if (value) {
+        state.timingHintsFile.value = value;
+        invalidatePreview();
+      }
+    });
+
+    state.audioFile.addEventListener('change', configureAudioForCurrentInput);
+    state.audioFile.addEventListener('input', configureAudioForCurrentInput);
+
+    playAudio.addEventListener('click', async () => {
+      try {
+        if (audio.paused) {
+          await audio.play();
+          playAudio.textContent = 'Pause';
+        } else {
+          audio.pause();
+          playAudio.textContent = 'Play';
+        }
+      } catch (error) {
+        playAudio.textContent = 'Play';
+        setStatus(error.message || String(error), true);
+      }
+    });
+
+    playbackProgress.addEventListener('input', () => {
+      seekToMs(Number(playbackProgress.value || 0) * 1000);
+    });
+
+    audio.addEventListener('timeupdate', updatePlaybackDisplay);
+    audio.addEventListener('loadedmetadata', () => updatePlaybackDisplay(requestedPlaybackMs));
+    window.addEventListener('resize', () => drawWaveform());
+
+    audio.addEventListener('ended', () => {
+      playAudio.textContent = 'Play';
+      updatePlaybackDisplay();
+    });
+
+    document.getElementById('pickDist').addEventListener('click', async () => {
+      const value = await window.lyricsTimestamp.pickDist(state.dist.value);
+      if (value) {
+        state.dist.value = value;
+        invalidatePreview();
+      }
+    });
+
+
+    function applyPreview(result, statusText) {
+      latestPreview = result;
+      loadedExistingMapping = Boolean(result.found && result.saved);
+      save.disabled = Boolean(result.saved);
+      run.disabled = loadedExistingMapping;
+      renderMapped(result.payload?.lines || []);
+      rawJson.textContent = JSON.stringify(result.payload || {}, null, 2);
+      rawSrt.textContent = result.srt || '';
+      showTab('mapped');
+      setStatus(statusText);
+    }
+
+    async function loadExistingMappedOutput() {
+      if (!window.lyricsTimestamp.loadExisting) return;
+      try {
+        const result = await window.lyricsTimestamp.loadExisting(input());
+        if (!result.found) {
+          loadedExistingMapping = false;
+          run.disabled = false;
+          renderMapped([]);
+          configureAudioForCurrentInput();
+          drawWaveform();
+          return;
+        }
+        applyPreview(result, `Loaded existing mapped file: ${result.jsonPath}`);
+      } catch (error) {
+        setStatus(error.message || String(error), true);
+      }
+    }
+
+    run.addEventListener('click', async () => {
+      if (loadedExistingMapping) return;
+      run.disabled = true;
+      setStatus('Mapping lyrics...');
+      try {
+        const result = await window.lyricsTimestamp.map(input());
+        applyPreview(result, 'Preview ready. Press Save to write mapped files.');
+      } catch (error) {
+        setStatus(error.message || String(error), true);
+      } finally {
+        run.disabled = loadedExistingMapping;
+      }
+    });
+
+    save.addEventListener('click', async () => {
+      if (!latestPreview) return;
+      setStatus('Saving mapped files...');
+      try {
+        await saveCurrentPreview('Wrote');
+      } catch (error) {
+        save.disabled = false;
+        setStatus(error.message || String(error), true);
+      }
+    });
+
+    configureHostControls();
+
+    window.lyricsTimestamp.defaults().then(async (defaults) => {
+      document.getElementById('context').textContent = defaults.breadcrumbLabel || defaults.scopePath || defaults.commandDir;
+      state.lyricsFile.value = defaults.lyricsFile || '';
+      state.audioFile.value = defaults.audioFile || '';
+      state.timingHintsFile.value = defaults.timingHintsFile || '';
+      state.dist.value = defaults.dist || '';
+      await loadExistingMappedOutput();
+    }).catch((error) => setStatus(error.message || String(error), true));
+  </script>
+</body>
+</html>
