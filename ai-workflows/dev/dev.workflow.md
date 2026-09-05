@@ -1,34 +1,31 @@
 # Development workflow
 
-Visible agent team: [team.md](agents/team.md).
-Agent instantiation: [agents.yml](agents.yml).
-Team capability, communication, and lifecycle policy: [team.md](agents/team.md).
-Elastic capacity mechanics: [elastic-agent-pool.md](agents/elastic-agent-pool.md).
-Workflow agents: [agents.md](../agents.md).
+Workflow-agent identity, capability, communication, and lifecycle rules: [agents.md](../agents.md).
+Reusable role boundaries: [`../_common/roles/`](../_common/roles/).
 
 Use this only for an explicitly requested development workflow. Ordinary work
 uses the cost-first `AGENTS.md` instructions.
 
 ## Agent binding
 
-This workflow binds the exact roles selected by [`agents.yml`](agents.yml) directly to their complete reusable
-definitions under [`../_common/roles`](../_common/roles/). It supplies the Dev project, Team policy, routing, command
-map, lifecycle context, and any explicit Dev override during initialization. There is no
-intermediate `dev/agents/<role>.md` binding layer; `agents/` contains workflow infrastructure only.
+The role names in this workflow bind to their reusable definitions under
+[`../_common/roles`](../_common/roles/). They define responsibility boundaries rather than a required host, model,
+process, transport, or task layout. A host that activates managed agents must compose the common
+[workflow-agent contract](../agents.md), declare an exact roster and communication topology, and preserve every boundary
+below. This public workflow does not discover or require a companion platform.
 
 ### Judge override
 
 The Dev Judge operates only inside the initialized Dev workflow instance. It must not contact or use Designer/Reviewer,
-Manager, Coder, Command Runner, UI Acceptance Tester, Proxy Coder, or any substitute to review, approve, relay, validate,
+Manager, Coder, Command Runner, UI Acceptance Tester, any host-defined proxy, or any substitute to review, approve, relay, validate,
 publish, execute, or supply evidence for Judge work. It reports only to the human; the Dev dependency map therefore has
 no edge to or from Judge. Protected publication remains a direct Judge action only after every common-role gate and exact
 human authorization pass.
 
-After a Dev governance change, Judge runs these focused commands on the exact diff before disclosure:
+After a Dev governance change, Judge validates the exact diff before disclosure. At minimum, run the public repository
+boundary check:
 
-- `node --test ai-workflows/dev/agents/diagram-first-validator.test.mjs`
-- `node --test ai-workflows/dev/agents/visible-role-routing.test.mjs`
-- `bash ai-workflows/workflow-agents.test.sh`
+- `bash ai-workflows/validate-public-boundary.sh`
 
 ## Required delivery gates and role mapping
 
@@ -53,8 +50,9 @@ This is a specification-driven development flow: ticket context and staffing pre
 specification and design govern implementation; implementation is proven through automated validation, independent
 technical review, and conditional visible acceptance before delivery or closure. The development workflow owns this
 order and maps each gate to its executing role. A coordinating role does not inherit another gate owner's capability.
-Designer/Reviewer records the applicable gates before implementation, dispatches each gate to its mapped initialized
-visible role, and advances only after receiving the matching terminal receipt.
+Designer/Reviewer records the applicable gates before implementation, preserves independent ownership for each applicable
+gate, and advances only after receiving the matching evidence. A host using managed agents dispatches each gate to the
+mapped initialized role; a direct host must still preserve the independent review and acceptance boundaries.
 
 | Gate                                                                            | Required owner       | Required evidence                                                                                              |
 | ------------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -81,7 +79,7 @@ entry and closure boundaries without becoming a proxy between the delivery roles
 ## Helper prompts
 
 The profile is supplied from outside this reusable workflow. See
-[Project sources and profiles](../README.md#project-sources-and-profiles). Under the conventional logical-project name
+[Workspace projects and external knowledge](../../ai-profile/README.md#workspace-projects-and-external-knowledge). Under the conventional logical-project name
 `<profile-id>-dev`, the segment before the final hyphen is the profile ID and `dev` is this workflow ID.
 
 | User prompt                                                                             | Scope resolution                                                     | Expected result                                                      |
