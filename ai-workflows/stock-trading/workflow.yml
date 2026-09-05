@@ -1,0 +1,8 @@
+id: stock-trading
+label: Stock Trading
+tags:
+  - trading
+  - markets
+  - finance
+entry: stock-trading.workflow.md
+required_commands: []
