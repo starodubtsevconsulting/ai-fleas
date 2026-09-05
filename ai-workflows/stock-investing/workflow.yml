@@ -1,0 +1,8 @@
+id: stock-investing
+label: Stock Investing
+tags:
+  - investing
+  - research
+  - finance
+entry: stock-investing.workflow.md
+required_commands: []
