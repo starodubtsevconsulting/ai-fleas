@@ -20,3 +20,6 @@
 **/*.command.conf
 **/.env
 **/.env.*
+
+# Local operational profile copied from the private platform for development.
+/ai-profile/sc/
