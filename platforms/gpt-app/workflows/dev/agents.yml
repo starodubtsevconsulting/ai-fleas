@@ -71,6 +71,7 @@ runtime_semantics:
   agent_instance: user-visible-codex-task
   instance_id: app-returned-task-id
   runtime_scope: codex-project-id
+  creation_environment: saved-project-local
   activate: create-and-initialize-task
   deactivate: recoverably-archive-exact-task-id
   delivery: exact-task-id-message
