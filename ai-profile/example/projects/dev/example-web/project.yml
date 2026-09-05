@@ -1,0 +1,9 @@
+id: example-web
+label: Example web
+description: TODO placeholder web project; replace or remove when copying this profile.
+project_type: folder
+repo_path: /absolute/path/to/example-workspace/example-web
+remote_url: https://github.example.invalid/example/example-web.git
+storage_type: folder
+storage_path: /absolute/path/to/example-workspace/example-web
+storage_label: Folder

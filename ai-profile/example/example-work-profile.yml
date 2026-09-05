@@ -1,0 +1,94 @@
+version: 3
+name: example
+description: Copyable example work profile
+default_workflow: dev.workflow.md
+default_agent: codex
+agent_login_method: web_sso
+web_auth_policies:
+  codex: reuse_scoped_login
+  pi: fresh_scoped_login
+ai_commands_root: ../../ai-commands
+ai_workflows_root: ../../ai-workflows
+agent_identities:
+  config: agent-identities.yml
+governance_rules_repository: example-governance-rules
+governance_rules_surface:
+  - AGENTS.md
+  - README.md
+  - why.md
+  - ai-profile
+  - ai-workflows
+  - ai-commands
+commands:
+  - id: source-control
+    config: commands/source-control/config.yml
+workflows:
+  - path: dev.workflow.md
+    harness: pi
+    commands:
+      - coding
+      - ticket-tracker
+      - jira
+      - test
+      - review
+      - commit
+    projects:
+      - ref: projects/dev/example-service/project.yml
+      - ref: projects/dev/example-web/project.yml
+    agent_context:
+      schema_version: codex-project-context.v1
+      tracker:
+        provider: jira
+        capability: jira
+        workspace: example-team
+        container:
+          name: EXAMPLE
+          id: EXAMPLE
+          url: https://jira.example.invalid/browse
+        lifecycle:
+          backlog: Backlog
+          todo: To Do
+          in_progress: In Progress
+          done: Done
+          canceled: Canceled
+        disabled_providers: []
+        policy_references:
+          - workflows/dev/commands/jira/ticket-policy.md
+        supported_operations:
+          - search
+          - read
+          - status_inventory
+          - create
+          - checklist_update
+          - lifecycle_update
+          - evidence_gated_closure
+        execution:
+          registered_command: jira
+          command_path: jira/jira.command.sh
+          command_env_overrides:
+            JIRA_BASE_URL: https://jira.example.invalid
+            JIRA_BROWSE_BASE_URL: https://jira.example.invalid/browse/
+            JIRA_ISSUE_KEY_PATTERN: '^[A-Z][A-Z0-9_]*-[0-9]+$'
+            JIRA_BROWSER_MODE: existing-chrome
+            JIRA_CURRENT_SPRINT_BOARD_URL: 'https://jira.example.invalid/secure/RapidBoard.jspa?rapidView=0&projectKey=EXAMPLE'
+            JIRA_DESCRIPTION_TEMPLATE_FILE: workflows/dev/commands/jira/description.template.txt
+        ticket_policy:
+          policy_file: workflows/dev/commands/jira/ticket-policy.md
+          summary_format: '[project name]: title'
+          description_template_file: workflows/dev/commands/jira/description.template.txt
+app_mode:
+  default: dev
+  ui_surface: electron
+  use_tmux_view: false
+  window_work_area_ratio: 0.7
+  side_panel_width_ratio: 0.2
+  chat_panel_height_ratio: 0.3
+  collapsed_panels: []
+  allow_codex_login_bootstrap: true
+  allow_codex_logout: true
+  workflow_layouts:
+    dev.workflow.md: terminal
+projects_root_path: /absolute/path/to/example-workspace
+sessions_root: ~/.ai-work-sessions/example
+org_domain: example.com
+envs: [dev, prod]

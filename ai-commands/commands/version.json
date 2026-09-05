@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1-SNAPSHOT",
+  "stage": "snapshot",
+  "ready": false,
+  "tested": false,
+  "message": "This command is still under development and must not execute while it is a SNAPSHOT."
+}

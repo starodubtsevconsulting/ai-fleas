@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Project Creator</title>
+  <link rel="stylesheet" href="../../../shared/launcher/command-launcher.css">
+  <style>
+    .project-creator-workspace {
+      grid-template-columns: minmax(320px, 400px) minmax(420px, 1fr);
+    }
+
+    .project-creator-spec {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 8px;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    #specification {
+      height: 100%;
+      font-family: var(--launcher-mono);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      #specification {
+        min-height: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="launcher-shell project-creator-shell">
+    <header class="launcher-topbar">
+      <div>
+        <h1>Project Creator</h1>
+        <p class="launcher-context" id="paths">Loading defaults...</p>
+      </div>
+      <div class="launcher-actions">
+        <button id="template" class="launcher-ghost" type="button">Template</button>
+        <button id="create" class="launcher-primary" type="button">Create</button>
+      </div>
+    </header>
+    <section class="launcher-workspace project-creator-workspace">
+      <aside class="launcher-panel launcher-controls">
+        <h2>Basics</h2>
+        <label class="launcher-field" for="name"><span>Project title</span></label>
+        <input id="name" value="New Multimedia Project" autocomplete="off">
+        <div class="launcher-grid-2">
+          <div>
+            <label class="launcher-label-text" for="contentType">Type</label>
+            <select id="contentType"><option>song</option><option>story</option><option>book</option></select>
+          </div>
+          <div>
+            <label class="launcher-label-text" for="releaseType">Release</label>
+            <select id="releaseType"><option>video</option><option>audio</option></select>
+          </div>
+        </div>
+        <h2>Multimedia</h2>
+        <label class="launcher-label-text" for="lyricsSource">Lyrics source</label>
+        <select id="lyricsSource"><option value="write">write</option><option value="ready-to-post">ready-to-post</option></select>
+        <label class="launcher-label-text" for="coverMode">Cover</label>
+        <select id="coverMode"><option value="video">video</option><option value="static-picture">static-picture</option></select>
+        <label class="launcher-label-text" for="thumbnailMode">Thumbnail</label>
+        <select id="thumbnailMode"><option value="same-as-cover">same-as-cover</option><option value="separate">separate</option></select>
+        <h2>Paths</h2>
+        <label class="launcher-label-text" for="registryPath">Registry path</label>
+        <input id="registryPath">
+        <label class="launcher-label-text" for="rootPath">Project root path</label>
+        <input id="rootPath">
+        <div class="launcher-status" id="status"></div>
+      </aside>
+      <section class="launcher-panel project-creator-spec">
+        <label class="launcher-label-text" for="specification">Specification markdown</label>
+        <textarea id="specification"></textarea>
+      </section>
+    </section>
+  </main>
+  <script>
+    const fields = ['name', 'contentType', 'releaseType', 'lyricsSource', 'coverMode', 'thumbnailMode', 'registryPath', 'rootPath', 'specification'];
+    const state = Object.fromEntries(fields.map((id) => [id, document.getElementById(id)]));
+    const status = document.getElementById('status');
+    let touchedSpec = false;
+    function input() {
+      return Object.fromEntries(fields.map((id) => [id, state[id].value]));
+    }
+    function setStatus(text, error = false) {
+      status.textContent = text;
+      status.classList.toggle('error', error);
+    }
+    async function refreshTemplate(force = false) {
+      if (touchedSpec && !force) return;
+      try {
+        state.specification.value = await window.projectCreator.specTemplate(input());
+      } catch (error) {
+        setStatus(error.message || String(error), true);
+      }
+    }
+    for (const id of ['name', 'contentType', 'releaseType', 'lyricsSource', 'coverMode', 'thumbnailMode']) {
+      state[id].addEventListener('change', () => refreshTemplate(false));
+      state[id].addEventListener('input', () => refreshTemplate(false));
+    }
+    state.specification.addEventListener('input', () => { touchedSpec = true; });
+    document.getElementById('template').addEventListener('click', () => { touchedSpec = false; refreshTemplate(true); });
+    document.getElementById('create').addEventListener('click', async () => {
+      setStatus('Creating project...');
+      try {
+        const result = await window.projectCreator.create(input());
+        setStatus(`Created ${result.name}\n${result.path}`);
+      } catch (error) {
+        setStatus(error.message || String(error), true);
+      }
+    });
+    window.projectCreator.defaults().then((defaults) => {
+      state.registryPath.value = defaults.registryPath;
+      state.rootPath.value = defaults.rootPath;
+      document.getElementById('paths').textContent = defaults.configRoot;
+      refreshTemplate(true);
+    }).catch((error) => setStatus(error.message || String(error), true));
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+id: example-service
+label: Example service
+description: TODO placeholder service project; replace or remove when copying this profile.
+project_type: folder
+repo_path: /absolute/path/to/example-workspace/example-service
+remote_url: https://github.example.invalid/example/example-service.git
+storage_type: folder
+storage_path: /absolute/path/to/example-workspace/example-service
+storage_label: Folder
+knowledge:
+  - id: local-development
+    kind: instructions
+    ref: knowledge/local-development.md
+    applies_to: [build, validation]

@@ -1,0 +1,291 @@
+/* Voice Report uses the shared command launcher shell plus this command-specific stage. */
+.voice-report-workspace {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(420px, 1fr);
+  gap: 16px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.voice-report-stage {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 24px;
+  padding: 24px;
+  text-align: center;
+}
+
+.read-aloud-face {
+  width: min(210px, 100%);
+  display: grid;
+  gap: 6px;
+  place-items: center;
+  padding: 14px;
+  border: 1px solid rgba(var(--agent-accent-rgb), 0.26);
+  border-radius: var(--launcher-panel-radius);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(var(--agent-accent-rgb), 0.18), transparent 58%),
+    linear-gradient(180deg, rgba(12, 20, 27, 0.9), rgba(6, 12, 18, 0.66));
+  --agent-accent: #94a3b8;
+  --agent-accent-rgb: 148, 163, 184;
+  --agent-face-mid: #a7b0bd;
+  --agent-face-end: #303843;
+}
+
+.read-aloud-face.is-male {
+  --agent-accent: #58a6ff;
+  --agent-accent-rgb: 88, 166, 255;
+  --agent-face-mid: #8ab4d6;
+  --agent-face-end: #24384a;
+}
+
+.read-aloud-face.is-female {
+  --agent-accent: #f472b6;
+  --agent-accent-rgb: 244, 114, 182;
+  --agent-face-mid: #e9a4c8;
+  --agent-face-end: #583149;
+}
+
+.read-aloud-face svg {
+  display: block;
+  width: min(170px, 100%);
+  aspect-ratio: 1;
+  overflow: visible;
+}
+
+.agent-screen {
+  fill: url(#voiceReportAgentFrameGlow);
+  stroke: rgba(var(--agent-accent-rgb), 0.34);
+  stroke-width: 2;
+}
+
+.agent-antenna,
+.agent-signal path,
+.agent-shine {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.agent-antenna {
+  stroke: rgba(var(--agent-accent-rgb), 0.76);
+  stroke-width: 4;
+}
+
+.agent-antenna-dot {
+  fill: var(--agent-accent);
+  filter: drop-shadow(0 0 7px rgba(var(--agent-accent-rgb), 0.55));
+}
+
+.agent-head {
+  transform-origin: 90px 88px;
+}
+
+.agent-face-plate {
+  fill: url(#voiceReportAgentFaceGlow);
+  stroke: rgba(238, 246, 255, 0.4);
+  stroke-width: 2;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.26));
+}
+
+.agent-shine {
+  stroke: rgba(255, 255, 255, 0.34);
+  stroke-width: 4;
+}
+
+.agent-eyes circle {
+  fill: #061018;
+  filter: drop-shadow(0 0 5px rgba(var(--agent-accent-rgb), 0.4));
+  transform-origin: center;
+}
+
+.agent-mouth {
+  transform-origin: 90px 113px;
+}
+
+.mouth-open {
+  fill: rgba(6, 16, 24, 0.94);
+  stroke: rgba(var(--agent-accent-rgb), 0.5);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scaleY(0.16);
+  transition: transform 54ms linear;
+}
+
+.mouth-lip,
+.mouth-highlight {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 54ms linear, transform 54ms linear;
+}
+
+.mouth-lip {
+  stroke: var(--agent-accent);
+  stroke-width: 4;
+}
+
+.mouth-highlight {
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 2;
+  opacity: 0.72;
+}
+
+.agent-signal path {
+  stroke: var(--agent-accent);
+  stroke-width: 4;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.read-aloud-face-state {
+  color: var(--launcher-text-muted);
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.read-aloud-face.is-loading .agent-head {
+  animation: agent-breathe 1.5s ease-in-out infinite;
+}
+
+.read-aloud-face.is-speaking .agent-head {
+  animation: agent-talk 1.05s ease-in-out infinite;
+}
+
+.read-aloud-face.is-speaking .agent-eyes circle {
+  animation: agent-eyes 1.1s ease-in-out infinite;
+}
+
+.read-aloud-face.is-speaking .agent-mouth {
+  transform: translateY(var(--mouth-shift, 0px));
+}
+
+.read-aloud-face.is-speaking .mouth-open {
+  transform: scaleY(var(--mouth-open, 0.18));
+}
+
+.read-aloud-face.is-speaking .mouth-lip {
+  opacity: var(--mouth-lip-opacity, 0.9);
+  transform: translateY(var(--mouth-shift, 0px)) scaleX(var(--mouth-lip-scale, 1));
+}
+
+.read-aloud-face.is-speaking .mouth-highlight {
+  opacity: var(--mouth-highlight-opacity, 0.78);
+  transform: translateY(var(--mouth-highlight-shift, 0px));
+}
+
+.read-aloud-face.is-speaking .agent-signal path:first-child {
+  animation: sound-pulse .86s ease-out infinite;
+}
+
+.read-aloud-face.is-speaking .agent-signal path:last-child {
+  animation: sound-pulse .86s ease-out .16s infinite;
+}
+
+.state {
+  margin: 8px 0;
+  font-size: 28px;
+  font-weight: 650;
+}
+
+.voice-report-content {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto minmax(160px, 1fr) auto;
+  gap: 16px;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.subtitle-line {
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid var(--launcher-border);
+  border-radius: var(--launcher-control-radius);
+  background: var(--launcher-surface-strong);
+  color: var(--launcher-text);
+  font-size: 28px;
+  font-weight: 650;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.word {
+  opacity: .2;
+  margin-right: .28em;
+}
+
+.word.done {
+  opacity: .55;
+}
+
+.word.active {
+  opacity: 1;
+  color: #ffffff;
+}
+
+.transcript {
+  min-height: 0;
+  color: var(--launcher-text-muted);
+}
+
+.transcript summary {
+  cursor: pointer;
+  color: var(--launcher-primary);
+  font-weight: 650;
+}
+
+.copy {
+  max-height: 180px;
+  overflow: auto;
+  padding-top: 12px;
+  color: #dce5ec;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.copy p {
+  margin: 0 0 12px;
+}
+
+@keyframes agent-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(1px) scale(1.012); }
+}
+
+@keyframes agent-talk {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(2px); }
+}
+
+@keyframes agent-eyes {
+  0%, 100% { transform: scaleY(1); }
+  45% { transform: scaleY(.84); }
+}
+
+@keyframes sound-pulse {
+  0% { opacity: 0; transform: translateX(-3px); }
+  35% { opacity: .85; }
+  100% { opacity: 0; transform: translateX(6px); }
+}
+
+@media (max-width: 860px) {
+  .voice-report-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .read-aloud-face {
+    width: min(190px, 100%);
+  }
+
+  .subtitle-line {
+    font-size: 22px;
+  }
+}

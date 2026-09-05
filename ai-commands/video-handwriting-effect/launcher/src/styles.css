@@ -1,0 +1,12 @@
+@import url('../../../shared/launcher/command-launcher.css');
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--launcher-bg);
+  color: var(--launcher-text);
+  font-family: var(--launcher-font);
+}

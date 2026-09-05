@@ -1,0 +1,100 @@
+{
+  "default_python_series": "3.12",
+  "ubuntu_to_python": [
+    {
+      "ubuntu": "20.04",
+      "codename": "focal",
+      "recommended_python": "3.8"
+    },
+    {
+      "ubuntu": "22.04",
+      "codename": "jammy",
+      "recommended_python": "3.10"
+    },
+    {
+      "ubuntu": "24.04",
+      "codename": "noble",
+      "recommended_python": "3.12",
+      "selected": true
+    }
+  ],
+  "notes": [
+    "This is a simple recommendation matrix.",
+    "Project installs Python 3.12 from source into ~/python regardless of system Python."
+  ],
+  "default_node_major": "20",
+  "ubuntu_to_node": [
+    {
+      "ubuntu": "20.04",
+      "codename": "focal",
+      "recommended_major": "20"
+    },
+    {
+      "ubuntu": "22.04",
+      "codename": "jammy",
+      "recommended_major": "20"
+    },
+    {
+      "ubuntu": "24.04",
+      "codename": "noble",
+      "recommended_major": "20",
+      "selected": true
+    }
+  ],
+  "install_latest_node": true,
+  "node_notes": [
+    "If selected=true for the current OS, that major is installed.",
+    "latest is installed when install_latest_node=true."
+  ],
+  "default_scala_version": "3.4.1",
+  "ubuntu_to_scala": [
+    {
+      "ubuntu": "20.04",
+      "codename": "focal",
+      "recommended_version": "3.4.1"
+    },
+    {
+      "ubuntu": "22.04",
+      "codename": "jammy",
+      "recommended_version": "3.4.1"
+    },
+    {
+      "ubuntu": "24.04",
+      "codename": "noble",
+      "recommended_version": "3.6.4",
+      "current": true
+    }
+  ],
+  "install_latest_scala": true,
+  "latest_scala_version": "3.7.4",
+  "default_sbt_version": "1.10.7",
+  "default_java_major": "21",
+  "ubuntu_to_java": [
+    {
+      "ubuntu": "20.04",
+      "codename": "focal",
+      "recommended_major": "21"
+    },
+    {
+      "ubuntu": "22.04",
+      "codename": "jammy",
+      "recommended_major": "21"
+    },
+    {
+      "ubuntu": "24.04",
+      "codename": "noble",
+      "recommended_major": "21",
+      "selected": true
+    }
+  ],
+  "install_latest_java": true,
+  "java_notes": [
+    "Java uses AWS Corretto tarballs for the selected major.",
+    "latest is installed when install_latest_java=true."
+  ],
+  "default_maven_version": "3.9.9",
+  "maven_notes": [
+    "Maven uses official Apache Maven binary tarballs installed into ~/maven.",
+    "Override with MAVEN_VERSION_OVERRIDE when running maven/install.sh."
+  ]
+}

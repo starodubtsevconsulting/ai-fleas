@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voice Report</title>
+  <link rel="stylesheet" href="voice-report.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="stage">
+      <div class="pulse"></div>
+      <div id="avatar" class="avatar" aria-hidden="true">
+        <div class="face">
+          <div class="eyes"><span class="eye"></span><span class="eye"></span></div>
+          <div class="mouth"></div>
+        </div>
+      </div>
+      <div class="status">
+        <div class="label">Voice Report</div>
+        <div id="state" class="state">Loading...</div>
+        <div class="hint">The full report text stays visible here while the audio plays.</div>
+      </div>
+    </section>
+    <section class="content">
+      <div class="title">Transcript</div>
+      <h1>Spoken Report</h1>
+      <div class="subtitle-panel">
+        <div id="subtitleLine" class="subtitle-line"></div>
+        <div class="subtitle-note">Approximate subtitle timing follows the spoken audio.</div>
+      </div>
+      <details class="transcript">
+        <summary>Full text</summary>
+        <div id="transcriptCopy" class="copy"></div>
+      </details>
+      <div class="toolbar">
+        <button id="replay" type="button">Replay</button>
+        <button id="pause" class="secondary" type="button">Pause</button>
+        <div class="meta">Close this window whenever you are done listening.</div>
+      </div>
+    </section>
+  </main>
+  <audio id="reportAudio" autoplay src="__AUDIO_SRC__"></audio>
+  <script id="voiceReportData" type="application/json">__REPORT_JSON__</script>
+  <script src="voice-report.js"></script>
+</body>
+</html>
