@@ -25,6 +25,7 @@ commands or workflow packages.
 
 A profile can select or configure:
 
+- the registered agent platform that realizes logical workflow agents;
 - the workflows available to the user and the default workflow;
 - the commands available to each workflow and profile-specific command settings or templates;
 - projects, source folders, expected Git remotes, external knowledge, and other working context;
@@ -102,6 +103,11 @@ ai-profile/
 The work-profile file commonly defines `default_agent`, `agent_login_method`, `default_workflow`, `workflows`, project
 bindings, catalog locations, organization metadata, environments, and app-mode settings. Runtime selection may use
 `WORK_PROFILE_ID`, and session state remains scoped under `session-root/<work-profile>/...`.
+
+`agent_platform` selects the exact adapter that realizes logical workflow agents, while `ai_platforms_root` selects its
+registry. The profile runtime resolves the adapter contract explicitly and fails closed when it is absent. A workflow may
+still select a command-execution harness independently; an agent platform defines agent identity and lifecycle, while a
+harness defines how an agent executes a particular workload.
 
 The launcher reads this entry point through one typed profile reader. It parses YAML once, rejects duplicate keys,
 malformed workflow/project collections, unsupported top-level project placement, missing workflow paths, unsafe alias

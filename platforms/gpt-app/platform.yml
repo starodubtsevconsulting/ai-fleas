@@ -1,0 +1,15 @@
+version: 1
+id: gpt-app
+label: GPT/Codex App
+runtime_object: codex-task
+initialization: agents/initialization.md
+role_overlays: roles
+capabilities:
+  - visible-agents
+  - persistent-identity
+  - exact-instance-id
+  - peer-messaging
+  - recoverable-archive
+  - project-binding
+  - model-selection
+  - reasoning-selection

@@ -21,7 +21,7 @@ flowchart TD
 | Property           | Value                                               |
 | ------------------ | --------------------------------------------------- |
 | Canonical role     | `designer / reviewer`                               |
-| Display label      | `💬 Designer / Reviewer`                            |
+| Display label      | Defined by the selected platform adapter            |
 | Human-facing       | `primary`                                           |
 | Communication mode | ordinary human dialogue and canonical agent packets |
 
