@@ -1,0 +1,46 @@
+version: 1
+enabled: false
+email_domain: example.com
+public_repository_mode: provenance-only
+private_repository_mode: provider-account
+roles:
+  admin:
+    account_name: admin
+    display_name: Admin
+    email: admin@example.com
+    github_login: example-admin
+  designer-reviewer:
+    account_name: design
+    display_name: Designer Reviewer
+    email: design@example.com
+    github_login: example-design
+  judge:
+    account_name: judge
+    display_name: Judge
+    email: judge@example.com
+    github_login: example-judge
+  manager:
+    account_name: manager
+    display_name: Manager
+    email: manager@example.com
+    github_login: example-manager
+  coder:
+    account_name: coder
+    display_name: Coder
+    email: coder@example.com
+    github_login: example-coder
+  command-runner:
+    account_name: runner
+    display_name: Command Runner
+    email: runner@example.com
+    github_login: example-runner
+  ui-acceptance-tester:
+    account_name: ui
+    display_name: UI Acceptance Tester
+    email: ui@example.com
+    github_login: example-ui
+  proxy-coder:
+    account_name: proxy-coder
+    display_name: Proxy Coder
+    email: proxy-coder@example.com
+    github_login: example-proxy-coder
