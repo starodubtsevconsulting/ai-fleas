@@ -9,8 +9,9 @@ Managed-agent initialization requires all of the following:
 - one verified profile, Dev workflow, and exact profile-authorized work target;
 - the common [workflow-agent contract](../../agents.md);
 - a complete host-owned roster, communication topology, lifecycle implementation, and identity binding;
-- a host permission boundary that permits the requested task lifecycle changes.
+- a platform permission boundary that permits the requested agent-instance lifecycle changes.
 
-If any requirement is missing, return `BLOCKED_HOST_INITIALIZER` and create, modify, message, archive, or replace nothing.
+If any requirement is missing, return `BLOCKED_HOST_INITIALIZER` and activate, modify, message, deactivate, or replace no
+agent instance.
 Do not infer a companion, inspect a sibling implementation in search of one, or treat filesystem reachability as a host
 binding. A companion may implement this gate only when the selected profile or an explicit human instruction names it.

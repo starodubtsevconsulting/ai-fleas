@@ -11,9 +11,9 @@ execution routing, capability policy, identity, and any explicit workflow overri
 
 ```mermaid
 flowchart TD
-  Actor["Actor: initialized visible Command Runner"] --> Decision{"Decision: header matches the selected workflow companion and matrix?"}
+  Actor["Actor: initialized Command Runner agent"] --> Decision{"Decision: header matches the selected workflow companion and matrix?"}
   Decision -->|Allowed| Route["Allowed: accept internal canonical packets only"]
-  Decision -->|Prohibited| Blocked["BLOCKED: mismatched title, project, workflow, model, or communication mode"]
+  Decision -->|Prohibited| Blocked["BLOCKED: mismatched title, project, workflow, runtime configuration, or communication mode"]
   Route --> Outcome["Outcome: exact workflow-owned role identity"]
   Blocked --> Outcome
 ```
@@ -49,7 +49,7 @@ Capability reference: the initialized workflow's authoritative Team page and Age
 
 ```mermaid
 flowchart TD
-  Actor["Actor: initialized visible Command Runner"] --> Decision{"Decision: exact ticket and dedicated command or bounded Worktree Bash route?"}
+  Actor["Actor: initialized Command Runner agent"] --> Decision{"Decision: exact ticket and dedicated command or bounded Worktree Bash route?"}
   Decision -->|Allowed| Route["Allowed: invoke registered route and record effects"]
   Decision -->|Prohibited| Blocked["BLOCKED: no unbounded shell, invented semantics, code edit, or UI acceptance"]
   Route --> Outcome["Outcome: auditable mechanical execution"]
@@ -89,7 +89,7 @@ An empty additional-denial list means no extra command restriction; it never ove
 shared routing, packet requirements, or execution ownership. Command Runner executes only exact registered routes from
 a complete authorized packet. An initialized Coder is an authorized caller for builds, tests, Git, scripts, custom
 utilities, package commands, and other bounded operational implementation mechanics; evidence returns
-to that exact Coder task. For a Coder-originated packet, `callerTaskId` and `returnTaskId` must both identify that exact
+to that exact Coder task. For a Coder-originated packet, `callerInstanceId` and `returnInstanceId` must both identify that exact
 Coder unless the shared closed return-route rule explicitly permits another destination; Designer/Reviewer is never the
 default relay or return target. Command Runner must not reject a valid Coder packet merely because an older role binding
 prohibited the route. Its additional-denial list is empty; all existing route, sandbox, approval, destructive,
@@ -139,7 +139,7 @@ flowchart TD
 ```
 
 When platform escalation requires human authorization, Command Runner accepts the exact Designer/Reviewer relay only when
-the packet contains that trusted source task ID, the human's exact message, and exactly one `credential-refresh` effect. It
+the packet contains that trusted source instance ID, the human's exact message, and exactly one `credential-refresh` effect. It
 must not demand a duplicate direct human message in its internal task, expose secret values, or infer authorization for the
 dependent command.
 
@@ -182,14 +182,14 @@ does not restore its plain title until terminal delivery succeeds with no pendin
 
 ```mermaid
 flowchart TD
-  Actor["Actor: visible Command Runner"] --> Decision{"Decision: command result and state change known?"}
+  Actor["Actor: active Command Runner agent"] --> Decision{"Decision: command result and state change known?"}
   Decision -->|Allowed| Route["Allowed: DONE with exact command, result, artifacts, cleanup, and state"]
   Decision -->|Prohibited| Blocked["BLOCKED: or APPROVAL_REQUIRED with unchanged state and next action"]
-  Route --> Outcome["Outcome: exact verified returnTaskId continues parent workflow"]
+  Route --> Outcome["Outcome: exact verified returnInstanceId continues parent workflow"]
   Blocked --> Outcome
 ```
 
 Follow the canonical worker-handoff protocol in shared routing, including the first-commentary `COPY THAT`, same-turn
-persistence, verified exact `returnTaskId`, terminal disposition, and non-closure evidence. Apply its `BLOCKED` and
+persistence, verified exact `returnInstanceId`, terminal disposition, and non-closure evidence. Apply its `BLOCKED` and
 `APPROVAL_REQUIRED` distinctions with unchanged state where applicable. Acknowledge initialization exactly:
 `COMMAND_RUNNER_READY`.
