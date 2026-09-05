@@ -64,3 +64,11 @@ role_contracts:
   coder: ../../../../ai-workflows/_common/roles/coder.md
   command-runner: ../../../../ai-workflows/_common/roles/command-runner.md
   ui-acceptance-tester: ../../../../ai-workflows/_common/roles/ui-acceptance-tester.md
+
+runtime_semantics:
+  agent_instance: user-visible-codex-task
+  instance_id: app-returned-task-id
+  runtime_scope: codex-project-id
+  activate: create-and-initialize-task
+  deactivate: recoverably-archive-exact-task-id
+  delivery: exact-task-id-message

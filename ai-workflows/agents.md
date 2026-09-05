@@ -11,7 +11,9 @@ flowchart TD
 
 This is the single common contract for every workflow that activates managed AI agents. It defines agent identity,
 capability boundaries, communication, packets, delivery, required Admin and Judge foundations, and workflow-owned
-lifecycle behavior. Each workflow adds only its specific roles, routes, models, capability grants, and stricter rules.
+lifecycle behavior. Each workflow adds only its specific roles, routes, capability grants, and stricter rules. Runtime
+objects, model selection, reasoning configuration, transport, and lifecycle operations belong to the selected platform
+adapter.
 
 ## Purpose
 
@@ -25,23 +27,24 @@ flowchart TD
 
 This file is workflow infrastructure, not an AI command and not a standalone agent implementation. It owns the common
 rules required by all agent-enabled workflows. It does not select a workflow or define concrete prompt interpretations,
-team membership, models, work capabilities, project sources, or product behavior for a specific workflow.
+team membership, runtime bindings, work capabilities, project sources, or product behavior for a specific workflow.
 
 ## Agent visibility and lifecycle state
 
 ```mermaid
 flowchart TD
-  Actor["Actor: workflow resolves a visible Agent"] --> Decision{"Decision: task is user-visible, active, and not archived?"}
-  Decision -->|Allowed| Active["Allowed: treat the exact task ID as a current lifecycle participant"]
-  Decision -->|Prohibited| Blocked["BLOCKED: archived, hidden, inactive, or unresolved task is not a visible Agent"]
+  Actor["Actor: workflow resolves an Agent instance"] --> Decision{"Decision: instance is exact, active, and routable?"}
+  Decision -->|Allowed| Active["Allowed: treat the exact instance ID as a current lifecycle participant"]
+  Decision -->|Prohibited| Blocked["BLOCKED: inactive, unroutable, or unresolved instance is not an active Agent"]
   Active --> Outcome["Outcome: active identity may enter the workflow roster"]
   Blocked --> Outcome
 ```
 
-In every workflow contract, **visible Agent** means an exact user-visible task that is currently active and not archived.
-An archived task is not a visible Agent, roster member, worker candidate, communication target, initialization target, or
-clone source. It remains inactive unless the human separately and explicitly authorizes unarchiving that exact task ID;
-general retry, repair, initialization, replacement, cloning, or staffing language never supplies that authorization.
+In every workflow contract, **active Agent** means one exact initialized agent instance that the selected adapter reports
+as active and routable. A deactivated instance is not a roster member, worker candidate, communication target,
+initialization target, or clone source. It remains inactive unless the human separately and explicitly authorizes
+reactivating that exact instance ID; general retry, repair, initialization, replacement, cloning, or staffing language
+never supplies that authorization. Visibility and preservation mechanics are platform concerns.
 
 ## Common human prompt interpretation cases
 
@@ -84,8 +87,8 @@ when it is part of the exact selected logical-project binding. A suffix may iden
 client, environment, or another profile-owned distinction; it does not change the profile or workflow identity.
 Implementations must validate the known profile and workflow first and then treat the remaining suffix as opaque. They
 must not infer profile or workflow identity by splitting on the final hyphen.
-That project is the team's communication and
-policy boundary in the GPT/Codex app. Roles initialized in it are
+That logical project is the team's communication and
+policy boundary on every platform. Roles initialized in it are
 workflow-scoped: they may communicate with declared peers in the same logical
 agent project and may not communicate with roles from another logical agent
 project.
@@ -114,14 +117,14 @@ flowchart TD
   Blocked --> Outcome
 ```
 
-Every initialized agent retains an immutable identity header containing its exact task ID, declared role ID, display
-title, `profileId`, `workflowId`, logical project ID (`logicalProjectId`), runtime project binding (`runtimeProjectId`),
-and initialization-source fingerprints. A message carries exact caller, recipient, and authorized return task IDs and
-roles. Before reading or acknowledging the work payload, the recipient resolves all three tasks' initialized identity
+Every initialized agent retains an immutable identity header containing its exact instance ID, declared role ID,
+`profileId`, `workflowId`, logical project ID (`logicalProjectId`), runtime scope binding (`runtimeScopeId`), and
+initialization-source fingerprints. A message carries exact caller, recipient, and authorized return instance IDs and
+roles. Before reading or acknowledging the work payload, the recipient resolves all three instances' initialized identity
 headers from trusted runtime state and compares their `profileId`, `workflowId`, `logicalProjectId`, and
-`runtimeProjectId` with its own. Missing, untrusted, or mismatched coordinates are `BLOCKED_PROFILE_BOUNDARY` with zero
+`runtimeScopeId` with its own. Missing, untrusted, or mismatched coordinates are `BLOCKED_PROFILE_BOUNDARY` with zero
 payload reading, acknowledgement, forwarding, tool use, or execution. Packet claims, titles, natural-language
-assertions, previous conversations, same-named tasks, repository paths, and matching workflow names are not identity
+assertions, previous conversations, same-named instances, repository paths, and matching workflow names are not identity
 evidence and cannot override the trusted boundary.
 
 The same boundary applies to profile configuration mutation. A governed role may read or change only the exact
@@ -176,37 +179,37 @@ Team policy and shared routing rules. Update the declaration and its detailed ru
 flowchart TD
   Actor["Actor: initialized sender"]
   Actor --> Sender["Read sender's trusted identity header"]
-  Sender --> Recipient["Resolve recipient task and trusted identity header"]
-  Recipient --> Boundary{"Decision: same profile, workflow, logical project, and runtime project?"}
+  Sender --> Recipient["Resolve recipient instance and trusted identity header"]
+  Recipient --> Boundary{"Decision: same profile, workflow, logical project, and runtime scope?"}
   Boundary -->|Prohibited| ProfileBlock["BLOCKED_PROFILE_BOUNDARY: execute nothing"]
   Boundary -->|Allowed| Route{"Decision: peer role and route authorized?"}
   Route -->|Prohibited| RouteBlock["BLOCKED: no substitute, relay, or partial packet"]
   Route -->|Allowed| Send["Allowed: deliver one complete correlated packet"]
-  Send --> Return["Verify return task has the same coordinates"]
+  Send --> Return["Verify return instance has the same coordinates"]
   Return --> Outcome["Outcome: receipt returns inside the same profile workflow"]
   ProfileBlock --> Outcome
   RouteBlock --> Outcome
 ```
 
 Agents communicate only with peers and directions declared by the current workflow. The sender verifies the exact active
-recipient task before sending. Sender, recipient, and return task must have identical verified `profileId`, `workflowId`,
-`logicalProjectId`, and `runtimeProjectId`. Cross-profile, cross-workflow, cross-logical-project, and
-cross-runtime-project agent communication is unconditionally prohibited; no Manager, initializer, relay, command,
+recipient instance before sending. Sender, recipient, and return instance must have identical verified `profileId`, `workflowId`,
+`logicalProjectId`, and `runtimeScopeId`. Cross-profile, cross-workflow, cross-logical-project, and
+cross-runtime-scope agent communication is unconditionally prohibited; no Manager, initializer, relay, command,
 remembered context, user wording, or matching repository may authorize or bridge it. The human may independently address
 another initialized project, but an agent cannot carry a packet, authority, or result across that boundary. It may not
-create a substitute agent, use a similarly titled task, route through an undeclared intermediary, impersonate the human,
+activate a substitute agent, use a similarly labelled instance, route through an undeclared intermediary, impersonate the human,
 or forward authority it does not own. A recipient rejects an unauthorized or coordinate-mismatched caller, recipient, or
 return route without reading task payloads, acknowledging, performing work, or sending a relay.
 
-Every inter-agent packet includes a unique request/correlation ID; exact caller task ID and role; exact recipient task ID
-and role; exact nonempty `profileId`, `workflowId`, `logicalProjectId`, and `runtimeProjectId`; bounded intent and inputs;
-granted authority and prohibited effects; required evidence or output; and exact return task ID and role. A legacy
+Every inter-agent packet includes a unique request/correlation ID; exact caller instance ID and role; exact recipient instance ID
+and role; exact nonempty `profileId`, `workflowId`, `logicalProjectId`, and `runtimeScopeId`; bounded intent and inputs;
+granted authority and prohibited effects; required evidence or output; and exact return instance ID and role. A legacy
 readable `project` field is permitted only when it exactly equals `logicalProjectId` and never substitutes for this
 four-coordinate header. Workflow-specific contracts may add mandatory fields. Missing or conflicting required fields are
 `BLOCKED`, not reconstructed from conversation history. Every correction, progress message, evidence response, and return
 packet preserves the same coordinates unchanged; a target in another profile, workflow, logical project, or runtime
-project is invalid even when its task ID exists. The recipient compares packet coordinates with trusted sender,
-recipient, and return-task initialization headers; equality of packet text alone is insufficient. A mismatch is reported
+scope is invalid even when its instance ID exists. The recipient compares packet coordinates with trusted sender,
+recipient, and return-instance initialization headers; equality of packet text alone is insufficient. A mismatch is reported
 as `BLOCKED_PROFILE_BOUNDARY` with zero payload execution.
 
 ### Allowed communication routes
@@ -214,15 +217,15 @@ as `BLOCKED_PROFILE_BOUNDARY` with zero payload execution.
 - A human may directly address a workflow role according to that role's declared human-facing mode.
 - An initialized agent may send one complete packet only to an exact initialized role and direction declared by its
   selected workflow.
-- The sender, recipient, and return task must have identical verified `profileId`, `workflowId`, `logicalProjectId`, and
-  `runtimeProjectId`, and the packet must carry the required exact task IDs, roles, coordinates, authority, and return
+- The sender, recipient, and return instance must have identical verified `profileId`, `workflowId`, `logicalProjectId`, and
+  `runtimeScopeId`, and the packet must carry the required exact instance IDs, roles, coordinates, authority, and return
   route.
-- A recipient may return terminal evidence only to the exact verified `returnTaskId` in the same coordinates.
+- A recipient may return terminal evidence only to the exact verified `returnInstanceId` in the same coordinates.
 
 ### Prohibited communication routes
 
 - Direct human-style work requests to a role declared internal packet-only.
-- Any cross-profile, cross-workflow, cross-logical-project, or cross-runtime-project message, return, relay, or authority
+- Any cross-profile, cross-workflow, cross-logical-project, or cross-runtime-scope message, return, relay, or authority
   transfer.
 - A substitute, same-named, hidden, temporary, child/subagent, or undeclared intermediary route.
 - A packet with missing, conflicting, untrusted, or stale caller, recipient, coordinate, authority, or return evidence.
@@ -230,23 +233,23 @@ as `BLOCKED_PROFILE_BOUNDARY` with zero payload execution.
 Every prohibited route is `BLOCKED`; the recipient performs no payload work and does not reconstruct the route from
 conversation history, a title, a repository path, or remembered context.
 
-## Common role-name matching and exact-task resolution
+## Common role-name matching and exact-instance resolution
 
 ```mermaid
 flowchart TD
   Actor["Actor: initialized role selects a peer"] --> Requested["Requested role name"]
   Requested --> Normalize{"Decision: configured canonical role match, ignoring capitalization?"}
-  Normalize -->|Allowed| Roster{"Decision: exactly one roster task has that runtime role and all four coordinates?"}
+  Normalize -->|Allowed| Roster{"Decision: exactly one roster instance has that runtime role and all four coordinates?"}
   Normalize -->|Prohibited| Blocked["BLOCKED_EXECUTION_ROLE_MISMATCH: no title-based or inferred target"]
-  Roster -->|Allowed| Target["Allowed: use that task's exact ID in the packet"]
+  Roster -->|Allowed| Target["Allowed: use that instance's exact ID in the packet"]
   Roster -->|Prohibited| Blocked
-  Target --> Outcome["Outcome: case-tolerant role label with exact task identity"]
+  Target --> Outcome["Outcome: case-tolerant role label with exact instance identity"]
   Blocked --> Outcome
 ```
 
 Match a requested role name to one configured canonical role while ignoring capitalization only. Capitalization,
-display title, remembered task, or a similar label never identifies a peer. Then resolve exactly one initialized visible
-roster task whose trusted runtime role and four workflow coordinates match. Send that exact task ID as `targetTaskId` and
+display label, remembered instance, or a similar label never identifies a peer. Then resolve exactly one active initialized
+roster instance whose trusted runtime role and four workflow coordinates match. Send that exact instance ID as `targetInstanceId` and
 the canonical role as `requiredExecutionRole`. An unconfigured, foreign, duplicate, or runtime-role-mismatched target is
 `BLOCKED_EXECUTION_ROLE_MISMATCH` before payload reading or tool use.
 
@@ -255,7 +258,7 @@ the canonical role as `requiredExecutionRole`. An unconfigured, foreign, duplica
 ```mermaid
 flowchart TD
   Actor["Actor: exact initialized caller"] --> Decision{"Decision: exact target, correlation ID, and accepted send receipt?"}
-  Decision -->|Allowed| Send["Allowed: send one packet through existing-task messaging"]
+  Decision -->|Allowed| Send["Allowed: send one packet through the selected adapter's instance messaging"]
   Decision -->|Prohibited| Blocked["BLOCKED: no inferred, broadcast, or duplicate delivery"]
   Send --> Ack{"Decision: target emits COPY THAT for the same packet?"}
   Ack -->|Allowed| Work["Allowed: await one terminal handoff on the closed return route"]
@@ -341,7 +344,8 @@ flowchart TD
 ```
 
 Every workflow agent extends this contract. The workflow supplies its additional team roles, capability grants,
-communication topology, models, readiness tokens, and any stricter packet schema. The initializer composes the current
+communication topology, readiness tokens, and any stricter packet schema. The platform binding supplies runtime
+configuration. The initializer composes the current
 common contract with those workflow-specific sources. A changed common or workflow-specific contract requires the
 workflow's declared reload or reinitialization path before an existing agent may rely on it.
 
@@ -349,16 +353,16 @@ workflow's declared reload or reinitialization path before an existing agent may
 
 ```mermaid
 flowchart TD
-  Actor["Actor: workflow declares managed agents"] --> Decision{"Decision: exactly one Admin infrastructure task and one Judge oversight role are declared?"}
+  Actor["Actor: workflow declares managed agents"] --> Decision{"Decision: exactly one Admin infrastructure agent and one Judge oversight role are declared?"}
   Decision -->|Allowed| Route["Allowed: add workflow-specific roles around the required pair"]
   Decision -->|Prohibited| Blocked["BLOCKED: no missing, duplicate, routable Admin, or non-governance Judge"]
   Route --> Outcome["Outcome: administrable and governed workflow roster"]
   Blocked --> Outcome
 ```
 
-Every agent-enabled workflow declares exactly one persistent human-facing `Admin` infrastructure task and exactly one
-persistent human-facing `Judge` oversight role. Display labels are `🔑 Admin` and `⚖️ Judge` unless the workflow documents
-a human-approved presentation-only variation; canonical identities remain `admin` and `judge`.
+Every agent-enabled workflow declares exactly one persistent human-facing `Admin` infrastructure agent and exactly one
+persistent human-facing `Judge` oversight role. Canonical identities remain `admin` and `judge`; presentation labels are
+owned by the selected platform binding.
 
 Admin owns only workflow information and exact agent lifecycle administration. It remains outside the governed team and
 every governed Team capability policy, is never an operational relay or product worker, and is preserved during governed-roster
@@ -370,25 +374,26 @@ workflow may narrow these roles but must not transfer their common ownership to 
 
 ```mermaid
 flowchart TD
-  Actor["Actor: human requests workflow-agent lifecycle"] --> Decision{"Decision: exact profile, workflow, logical project, runtime project, and workflow contracts validate?"}
+  Actor["Actor: human requests workflow-agent lifecycle"] --> Decision{"Decision: exact profile, workflow, logical project, runtime scope, and workflow contracts validate?"}
   Decision -->|Allowed| Admin["Allowed: workflow entrypoint verifies or bootstraps exact Admin"]
-  Decision -->|Prohibited| Blocked["BLOCKED: mutate no task or scheduler"]
-  Admin --> Roster{"Decision: initialize, reinitialize, archive, inspect, or reload is exact and authorized?"}
+  Decision -->|Prohibited| Blocked["BLOCKED: mutate no agent instance or scheduled trigger"]
+  Admin --> Roster{"Decision: initialize, reinitialize, deactivate, inspect, or reload is exact and authorized?"}
   Roster -->|Allowed| Route["Allowed: apply workflow-owned lifecycle and verify readiness"]
   Roster -->|Prohibited| Blocked
   Route --> Outcome["Outcome: complete identity-bound roster or exact read-only status"]
   Blocked --> Outcome
 ```
 
-The workflow-owned initialization entrypoint verifies or bootstraps Admin and performs all task mutation. Initialization
+The workflow-owned initialization entrypoint verifies or bootstraps Admin and performs all agent-instance mutation through
+the selected platform adapter. Initialization
 creates the complete declared governed roster. When a human requests full reinitialization including Admin, the active
-Admin creates one successor Admin in the same runtime project, verifies its exact returned task ID, contract, source,
-model, reasoning, and `ADMIN_READY` acknowledgement, and archives the predecessor only after the successor is ready.
-The temporary overlap is identified exclusively by task ID and grants neither Admin authority to contact the other for
-ordinary work. A failed successor leaves the predecessor active. Reinitialization then reconciles roster-owned schedules,
-archives the complete old governed roster, verifies an inactive barrier, creates one fresh complete roster, binds app-returned
-task IDs, and verifies every readiness token. Archive/remove/delete are recoverable archive operations unless the
-workflow explicitly defines a safer alternative. Partial generations, implicit profile selection, title-only identity,
+Admin creates one successor Admin in the same runtime scope, verifies its exact returned instance ID, contract, source,
+runtime configuration, and `ADMIN_READY` acknowledgement, and deactivates the predecessor only after the successor is ready.
+The temporary overlap is identified exclusively by instance ID and grants neither Admin authority to contact the other for
+ordinary work. A failed successor leaves the predecessor active. Reinitialization then reconciles roster-owned scheduled triggers,
+deactivates the complete old governed roster, verifies an inactive barrier, creates one fresh complete roster, binds platform-returned
+instance IDs, and verifies every readiness token. Human words such as archive, remove, or delete request deactivation;
+the selected adapter defines the safest supported preservation mechanic. Partial generations, implicit profile selection, label-only identity,
 hidden substitutes, and cross-project reuse are `BLOCKED`.
 
 ## Workflow extension boundary
@@ -396,7 +401,7 @@ hidden substitutes, and cross-project reuse are `BLOCKED`.
 ```mermaid
 flowchart TD
   Actor["Actor: workflow author extends common agents"] --> Decision{"Decision: additions are workflow-specific and preserve Admin, Judge, and lifecycle invariants?"}
-  Decision -->|Allowed| Route["Allowed: declare team rows, capability ownership, routes, models, and tests"]
+  Decision -->|Allowed| Route["Allowed: declare team rows, capability ownership, routes, and tests"]
   Decision -->|Prohibited| Blocked["BLOCKED: no required-role removal or duplicated common rules"]
   Route --> Outcome["Outcome: independently reusable workflow agent contract"]
   Blocked --> Outcome
@@ -405,6 +410,7 @@ flowchart TD
 Each workflow declares its additional roles and exact team size in its own `agents/team.md`; only Judge appears in that
 governed-team table from the required pair. The workflow selects common Admin and Judge roles through `agents.yml` and
 supplies its initializer,
-initialization contract, capability data, communication topology, focused tests, and any schedules. Models and reasoning
-remain workflow-configurable. A workflow without managed agents does not load this contract, but it must load it before
+initialization contract, capability data, communication topology, focused tests, and any portable scheduled-trigger
+requirements. Models, reasoning, concrete presentation, and transport remain platform-binding concerns. A workflow
+without managed agents does not load this contract, but it must load it before
 introducing any agent role or lifecycle behavior.

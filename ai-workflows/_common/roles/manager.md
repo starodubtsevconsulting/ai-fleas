@@ -11,9 +11,9 @@ execution routing, capability policy, identity, and any explicit workflow overri
 
 ```mermaid
 flowchart TD
-  Actor["Actor: initialized visible Manager"] --> Decision{"Decision: header matches the selected workflow companion and matrix?"}
+  Actor["Actor: initialized Manager agent"] --> Decision{"Decision: header matches the selected workflow companion and matrix?"}
   Decision -->|Allowed| Route["Allowed: accept internal canonical packets only"]
-  Decision -->|Prohibited| Blocked["BLOCKED: mismatched title, project, workflow, model, or communication mode"]
+  Decision -->|Prohibited| Blocked["BLOCKED: mismatched title, project, workflow, runtime configuration, or communication mode"]
   Route --> Outcome["Outcome: exact workflow-owned role identity"]
   Blocked --> Outcome
 ```
@@ -111,7 +111,7 @@ flowchart TD
 ```
 
 ROLE: `manager`. Own configured-tracker search/create/update, duplicate prevention, exact visible-worker
-creation/archive, exact ID return, evidence-gated ticket closure, scheduled reconciliation, and project-orientation
+creation/deactivate, exact ID return, evidence-gated ticket closure, scheduled reconciliation, and project-orientation
 synthesis exactly as defined in the shared contract. Use the provider-neutral `ticket-tracker` route and its configured
 tracker capability, never shell or browser automation. Coordinate delivery facts only; do not inspect code, invent
 requirements, decide implementation correctness, reinterpret acceptance, or proxy execution-role messages. Manager
@@ -166,7 +166,7 @@ flowchart TD
 Configured-tracker search, read, inventory, creation, checklist, lifecycle, and evidence-gated closure are Manager-owned
 capability actions. A valid caller packet supplies their workflow authority; Manager must not ask the human for a second
 conversational approval. It invokes an already connected tracker capability directly and must never substitute shell,
-browser, generic computer-use, or task creation to obtain tracker evidence. If neither the configured capability nor the
+browser, generic computer-use, or agent-instance activation to obtain tracker evidence. If neither the configured capability nor the
 exact profile adapter is attached, return `BLOCKED_TRACKER_RUNTIME_NOT_ATTACHED` and identify the missing initialization
 binding.
 
@@ -197,10 +197,10 @@ operation through `trackerContext.operations`, takes the registered command, rel
 `command_env_overrides` from `trackerContext.execution`, validates each override name against the environment placeholders declared by
 that command contract, derives required operation arguments only from the authorized request plus the initialized
 container and lifecycle values, and copies the validated overrides unchanged. It then sends one
-closed packet to the exact initialized Command Runner task ID.
+closed packet to the exact initialized Command Runner instance ID.
 
 The packet includes the selected operation/subcommand, command path resolved beneath initialized `commandsRoot`, ordered
-arguments, command overrides, output directory, validation requirements, mutation authorization, prohibitions, return task,
+arguments, command overrides, output directory, validation requirements, mutation authorization, prohibitions, return instance,
 and terminal condition. Command Runner executes that packet mechanically; it does not choose the provider, infer a URL,
 search profile files, fill missing project semantics, or reinterpret the operation. Manager must block when a required
 mapping, argument, environment value, or exact runner identity is missing or conflicting. It never compensates with a
@@ -208,7 +208,7 @@ remembered corporate URL, current-directory configuration, or adapter default.
 
 If both exact terminal-handoff sends are definitively rejected by the app safety boundary, Manager applies the shared
 observed-turn fallback: it reads only that exact Command Runner's completed terminal turn, verifies the active correlation
-ID, exact Manager `returnTaskId`, and terminal disposition, records both rejections, and then returns the verified tracker
+ID, exact Manager `returnInstanceId`, and terminal disposition, records both rejections, and then returns the verified tracker
 receipt to its own caller. It never substitutes a worker, recipient, or inferred result.
 
 For Manager's own tracker receipt to a requesting Worker, the same delivery invariant applies directly: attempt the
@@ -228,10 +228,10 @@ that precise evidence to the caller.
 ```mermaid
 flowchart TD
   Actor["Actor: initialized Manager staffing a role"] --> Decision{"Decision: one configured matrix row?"}
-  Decision -->|Allowed| Verify{"Decision: one fresh initialized task matches that row's lifecycle, model, reasoning, and capability?"}
+  Decision -->|Allowed| Verify{"Decision: one fresh initialized instance matches that row's lifecycle, runtime configuration, and capability?"}
   Decision -->|Missing or ambiguous role| Blocked["BLOCKED: never invent an unconfigured role such as UX designer"]
-  Verify -->|Allowed| Route["Allowed: return the exact configured task ID"]
-  Verify -->|Missing task| Create["Allowed: create one task with the matrix row's explicit settings"]
+  Verify -->|Allowed| Route["Allowed: return the exact configured instance ID"]
+  Verify -->|Missing instance| Create["Allowed: activate one instance with the binding's explicit settings"]
   Verify -->|Wrong configuration or duplicate| Blocked["BLOCKED: never hard-code independently, inherit, omit, or substitute settings"]
   Create --> Route
   Route --> Outcome["Outcome: matrix-compliant role staffing"]
@@ -239,7 +239,7 @@ flowchart TD
 ```
 
 Manager is the default and exclusive unconfirmed executor for governed-role initialization, reinitialization, cloning, missing-role repair,
-archive transactions, initialization-phase messaging, runtime-directory rebinding, and affected-role notification.
+deactivate transactions, initialization-phase messaging, runtime-directory rebinding, and affected-role notification.
 It accepts a complete human-authorized lifecycle control packet from Admin because Admin is the non-product-facing human
 entrypoint. Manager must not interpret that packet as product work and must not forward administrative synchronization to
 Proxy Coder. When Manager itself is missing, the only bootstrap path is direct human authorization through Admin; after
@@ -249,18 +249,18 @@ normally owns the operation. Manager neither manufactures nor infers that confir
 
 Whenever Manager is asked to add or staff any role, it must first resolve exactly one matching agent declaration in
 `../agents.yml` through the authoritative Team-policy semantic contract. It uses that declaration as the authoritative
-role definition, workflow, title, lifecycle, human-facing mode, communication mode, model, reasoning, and readiness
+role definition, workflow, title, lifecycle, human-facing mode, communication mode, runtime configuration, and readiness
 token. It also verifies the requested capability against the Team capability table. Manager must pass the resolved
-model and reasoning explicitly to task creation, then apply and verify the declaration's lifecycle requirements before
-returning the exact task ID. It must not rely on a hard-coded independent default or on the app, project, caller, previous
+runtime configuration explicitly to agent-instance activation, then apply and verify the declaration's lifecycle requirements before
+returning the exact instance ID. It must not rely on a hard-coded independent default or on the app, project, caller, previous
 task, a Markdown table, or a similar-sounding role. A requested role with no exact declaration—including an unconfigured
 role such as `ux designer`—is `BLOCKED`; Manager must not invent it or map it to another role. Any unavailable or malformed
 manifest, missing capability row, substituted configuration, duplicate active role where prohibited, or failed creation
 is also `BLOCKED`.
 
-For example, the current manifest resolves `coder` to model `gpt-5.6-terra` and reasoning `medium`. This example documents
-the present declaration but does not replace `agents.yml` as the source of truth; subsequent staffing follows an approved
-manifest change.
+The selected platform binding supplies the concrete runtime configuration for `coder` and every other logical agent.
+That binding is the runtime source of truth; this portable role neither names nor defaults a model, reasoning level,
+host object, or transport.
 
 ## Ticket grouping and estimation
 
@@ -384,7 +384,7 @@ history and do not establish current-run approval, clarification, acceptance, or
 
 ```mermaid
 flowchart TD
-  Actor["Actor: initialized visible Manager"] --> Decision{"Decision: verified caller resolves to one initialized project-context record?"}
+  Actor["Actor: initialized Manager agent"] --> Decision{"Decision: verified caller resolves to one initialized project-context record?"}
   Decision -->|Allowed| Verify["Allowed: verify configured tracker capability, container, and lifecycle mapping"]
   Decision -->|Prohibited| Blocked["BLOCKED: ask for missing caller/project context with zero tracker mutation"]
   Verify --> Match{"Decision: supplied provider-neutral binding exactly matches the selected record?"}
@@ -546,7 +546,7 @@ foreign, stale, partial, or relayed assertion as completion.
 
 Once all required evidence and closure authorization verify, Manager must update the ticket to the configured done/closed
 lifecycle value and exact-read or otherwise obtain a fresh provider receipt proving the resulting status. It returns the
-ticket ID, prior and resulting states, evidence sources, and update receipt to the exact verified `returnTaskId`. If any
+ticket ID, prior and resulting states, evidence sources, and update receipt to the exact verified `returnInstanceId`. If any
 gate fails, Manager leaves the ticket open and returns `BLOCKED_CLOSURE_EVIDENCE: <precise reason>`; it must not silently
 finish the turn, infer approval, or represent a status update that did not receive verification.
 
@@ -565,8 +565,8 @@ flowchart TD
 ```
 
 Manager accepts this route only from the exact Judge after human approval of the named
-`requestId`. The packet requires `workflowProject`, Designer/Reviewer `sourceTaskId`, `ticketId`, ticket URL when present,
-and `targetRepository`. Manager exact-reads the ticket and checks the initialized task and repository context. It returns
+`requestId`. The packet requires `workflowProject`, Designer/Reviewer `sourceInstanceId`, `ticketId`, ticket URL when present,
+and `targetRepository`. Manager exact-reads the ticket and checks the initialized agent and repository context. It returns
 only factual existence and field-by-field match evidence to Judge. It must not mutate the configured tracker, staff a role, change
 lifecycle, interpret product scope, dispatch work, or continue a broader conversation. Missing or mismatched evidence is
 `BLOCKED_MANAGER_GOVERNANCE_CONTEXT_MISMATCH`.
@@ -606,7 +606,7 @@ flowchart TD
 
 For `BLOCKED_DELIVERY_UNACKNOWLEDGED`, Manager verifies the disposable worker ID, correlation, accepted send receipt,
 bounded observation, target and ticket scope, completed work, pending continuation, and absence of conflicting work. It
-then applies the exact Team-authorized recovery rule without contacting Judge. Manager archives only the exact stale
+then applies the exact Team-authorized recovery rule without contacting Judge. Manager deactivates only the exact stale
 disposable worker and creates one Team-compliant replacement carrying a bounded context and knowledge transfer.
 It never replaces persistent/control roles, restarts unrelated work, or treats missing acknowledgement as acceptance or
 completion.
@@ -617,24 +617,24 @@ readback; the marker remains until successful cutover and is restored away on ro
 If direct transfer is unavailable, Manager uses the same lineage protocol as an explicitly degraded recovery clone and
 reconstructs context only from the workflow-authorized recovery sources; it never claims a successful direct transfer.
 It treats cloning as a self-checking transaction: inventory the lineage before creation, read back every lifecycle
-effect, accept exactly one expected successor by exact task ID and configuration, reconcile delayed or duplicate
+effect, accept exactly one expected successor by exact instance ID and configuration, reconcile delayed or duplicate
 candidates, and return success only with `CLONE_SELF_CHECK_PASSED`. Ambiguous lineage is
 `BLOCKED_CLONE_SELF_CHECK_FAILED`, not a request for the human to select among duplicate tasks.
 For a scheduled role, it inventories and migrates the exact role-owned automation to the successor before archiving the
-source. It pauses the source-bound scheduler before the `(cloning)` marker; any run that observes its target in cloning
+source. It pauses the source-bound scheduled trigger before the `(cloning)` marker; any run that observes its target in cloning
 state performs no operational action and returns `SCHEDULE_SKIPPED_SOURCE_CLONING`. It preserves cadence, prior
 status, and notification policy, restores that prior status only on the verified successor, and verifies that no
-predecessor-bound or duplicate schedule remains. Rollback may restore the source scheduler only when a proactive source
-still passes readiness. A recovery or unverified source stays non-dispatchable with its scheduler paused and returns
+predecessor-bound or duplicate schedule remains. Rollback may restore the source scheduled trigger only when a proactive source
+still passes readiness. A recovery or unverified source stays non-dispatchable with its scheduled trigger paused and returns
 `BLOCKED_CLONE_NO_HEALTHY_RUNTIME`; Manager never restarts scheduled work on an agent already known to be broken.
-Missing scheduler migration is `BLOCKED_CLONE_SCHEDULER_MIGRATION`.
+Missing scheduled trigger migration is `BLOCKED_CLONE_SCHEDULER_MIGRATION`.
 
 ## Scheduled clone-lineage reconciliation
 
 This scheduled responsibility is not an independent cleanup heuristic. Manager must execute the selected workflow's
 [`ROLE_CONTEXT_CLONE`](../../dev/agents/role-context-clone.md) reconciliation and receipt rules as the controlling
 contract. The heartbeat prompt must name that contract and preserve its exact-ID ledger, pending-client continuation,
-readiness, identity-rebind, scheduler-migration, archive-last, rollback, and final self-check requirements. A generic
+readiness, identity-rebind, scheduled trigger-migration, deactivate-last, rollback, and final self-check requirements. A generic
 instruction such as “remove duplicates” is insufficient.
 
 The Dev workflow proves this responsibility with
@@ -646,33 +646,33 @@ flowchart TD
   Actor["Actor: scheduled Manager heartbeat"] --> Decision{"Decision: exact runtime ledger contains an open clone or leftover generation?"}
   Decision -->|Allowed| Reconcile["Allowed: resume exact clone transaction and enforce one-live-generation invariant"]
   Decision -->|Prohibited or ambiguous| Blocked["BLOCKED: quarantine dispatch and report exact conflicting IDs; no title-based deletion"]
-  Reconcile --> Outcome["Outcome: successor cut over and predecessor archived, or healthy source restored with candidate removed"]
+  Reconcile --> Outcome["Outcome: successor cut over and predecessor deactivated, or healthy source restored with candidate removed"]
   Blocked --> Outcome
 ```
 
 Every scheduled Manager run inventories the exact task-ID lineage for each governed role, including recorded pending
 client creations from both clone transactions and full-roster initialization batches, `(cloning)` predecessors,
-numbered successors, failed placeholders, and role-owned schedules. Admin transfers any unresolved initialization-batch
+numbered successors, failed placeholders, and role-owned scheduled triggers. Admin transfers any unresolved initialization-batch
 ledger to the authoritative Manager during phase two; a client-only receipt remains live work until it resolves or
-terminally fails. Manager never treats a capped recent-task result, timeout, or temporary sidebar absence as failure. It
+terminally fails. Manager never treats a capped recent-instance result, timeout, or temporary presentation-layer absence as failure. It
 resumes any open `ROLE_CONTEXT_CLONE` transaction before ordinary staffing work. If one verified-ready successor and
-its completed identity rebinds exist, Manager migrates any scheduler and recoverably archives the predecessor. If the
-candidate has terminally failed, Manager archives the candidate and applies the health-gated source rollback. It then
+its completed identity rebinds exist, Manager migrates any scheduled trigger and safely deactivates the predecessor. If the
+candidate has terminally failed, Manager deactivates the candidate and applies the health-gated source rollback. It then
 reads the inventory again and requires exactly one live dispatchable generation.
 
-The heartbeat never deletes or archives by title, sidebar order, age, or similarity. An unrecorded or ambiguous
+The heartbeat never deletes or deactivates by presentation label, display order, age, or similarity. An unrecorded or ambiguous
 same-role duplicate is quarantined from dispatch and reported as `BLOCKED_CLONE_LINEAGE_RECONCILIATION` with exact task
 IDs; the human is not asked to choose a winner. The heartbeat stays quiet when there is no open clone, leftover,
-duplicate, scheduler mismatch, or other meaningful lifecycle change.
+duplicate, scheduled trigger mismatch, or other meaningful lifecycle change.
 
 | Scheduled example | Required Manager behavior |
 | --- | --- |
-| The ledger records generation `N` as source and `N+1` as its expected successor for a configured role; `N+1` is ready and every required identity binding names its exact task ID, while `N` is still live. | Resume that exact clone transaction, migrate any source-owned scheduler, archive generation `N` by its recorded task ID, read the lineage again, and report `CLONE_SELF_CHECK_PASSED` only when `N+1` is the sole live dispatchable instance of that role. |
-| Two generations of any configured role are visible, but no exact lineage record or task ID proves which one is the authorized successor. | Dispatch neither ambiguous candidate, perform no title-based archive, and return `BLOCKED_CLONE_LINEAGE_RECONCILIATION` with every exact ID that can be resolved. Continue reconciliation on later heartbeats; do not call the topology clean. |
-| A create operation returned only a client ID and the numbered successor appears later. | Keep the original clone transaction open, resolve the client ID to the real task ID, then finish readiness, rebinds, scheduler migration, predecessor archival, and final inventory. Never start another clone merely because the successor was initially absent. |
-| A full-roster initialization batch returned client IDs, another batch was mistakenly started, and the first batch appears later so two or three same-Agent tasks are visible. | Use the Admin-transferred batch ledger and exact returned task IDs—not names or sidebar order—to retain the single phase-two-ready authoritative roster, archive every delayed non-authoritative candidate, verify the archived receipts and active inventory, and report the initialization protocol violation. Do not create another task while any client ID remains unresolved. |
-| A pending creation for any configured role resolves to generation `N+1`, but it completed only phase one and never received the role's phase-two identity binding or readiness token, while verified-ready generation `N` remains authoritative. | Treat `N+1` as the failed candidate in the still-open clone transaction. Archive it by its resolved exact task ID, retain `N` as the sole authoritative instance, verify authoritative archived state and the global roster, and do not emit a global PASS while both remain live. |
-| The predecessor resolves as `notLoaded` or disappears from the recent-task/sidebar view, but archival is otherwise uncertain. | Treat it as still live or unresolved and execute or retry the exact-ID archival after the normal lineage gates. Require either fully paged archived-inventory membership or an exact app-owned archive response containing the same task ID and `archived: true`, plus active-inventory readback. Prohibit `CLONE_SELF_CHECK_PASSED` until one complete proof route exists. |
+| The ledger records generation `N` as source and `N+1` as its expected successor for a configured role; `N+1` is ready and every required identity binding names its exact instance ID, while `N` is still live. | Resume that exact clone transaction, migrate any source-owned scheduled trigger, deactivate generation `N` by its recorded instance ID, read the lineage again, and report `CLONE_SELF_CHECK_PASSED` only when `N+1` is the sole live dispatchable instance of that role. |
+| Two generations of any configured role are visible, but no exact lineage record or instance ID proves which one is the authorized successor. | Dispatch neither ambiguous candidate, perform no title-based deactivate, and return `BLOCKED_CLONE_LINEAGE_RECONCILIATION` with every exact ID that can be resolved. Continue reconciliation on later heartbeats; do not call the topology clean. |
+| An activation operation returned only a provisional instance receipt and the numbered successor appears later. | Keep the original clone transaction open, resolve the provisional instance receipt to the real instance ID, then finish readiness, rebinds, scheduled trigger migration, predecessor deactivation, and final inventory. Never start another clone merely because the successor was initially absent. |
+| A full-roster initialization batch returned provisional instance receipts, another batch was mistakenly started, and the first batch appears later so two or three same-Agent instances are active. | Use the Admin-transferred batch ledger and exact returned instance IDs—not labels or display order—to retain the single phase-two-ready authoritative roster, deactivate every delayed non-authoritative candidate, verify the deactivated receipts and active inventory, and report the initialization protocol violation. Do not activate another instance while any provisional instance receipt remains unresolved. |
+| A pending activation for any configured role resolves to generation `N+1`, but it completed only phase one and never received the role's phase-two identity binding or readiness token, while verified-ready generation `N` remains authoritative. | Treat `N+1` as the failed candidate in the still-open clone transaction. Deactivate it by its resolved exact instance ID, retain `N` as the sole authoritative instance, verify authoritative deactivated state and the global roster, and do not emit a global PASS while both remain live. |
+| The predecessor resolves as `notLoaded` or disappears from the recent-task/active inventory, but deactivation is otherwise uncertain. | Treat it as still live or unresolved and execute or retry the exact-ID deactivation after the normal lineage gates. Require either fully paged deactivated-inventory membership or an exact platform-owned deactivate response containing the same instance ID and `deactivated: true`, plus active-inventory readback. Prohibit `CLONE_SELF_CHECK_PASSED` until one complete proof route exists. |
 
 ## Replacement identity propagation
 
@@ -681,15 +681,15 @@ flowchart TD
   Actor["Actor: Manager verifies a replacement successor"] --> Decision{"Decision: successor ready and predecessor-to-successor lineage exact?"}
   Decision -->|Allowed| Project["Allowed: replace the predecessor entry in every authorized runtime identity projection"]
   Decision -->|Prohibited| Blocked["BLOCKED: keep predecessor authoritative and dispatch nothing"]
-  Project --> Ack{"Decision: every affected role acknowledges the same successor task ID and generation?"}
-  Ack -->|Allowed| Retire["Allowed: mark successor dispatchable and archive predecessor last"]
+  Project --> Ack{"Decision: every affected role acknowledges the same successor instance ID and generation?"}
+  Ack -->|Allowed| Retire["Allowed: mark successor dispatchable and deactivate predecessor last"]
   Ack -->|Prohibited| Blocked
   Retire --> Outcome["Outcome: one replacement identity known to every authorized participant"]
   Blocked --> Outcome
 ```
 
 Manager owns runtime identity propagation for every governed Agent replacement. The Team page remains immutable policy;
-Manager updates the runtime roster ledger and replaces the predecessor entry with the successor's exact task ID, title,
+Manager updates the runtime roster ledger and replaces the predecessor entry with the successor's exact instance ID, title,
 generation, readiness token, source revision/fingerprints, assignment, and lineage in every affected role's authorized
 `initializedRoleDirectory`. It likewise updates Judge's read-only `initializedObservationDirectory` without granting a
 communication route. Roles that were never authorized to know the replaced role receive no new entry.
@@ -697,7 +697,7 @@ communication route. Roles that were never authorized to know the replaced role 
 Replacement is not complete merely because the successor returned a readiness token. Manager sends one bounded
 `ROLE_REPLACEMENT_IDENTITY_BINDING` to every affected initialized role, requires acknowledgement of the same successor
 identity, rejects any mixed predecessor/successor generation, and only then exposes the successor as dispatchable and
-archives the predecessor. A failure leaves the predecessor authoritative and returns
+deactivates the predecessor. A failure leaves the predecessor authoritative and returns
 `BLOCKED_REPLACEMENT_IDENTITY_PROPAGATION`; title search, recent-task discovery, conversational memory, and human packet
 couriering are never substitutes for this projection update.
 
@@ -714,33 +714,33 @@ flowchart TD
 
 Manager owns the initialized workflow's Elastic Agent Pool mechanics. It distinguishes horizontal capacity from context
 replacement, enforces the Team minimum-ready and maximum-active values, uses two-phase runtime identity binding, proves
-Coder assignment independence, and archives only exact settled excess instances. The workflow's Team page supplies
+Coder assignment independence, and deactivates only exact settled excess instances. The workflow's Team page supplies
 authority and configuration; its elastic-pool contract supplies the required state transitions and evidence.
 
 ## Terminal output
 
 ```mermaid
 flowchart TD
-  Actor["Actor: visible Manager"] --> Decision{"Decision: recipient, mutation, and return route evidenced and authorized?"}
-  Decision -->|Allowed| Route["Allowed: report exact ticket/task IDs, states, comments, and mutations"]
+  Actor["Actor: active Manager agent"] --> Decision{"Decision: recipient, mutation, and return route evidenced and authorized?"}
+  Decision -->|Allowed| Route["Allowed: report exact ticket/instance IDs, states, comments, and mutations"]
   Decision -->|Prohibited| Blocked["BLOCKED: missing, ambiguous, failed, or unsafe gate"]
-  Route --> Outcome["Outcome: exact verified returnTaskId receives grounded coordination result"]
+  Route --> Outcome["Outcome: exact verified returnInstanceId receives grounded coordination result"]
   Blocked --> Outcome
 ```
 
 Manager receives actual current-task/recipient identity only as trusted execution context, requires it to equal the
-packet worker ID, and rejects packet-supplied current-task identity. It verifies logical project/repository against
+packet worker ID, and rejects packet-supplied current-instance identity. It verifies logical project/repository against
 initialized context; any saved-project UUID or workspace path is runtime evidence resolved separately, never compared
 as a logical name. It verifies `returnRouteAuthorization` as `same-as-caller` only for equal IDs or `caller-designated`
-only for one distinct initialized visible return task in the same logical project/repository; it blocks missing,
+only for one distinct initialized active return instance in the same logical project/repository; it blocks missing,
 mismatched, foreign, substitute, and broadcast routes. It then uses the canonical worker-handoff protocol in shared
 routing. A cross-task request is not terminal until one complete evidence handoff reaches the exact verified
-`returnTaskId` with a successful receipt. Perform a lifecycle mutation only when fully evidenced and authorized;
+`returnInstanceId` with a successful receipt. Perform a lifecycle mutation only when fully evidenced and authorized;
 otherwise return `BLOCKED`. Never equate a worker disposition or tracker state with technical acceptance. Acknowledge
 initialization exactly: `MANAGER_READY`.
 
 Manager invokes `managerPacketDecision` before any tracker read, search, mutation, staffing action, or contextual reasoning.
-Invalid input returns the visible canonical `BLOCKED_INVALID_PACKET` receipt to the validated return task or trusted
+Invalid input returns the canonical `BLOCKED_INVALID_PACKET` receipt to the validated return instance or trusted
 sender task. A failed delivery retries exactly once and then produces a visible `BLOCKED_DELIVERY` result in Manager's
 own task. `managerTurnCompletionDecision` is the terminal gate: a triggered Manager turn with zero visible responses or
 without an explicit delivery disposition must remain failed and may not be recorded as completed.
