@@ -6,4 +6,5 @@ Newest first:
 
 - [2026-09-04 — Why AI Fleas?](2026-09-04-why-ai-fleas.md)
 - [2026-09-02 — With Folded Hands](2026-09-02-with-folded-hands.md)
+- [2026-09-01 — Who Is Optimizing Your Attention?](2026-09-01-who-is-optimizing-your-attention.md)
 - [2026-08-26 — Local AI Worker Is Alive](2026-08-26-local-ai-worker.md)
