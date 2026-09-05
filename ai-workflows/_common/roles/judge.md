@@ -38,7 +38,7 @@ flowchart TD
 | Property           | Value                                                                                                                       |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
 | Canonical role     | `judge`                                                                                                                     |
-| Display label      | From the exact initialized workflow role row; normally `⚖️ Judge`.                                                          |
+| Display label      | Defined by the selected platform adapter.                                                                                  |
 | Human-facing       | From the exact initialized workflow role row; must remain governance oversight only.                                        |
 | Communication mode | Direct human governance dialogue and scheduled self-audit only.                                                             |
 | Lifecycle          | From the exact initialized workflow role row; must be a visible persistent instance.                                        |

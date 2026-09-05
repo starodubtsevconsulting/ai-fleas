@@ -30,6 +30,9 @@ done
 
 grep -Fq 'ai_commands_root: ../../ai-commands' "${PROFILE}" || fail "Example must use the sibling AI Commands catalog"
 grep -Fq 'ai_workflows_root: ../../ai-workflows' "${PROFILE}" || fail "Example must use the sibling AI Workflows catalog"
+grep -Fq 'ai_platforms_root: ../../platforms' "${PROFILE}" || fail "Example must use the sibling platform registry"
+grep -Fq 'agent_platform: gpt-app' "${PROFILE}" || fail "Example must select the built-in GPT App platform"
+test -r "${ROOT}/../platforms/gpt-app/platform.yml" || fail "Missing built-in GPT App platform contract"
 grep -Fq 'config: agent-identities.yml' "${PROFILE}" || fail "Example must reference agent identity configuration"
 python3 "${ROOT}/example/validate-agent-identities.py" "${ROOT}/example/agent-identities.yml" example.com
 grep -Fq 'policy_references:' "${PROFILE}" || fail "Example tracker context must declare policy references"

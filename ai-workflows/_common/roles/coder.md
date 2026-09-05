@@ -21,7 +21,7 @@ flowchart TD
 | Property           | Value                                     |
 | ------------------ | ----------------------------------------- |
 | Canonical role     | `coder`                                   |
-| Display label      | `🔀 coder`                                |
+| Display label      | Defined by the selected platform adapter  |
 | Human-facing       | `not human-facing (internal packet-only)` |
 | Communication mode | internal canonical packets only           |
 
