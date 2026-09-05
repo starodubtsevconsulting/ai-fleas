@@ -53,6 +53,19 @@ ai_profile_command_config() {
   ' "$1"
 }
 
+ai_platform_contract() {
+  local registry="$1/registry.yml" platform_id="$2"
+  [[ -f "$registry" ]] || return 1
+  awk -v wanted="$platform_id" '
+    /^  - id:[[:space:]]*/ {
+      value=$0; sub(/^  - id:[[:space:]]*/, "", value); selected=(value == wanted); next
+    }
+    selected && /^    contract:[[:space:]]*/ {
+      value=$0; sub(/^    contract:[[:space:]]*/, "", value); print value; exit
+    }
+  ' "$registry"
+}
+
 ai_profile_resolve_path() {
   local base="$1" relative="$2" parent
   case "$relative" in /*) printf '%s\n' "$relative"; return 0 ;; esac
@@ -64,7 +77,7 @@ ai_profile_activate() {
   local requested_profile="${1:-${WORK_PROFILE_ID:-${AI_WORK_PROFILE_ID:-sc}}}"
   local requested_workflow="${2:-${AI_FLOW_WORKFLOW:-${WORKFLOW_NAME:-}}}"
   local requested_instance="${3:-${AI_WORKFLOW_INSTANCE_ID:-}}"
-  local profile_file profile_dir commands_ref workflows_ref governance_repository governance_surface workflow_id path
+  local profile_file profile_dir commands_ref workflows_ref platforms_ref agent_platform platform_contract governance_repository governance_surface workflow_id path
   local -a governance_paths
   profile_file="$(ai_profile_file "$requested_profile")" || return 1
   [[ -f "$profile_file" ]] || { ai_profile_error "unknown profile: $requested_profile"; return 1; }
@@ -74,10 +87,20 @@ ai_profile_activate() {
   profile_dir="$(dirname "$profile_file")"
   commands_ref="$(ai_profile_scalar "$profile_file" ai_commands_root)"
   workflows_ref="$(ai_profile_scalar "$profile_file" ai_workflows_root)"
+  platforms_ref="$(ai_profile_scalar "$profile_file" ai_platforms_root)"
+  agent_platform="$(ai_profile_scalar "$profile_file" agent_platform)"
   governance_repository="$(ai_profile_scalar "$profile_file" governance_rules_repository)"
   governance_surface="$(ai_profile_list "$profile_file" governance_rules_surface | paste -sd: -)"
   AI_COMMANDS_ROOT="$(ai_profile_resolve_path "$profile_dir" "$commands_ref")" || return 1
   AI_WORKFLOWS_ROOT="$(ai_profile_resolve_path "$profile_dir" "$workflows_ref")" || return 1
+  AI_PLATFORMS_ROOT="$(ai_profile_resolve_path "$profile_dir" "$platforms_ref")" || return 1
+  ai_profile_safe_id "$agent_platform" || { ai_profile_error 'missing or unsafe agent platform'; return 1; }
+  platform_contract="$(ai_platform_contract "$AI_PLATFORMS_ROOT" "$agent_platform")" || {
+    ai_profile_error "agent platform is not registered: $agent_platform"; return 1;
+  }
+  ai_profile_safe_relative_path "$platform_contract" || { ai_profile_error 'unsafe platform contract path'; return 1; }
+  AI_AGENT_PLATFORM_CONTRACT="$(ai_profile_resolve_path "$AI_PLATFORMS_ROOT" "$platform_contract")" || return 1
+  [[ -f "$AI_AGENT_PLATFORM_CONTRACT" ]] || { ai_profile_error "missing platform contract: $platform_contract"; return 1; }
   ai_profile_safe_id "$governance_repository" || { ai_profile_error 'missing or unsafe governance repository'; return 1; }
   [[ -n "$governance_surface" ]] || { ai_profile_error 'missing governance surface'; return 1; }
   local IFS=:
@@ -91,10 +114,12 @@ ai_profile_activate() {
   WORK_PROFILE_ID="$requested_profile"; AI_WORK_PROFILE_ID="$requested_profile"; AI_PROFILE_FILE="$profile_file"
   AI_FLOW_WORKFLOW="$requested_workflow"; AI_WORKFLOW_ID="$workflow_id"; AI_WORKFLOW_INSTANCE_ID="$requested_instance"
   AI_LOGICAL_PROJECT_ID="$requested_profile-$workflow_id${requested_instance:+-$requested_instance}"
+  AI_AGENT_PLATFORM="$agent_platform"
   AI_GOVERNANCE_RULES_REPOSITORY="$governance_repository"; AI_GOVERNANCE_RULES_ROOT="$(ai_profile_root)"
   AI_GOVERNANCE_RULES_SURFACE="$governance_surface"
-  export WORK_PROFILE_ID AI_WORK_PROFILE_ID AI_PROFILE_FILE AI_COMMANDS_ROOT AI_WORKFLOWS_ROOT
+  export WORK_PROFILE_ID AI_WORK_PROFILE_ID AI_PROFILE_FILE AI_COMMANDS_ROOT AI_WORKFLOWS_ROOT AI_PLATFORMS_ROOT
   export AI_FLOW_WORKFLOW AI_WORKFLOW_ID AI_WORKFLOW_INSTANCE_ID AI_LOGICAL_PROJECT_ID
+  export AI_AGENT_PLATFORM AI_AGENT_PLATFORM_CONTRACT
   export AI_GOVERNANCE_RULES_REPOSITORY AI_GOVERNANCE_RULES_ROOT AI_GOVERNANCE_RULES_SURFACE
 }
 

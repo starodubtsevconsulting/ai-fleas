@@ -3,12 +3,14 @@ name: example
 description: Copyable example work profile
 default_workflow: dev.workflow.md
 default_agent: codex
+agent_platform: gpt-app
 agent_login_method: web_sso
 web_auth_policies:
   codex: reuse_scoped_login
   pi: fresh_scoped_login
 ai_commands_root: ../../ai-commands
 ai_workflows_root: ../../ai-workflows
+ai_platforms_root: ../../platforms
 agent_identities:
   config: agent-identities.yml
 governance_rules_repository: example-governance-rules
