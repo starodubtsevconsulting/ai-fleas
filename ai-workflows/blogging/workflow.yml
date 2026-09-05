@@ -1,0 +1,9 @@
+id: blogging
+label: Blogging
+tags:
+  - writing
+  - publishing
+  - editorial
+entry: blogging.workflow.md
+required_commands:
+  - writing
