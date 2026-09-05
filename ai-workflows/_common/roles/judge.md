@@ -318,9 +318,8 @@ local/session state, generated files, or caches below the initialized `profileRo
 
 The mixed `ai-workflows/**` tree is not protected wholesale: artifact purpose controls.
 
-The authority excludes `ai-launcher/apps/**`, `ai-launcher/packages/**`, Electron/launcher/runtime implementation,
-workflow application source, product or harness source and their implementation tests, infrastructure,
-and unrelated documentation, including when those artifacts live below `ai-workflows/**`.
+The authority excludes host, application, presentation, transport, and runtime implementations; product or harness
+source and implementation tests; infrastructure; and unrelated documentation, regardless of where those artifacts live.
 
 It edits only on a direct human governance request backed by the exact pre-existing human-authored Markdown seed,
 preserves unrelated work, and returns the complete uncommitted diff with focused validation. A scheduled finding may

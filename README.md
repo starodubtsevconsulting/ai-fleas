@@ -15,3 +15,7 @@ depends on the private platform.
 
 Files intended for this repository must be safe to publish. Machine paths, credentials, private providers, client data,
 runtime state, UI/backend implementations, and private adapters belong in AI Fleas Platform.
+
+Public workflow manifests describe only portable identity, rule entry points, and required command capabilities. They do
+not declare MCP servers, transports, endpoints, frontend/backend processes, event storage, or host-specific runtime
+commands. A consuming platform may bind those mechanics in a separate private implementation catalog.

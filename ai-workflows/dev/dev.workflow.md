@@ -78,11 +78,6 @@ execution maps to Command Runner only after the human explicitly requests and au
 owns neither deployment execution nor permission to infer it. Manager maintains ticket and staffing lifecycle at the
 entry and closure boundaries without becoming a proxy between the delivery roles.
 
-Proxy Coder is a separate optional human-facing proxy path, not an additional delivery gate. A direct human request or a
-structured Designer/Reviewer packet enters the Luna wrapper, which may only validate context, call the registered Hermes
-submit/status MCP operations, wait for the correlated ASUS response, and present it. Any resulting product change still
-enters the normal automated-validation, independent-review, UI-acceptance, delivery, and closure gates above.
-
 ## Helper prompts
 
 The profile is supplied from outside this reusable workflow. See

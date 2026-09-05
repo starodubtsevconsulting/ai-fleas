@@ -130,11 +130,10 @@ flowchart TD
 queries. `WorkProfileRepository` owns discovery and loading only; consumers should ask the aggregate for scoped data
 instead of indexing its configuration maps directly.
 
-Use `sc/` as the maintained profile for this repository and `example/` as the publication-ready, sanitized template.
-Keep `example/` identical to the public `ai-profile/example/` folder so private changes can be published without further
-editing. The template contains explicit TODO projects plus non-secret ticket-tracker and Git override patterns; replace
-every placeholder before using a copied profile. Other profile directories are local runtime configuration and are
-ignored by source control. Run `./ai-profile/validate-example.sh` before publishing the example.
+Use `example/` as the publication-ready, sanitized template. It contains explicit TODO projects plus non-secret
+ticket-tracker and Git override patterns; replace every placeholder before using a copied profile. Operational profiles,
+project bindings, provider settings, credentials, and platform implementation-root bindings belong in the consuming
+private platform. Run `./ai-profile/validate-example.sh` before publishing the example.
 
 ## Command override scopes
 
