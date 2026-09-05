@@ -1,0 +1,9 @@
+id: bookkeeping
+label: Bookkeeping
+tags:
+  - bookkeeping
+  - records
+  - finance
+entry: bookkeeping.workflow.md
+required_commands:
+  - statements
