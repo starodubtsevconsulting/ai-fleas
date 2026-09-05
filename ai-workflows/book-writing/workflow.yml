@@ -1,0 +1,9 @@
+id: book-writing
+label: Book Writing
+tags:
+  - writing
+  - publishing
+  - long-form
+entry: book-writing.workflow.md
+required_commands:
+  - writing
