@@ -1,32 +1,6 @@
 id: real-estate-brokerage
 label: Registered Real Estate Brokerage
-entry: real-estate-brokerage-frontend/src/real-estate-brokerage-workflow-app.component.ts
-frontend:
-  type: angular-standalone-component
-  entry: real-estate-brokerage-frontend/src/real-estate-brokerage-workflow-app.component.ts
-backend:
-  mode: process
-  command: node ../common/server/workflow-sidecar.cjs
-  host: 127.0.0.1
-  port: 5003
-  health_path: /health
-  shutdown_path: /shutdown
-  shutdown_policy: stop
-  shutdown_timeout_ms: 5000
-  autostart: lazy
-events:
-  path: events
-validations:
-  - name: project-recommended
-    trigger: workflow-loaded
-    condition: no-scoped-projects
-    event: workflow:project-recommended-missing-v1
-    contribution: workflow-project-recommended-missing
-    presenter: inline-center-advisory
-    severity: warning
-    label: Workflow project
-    value: No project selected
-    detail: Create or select a project for this workflow to load its project-specific workspace.
+entry: real-estate-brokerage.workflow.md
 required_commands:
   - session
   - plan
