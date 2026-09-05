@@ -1,0 +1,4 @@
+id: voice-report
+name: Voice Report
+workflow: dev
+launch: app.sh

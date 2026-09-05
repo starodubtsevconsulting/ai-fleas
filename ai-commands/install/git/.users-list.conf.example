@@ -1,0 +1,17 @@
+# Copy this file to: git/.users-list.conf (this file is gitignored)
+#
+# One identity per line. Format:
+#   label|Full Name|email@example.com|github_username|github_pat
+#
+# The 4th field (github_username) is optional.
+# The 5th field (github_pat) is optional.
+# If github_pat is provided, ./git/switch-user.sh will write ~/.git-credentials (plaintext).
+# Treat github_pat as a secret.
+# Lines starting with # are comments.
+#
+# Examples:
+# work|Sergii Starodubtsev|sergii@company.com|starodubtsevconsulting|123
+# personal|Sergii Starodubtsev|sergii@gmail.com|sergii-starodubtsev
+
+work|REPLACE_WITH_NAME|REPLACE_WITH_EMAIL|REPLACE_WITH_GITHUB_USERNAME|REPLACE_WITH_GITHUB_PAT
+personal|REPLACE_WITH_NAME|REPLACE_WITH_EMAIL|REPLACE_WITH_GITHUB_USERNAME|REPLACE_WITH_GITHUB_PAT

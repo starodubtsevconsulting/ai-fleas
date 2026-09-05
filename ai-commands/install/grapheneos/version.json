@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1-SNAPSHOT",
+  "stage": "snapshot",
+  "ready": false,
+  "tested": false,
+  "message": "GrapheneOS installation is not implemented or tested yet. SNAPSHOT commands must not execute."
+}

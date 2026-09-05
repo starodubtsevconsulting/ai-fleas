@@ -1,0 +1,13 @@
+{
+  "items": [
+    { "id": "requirements", "text": "Requirements and active scope are coherent.", "applicability": "required" },
+    { "id": "acceptance-criteria", "text": "Acceptance criteria are satisfied.", "applicability": "required" },
+    { "id": "automated-validation", "text": "Required automated tests and quality checks pass.", "applicability": "required" },
+    { "id": "integration-validation", "text": "Integration tests pass when behavior crosses module, service, or persistence boundaries.", "applicability": "when-applicable" },
+    { "id": "api-fixture-validation", "text": "Hurl or fixture-based deployed API validation passes when deployed API behavior changes.", "applicability": "when-applicable" },
+    { "id": "ui-url-acceptance", "text": "Visible UI acceptance and test/dev URL validation pass for user-visible behavior.", "applicability": "when-applicable" },
+    { "id": "dev-validation", "text": "The change is deployed and validated in the dev environment.", "applicability": "when-applicable" },
+    { "id": "code-review", "text": "Required review feedback is resolved and the change is ready to merge.", "applicability": "required-for-code-change" },
+    { "id": "feature-demo", "text": "Feature-demo applicability is decided and evidenced.", "applicability": "required" }
+  ]
+}

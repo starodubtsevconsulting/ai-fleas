@@ -1,0 +1,54 @@
+id: dev
+label: Development
+tags:
+  - software
+  - testing
+entry: dev.workflow.md
+frontend:
+  type: iframe
+  entry: /
+backend:
+  mode: process
+  command: cd ../../ai-launcher && ./node_modules/.bin/ng build dev-workflow-ui --configuration production && ./node_modules/.bin/tsx --tsconfig ../ai-workflows/dev/dev-backend/tsconfig.json ../ai-workflows/dev/dev-backend/server/standalone-main.ts
+  host: 127.0.0.1
+  port: 5000
+  health_path: /health
+  shutdown_path: /shutdown
+  shutdown_policy: stop
+  shutdown_timeout_ms: 5000
+  autostart: lazy
+mcp:
+  enabled: true
+  command: node
+  args: mcp/src/server.mjs
+  host: 127.0.0.1
+  port: 0
+  endpoint_path: /mcp
+  transport: streamable-http
+events:
+  path: events
+validations:
+  - name: project-recommended
+    trigger: workflow-loaded
+    condition: no-scoped-projects
+    event: workflow:project-recommended-missing-v1
+    contribution: workflow-project-recommended-missing
+    presenter: inline-center-advisory
+    severity: warning
+    label: Workflow project
+    value: No project selected
+    detail: Create or select a project for this workflow to load its project-specific workspace.
+required_commands:
+  - electron
+runtime_commands:
+  - id: load-project
+    path: /api/commands
+    before_launcher_command: electron
+  - id: project-tree
+    path: /api/commands
+  - id: file-read
+    path: /api/commands
+  - id: git-changes
+    path: /api/commands
+  - id: git-diff
+    path: /api/commands

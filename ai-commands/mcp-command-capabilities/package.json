@@ -1,0 +1,20 @@
+{
+  "name": "@sc-services/mcp-command-capabilities",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Reusable MCP command capability adapters mounted by workflow-owned MCP servers.",
+  "scripts": {
+    "test:shared-unit": "node --test test/*.unit.test.mjs",
+    "test:workflow-composition-unit": "node --test ../../ai-workflows/dev/mcp/test/*.unit.test.mjs",
+    "test:mcp": "node --test ../../ai-workflows/dev/mcp/test/*.mcp.test.mjs",
+    "test:unit": "npm run test:shared-unit && npm run test:workflow-composition-unit",
+    "test": "npm run test:unit && npm run test:mcp"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.26.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
