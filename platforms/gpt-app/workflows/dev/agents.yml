@@ -1,0 +1,66 @@
+schema_version: gpt-app-workflow-agents.v1
+platform: gpt-app
+workflow: dev
+logical_project_pattern: <profile-id>-dev[-<suffix>]
+initialization: ../../agents/initialization.md
+portable_contract: ../../../../ai-workflows/agents.md
+
+agents:
+  - role: admin
+    title: "🔑 Admin"
+    model: gpt-5.6-sol
+    reasoning: high
+    lifecycle: persistent-control
+    human_facing: human-owned
+    readiness_token: ADMIN_READY
+  - role: designer-reviewer
+    title: "💬 Designer Reviewer"
+    model: gpt-5.6-sol
+    reasoning: low
+    lifecycle: persistent-control
+    human_facing: primary
+    readiness_token: DESIGNER_REVIEWER_READY
+  - role: judge
+    title: "⚖️ Judge"
+    model: gpt-5.6-terra
+    reasoning: low
+    lifecycle: persistent-control
+    human_facing: oversight-only
+    readiness_token: WORKFLOW_GOVERNANCE_JUDGE_READY
+  - role: manager
+    title: "🤖 Manager"
+    model: gpt-5.6-luna
+    reasoning: medium
+    lifecycle: persistent-control
+    human_facing: false
+    readiness_token: MANAGER_READY
+  - role: coder
+    title: "🔀 Coder"
+    model: gpt-5.6-terra
+    reasoning: medium
+    lifecycle: disposable-worker
+    human_facing: false
+    readiness_token: CODER_READY
+  - role: command-runner
+    title: "⚙️ Command Runner"
+    model: gpt-5.6-terra
+    reasoning: low
+    lifecycle: disposable-worker
+    human_facing: false
+    readiness_token: COMMAND_RUNNER_READY
+  - role: ui-acceptance-tester
+    title: "🖥️ UI Acceptance Tester"
+    model: gpt-5.6-terra
+    reasoning: low
+    lifecycle: disposable-worker
+    human_facing: false
+    readiness_token: UI_ACCEPTANCE_TESTER_READY
+
+role_contracts:
+  admin: ../../../../ai-workflows/_common/roles/admin.md
+  designer-reviewer: ../../../../ai-workflows/_common/roles/designer-reviewer.md
+  judge: ../../../../ai-workflows/_common/roles/judge.md
+  manager: ../../../../ai-workflows/_common/roles/manager.md
+  coder: ../../../../ai-workflows/_common/roles/coder.md
+  command-runner: ../../../../ai-workflows/_common/roles/command-runner.md
+  ui-acceptance-tester: ../../../../ai-workflows/_common/roles/ui-acceptance-tester.md

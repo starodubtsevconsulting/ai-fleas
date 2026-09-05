@@ -1,0 +1,5 @@
+version: 1
+platforms:
+  - id: gpt-app
+    label: GPT/Codex App
+    contract: gpt-app/platform.yml
