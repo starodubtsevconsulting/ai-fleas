@@ -17,6 +17,9 @@ This repository is the public rules and contracts layer for AI Fleas. Keep all c
 - When the human asks to initialize from `ai-fleas`, load this repository's `AGENTS.md`, the explicitly selected profile,
   and the public commands and workflows selected by that profile. Do not discover or infer a launcher, platform, profile,
   or companion repository merely because it exists nearby.
+- A plain `init` or `initialize` request initializes repository, profile, workflow, and project context only. It does not
+  authorize creating, replacing, messaging, archiving, or otherwise mutating managed-agent tasks. Managed-agent lifecycle
+  work requires a separate explicit human request naming that action and an explicitly configured host initializer.
 - AI Fleas is self-contained as a rules system. An operational profile may be local and Git-ignored; it does not create a
   dependency on a host implementation.
 - The selected profile defines the authorized workflows, commands, projects, and work scope. The current request selects
