@@ -1,8 +1,13 @@
 # AI Fleas
 
+![AI Fleas](img/ai-fleas.png)
+
 AI Fleas is the public rules layer used by AI Fleas Platform. It contains reusable commands, workflow contracts, roles,
 governance rules, and a sanitized profile example. It does not contain the private launcher, UI, backend, operational
 profiles, credentials, project bindings, or workflow application implementations.
+
+The name also sounds like “AI fleets”: many small AI participants working together. The original naming story is in
+[Why AI Fleas?](notes/2026-09-04-why-ai-fleas.md).
 
 The dependency direction is one-way: `ai-fleas-platform` consumes this repository; this repository never imports or
 depends on the private platform.
