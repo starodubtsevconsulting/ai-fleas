@@ -12,6 +12,12 @@ The name also sounds like “AI fleets”: many small AI participants working to
 The dependency direction is one-way: `ai-fleas-platform` consumes this repository; this repository never imports or
 depends on the private platform.
 
+## Public reference material
+
+- [Local-model benchmarks](benchmarks/local-models/README.md) record empirical worker-model results and planned
+  comparisons without making them workflow requirements.
+- [Notes](notes/README.md) capture the public ideas and history around the project.
+
 ## Repository structure
 
 - `ai-commands/` contains portable command contracts and their self-contained implementations.
