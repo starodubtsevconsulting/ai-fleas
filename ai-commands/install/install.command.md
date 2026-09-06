@@ -9,26 +9,15 @@ workflow, project, bot, task, and group lifecycle remains in the application's o
 Local installation currently supports **macOS on Apple Silicon only** (`Darwin/arm64`). Reject every other local host
 before mutation. Remote installation is a separate explicitly selected target context and is not implied by this command.
 
-```mermaid
-flowchart LR
-  Request["Human software request"] --> Install["install command"]
-  Install --> Target{"Canonical target"}
-  Target -->|gpt-app| GPT["GPT App package adapter"]
-  Target -->|hermes-app| Hermes["Hermes App package adapter"]
-  GPT --> Physical["status / install / update / upgrade / uninstall"]
-  Hermes --> Physical
-  GPT -. agent lifecycle .-> GPTCommand["gpt-app command"]
-  Hermes -. bot lifecycle .-> HermesCommand["hermes-app command"]
-```
-
 ## Inputs
 
 | Input | Required | Source | Description |
 |---|---|---|---|
 | Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
 | Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
-| Installation target | Yes for targeted lifecycle | User or profile | Canonical target ID such as `gpt-app` or `hermes-app`; human aliases `GPT` and `Hermes` resolve to those exact IDs. |
+| Installation command | Yes for targeted lifecycle | User or profile | Canonical child command such as `chatgpt` or `hermes`; human aliases resolve to those exact IDs. |
 | Lifecycle action | Yes for targeted lifecycle | User | One of `status`, `smoke-test`, `install`, `check-update`, `update`, `upgrade`, or `uninstall`. |
+| Component | No | User, profile, or child command default | Selects an installation form such as application, backend, CLI, or bundle without changing the child command identity. |
 
 - `ai-commands/install/*`
 
@@ -50,6 +39,27 @@ Every invocation is profile-aware: the host must verify that the active workflow
 
 Committed configuration template: `install/install.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
+## Supported Prompts
+
+| Human prompt | Expected result |
+|---|---|
+| `Install GPT` or `Install ChatGPT` | Route to the `chatgpt` command's `install` action and install or return an exact unavailable result. |
+| `Check for a Hermes update` | Route to the `hermes` command's read-only update check. |
+| `Upgrade Hermes` | Route to the `hermes` command's explicitly authorized upgrade and smoke test. |
+| `Show installation status` | Inspect the selected installation commands without changing software. |
+
+```mermaid
+flowchart LR
+  Request["Human software request"] --> Install["install command group"]
+  Install --> Target{"Child install command"}
+  Target -->|chatgpt| GPT["ChatGPT package command"]
+  Target -->|hermes| Hermes["Hermes package command"]
+  GPT --> Physical["status / smoke-test / install / update / upgrade / uninstall"]
+  Hermes --> Physical
+  GPT -. agent lifecycle .-> GPTCommand["gpt-app command"]
+  Hermes -. bot lifecycle .-> HermesCommand["hermes-app command"]
+```
+
 ## Tags
 
 #command #ai-command #install
@@ -61,18 +71,18 @@ Install and configure dev tooling using the local `ai-commands/install/` tree.
 - `${AI_COMMANDS_ROOT}/install/install.sh` (run all installs)
 - `${AI_COMMANDS_ROOT}/install/<tool>/install.sh` (run a single tool)
 - `${AI_COMMANDS_ROOT}/install/check.sh` (optional, if present)
-- `Install GPT` → resolve target `gpt-app`, then invoke its package adapter's `install` action.
-- `Update Hermes` → resolve target `hermes-app`, then invoke read-only `check-update`; use `upgrade` only after explicit authorization.
+- `Install GPT` → resolve child command `chatgpt`, then invoke its `install` action.
+- `Update Hermes` → resolve child command `hermes`, then invoke read-only `check-update`; use `upgrade` only after explicit authorization.
 - `Uninstall <target>` → require the exact canonical target, adapter support, and explicit confirmation.
 
 ## Application targets
 
 | Human wording | Canonical target | Physical lifecycle owner | Not owned here |
 |---|---|---|---|
-| `GPT`, `GPT App`, `Codex App`, or `ChatGPT App` | `gpt-app` | The GPT desktop application's trusted host installer and update channel. First-time installation uses the official platform-appropriate ChatGPT desktop installer. | Codex task, sidebar-section, logical-project, and managed-agent lifecycle. |
-| `Hermes` or `Hermes App` | `hermes-app` | The reviewed Hermes package installer already exposed by the public Hermes integration. | Hermes role profiles, bots, conversations, and workflow groups. |
+| `GPT`, `GPT App`, `Codex App`, `ChatGPT`, or `ChatGPT App` | [`chatgpt`](chatgpt/chatgpt.command.md) | The ChatGPT desktop application's trusted host installer and update channel. | Codex task, sidebar-section, logical-project, and managed-agent lifecycle. |
+| `Hermes` or `Hermes App` | [`hermes`](hermes/hermes.command.md) | The reviewed Hermes package installer already exposed by the public Hermes integration. | Hermes role profiles, bots, conversations, and workflow groups. |
 
-The existing `install/codex` target remains **Codex CLI**, not `gpt-app`. Detecting a Codex binary bundled inside a desktop
+The existing `install/codex` command remains **Codex CLI**, not `chatgpt`. Detecting a Codex binary bundled inside a desktop
 application does not make the CLI installer a desktop-application installer.
 
 ## Lifecycle semantics
@@ -93,6 +103,8 @@ opening an unrelated package manager, scraping a download, or claiming success.
 
 - Prefer running `${AI_COMMANDS_ROOT}/install/check.sh` first to see what is already installed.
 - Resolve application aliases to a canonical target before execution; never infer a target from a running agent or nearby repository.
+- Keep product identity separate from installation form: add reviewed `--component` adapters rather than creating a new
+  command name for every application/backend/CLI combination.
 - Before any local application operation, require `Darwin/arm64`; do not silently choose an Intel, Linux, or Windows artifact.
 - Every application target must provide a focused, deterministic adapter test and a read-only `smoke-test`. Successful
   `install` and `upgrade` require the smoke test to pass; installation alone is not completion.
