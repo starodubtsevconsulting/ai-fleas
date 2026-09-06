@@ -1,3 +1,36 @@
+# code-style.command
+
+## Purpose
+
+Use `code-style` to assess or improve source code against the selected repository’s formatting, design, and maintainability rules.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- project root
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- formatted code per project conventions
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `code-style/code-style.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `code-style/code-style.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #ai-command #code-style #formatting #lint
@@ -57,11 +90,3 @@ on both backend and UI:
 ## Roles selection
 
 - dev
-
-## Input
-
-- project root
-
-## Output
-
-- formatted code per project conventions

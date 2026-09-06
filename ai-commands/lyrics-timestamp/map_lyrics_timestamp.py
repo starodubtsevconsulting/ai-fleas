@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Spec: ai-config/commands/lyrics-timestamp/lyrics-timestamp.command.md"""
+"""Spec: ${AI_COMMANDS_ROOT}/lyrics-timestamp/lyrics-timestamp.command.md"""
 
 from __future__ import annotations
 

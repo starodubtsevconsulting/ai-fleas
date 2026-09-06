@@ -1,0 +1,26 @@
+# EXAMPLE ONLY: realistic shape with fictional, non-operational values. Never use this as a real host configuration.
+# Keep the populated copy in the operational AI Profile and ignored by Git.
+capability: hermes
+registered_command: hermes
+command_path: hermes/hermes.command.md
+
+profile_defaults:
+  name_template: example-{workflow}-{project}
+  preserve_conversations: true
+
+model:
+  provider: example-local-provider
+  id: example-local-model
+  base_url: http://127.0.0.1:1234/v1
+  context_window_tokens: 65536
+
+context_management:
+  compression_threshold: 0.25
+  compression_target: 0.15
+  protect_last_messages: 8
+
+command_access:
+  root: ${AI_COMMANDS_ROOT}
+  inherit_workflow_commands: true
+
+# Credentials and machine-specific Hermes paths belong in ignored local profile files or the host adapter.

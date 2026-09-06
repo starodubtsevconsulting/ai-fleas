@@ -2,7 +2,8 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-config_file="$script_dir/install.config"
+config_file="${AI_COMMAND_CONFIG_PATH:-}"
+[[ -n "$config_file" && -f "$config_file" ]] || { echo 'Profile-owned Whisper config required.' >&2; exit 2; }
 if [ -f "$config_file" ]; then
   # shellcheck disable=SC1090
   source "$config_file"

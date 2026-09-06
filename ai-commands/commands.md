@@ -1,24 +1,68 @@
 ## Commands Folder — Specification
 
+### Resolving the command catalog
+
+The selected AI Profile is authoritative for the command catalog. Profile activation resolves its
+`ai_commands_root` setting and exports the absolute path as `AI_COMMANDS_ROOT`. Runtime instructions and cross-command
+calls must therefore use `${AI_COMMANDS_ROOT}/<command-name>/...`; they must not assume that the catalog is named
+`commands`, lives beside the active project, or belongs to a particular host platform.
+
+Scripts distributed inside this repository may remain directly runnable before profile activation. Such scripts must
+derive a fallback from their own location, using the equivalent of
+`COMMANDS_ROOT="${AI_COMMANDS_ROOT:-<this repository's ai-commands directory>}"`. An explicitly supplied
+`AI_COMMANDS_ROOT` always wins. Paths under a profile's own `commands/` directory are profile-relative configuration,
+not command-catalog paths.
+
+Reusable command directories must not contain populated operational configuration. Secret-bearing and
+organization-specific command overrides belong in the selected profile's ignored local configuration. Hosts pass the
+resolved file path to executables as `AI_COMMAND_CONFIG_PATH`; a command-specific variable may be supported when its
+contract documents it. Public examples belong under `ai-profile/example/` and must contain placeholders only.
+
+Every command execution is profile-aware. Before invoking an executable, the launcher or host adapter must activate one
+exact profile and workflow, verify that the workflow allows the command, resolve `AI_COMMANDS_ROOT`, and export the
+command's profile-owned override as `AI_COMMAND_CONFIG_PATH` when configured. Direct command-local discovery of
+operational config is prohibited. Shell callers may use `${AI_COMMANDS_ROOT}/_runtime/profile/run-command.sh`; other platforms
+must enforce the same sequence.
+
+`ai-commands/_runtime/` is reserved internal infrastructure, not a command
+bundle. It has no command contract, workflow command ID, or execution route.
+
 ### Structure
 
-Each command lives under `commands/<command-name>/` and follows:
+Each public command lives under `ai-commands/<command-name>/`. The following
+names are canonical and are validated by `validate-structure.mjs`:
 
 - `<command-name>.command.md` — **required**
-  Defines purpose, usage, inputs/outputs, and behavior.
+  Defines purpose, inputs/outputs, entry point, and behavior. It is also the
+  profile-aware agent entry point when the command has no executable or UI.
 
-- `<command-name>.command.config` — optional
-  User configuration (gitignored).
+- `<command-name>.command.example.config` — **required and committed**
+  Safe documentation of supported command value overrides. Use fictional,
+  non-secret example values. If there are no supported overrides, say so in
+  the file. Copy it into the selected profile for operational use, reference
+  that copy through `commands[].config`, and let the activated host expose it
+  as `AI_COMMAND_CONFIG_PATH`. The command must never load the catalog example
+  at runtime. `.config` is the only supported command-template suffix; `.conf`,
+  `.yml`, and `.yaml` variants are invalid.
 
-- `<command-name>.command-default.config` — optional
-  Tracked defaults loaded before example and user config.
-
-- `<command-name>.command.example.config` — optional
-  Template for user config. When no defaults exist and no user config is present,
-  the command may prompt to create a user config from this file.
+- Profile-owned configuration — optional
+  Operational values and credential references live under the selected AI Profile, not in this catalog.
 
 - `<command-name>.command.sh` — optional
   Main executable script.
+
+- `<command-name>.command.mjs` — optional
+  Node.js executable entry point when shell is not the appropriate adapter.
+
+- `spec.md` — optional
+  Normative detailed behavior. Do not use `<command-name>.spec.md` for the
+  bundle specification.
+
+- `<command-name>.command.test.sh` or `<command-name>.command.test.mjs` — optional
+  Deterministic executable test.
+
+- `<command-name>.scenario.md` — optional
+  Agent-run live acceptance scenario.
 
 - Additional scripts allowed:
   `<command-name>-*.command.sh`
@@ -28,23 +72,34 @@ Each command lives under `commands/<command-name>/` and follows:
   Prefer `<command-name>-<provider>-<source>-adapter.command.sh` for shell entrypoints.
   Example: `statements-rbc-statement-adapter.command.sh`
 
-- `commands/dependencies.txt` — optional
-  Shared Python package requirements for command scripts. Command shell entrypoints that run Python should create/use
-the shared `commands/.venv/` and install these dependencies before running Python helpers.
+- `## Providers` or `## Provider implementations` in `<command-name>.command.md` — optional
+  Use when the command is a provider-neutral adapter. List stable capability IDs, linked peer provider command contracts,
+  execution routes, supported operations, and missing/disabled/ambiguous-provider behavior. Provider selection comes
+  only from validated profile or workflow configuration. Do not add this section when the command has no interchangeable
+  provider.
 
-- `commands/<command-name>/dependencies.txt` — optional
+- `ai-commands/dependencies.txt` — optional
+  Shared Python package requirements for command scripts. Command shell entrypoints that run Python should create/use
+the shared `ai-commands/.venv/` and install these dependencies before running Python helpers.
+
+- `ai-commands/<command-name>/dependencies.txt` — optional
   Command-specific Python package additions. Use only when a command needs packages that should not be part of the
 shared command environment.
 
-- `commands/<command-name>/feature.yml` — optional
+- `ai-commands/<command-name>/feature.yml` — optional
   Lightweight feature-app metadata for command-owned visual tools. When present, `launch: app.sh` declares the
 executable launch entry point so the main launcher does not have to guess. This is metadata, not a plugin framework.
 
-- `commands/.venv/` — optional and gitignored
+- `ai-commands/.venv/` — optional and gitignored
   Shared Python virtual environment for command scripts. Do not rely on globally installed Python packages when command
 dependencies are declared.
 
-Only the `.md` file is mandatory.
+The `.command.md` contract and `.command.example.config` template are mandatory,
+and every contract declares at least one entry point. Deterministic commands should normally provide a shell or Node
+executable. A manual visual command may declare its command-owned `app.sh` UI
+launcher. A reasoning-only or provider-neutral command may declare its
+`.command.md` contract as the agent entry point rather than adding a no-op
+wrapper script.
 
 ### Flat Catalog, Adapter Commands, and Subcommands
 
@@ -59,8 +114,8 @@ flowchart TD
 
 Prefer a flat public command namespace because direct command names are easier
 to discover, search, register, link, and validate. Adapter commands such as
-`source-control` and `ticket-tracker` remain top-level peers of provider
-commands such as `git` and `jira`; the adapter relationship does not require
+`source-control`, `ticket-tracker`, and `logs` remain top-level peers of provider
+commands such as `git`, `jira`, and `datadog`; the adapter relationship does not require
 directory nesting.
 
 Subcommands are a separate concept. A subcommand is a scoped operation that
@@ -88,7 +143,7 @@ command folder:
 Launcher expectations:
 
 - Keep the command documentation source of truth in `<command-name>.command.md`; document the UI launcher there when one exists.
-- Keep the launcher self-contained under `commands/<command-name>/` or clearly command-owned subfolders such as `launcher/`.
+- Keep the launcher self-contained under `ai-commands/<command-name>/` or clearly command-owned subfolders such as `launcher/`.
 - Accept launch context from the main AI Electron app when provided, so the UI opens with the selected profile,
 workflow, project, scope, paths, output destination, and breadcrumb already applied.
 - Do not require manual user preparation after a normal `git pull`. If dependencies are missing, the launcher should
@@ -150,12 +205,64 @@ flowchart TD
   Blocked --> Outcome
 ```
 
-Every command documentation file must contain a `## Supported Prompts` section near the top, after any title and tags
+Every command documentation file must contain a `## Supported Prompts` section after the four required opening sections
 and before behavior or implementation detail. It declares the natural-language prompts the command accepts and the
 expected result for each prompt. A command with no safe supported prompt is `BLOCKED` until its prompt contract is
 defined.
 
-A command may add a separate `<command-name>.test-scenarios.md` file for repeatable command testing. Each scenario must
+Every command contract starts with the same four second-level sections, in
+this exact order: `## Purpose`, `## Inputs`, `## Outputs`, and `## Entry Point`. No tags, roles,
+usage, diagram, or free-standing description appears before them. Use tables
+for the two interface sections so humans and hosts can compare command
+interfaces without interpreting prose:
+
+```markdown
+## Purpose
+
+State the command's concrete job, when it should be used, the outcome it owns,
+and the most important behavior it does not own. Do not use a generic sentence
+that merely points back to the rest of the contract.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| `<name>` | Yes / No / Conditional | User / workflow / profile / artifact | What the command consumes and why. |
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| `<name>` | Caller / file / external system | Observable result or evidence produced. |
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `<command-name>/<entrypoint>` | Shell executable / Node executable / Command-owned UI launcher / AI-readable contract | How the activated host invokes or loads it. |
+```
+
+List profile/workflow activation when it is an execution precondition. List
+external effects explicitly. If a command has no domain input, output artifact,
+or external effect, write `None` rather than omitting the row or section.
+
+Provider declarations are part of the common structure but are optional. When
+the command is provider-neutral, place the declaration after the four required
+opening sections:
+
+```markdown
+## Provider implementations
+
+| Configured capability | Provider command contract | Route |
+|---|---|---|
+| `<provider-id>` | [`<provider-id>`](../<provider-id>/<provider-id>.command.md) | Authorizing role resolves intent; execution role runs provider mechanics. |
+```
+
+The section must also document supported operations and fail-closed behavior
+for missing, disabled, unknown, or ambiguous bindings. It does not move or
+replace `Purpose`, `Inputs`, `Outputs`, or `Entry Point`.
+
+A command may add a separate `<command-name>.scenario.md` file for repeatable live acceptance. Each scenario must
 name the supported prompt it exercises, use only that prompt's declared scope and expected result, and state its setup,
 steps, expected evidence, and prohibited effects. A scenario must not invent a new prompt, broaden file or workspace
 scope, or treat an unavailable optional UI route as a successful visible interaction. The command documentation links to
@@ -179,12 +286,11 @@ models may be a poor fit for creative writing)
 
 ## Command Index
 
-- `show` — display file/content in the Central Dialog via `ui:show`
 - `show-context` — render files, URLs, local paths, and `--see` drops into browser-visible context
 - `taxes` — summarize configured accounting tax reports and optionally open the result through `show-context`
 - `statements` — scan accounting statement PDFs for tax-payment candidates and source evidence
 - `acc-report` — inspect, create, and validate accounting report folders under reports/[year]/[business]/[quarter]/in|out|statements
-- `code-review` — structured code review focused on critical risk and coverage
+- `review` — governed review with correctness, risk, workflow, role, documentation, and test evidence
 - `sdd` — spec-driven development (English-first behavior spec -> code -> verification)
 - `session` — create/open/list/close the current AI work session (aliases: `work session`, `session flow`; includes
 todo gate, close marker, terminal agent reset)
@@ -204,7 +310,7 @@ session, sync a story to a GitHub issue, and compile to active `plan.md`
 ### Command Resolution
 
 - User input from `ai-session` (see `AGENTS.md`) is interpreted via the selected workflow (`workflows.md`).
-- Every verb-like query must be evaluated against available commands in `commands/`.
+- Every verb-like query must be evaluated against available commands in `ai-commands/`.
 - If a match is found, the corresponding command is executed within the workflow context.
 - When the active project is resolved through the project registry and its `project.yml` declares `project_rule_paths`,
 those repo-local rule files must be read before substantive work and treated as mandatory alongside workflow and
@@ -221,10 +327,10 @@ command rules.
 
 ### Command Python Dependencies
 
-- Keep common Python command packages in `commands/dependencies.txt`.
-- Command shell entrypoints that run Python should bootstrap the shared `commands/.venv/` before invoking Python helpers.
-- Run command Python helpers through `commands/.venv/bin/python`, not through the global `python3`, when dependency files exist.
-- A command may add `commands/<command-name>/dependencies.txt` for command-specific extras, but shared dependencies
+- Keep common Python command packages in `ai-commands/dependencies.txt`.
+- Command shell entrypoints that run Python should bootstrap the shared `ai-commands/.venv/` before invoking Python helpers.
+- Run command Python helpers through `ai-commands/.venv/bin/python`, not through the global `python3`, when dependency files exist.
+- A command may add `ai-commands/<command-name>/dependencies.txt` for command-specific extras, but shared dependencies
 should be preferred when multiple commands can reasonably use them.
 - The command entrypoint may auto-create `.venv/` and install or refresh dependencies when dependency files change.
 - Do not assume globally installed Python packages are available when command dependency files exist.
@@ -235,11 +341,11 @@ explicitly and print a clear install hint when they are missing.
 
 ### Dialog Command Convention
 
-- `commands/dialog/` handles Q/A logging.
+- `ai-commands/dialog/` handles Q/A logging.
 - If user input contains `??`:
   - Route to `dialog` command
   - Append entry to:
-    `commands/dialog/log/<project-name>/<task-name>/*-dialog.md`
+    `ai-commands/dialog/log/<project-name>/<task-name>/*-dialog.md`
   - Logs are gitignored
 
 ---
@@ -247,9 +353,12 @@ explicitly and print a clear install hint when they are missing.
 ### Policies
 
 - Commands must load and follow policies defined by the active workflow.
-- Commands must also honor project-local rule files declared by the active project's registry metadata (for example
-`project_rule_paths` in `commands/projects/registry/<project-id>/project.yml`).
+- Commands must also honor project-local rule files declared by the selected profile project's metadata (for example
+`project_rule_paths` in the selected profile project definition (`AI_PROFILE_PROJECT_FILE`)).
 - Workflow policies override local command behavior when applicable.
+- Project-dependent commands receive one exact profile-owned `project.yml`
+through `AI_PROFILE_PROJECT_FILE`; reusable commands never own a project
+registry under `ai-commands/`.
 
 ---
 

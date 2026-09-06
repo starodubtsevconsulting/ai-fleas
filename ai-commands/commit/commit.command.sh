@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "commit" || exit $?
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"
 AI_FLOW_OUTPUT_DIR="${AI_FLOW_OUTPUT_DIR:-}"
@@ -39,13 +41,13 @@ set -- "${ai_flow_args[@]}"
 export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RULES_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+COMMANDS_ROOT="${AI_COMMANDS_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd -P)}"
 POMODORO_PRELUDE_SH="$SCRIPT_DIR/../pomodoro/pomodoro.prelude.sh"
 if [[ -x "$POMODORO_PRELUDE_SH" ]]; then
   "$POMODORO_PRELUDE_SH" || true
 fi
 
-SDD_GUARD_SH="$RULES_DIR/commands/sdd/sdd.command-guard.sh"
+SDD_GUARD_SH="$COMMANDS_ROOT/sdd/sdd.command-guard.sh"
 if [[ -x "$SDD_GUARD_SH" ]]; then
   "$SDD_GUARD_SH" --staged-only
 fi

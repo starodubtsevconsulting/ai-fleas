@@ -1,13 +1,47 @@
+# push.command
+
+## Purpose
+
+Use `push` to publish validated local commits to an explicitly authorized remote branch and verify the remote state.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- branch
+- current task context
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- remote source control
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `push/push.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `push/push.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #ai-command #push #git
 
 - `push` means **commit + push**, not only `git push`
-- run `commands/push/push.command.sh --check --profile <profile-id> --workflow <workflow-id>` to validate Git
+- run `ai-commands/push/push.command.sh --check --profile <profile-id> --workflow <workflow-id>` to validate Git
   work-profile selection without pushing
-- `commands/push/push.command.test.sh` verifies macOS Bash syntax and exercises
+- `ai-commands/push/push.command.test.sh` verifies macOS Bash syntax and exercises
   profile resolution through the non-pushing preflight
-- before pushing, run the code style command for the project (see `commands/code-style/code-style.command.md`)
+- before pushing, run the code style command for the project (see `ai-commands/code-style/code-style.command.md`)
 - if there are uncommitted changes:
   1. stage relevant files
   2. create commit message related to the current repository and its active task
@@ -47,20 +81,20 @@
   - push result
 - every invocation requires the initialized `profileId` and `workflowId` coordinates; path matching verifies project
   ownership but never selects a profile
-- verify exact identity, origin policy, and repository ownership against that bound profile (see `commands/git/git.command.md`)
+- verify exact identity, origin policy, and repository ownership against that bound profile (see `ai-commands/git/git.command.md`)
 - SDD gate is mandatory before push:
-  - if context may be stale (session refresh/new commits/long pause), run `commands/sdd/sdd.command-resync.sh`
-  - `push.command.sh` runs `commands/sdd/sdd.command-guard.sh --staged-only` and blocks push on spec/drift/resync-state
+  - if context may be stale (session refresh/new commits/long pause), run `ai-commands/sdd/sdd.command-resync.sh`
+  - `push.command.sh` runs `ai-commands/sdd/sdd.command-guard.sh --staged-only` and blocks push on spec/drift/resync-state
 failures for publish-targeted changes
 - if a push requires elevation, ask the user for approval and proceed immediately after approval.
 
 ## Profile Confirmation
 
-- `commands/push/push.command.sh` enforces profile/workflow coordinates and profile checks before `git push`
+- `ai-commands/push/push.command.sh` enforces profile/workflow coordinates and profile checks before `git push`
 - Config precedence:
-  1. `commands/git/git.command.config` (local override, gitignored)
-  2. `commands/git/git.command-default.config` (tracked defaults)
-  3. `commands/git/git.command.example.config` (template; used to create user config when no defaults exist)
+  1. selected profile configuration resolved as `AI_COMMAND_CONFIG_PATH`
+  2. profile-owned configuration resolved as `AI_COMMAND_CONFIG_PATH`
+  3. `ai-commands/git/git.command.example.config` (template shape only; copy it into the profile)
 - Setting:
   - `PUSH_PROFILE_CONFIRM=on|off`
   - `on` prompts to switch profiles when the current email domain does not match the project work profile.
@@ -72,12 +106,3 @@ This command is self-documented. Use this file as the canonical reference.
 ## Roles selection
 
 - dev
-
-## Input
-
-- branch
-- current task context
-
-## Output
-
-- remote source control

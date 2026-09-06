@@ -42,7 +42,7 @@ export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR
 
 # Print review threads for a PR on GHE.
 # Usage:
-#   ./commands/pr-review-threads/pr-review-threads.command-script.sh <owner> <repo> <pr-number|branch> [token]
+#   ${AI_COMMANDS_ROOT}/pr-review-threads/pr-review-threads.command-script.sh <owner> <repo> <pr-number|branch> [token]
 # Notes:
 #   - If the 3rd arg is numeric, it is treated as a PR number.
 #   - Otherwise it is treated as a branch name and the script finds the PR for

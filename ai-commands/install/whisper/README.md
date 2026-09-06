@@ -26,8 +26,8 @@ flowchart TD
   - `text-to-audio.sh` orchestrates script parsing + TTS synthesis + playback + logging.
   - `smoke-test.sh` validates install/log/runtime and runs end-to-end synth + transcription.
 - Configuration:
-  - `install.config` is the source of truth for feature toggles and voice/prosody defaults.
-  - Environment variables override `install.config` values at runtime.
+  - `install.command.example.config` documents the supported configuration shape only.
+  - Profile configuration selected through `AI_COMMAND_CONFIG_PATH` supplies runtime values.
 - Parser layer:
   - `sample_text_parser.py` parses `sample-text.txt` according to `sample-text-ai.spec.md`.
   - Produces structured JSON + speaker segments used by the TTS pipeline.
@@ -41,9 +41,9 @@ flowchart TD
 - ASR verification layer:
   - `whisper` CLI transcribes generated WAV to `output.txt` for quick validation.
 - Logs/artifacts:
-  - Install framework log: `rules/commands/install/logs/install.log`.
-  - Text-to-audio runtime logs: `rules/commands/install/whisper/logs/*.log`.
-  - Generated artifacts: `rules/commands/install/whisper/test/output.wav` and `output.txt`.
+  - Install framework log: `ai-commands/install/logs/install.log`.
+  - Text-to-audio runtime logs: `ai-commands/install/whisper/logs/*.log`.
+  - Generated artifacts: `ai-commands/install/whisper/test/output.wav` and `output.txt`.
 
 ## What it installs
 
@@ -64,11 +64,12 @@ flowchart TD
 ./install.sh
 ```
 
-## install.config
+## Configuration
 
 Feature toggles are controlled in:
 
-- `rules/commands/install/whisper/install.config`
+- Template only: `ai-commands/install/whisper/install.command.example.config`
+- Operational overrides: the selected profile path supplied as `AI_COMMAND_CONFIG_PATH`
 
 Main toggles:
 
@@ -108,7 +109,7 @@ It also checks previous `text-to-audio` log status and prints current run status
 
 If you run without passing text, it uses:
 
-- `rules/commands/install/whisper/sample-text.txt` (default UFO story script)
+- `ai-commands/install/whisper/sample-text.txt` (default UFO story script)
 
 3. Run end-to-end smoke test (audio generation + transcription):
 
@@ -119,7 +120,7 @@ whisper-smoke-test
 The smoke test now validates:
 
 - required commands are available
-- install log exists at `rules/commands/install/logs/install.log`
+- install log exists at `ai-commands/install/logs/install.log`
 - latest `whisper/install.sh` log status is `OK`
 - audio + transcript files are created successfully
 - voice-report readiness generation works with the bundled fast voice profile
@@ -137,12 +138,12 @@ If a command is missing, open a new shell (`exec zsh`) so PATH updates are loade
 If noninteractive sudo is unavailable, the installer skips `apt` and still tries the Python-side setup; system packages
 such as `ffmpeg`/`espeak-ng` may then need manual install.
 If the configured pip index is unreachable, the installer retries Python packages against `https://pypi.org/simple`.
-Generated WAV/transcript artifacts are stored in `rules/commands/install/whisper/test/` by default.
+Generated WAV/transcript artifacts are stored in `ai-commands/install/whisper/test/` by default.
 Set `WHISPER_AUTOPLAY=0` to disable immediate playback when needed.
 Set `WHISPER_TTS_VOICE` (for example `en-US-AriaNeural`) to choose the neural voice.
 Neural voice is required by default (`WHISPER_REQUIRE_NEURAL=1`), so the script fails instead of silently using robotic fallback.
 Set `WHISPER_REQUIRE_NEURAL=0` only if you explicitly want `espeak-ng` fallback.
-Env vars override values from `install.config`.
+Environment variables override the selected configuration values.
 
 Script speaker format (multi-voice):
 
@@ -150,8 +151,8 @@ Script speaker format (multi-voice):
 - `Maria: [voice notes]` sets speaker context and is not spoken.
 - `Maria: actual line` speaks `actual line` with Maria voice.
 - `---` separators are ignored.
-- Per-speaker voices are configured in `install.config` (`NARRATOR`, `MARIA`, `ROBERT`).
-- Per-speaker prosody is configurable in `install.config` (`WHISPER_TTS_RATE_*`, `WHISPER_TTS_PITCH_*`).
+- Per-speaker voices use the selected configuration (`NARRATOR`, `MARIA`, `ROBERT`).
+- Per-speaker prosody uses the selected configuration (`WHISPER_TTS_RATE_*`, `WHISPER_TTS_PITCH_*`).
 - Unlabeled lines default to narrator voice (`WHISPER_TTS_DEFAULT_UNLABELED_SPEAKER=narrator`).
 - Common typos like `Robot` are normalized to `Robert`.
 
@@ -164,5 +165,5 @@ Structured parser:
 
 ## Framework notes
 
-- Installer execution is logged to `rules/commands/install/logs/install.log`.
+- Installer execution is logged to `ai-commands/install/logs/install.log`.
 - No `v_matrix.json` entry is required for Whisper in the current framework because it does not use matrix-driven version selection.

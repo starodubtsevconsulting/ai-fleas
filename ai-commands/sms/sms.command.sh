@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "sms" || exit $?
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EXAMPLE_CONF="$SCRIPT_DIR/sms.command.example.config"
-CONF_FILE="$SCRIPT_DIR/sms.command.config"
+CONF_FILE="${SMS_COMMAND_CONFIG:-${AI_COMMAND_CONFIG_PATH:-}}"
 POMODORO_PRELUDE_SH="$SCRIPT_DIR/../pomodoro/pomodoro.prelude.sh"
 if [[ -x "$POMODORO_PRELUDE_SH" ]]; then
   "$POMODORO_PRELUDE_SH" || true
@@ -65,22 +66,10 @@ function read_user_phone_number() {
   awk -F':' 'tolower($1) ~ /^[[:space:]]*user-phone-number[[:space:]]*$/ {sub(/^[[:space:]]+/, "", $2); sub(/[[:space:]]+$/, "", $2); print $2; exit 0}' "$path"
 }
 
-if [[ ! -f "$EXAMPLE_CONF" ]]; then
-  echo "Missing example config: $EXAMPLE_CONF" >&2
+if [[ -z "$CONF_FILE" || ! -f "$CONF_FILE" ]]; then
+  echo "Missing profile-owned SMS config (AI_COMMAND_CONFIG_PATH)." >&2
   exit 1
 fi
-
-if [[ ! -f "$CONF_FILE" ]]; then
-  cp "$EXAMPLE_CONF" "$CONF_FILE"
-  cat <<'EOF' >> "$CONF_FILE"
-
-# Personal/local overrides (gitignored by *.config)
-EOF
-  echo "Created $CONF_FILE; edit as needed." >&2
-fi
-
-# shellcheck source=/dev/null
-source "$EXAMPLE_CONF"
 # shellcheck source=/dev/null
 source "$CONF_FILE"
 
@@ -173,7 +162,7 @@ case "$PROVIDER" in
     if [[ -z "$ACCOUNT_SID" || -z "$AUTH_TOKEN" ]]; then
       cat >&2 <<EOF
 Missing Twilio configuration.
-Set env vars or commands/sms/sms.command.config:
+Set env vars or bind an SMS config in the selected AI Profile:
   - TWILIO_ACCOUNT_SID
   - TWILIO_AUTH_TOKEN
   - TWILIO_MESSAGING_SERVICE_SID (recommended) OR TWILIO_FROM_NUMBER (or pass --from)

@@ -8,5 +8,5 @@ required_commands:
   - kdenlive
   - lyrics-timestamp
   - video-handwriting-effect
-  - text-to-audio
+  - tts
   - voice-report

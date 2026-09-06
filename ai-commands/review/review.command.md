@@ -1,5 +1,53 @@
 # Review Command
 
+## Purpose
+
+Use `review` to perform an independent, evidence-based assessment of a proposed code or configuration change before it
+is accepted or delivered. It compares the complete branch diff and its supporting evidence against repository rules,
+the producing workflow, participating role contracts, correctness, security, documentation, test coverage, and the
+Definition of Done.
+
+The command produces an actionable review report: findings ordered by severity, precise file and line references,
+missing evidence or tests, workflow-integrity results, and a clear acceptance disposition. The Designer/Reviewer owns
+the analysis and judgment.
+
+`review` does not implement fixes, run delegated validation commands, perform visible UI acceptance, close tickets, or
+deliver/deploy changes. Those effects remain with their workflow owners. A follow-up request may route findings to the
+appropriate owner, but reviewing the change does not authorize that work automatically.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Change under review | Yes | Current branch, commit, PR, patch, or explicitly supplied diff | The exact proposed change to assess. |
+| Producing-workflow evidence | Conditional | Workflow packets, handoffs, or recorded provenance | Identifies applicable role contracts and delivery gates when the change was produced by a governed workflow. |
+| Validation evidence | No | Test, build, security, documentation, and UI-acceptance receipts | Evidence checked for completeness and consistency; absence may become a finding. |
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Review report | `${AI_FLOW_OUTPUT_DIR:-<commandsRoot>/review}/review-result.md` | Findings, workflow and role analysis, questions, change summary, tests, provenance, and disposition. |
+| Review summary | Caller | The highest-risk issue, remaining findings, missing evidence, and overall disposition. |
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `review/review.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `review/review.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
+## Supported Prompts
+
+- “Review these changes.” — Perform the complete governed review and produce `review-result.md`.
+- “Code review this.” — Use the same review contract with findings ordered by severity.
+- “Give me the most critical issue.” — Lead with the highest-risk finding, enumerate secondary findings concisely, and
+  finish with targeted missing-test recommendations.
+
 ## Execution role
 
 - `designer / reviewer` — invoke this semantic review directly. Do not delegate evidence interpretation, finding
@@ -41,7 +89,7 @@ Steps:
    - Use existing `/documentation/*.md` files in the repo when present.
    - If none exists, note that in the review.
 3. Review code changes, tests, and docs against `definition-of-done.md`.
-   - Before requiring Snyk, check the selected project entry in `commands/projects/projects-registry.yml`; registry
+   - Before requiring Snyk, check the selected project entry in the selected profile project definition (`AI_PROFILE_PROJECT_FILE`); registry
 fields such as `snyk_required: false` or `snyk_project_url: NONE` override the base review/Definition of Done Snyk
 expectation.
    - For Smithy changes, explicitly check doc style consistency (prefer `///` over `@documentation(...)` unless the
@@ -120,11 +168,14 @@ s/(Authorization:\s*Bearer\s+)[^\r\n]*/$1[REDACTED]/ig; s/(OKTA_[A-Z_]+=)[^ ]+/$
 
 ## Documentation Review
 
-- see the `commands/doc/doc.command.md` - validate (review) if the documentation in the current changes meets the quality bar.
+- see the `ai-commands/doc/doc.command.md` - validate (review) if the documentation in the current changes meets the quality bar.
 
 Report format:
 
 - Findings: ordered by severity with file/line references, describing issues, risks, or required changes.
+- When the request asks for a concise code review, lead with the single most critical issue, list secondary findings
+  without unnecessary expansion, and end with targeted test-coverage recommendations. This changes presentation only;
+  it does not skip any required review lens or evidence check.
 - Workflow Integrity: explicitly state whether workflow docs/command maps/inheritance are valid when those files changed.
 - Producing Workflow: identified workflow and exact provenance used, or `PRODUCING_WORKFLOW_UNKNOWN` with missing evidence.
 - Role Contract Analysis: one entry per evidenced participating role with contract sources, evidence inspected,
@@ -137,15 +188,8 @@ routing, review, style, DDD, testing, and acceptance rules.
 - Provenance: record `Reviewed-By-Role: designer-reviewer`, the producing/initiating role, and whether branch, commit, and
   PR provenance agree. Review identity does not replace the initiating role.
 
-## Inputs
-
 ## Roles
 
 - `planner`
 - See command description
 - AI_FLOW_PROJECT_DIR / AI_FLOW_OUTPUT_DIR when applicable
-
-## Output
-
-- Updated files/logs/reports described above
-- Terminal output and exit status

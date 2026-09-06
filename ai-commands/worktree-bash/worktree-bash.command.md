@@ -1,5 +1,22 @@
 # worktree-bash
 
+## Purpose
+
+Use `worktree-bash` to execute a bounded shell operation in an explicitly selected Git worktree.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes the command and resolves profile-owned configuration. |
+| Command-specific input | Yes | User, workflow, profile, or source artifact | Authorized repository command, exact working directory, and workflow context. |
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Command result | Caller, configured artifact path, or authorized external system | Captured shell exit status, output, and resulting repository state. |
+
 Execution route: `command-runner`.
 
 Run a supplied command only from the current resolved Git worktree through the
@@ -64,3 +81,13 @@ bash worktree-bash/worktree-bash.command.sh --dry-run -- npm test
 bash worktree-bash/worktree-bash.command.sh -- /bin/bash -c 'printf ok > build-proof.txt'
 bash worktree-bash/worktree-bash.command.sh --project-root /path/to/project -- /bin/bash -c 'mkdir -p /path/to/project/.ai-workflow-suite'
 ```
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `worktree-bash/worktree-bash.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `worktree-bash/worktree-bash.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.

@@ -2,6 +2,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMMANDS_ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+export AI_PROFILE_FILE="$(cd "$COMMANDS_ROOT/.." && pwd -P)/ai-profile/example/example-work-profile.yml"
+export AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=dev.workflow.md AI_COMMANDS_ROOT="$COMMANDS_ROOT"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 TEST_PROFILE_BUNDLE="$TMP_DIR/profile"
@@ -66,7 +69,7 @@ help_output="$($SCRIPT_DIR/show-context.command.sh --help)"
 grep -q -- 'rule-review --file <markdown-rule>' <<<"$help_output"
 grep -q -- '--template md-rules-changed' <<<"$help_output"
 grep -q -- '`--template <template-id>`' "$SCRIPT_DIR/show-context.command.md"
-grep -q -- 'code-review.*not currently registered' "$SCRIPT_DIR/show-context.command.md"
+grep -q -- 'review.*not currently registered' "$SCRIPT_DIR/show-context.command.md"
 grep -q -- '../doc/principles/diagram-first-principle.md' "$SCRIPT_DIR/show-context.command.md"
 
 alias_output="$($SCRIPT_DIR/show-context.command.sh rule-review \

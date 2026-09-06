@@ -1,5 +1,39 @@
 # dialog.command
 
+## Purpose
+
+Use `dialog` to conduct a structured, bounded conversation that resolves a defined question or decision.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- `project`
+- `task`
+- question and answer pairs during session
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- preferred: `{project-path}/.ai/dialog/log/[project-name]/[task-name]/*-dialog.md` (gitignored)
+- legacy fallback: `{project_location}/ai-commands/dialog/log/[project-name]/[task-name]/*-dialog.md` (gitignored)
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `dialog/dialog.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `dialog/dialog.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #ai-command #dialog
@@ -20,7 +54,7 @@ When dialog is detected:
 
 ## Log Output
 
-- folder: `{project_location}/commands/dialog/log/[project-name]/[task-name]/`
+- folder: `{project_location}/ai-commands/dialog/log/[project-name]/[task-name]/`
 - file: one markdown file per dialog session with `*-dialog.md` suffix
 - format:
   - project
@@ -47,7 +81,7 @@ Example structure:
 ## Documentation Sync Proposal
 
 - Triggered: 2026-02-07T15:55:00Z
-- Target doc: docs/apps/locusesse/features/editor-clipboard-guard-feature.md
+- Target doc: <project-docs>/features/editor-clipboard-guard-feature.md
 - Suggested update:
   - Add or refresh a short FAQ/decisions subsection using the Q/A entries from this dialog session.
   - Keep the feature doc aligned with the latest constraints, assumptions, and accepted tradeoffs.
@@ -58,7 +92,7 @@ Example structure:
 - Log one Q/A:
 
 ```bash
-./commands/dialog/dialog.command.sh \
+${AI_COMMANDS_ROOT}/dialog/dialog.command.sh \
   --project "sample-project" \
   --project-path "../sample-project" \
   --task "clipboard policy" \
@@ -70,7 +104,7 @@ Example structure:
 - Append to a known session:
 
 ```bash
-./commands/dialog/dialog.command.sh \
+${AI_COMMANDS_ROOT}/dialog/dialog.command.sh \
   --project "sample-project" \
   --project-path "../sample-project" \
   --task "clipboard policy" \
@@ -83,7 +117,7 @@ Example structure:
 - Finalize dialog and append documentation proposal:
 
 ```bash
-./commands/dialog/dialog.command.sh \
+${AI_COMMANDS_ROOT}/dialog/dialog.command.sh \
   --project "sample-project" \
   --project-path "../sample-project" \
   --task "clipboard policy" \
@@ -91,7 +125,7 @@ Example structure:
   --q "Wrap-up: should we sync docs?" \
   --a "Yes, sync the clipboard feature doc with this session decisions." \
   --role "architect" \
-  --doc-path "docs/apps/locusesse/features/editor-clipboard-guard-feature.md" \
+  --doc-path "<project-docs>/features/editor-clipboard-guard-feature.md" \
   --finalize
 ```
 
@@ -99,7 +133,7 @@ When `--project-path` is provided, logs are written to:
 `{project-path}/.ai/dialog/log/[project]/[task]/*-dialog.md`
 
 Without `--project-path`, legacy output remains:
-`commands/dialog/log/[project]/[task]/*-dialog.md`
+`ai-commands/dialog/log/[project]/[task]/*-dialog.md`
 
 When `--role` is omitted, the command auto-detects role from Q/A text (`architect`, `dev`), otherwise it writes `#role unspecified`.
 
@@ -118,14 +152,3 @@ Long-session guidance:
 - dev
 - architect
 - and others...
-
-## Input
-
-- `project`
-- `task`
-- question and answer pairs during session
-
-## Output
-
-- preferred: `{project-path}/.ai/dialog/log/[project-name]/[task-name]/*-dialog.md` (gitignored)
-- legacy fallback: `{project_location}/commands/dialog/log/[project-name]/[task-name]/*-dialog.md` (gitignored)

@@ -1,5 +1,32 @@
 # note.command
 
+## Purpose
+
+Use `note` to capture a durable, structured note in the explicitly selected destination.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes the command and resolves profile-owned configuration. |
+| Command-specific input | Yes | User, workflow, profile, or source artifact | Note intent, content, vault scope, links, and tags. |
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Command result | Caller, configured artifact path, or authorized external system | Created/updated note path and relationship evidence. |
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `note/note.command.md` | AI-readable contract | The initialized workflow role loads this contract after the host activates the selected profile and workflow. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `note/note.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #ai-command #note #obsidian #smart-notes #tags #knowledge-management
@@ -23,14 +50,14 @@ Use when the user asks to:
   - a vault is a folder opened by Obsidian as a workspace root
   - `.obsidian/` is optional metadata and is created by Obsidian after opening/configuring the vault
   - absence of `.obsidian/` does not block note creation; notes remain valid Markdown
-- Vault config source: `rules/commands/note/note.config`
+- Vault config source: `ai-commands/note/note.config`
   - `obsidian_vault` selects the default Obsidian vault for note operations
   - `vault_paths` lists allowed/known vault candidates
   - `smart_notes_root` points to Smart Notes subtree inside the selected vault
 - Default vault root: configured locally through `obsidian_vault`; no machine-specific path is published
 - Preferred vault name example: `documents`
 - Smart Notes root example: `docs`
-- Config template: `rules/commands/note/note.example.config`
+- Config template: `ai-commands/note/note.command.example.config`
 - Categories:
   - `<smart_notes_root>/fleeting-notes/`
   - `<smart_notes_root>/reference-notes/`
@@ -301,11 +328,11 @@ For `fleeting` and `knowledge`, `source` fields may be empty.
 ## Linked Commands
 
 - Session lifecycle:
-  - `rules/commands/session/session.command.md`
+  - `ai-commands/session/session.command.md`
 - Plan/progress tracking:
-  - `rules/commands/plan/plan.command.md`
+  - `ai-commands/plan/plan.command.md`
 - Dialog logging when prompt contains `??`:
-  - `rules/commands/dialog/dialog.command.md`
+  - `ai-commands/dialog/dialog.command.md`
 
 ## Usage (workflow mapping)
 

@@ -1,8 +1,42 @@
+# commit.command
+
+## Purpose
+
+Use `commit` to validate and record an authorized set of repository changes as one traceable Git commit.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- branch
+- `<session-root>/<work-profile>/<session-id>/session-plan.md`
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- remote source control
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `commit/commit.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `commit/commit.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #ai-command #commit #git
 
-- configure defaults in `commands/commit/commit.command.conf` (see example template)
+- put operational overrides in the selected profile; use the command example only as a shape template
 - see the active session plan at `<session-root>/<work-profile>/<session-id>/session-plan.md` for the current context
 - use the active session plan at `<session-root>/<work-profile>/<session-id>/session-plan.md` to create the commit
 comment, always link the `/documentation/*.md` file that is related to the feature we work on
@@ -38,20 +72,11 @@ it binds the repository path, exact Git identity,
   allowed origin URL, and host-scoped credentials to the active work profile
 - never switch global Git identity as part of commit; a mismatch is blocking until repository-local identity is corrected
 - SDD gate is mandatory before commit:
-  - run `commands/sdd/sdd.command-resync.sh` when context may be stale (new commits, long pause, session refresh)
-  - `commit.command.sh` runs `commands/sdd/sdd.command-guard.sh --staged-only` and blocks commit flow on drift/spec failures
+  - run `ai-commands/sdd/sdd.command-resync.sh` when context may be stale (new commits, long pause, session refresh)
+  - `commit.command.sh` runs `ai-commands/sdd/sdd.command-guard.sh --staged-only` and blocks commit flow on drift/spec failures
 - after commit, archive the active session plan:
   call the backend archive flow so `<session-root>/.current-session-path` is cleared; the timestamped session directory remains as history
 
 ## Roles selection
 
 - dev
-
-## Input
-
-- branch
-- `<session-root>/<work-profile>/<session-id>/session-plan.md`
-
-## Output
-
-- remote source control

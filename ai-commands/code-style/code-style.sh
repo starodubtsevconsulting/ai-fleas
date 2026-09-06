@@ -40,4 +40,4 @@ set -- "${ai_flow_args[@]}"
 export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR
 
 
-echo "See commands/code-style/code-style.command.md for the checklist."
+echo "See ${AI_COMMANDS_ROOT:-ai-commands}/code-style/code-style.command.md for the checklist."

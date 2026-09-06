@@ -1,5 +1,7 @@
 # Documentation Command
 
+## Purpose
+
 ```mermaid
 flowchart TD
   Actor["Actor: documentation author or reviewer"] --> Prerequisite["Prerequisite: document purpose, evidence, and project conventions"]
@@ -18,6 +20,38 @@ purpose-specific fixture rather than a generic rules dump.
 
 The Documentation command composes reusable principles into a purpose-specific documentation fixture. Not every document
 uses every principle. The document purpose and evidence determine which cataloged principles apply.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- A supported prompt and exact project directory.
+- For `--check`: a readable project directory containing `README.md`.
+- For authoring: bounded feature or capability scope, applicable evidence, and project documentation conventions.
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- For `--check`: deterministic `DOC_READINESS` lines for the resolved project, README, documentation roots, status, and
+  next action or blocker.
+- For authoring: done-state Markdown in the project-owned location, selected principle references, and focused validation
+  evidence.
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `doc/doc.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `doc/doc.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
 ## Tags
 
@@ -119,16 +153,3 @@ separate command documentation unless a command explicitly requires it.
 
 The host workflow selects an authorized documentation-capable role. This command defines documentation composition and
 readiness; it does not prescribe private role names, infer product semantics, or supply missing project evidence.
-
-## Input
-
-- A supported prompt and exact project directory.
-- For `--check`: a readable project directory containing `README.md`.
-- For authoring: bounded feature or capability scope, applicable evidence, and project documentation conventions.
-
-## Output
-
-- For `--check`: deterministic `DOC_READINESS` lines for the resolved project, README, documentation roots, status, and
-  next action or blocker.
-- For authoring: done-state Markdown in the project-owned location, selected principle references, and focused validation
-  evidence.

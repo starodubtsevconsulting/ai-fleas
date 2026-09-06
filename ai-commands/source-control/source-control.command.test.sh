@@ -11,7 +11,7 @@ grep -Fq '`source-control` is the provider-neutral command' "$COMMAND"
 grep -Fq 'registered `git`' "$COMMAND"
 grep -Fq 'commands/source-control/config.yml' "$COMMAND"
 
-for profile_id in example sc; do
+for profile_id in example; do
   profile="$ROOT_DIR/ai-profile/$profile_id/$profile_id-work-profile.yml"
   config="$ROOT_DIR/ai-profile/$profile_id/commands/source-control/config.yml"
   grep -Fq '  - id: source-control' "$profile"
@@ -21,7 +21,7 @@ for profile_id in example sc; do
   grep -Fq 'registered_command: git' "$config"
 done
 
-if rg -q '^source_control:' "$ROOT_DIR/ai-profile/example" "$ROOT_DIR/ai-profile/sc"; then
+if rg -q '^source_control:' "$ROOT_DIR/ai-profile/example"; then
   echo 'profiles must bind the source-control command instead of defining a special source_control block' >&2
   exit 1
 fi

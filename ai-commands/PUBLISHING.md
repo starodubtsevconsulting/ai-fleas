@@ -34,8 +34,9 @@ flowchart TD
   Blocked --> Outcome
 ```
 
-The root [`../ai-publication.yml`](../ai-publication.yml) file is the single private publication registry for commands and
-workflows. Each `public-mirror` entry names one canonical private source, one exact public repository, and one public path.
+A consuming private platform may maintain an `ai-publication.yml` registry outside this public repository. That
+private-only registry is intentionally not shipped or linked here. Each `public-mirror` entry names one canonical private
+source, one exact public repository, and one public path.
 A source may be one file or one folder. A folder entry without `include` maps every descendant. When `include` is present,
 the manifest members—not the folder's other descendants—are the complete registered artifact boundary. Include paths are
 relative, unique, normalized, non-traversing, non-symlink files. Every member must exist on both sides with identical path,

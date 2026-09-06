@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "dialog" || exit $?
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -47,7 +49,7 @@ done
 if [[ -z "$PROJECT" || -z "$TASK" || -z "$QUESTION" || -z "$ANSWER" ]]; then
   cat >&2 <<'USAGE'
 Usage:
-  ./commands/dialog/dialog.command.sh \
+  ${AI_COMMANDS_ROOT}/dialog/dialog.command.sh \
     --project "<project>" \
     --project-path "<project-path>" \
     --task "<task>" \
@@ -82,7 +84,7 @@ TASK_DIR_NAME="$(printf '%s' "$TASK" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0
 if [[ -n "$PROJECT_PATH" ]]; then
   LOG_BASE="${PROJECT_PATH%/}/.ai/dialog/log"
 else
-  LOG_BASE="rules/commands/dialog/log"
+  LOG_BASE="ai-commands/dialog/log"
 fi
 
 LOG_DIR="${LOG_BASE}/${PROJECT_DIR_NAME}/${TASK_DIR_NAME}"

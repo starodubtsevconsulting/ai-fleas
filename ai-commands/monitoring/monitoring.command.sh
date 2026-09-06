@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "monitoring" || exit $?
 set -euo pipefail
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"
@@ -41,8 +43,8 @@ export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../command-python.setup.sh"
-ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
-REGISTRY_FILE="${ROOT_DIR}/commands/projects/projects-registry.yml"
+COMMANDS_ROOT="${AI_COMMANDS_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd -P)}"
+REGISTRY_FILE="${AI_PROFILE_PROJECT_FILE:-}"
 
 SERVICE=""
 ENVIRONMENT="dev"
@@ -65,7 +67,7 @@ infer_env() {
 usage() {
   cat <<'EOF'
 Usage:
-  ./commands/monitoring/monitoring.command.sh --service <service> [--project-dir <path>] [--env <env>] [--open]
+  ${AI_COMMANDS_ROOT}/monitoring/monitoring.command.sh --service <service> [--project-dir <path>] [--env <env>] [--open]
 EOF
 }
 
@@ -145,45 +147,17 @@ import shlex
 import sys
 
 registry_path, service, project_dir = sys.argv[1:4]
-repo_name = os.path.basename(project_dir.rstrip("/")) if project_dir else ""
-
-items = []
-current = None
-with open(registry_path, encoding="utf-8") as fh:
-    for raw in fh:
-        line = raw.rstrip("\n")
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
-            continue
-        if stripped.startswith("- label:"):
-            if current:
-                items.append(current)
-            current = {"label": stripped.split(":", 1)[1].strip()}
-            continue
-        if current is None:
-            continue
-        if line.startswith("    ") and ":" in stripped:
-            key, value = stripped.split(":", 1)
-            current[key.strip()] = value.strip()
-if current:
-    items.append(current)
-
-matches = []
-for item in items:
-    keys = {
-        item.get("label", ""),
-        item.get("app_name", ""),
-        item.get("repo_path", ""),
-    }
-    score = 0
-    if service in keys:
-        score += 4
-    if repo_name and repo_name in keys:
-        score += 2
-    if score:
-        matches.append((score, item))
-
-selected = max(matches, default=(0, {}))[1]
+selected = {}
+if not registry_path or not os.path.isfile(registry_path):
+    raise SystemExit("AI_PROFILE_PROJECT_FILE is required")
+for raw in open(registry_path, encoding="utf-8"):
+    if raw.startswith(" ") or ":" not in raw or raw.lstrip().startswith("#"):
+        continue
+    key, value = raw.strip().split(":", 1)
+    selected[key.strip()] = value.strip().strip('"')
+keys = {selected.get("id", ""), selected.get("label", ""), selected.get("app_name", "")}
+if service not in keys and project_dir and os.path.basename(project_dir.rstrip("/")) not in keys:
+    raise SystemExit(f"selected profile project does not match service: {service}")
 for key in ("label", "app_name", "repo_path", "aws_region", "ecs_cluster_name"):
     value = selected.get(key, "")
     print(f"REGISTRY_{key.upper()}={shlex.quote(value)}")
@@ -195,7 +169,7 @@ ECS_CLUSTER="${REGISTRY_ECS_CLUSTER_NAME:-}"
 APP_NAME="${REGISTRY_APP_NAME:-$SERVICE}"
 
 if [ -z "$AWS_REGION" ] || [ -z "$ECS_CLUSTER" ]; then
-  echo "Could not resolve aws_region/ecs_cluster_name for service '$SERVICE' from $REGISTRY_FILE" >&2
+  echo "Could not resolve aws_region/ecs_cluster_name for service '$SERVICE' from AI_PROFILE_PROJECT_FILE" >&2
   exit 1
 fi
 

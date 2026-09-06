@@ -2,6 +2,9 @@
 set -euo pipefail
 
 command_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/worktree-bash.command.sh"
+commands_root="$(cd "$(dirname "$command_script")/.." && pwd -P)"
+export AI_PROFILE_FILE="$(cd "$commands_root/.." && pwd -P)/ai-profile/example/example-work-profile.yml"
+export AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=dev.workflow.md AI_COMMANDS_ROOT="$commands_root"
 fixture="$(mktemp -d "${TMPDIR:-/tmp}/worktree-bash-test.XXXXXX")"
 outside="$(mktemp -d "${TMPDIR:-/tmp}/worktree-bash-outside.XXXXXX")"
 cleanup() { rm -rf "$fixture" "$outside"; }

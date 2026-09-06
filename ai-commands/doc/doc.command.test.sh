@@ -5,6 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 COMMANDS_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+export AI_PROFILE_FILE="$(cd "$COMMANDS_ROOT/.." && pwd -P)/ai-profile/example/example-work-profile.yml"
+export AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=dev.workflow.md AI_COMMANDS_ROOT="$COMMANDS_ROOT"
 PRINCIPLE="$SCRIPT_DIR/principles/diagram-first-principle.md"
 INCLUDED_RULES_PRINCIPLE="$SCRIPT_DIR/principles/included-rules-principle.md"
 PROJECT_CONTEXT_PRINCIPLE="$SCRIPT_DIR/principles/project-documentation-context-principle.md"

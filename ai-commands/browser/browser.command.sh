@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "browser" || exit $?
 set -euo pipefail
 
 usage() {
@@ -20,13 +22,13 @@ URL_FILE=""
 URLS=()
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$SCRIPT_DIR/../command-python.setup.sh"
-CONF_FILE="${SCRIPT_DIR}/browser.command.conf"
+CONF_FILE="${BROWSER_COMMAND_CONF:-${AI_COMMAND_CONFIG_PATH:-}}"
 BROWSER_CMD=""
 BROWSER_ARGS=""
 BROWSER_STRICT="true"
 BROWSER_DETACH="${BROWSER_DETACH:-true}"
 
-if [[ -f "$CONF_FILE" ]]; then
+if [[ -n "$CONF_FILE" && -f "$CONF_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$CONF_FILE"
 fi

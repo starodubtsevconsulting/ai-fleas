@@ -1,8 +1,39 @@
-## Tags
+# session.command
+
+## Purpose
+
+Use `session` to create, resume, inspect, or close a bounded work session with durable context and status.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes the command and resolves profile-owned configuration. |
+| Command-specific input | Yes | User, workflow, profile, or source artifact | Session operation, profile/workflow identity, and optional session metadata. |
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Command result | Caller, configured artifact path, or authorized external system | Created/opened/closed session state and canonical session path. |
 
 #command #ai-command #session #work-session #session-flow #close-session #terminal #web #plan
 
 Manage AI sessions (`create`, `open`, `close`, `list`).
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `session/session.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `session/session.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
+## Tags
+
+
 
 ## Intent Aliases
 
@@ -76,17 +107,17 @@ reconciliation facts, and other information that would otherwise need to be redi
 ## Usage
 
 ```bash
-./rules/commands/session/session.command.sh close
+${AI_COMMANDS_ROOT}/session/session.command.sh close
 ```
 
 Optional:
 
 ```bash
-./rules/commands/session/session.command.sh create --task "harden session flow" --todo "Define session bootstrap rules"
-./rules/commands/session/session.command.sh open --plan <session-root>/sc/<session>/plan.md
-./rules/commands/session/session.command.sh open --latest
-./rules/commands/session/session.command.sh list
-./rules/commands/session/session.command.sh close --no-agent-close
+${AI_COMMANDS_ROOT}/session/session.command.sh create --task "harden session flow" --todo "Define session bootstrap rules"
+${AI_COMMANDS_ROOT}/session/session.command.sh open --plan <session-root>/example/<session>/plan.md
+${AI_COMMANDS_ROOT}/session/session.command.sh open --latest
+${AI_COMMANDS_ROOT}/session/session.command.sh list
+${AI_COMMANDS_ROOT}/session/session.command.sh close --no-agent-close
 ```
 
 ## Notes

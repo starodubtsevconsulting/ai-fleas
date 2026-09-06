@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "worktree-bash" || exit $?
 set -euo pipefail
 
 readonly INVALID_INPUT=64 BLOCKED=69 PAYLOAD_FAILURE=70

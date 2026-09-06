@@ -1,20 +1,15 @@
 # demo.command
 
+## Purpose
+
 Prepare a user-facing demo plan and walkthrough for recorded videos or live demonstrations.
 
-## Intent Mapping
-
-Use this command when the user asks to:
-
-- prepare a demo
-- create a demo script
-- plan a walkthrough
-- rehearse a user demo
-- prepare a recorded demo video
-- prepare a live demo
-- explain what to say at the beginning or end of a demo
-
 ## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
 
 Collect or infer these before drafting the final demo package:
 
@@ -27,6 +22,37 @@ Collect or infer these before drafting the final demo package:
 - Risks: fragile flows, latency, auth, environment instability, data privacy, or open product gaps.
 
 Ask only for missing inputs that would materially change the plan. Otherwise make conservative assumptions and mark them in the output.
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- A demo plan and talk track in chat or a Markdown artifact when the user asks for a file.
+- Any generated artifact should go under the active output directory when available, not an untracked project root file.
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `demo/demo.command.md` | AI-readable contract | The initialized workflow role loads this contract after the host activates the selected profile and workflow. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `demo/demo.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
+## Intent Mapping
+
+Use this command when the user asks to:
+
+- prepare a demo
+- create a demo script
+- plan a walkthrough
+- rehearse a user demo
+- prepare a recorded demo video
+- prepare a live demo
+- explain what to say at the beginning or end of a demo
 
 ## Show-Context Integration
 
@@ -41,10 +67,10 @@ browser windows.
 Default patterns:
 
 ```bash
-./commands/show-context/show-context.command.sh --project <label> --feature <topic> --open-links
-./commands/show-context/show-context.command.sh --see
-./commands/discussion/discussion.command.sh lookup-conversation --query "<topic>" --show
-./commands/discussion/discussion.command.sh current-conversation --summary --show
+${AI_COMMANDS_ROOT}/show-context/show-context.command.sh --project <label> --feature <topic> --open-links
+${AI_COMMANDS_ROOT}/show-context/show-context.command.sh --see
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh lookup-conversation --query "<topic>" --show
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh current-conversation --summary --show
 ```
 
 Use the rendered context to identify:
@@ -135,8 +161,3 @@ on Zoom/chat/current-meeting context.
 product explanation or missing recurring demo links.
 - `browser` only for direct URL opening that does not need a rendered context handoff.
   When multiple direct URLs are needed, pass them together in one command invocation so they open as one browser window with tabs.
-
-## Output
-
-- A demo plan and talk track in chat or a Markdown artifact when the user asks for a file.
-- Any generated artifact should go under the active output directory when available, not an untracked project root file.

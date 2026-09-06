@@ -1,6 +1,47 @@
-## Execution role
+# jira.command
+
+## Purpose
+
+Use `jira` to search, inspect, create, or update Jira work items through an explicitly authorized lifecycle operation.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes the command and resolves profile-owned configuration. |
+| Command-specific input | Yes | User, workflow, profile, or source artifact | Tracker operation, exact issue/project context, and profile-owned Jira binding. |
 
 - `command-runner` — Bounded mechanical execution is allowed when the work order supplies exact context and instructions.
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- `jira-ticket-result.json`: normalized non-secret inputs, status, created issue key/URL when available, and error details.
+- `jira-ticket-before.json` / `jira-ticket-after.json`: existing-issue snapshots used to verify intended changes and
+retain the previous Jira state.
+- `jira-ticket.png`: final form/result screenshot when the selected browser transport supports capture.
+- `jira-smart-checklist-result.json`: inferred issue, source plan, normalized checklist items, and sync status.
+- `jira-comment-result.json`: formatted non-secret comment input, Jira issue URL, and comment status.
+- `jira-set-in-progress-result.json`: ownership evidence, previous/final status, issue URL, and transition result.
+- Console markers: `JIRA_TICKET_STATUS`, `JIRA_TICKET_RESULT`, and, after creation or update, `JIRA_TICKET_KEY` / `JIRA_TICKET_URL`.
+- When story points are requested and verified, the command also prints `JIRA_TICKET_STORY_POINTS`.
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `jira/jira.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `jira/jira.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
+## Execution role
+
+
 
 ## Tags
 
@@ -68,10 +109,10 @@ Configuration precedence, from highest to lowest, is:
 
 1. Exact operation arguments in the authorized command packet.
 2. `command_env_overrides` resolved from the active profile's tracker execution binding.
-3. An explicitly selected machine-local `jira.command.conf`, limited to secrets and machine-specific settings.
+3. An explicitly selected profile-owned config passed as `AI_COMMAND_CONFIG_PATH` or `JIRA_COMMAND_CONF`, limited to secrets and machine-specific settings.
 4. Generic fail-closed placeholders and mechanical defaults supplied by this command.
 
-Committed `jira.command.example.conf` values are placeholders that document supported override names. They are not a
+Committed `jira.command.example.config` values are placeholders that document supported override names. They are not a
 profile and must never contain a real organization's Jira URL, project key, board ID, credentials, or ticket policy.
 Machine-local configuration is optional and is appropriate only for secrets, local browser paths, and machine-specific
 timeouts. The loader preserves any profile-resolved organization setting when the same name also appears locally, so the
@@ -116,20 +157,20 @@ Jira, its browser automation, tracker connectors, or these scripts directly.
 Manager uses its configured Jira capability when available. Only when that
 capability is unavailable may Manager dispatch the exact registered Jira
 fallback to `command-runner`, which must discover and follow this command
-document and invoke the matching `./ai-commands/jira/jira.command.sh` subcommand.
+document and invoke the matching `${AI_COMMANDS_ROOT}/jira/jira.command.sh` subcommand.
 A Jira key used as task context is not mutation intent, and naming a Codex role
 never means creating or assigning Jira work. Direct browser interaction is not
 a substitute for this command flow; use it only for narrow recovery or
 verification after a command attempt recorded its result artifact.
 
 - Synchronize Jira Smart Checklist updates with
-  `./ai-commands/jira/jira.command.sh sync-plan`, using the active external
+  `${AI_COMMANDS_ROOT}/jira/jira.command.sh sync-plan`, using the active external
   `session-plan.md` or an explicit `--session-plan FILE`. Pass `--submit` only
   after the user explicitly authorizes the Jira write. Manager supplies the
   issue/session-plan inputs and authorization state; command-runner owns the
   command and browser mechanics.
 - Route Jira description and summary changes through
-  `./ai-commands/jira/jira.command.sh update ISSUE-KEY` with the prepared
+  `${AI_COMMANDS_ROOT}/jira/jira.command.sh update ISSUE-KEY` with the prepared
   description and optional `--summary`; pass `--submit` only after explicit
   user authorization.
 - Keep the existing authenticated visible-Chrome automation model. Do not
@@ -155,7 +196,7 @@ flowchart TD
 scanning recent tickets or inventing another browser route:
 
 ```bash
-./ai-commands/jira/jira.command.sh search \
+${AI_COMMANDS_ROOT}/jira/jira.command.sh search \
   --project EXAMPLE \
   --issue-type Task \
   --summary-exact "[Example Service][AI Config Live Test]: Return finalName in key-group responses" \
@@ -184,7 +225,7 @@ flowchart TD
 Use the registered read-only status inventory before answering an overall-progress question:
 
 ```bash
-./ai-commands/jira/jira.command.sh list-by-status \
+${AI_COMMANDS_ROOT}/jira/jira.command.sh list-by-status \
   --project EXAMPLE \
   --status "In Progress" \
   --output-dir /private/tmp/jira-in-progress
@@ -257,48 +298,48 @@ ai-config workflow/helper commits; retain those references in the product PR bod
 ## Usage
 
 ```bash
-./ai-commands/jira/jira.command.sh template > /tmp/jira-description.md
+${AI_COMMANDS_ROOT}/jira/jira.command.sh template > /tmp/jira-description.md
 
-./ai-commands/jira/jira.command.sh search \
+${AI_COMMANDS_ROOT}/jira/jira.command.sh search \
   --project EXAMPLE \
   --issue-type Task \
   --summary-exact "[Example Service]: Exact ticket summary" \
   --label optional-supporting-label \
   --output-dir /private/tmp/jira-search
 
-./ai-commands/jira/jira.command.sh \
+${AI_COMMANDS_ROOT}/jira/jira.command.sh \
   create \
   --project EXAMPLE \
   --issue-type Task \
   --summary "[Example Service]: Add version-scoped selector search coverage" \
   --description-file /tmp/jira-description.md
 
-./ai-commands/jira/jira.command.sh create --ticket-file /path/to/ticket.json --submit
+${AI_COMMANDS_ROOT}/jira/jira.command.sh create --ticket-file /path/to/ticket.json --submit
 
-./ai-commands/jira/jira.command.sh \
+${AI_COMMANDS_ROOT}/jira/jira.command.sh \
   clone EXAMPLE-8316 \
   --summary "[Example Service]: Support selector search in published version snapshots" \
   --description-file /path/to/follow-up.md \
   --story-points 1 \
   --submit
 
-./ai-commands/jira/jira.command.sh \
+${AI_COMMANDS_ROOT}/jira/jira.command.sh \
   update EXAMPLE-8336 \
   --description-file /path/to/revised-description.md \
   --submit
 
-./ai-commands/jira/jira.command.sh sync-plan EXAMPLE-8336 --submit
+${AI_COMMANDS_ROOT}/jira/jira.command.sh sync-plan EXAMPLE-8336 --submit
 
-./ai-commands/jira/jira.command.sh comment EXAMPLE-8336 \
+${AI_COMMANDS_ROOT}/jira/jira.command.sh comment EXAMPLE-8336 \
   --comment-file /path/to/comment.txt \
   --mention sshapiro \
   --link "Draft PR|https://github.example.invalid/example-org/example-service/pull/504" \
   --skip-if-link-exists \
   --submit
 
-./ai-commands/jira/jira.command.sh set-in-progress EXAMPLE-8399 --submit
+${AI_COMMANDS_ROOT}/jira/jira.command.sh set-in-progress EXAMPLE-8399 --submit
 
-./ai-commands/jira/jira.command.sh delete-owned-comment EXAMPLE-8336 \
+${AI_COMMANDS_ROOT}/jira/jira.command.sh delete-owned-comment EXAMPLE-8336 \
   --comment-id 12160426 \
   --submit
 ```
@@ -373,8 +414,8 @@ Without `--submit`, the command fills the bulk editor and cancels, leaving Jira 
 parsing with no browser interaction. Use `--submit` only when the user explicitly asks to sync the plan; repeated runs
 update the same managed section.
 
-Supported machine-local overrides belong in ignored `jira.command.conf`; committed generic placeholders live in
-`jira.command.example.conf`:
+Supported machine-local overrides belong in the ignored selected profile; committed generic placeholders live in
+`jira.command.example.config`:
 
 ```bash
 JIRA_BASE_URL="https://jira.example.invalid"
@@ -386,15 +427,3 @@ JIRA_CURRENT_SPRINT_BOARD_URL="https://jira.example.invalid/secure/RapidBoard.js
 ```
 
 The issue-key regex is intentionally configurable because Jira project key conventions may differ later.
-
-## Output
-
-- `jira-ticket-result.json`: normalized non-secret inputs, status, created issue key/URL when available, and error details.
-- `jira-ticket-before.json` / `jira-ticket-after.json`: existing-issue snapshots used to verify intended changes and
-retain the previous Jira state.
-- `jira-ticket.png`: final form/result screenshot when the selected browser transport supports capture.
-- `jira-smart-checklist-result.json`: inferred issue, source plan, normalized checklist items, and sync status.
-- `jira-comment-result.json`: formatted non-secret comment input, Jira issue URL, and comment status.
-- `jira-set-in-progress-result.json`: ownership evidence, previous/final status, issue URL, and transition result.
-- Console markers: `JIRA_TICKET_STATUS`, `JIRA_TICKET_RESULT`, and, after creation or update, `JIRA_TICKET_KEY` / `JIRA_TICKET_URL`.
-- When story points are requested and verified, the command also prints `JIRA_TICKET_STORY_POINTS`.

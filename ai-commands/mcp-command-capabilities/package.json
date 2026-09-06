@@ -1,5 +1,5 @@
 {
-  "name": "@sc-services/mcp-command-capabilities",
+  "name": "@ai-fleas/mcp-command-capabilities",
   "version": "0.1.0",
   "private": true,
   "type": "module",

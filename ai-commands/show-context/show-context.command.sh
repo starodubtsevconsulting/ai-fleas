@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "show-context" || exit $?
 set -euo pipefail
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"
@@ -12,7 +14,7 @@ source "$SCRIPT_DIR/../runtime-paths.sh"
 BROWSER_CMD="$ROOT_DIR/ai-commands/browser/browser.command.sh"
 PYTHON_INSTALLER=""
 NODE_INSTALLER=""
-PROJECTS_REGISTRY="${SHOW_CONTEXT_PROJECTS_REGISTRY:-$ROOT_DIR/ai-commands/projects/projects-registry.example.yml}"
+PROJECTS_REGISTRY="${AI_PROFILE_PROJECT_FILE:-}"
 CURRENT_PLAN_PATH_FILE="$(ai_current_plan_pointer_path "$APP_ROOT")"
 CURRENT_SESSION_PATH_FILE="$CURRENT_PLAN_PATH_FILE"
 
@@ -311,36 +313,16 @@ registry = Path(sys.argv[1])
 selected_label = sys.argv[2]
 ai_root = Path(sys.argv[3])
 workspace_root = ai_root.parent
-projects = []
-current = None
-current_list = None
-
+if not registry.is_file():
+    raise SystemExit("AI_PROFILE_PROJECT_FILE is required")
+selected = {}
 for raw in registry.read_text(encoding="utf-8", errors="replace").splitlines():
-    if raw.startswith("  - label: "):
-        current = {"label": raw.split(": ", 1)[1].strip()}
-        projects.append(current)
-        current_list = None
+    if raw.startswith(" ") or ":" not in raw or raw.lstrip().startswith("#"):
         continue
-    if current is None:
-        continue
-    m = re.match(r"^    ([A-Za-z0-9_]+):(.*)$", raw)
-    if m:
-        key = m.group(1)
-        value = m.group(2).strip()
-        if value:
-            current[key] = value.strip('"')
-            current_list = None
-        else:
-            current[key] = []
-            current_list = key
-        continue
-    if current_list and raw.startswith("      - "):
-        current[current_list].append(raw.split("- ", 1)[1].strip())
-
-by_label = {project.get("label"): project for project in projects}
-selected = by_label.get(selected_label)
-if not selected:
-    raise SystemExit(f"Project label not found: {selected_label}")
+    key, value = raw.split(":", 1)
+    selected[key.strip()] = value.strip().strip('"')
+if selected_label not in {selected.get("id"), selected.get("label")}:
+    raise SystemExit(f"Selected profile project does not match: {selected_label}")
 
 def resolve(path_value):
     if not path_value or path_value == "N/A":
@@ -355,37 +337,6 @@ if not primary:
     raise SystemExit(f"Project label has no repo_path: {selected_label}")
 print(f"primary\t{selected_label}\t{primary}")
 
-related = []
-for key in ("related_project_labels", "frontend_project_labels", "ui_project_labels", "source_project_labels"):
-    value = selected.get(key, [])
-    if isinstance(value, str):
-        value = [value]
-    related.extend(value)
-for key in ("frontend_project_label", "ui_project_label", "source_project_label"):
-    value = selected.get(key)
-    if isinstance(value, str):
-        related.append(value)
-
-# Reverse lookup: a shared UI project can declare the backend projects it serves
-# once, instead of requiring every backend entry to duplicate the relationship.
-for project in projects:
-    served = project.get("serves_project_labels", [])
-    if isinstance(served, str):
-        served = [served]
-    if selected_label in served and project.get("label"):
-        related.append(project["label"])
-
-seen = set()
-for related_label in related:
-    if not related_label or related_label in seen:
-        continue
-    seen.add(related_label)
-    related_project = by_label.get(related_label)
-    if not related_project:
-        continue
-    related_path = resolve(related_project.get("repo_path"))
-    if related_path:
-        print(f"related\t{related_label}\t{related_path}")
 PROJECTPY
 }
 

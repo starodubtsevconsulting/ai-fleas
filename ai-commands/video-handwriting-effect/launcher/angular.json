@@ -1,5 +1,4 @@
 {
-  "$schema": "../../../../ai-launcher/node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "projects": {
     "video-handwriting-effect-ui": {

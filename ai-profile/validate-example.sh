@@ -17,6 +17,8 @@ required=(
   "example/validate-agent-identities.test.sh"
   "example/commands/source-control/config.yml"
   "example/commands/source-control/identity.example.config"
+  "example/commands/hermes/config.yml"
+  "example/commands/lodgify/config.example.env"
   "example/projects/dev/example-service/project.yml"
   "example/projects/dev/example-service/knowledge/local-development.md"
   "example/projects/dev/example-web/project.yml"
@@ -37,6 +39,14 @@ grep -Fq 'config: agent-identities.yml' "${PROFILE}" || fail "Example must refer
 python3 "${ROOT}/example/validate-agent-identities.py" "${ROOT}/example/agent-identities.yml" example.com
 grep -Fq 'policy_references:' "${PROFILE}" || fail "Example tracker context must declare policy references"
 grep -Fq 'supported_operations:' "${PROFILE}" || fail "Example tracker context must declare supported operations"
+grep -Fq '      logs:' "${PROFILE}" || fail "Example workflow context must declare the logs adapter binding"
+grep -Fq '          registered_command: datadog' "${PROFILE}" || fail "Example logs adapter must bind the Datadog provider command"
+grep -Fq '          command_path: datadog/datadog.sh' "${PROFILE}" || fail "Example logs adapter must bind the Datadog executable"
+grep -Fq '    config: commands/hermes/config.yml' "${PROFILE}" || fail "Example must reference sanitized Hermes configuration"
+grep -Fq '  root: ${AI_COMMANDS_ROOT}' "${ROOT}/example/commands/hermes/config.yml" || fail "Hermes example must use the resolved command root"
+grep -Fq 'base_url: http://127.0.0.1:1234/v1' "${ROOT}/example/commands/hermes/config.yml" || fail "Hermes example must use the documented local placeholder endpoint"
+grep -Fq 'EXAMPLE ONLY:' "${ROOT}/example/commands/hermes/config.yml" || fail "Hermes config must be labeled as example-only"
+grep -Fq 'EXAMPLE ONLY:' "${ROOT}/example/commands/lodgify/config.example.env" || fail "Lodgify config must be labeled as example-only"
 
 if rg -n -i '(password|token|secret|private[_ -]?key)[[:space:]]*[:=][[:space:]]*[^<[:space:]]+' "${ROOT}/example"; then
   fail "Example appears to contain a populated secret"

@@ -1,5 +1,80 @@
 # lyrics-timestamp.command
 
+## Purpose
+
+Use `lyrics-timestamp` to align lyric lines with audio timing and produce a reusable timestamped lyric artifact.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- `map`: create timestamped lyric artifacts and write files.
+- `preview`: create timestamped lyric artifacts and return them on stdout without writing files.
+- `--lyrics-file <path>`: plain text or Markdown lyrics.
+- `--audio-file <path>`: `.wav`, `.mp3`, or any audio file readable by `ffprobe`.
+- `--dist <path>`: output directory or `.json` output file.
+
+Optional:
+
+- `--line-mode non-empty`: map non-empty lyric lines. This is the default.
+- `--format json,srt`: output formats. This is the default.
+- `--tail-ms <number>`: extra duration added to each line end when possible. Default: `250`.
+- `--timing-hints-file <path>`: optional JSON file with known line start/end anchors. Hints can target the filtered
+lyric line by exact `text` or by 1-based `index`. Empty and punctuation-only lyric lines, such as `--`, are ignored
+before indexes are assigned.
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+When `--dist` is a directory, the command writes:
+
+```text
+lyrics-timestamp.json
+lyrics-timestamp.srt
+```
+
+JSON is the stable renderer contract:
+
+```json
+{
+  "audioFile": "song.mp3",
+  "lyricsFile": "lyrics.txt",
+  "durationMs": 180000,
+  "lineMode": "non-empty",
+  "alignmentMethod": "proportional-duration",
+  "timingHintsFile": "",
+  "ignoredLineRule": "skip empty and punctuation-only lines",
+  "lines": [
+    {
+      "index": 1,
+      "startMs": 61000,
+      "endMs": 64500,
+      "text": "hello it is me",
+      "confidence": 0.1
+    }
+  ]
+}
+```
+
+SRT is generated as an inspection/subtitle companion.
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `lyrics-timestamp/lyrics-timestamp.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+| `lyrics-timestamp/app.sh` | Command-owned UI launcher | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `lyrics-timestamp/lyrics-timestamp.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #ai-command #lyrics #timestamp #audio #subtitle #multimedia #handwriting-video
@@ -60,57 +135,6 @@ selected video folder, it defaults:
 - lyrics input from `lyrics/lyrics.md`
 - audio input from the first audio file found under `audio/`
 - output folder to the selected video's `lyrics/` folder
-
-## Inputs
-
-- `map`: create timestamped lyric artifacts and write files.
-- `preview`: create timestamped lyric artifacts and return them on stdout without writing files.
-- `--lyrics-file <path>`: plain text or Markdown lyrics.
-- `--audio-file <path>`: `.wav`, `.mp3`, or any audio file readable by `ffprobe`.
-- `--dist <path>`: output directory or `.json` output file.
-
-Optional:
-
-- `--line-mode non-empty`: map non-empty lyric lines. This is the default.
-- `--format json,srt`: output formats. This is the default.
-- `--tail-ms <number>`: extra duration added to each line end when possible. Default: `250`.
-- `--timing-hints-file <path>`: optional JSON file with known line start/end anchors. Hints can target the filtered
-lyric line by exact `text` or by 1-based `index`. Empty and punctuation-only lyric lines, such as `--`, are ignored
-before indexes are assigned.
-
-## Output
-
-When `--dist` is a directory, the command writes:
-
-```text
-lyrics-timestamp.json
-lyrics-timestamp.srt
-```
-
-JSON is the stable renderer contract:
-
-```json
-{
-  "audioFile": "song.mp3",
-  "lyricsFile": "lyrics.txt",
-  "durationMs": 180000,
-  "lineMode": "non-empty",
-  "alignmentMethod": "proportional-duration",
-  "timingHintsFile": "",
-  "ignoredLineRule": "skip empty and punctuation-only lines",
-  "lines": [
-    {
-      "index": 1,
-      "startMs": 61000,
-      "endMs": 64500,
-      "text": "hello it is me",
-      "confidence": 0.1
-    }
-  ]
-}
-```
-
-SRT is generated as an inspection/subtitle companion.
 
 ## Timing Hints
 

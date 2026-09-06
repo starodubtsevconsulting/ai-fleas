@@ -19,11 +19,11 @@ name so we don’t rerun the same thing. Follow the plan command rule:
 
 ## Usage
 
-- `./commands/test/test.command.sh --list`
-- `./commands/test/test.command.sh --project <name>`
-- `./commands/test/test.command.sh --project <name> --file path/to/file.spec.ts`
-- `./commands/test/test.command.sh --project <name> --file path/to/file.spec.ts --name "test name"`
-- `./commands/test/test.command.sh --affected --base origin/main --head HEAD`
+- `${AI_COMMANDS_ROOT}/test/test.command.sh --list`
+- `${AI_COMMANDS_ROOT}/test/test.command.sh --project <name>`
+- `${AI_COMMANDS_ROOT}/test/test.command.sh --project <name> --file path/to/file.spec.ts`
+- `${AI_COMMANDS_ROOT}/test/test.command.sh --project <name> --file path/to/file.spec.ts --name "test name"`
+- `${AI_COMMANDS_ROOT}/test/test.command.sh --affected --base origin/main --head HEAD`
 - Optional: `--project-dir <path>` to run Nx in a different repo.
 
 ## Platform notes

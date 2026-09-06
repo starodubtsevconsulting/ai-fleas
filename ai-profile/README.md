@@ -88,7 +88,8 @@ profile.
 
 Each immediate child of `ai-profile/` is one self-contained profile. Its `<profile-id>-work-profile.yml` is the entry point
 for that profile's work context. Select the individual directory, such as `ai-profile/sc`, in the launcher—not the
-`ai-profile/` catalog itself.
+`ai-profile/` catalog itself. Selection is performed by the consuming host or
+platform; this public repository does not define that host's launcher.
 
 ```text
 ai-profile/
@@ -109,7 +110,7 @@ registry. The profile runtime resolves the adapter contract explicitly and fails
 still select a command-execution harness independently; an agent platform defines agent identity and lifecycle, while a
 harness defines how an agent executes a particular workload.
 
-The launcher reads this entry point through one typed profile reader. It parses YAML once, rejects duplicate keys,
+The consuming host reads this entry point through one typed profile reader. It parses YAML once, rejects duplicate keys,
 malformed workflow/project collections, unsupported top-level project placement, missing workflow paths, unsafe alias
 expansion, and oversized profile files before repositories or the UI consume profile data. Repositories use the normalized
 reader model for workflow paths, command lists, harnesses, and project references; they must not independently reinterpret
@@ -137,7 +138,9 @@ queries. `WorkProfileRepository` owns discovery and loading only; consumers shou
 instead of indexing its configuration maps directly.
 
 Use `example/` as the publication-ready, sanitized template. It contains explicit TODO projects plus non-secret
-ticket-tracker and Git override patterns; replace every placeholder before using a copied profile. Operational profiles,
+ticket-tracker, Git, and Hermes override patterns; replace every placeholder before using a copied profile. The Hermes
+example intentionally shows a loopback endpoint, fictional provider/model IDs, context-window settings, and
+`${AI_COMMANDS_ROOT}` command access without exposing an operational host. Operational profiles,
 project bindings, provider settings, credentials, and platform implementation-root bindings belong in the consuming
 private platform. Run `./ai-profile/validate-example.sh` before publishing the example.
 
@@ -183,6 +186,17 @@ configuration auditable and prevents an unrelated workflow or project from inher
 Credentials belong only in the selected profile's local `.creds/` directory. The entire directory is ignored by Git;
 do not commit credentials, tokens, private URLs containing secrets, private keys, or populated credential examples. A
 profile may describe which credential scope or provider is required, but secret values must remain local.
+
+Operational command configuration also belongs to the selected profile and should be ignored in operational/private
+repositories when it contains organization, machine, endpoint, identifier, or credential values. A public example may
+show the supported shape only with unmistakably fictional placeholders. Command launchers resolve `commands[].config`
+and pass its absolute path as `AI_COMMAND_CONFIG_PATH`; reusable command folders never own operational overrides.
+
+The committed `ai-profile/example/` directory is the deliberate exception for documentation: it may contain complete,
+realistic configuration shapes so users can understand and copy them, but every value must be fictional, non-secret,
+non-operational, and clearly labeled as an example. A copied operational profile must not be committed. Keep its
+`commands/**/config.yml`, `config.yaml`, `config.env`, and `config.conf` files ignored, especially when they contain real
+identities, paths, endpoints, account IDs, or credentials.
 
 In domain language, an Agent is the configured work-running instance the operator talks to. A Work Profile supplies that
 Agent's defaults, allowed workflow and project context, login method, and app-mode settings.
@@ -258,7 +272,13 @@ beside it, keeping every project-specific resource inside one ownership boundary
 to `project.yml`. Give every knowledge item a stable ID and use optional `applies_to` topics to avoid loading irrelevant
 context.
 
-The launcher reads each referenced knowledge file through the typed project-definition reader and exposes it on the
+When a workflow selects one exact project for command execution, the host
+exports that resolved definition as `AI_PROFILE_PROJECT_FILE`. Commands consume
+that single profile-owned `project.yml`; they must not scan or maintain a
+project registry under `ai-commands/`. If a workflow exposes multiple projects,
+the host or caller must select one before invoking a project-dependent command.
+
+The consuming host reads each referenced knowledge file through the typed project-definition reader and exposes it on the
 resolved Project model as `knowledge[]`. Every entry includes its `id`, `kind`, relative `ref`, resolved source path,
 `appliesTo` topics, and bounded text content. Consumers should select only entries whose `appliesTo` value matches the
 current activity; an empty list means general project knowledge. Missing files, duplicate IDs, malformed lists, oversized

@@ -1,5 +1,36 @@
 # monorepo.command
 
+## Purpose
+
+Use `monorepo` to inspect and operate a multi-project repository through its declared package and dependency boundaries.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- `{project_location}` (path to the monorepo)
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- None
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `monorepo/monorepo.command.md` | AI-readable contract | The initialized workflow role loads this contract after the host activates the selected profile and workflow. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `monorepo/monorepo.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #ai-command #monorepo
@@ -54,10 +85,10 @@ repo/
   - `npx nx affected -t test --base=origin/main --head=HEAD --runInBand --bail --verbose`
 - Build an app:
   - `npx nx run <project>:build`
-  - Example: `npx nx run locusesse-frontend:build`
+  - Example: `npx nx run example-frontend:build`
 - Serve an app:
   - `npx nx run <project>:serve`
-  - Example: `npx nx run locusesse-frontend:serve`
+  - Example: `npx nx run example-frontend:serve`
 - Run Playwright e2e:
   - `npx nx e2e <app>-e2e`
   - Filter by test title:
@@ -69,11 +100,3 @@ repo/
 ## Roles selection
 
 - dev
-
-## Input
-
-- `{project_location}` (path to the monorepo)
-
-## Output
-
-- None

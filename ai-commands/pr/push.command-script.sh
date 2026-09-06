@@ -36,10 +36,10 @@ while [ $# -gt 0 ]; do
 done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONF_FILE="$SCRIPT_DIR/pr.command.conf"
+CONF_FILE="${PR_COMMAND_CONF:-${AI_COMMAND_CONFIG_PATH:-}}"
 BITBUCKET_USERNAME="${BITBUCKET_USERNAME:-}"
 BITBUCKET_TOKEN="${BITBUCKET_TOKEN:-${BITBUCKET_PASSWORD:-}}"
-if [ -f "$CONF_FILE" ]; then
+if [ -n "$CONF_FILE" ] && [ -f "$CONF_FILE" ]; then
   # shellcheck source=/dev/null
   source "$CONF_FILE"
 fi
@@ -130,7 +130,7 @@ case "$remote_host" in
   scm.example.com)
     load_bitbucket_credentials_from_git
     if [ -z "${BITBUCKET_USERNAME:-}" ] || [ -z "${BITBUCKET_TOKEN:-}" ]; then
-      echo "Missing Bitbucket credentials. Set BITBUCKET_USERNAME and BITBUCKET_TOKEN in commands/pr/pr.command.conf or the environment." >&2
+      echo "Missing Bitbucket credentials. Set them in the selected profile or environment." >&2
       exit 1
     fi
     askpass="$(mktemp)"
