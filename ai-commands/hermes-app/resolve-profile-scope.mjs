@@ -54,21 +54,14 @@ function resolveCatalogRoot(configured, label) {
 
 safeId(workProfileId, 'work-profile ID');
 const selectedProfileRoot = inside(profileRoot, path.join(profileRoot, workProfileId), 'work profile');
-const profileFile = inside(
-  selectedProfileRoot,
-  path.join(selectedProfileRoot, `${workProfileId}-work-profile.yml`),
-  'work-profile file',
-);
+const profileFile = inside(selectedProfileRoot, path.join(selectedProfileRoot, `${workProfileId}-work-profile.yml`), 'work-profile file');
 const profile = readYaml(profileFile);
 if (String(profile.name || '') !== workProfileId) fail(`profile name does not match ${workProfileId}.`);
 const configuredAgentInstructions = String(profile.agent_instructions_path || '');
 let agentInstructions = '';
 if (configuredAgentInstructions) {
-  agentInstructions = path.isAbsolute(configuredAgentInstructions)
-    ? path.resolve(configuredAgentInstructions)
-    : path.resolve(selectedProfileRoot, configuredAgentInstructions);
-  const instructionsStat = fs.statSync(agentInstructions, { throwIfNoEntry: false });
-  if (!instructionsStat?.isFile()) fail(`agent_instructions_path is not a readable regular file: ${agentInstructions}`);
+  agentInstructions = path.isAbsolute(configuredAgentInstructions) ? path.resolve(configuredAgentInstructions) : path.resolve(selectedProfileRoot, configuredAgentInstructions);
+  if (!fs.statSync(agentInstructions, { throwIfNoEntry: false })?.isFile()) fail(`agent_instructions_path is not a readable regular file: ${agentInstructions}`);
 }
 
 const workflows = Array.isArray(profile.workflows) ? profile.workflows : [];
@@ -87,33 +80,10 @@ const workflowsRoot = resolveCatalogRoot(String(profile.ai_workflows_root || '')
 const platformsRoot = resolveCatalogRoot(String(profile.ai_platforms_root || ''), 'ai_platforms_root');
 const workflowId = path.basename(String(workflow.path)).replace(/\.workflow\.md$/, '').replace(/\.md$/, '');
 const workflowInstructions = path.join(workflowsRoot, workflowId, `${workflowId}.workflow.md`);
-if (!fs.statSync(workflowInstructions, { throwIfNoEntry: false })?.isFile()) {
-  fail(`workflow contract is not a readable file: ${workflowInstructions}`);
-}
+if (!fs.statSync(workflowInstructions, { throwIfNoEntry: false })?.isFile()) fail(`workflow contract is not a readable file: ${workflowInstructions}`);
 const rosterFile = path.join(platformsRoot, 'hermes', 'workflows', workflowId, 'agents.yml');
 const roster = readYaml(rosterFile);
-if (roster.platform !== 'hermes' || roster.workflow !== workflowId || !Array.isArray(roster.bindings)) {
-  fail(`Hermes roster does not match workflow '${workflowId}'.`);
-}
-const roleBindings = roster.bindings.map((binding) => {
-  if (!binding || typeof binding !== 'object' || Array.isArray(binding)) fail('Hermes role binding must be a mapping.');
-  const role = safeId(String(binding.role || ''), 'Hermes role');
-  const suffix = safeId(String(binding.profile_suffix || ''), 'Hermes profile suffix');
-  return `${role}:${suffix}`;
-});
-if (roleBindings.length === 0 || new Set(roleBindings).size !== roleBindings.length) {
-  fail(`Hermes roster for '${workflowId}' is empty or contains duplicates.`);
-}
-const commandIds = Array.isArray(workflow.commands)
-  ? workflow.commands.map((value) => safeId(String(value || ''), 'command ID'))
-  : [];
-if (commandIds.length === 0) fail(`workflow '${desiredWorkflow}' has no commands.`);
-for (const commandId of commandIds) {
-  const contract = path.join(commandsRoot, commandId, `${commandId}.command.md`);
-  if (!fs.statSync(contract, { throwIfNoEntry: false })?.isFile()) {
-    fail(`command contract is not a readable file: ${contract}`);
-  }
-}
+if (roster.platform !== 'hermes' || roster.workflow !== workflowId || !Array.isArray(roster.bindings)) fail(`Hermes roster does not match workflow '${workflowId}'.`);
 
 const localAi = workflow.local_ai;
 if (!localAi || typeof localAi !== 'object' || Array.isArray(localAi)) fail('workflow local_ai mapping is required.');
@@ -122,17 +92,22 @@ if (!providersConfig || path.isAbsolute(providersConfig)) fail('local_ai.provide
 const providerFile = inside(selectedProfileRoot, path.join(selectedProfileRoot, providersConfig), 'provider catalog');
 const catalog = readYaml(providerFile);
 const providers = Array.isArray(catalog.providers) ? catalog.providers : [];
-const providerAlias = safeId(String(localAi.provider || ''), 'provider alias');
-const providerMatches = providers.filter((item) => item && typeof item === 'object' && item.id === providerAlias);
-if (providerMatches.length !== 1) fail(`provider '${providerAlias}' did not resolve exactly once.`);
-const provider = providerMatches[0];
-if (provider.protocol !== 'openai-compatible') fail(`provider '${providerAlias}' is not OpenAI-compatible.`);
 
-const endpointEnv = String(provider.endpoint?.environment_variable || '');
-const endpoint = (endpointEnv && process.env[endpointEnv]) || String(provider.endpoint?.url || '');
-if (!/^https?:\/\/[^\s]+$/.test(endpoint)) fail(`provider '${providerAlias}' has no usable endpoint.`);
+function resolveProvider(providerAlias) {
+  const matches = providers.filter((item) => item && typeof item === 'object' && item.id === providerAlias);
+  if (matches.length !== 1) fail(`provider '${providerAlias}' did not resolve exactly once.`);
+  const provider = matches[0];
+  if (provider.protocol !== 'openai-compatible') fail(`provider '${providerAlias}' is not OpenAI-compatible.`);
+  const endpointEnv = String(provider.endpoint?.environment_variable || '');
+  const endpoint = (endpointEnv && process.env[endpointEnv]) || String(provider.endpoint?.url || '');
+  if (!/^https?:\/\/[^\s]+$/.test(endpoint)) fail(`provider '${providerAlias}' has no usable endpoint.`);
+  return { provider, endpoint: endpoint.replace(/\/$/, '') };
+}
+
+const defaultProviderAlias = safeId(String(localAi.provider || ''), 'provider alias');
+const defaultResolvedProvider = resolveProvider(defaultProviderAlias);
 const modelAlias = safeId(String(localAi.model || ''), 'model alias');
-const models = Array.isArray(provider.models) ? provider.models : [];
+const models = Array.isArray(defaultResolvedProvider.provider.models) ? defaultResolvedProvider.provider.models : [];
 const modelMatches = models.filter((item) => item && typeof item === 'object' && item.id === modelAlias);
 if (modelMatches.length !== 1) fail(`model '${modelAlias}' did not resolve exactly once.`);
 const selectedModel = modelMatches[0];
@@ -150,6 +125,23 @@ for (const [label, value] of [['compression threshold', compressionThreshold], [
 }
 if (!/^[1-9][0-9]*$/.test(protectLastMessages)) fail(`model '${modelAlias}' has an invalid Hermes protected-message count.`);
 
+const roleBindings = roster.bindings.map((binding) => {
+  if (!binding || typeof binding !== 'object' || Array.isArray(binding)) fail('Hermes role binding must be a mapping.');
+  const role = safeId(String(binding.role || ''), 'Hermes role');
+  const suffix = safeId(String(binding.profile_suffix || ''), 'Hermes profile suffix');
+  const aiProvider = safeId(String(binding.ai_provider || ''), `Hermes AI provider for ${role}`);
+  const resolved = resolveProvider(aiProvider);
+  return `${role}:${suffix}:${aiProvider}:${resolved.endpoint}`;
+});
+if (roleBindings.length === 0 || new Set(roleBindings).size !== roleBindings.length) fail(`Hermes roster for '${workflowId}' is empty or contains duplicates.`);
+
+const commandIds = Array.isArray(workflow.commands) ? workflow.commands.map((value) => safeId(String(value || ''), 'command ID')) : [];
+if (commandIds.length === 0) fail(`workflow '${desiredWorkflow}' has no commands.`);
+for (const commandId of commandIds) {
+  const contract = path.join(commandsRoot, commandId, `${commandId}.command.md`);
+  if (!fs.statSync(contract, { throwIfNoEntry: false })?.isFile()) fail(`command contract is not a readable file: ${contract}`);
+}
+
 const projectRefs = Array.isArray(workflow.projects) ? workflow.projects : [];
 const candidates = projectRefs.map((item) => {
   const ref = item && typeof item === 'object' ? String(item.ref || '') : '';
@@ -157,20 +149,14 @@ const candidates = projectRefs.map((item) => {
   const file = inside(selectedProfileRoot, path.join(selectedProfileRoot, ref), 'project ref');
   return { file, project: readYaml(file) };
 });
-const projectMatches = projectSelector
-  ? candidates.filter(({ project }) => project.id === projectSelector || project.label === projectSelector)
-  : candidates;
-if (projectMatches.length !== 1) {
-  fail(projectSelector ? `project '${projectSelector}' did not resolve exactly once.` : 'workflow does not have exactly one project; use --project.');
-}
+const projectMatches = projectSelector ? candidates.filter(({ project }) => project.id === projectSelector || project.label === projectSelector) : candidates;
+if (projectMatches.length !== 1) fail(projectSelector ? `project '${projectSelector}' did not resolve exactly once.` : 'workflow does not have exactly one project; use --project.');
 const project = projectMatches[0].project;
 const projectId = safeId(String(project.id || ''), 'project ID');
 const workspace = String(project.repo_path || '');
-if (!path.isAbsolute(workspace) || !fs.statSync(workspace, { throwIfNoEntry: false })?.isDirectory()) {
-  fail(`project '${projectId}' repo_path is not an existing absolute directory.`);
-}
+if (!path.isAbsolute(workspace) || !fs.statSync(workspace, { throwIfNoEntry: false })?.isDirectory()) fail(`project '${projectId}' repo_path is not an existing absolute directory.`);
 
-const providerLabel = String(provider.label || provider.id);
-const fields = [workProfileId, workflowId, projectId, providerAlias, providerLabel, endpoint.replace(/\/$/, ''), providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages, workspace, agentInstructions, commandsRoot, workflowInstructions, commandIds.join(','), roleBindings.join(',')];
+const providerLabel = String(defaultResolvedProvider.provider.label || defaultResolvedProvider.provider.id);
+const fields = [workProfileId, workflowId, projectId, defaultProviderAlias, providerLabel, defaultResolvedProvider.endpoint, providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages, workspace, agentInstructions, commandsRoot, workflowInstructions, commandIds.join(','), roleBindings.join(',')];
 if (fields.some((value) => /[\t\r\n]/.test(value))) fail('resolved values contain unsupported control characters.');
 process.stdout.write(`${fields.join('\t')}\n`);
