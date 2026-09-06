@@ -20,8 +20,10 @@ Verified Hermes profile state or a precise, non-secret failure.
   update and workflow selection change, never a public command-code change.
 - Workflow and command contracts are resolved exactly and injected as references, not duplicated into this command.
 - Setup validates dependencies before mutation.
-- `initialize` realizes exactly one workflow-scoped Hermes bot with the current adapter; it does not infer the GPT
-  adapter's multi-agent roster or a universal agent count.
+- `initialize` realizes exactly the named roles in the selected Hermes workflow binding and an idempotent
+  profile-workflow group containing those profiles; it does not infer the GPT adapter's runtime roster.
+- Initialized role profiles remain active in their group but are hidden from Hermes's flat top-level bot roster so the
+  profile-workflow groups are the primary navigation surface.
 - `reconcile` uses the same resolved identity and preserves conversations and memory by default.
 - Reconciliation preserves profile data by default.
 - Destructive replacement or deletion requires explicit human authorization and an exact safe profile identifier.

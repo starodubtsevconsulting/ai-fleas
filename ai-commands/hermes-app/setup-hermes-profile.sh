@@ -6,6 +6,7 @@ readonly DEFAULT_CONTEXT_LENGTH='65536'
 readonly DEFAULT_COMPRESSION_THRESHOLD='0.25'
 readonly DEFAULT_COMPRESSION_TARGET_RATIO='0.15'
 readonly DEFAULT_COMPRESSION_PROTECT_LAST_N='8'
+readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${SCRIPT_DIR}/configure-hermes-group.py}"
 
 profile="${HERMES_PROFILE:-}"
 provider_id="${HERMES_PROVIDER_ID:-}"
@@ -20,6 +21,9 @@ agent_instructions_path="${HERMES_AGENT_INSTRUCTIONS_PATH:-}"
 ai_commands_root="${HERMES_AI_COMMANDS_ROOT:-}"
 workflow_instructions_path="${HERMES_WORKFLOW_INSTRUCTIONS_PATH:-}"
 workflow_command_ids="${HERMES_WORKFLOW_COMMAND_IDS:-}"
+group="${HERMES_GROUP:-}"
+role="${HERMES_ROLE:-worker}"
+role_title="${HERMES_ROLE_TITLE:-Worker}"
 hermes_bin="${HERMES_BIN:-}"
 context_length="${HERMES_CONTEXT_LENGTH:-${DEFAULT_CONTEXT_LENGTH}}"
 compression_threshold="${HERMES_COMPRESSION_THRESHOLD:-${DEFAULT_COMPRESSION_THRESHOLD}}"
@@ -95,6 +99,10 @@ if parsed.scheme not in {"http", "https"} or not parsed.netloc or any(char.isspa
   echo "Workspace is not an existing absolute directory: ${workspace}" >&2
   exit 2
 }
+[[ -z "${group}" || "${group}" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || {
+  echo 'Group ID must contain only lowercase letters, digits, hyphens, and underscores.' >&2
+  exit 2
+}
 
 if [[ -z "${hermes_bin}" ]]; then
   if command -v hermes >/dev/null 2>&1; then
@@ -167,6 +175,7 @@ trap cleanup EXIT INT TERM
 printf '# Hermes Profile: %s\n\n' "${profile}" >"${soul_tmp}"
 printf '%s\n' \
   "You are an assistant backed by the profile-selected ${provider_label} model target." \
+  "Your logical workflow role is \`${role}\` (${role_title})." \
   "Your AI work profile is \`${work_profile:-not-recorded}\`, workflow is \`${workflow:-not-recorded}\`, and project is \`${project:-not-recorded}\`." \
   "Your default and authorized project folder is \`${workspace}\`." \
   >>"${soul_tmp}"
@@ -224,7 +233,32 @@ actual_workspace="$("${hermes_bin}" -p "${profile}" config get terminal.cwd)"
 [[ "${actual_compression_protect_last_n}" == "${compression_protect_last_n}" ]]
 [[ "${actual_workspace}" == "${workspace}" ]]
 
+if [[ -n "${group}" ]]; then
+  [[ -f "${GROUP_CONFIGURATOR}" ]] || {
+    echo "Hermes group configurator was not found: ${GROUP_CONFIGURATOR}" >&2
+    exit 1
+  }
+  hermes_python="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
+  [[ -x "${hermes_python}" ]] || {
+    echo "Hermes Python runtime is not executable: ${hermes_python}" >&2
+    exit 1
+  }
+  "${hermes_python}" "${GROUP_CONFIGURATOR}" \
+    --hermes-home "${hermes_root}" \
+    --group "${group}" \
+    --member "${profile}" \
+    --title "${role_title}"
+  if [[ "${role}" == 'admin' && "${HERMES_GROUP_ONLY_NAVIGATION:-true}" == 'true' ]]; then
+    "${hermes_python}" "${GROUP_CONFIGURATOR}" \
+      --hermes-home "${hermes_root}" \
+      --member default \
+      --title Hermes \
+      --hide-only
+  fi
+fi
+
 printf 'Hermes bot ready: %s\n' "${profile}"
+printf 'Role: %s\n' "${role}"
 printf 'Provider: %s (%s)\n' "${provider_id}" "${provider_label}"
 printf 'Model: %s\n' "${model}"
 printf 'Context: %s tokens; compress at %s; target %s; protect last %s messages\n' \
