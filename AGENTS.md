@@ -41,6 +41,48 @@ This repository is the public rules and contracts layer for AI Fleas. Keep all c
   infer an adapter from a sibling folder. Platform-specific agent lifecycle and role realization belong under that
   adapter; portable workflow roles must not assume concrete task, bot, session, messaging, or archival mechanics.
 
+### First-use initialization request
+
+```mermaid
+flowchart LR
+  Prompt["Human initialization prompt"] --> Profile["Exact AI Profile"]
+  Profile --> Scope["Workflow + logical project + work target"]
+  Profile --> Platform["agent_platform → platforms/registry.yml"]
+  Platform --> Binding["Profile commands[] binding"]
+  Binding --> Config["Profile-owned command config"]
+  Config --> Decision{"registered lifecycle command"}
+  Decision -->|gpt-app| GPT["gpt-app/gpt-app.command.md"]
+  Decision -->|hermes-app| Hermes["hermes-app/hermes-app.command.sh"]
+  GPT --> GPTResult["Initialize workflow role roster"]
+  Hermes --> HermesResult["Initialize workflow-scoped bot"]
+  Scope --> GPT
+  Scope --> Hermes
+```
+
+Detailed lifecycle behavior is defined by the
+[`gpt-app` command](ai-commands/gpt-app/gpt-app.command.md) and
+[`hermes-app` command](ai-commands/hermes-app/hermes-app.command.md). The table below maps common human wording to those
+routes.
+
+| Human prompt | Required resolution and command routing | Expected result |
+| --- | --- | --- |
+| `Initialize profile <profile-id>, workflow <workflow-id>, and platform <platform-id> using the profile-configured work target.` | Load the exact profile → validate its workflow and work target → resolve `agent_platform` through `platforms/registry.yml` → find the profile `commands[]` binding for that platform's lifecycle command → load its `config` → verify `registered_command` and `command_path` → invoke `initialize` through the resolved entry point and adapter. | Initialize the adapter-declared agent realization and return exact instance receipts. |
+| `Initialize <profile-id>-<workflow-id> for <platform>` | Parse the complete logical-project ID into an exact existing profile and authorized workflow, preserving any suffix; resolve the platform phrase to one registered ID, then follow the same profile-command route as the full prompt. | Perform the same initialization as the full prompt without inventing a command from the platform name. |
+| `Initialize client-a-dev for GPT` | Select fictional profile `client-a`, workflow `dev`, platform `gpt-app`, and logical project `client-a-dev` → resolve profile command `gpt-app` → load its config and `gpt-app/gpt-app.command.md` → invoke `initialize` through `platforms/gpt-app`. | Initialize the complete GPT App workflow roster only when the saved project root exactly matches the profile work target. |
+| `Initialize client-a-dev for Hermes` | Select fictional profile `client-a`, workflow `dev`, platform `hermes`, and logical project `client-a-dev` → resolve profile command `hermes-app` → load its config and `hermes-app/hermes-app.command.sh` → invoke `initialize` through `platforms/hermes`. | Initialize the one workflow-scoped Hermes bot currently declared by that adapter. |
+| `Initialize agents` from an already bound logical project | Use the caller's verified profile, workflow, platform, complete logical-project ID, and work target; still resolve the command from the profile binding and never from task title or memory. | Initialize through the exact resolved command without asking the human to repeat known values. |
+| `Initialize dev for GPT` from an unbound context | Workflow and platform are known, but profile, logical project, work target, and therefore the profile-owned command binding are unresolved. | Ask for the missing profile and perform zero mutation. |
+| Any initialization prompt whose profile, workflow, platform, command binding, logical project, or work target conflicts | Stop command resolution; do not select a similarly named folder, substitute another command, infer a nearby platform, or partially initialize. | Return the exact conflict or missing value and perform zero mutation. |
+
+Safe public profile examples include `org-a`, `client-a`, `client-b`, and `personal`. Public examples must never use a
+real client, organization, person, project, or machine name. The selected platform adapter determines realization: it
+may create a complete managed-agent roster, one workflow-scoped bot, or another platform-specific representation.
+
+The routing identity is the profile's `commands[].id` plus its profile-owned `config`, not a command guessed from natural
+language. `GPT` resolves to platform `gpt-app`, whose lifecycle command is `gpt-app`; `Hermes` resolves to platform
+`hermes`, whose lifecycle command is `hermes-app`. Platform and command IDs may differ and must be joined through the
+declared profile and platform registry.
+
 ## Changes
 
 - Preserve command and workflow IDs and validate their focused tests.
