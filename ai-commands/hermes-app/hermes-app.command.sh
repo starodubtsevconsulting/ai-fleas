@@ -164,7 +164,7 @@ case "${action}" in
         ui-acceptance-tester) role_title='UI Acceptance Tester' ;;
         *) role_title="${role}" ;;
       esac
-      export HERMES_PROFILE="${derived_group}-${resolved_project}-${profile_suffix}"
+      export HERMES_PROFILE="${derived_group}-${profile_suffix}"
       export HERMES_ROLE="${role}"
       export HERMES_ROLE_TITLE="${role_title}"
       if [[ ${#setup_args[@]} -eq 0 ]]; then
