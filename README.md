@@ -4,21 +4,27 @@
   <img src="img/ai-flea-logo.png" alt="AI Fleas" width="700" />
 </p>
 
-**A public window into how I am building and using AI systems in real work.**
+## Why AI Fleas?
 
-This collection covers agents, workflows, reusable commands, profiles, local models, governance, automation and experiments. For someone exploring my work, it is a quick way to see the areas of AI engineering I am actively working with rather than just a list of technologies on a profile.
+I remembered an old anecdote about a student preparing for a zoology exam. He had learned only one subject well: **fleas**.
+
+Asked about a dog, he quickly got to its fur — and then to fleas. Asked about another animal, somehow the answer again ended up with fleas. Even when asked about a fish, he found a way back to fleas.
+
+It feels a little like conversations today. It doesn't seem to matter much what people do — software, sales, art, finance, education. Sooner or later, somehow, everyone starts talking about AI.
+
+**AI has become our fleas.**
+
+Some may also hear **AI Fleas** as **AI fleets** — many AIs working together. That fits rather well too. [The original note about the name.](notes/2026-09-04-why-ai-fleas.md)
 
 <p align="center">
   <img src="img/ai-fleas.png" alt="AI Fleas mascot" width="360" />
 </p>
 
-### [Why AI Fleas?](notes/2026-09-04-why-ai-fleas.md)
-
-There is a story behind the name — and, somehow, whatever the original subject is, the conversation eventually gets back to AI.
-
 ## What is inside
 
-The project brings together the pieces I use to think about and organize AI-assisted work. The diagram below gives the high-level picture before getting into the individual commands, workflows, roles and runtime concepts.
+**A public window into how I am building and using AI systems in real work.**
+
+This collection covers agents, workflows, reusable commands, profiles, local models, governance, automation and experiments. The diagram below gives the high-level picture before getting into the individual commands, workflows, roles and runtime concepts.
 
 ![AI Workflow Suite](img/ai_workflow_suite.png)
 
