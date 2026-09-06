@@ -6,6 +6,9 @@ Use `gpt-app` to check for stable application updates, initialize, inspect, reco
 as Codex tasks. The command composes the selected profile, portable workflow roster, and public `gpt-app` platform adapter;
 it never infers tasks from titles, recency, or nearby repositories.
 
+Physical GPT/ChatGPT desktop application installation, upgrade, and uninstall belong to the generic `install` command's
+canonical `gpt-app` target. This command owns the logical-agent lifecycle after the application is available.
+
 ```mermaid
 flowchart LR
   subgraph PrivateProfile["Selected AI Profile — operational values"]
