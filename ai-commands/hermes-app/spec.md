@@ -13,62 +13,42 @@ Verified Hermes profile state or a precise, non-secret failure.
 ## Invariants
 
 - Public files contain no organization, client, machine, endpoint, credential, or private-platform defaults.
+- `aiProvider` is a portable logical-agent property defined by the workflow agent contract, alongside properties such as lifecycle, human-facing mode, communication mode, and elastic-pool behavior.
 - AI provider and model are independent agent properties.
+- Hermes consumes `aiProvider`; Hermes does not own or redefine it.
+- `profile-default` means resolve the concrete provider alias from the active profile/workflow configuration. A logical agent may instead specify another provider alias when the active profile defines it.
 - The profile-owned provider catalog maps stable AI provider aliases to endpoint, protocol, authentication and available model details.
-- Every Hermes role binding explicitly declares its `ai_provider` alias. Initialization resolves that alias through the active profile-owned provider catalog for that role.
-- Model selection remains governed by the existing model configuration and is not implicitly changed when `ai_provider` is introduced.
-- Different Hermes agents may therefore use different AI providers while retaining independent model selection.
-- Unknown AI provider aliases, unsupported protocols, or provider/model combinations that cannot be realized fail closed before that role is mutated.
-- Provider endpoint, authentication and model details remain defined once in the profile-owned provider catalog; agent bindings contain only stable provider aliases and never duplicate endpoints or credentials.
-- Multiple computers, remote inference services, and multiple models may coexist in one catalog. Replacing a model box or changing a remote provider must not require public command-code changes.
+- Unknown provider aliases or provider configurations Hermes cannot realize fail closed before the affected role is mutated.
+- Provider endpoint and authentication details remain profile-owned and are never embedded in reusable role definitions.
 - Workflow and command contracts are resolved exactly and injected as references, not duplicated into this command.
 - Setup validates dependencies before mutation.
-- `initialize` realizes exactly the named roles in the selected Hermes workflow binding and an idempotent
-  profile-workflow group containing those profiles; it does not infer the GPT adapter's runtime roster.
-- Initialized role profiles remain active in their group but are hidden from Hermes's flat top-level bot roster so the
-  profile-workflow groups are the primary navigation surface.
+- `initialize` realizes exactly the named logical roles in the selected Hermes workflow binding and an idempotent profile-workflow group containing those profiles.
+- Initialized role profiles remain active in their group but are hidden from Hermes's flat top-level bot roster so profile-workflow groups are the primary navigation surface.
 - Role-profile IDs contain profile, workflow, and role suffix only; project/repository IDs remain runtime configuration.
 - `reconcile` uses the same resolved identity and preserves conversations and memory by default.
-- Reconciliation preserves profile data by default.
 - Destructive replacement or deletion requires explicit human authorization and an exact safe profile identifier.
-- Hermes profile resolution and reconciliation live in this public command. A platform adapter may launch the command or
-  present its result, but must not own or duplicate its configuration semantics.
 
-## Hermes role mapping
+## Portable agent contract
 
-The reusable Hermes mapping makes the AI provider explicit for every role:
+The logical workflow owns the property:
 
 ```yaml
-bindings:
-  - role: manager
-    profile_suffix: manager
-    ai_provider: local-coding-service
+agents:
+  - agentId: manager
+    lifecycle: persistent-control
+    aiProvider: profile-default
 
-  - role: coder
-    profile_suffix: coder
-    ai_provider: local-coding-service
+  - agentId: coder
+    lifecycle: disposable-worker
+    aiProvider: profile-default
 ```
 
-`ai_provider` is a stable alias resolved against the active profile's existing provider catalog. It is not an endpoint and must not contain credentials.
+This is analogous to an interface/default-property contract: the logical agent declares the property and its default, while a concrete platform implementation decides how to realize it.
 
-The value may be different for every role, for example:
+Hermes maps those logical agents to Hermes profiles. Another platform may map the same property differently. A platform that cannot support a requested provider must report that limitation rather than silently changing the logical configuration.
 
-```yaml
-bindings:
-  - role: designer-reviewer
-    profile_suffix: designer-reviewer
-    ai_provider: openai
-
-  - role: coder
-    profile_suffix: coder
-    ai_provider: local-coding-service
-```
-
-The model remains a separate property. Selecting `ai_provider: openai` does not itself select or change the agent's model.
+The Hermes-specific role mapping therefore contains only realization details such as role and profile suffix; it does not own `aiProvider` values.
 
 ## Completion criteria
 
-The command verifies the resulting profile identity, effective per-role AI provider, model, workspace, workflow contract,
-allowed command contracts, and context-management configuration without exposing secrets.
-
-A Hermes team can initialize different role profiles against different AI providers while preserving the existing independent model configuration.
+Hermes initialization resolves each logical agent's effective `aiProvider` through the active profile provider catalog and applies the resulting provider configuration to that Hermes profile while preserving model selection as an independent property.
