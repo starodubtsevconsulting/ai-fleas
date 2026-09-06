@@ -3,22 +3,28 @@ platform: hermes
 workflow: dev
 runtime_object: hermes-profile
 creation_environment: profile-selected-provider
-# Provider/model values are resolved from the active profile for each role.
-# This reusable mapping intentionally contains no provider IDs. Workflow-level
-# local_ai values are defaults; local_ai.agents.<role> may override them.
-inference_resolution: per-role-profile
+# Each Hermes agent explicitly selects an AI provider alias from the active
+# profile-owned provider catalog. Model selection remains independent and
+# continues to follow the existing model configuration.
 bindings:
   - role: admin
     profile_suffix: admin
+    ai_provider: local-coding-service
   - role: designer-reviewer
     profile_suffix: designer-reviewer
+    ai_provider: local-coding-service
   - role: judge
     profile_suffix: judge
+    ai_provider: local-coding-service
   - role: manager
     profile_suffix: manager
+    ai_provider: local-coding-service
   - role: coder
     profile_suffix: coder
+    ai_provider: local-coding-service
   - role: command-runner
     profile_suffix: command-runner
+    ai_provider: local-coding-service
   - role: ui-acceptance-tester
     profile_suffix: ui-acceptance-tester
+    ai_provider: local-coding-service
