@@ -1,0 +1,20 @@
+schema_version: hermes-workflow-agents.v1
+platform: hermes
+workflow: dev
+runtime_object: hermes-profile
+creation_environment: profile-selected-provider
+bindings:
+  - role: admin
+    profile_suffix: admin
+  - role: designer-reviewer
+    profile_suffix: designer-reviewer
+  - role: judge
+    profile_suffix: judge
+  - role: manager
+    profile_suffix: manager
+  - role: coder
+    profile_suffix: coder
+  - role: command-runner
+    profile_suffix: command-runner
+  - role: ui-acceptance-tester
+    profile_suffix: ui-acceptance-tester
