@@ -3,6 +3,10 @@ platform: hermes
 workflow: dev
 runtime_object: hermes-profile
 creation_environment: profile-selected-provider
+# Provider/model values are resolved from the active profile for each role.
+# This reusable mapping intentionally contains no provider IDs. Workflow-level
+# local_ai values are defaults; local_ai.agents.<role> may override them.
+inference_resolution: per-role-profile
 bindings:
   - role: admin
     profile_suffix: admin
