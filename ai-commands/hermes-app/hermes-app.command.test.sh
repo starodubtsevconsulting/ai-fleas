@@ -124,13 +124,13 @@ export WORK_PROFILE_ID=example AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=dev.w
 scope="$(node "${COMMAND_DIR}/resolve-profile-scope.mjs" "${test_root}/ai-profile" example dev service)"
 [[ "${scope}" == *$'example-box\tExample box\thttp://192.0.2.10:1234/v1\texample-coder-model\t65536\t0.25\t0.15\t8'* ]]
 "${COMMAND}" initialize --work-profile example --workflow dev --project service >"${test_root}/output"
-grep -F 'Hermes bot ready: example-dev-service-admin' "${test_root}/output" >/dev/null
-grep -F 'Hermes bot ready: example-dev-service-coder' "${test_root}/output" >/dev/null
-grep -F 'Hermes group member ready: example-dev (example-dev-service-admin as Admin)' "${test_root}/output" >/dev/null
-grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-service-admin/profile.yaml" >/dev/null
-grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-service-coder/profile.yaml" >/dev/null
+grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/output" >/dev/null
+grep -F 'Hermes bot ready: example-dev-coder' "${test_root}/output" >/dev/null
+grep -F 'Hermes group member ready: example-dev (example-dev-admin as Admin)' "${test_root}/output" >/dev/null
+grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-admin/profile.yaml" >/dev/null
+grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-coder/profile.yaml" >/dev/null
 "${COMMAND}" reconcile --work-profile example --workflow dev --project service >"${test_root}/reconcile-output"
-grep -F 'Hermes bot ready: example-dev-service-admin' "${test_root}/reconcile-output" >/dev/null
-"${COMMAND}" status example-dev-service-admin | grep -F 'HERMES_READY' >/dev/null
+grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/reconcile-output" >/dev/null
+"${COMMAND}" status example-dev-admin | grep -F 'HERMES_READY' >/dev/null
 "${COMMAND}" delete throwaway --confirm-delete | grep -F 'HERMES_PROFILE_DELETED: throwaway' >/dev/null
 printf '%s\n' 'hermes command test passed'
