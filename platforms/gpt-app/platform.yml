@@ -11,6 +11,7 @@ capabilities:
   - exact-instance-id
   - peer-messaging
   - recoverable-archive
+  - workflow-group-delete
   - project-binding
   - model-selection
   - reasoning-selection

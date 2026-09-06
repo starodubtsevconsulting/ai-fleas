@@ -19,7 +19,7 @@ flowchart LR
     Initialize["initialize"]
     Inspect["list / status"]
     CheckUpdate["check-update"]
-    Operate["message / reconcile / replace / archive"]
+    Operate["message / reconcile / replace / archive / delete-workflow"]
     Contract --> Initialize
     Contract --> Inspect
     Contract --> CheckUpdate
@@ -50,7 +50,7 @@ therefore changes profile configuration rather than the portable workflow roster
 | Workflow and complete logical project | Yes | User and profile | Select the portable roster and exact saved Codex project/work target. |
 | GPT role overrides | No | Profile-owned `commands[].config` | Override supported model, reasoning, title, or elastic-pool realization values without changing role authority. |
 | Grouping policy | No | Profile-owned `commands[].config` | Defines the sidebar section template and deterministic collision suffix policy. |
-| Lifecycle subcommand | Yes | User request | One of `check-update`, `initialize`, `list`, `status`, `message`, `reconcile`, `replace`, or `archive`. |
+| Lifecycle subcommand | Yes | User request | One of `check-update`, `initialize`, `list`, `status`, `message`, `reconcile`, `replace`, `archive`, or `delete-workflow`. Human wording such as “delete group” routes to `delete-workflow`. |
 | Exact instance identifiers | Conditional | Prior creation receipts | Required for operations on existing tasks; titles are never lifecycle identity. |
 
 ## Outputs
@@ -83,6 +83,34 @@ Committed configuration template: `gpt-app/gpt-app.command.example.config`. Copy
 | `reconcile` | Create missing instances and report mismatches or duplicates; never silently adopt candidates. |
 | `replace` | Create and verify a successor before recoverably archiving its exact predecessor. |
 | `archive` | Recoverably archive one exact task ID after confirming its binding. |
+| `delete-workflow` | Recoverably archive every exact task bound to one logical project, delete its exact custom sidebar section, and preserve the saved Codex project and repository. |
+
+## Workflow deletion contract
+
+In human-facing requests, **group**, **workflow group**, and **logical project** may describe the same AI Fleas scope.
+The adapter must still keep the three concrete identities distinct:
+
+| AI Fleas scope | GPT/Codex App realization | Deleted by `delete-workflow`? |
+|---|---|---|
+| Logical project, such as `<profile>-<workflow>[-<suffix>]` | Lifecycle scope recorded by AI Fleas | Its active binding is retired and a deletion receipt is retained. |
+| Presentation group | Exact custom sidebar section ID | Yes. Delete only the recorded section ID. |
+| Runtime project | Exact saved Codex project ID and repository root | No. Preserve both. |
+
+`delete-workflow` performs one guarded transaction:
+
+1. Require explicit deletion intent plus the exact profile, workflow, complete logical-project ID, saved-project ID,
+   recorded sidebar-section ID, and complete agent-task receipts.
+2. Preflight every receipt and host capability before mutation. Reject a missing, duplicate, foreign, or title-inferred
+   binding with zero mutation.
+3. Recoverably archive every exact bound agent task. Archive the calling Admin last so it can verify and report the
+   transaction; use the host's background self-archive capability when required.
+4. Delete the exact recorded custom sidebar section. Never delete, rename, or detach the saved Codex project, checkout,
+   repository, or work target.
+5. Verify the tasks are archived and the section no longer exists, then retain a tombstone receipt containing the
+   logical-project ID, saved-project ID, deleted section ID, archived task IDs, and outcomes.
+
+If the host cannot preflight the complete transaction, return an exact no-mutation failure. A section name, visible
+title, sidebar position, or phrase such as `sc-dev` is never sufficient deletion identity.
 
 ## Agent realization
 
@@ -130,6 +158,7 @@ the portable workflow manifest and corresponding GPT bindings—not from edits t
 - Never create a worktree, clone, projectless task, or task in a merely similar project.
 - Never use a title as identity or create a duplicate while a candidate may still resolve.
 - Never treat a matching sidebar-section name as identity; reuse requires the recorded immutable section ID.
+- Never interpret `delete-workflow` as deletion of a saved Codex project, checkout, repository, or work target.
 - Never archive a predecessor until its requested replacement is verified.
 - Never weaken portable role authority or communication boundaries.
 - Never let profile overrides add roles, remove required roles, change readiness tokens or lifecycle authority, or exceed
