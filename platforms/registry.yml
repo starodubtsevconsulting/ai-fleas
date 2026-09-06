@@ -3,3 +3,6 @@ platforms:
   - id: gpt-app
     label: GPT/Codex App
     contract: gpt-app/platform.yml
+  - id: hermes
+    label: Hermes Agent
+    contract: hermes/platform.yml
