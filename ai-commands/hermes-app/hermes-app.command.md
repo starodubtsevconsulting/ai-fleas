@@ -21,11 +21,13 @@ flowchart LR
   subgraph PublicCommand["Public hermes-app command — reusable mechanics"]
     Dispatcher["hermes-app.command.sh"]
     Install["install"]
+    CheckUpdate["check-update"]
     Initialize["initialize"]
     Reconcile["reconcile"]
     Inspect["list / show / status"]
     Delete["delete profile / workflow + confirmation"]
     Dispatcher --> Install
+    Dispatcher --> CheckUpdate
     Dispatcher --> Initialize
     Dispatcher --> Reconcile
     Dispatcher --> Inspect
@@ -90,6 +92,7 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 | Subcommand | Purpose |
 |---|---|
 | `install` | Safely install or reconcile the supported Hermes CLI distribution; accepts `--dry-run`. |
+| `check-update` | Read-only comparison of the installed release, newest stable upstream date tag, and reviewed public installer pin; recommends an explicit upgrade when appropriate. |
 | `initialize` | Resolve the selected profile/workflow/project, idempotently create every platform-bound role profile, and realize their profile-workflow Hermes group. |
 | `reconcile` | Reapply the resolved role-profile and group configuration while preserving conversations and memory. |
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
