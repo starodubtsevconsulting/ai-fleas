@@ -48,7 +48,7 @@ Adapter layer: `provider-neutral`.
 
 Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
 
-Committed configuration template: `source-control/source-control.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+Committed configuration template: `source-control/source-control.command.example.config`. Copy it into the selected profile's `commands-config/` folder, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
 ## Profile binding
 
@@ -57,7 +57,7 @@ The profile declares `source-control` as a real command and references its profi
 ```yaml
 commands:
   - id: source-control
-    config: commands/source-control/config.yml
+    config: commands-config/source-control/config.yml
 ```
 
 The referenced configuration declares the provider binding and organization-specific policy. Reusable commands never
@@ -99,9 +99,8 @@ Every mutating source-control request must carry the exact initialized `callerTa
 `agent_identities.enabled` is true, also record `producingRole` for a different producer and require a trusted production
 receipt binding its exact receipt ID, producer task and role, caller/return route, and stable change identity. Consumed or
 wrong-change receipts are rejected. While disabled, producer fields and receipts may be absent and must not block. The
-authorized caller is the
-initiating role used for branch and commit/PR provenance. The provider command verifies these fields against trusted
-runtime identity; it never infers them from the model, Git identity, process, repository, or prose.
+authorized caller is the initiating role used for branch and commit/PR provenance. The provider command verifies these
+fields against trusted runtime identity; it never infers them from the model, Git identity, process, repository, or prose.
 
 Example: Designer/Reviewer dispatches a push for Coder-produced work. The branch is
 `designer-reviewer/<short-kebab-description>`, the metadata records `Initiated-By-Role: designer-reviewer`,
