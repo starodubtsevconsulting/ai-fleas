@@ -40,13 +40,21 @@ The goal is not to hide the differences between platforms. It is to keep the **w
 
 ## How do I start?
 
-It depends on how far you want to take it. The simplest entry point does not require building another AI platform.
+The simplest path is to use the AI application you already have and let it help initialize the setup.
 
-Start with the [example AI Profile](https://github.com/starodubtsevconsulting/ai-profile) and create your own profile from it. Then give that profile and this repository to the AI application you already use — for example ChatGPT/Codex or Claude Code — and ask it to initialize the setup for your environment.
+1. **Create your profile.** Start from the [example AI Profile](https://github.com/starodubtsevconsulting/ai-profile) and adapt it to your environment, projects and preferences.
+2. **Choose a workflow.** Pick what you are doing — for example software development, book writing, blogging or multimedia work. Workflows are extendable, so you can also create your own.
+3. **Choose your platform.** Give your profile and AI Fleas to ChatGPT/Codex, Claude Code or another harness you already use, and point it to the folder where that platform keeps its Agent/AI instruction files.
+4. **Connect your project.** Add the project you want to work on through your profile and initialize the selected workflow for it.
+5. **Start working with your team.** The workflow's roles, team rules and configuration are projected into concrete Agents for that platform. Commands used by the workflow are made available alongside any native skills or tools provided by the harness.
 
-Point it to the folder where your Agent/AI instruction files live and connect the project you want to work on through your profile. During initialization, the workflow, role and team rules are projected into the concrete Agents created for that platform. The result is your own configured AI team, ready to work against the project and tasks you provide.
+The basic composition is:
 
-For more advanced setups, the same definitions can be adapted to other harnesses such as Hermes or to locally hosted models. The harness changes; the profile, workflow concepts, role definitions, mappings and operating rules remain the common layer.
+`Profile + Workflow + Commands + Platform Skills -> Your AI Team`
+
+AI Fleas deliberately calls its reusable executable capabilities **Commands**. A platform such as ChatGPT/Codex, Claude Code or Hermes may already have its own concept of **skills**. Keeping the names separate lets a workflow combine AI Fleas Commands with platform-native skills without confusing the two concepts.
+
+For more advanced setups, the same definitions can be adapted to Hermes, locally hosted models or custom runtimes. The harness changes; the profile, workflows, roles, commands, mappings and operating rules remain the common layer.
 
 ### For people who already build this stuff
 
