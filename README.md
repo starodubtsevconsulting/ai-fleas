@@ -1,68 +1,102 @@
 # AI Fleas
 
-![AI Fleas](img/ai-fleas.png)
+<p align="center">
+  <img src="img/ai-flea-logo.png" alt="AI Fleas" width="700" />
+</p>
 
-AI Fleas is the public rules layer used by AI Fleas Platform. It contains reusable commands, workflow contracts, roles,
-governance rules, and a sanitized profile example. It does not contain the private launcher, UI, backend, operational
-profiles, credentials, project bindings, or workflow application implementations.
+**A public window into how I am building and using AI systems in real work.**
 
-The name also sounds like “AI fleets”: many small AI participants working together. The original naming story is in
-[Why AI Fleas?](notes/2026-09-04-why-ai-fleas.md).
+This collection covers agents, workflows, reusable commands, profiles, local models, governance, automation and experiments. For someone exploring my work, it is a quick way to see the areas of AI engineering I am actively working with rather than just a list of technologies on a profile.
 
-The dependency direction is one-way: `ai-fleas-platform` consumes this repository; this repository never imports or
-depends on the private platform.
+<p align="center">
+  <img src="img/ai-fleas.png" alt="AI Fleas mascot" width="360" />
+</p>
 
-## Public reference material
+### [Why AI Fleas?](notes/2026-09-04-why-ai-fleas.md)
 
-- [Local-model benchmarks](benchmarks/local-models/README.md) record empirical worker-model results and planned
-  comparisons without making them workflow requirements.
-- [Notes](notes/README.md) capture the public ideas and history around the project.
+There is a story behind the name — and, somehow, whatever the original subject is, the conversation eventually gets back to AI.
 
-## Repository structure
+## What is inside
 
-- `ai-commands/` contains portable command contracts and their self-contained implementations.
-- `ai-workflows/` contains reusable workflow rules, roles, guides, and declarative contracts.
-- `ai-profile/` defines the profile structure and provides a sanitized example.
-- `platforms/` defines the adapter contract and tracked public agent-platform implementations such as `gpt-app`.
+The project brings together the pieces I use to think about and organize AI-assisted work. The diagram below gives the high-level picture before getting into the individual commands, workflows, roles and runtime concepts.
 
-Files intended for this repository must be safe to publish. Machine paths, credentials, private providers, client data,
-runtime state, UI/backend implementations, and private adapters belong in AI Fleas Platform.
+![AI Workflow Suite](img/ai_workflow_suite.png)
 
-Public workflow manifests describe only portable identity, rule entry points, and required command capabilities. They do
-not declare MCP servers, transports, endpoints, frontend/backend processes, event storage, or host-specific runtime
-commands. A consuming platform may bind those mechanics in a separate private implementation catalog.
+### For people who already build this stuff
 
-The agent model has three layers:
+**This is not another AI agent framework.** Agents, tools, workflows, MCP and many of the individual ideas here already exist in excellent systems, and that is expected.
 
-1. A **role** defines portable responsibility, authority, constraints, inputs, outputs, and handoffs.
-2. A **logical agent** assigns a role within a workflow roster without choosing a host runtime.
-3. A **platform binding** realizes that logical agent as a GPT/Codex task, Hermes bot, launcher-owned agent, or another
-   platform object and owns its model, runtime identity, transport, presentation, and lifecycle mechanics.
+What is public here is a deliberately selected **slice of a larger working system**: reusable patterns, architectural decisions, rules, commands, workflows, experiments, benchmarks and some of the reasoning behind them. It is the visible tip rather than the complete implementation.
 
-Roles and logical agents are reusable across platforms. Platform bindings may strengthen runtime verification but may
-not broaden role authority or change workflow ownership.
+**Do I actually use this? Yes.** The public material is derived from patterns and pieces I use in my private working environment. The private version has the additional runtime, UI, launcher integration, project-specific configuration, memory, local-model workers, integrations and other bells and whistles needed for day-to-day use.
 
-## Initialization and host extensions
+The purpose of this repository is therefore not to claim that every building block is new. It is to make some of the work and thinking visible, provide useful pieces where they can stand on their own, and create a concrete starting point for conversations, collaboration and new opportunities.
 
-AI Fleas always runs through an agent platform. It ships with the public `gpt-app` adapter, so GPT/Codex App users do not
-need an additional platform repository. Start the AI task in the repository where the work will happen, load this
-repository's rules, and select an AI Profile. The profile—not the shell working directory—defines the platform, active
-workflows, commands, projects, and permitted work scope.
+## Public collection
 
-A direct setup is self-contained:
+The main repository contains **AI Commands** and **AI Workflows** directly. **AI Profile** remains a separate example repository because profiles are configuration rather than part of the reusable command/workflow implementation.
 
-1. Create or copy an AI Profile using `ai-profile/example/` as the structure.
-2. Select an exact registered `agent_platform` and configure the workflows, commands, projects, and scope.
-3. Start the AI host with the intended work repository as its project root and the selected profile as configuration.
-4. Keep writes inside that project root unless the profile and the user's request explicitly authorize cross-repository
-   work.
+This repository also contains shared reference material that does not belong to one implementation project, including **[local model and hardware benchmarks](benchmarks/local-models/README.md)**.
 
-An organization may also build a host-specific companion such as `ai-fleas-my-platform`. A companion
-may provide a launcher, UI, backend, transport, persistence, provider integration, or private profiles. It consumes and
-implements the contracts in AI Fleas; it must not silently replace, weaken, or duplicate the common rules. Host-specific
-rules are appropriate only for behavior owned by that host itself.
+## AI Workflow Suite vocabulary
 
-Initialization must not infer a companion repository merely because one exists nearby. A task initialized from
-`ai-fleas` uses AI Fleas as-is unless the selected profile or an explicit user instruction names a companion. If a task is
-already rooted in another repository, changing its shell working directory does not re-scope it; create or open a task
-rooted in the intended repository instead.
+These are the main building blocks used across the public collection.
+
+| Term | Simple meaning | Reference |
+| --- | --- | --- |
+| **Command** | A reusable executable AI capability with a defined contract, inputs and outputs. | [AI Commands](ai-commands/) |
+| **Workflow** | A reusable process for a kind of work. It defines roles, rules, collaboration and capabilities. | [AI Workflows](ai-workflows/) |
+| **Flow / route** | The path work follows inside a workflow. | [AI Workflows](ai-workflows/) |
+| **Role** | A reusable behavioral contract describing responsibilities, boundaries and lifecycle. | [Common roles](ai-workflows/_common/roles/) |
+| **Agent** | A runtime participant that realizes a role with concrete configuration and identity. | [AI Workflows](ai-workflows/) |
+| **Profile** | Personal or organization-specific configuration that activates workflows and supplies runtime policy. | [AI Profile](https://github.com/starodubtsevconsulting/ai-profile) |
+| **Provider** | A concrete implementation behind a generic capability. | [AI Commands](ai-commands/) |
+
+A useful mental model is:
+
+`Profile -> Workflow -> Agents/Roles -> Flow -> Commands -> Providers -> Result`
+
+## AI vocabulary
+
+| Term | Simple meaning |
+| --- | --- |
+| **Agent** | A running AI participant with a model, context, rules and capabilities. |
+| **Roster** | The current list of active agent instances. |
+| **Harness** | Runtime machinery around a model: agent loop, sessions, tools, files, terminal, plugins, sub-agents, computer use, etc. |
+| **Token** | A small piece of text a language model reads or produces. |
+| **Context** | Information currently supplied to the model for a request/session. |
+| **Context window** | Maximum amount of tokenized context a model can work with at once. |
+| **Prompt** | An instruction or request given to the model. |
+| **Tool / tool call** | A capability an agent can invoke outside its generated text. |
+| **Memory** | Information preserved so it can be retrieved beyond immediate context. |
+| **MCP** | Model Context Protocol: a common interface for exposing tools/resources to AI applications. |
+| **Model** | The trained neural network doing language/reasoning work. |
+| **Inference** | Running a trained model to process input and generate an answer/action. |
+| **Quantization** | Storing model parameters with fewer bits so the model needs less memory. |
+
+### Common harnesses
+
+| Harness | What it is |
+| --- | --- |
+| Codex | OpenAI agent/coding environment |
+| Claude Code | Anthropic agentic coding environment |
+| Pi | Extensible agent harness / coding-agent toolkit |
+| Hermes Agent | General-purpose extensible agent from Nous Research |
+
+## Projects
+
+### [AI Commands](ai-commands/)
+
+Pluggable executable skills that combine AI-readable Markdown contracts with optional scripts, supporting code, configuration boundaries, reports, and command-owned visual tools.
+
+### [AI Workflows](ai-workflows/)
+
+Reusable business and work processes that coordinate commands and define the agent roles, rules, and collaboration needed to complete a workflow.
+
+### [AI Profile](https://github.com/starodubtsevconsulting/ai-profile)
+
+A sanitized example of personal or organization-specific context that activates workflows, configures commands, binds projects and supplies runtime preferences.
+
+## Current status
+
+AI Commands and AI Workflows live in this monorepo. AI Profile remains separate. Additional pieces are published when suitable for public use.

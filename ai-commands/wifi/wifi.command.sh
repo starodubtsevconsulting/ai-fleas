@@ -77,7 +77,7 @@ if [[ ! -f "${CONFIG_FILE}" ]]; then
   exit 1
 fi
 
-# shellcheck source=/home/sergii/wifi.command.config
+# shellcheck source=/dev/null
 source "${CONFIG_FILE}"
 
 SSID="${ssid:-}"

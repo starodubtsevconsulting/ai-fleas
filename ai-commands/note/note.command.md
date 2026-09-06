@@ -27,9 +27,9 @@ Use when the user asks to:
   - `obsidian_vault` selects the default Obsidian vault for note operations
   - `vault_paths` lists allowed/known vault candidates
   - `smart_notes_root` points to Smart Notes subtree inside the selected vault
-- Default vault root (current): `/home/sergii/SynologyDrive/documents`
-- Preferred vault name (current): `documents`
-- Smart Notes root (current): `docs`
+- Default vault root: configured locally through `obsidian_vault`; no machine-specific path is published
+- Preferred vault name example: `documents`
+- Smart Notes root example: `docs`
 - Config template: `rules/commands/note/note.example.config`
 - Categories:
   - `<smart_notes_root>/fleeting-notes/`
