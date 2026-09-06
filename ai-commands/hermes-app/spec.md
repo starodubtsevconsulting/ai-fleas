@@ -13,20 +13,14 @@ Verified Hermes profile state or a precise, non-secret failure.
 ## Invariants
 
 - Public files contain no organization, client, machine, endpoint, credential, or private-platform defaults.
-- Provider and model selection comes only from the active profile.
-- A workflow selects stable provider-target and model aliases; the profile-owned catalog maps them to a machine endpoint,
-  concrete provider model ID, capabilities, authentication reference, and optional Hermes context settings.
-- `workflow.local_ai.provider` and `workflow.local_ai.model` are the default inference binding for every Hermes role in
-  that workflow.
-- `workflow.local_ai.agents.<role>.provider` and `workflow.local_ai.agents.<role>.model` may override those defaults for
-  one role. Either property may be omitted and inherited independently from the workflow default.
-- Every role's effective provider/model pair is resolved independently during initialization. Unknown providers, models,
-  roles, unsupported protocols, or incompatible provider/model combinations fail closed before that role is mutated.
-- Provider endpoint, authentication and model details remain defined once in the profile-owned provider catalog; role
-  overrides contain only stable provider/model aliases and never duplicate endpoints or credentials.
-- Multiple computers, remote inference services, and multiple models may coexist in one catalog. Replacing a model box
-  must require only a catalog update and profile/workflow/role selection change, never a public command-code change.
-- A workflow with no per-role overrides remains valid: every role inherits the existing workflow provider/model selection.
+- AI provider and model are independent agent properties.
+- The profile-owned provider catalog maps stable AI provider aliases to endpoint, protocol, authentication and available model details.
+- Every Hermes role binding explicitly declares its `ai_provider` alias. Initialization resolves that alias through the active profile-owned provider catalog for that role.
+- Model selection remains governed by the existing model configuration and is not implicitly changed when `ai_provider` is introduced.
+- Different Hermes agents may therefore use different AI providers while retaining independent model selection.
+- Unknown AI provider aliases, unsupported protocols, or provider/model combinations that cannot be realized fail closed before that role is mutated.
+- Provider endpoint, authentication and model details remain defined once in the profile-owned provider catalog; agent bindings contain only stable provider aliases and never duplicate endpoints or credentials.
+- Multiple computers, remote inference services, and multiple models may coexist in one catalog. Replacing a model box or changing a remote provider must not require public command-code changes.
 - Workflow and command contracts are resolved exactly and injected as references, not duplicated into this command.
 - Setup validates dependencies before mutation.
 - `initialize` realizes exactly the named roles in the selected Hermes workflow binding and an idempotent
@@ -40,45 +34,41 @@ Verified Hermes profile state or a precise, non-secret failure.
 - Hermes profile resolution and reconciliation live in this public command. A platform adapter may launch the command or
   present its result, but must not own or duplicate its configuration semantics.
 
-## Profile configuration shape
+## Hermes role mapping
 
-The existing provider catalog remains authoritative. No second provider catalog is introduced.
+The reusable Hermes mapping makes the AI provider explicit for every role:
 
 ```yaml
-workflows:
-  - path: dev.workflow.md
-    harness: hermes
-    local_ai:
-      providers_config: commands-config/hermes-app/config.yml
-      provider: local-coding-service
-      model: qwen-coder
-      agents:
-        coder:
-          # inherits local-coding-service
-          model: qwen-coder
-        designer-reviewer:
-          provider: openai
-          model: gpt-5.6
+bindings:
+  - role: manager
+    profile_suffix: manager
+    ai_provider: local-coding-service
+
+  - role: coder
+    profile_suffix: coder
+    ai_provider: local-coding-service
 ```
 
-Conceptual resolution for each role:
+`ai_provider` is a stable alias resolved against the active profile's existing provider catalog. It is not an endpoint and must not contain credentials.
 
-```text
-workflow.local_ai provider/model
-              +
-optional local_ai.agents.<role> override
-              ↓
-effective provider/model for that Hermes role profile
+The value may be different for every role, for example:
+
+```yaml
+bindings:
+  - role: designer-reviewer
+    profile_suffix: designer-reviewer
+    ai_provider: openai
+
+  - role: coder
+    profile_suffix: coder
+    ai_provider: local-coding-service
 ```
 
-The role override is profile configuration because provider IDs and available models are specific to the selected working
-context. The reusable Hermes platform mapping continues to define which logical roles are realized and their profile
-suffixes; it does not contain private provider IDs.
+The model remains a separate property. Selecting `ai_provider: openai` does not itself select or change the agent's model.
 
 ## Completion criteria
 
-The command verifies the resulting profile identity, effective per-role provider and model, workspace, workflow contract,
+The command verifies the resulting profile identity, effective per-role AI provider, model, workspace, workflow contract,
 allowed command contracts, and context-management configuration without exposing secrets.
 
-A mixed Hermes team can initialize with different role profiles using different providers/models, while a profile that
-specifies only the workflow-level provider/model continues to initialize every role with that default.
+A Hermes team can initialize different role profiles against different AI providers while preserving the existing independent model configuration.
