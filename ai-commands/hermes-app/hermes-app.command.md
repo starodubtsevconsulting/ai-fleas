@@ -74,6 +74,9 @@ Committed configuration template: `hermes-app/hermes-app.command.example.config`
 The selected adapter manifest at `platforms/hermes/workflows/<workflow>/agents.yml` is authoritative for role names and
 profile suffixes. The command does not invent generic workers or borrow another platform's runtime roster.
 
+Hermes role-profile identity is `<profile>-<workflow>-<role-suffix>`. The selected project remains runtime scope and
+workspace configuration; repository or folder names never become part of the stable agent identity.
+
 Hermes presents bots and group chats in one flat roster rather than a folder tree. Initialization therefore marks the
 individual role profiles hidden in the top-level roster while retaining their group memberships and runtime behavior.
 The default Hermes profile is also hidden and unpinned when `HERMES_GROUP_ONLY_NAVIGATION=true` (the default). The
