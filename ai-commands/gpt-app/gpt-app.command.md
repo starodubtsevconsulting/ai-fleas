@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Use `gpt-app` to initialize, inspect, reconcile, message, replace, or recoverably archive AI Fleas logical agents realized
+Use `gpt-app` to check for stable application updates, initialize, inspect, reconcile, message, replace, or recoverably archive AI Fleas logical agents realized
 as Codex tasks. The command composes the selected profile, portable workflow roster, and public `gpt-app` platform adapter;
 it never infers tasks from titles, recency, or nearby repositories.
 
@@ -18,9 +18,11 @@ flowchart LR
     Contract["gpt-app.command.md"]
     Initialize["initialize"]
     Inspect["list / status"]
+    CheckUpdate["check-update"]
     Operate["message / reconcile / replace / archive"]
     Contract --> Initialize
     Contract --> Inspect
+    Contract --> CheckUpdate
     Contract --> Operate
   end
 
@@ -48,7 +50,7 @@ therefore changes profile configuration rather than the portable workflow roster
 | Workflow and complete logical project | Yes | User and profile | Select the portable roster and exact saved Codex project/work target. |
 | GPT role overrides | No | Profile-owned `commands[].config` | Override supported model, reasoning, title, or elastic-pool realization values without changing role authority. |
 | Grouping policy | No | Profile-owned `commands[].config` | Defines the sidebar section template and deterministic collision suffix policy. |
-| Lifecycle subcommand | Yes | User request | One of `initialize`, `list`, `status`, `message`, `reconcile`, `replace`, or `archive`. |
+| Lifecycle subcommand | Yes | User request | One of `check-update`, `initialize`, `list`, `status`, `message`, `reconcile`, `replace`, or `archive`. |
 | Exact instance identifiers | Conditional | Prior creation receipts | Required for operations on existing tasks; titles are never lifecycle identity. |
 
 ## Outputs
@@ -73,6 +75,7 @@ Committed configuration template: `gpt-app/gpt-app.command.example.config`. Copy
 
 | Subcommand | Behavior |
 |---|---|
+| `check-update` | Read-only query of the GPT/Codex app host's trusted stable update channel. Report the installed and latest stable versions when the host exposes them, recommend an explicit upgrade when newer, or return `GPT_APP_UPDATE_CHECK_UNAVAILABLE` when status cannot be established. Never update automatically. |
 | `initialize` | Create the exact requested roster, initialize every role, and record exact task receipts. |
 | `list` | Return recorded logical-agent-to-task bindings without inferring unbound tasks. |
 | `status` | Verify task existence, project binding, role initialization, and current lifecycle state. |
@@ -85,8 +88,8 @@ Committed configuration template: `gpt-app/gpt-app.command.example.config`. Copy
 
 `initialize` has the same lifecycle meaning as it does in `hermes-app`: realize the agents declared for the selected
 workflow on the selected platform. GPT App realizes the workflow's complete governed role roster as separate Codex
-tasks. Hermes App currently realizes one workflow-scoped bot containing the workflow instructions and allowed command
-catalog. The selected platform adapter—not the shared lifecycle verb—determines this cardinality and mapping.
+tasks. Hermes App realizes its declared roles as named profiles collected in a workflow group. The selected platform
+adapter—not the shared lifecycle verb—determines the concrete task/profile mapping.
 
 ## Initialization contract
 
@@ -132,6 +135,8 @@ the portable workflow manifest and corresponding GPT bindings—not from edits t
 - Never let profile overrides add roles, remove required roles, change readiness tokens or lifecycle authority, or exceed
   workflow-declared elastic-pool limits.
 - Never place host task IDs or operational project identifiers in this public command.
+- Never infer update status from model availability, documentation dates, or a failed check; only a trusted host update
+  channel may establish the installed and latest stable app versions.
 
 ## Tags
 
