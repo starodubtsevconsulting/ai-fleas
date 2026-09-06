@@ -84,10 +84,25 @@ const workflow = workflowMatches[0];
 if (workflow.harness !== 'hermes') fail(`workflow '${desiredWorkflow}' does not select the Hermes harness.`);
 const commandsRoot = resolveCatalogRoot(String(profile.ai_commands_root || ''), 'ai_commands_root');
 const workflowsRoot = resolveCatalogRoot(String(profile.ai_workflows_root || ''), 'ai_workflows_root');
+const platformsRoot = resolveCatalogRoot(String(profile.ai_platforms_root || ''), 'ai_platforms_root');
 const workflowId = path.basename(String(workflow.path)).replace(/\.workflow\.md$/, '').replace(/\.md$/, '');
 const workflowInstructions = path.join(workflowsRoot, workflowId, `${workflowId}.workflow.md`);
 if (!fs.statSync(workflowInstructions, { throwIfNoEntry: false })?.isFile()) {
   fail(`workflow contract is not a readable file: ${workflowInstructions}`);
+}
+const rosterFile = path.join(platformsRoot, 'hermes', 'workflows', workflowId, 'agents.yml');
+const roster = readYaml(rosterFile);
+if (roster.platform !== 'hermes' || roster.workflow !== workflowId || !Array.isArray(roster.bindings)) {
+  fail(`Hermes roster does not match workflow '${workflowId}'.`);
+}
+const roleBindings = roster.bindings.map((binding) => {
+  if (!binding || typeof binding !== 'object' || Array.isArray(binding)) fail('Hermes role binding must be a mapping.');
+  const role = safeId(String(binding.role || ''), 'Hermes role');
+  const suffix = safeId(String(binding.profile_suffix || ''), 'Hermes profile suffix');
+  return `${role}:${suffix}`;
+});
+if (roleBindings.length === 0 || new Set(roleBindings).size !== roleBindings.length) {
+  fail(`Hermes roster for '${workflowId}' is empty or contains duplicates.`);
 }
 const commandIds = Array.isArray(workflow.commands)
   ? workflow.commands.map((value) => safeId(String(value || ''), 'command ID'))
@@ -156,6 +171,6 @@ if (!path.isAbsolute(workspace) || !fs.statSync(workspace, { throwIfNoEntry: fal
 }
 
 const providerLabel = String(provider.label || provider.id);
-const fields = [workProfileId, workflowId, projectId, providerAlias, providerLabel, endpoint.replace(/\/$/, ''), providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages, workspace, agentInstructions, commandsRoot, workflowInstructions, commandIds.join(',')];
+const fields = [workProfileId, workflowId, projectId, providerAlias, providerLabel, endpoint.replace(/\/$/, ''), providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages, workspace, agentInstructions, commandsRoot, workflowInstructions, commandIds.join(','), roleBindings.join(',')];
 if (fields.some((value) => /[\t\r\n]/.test(value))) fail('resolved values contain unsupported control characters.');
 process.stdout.write(`${fields.join('\t')}\n`);

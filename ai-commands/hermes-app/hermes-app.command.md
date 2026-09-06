@@ -35,11 +35,12 @@ flowchart LR
   Workflow --> Dispatcher
   Target --> Initialize
   Model --> Initialize
-  Initialize --> Bot["One workflow-scoped Hermes bot"]
-  Reconcile --> Bot
-  Inspect --> Bot
-  Delete --> Bot
-  Bot --> App["Hermes application"]
+  Initialize --> Group["Workflow group: profile-workflow"]
+  Group --> Roster["Platform-bound named role profiles"]
+  Reconcile --> Roster
+  Inspect --> Roster
+  Delete --> Roster
+  Roster --> App["Hermes application"]
 ```
 
 The aliases make the mapping stable: replacing a model box or changing its installed model updates the private catalog
@@ -70,6 +71,15 @@ Every invocation is profile-aware: the host must verify that the active workflow
 
 Committed configuration template: `hermes-app/hermes-app.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
+The selected adapter manifest at `platforms/hermes/workflows/<workflow>/agents.yml` is authoritative for role names and
+profile suffixes. The command does not invent generic workers or borrow another platform's runtime roster.
+
+Hermes presents bots and group chats in one flat roster rather than a folder tree. Initialization therefore marks the
+individual role profiles hidden in the top-level roster while retaining their group memberships and runtime behavior.
+The default Hermes profile is also hidden and unpinned when `HERMES_GROUP_ONLY_NAVIGATION=true` (the default). The
+workflow groups become the primary navigation; opening a group exposes its named participating roles. Hermes may still
+surface a hidden profile temporarily while it is active or has attention-worthy recent activity.
+
 The profile-owned provider catalog is the target map. Each `providers[]` entry describes one model box or service and its endpoint; each nested `models[]` entry maps a stable model alias to the concrete provider model and optional `hermes` context settings. Adding or replacing a computer therefore changes profile configuration, not this reusable command or its workflows.
 
 ## Subcommands
@@ -77,8 +87,8 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 | Subcommand | Purpose |
 |---|---|
 | `install` | Safely install or reconcile the supported Hermes CLI distribution; accepts `--dry-run`. |
-| `initialize` | Resolve the selected profile/workflow/project and idempotently create its one workflow-scoped Hermes bot. |
-| `reconcile` | Reapply the resolved configuration to that bot while preserving conversations and memory. |
+| `initialize` | Resolve the selected profile/workflow/project, idempotently create every platform-bound role profile, and realize their profile-workflow Hermes group. |
+| `reconcile` | Reapply the resolved role-profile and group configuration while preserving conversations and memory. |
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
 | `list` | List existing Hermes profiles. |
 | `show PROFILE` | Inspect one exact profile. |
@@ -89,7 +99,8 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 
 `initialize` has the same lifecycle meaning as it does in `gpt-app`: realize the agents declared for the selected
 workflow on the selected platform. The realization cardinality differs by platform. Hermes App currently maps the
-workflow to one bot profile that receives the workflow instructions and allowed command catalog. GPT App maps the same
+workflow to one named Hermes profile per configured role plus a profile-workflow group containing that roster.
+Each profile receives the workflow instructions and allowed command catalog. GPT App maps the same
 workflow governance model to its declared multi-agent roster, such as Admin, Manager, and the five governed Dev roles.
 This difference belongs to the platform adapters and must not be hardcoded as a universal agent count in either command.
 
