@@ -16,10 +16,13 @@ Never request a worktree, temporary checkout, detached checkout, clone, or proje
 agents in one runtime scope share the saved project's main working tree; repository dirty-state and concurrent-write
 rules remain governed by the repository and workflow contracts.
 
-Create only the explicitly requested complete roster. Record every returned task or pending client ID and bind each
-resolved task ID before dispatch. Missing receipts, duplicate roles, mismatched projects, unsupported capabilities, or
-incomplete bindings fail closed. A plain `init` may initialize the team only when profile, workflow, logical project, and
-this adapter are already explicit; otherwise ask for the missing selection and mutate nothing.
+Run lifecycle initialization through the public `gpt-app` command. The calling Admin binds itself but does not directly
+create governed workers. If Manager is absent, the command creates and canonically initializes exactly one Manager under
+the Admin bootstrap exception, then delivers the complete transaction to that Manager. Manager creates and initializes
+the remaining explicitly requested roster and returns exact receipts through Admin. Missing receipts, duplicate roles,
+mismatched projects, unsupported capabilities, or incomplete bindings fail closed. A plain `init` may initialize the team
+only when profile, workflow, logical project, and this adapter are already explicit; otherwise ask for the missing
+selection and mutate nothing.
 
 A creation request must use `target.type: project`, the exact resolved Codex project ID, and
 `environment.type: local`. A provisional receipt produced by any other environment is invalid and must not be adopted as

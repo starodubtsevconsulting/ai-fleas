@@ -1,0 +1,10 @@
+id: financial-insights
+label: Financial Insights
+tags:
+  - financial-insights
+  - accounting
+  - money
+entry: financial-insights.workflow.md
+required_commands:
+  - statements
+  - taxes

@@ -7,10 +7,10 @@ test_root="$(mktemp -d "${TMPDIR:-/tmp}/setup-hermes-profile-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
 
-mkdir -p "${test_root}/bin" "${test_root}/workspace" "${test_root}/commands/statements" "${test_root}/workflows/accounting"
+mkdir -p "${test_root}/bin" "${test_root}/workspace" "${test_root}/commands/statements" "${test_root}/workflows/financial-insights"
 printf '%s\n' '# Test agent instructions' >"${test_root}/instructions.md"
 printf '%s\n' '# Statements command' >"${test_root}/commands/statements/statements.command.md"
-printf '%s\n' '# Accounting workflow' >"${test_root}/workflows/accounting/accounting.workflow.md"
+printf '%s\n' '# Financial Insights workflow' >"${test_root}/workflows/financial-insights/financial-insights.workflow.md"
 cat >"${test_root}/bin/hermes" <<'FAKE_HERMES'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -65,7 +65,7 @@ HERMES_ENDPOINT='http://192.0.2.10:1234/v1' \
 HERMES_WORKSPACE="${test_root}/workspace" \
 HERMES_AGENT_INSTRUCTIONS_PATH="${test_root}/instructions.md" \
 HERMES_AI_COMMANDS_ROOT="${test_root}/commands" \
-HERMES_WORKFLOW_INSTRUCTIONS_PATH="${test_root}/workflows/accounting/accounting.workflow.md" \
+HERMES_WORKFLOW_INSTRUCTIONS_PATH="${test_root}/workflows/financial-insights/financial-insights.workflow.md" \
 HERMES_WORKFLOW_COMMAND_IDS='statements' \
 TEST_WORKSPACE="${test_root}/workspace" \
 PATH="${test_root}/bin:${PATH}" \
@@ -82,7 +82,7 @@ grep -F 'compression.protect_last_n=8' "${profile_dir}/values" >/dev/null
 grep -F "terminal.cwd=${test_root}/workspace" "${profile_dir}/values" >/dev/null
 grep -F "${test_root}/workspace" "${profile_dir}/SOUL.md" >/dev/null
 grep -F "Your AI configuration instructions are \`${test_root}/instructions.md\`" "${profile_dir}/SOUL.md" >/dev/null
-grep -F "Your active workflow contract is \`${test_root}/workflows/accounting/accounting.workflow.md\`" "${profile_dir}/SOUL.md" >/dev/null
+grep -F "Your active workflow contract is \`${test_root}/workflows/financial-insights/financial-insights.workflow.md\`" "${profile_dir}/SOUL.md" >/dev/null
 grep -F "Your selected AI command catalog root is \`${test_root}/commands\`. The commands allowed by this workflow are: \`statements\`." "${profile_dir}/SOUL.md" >/dev/null
 grep -F 'For every user request, first match the intent against those selected commands.' "${profile_dir}/SOUL.md" >/dev/null
 grep -F 'Hermes bot ready: example-dev-service' "${test_root}/output" >/dev/null

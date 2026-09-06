@@ -97,14 +97,14 @@ test('init-prompt exposes bounded semantic text only and succeeds through fixed 
 
 test('accounting taxes usage runs the managed shell command with fixed harmless argv', async () => {
   const [tool] = accountingTaxesUsageCapability().mount({
-    workflowId: 'accounting',
-    config: { toolName: 'workflow.accounting.taxes_usage.v1' },
+    workflowId: 'financial-insights',
+    config: { toolName: 'workflow.financial_insights.taxes_usage.v1' },
     executionPolicy: { envAllowlist: ['PATH', 'LANG', 'LC_ALL'] }
   });
   await assert.rejects(() => tool.invoke({ reportsRoot: '/tmp' }), /unsupported argument/);
   const result = await tool.invoke({});
   assert.equal(result.ok, true);
-  assert.equal(result.workflow.id, 'accounting');
+  assert.equal(result.workflow.id, 'financial-insights');
   assert.equal(result.capabilityId, 'accounting-taxes-usage');
   assert.equal(result.argvShape.command, 'bash');
   assert.match(result.stdout, /taxes\.command\.sh summary/);
