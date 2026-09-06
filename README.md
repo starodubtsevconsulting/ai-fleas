@@ -37,7 +37,7 @@ These definitions can be adapted to ChatGPT/Codex, Claude Code, Hermes, local mo
 
 The main idea is to keep **your way of working separate from the AI platform that happens to run it**.
 
-A workflow might be software development, personal bookkeeping, running a YouTube channel, writing a book, blogging, multimedia work, or something entirely your own. You can reuse and extend the public definitions while keeping your profile, projects and private context to yourself.
+A workflow might be software development, internal financial insight, running a YouTube channel, writing a book, blogging, multimedia work, or something entirely your own. You can reuse and extend the public definitions while keeping your profile, projects and private context to yourself.
 
 Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes or a local model for another task. Your **profiles, workflows, commands and way of working can remain yours**. That portability is one of the main reasons for this project.
 
