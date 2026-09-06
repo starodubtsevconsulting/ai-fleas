@@ -2,8 +2,8 @@
 # Keep the populated copy in the operational AI Profile and ignored by Git.
 schema_version: local-ai-providers.v1
 capability: hermes
-registered_command: hermes
-command_path: hermes/hermes.command.sh
+registered_command: hermes-app
+command_path: hermes-app/hermes-app.command.sh
 
 profile_defaults:
   name_template: example-{workflow}-{project}
