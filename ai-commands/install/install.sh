@@ -16,12 +16,12 @@ if [[ $# -gt 0 ]]; then
 
   normalized_target="$(printf '%s' "$target" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-|-$//g')"
   case "$normalized_target" in
-    gpt|gpt-app|codex-app|chatgpt|chatgpt-app) canonical_target="gpt-app" ;;
-    hermes|hermes-app) canonical_target="hermes-app" ;;
+    gpt|gpt-app|codex-app|chatgpt|chatgpt-app) canonical_target="chatgpt" ;;
+    hermes|hermes-app) canonical_target="hermes" ;;
     *) canonical_target="$normalized_target" ;;
   esac
 
-  lifecycle="$root_dir/$canonical_target/lifecycle.sh"
+  lifecycle="$root_dir/$canonical_target/$canonical_target.command.sh"
   if [[ ! -x "$lifecycle" ]]; then
     printf 'INSTALL_TARGET_UNAVAILABLE: no lifecycle adapter for %s\n' "$canonical_target" >&2
     exit 2

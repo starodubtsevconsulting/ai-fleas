@@ -5,8 +5,18 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 hermes_command="$script_dir/../../hermes-app/hermes-app.command.sh"
 # shellcheck disable=SC1091
 source "$script_dir/../scripts/require-darwin-arm64.sh"
-action="${1:-status}"
+action="${1:-status}" # Physical Hermes package action.
 shift || true
+component="bundle"
+if [[ "${1:-}" == --component ]]; then
+  [[ -n "${2:-}" ]] || { printf '%s\n' 'HERMES_COMPONENT_REQUIRED' >&2; exit 2; }
+  component="$2"
+  shift 2
+fi
+case "$component" in
+  bundle) ;;
+  *) printf 'HERMES_COMPONENT_UNSUPPORTED: %s\n' "$component" >&2; exit 3 ;;
+esac
 
 resolve_hermes() {
   if [[ -n "${HERMES_BIN:-}" && -x "$HERMES_BIN" ]]; then
@@ -62,7 +72,7 @@ case "$action" in
     exit 3
     ;;
   -h|--help|help)
-    printf '%s\n' 'Usage: lifecycle.sh {status|smoke-test|install|check-update|update|upgrade|uninstall}'
+    printf '%s\n' 'Usage: lifecycle.sh {status|smoke-test|install|check-update|update|upgrade|uninstall} [--component bundle]'
     ;;
   *)
     printf 'Unknown Hermes App lifecycle action: %s\n' "$action" >&2

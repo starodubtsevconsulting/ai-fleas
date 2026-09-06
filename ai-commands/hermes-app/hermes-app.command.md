@@ -3,7 +3,7 @@
 ## Purpose
 
 Use `hermes-app` to create, reconcile, inspect, verify, or explicitly delete profile-scoped Hermes bots. Physical
-application installation and upgrades belong to the generic `install` command's `hermes-app` target.
+application installation and upgrades belong to the `hermes` command under the `install` command group.
 The command is portable; operational machine, endpoint, model, credential, workflow, and project values come from the
 selected AI Profile.
 
@@ -72,6 +72,15 @@ Every invocation is profile-aware: the host must verify that the active workflow
 
 Committed configuration template: `hermes-app/hermes-app.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
+## Linked Commands
+
+| Command | Relationship | Use when |
+|---|---|---|
+| [`hermes`](../install/hermes/hermes.command.md) | Physical application prerequisite | Hermes must be inspected, installed, smoke-tested, updated, upgraded, or uninstalled. |
+| [`install`](../install/install.command.md) | Parent installation command group | The human asks generically to install or update Hermes and the request must be routed to the exact child command. |
+
+Hermes must be installed and pass its smoke test before profile, bot, or workflow-group initialization.
+
 The selected adapter manifest at `platforms/hermes/workflows/<workflow>/agents.yml` is authoritative for role names and
 profile suffixes. The command does not invent generic workers or borrow another platform's runtime roster.
 
@@ -90,7 +99,7 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 
 | Subcommand | Purpose |
 |---|---|
-| `install` | Compatibility delegate to the generic `install` command's canonical `hermes-app` target; new callers should invoke that target directly. |
+| `install` | Compatibility delegate to the `install/hermes` command; new callers should invoke that install command directly. |
 | `check-update` | Read-only comparison of the installed release, newest stable upstream date tag, and reviewed public installer pin; recommends an explicit upgrade when appropriate. |
 | `initialize` | Resolve the selected profile/workflow/project, idempotently create every platform-bound role profile, and realize their profile-workflow Hermes group. |
 | `reconcile` | Reapply the resolved role-profile and group configuration while preserving conversations and memory. |
@@ -133,7 +142,7 @@ active AI profile supplies the workflow, project, provider, model, workspace, an
 
 ## Platform boundary
 
-This public command owns portable Hermes bot-profile lifecycle mechanics. The generic `install` command owns physical
+This public command owns portable Hermes bot-profile lifecycle mechanics. The `install/hermes` command owns physical
 Hermes package installation, update, upgrade, and uninstall semantics; this command's legacy `install` verb is a
 compatibility delegate. The public Hermes platform
 adapter maps logical AI Fleas agents to those profiles. The operational AI Profile owns provider authentication,
