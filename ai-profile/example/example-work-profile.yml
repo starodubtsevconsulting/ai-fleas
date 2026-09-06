@@ -23,11 +23,11 @@ governance_rules_surface:
   - ai-commands
 commands:
   - id: source-control
-    config: commands/source-control/config.yml
+    config: commands-config/source-control/config.yml
   - id: hermes
-    config: commands/hermes/config.yml
+    config: commands-config/hermes/config.yml
   - id: lodgify
-    config: commands/lodgify/config.example.env
+    config: commands-config/lodgify/config.example.env
 workflows:
   - path: dev.workflow.md
     harness: pi
@@ -90,7 +90,7 @@ workflows:
           canceled: Canceled
         disabled_providers: []
         policy_references:
-          - workflows/dev/commands/jira/ticket-policy.md
+          - workflows-config/dev/commands/jira/ticket-policy.md
         supported_operations:
           - search
           - read
@@ -108,11 +108,11 @@ workflows:
             JIRA_ISSUE_KEY_PATTERN: '^[A-Z][A-Z0-9_]*-[0-9]+$'
             JIRA_BROWSER_MODE: existing-chrome
             JIRA_CURRENT_SPRINT_BOARD_URL: 'https://jira.example.invalid/secure/RapidBoard.jspa?rapidView=0&projectKey=EXAMPLE'
-            JIRA_DESCRIPTION_TEMPLATE_FILE: workflows/dev/commands/jira/description.template.txt
+            JIRA_DESCRIPTION_TEMPLATE_FILE: workflows-config/dev/commands/jira/description.template.txt
         ticket_policy:
-          policy_file: workflows/dev/commands/jira/ticket-policy.md
+          policy_file: workflows-config/dev/commands/jira/ticket-policy.md
           summary_format: '[project name]: title'
-          description_template_file: workflows/dev/commands/jira/description.template.txt
+          description_template_file: workflows-config/dev/commands/jira/description.template.txt
 app_mode:
   default: dev
   ui_surface: electron
