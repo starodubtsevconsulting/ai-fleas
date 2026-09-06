@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 readonly SCRIPT="$(cd "$(dirname "$0")" && pwd)/install-hermes.sh"
-readonly COMMIT='fcbd1076a93841fa88855acce810e342a5b78101'
+readonly COMMIT='29112bef099274229cadff79cdff7bf7b99c4b77'
 readonly SYSTEM_TMPDIR="${TMPDIR:-/tmp}"
 tests=0
 fail() { echo "not ok - $1" >&2; exit 1; }
@@ -43,7 +43,7 @@ cat > "${root}/bin/python3" <<EOF
 mkdir -p '${HERMES_HOME}/hermes-agent/.git' '${HERMES_HOME}/hermes-agent/venv/bin' '${HOME}/.local/bin'
 cat > '${HOME}/.local/bin/hermes' <<'INNER'
 #!/bin/sh
-echo 'Hermes Agent v0.20.5 (2026.8.19)'
+echo 'Hermes Agent v0.21.0 (2026.8.31)'
 INNER
 chmod +x '${HOME}/.local/bin/hermes'
 exit 0

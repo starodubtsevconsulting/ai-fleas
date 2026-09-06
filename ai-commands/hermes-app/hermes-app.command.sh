@@ -35,10 +35,12 @@ readonly PROFILE_ROOT="${AI_PROFILE_ROOT:-$(dirname "$(dirname "${AI_PROFILE_FIL
 readonly PROFILE_RESOLVER="${COMMAND_DIR}/resolve-profile-scope.mjs"
 readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${COMMAND_DIR}/configure-hermes-group.py}"
 readonly PYTHON_BIN="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
+readonly HERMES_UPSTREAM_REPOSITORY="${HERMES_UPSTREAM_REPOSITORY:-https://github.com/NousResearch/hermes-agent.git}"
 
 usage() {
   printf '%s\n' \
     'Usage: hermes-app.command.sh install [--dry-run]' \
+    '       hermes-app.command.sh check-update' \
     '       hermes-app.command.sh initialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
     '                               [--agent-instructions FILE] [setup overrides]' \
     '       hermes-app.command.sh reconcile --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
@@ -74,6 +76,35 @@ action="${1:-}"
 shift
 
 case "${action}" in
+  check-update)
+    [[ $# -eq 0 ]] || { usage >&2; exit 2; }
+    hermes_bin="$(resolve_hermes)"
+    installed_line="$("${hermes_bin}" --version 2>/dev/null | sed -n '1p')"
+    installed_tag="$(sed -nE 's/^Hermes Agent v[^ ]+ \(([0-9]{4}\.[0-9]+\.[0-9]+(\.[0-9]+)?)\).*/v\1/p' <<<"${installed_line}")"
+    [[ -n "${installed_tag}" ]] || {
+      printf 'HERMES_UPDATE_CHECK_FAILED: could not parse installed version: %s\n' "${installed_line}" >&2
+      exit 1
+    }
+    remote_refs="$(git ls-remote --tags --refs "${HERMES_UPSTREAM_REPOSITORY}" 'v*' 2>/dev/null)" || {
+      printf '%s\n' 'HERMES_UPDATE_CHECK_FAILED: stable release metadata is unavailable; update status is unknown.' >&2
+      exit 1
+    }
+    latest_tag="$(awk '{ sub("refs/tags/", "", $2); print $2 }' <<<"${remote_refs}" | grep -E '^v[0-9]{4}\.[0-9]+\.[0-9]+(\.[0-9]+)?$' | sort -V | tail -n 1)"
+    [[ -n "${latest_tag}" ]] || {
+      printf '%s\n' 'HERMES_UPDATE_CHECK_FAILED: upstream returned no stable date-version tags.' >&2
+      exit 1
+    }
+    supported_tag="$(sed -nE "s/^readonly HERMES_VERSION='.*\(([0-9]{4}\.[0-9]+\.[0-9]+(\.[0-9]+)?)\)'/v\1/p" "${INSTALL_SCRIPT}")"
+    newest="$(printf '%s\n%s\n' "${installed_tag}" "${latest_tag}" | sort -V | tail -n 1)"
+    printf 'Installed: %s\nLatest stable: %s\nSupported installer pin: %s\n' "${installed_tag}" "${latest_tag}" "${supported_tag:-unknown}"
+    if [[ "${installed_tag}" == "${latest_tag}" || "${newest}" == "${installed_tag}" ]]; then
+      printf '%s\n' 'HERMES_UP_TO_DATE: no stable upgrade is currently recommended.'
+    elif [[ "${supported_tag}" == "${latest_tag}" ]]; then
+      printf '%s\n' 'HERMES_UPDATE_AVAILABLE: review the release, then run hermes-app.command.sh install to apply the supported stable upgrade.'
+    else
+      printf '%s\n' 'HERMES_UPDATE_AVAILABLE: a newer stable release exists, but the public installer pin must be reviewed and updated before installation.'
+    fi
+    ;;
   install)
     [[ -x "${INSTALL_SCRIPT}" ]] || { printf 'Installer is not executable: %s\n' "${INSTALL_SCRIPT}" >&2; exit 1; }
     "${INSTALL_SCRIPT}" "$@"
