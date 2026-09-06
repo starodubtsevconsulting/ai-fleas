@@ -15,6 +15,8 @@ Verified exact task receipts or a precise no-mutation failure.
 
 - The selected profile resolves `agent_platform: gpt-app` exactly once.
 - Logical roles come from the portable workflow roster; GPT-specific realization comes from the registered adapter.
+- `initialize` realizes the complete GPT-specific workflow roster; it does not inherit Hermes App's one-bot mapping or
+  impose its own task count on other platform adapters.
 - One logical agent maps to one exact app-returned task ID in one exact saved Codex project.
 - One logical project maps to one exact app-returned sidebar section ID. Names are presentation; unrelated collisions use
   a deterministic numeric suffix and never cause roster merging.

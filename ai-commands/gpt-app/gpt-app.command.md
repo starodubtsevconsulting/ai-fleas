@@ -8,15 +8,37 @@ it never infers tasks from titles, recency, or nearby repositories.
 
 ```mermaid
 flowchart LR
-  Profile["Selected AI Profile"] --> Platform["agent_platform: gpt-app"]
-  Profile --> Project["Exact saved Codex project"]
-  Workflow["Portable workflow roster"] --> Mapping["GPT role bindings"]
-  Platform --> Mapping
-  Project --> Mapping
-  Mapping --> Tasks["Codex tasks"]
+  subgraph PrivateProfile["Selected AI Profile — operational values"]
+    Profile["Work profile"] --> Workflow["Workflow + complete logical project"]
+    Profile --> Project["Exact saved Codex project"]
+    Profile --> Overrides["Model / reasoning / grouping overrides"]
+  end
+
+  subgraph PublicCommand["Public gpt-app command — reusable lifecycle"]
+    Contract["gpt-app.command.md"]
+    Initialize["initialize"]
+    Inspect["list / status"]
+    Operate["message / reconcile / replace / archive"]
+    Contract --> Initialize
+    Contract --> Inspect
+    Contract --> Operate
+  end
+
+  Workflow --> Contract
+  Adapter["Public gpt-app platform adapter"] --> Contract
+  Project --> Initialize
+  Overrides --> Initialize
+  Initialize --> Mapping["Portable roles → Codex tasks"]
+  Mapping --> Tasks["Admin + Manager + governed roster"]
   Tasks --> Receipts["Exact task IDs + role bindings"]
-  Receipts --> Lifecycle["status / message / replace / archive"]
+  Receipts --> Inspect
+  Receipts --> Operate
+  Tasks --> App["GPT / Codex application"]
 ```
+
+The profile selects operational values, the workflow defines role authority, the platform adapter realizes each role,
+and this command owns the repeatable lifecycle transaction. Changing a saved project, model choice, or grouping policy
+therefore changes profile configuration rather than the portable workflow roster.
 
 ## Inputs
 
@@ -58,6 +80,13 @@ Committed configuration template: `gpt-app/gpt-app.command.example.config`. Copy
 | `reconcile` | Create missing instances and report mismatches or duplicates; never silently adopt candidates. |
 | `replace` | Create and verify a successor before recoverably archiving its exact predecessor. |
 | `archive` | Recoverably archive one exact task ID after confirming its binding. |
+
+## Agent realization
+
+`initialize` has the same lifecycle meaning as it does in `hermes-app`: realize the agents declared for the selected
+workflow on the selected platform. GPT App realizes the workflow's complete governed role roster as separate Codex
+tasks. Hermes App currently realizes one workflow-scoped bot containing the workflow instructions and allowed command
+catalog. The selected platform adapter—not the shared lifecycle verb—determines this cardinality and mapping.
 
 ## Initialization contract
 
