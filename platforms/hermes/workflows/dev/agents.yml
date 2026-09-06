@@ -3,28 +3,28 @@ platform: hermes
 workflow: dev
 runtime_object: hermes-profile
 creation_environment: profile-selected-provider
-# Each Hermes agent explicitly selects an AI provider alias from the active
-# profile-owned provider catalog. Model selection remains independent and
-# continues to follow the existing model configuration.
+# Each Hermes agent has an explicit AI-provider property. The concrete provider
+# alias is supplied by the active profile's workflow configuration so this
+# reusable mapping remains portable.
 bindings:
   - role: admin
     profile_suffix: admin
-    ai_provider: local-coding-service
+    ai_provider: profile
   - role: designer-reviewer
     profile_suffix: designer-reviewer
-    ai_provider: local-coding-service
+    ai_provider: profile
   - role: judge
     profile_suffix: judge
-    ai_provider: local-coding-service
+    ai_provider: profile
   - role: manager
     profile_suffix: manager
-    ai_provider: local-coding-service
+    ai_provider: profile
   - role: coder
     profile_suffix: coder
-    ai_provider: local-coding-service
+    ai_provider: profile
   - role: command-runner
     profile_suffix: command-runner
-    ai_provider: local-coding-service
+    ai_provider: profile
   - role: ui-acceptance-tester
     profile_suffix: ui-acceptance-tester
-    ai_provider: local-coding-service
+    ai_provider: profile
