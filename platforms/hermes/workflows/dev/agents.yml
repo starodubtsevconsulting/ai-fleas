@@ -2,29 +2,22 @@ schema_version: hermes-workflow-agents.v1
 platform: hermes
 workflow: dev
 runtime_object: hermes-profile
-creation_environment: profile-selected-provider
-# Each Hermes agent has an explicit AI-provider property. The value is a stable
-# alias from the active profile-owned provider catalog. Model selection remains
-# an independent property/configuration.
+creation_environment: logical-agent-properties
+# Hermes realizes the portable logical-agent contract. Provider selection is
+# owned by ai-workflows/<workflow>/agents.yml (`aiProvider`), not by this adapter.
+# This mapping only describes how logical roles become Hermes profiles.
 bindings:
   - role: admin
     profile_suffix: admin
-    ai_provider: local-coding-service
   - role: designer-reviewer
     profile_suffix: designer-reviewer
-    ai_provider: local-coding-service
   - role: judge
     profile_suffix: judge
-    ai_provider: local-coding-service
   - role: manager
     profile_suffix: manager
-    ai_provider: local-coding-service
   - role: coder
     profile_suffix: coder
-    ai_provider: local-coding-service
   - role: command-runner
     profile_suffix: command-runner
-    ai_provider: local-coding-service
   - role: ui-acceptance-tester
     profile_suffix: ui-acceptance-tester
-    ai_provider: local-coding-service
