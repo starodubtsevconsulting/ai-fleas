@@ -1,4 +1,4 @@
-# EXAMPLE ONLY: realistic shape with fictional, non-operational values. Never use this as a real host configuration.
+# EXAMPLE ONLY: realistic, sanitized values. Never use this as a real host configuration without reviewing it.
 # Keep the populated copy in the operational AI Profile and ignored by Git.
 schema_version: local-ai-providers.v1
 capability: hermes
@@ -13,23 +13,25 @@ profile_defaults:
 # Add another entry when another model box is introduced; workflows select the
 # target by ID and never need to embed its address.
 providers:
-  - id: example-model-box
-    label: Example model box
+  - id: local-coding-service
+    label: SX-10 — LAN
     location:
       kind: lan
-      label: Example model box
+      label: SX-10 — LAN
     protocol: openai-compatible
     endpoint:
-      url: http://192.0.2.10:1234/v1
-      environment_variable: EXAMPLE_HERMES_ENDPOINT
+      # Safe loopback fallback; an operational profile supplies its private LAN
+      # endpoint directly or through this environment variable.
+      url: http://127.0.0.1:8000/v1
+      environment_variable: HERMES_LOCAL_CODING_ENDPOINT
     authentication:
       type: none
-      credential_environment_variable: EXAMPLE_HERMES_API_KEY
+      credential_environment_variable: HERMES_LOCAL_CODING_API_KEY
     models:
       # This alias is stable even if the provider's installed model ID changes.
-      - id: example-coder
-        label: Example coder model
-        provider_model: example-coder-model
+      - id: qwen-coder
+        label: Qwen3 Coder Next Q5_K_M
+        provider_model: qwen3-coder-next-q5km
         capabilities:
           - coding
         hermes:
@@ -44,4 +46,4 @@ command_access:
 
 # Real addresses, credentials, and machine-specific paths belong only in an
 # operational profile. A workflow selects this map with:
-# local_ai: { providers_config: <this file>, provider: example-model-box, model: example-coder }
+# local_ai: { providers_config: <this file>, provider: local-coding-service, model: qwen-coder }
