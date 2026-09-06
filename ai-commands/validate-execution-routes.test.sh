@@ -56,11 +56,13 @@ mkdir -p "${valid_root}/space command" "${valid_root}/.agent-runtime/ignored" \
   "${valid_root}/.local/ignored" "${valid_root}/session-root/ignored" \
   "${valid_root}/sessions/ignored" "${valid_root}/node_modules/ignored" \
   "${valid_root}/.venv/ignored" "${valid_root}/dist/ignored" \
-  "${valid_root}/log/ignored" "${valid_root}/logs/ignored"
+  "${valid_root}/generated/log/ignored" "${valid_root}/generated/logs/ignored"
 touch "${valid_root}/space command/example.command.md"
-for excluded in .agent-runtime .local session-root sessions node_modules .venv dist log logs; do
+for excluded in .agent-runtime .local session-root sessions node_modules .venv dist; do
   touch "${valid_root}/${excluded}/ignored/ignored.command.md"
 done
+touch "${valid_root}/generated/log/ignored/ignored.command.md"
+touch "${valid_root}/generated/logs/ignored/ignored.command.md"
 touch "${valid_root}/rollout-test.jsonl" "${valid_root}/cache.sqlite3"
 write_registry "${valid_root}/execution-routes.tsv" \
   $'space command/example.command.md\tcommand-runner\t-\t-\t-\t-'

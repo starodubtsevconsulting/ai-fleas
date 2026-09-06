@@ -102,6 +102,7 @@ Current adapter commands include:
 | ------------------------------------------------------------ | --------------------------------------------------- | ---------------------------------- |
 | [`source-control`](source-control/source-control.command.md) | [`git`](git/git.command.md)                         | Repository inspection and mutation |
 | [`ticket-tracker`](ticket-tracker/ticket-tracker.command.md) | [`jira`](jira/jira.command.md) and registered peers | Ticket lifecycle                   |
+| [`logs`](logs/logs.command.md)                               | [`datadog`](datadog/datadog.command.md)             | Log search, retrieval, and tailing |
 
 Adapters must fail closed when a profile binding is missing, ambiguous,
 disabled, or inconsistent. They must not infer a provider from URLs, installed
@@ -136,29 +137,101 @@ cohesion; those folders do not change the flat public command namespace.
 ```mermaid
 flowchart TD
   Actor["Actor: portable command package"]
-  Actor --> Required["Required: name.command.md"]
-  Required --> Optional["Optional: scripts, config examples, tests, scenarios, and UI"]
+  Actor --> Required["Required: name.command.md with declared Entry Point"]
+  Required --> Optional["Optional: providers, scripts, config examples, tests, scenarios, and UI"]
   Optional --> Boundary["Keep credentials and local output outside version control"]
   Boundary --> Outcome["Outcome: self-contained command folder"]
 ```
 
-Only `<name>.command.md` is required. Everything else is optional and should be
-added only when the command needs it.
+Every command requires both `<name>.command.md` and
+`<name>.command.example.config`. Other files are optional and should be added
+only when the command needs them.
+
+Catalog maintenance is developer tooling, not a public command. Deterministic
+create/update/rename/delete support and authoring templates live under
+`tooling/command-catalog/` and do not receive an execution route or workflow
+command ID.
+
+Profile activation is runtime infrastructure, not a public command. Guards,
+activation, and the profile-aware command runner live under `_runtime/profile/`
+and likewise have no execution route or workflow command ID. The leading
+underscore marks `_runtime/` as catalog-internal support infrastructure and
+keeps it out of public command discovery.
+
+Inside the required contract, the first four `##` sections are `Purpose`,
+`Inputs`, `Outputs`, and `Entry Point`, in that order. The interface sections
+use the canonical tables documented in [`commands.md`](commands.md). A missing side is represented
+by an explicit `None` row; it is never left implicit.
 
 ```text
 <name>/
 ├── README.md                    # concise human overview
-├── <name>.command.md            # required AI-readable contract
+├── <name>.command.md            # required contract; agent entry point when no executable exists
+├── spec.md                      # optional normative behavior specification
 ├── <name>.command.sh            # optional executable entry point
-├── <name>.command.example.conf  # optional safe configuration template
+├── <name>.command.mjs           # optional Node executable entry point
+├── <name>.command.example.config # required committed safe override template
+├── <name>.command.test.sh       # optional executable contract test
 ├── <name>.scenario.md           # optional agent-run live acceptance scenario
 ├── feature.yml                  # optional visual-feature metadata
-├── app.sh                       # optional standalone UI launcher
-├── launcher/                    # optional Electron or browser UI
-├── adapters/                    # optional provider-specific mechanics
+├── app.sh                       # optional launcher owned by this command
+├── launcher/                    # optional command-owned Electron or browser UI
+├── adapters/                    # optional internal provider/source mechanics
 ├── test/                        # optional contract and executable tests
 └── reports/                     # optional local output; normally ignored
 ```
+
+These names are canonical, not illustrative alternatives. Use `spec.md` rather
+than `<name>.spec.md`; use `<name>.scenario.md` rather than
+`<name>.test-scenarios.md`; and keep the `.command` segment in executable,
+test, and example-configuration filenames. Helper files may use descriptive
+names, but they are private implementation details and must not look like
+separate public commands.
+
+The committed `.command.example.config` file is documentation, not runtime
+configuration. It lists only supported command value overrides with fictional,
+non-secret values. If a command currently exposes no value overrides, the file
+states that explicitly. To configure a command, copy the template into the
+selected profile, set the operational values there, and reference that copy
+through `commands[].config`. After profile and workflow activation, the host
+passes the resolved profile-owned copy as `AI_COMMAND_CONFIG_PATH`. Commands
+must never load the committed catalog example as a fallback.
+
+`.config` is the single command-configuration suffix. Do not introduce
+`.command.example.conf`, `.command.example.yml`, or
+`.command.example.yaml` alternatives.
+
+Provider support is optional. When a command exposes a provider-neutral
+capability, its contract adds a `## Providers` or `## Provider implementations`
+section after the required interface sections. That section names every allowed
+capability ID, links its registered provider command, states the execution
+route, and defines fail-closed resolution. Provider implementations remain peer
+command bundles in the flat catalog—for example, `logs` selects `datadog`—and
+are activated only by validated profile or workflow configuration. A command
+that has no interchangeable provider does not need this section.
+
+The `adapters/` directory is only for private implementation helpers owned by
+one command, such as source-format parsing. It does not register provider IDs
+or replace peer provider command contracts.
+
+Every command declares at least one entry point in its `## Entry Point` table.
+Prefer a shell entry point for deterministic mechanics; use a Node entry point
+when appropriate. A command-owned `app.sh` may be an additional or primary
+manual entry point when the user performs the workflow through an Electron or
+browser UI. Reasoning-only commands and provider-neutral adapters may use their
+AI-readable `.command.md` contract as the entry point instead of shipping a
+meaningless wrapper executable.
+
+All entry points are profile-aware. Before loading a contract, running a script,
+or opening a command UI, the host activates one exact profile and workflow,
+verifies that the workflow allows the command, resolves `AI_COMMANDS_ROOT`, and
+supplies any profile-owned configuration through `AI_COMMAND_CONFIG_PATH`.
+
+A command-owned launcher is allowed only as a self-contained implementation
+surface for that command. It is distinct from the AI Fleas Platform launcher:
+the public command catalog must not define, configure, or depend on that private
+host lifecycle. Electron is therefore an implementation option inside a command
+bundle, not a reusable command or platform selection by itself.
 
 Local credentials and environment-specific configuration must never be
 committed. Publish example configuration with placeholders and keep actual
@@ -235,10 +308,8 @@ flowchart TD
   Commands --> Outcome["Outcome: coordinated AI-assisted work"]
 ```
 
-[AI Workflows](https://github.com/starodubtsevconsulting/ai-workflows) is the
-future public catalog for reusable processes that coordinate commands. It is
-currently a README-only TODO placeholder; no workflow definitions are published
-there yet.
+[AI Workflows](../ai-workflows/README.md) is the public catalog for reusable processes that coordinate commands. It is
+published in this repository alongside AI Commands so their portable contracts can evolve and be validated together.
 
 ## Creating and managing commands
 

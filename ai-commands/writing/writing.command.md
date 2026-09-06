@@ -1,5 +1,36 @@
 # writing.command
 
+## Purpose
+
+Use `writing` to create or revise audience-appropriate prose from a defined brief, source material, and delivery format.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes the command and resolves profile-owned configuration. |
+| Command-specific input | Yes | User, workflow, profile, or source artifact | Writing brief, audience, format, source material, and constraints. |
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- Provide a structured draft aligned with type + approach.
+- Keep output concise unless long-form is explicitly requested.
+- When requested, include a short revision pass for tone, clarity, and flow.
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `writing/writing.command.md` | AI-readable contract | The initialized workflow role loads this contract after the host activates the selected profile and workflow. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `writing/writing.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #ai-command #writing #blog-post #story #narrative #content
@@ -45,12 +76,6 @@ Pick one approach that best fits the type and intent:
 
 - Focus: situation + character reaction + natural outcome.
 - Use when user wants exploratory drafting and iteration.
-
-## Output Contract
-
-- Provide a structured draft aligned with type + approach.
-- Keep output concise unless long-form is explicitly requested.
-- When requested, include a short revision pass for tone, clarity, and flow.
 
 ## Model Routing (Writing Quality)
 
@@ -111,12 +136,12 @@ Model choice must follow writing intent, quality target, and speed/cost constrai
 ## Linked Commands
 
 - Optional narration/audio generation:
-  - `rules/commands/tts/tts.command.md`
-- Optional display in central dialog:
-  - `rules/commands/show/show.command.md`
+  - `ai-commands/tts/tts.command.md`
+- Optional browser-visible presentation:
+  - `ai-commands/show-context/show-context.command.md`
 - Session/progress tracking:
-  - `rules/commands/session/session.command.md`
-  - `rules/commands/plan/plan.command.md`
+  - `ai-commands/session/session.command.md`
+  - `ai-commands/plan/plan.command.md`
 
 ## Usage (workflow mapping)
 

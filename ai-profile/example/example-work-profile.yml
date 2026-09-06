@@ -24,6 +24,10 @@ governance_rules_surface:
 commands:
   - id: source-control
     config: commands/source-control/config.yml
+  - id: hermes
+    config: commands/hermes/config.yml
+  - id: lodgify
+    config: commands/lodgify/config.example.env
 workflows:
   - path: dev.workflow.md
     harness: pi
@@ -34,11 +38,42 @@ workflows:
       - test
       - review
       - commit
+      - hermes
+      - source-control
+      - lodgify
+      - logs
+      - datadog
+      - doc
+      - push
+      - show-context
+      - worktree-bash
+      - kdenlive
+      - tts
     projects:
       - ref: projects/dev/example-service/project.yml
       - ref: projects/dev/example-web/project.yml
     agent_context:
       schema_version: codex-project-context.v1
+      logs:
+        provider: datadog
+        capability: datadog
+        disabled_providers: []
+        supported_operations:
+          - search
+          - tail
+          - errors
+        operations:
+          search:
+            mode: logs
+          tail:
+            mode: livetail
+          errors:
+            mode: logs
+            errors_only: true
+        execution:
+          registered_command: datadog
+          command_path: datadog/datadog.sh
+          command_env_overrides: {}
       tracker:
         provider: jira
         capability: jira

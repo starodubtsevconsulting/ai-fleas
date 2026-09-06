@@ -3,8 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { requireCommandProfile } from '../_runtime/profile/command-profile.guard.mjs';
 
 const commandDir = path.dirname(fileURLToPath(import.meta.url));
+requireCommandProfile('kdenlive', fileURLToPath(import.meta.url));
 const templatePath = path.join(commandDir, 'assets', 'empty-project.kdenlive');
 
 function usage() {

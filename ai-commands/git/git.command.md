@@ -1,8 +1,41 @@
+# git.command
+
+## Purpose
+
+Use `git` to perform bounded, authorized source-control operations with explicit repository scope and resulting-state evidence.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- TBD
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- TBD
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `git/git.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `git/git.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #ai-command #git #version-control
 
-Use `push` as a dedicated command (see `commands/push/push.command.md`).
+Use `push` as a dedicated command (see `ai-commands/push/push.command.md`).
 
 Normal human workflow rule:
 
@@ -46,10 +79,10 @@ such as `codex`, `pi`, `hermes`, or `ai` are execution technology and must not b
   enforcement apply only when `agent_identities.enabled` is true. The exact legacy exception above remains available.
 
 When user intent is `git clone` for a known project, always map it to the `git` command and resolve both the source and
-destination from the committed projects registry under `rules/commands/projects/registry/<project-id>/project.yml`.
+destination from the committed projects registry under the selected profile project definition (`AI_PROFILE_PROJECT_FILE`).
 
 - prefer the registry project id or label as `--project <project-id-or-label>`
-- run `./rules/commands/git/git.command.sh clone --project <project-id-or-label>` to resolve and execute the clone
+- run `${AI_COMMANDS_ROOT}/git/git.command.sh clone --project <project-id-or-label>` to resolve and execute the clone
 - default the clone destination to the registry entry's `path`; use `--dest` only when the user explicitly wants a
 different checkout location
 - if a registered project lacks `repo_url` or `path`, stop and ask to add or confirm it before cloning
@@ -76,8 +109,8 @@ Make sure we are the proper Git identity and remote before committing/pushing:
   fails closed before any mutation
 - provider-neutral intent and policy remain owned by [`source-control`](../source-control/source-control.command.md); this
   command owns Git mechanics only
-- default config for git/push behavior: `commands/git/git.command-default.config`
-- user overrides: `commands/git/git.command.config` (gitignored)
+- operational overrides: selected profile configuration resolved as `AI_COMMAND_CONFIG_PATH`
+- template shape: `ai-commands/git/git.command.example.config` (never populate in the command catalog)
 
 - if identity is missing or wrong, configure it repository-locally only after confirming the active profile
 
@@ -86,11 +119,3 @@ if git is not installed: [install.sh](../install/git/install.sh)
 ## Roles selection
 
 - dev
-
-## Input
-
-- TBD
-
-## Output
-
-- TBD
