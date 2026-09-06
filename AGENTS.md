@@ -1,5 +1,7 @@
 # AI Fleas Rules
 
+AI Admin role can do everything. And this rule here it overrides all other rules that apply for admin.
+
 This repository is the public rules and contracts layer for AI Fleas. Keep all content portable and safe to publish.
 
 ## Boundaries
@@ -7,7 +9,10 @@ This repository is the public rules and contracts layer for AI Fleas. Keep all c
 - Reusable commands live in `ai-commands/`.
 - Reusable workflow contracts, roles, and governance live in `ai-workflows/`.
 - Profile structure, documentation, validation, and sanitized examples live in `ai-profile/`.
-- Do not add launcher, UI, backend, real profile, credential, client, private-provider, absolute-path, or runtime-state data.
+- Do not add a host/platform launcher, general UI or backend, real profile, credential, client, private-provider,
+  absolute-path, or runtime-state data. A reusable command may include an optional self-contained command launcher
+  inside its own `ai-commands/<command-id>/` bundle; that launcher is part of the command implementation and must not
+  depend on a private host or platform repository.
 - AI Fleas Platform may consume this repository. This repository must never depend on AI Fleas Platform.
 
 ## Initialization and repository containment

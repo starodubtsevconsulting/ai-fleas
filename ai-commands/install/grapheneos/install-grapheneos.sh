@@ -2,10 +2,11 @@
 set -euo pipefail
 
 COMMAND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RUNTIME="$COMMAND_DIR/../../commands/command-runtime.sh"
+COMMANDS_ROOT="${AI_COMMANDS_ROOT:-$(cd "$COMMAND_DIR/../.." && pwd -P)}"
+RUNTIME="$COMMAND_DIR/command-runtime.sh"
 
 if [[ ! -f "$RUNTIME" ]]; then
-  echo "ERROR: shared AI Commands runtime not found: $RUNTIME" >&2
+  echo "ERROR: GrapheneOS command runtime not found: $RUNTIME" >&2
   exit 2
 fi
 

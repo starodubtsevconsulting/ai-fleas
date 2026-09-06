@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 REPO_ROOT="$(git -C "$CONFIG_ROOT" rev-parse --show-toplevel 2>/dev/null || true)"
 
-PROFILE_ID="${AI_WORK_PROFILE_ID:-sc}"
+PROFILE_ID="${AI_WORK_PROFILE_ID:-example}"
 if [ -n "$REPO_ROOT" ] && [ -d "$REPO_ROOT/ai-profile/$PROFILE_ID" ]; then
   APP_ROOT="${AI_PROFILE_BUNDLE_ROOT:-$REPO_ROOT/ai-profile/$PROFILE_ID}"
 else
@@ -15,6 +15,7 @@ fi
 
 source "$SCRIPT_DIR/../runtime-paths.sh"
 RULES_DIR="$CONFIG_ROOT"
+COMMANDS_ROOT="${AI_COMMANDS_ROOT:-$SCRIPT_DIR/..}"
 CODEX_MEMORY_DIR="${CODEX_MEMORY_DIR:-$HOME/.codex/memories}"
 
 
@@ -67,7 +68,7 @@ fi
 REPO_KEY="$(printf '%s' "$REPO_ROOT" | sed 's#[/ ]#_#g')"
 STATE_FILE="$CODEX_MEMORY_DIR/sdd-resync-${REPO_KEY}.state"
 if [ ! -f "$STATE_FILE" ]; then
-  echo "SDD guard: missing resync state. Run: $RULES_DIR/commands/sdd/sdd.command-resync.sh" >&2
+  echo "SDD guard: missing resync state. Run: $COMMANDS_ROOT/sdd/sdd.command-resync.sh" >&2
   exit 1
 fi
 
@@ -77,12 +78,12 @@ STATE_RESYNC_AT="$(grep -E '^resynced_at=' "$STATE_FILE" | head -n1 | sed 's/^re
 CURRENT_HEAD="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || true)"
 
 if [ -z "$STATE_PLAN_PATH" ] || [ "$STATE_PLAN_PATH" != "$PLAN_PATH" ]; then
-  echo "SDD guard: plan changed since last resync. Run: $RULES_DIR/commands/sdd/sdd.command-resync.sh" >&2
+  echo "SDD guard: plan changed since last resync. Run: $COMMANDS_ROOT/sdd/sdd.command-resync.sh" >&2
   exit 1
 fi
 
 if [ -n "$STATE_HEAD" ] && [ "$STATE_HEAD" != "$CURRENT_HEAD" ]; then
-  echo "SDD guard: git HEAD changed since last resync. Run: $RULES_DIR/commands/sdd/sdd.command-resync.sh" >&2
+  echo "SDD guard: git HEAD changed since last resync. Run: $COMMANDS_ROOT/sdd/sdd.command-resync.sh" >&2
   exit 1
 fi
 
@@ -91,7 +92,7 @@ if [ -n "$STATE_RESYNC_AT" ]; then
   NOW_EPOCH="$(date -u +%s)"
   AGE_SECONDS="$((NOW_EPOCH - RESYNC_EPOCH))"
   if [ "$RESYNC_EPOCH" -eq 0 ] || [ "$AGE_SECONDS" -gt 3600 ]; then
-    echo "SDD guard: resync is stale (>60m). Run: $RULES_DIR/commands/sdd/sdd.command-resync.sh" >&2
+    echo "SDD guard: resync is stale (>60m). Run: $COMMANDS_ROOT/sdd/sdd.command-resync.sh" >&2
     exit 1
   fi
 fi
@@ -162,7 +163,7 @@ while IFS= read -r file; do
   fi
 
   case "$file" in
-    ""/*|*.md|.ai-workflow-suite/project.yml|libs/*|docs/specs/*|ai-launcher/angular.json|ai-launcher/tsconfig.json|ai-launcher/package.json|ai-launcher/package-lock.json|ai-launcher/apps/*|ai-launcher/docs/project-workflow-state.md|ai-launcher/electron/*|ai-launcher/scripts/*|ai-profile/*|ai-commands/*|ai-workflows/*|scripts/runtime-paths.sh)
+    ""/*|*.md|.ai-workflow-suite/project.yml|libs/*|docs/specs/*|ai-profile/*|ai-commands/*|ai-workflows/*|scripts/runtime-paths.sh)
       ;;
     *)
       echo "SDD guard: potential drift detected: '$file' is outside allowed scope for current session project '$PROJECT_SCOPE_CLEAN'." >&2

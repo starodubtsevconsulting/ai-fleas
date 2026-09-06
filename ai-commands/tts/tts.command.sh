@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "tts" || exit $?
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,7 +15,7 @@ LOG_DIR="$SCRIPT_DIR/logs"
 LOG_FILE="$LOG_DIR/tts.log"
 ERR_LOG="$LOG_DIR/tts.err.log"
 
-# Defaults mirror install/whisper/install.config.
+# Runtime settings are supplied by the selected profile.
 VOICE_DEFAULT='en-US-AriaNeural'
 RATE_DEFAULT='+0%'
 PITCH_DEFAULT='+0Hz'

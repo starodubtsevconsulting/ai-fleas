@@ -32,7 +32,8 @@ fi
 export PATH
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-config_file="$script_dir/install.config"
+config_file="${AI_COMMAND_CONFIG_PATH:-}"
+[[ -n "$config_file" && -f "$config_file" ]] || { echo 'Profile-owned Whisper config required.' >&2; exit 2; }
 parser_py="$script_dir/sample_text_parser.py"
 dialog_parser_py="$script_dir/dialog_script_parser.py"
 if [ -f "$config_file" ]; then

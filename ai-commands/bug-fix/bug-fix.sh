@@ -40,4 +40,4 @@ set -- "${ai_flow_args[@]}"
 export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR
 
 
-echo "See commands/bug-fix/bug-fix.command.md for the reproduction flow."
+echo "See ${AI_COMMANDS_ROOT:-ai-commands}/bug-fix/bug-fix.command.md for the reproduction flow."

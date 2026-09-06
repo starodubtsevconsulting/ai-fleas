@@ -2,6 +2,9 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+COMMANDS_ROOT=$(cd "$SCRIPT_DIR/.." && pwd -P)
+export AI_PROFILE_FILE="$(cd "$COMMANDS_ROOT/.." && pwd -P)/ai-profile/example/example-work-profile.yml"
+export AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=dev.workflow.md AI_COMMANDS_ROOT="$COMMANDS_ROOT"
 TEST_DIR=$(mktemp -d "${TMPDIR:-/tmp}/jira-command-test.XXXXXX")
 trap 'rm -rf "$TEST_DIR"' EXIT
 printf '%s\n' 'Profile-owned Jira description template' >"$TEST_DIR/profile-template.txt"
@@ -18,13 +21,13 @@ grep -Fq 'active profile/project configuration is the canonical source' "$COMMAN
 grep -Fq 'Generic fail-closed placeholders' "$COMMAND_DOC"
 grep -Fq '### Declared profile override placeholders' "$COMMAND_DOC"
 grep -Fq '`tracker.execution.command_env_overrides`' "$COMMAND_DOC"
-grep -Fq 'Canonical organization/project values belong in' "$SCRIPT_DIR/jira.command.example.conf"
+grep -Fq 'Canonical organization/project values belong in' "$SCRIPT_DIR/jira.command.example.config"
 grep -Fq 'loader preserves any profile-resolved organization setting' "$COMMAND_DOC"
 required_guardrails=(
   '^## Mandatory operational route$'
   '`command-runner` is the Jira execution role'
   'must discover and follow this'
-  'document and invoke the matching `\./ai-commands/jira/jira\.command\.sh`'
+  'document and invoke the matching `\${AI_COMMANDS_ROOT}/jira/jira\.command\.sh`'
   '`manager` owns Jira/tracker'
   'Designer/Reviewer routes every Jira'
   'intent—including read-only ticket inspection—to Manager'
@@ -33,7 +36,7 @@ required_guardrails=(
   'never means creating or assigning Jira work'
   'Direct browser interaction is not'
   'a substitute for this command flow'
-  '`\./ai-commands/jira/jira\.command\.sh sync-plan`'
+  '`\${AI_COMMANDS_ROOT}/jira/jira\.command\.sh sync-plan`'
   'active external'
   '`session-plan\.md` or an explicit `--session-plan FILE`'
   'Pass `--submit` only'
@@ -41,7 +44,7 @@ required_guardrails=(
   'Manager supplies the'
   'issue/session-plan inputs and authorization state; command-runner owns the'
   'command and browser mechanics'
-  '`\./ai-commands/jira/jira\.command\.sh update ISSUE-KEY`'
+  '`\${AI_COMMANDS_ROOT}/jira/jira\.command\.sh update ISSUE-KEY`'
   'description and optional `--summary`; pass `--submit` only after explicit'
   'user authorization'
   'existing authenticated visible-Chrome automation model'
@@ -74,13 +77,13 @@ jira_load_machine_config "$TEST_DIR/local-precedence.conf"
 }
 
 for setting in JIRA_BASE_URL JIRA_BROWSE_BASE_URL JIRA_ISSUE_KEY_PATTERN JIRA_STORY_POINTS_FIELD_ID JIRA_BROWSER_MODE JIRA_CURRENT_SPRINT_BOARD_URL AI_CONFIG_REPO_URL AI_CONFIG_JIRA_COMMAND_URL; do
-  if ! grep -q "^${setting}=" "$SCRIPT_DIR/jira.command.example.conf"; then
+  if ! grep -q "^${setting}=" "$SCRIPT_DIR/jira.command.example.config"; then
     echo "Expected Jira example config setting: $setting" >&2
     exit 1
   fi
 done
 
-grep -Fq 'JIRA_STORY_POINTS_FIELD_ID="customfield_10132"' "$SCRIPT_DIR/jira.command.example.conf"
+grep -Fq 'JIRA_STORY_POINTS_FIELD_ID="customfield_10132"' "$SCRIPT_DIR/jira.command.example.config"
 grep -Fq 'window.__jiraAiFindStoryPoints = (fieldId) =>' "$SCRIPT_DIR/jira-existing-chrome.mjs"
 grep -Fq "label.textContent.trim().replace(/\\\\s*\\\\*$/, '') === 'Story Points'" "$SCRIPT_DIR/jira-existing-chrome.mjs"
 grep -Fq 'JIRA_BROWSER_JAVASCRIPT_ERROR:' "$SCRIPT_DIR/jira-existing-chrome.mjs"
@@ -171,7 +174,7 @@ node -e '
 ' "$TEST_DIR/update/jira-ticket-result.json"
 
 node --input-type=module -e '
-  import { buildUpdateAttributionComment, compareJiraUpdate } from "./ai-commands/jira/jira-update-audit.mjs";
+  const { buildUpdateAttributionComment, compareJiraUpdate } = await import(`${process.env.AI_COMMANDS_ROOT}/jira/jira-update-audit.mjs`);
   const before = { summary: "Old summary", description: "Old description", editableFields: { priority: "2", assignee: "example-user" } };
   const after = { summary: "New summary", description: "New description", editableFields: { priority: "2", assignee: "example-user" } };
   const audit = compareJiraUpdate({ before, after, ticket: { summary: "New summary", description: "New description" } });
@@ -186,7 +189,7 @@ node --input-type=module -e '
 '
 
 node --input-type=module -e '
-  import { buildCreatedIssueMarkerComment, verifyAiConfigIssueOwnership } from "./ai-commands/jira/jira-issue-ownership.mjs";
+  const { buildCreatedIssueMarkerComment, verifyAiConfigIssueOwnership } = await import(`${process.env.AI_COMMANDS_ROOT}/jira/jira-issue-ownership.mjs`);
   const currentUser = "example-user";
   if (!verifyAiConfigIssueOwnership({ currentUser, reporter: currentUser, comments: [] }).owned) throw new Error("current reporter should own ticket");
   if (!verifyAiConfigIssueOwnership({ currentUser, reporter: "other", comments: [{ author: currentUser, text: "created /created-with-ai-config" }] }).owned) throw new Error("owned marker comment should prove ownership");
@@ -217,7 +220,7 @@ node -e '
 ' "$TEST_DIR/delete-owned-comment/jira-delete-comment-result.json"
 
 node --input-type=module -e '
-  import { verifyAiConfigCommentOwnership } from "./ai-commands/jira/jira-comment-ownership.mjs";
+  const { verifyAiConfigCommentOwnership } = await import(`${process.env.AI_COMMANDS_ROOT}/jira/jira-comment-ownership.mjs`);
   if (!verifyAiConfigCommentOwnership({ author: "example-user", currentUser: "example-user", text: "done /created-with-ai-config" }).owned) throw new Error("marked current-user comment should be owned");
   if (verifyAiConfigCommentOwnership({ author: "other", currentUser: "example-user", text: "done /created-with-ai-config" }).owned) throw new Error("foreign comment must not be owned");
   if (verifyAiConfigCommentOwnership({ author: "example-user", currentUser: "example-user", text: "ordinary comment" }).owned) throw new Error("unmarked comment must not be owned");
@@ -273,7 +276,7 @@ node -e '
 ' "$TEST_DIR/comment/jira-comment-result.json"
 
 node --input-type=module -e '
-  import { hasExistingAiConfigCommentLink } from "./ai-commands/jira/jira-comment-dedupe.mjs";
+  const { hasExistingAiConfigCommentLink } = await import(`${process.env.AI_COMMANDS_ROOT}/jira/jira-comment-dedupe.mjs`);
   const link = "https://github.example.invalid/example-org/example-service/pull/504";
   const links = [{ label: "Draft PR", url: link }];
   if (!hasExistingAiConfigCommentLink({ comments: [{ text: `Draft PR ${link} /created-with-ai-config`, hrefs: [] }], links })) throw new Error("expected existing ai-config PR comment to be detected");
@@ -357,7 +360,7 @@ grep -Fq 'JIRA_LIST_BY_STATUS_COUNT' "$SCRIPT_DIR/jira-list-by-status.mjs"
 grep -Fq 'JIRA_SEARCH_MATCH_COUNT' "$SCRIPT_DIR/jira.command.md"
 grep -Fq 'redirect directly to the newest matching issue' "$SCRIPT_DIR/jira.command.md"
 grep -Fq 'label is supporting evidence only and is not identity' "$SCRIPT_DIR/jira.command.md"
-grep -Fq './ai-commands/jira/jira.command.sh search' "$SCRIPT_DIR/jira.command.md"
+grep -Fq '${AI_COMMANDS_ROOT}/jira/jira.command.sh search' "$SCRIPT_DIR/jira.command.md"
 grep -Fq "firstStep === 'project-and-type'" "$SCRIPT_DIR/jira-existing-chrome.mjs"
 grep -Fq "Jira Create details form did not open after Project and Issue Type selection" "$SCRIPT_DIR/jira-existing-chrome.mjs"
 grep -Fq "button.form.requestSubmit(button)" "$SCRIPT_DIR/jira-existing-chrome.mjs"

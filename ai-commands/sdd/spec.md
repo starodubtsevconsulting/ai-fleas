@@ -15,8 +15,6 @@ Define the operating rules for the `sdd` command.
 - Do not add unrelated behavior to this command; create or use a narrower command instead.
 - The staged-scope guard allows repository-root Markdown documentation, including governance instructions and idea notes,
   while continuing to reject unrelated root scripts and source files.
-- The guard allows launcher-owned scripts under `ai-launcher/scripts/**`; these are part of the configured launcher
-  runtime surface. This does not authorize arbitrary root or project scripts.
 
 ## UI Behavior
 

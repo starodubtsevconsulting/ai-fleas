@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "git" || exit $?
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RULES_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
-AI_ROOT="$(cd "$RULES_DIR/.." && pwd)"
-PROJECTS_DIR="$RULES_DIR/commands/projects/registry"
+COMMANDS_ROOT="${AI_COMMANDS_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd -P)}"
+PROJECT_FILE="${AI_PROFILE_PROJECT_FILE:-}"
 
 usage() {
   cat <<'USAGE'
 Usage:
-  ./rules/commands/git/git.command.sh clone --project <project-id-or-label> [--dest <path>] [--dry-run] [-- <extra git clone args...>]
+  ${AI_COMMANDS_ROOT}/git/git.command.sh clone --project <project-id-or-label> [--dest <path>] [--dry-run] [-- <extra git clone args...>]
 
 Behavior:
-  - resolves the project from the committed registry under rules/commands/projects/registry/
+  - uses the exact selected profile project definition from AI_PROFILE_PROJECT_FILE
   - reads repo_url and path from the matching project.yml
   - defaults the clone destination to the registry path unless --dest overrides it
   - runs git clone <repo_url> <dest> [extra args]
@@ -83,42 +84,16 @@ if [ -z "$PROJECT_SELECTOR" ]; then
   exit 1
 fi
 
-if [ ! -d "$PROJECTS_DIR" ]; then
-  echo "Missing committed project registry directory: $PROJECTS_DIR" >&2
+if [ -z "$PROJECT_FILE" ] || [ ! -f "$PROJECT_FILE" ]; then
+  echo "Missing selected profile project definition: AI_PROFILE_PROJECT_FILE" >&2
   exit 1
 fi
-
-find_registry_file() {
-  local selector="$1"
-  local file_path line id label
-
-  while IFS= read -r file_path; do
-    [ -n "$file_path" ] || continue
-    id=""
-    label=""
-
-    while IFS= read -r line; do
-      case "$line" in
-        id:*) id=$(unquote "${line#id:}") ;;
-        label:*) label=$(unquote "${line#label:}") ;;
-        name:*) if [ -z "$label" ]; then label=$(unquote "${line#name:}"); fi ;;
-      esac
-    done < "$file_path"
-
-    if [ "$selector" = "$id" ] || [ "$selector" = "$label" ]; then
-      printf '%s\n' "$file_path"
-      return 0
-    fi
-  done < <(find "$PROJECTS_DIR" -mindepth 2 -maxdepth 2 -type f -name 'project.yml' | sort)
-
-  return 1
-}
 
 resolve_repo_url_from_registry() {
   local project_file="$1"
   local raw
 
-  raw=$(awk '/^repo_url:[[:space:]]*/ { sub(/^repo_url:[[:space:]]*/, "", $0); print; exit }' "$project_file")
+  raw=$(awk '/^(remote_url|repo_url):[[:space:]]*/ { sub(/^[^:]+:[[:space:]]*/, "", $0); print; exit }' "$project_file")
   unquote "$raw"
 }
 
@@ -142,19 +117,20 @@ resolve_project_path_from_registry() {
   )
 }
 
-registry_file="$(find_registry_file "$PROJECT_SELECTOR" || true)"
-if [ -z "$registry_file" ]; then
-  echo "Could not resolve a registered project for '$PROJECT_SELECTOR'." >&2
+project_id="$(unquote "$(awk '/^id:[[:space:]]*/ { sub(/^id:[[:space:]]*/, "", $0); print; exit }' "$PROJECT_FILE")")"
+project_label="$(unquote "$(awk '/^label:[[:space:]]*/ { sub(/^label:[[:space:]]*/, "", $0); print; exit }' "$PROJECT_FILE")")"
+if [ "$PROJECT_SELECTOR" != "$project_id" ] && [ "$PROJECT_SELECTOR" != "$project_label" ]; then
+  echo "Selected profile project does not match '$PROJECT_SELECTOR': $PROJECT_FILE" >&2
   exit 1
 fi
 
-repo_url="$(resolve_repo_url_from_registry "$registry_file" || true)"
+repo_url="$(resolve_repo_url_from_registry "$PROJECT_FILE" || true)"
 if [ -z "$repo_url" ]; then
   echo "Project '$PROJECT_SELECTOR' is registered but missing repo_url in $registry_file" >&2
   exit 1
 fi
 
-project_path="$(resolve_project_path_from_registry "$registry_file" || true)"
+project_path="$(resolve_project_path_from_registry "$PROJECT_FILE" || true)"
 if [ -z "$project_path" ]; then
   echo "Project '$PROJECT_SELECTOR' is registered but missing path in $registry_file" >&2
   exit 1
@@ -174,7 +150,7 @@ fi
 
 if [ "$DRY_RUN" -eq 1 ]; then
   printf 'Resolved project: %s\n' "$PROJECT_SELECTOR"
-  printf 'Resolved registry_file: %s\n' "$registry_file"
+  printf 'Resolved project_file: %s\n' "$PROJECT_FILE"
   printf 'Resolved repo_url: %s\n' "$repo_url"
   printf 'Resolved destination: %s\n' "$DEST_PATH"
   printf 'Clone command:'

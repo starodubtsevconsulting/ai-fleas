@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "jira" || exit $?
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -48,7 +50,7 @@ case "${1:-}" in
       echo "The template subcommand does not accept ticket arguments." >&2
       exit 2
     fi
-    CONF_FILE="${JIRA_COMMAND_CONF:-$SCRIPT_DIR/jira.command.conf}"
+    CONF_FILE="${JIRA_COMMAND_CONF:-${AI_COMMAND_CONFIG_PATH:-}}"
     source "$SCRIPT_DIR/jira-load-config.sh"
     jira_load_machine_config "$CONF_FILE"
     TEMPLATE_FILE="${JIRA_DESCRIPTION_TEMPLATE_FILE:-}"

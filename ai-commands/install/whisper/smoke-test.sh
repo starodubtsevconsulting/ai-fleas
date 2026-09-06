@@ -4,7 +4,8 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 install_root="$(cd "$script_dir/.." && pwd)"
 install_log="$install_root/logs/install.log"
-config_file="$script_dir/install.config"
+config_file="${AI_COMMAND_CONFIG_PATH:-}"
+[[ -n "$config_file" && -f "$config_file" ]] || { echo 'Profile-owned Whisper config required.' >&2; exit 2; }
 fail_count=0
 
 if [ -f "$config_file" ]; then

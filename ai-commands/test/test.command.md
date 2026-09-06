@@ -1,5 +1,36 @@
 # test.command
 
+## Purpose
+
+Use `test` to execute the appropriate automated validation for a defined change and return exact command and result evidence.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- TBD
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- TBD
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `test/test.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `test/test.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Execution roles
 
 - `command-runner` — execute the exact registered test command mechanically and return factual evidence.
@@ -15,8 +46,8 @@ alongside this file (e.g., `test.command-nx.md`).
 
 ## Usage
 
-- `./commands/test/test.command.sh` (prints the generic guidance)
-- `AI_FLOW_TEST_TIMEOUT_SEC=10 ./commands/test/test.command.sh --project <name>` (default timeout is 10s)
+- `${AI_COMMANDS_ROOT}/test/test.command.sh` (prints the generic guidance)
+- `AI_FLOW_TEST_TIMEOUT_SEC=10 ${AI_COMMANDS_ROOT}/test/test.command.sh --project <name>` (default timeout is 10s)
 
 ## Variations
 
@@ -49,7 +80,7 @@ alongside this file (e.g., `test.command-nx.md`).
 - All Maven execution routes through the exact Command Runner. Coder may edit test sources and inspect returned evidence,
   but must not invoke Maven directly.
 - Low-token/default AI-friendly path for Maven:
-  - `./commands/test/java-maven-cheap.command.sh --module-dir <module-dir> -- mvn -q -Dtest=<ClassName> test`
+  - `${AI_COMMANDS_ROOT}/test/java-maven-cheap.command.sh --module-dir <module-dir> -- mvn -q -Dtest=<ClassName> test`
   - This redirects full Maven output to a log file and prints only:
     - exit code
     - log path
@@ -57,10 +88,10 @@ alongside this file (e.g., `test.command-nx.md`).
     - matching Surefire/Failsafe report snippets when available
   - Prefer this when the goal is to verify pass/fail cheaply without streaming full Maven logs into the AI session.
 - If Maven/Surefire reports JUnit discovery issues (example: `OutputDirectoryProvider not available`), use the companion runner:
-  - `./commands/test/java-maven-junit.command.sh --module-dir <module-dir> --class <fully.qualified.TestClass>`
+  - `${AI_COMMANDS_ROOT}/test/java-maven-junit.command.sh --module-dir <module-dir> --class <fully.qualified.TestClass>`
 - Example:
-  - `./commands/test/java-maven-junit.command.sh --module-dir example-module --class com.example.project.ExampleTest`
-  - `./commands/test/java-maven-cheap.command.sh --module-dir example-module --report-glob '*ExampleTest*' -- mvn -q
+  - `${AI_COMMANDS_ROOT}/test/java-maven-junit.command.sh --module-dir example-module --class com.example.project.ExampleTest`
+  - `${AI_COMMANDS_ROOT}/test/java-maven-cheap.command.sh --module-dir example-module --report-glob '*ExampleTest*' -- mvn -q
 -Dtest=ExampleTest test`
 - Notes:
   - This runner uses direct JVM + JUnit Console execution and enables ByteBuddy agent loading for Mockito inline mock maker.
@@ -71,14 +102,6 @@ alongside this file (e.g., `test.command-nx.md`).
 
 - dev (if writing unit tests)
 - qa (if writing end-to-end tests, aka smoke-tests)
-
-## Input
-
-- TBD
-
-## Output
-
-- TBD
 
 ## Time Limit
 

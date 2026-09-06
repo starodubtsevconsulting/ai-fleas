@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "snyk" || exit $?
 set -euo pipefail
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"
@@ -40,9 +42,9 @@ set -- "${ai_flow_args[@]}"
 export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONF_FILE="$SCRIPT_DIR/snyk.command.conf"
+CONF_FILE="${SNYK_COMMAND_CONF:-${AI_COMMAND_CONFIG_PATH:-}}"
 
-if [ -f "$CONF_FILE" ]; then
+if [ -n "$CONF_FILE" ] && [ -f "$CONF_FILE" ]; then
   # shellcheck source=/dev/null
   source "$CONF_FILE"
 fi
@@ -70,7 +72,7 @@ if [ -z "$REPO_DIR" ]; then
 fi
 
 if [ -z "$SNYK_TOKEN" ]; then
-  echo "SNYK_TOKEN is required; set it in the environment or snyk.command.conf." >&2
+  echo "SNYK_TOKEN is required; set it in the environment or selected profile configuration." >&2
   echo "Opening Snyk API key page: $SNYK_API_KEY_URL" >&2
   open_api_key_page
   exit 1

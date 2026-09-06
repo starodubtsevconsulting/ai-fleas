@@ -171,7 +171,7 @@ test('Lyrics Timestamp launcher defaults paths from selected multimedia video co
       suggestedTextFilePath: lyricsPath,
       outputPath: path.join(videoPath, 'lyrics', 'subtitles'),
       timingHintsFilePath: hintsPath,
-      breadcrumbLabel: 'sc > multimedia > Poems > John Keats > Bright star'
+      breadcrumbLabel: 'example > multimedia > Poems > John Keats > Bright star'
     }
   }, fs);
 
@@ -179,7 +179,7 @@ test('Lyrics Timestamp launcher defaults paths from selected multimedia video co
   assert.equal(defaults.audioFile, audioPath);
   assert.equal(defaults.timingHintsFile, hintsPath);
   assert.equal(defaults.dist, path.join(videoPath, 'lyrics'));
-  assert.equal(defaults.breadcrumbLabel, 'sc > multimedia > Poems > John Keats > Bright star');
+  assert.equal(defaults.breadcrumbLabel, 'example > multimedia > Poems > John Keats > Bright star');
 });
 
 test('Lyrics Timestamp launcher opens file browser at the current file parent folder', () => {

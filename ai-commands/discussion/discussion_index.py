@@ -279,8 +279,8 @@ def write_manifest(db_path: Path, roots: list[tuple[Path, str]], result: dict) -
         "## How To Refresh",
         "",
         "```bash",
-        "./commands/discussion/discussion.command.sh index-conversations",
-        "./commands/discussion/discussion.command.sh lookup-conversation --query \"tag feature\" --reindex",
+        "${AI_COMMANDS_ROOT}/discussion/discussion.command.sh index-conversations",
+        "${AI_COMMANDS_ROOT}/discussion/discussion.command.sh lookup-conversation --query \"tag feature\" --reindex",
         "```",
         "",
     ])
