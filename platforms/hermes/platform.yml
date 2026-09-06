@@ -1,0 +1,14 @@
+version: 1
+id: hermes
+label: Hermes Agent
+runtime_object: hermes-profile
+creation_environment: profile-selected-provider
+initialization: agents/initialization.md
+role_overlays: roles
+capabilities:
+  - persistent-identity
+  - profile-binding
+  - model-selection
+  - project-binding
+  - local-tool-execution
+  - conversation-persistence
