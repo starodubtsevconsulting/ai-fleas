@@ -2,9 +2,12 @@
 
 ## Purpose
 
-Use `install` to manage the physical lifecycle of explicitly selected software: inspect, install, check for updates,
+Use `install` to manage the local physical lifecycle of explicitly selected software: inspect, install, smoke-test, check for updates,
 upgrade, or uninstall it through a target-specific adapter and verify the result. Application-specific agent, profile,
 workflow, project, bot, task, and group lifecycle remains in the application's own command.
+
+Local installation currently supports **macOS on Apple Silicon only** (`Darwin/arm64`). Reject every other local host
+before mutation. Remote installation is a separate explicitly selected target context and is not implied by this command.
 
 ```mermaid
 flowchart LR
@@ -25,7 +28,7 @@ flowchart LR
 | Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
 | Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
 | Installation target | Yes for targeted lifecycle | User or profile | Canonical target ID such as `gpt-app` or `hermes-app`; human aliases `GPT` and `Hermes` resolve to those exact IDs. |
-| Lifecycle action | Yes for targeted lifecycle | User | One of `status`, `install`, `check-update`, `update`, `upgrade`, or `uninstall`. |
+| Lifecycle action | Yes for targeted lifecycle | User | One of `status`, `smoke-test`, `install`, `check-update`, `update`, `upgrade`, or `uninstall`. |
 
 - `ai-commands/install/*`
 
@@ -77,9 +80,10 @@ application does not make the CLI installer a desktop-application installer.
 | Action | Mutation | Required behavior |
 |---|---|---|
 | `status` | No | Report installed/not-installed and exact version evidence when available. |
+| `smoke-test` | No | Verify the installed application's identity and minimum offline startup surface without using credentials or a live provider. |
 | `check-update` / `update` | No | Consult only the target's trusted stable channel and recommend `upgrade` when newer. `update` is a human-friendly alias for this read-only action. |
 | `install` | Yes | Install an absent target through its reviewed target adapter, then verify identity and version. |
-| `upgrade` | Yes | Require explicit authorization, preserve supported application data, apply the reviewed stable update, and verify the new version. |
+| `upgrade` | Yes | Require explicit authorization, preserve supported application data, apply the reviewed stable update, then run the target smoke test. |
 | `uninstall` | Yes | Require the exact target and explicit confirmation; remove only adapter-owned application artifacts and report separately preserved user data. |
 
 If a host does not expose a trustworthy operation, return `<TARGET>_<ACTION>_UNAVAILABLE` without substituting a CLI,
@@ -89,6 +93,9 @@ opening an unrelated package manager, scraping a download, or claiming success.
 
 - Prefer running `${AI_COMMANDS_ROOT}/install/check.sh` first to see what is already installed.
 - Resolve application aliases to a canonical target before execution; never infer a target from a running agent or nearby repository.
+- Before any local application operation, require `Darwin/arm64`; do not silently choose an Intel, Linux, or Windows artifact.
+- Every application target must provide a focused, deterministic adapter test and a read-only `smoke-test`. Successful
+  `install` and `upgrade` require the smoke test to pass; installation alone is not completion.
 - Keep package lifecycle in `install`; application commands may retain compatibility delegates but must route physical
   installation or upgrade through this contract.
 - `update` is read-only. Never turn an update check into an automatic upgrade.
