@@ -1,0 +1,47 @@
+# EXAMPLE ONLY: sanitized GPT App command binding with no operational project or task IDs.
+schema_version: gpt-app-command-config.v1
+capability: gpt-app
+registered_command: gpt-app
+command_path: gpt-app/gpt-app.command.md
+platform: gpt-app
+lifecycle:
+  creation_environment: saved-project-local
+  preserve_history: true
+  require_exact_instance_receipts: true
+  archive_is_recoverable: true
+grouping:
+  section_name_template: '{profile}-{workflow}{suffix}'
+  suffix_separator: '-'
+  collision_policy: increment
+  reuse_requires_recorded_section_id: true
+
+# Roles and authority come from the workflow. A profile may override only
+# platform realization fields declared by the gpt-app command contract.
+role_overrides:
+  admin:
+    model: gpt-5.6-sol
+    reasoning: high
+  designer-reviewer:
+    model: gpt-5.6-sol
+    reasoning: low
+  judge:
+    model: gpt-5.6-terra
+    reasoning: low
+  manager:
+    model: gpt-5.6-luna
+    reasoning: medium
+  coder:
+    model: gpt-5.6-terra
+    reasoning: medium
+    pool:
+      min_ready: 0
+      max_active: 3
+  command-runner:
+    model: gpt-5.6-terra
+    reasoning: low
+    pool:
+      min_ready: 1
+      max_active: 4
+  ui-acceptance-tester:
+    model: gpt-5.6-terra
+    reasoning: low

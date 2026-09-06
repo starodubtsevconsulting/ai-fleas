@@ -26,6 +26,8 @@ commands:
     config: commands-config/source-control/config.yml
   - id: hermes
     config: commands-config/hermes/config.yml
+  - id: gpt-app
+    config: commands-config/gpt-app/config.yml
   - id: lodgify
     config: commands-config/lodgify/config.example.env
 workflows:
@@ -39,6 +41,7 @@ workflows:
       - review
       - commit
       - hermes
+      - gpt-app
       - source-control
       - lodgify
       - logs
