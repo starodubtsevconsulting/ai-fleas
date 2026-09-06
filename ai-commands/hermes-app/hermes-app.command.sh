@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Initialization and reconciliation are profile bootstrap operations, so expose their explicit
 # selections to the common command guard before normal argument processing.
-if [[ "${1:-}" == initialize || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup ]]; then
+if [[ "${1:-}" == initialize || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow ]]; then
   bootstrap_args=("$@")
   for ((bootstrap_index=1; bootstrap_index<${#bootstrap_args[@]}; bootstrap_index++)); do
     case "${bootstrap_args[bootstrap_index]}" in
@@ -33,6 +33,8 @@ readonly SETUP_SCRIPT="${COMMAND_DIR}/setup-hermes-profile.sh"
 readonly INSTALL_SCRIPT="${COMMAND_DIR}/install-hermes.sh"
 readonly PROFILE_ROOT="${AI_PROFILE_ROOT:-$(dirname "$(dirname "${AI_PROFILE_FILE}")")}"
 readonly PROFILE_RESOLVER="${COMMAND_DIR}/resolve-profile-scope.mjs"
+readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${COMMAND_DIR}/configure-hermes-group.py}"
+readonly PYTHON_BIN="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
 
 usage() {
   printf '%s\n' \
@@ -40,6 +42,7 @@ usage() {
     '       hermes-app.command.sh initialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
     '                               [--agent-instructions FILE] [setup overrides]' \
     '       hermes-app.command.sh reconcile --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
+    '       hermes-app.command.sh delete-workflow --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] --confirm-delete' \
     '       hermes-app.command.sh list' \
     '       hermes-app.command.sh show PROFILE' \
     '       hermes-app.command.sh status PROFILE' \
@@ -239,6 +242,47 @@ if expected not in available:
       exit 1
     fi
     printf 'HERMES_PROFILE_DELETED: %s\n' "${profile}"
+    ;;
+  delete-workflow)
+    work_profile="${WORK_PROFILE_ID:-}"
+    workflow=''; project=''; instance=''; confirmed=false
+    while (($#)); do
+      case "$1" in
+        --work-profile) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; work_profile="$2"; shift 2 ;;
+        --workflow) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; workflow="$2"; shift 2 ;;
+        --project) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; project="$2"; shift 2 ;;
+        --instance) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; instance="$2"; shift 2 ;;
+        --confirm-delete) confirmed=true; shift ;;
+        *) usage >&2; exit 2 ;;
+      esac
+    done
+    [[ "${confirmed}" == true ]] || { printf '%s\n' 'HERMES_DELETE_CONFIRMATION_REQUIRED: use delete-workflow ... --confirm-delete.' >&2; exit 2; }
+    [[ -n "${work_profile}" ]] || { printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: use --work-profile or set WORK_PROFILE_ID.' >&2; exit 2; }
+    scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}")"
+    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project _ _ _ _ _ _ _ _ _ _ _ _ resolved_role_bindings <<<"${scope}"
+    if [[ -n "${instance}" ]]; then validate_profile "${instance}"; fi
+    group="${resolved_profile}-${resolved_workflow}${instance:+-${instance}}"
+    validate_profile "${group}"
+    members=()
+    IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
+    for role_binding in "${role_bindings[@]}"; do
+      suffix="${role_binding#*:}"
+      member="${group}-${suffix}"
+      validate_profile "${member}"
+      members+=("${member}")
+    done
+    configurator_args=("${GROUP_CONFIGURATOR}" --hermes-home "${HERMES_HOME:-${HOME}/.hermes}" --delete-group --group "${group}")
+    for member in "${members[@]}"; do configurator_args+=(--member "${member}"); done
+    "${PYTHON_BIN}" "${configurator_args[@]}"
+    hermes_bin="$(resolve_hermes)"
+    existing_profiles="$("${hermes_bin}" profile list | awk 'NR > 1 { print $1 }')"
+    for member in "${members[@]}"; do
+      if grep -Fx -- "${member}" <<<"${existing_profiles}" >/dev/null; then
+        "${hermes_bin}" profile delete "${member}" --yes
+        printf 'HERMES_PROFILE_DELETED: %s\n' "${member}"
+      fi
+    done
+    printf 'HERMES_WORKFLOW_DELETED: %s (%s)\n' "${group}" "${resolved_project}"
     ;;
   -h|--help|help)
     usage
