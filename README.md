@@ -22,11 +22,21 @@ Some may also hear **AI Fleas** as **AI fleets** — many AIs working together. 
 
 ## What is inside
 
-**A public window into how I am building and using AI systems in real work.**
+AI Fleas is a collection of reusable **configurations, workflows, roles, commands and conventions for working with AI agents across different harnesses** — ChatGPT/Codex, Claude Code, Hermes, local models and others.
 
-This collection covers agents, workflows, reusable commands, profiles, local models, governance, automation and experiments. The diagram below gives the high-level picture before getting into the individual commands, workflows, roles and runtime concepts.
+Instead of designing the way you work from scratch for every platform, the project provides a common structure that can be adapted to whichever models, tools and runtimes you want to use. The agents may run in different places, but they can still follow the same roles, workflows and operating rules.
+
+The diagram below shows the main pieces and how they fit together.
 
 ![AI Workflow Suite](img/ai_workflow_suite.png)
+
+## How it can be useful
+
+AI Fleas can be used as an entry point for setting up a structured way of working with AI agents without tying that setup too closely to one platform.
+
+You can take the pieces you need, extend them, switch between hosted and local models, combine different harnesses, experiment with different agent arrangements, and keep your own profiles, project context and private configuration outside the public reusable definitions.
+
+The goal is not to hide the differences between platforms. It is to keep the **way you organize the work portable**, while letting each harness or provider implement it in its own way.
 
 ### For people who already build this stuff
 
