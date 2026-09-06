@@ -45,9 +45,9 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 if [ -n "${AI_FLOW_PROJECT_DIR:-}" ]; then
   PROJECT_ROOT="$AI_FLOW_PROJECT_DIR"
 fi
-CONF_FILE="$SCRIPT_DIR/test.command.conf"
+CONF_FILE="${TEST_COMMAND_CONF:-${AI_COMMAND_CONFIG_PATH:-}}"
 
-if [ -f "$CONF_FILE" ]; then
+if [ -n "$CONF_FILE" ] && [ -f "$CONF_FILE" ]; then
   # shellcheck source=/dev/null
   source "$CONF_FILE"
 fi

@@ -44,7 +44,8 @@ find_pruned() {
   find "$root" \
     \( -type d \( -name .agent-runtime -o -name .local -o \
       -name session-root -o -name sessions -o -name node_modules -o -name .venv -o \
-      -name dist -o -name log -o -name logs \) -prune \) -o "$@"
+      -name dist -o \( \( -name log -o -name logs \) \
+        ! -path "$root/log" ! -path "$root/logs" \) \) -prune \) -o "$@"
 }
 
 if ! find_pruned "${COMMANDS_ROOT}" -type l -print0 > "${links_nul}"; then

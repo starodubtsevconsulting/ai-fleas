@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "ide" || exit $?
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"
 AI_FLOW_OUTPUT_DIR="${AI_FLOW_OUTPUT_DIR:-}"
@@ -36,4 +39,6 @@ if [ $# -gt 0 ]; then
 fi
 set -- "${ai_flow_args[@]}"
 export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR
-
+#!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "ide" || exit $?

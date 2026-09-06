@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "springboot" || exit $?
 set -euo pipefail
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"
@@ -42,8 +44,8 @@ export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$SCRIPT_DIR/../command-python.setup.sh"
 ROOT_DIR=$(cd "$SCRIPT_DIR/../.." && pwd)
-CONF_FILE="$SCRIPT_DIR/springboot.command.conf"
-if [[ -f "$CONF_FILE" ]]; then
+CONF_FILE="${SPRINGBOOT_COMMAND_CONF:-${AI_COMMAND_CONFIG_PATH:-}}"
+if [[ -n "$CONF_FILE" && -f "$CONF_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$CONF_FILE"
 fi

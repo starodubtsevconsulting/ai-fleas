@@ -8,12 +8,13 @@ SCOPE_TEXT=""
 EXTRA_TEXT=""
 QUOTE_TEXT=""
 CONFIG_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+COMMANDS_ROOT="${AI_COMMANDS_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)}"
 SESSION_ROOT="${AI_SESSIONS_ROOT:-${AI_AGENT_RUNTIME_SESSIONS_ROOT:-$CONFIG_ROOT/.local/work-session-state}}"
 SESSION_UI_MODE_PATH="$SESSION_ROOT/.current-ui-mode"
 SESSION_UI_MODE="${AI_SESSION_UI_MODE:-}"
 
 resolve_project_metadata() {
-  local registry="${AI_CONFIG_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/commands/projects/projects-registry.yml"
+  local registry="${AI_PROFILE_PROJECT_FILE:-}"
   local project_dir="$1"
   if [ ! -f "$registry" ]; then
     return 1
@@ -24,31 +25,15 @@ from pathlib import Path
 registry, project_dir = sys.argv[1], sys.argv[2]
 base = Path(project_dir).name
 entries = []
-cur = {}
+entry = {}
 for line in open(registry, 'r', encoding='utf-8'):
-    line = line.rstrip('\n')
-    if not line or line.lstrip().startswith('#'):
+    if line.startswith(' ') or ':' not in line or line.lstrip().startswith('#'):
         continue
-    if line.startswith('  - '):
-        if cur:
-            entries.append(cur)
-            cur = {}
-        line = line[4:]
-        if line.startswith('label:'):
-            cur['label'] = line.split(':', 1)[1].strip()
-    elif line.startswith('    '):
-        parts = line.strip().split(':', 1)
-        if len(parts) == 2:
-            cur[parts[0].strip()] = parts[1].strip()
-if cur:
-    entries.append(cur)
-for entry in entries:
-    if entry.get('repo_path') == base:
-        label = entry.get('label') or base
-        app = entry.get('app_name') or label
-        print(f"{label}|{app}")
-        sys.exit(0)
-print(f"{base}|{base}")
+    key, value = line.strip().split(':', 1)
+    entry[key.strip()] = value.strip().strip('"')
+label = entry.get('label') or entry.get('id') or base
+app = entry.get('app_name') or label
+print(f"{label}|{app}")
 PY
 }
 
@@ -158,12 +143,12 @@ fi
 if [ -n "$SCOPE_TEXT" ]; then
   printf 'Session scope: %s\n' "$SCOPE_TEXT"
 fi
+printf 'MUST: treat every user input as a potential command; scan %s/* and follow the matched command .md instructions before proceeding.\n' "$COMMANDS_ROOT"
+printf 'MUST: on startup, read %s/session/session.command.md and honor explicit close semantics (`Session closed`, legacy `Session stopped`) when deciding active/resumable session plans.\n' "$COMMANDS_ROOT"
 cat <<'EOF_PROMPT'
 Use the active session plan from the configured session root (`AI_SESSIONS_ROOT` or the session helper): resolve `<session-root>/.current-session-path`, then read `<session-dir>/session-plan.md` and AI_FLOW_OUTPUT_DIR for logs/outputs.
 
 MUST: follow the selected workflow instructions before doing any work.
-MUST: treat every user input as a potential command; scan rules/commands/* and follow the matched command .md instructions before proceeding.
-MUST: on startup, read rules/commands/session/session.command.md and honor explicit close semantics (`Session closed`, legacy `Session stopped`) when deciding active/resumable session plans.
 MUST: if the configured session root pointer (`<session-root>/.current-session-path`) is empty/invalid, do not auto-resume old sessions; explicitly create/select a session first before implementation.
 MUST: when creating/selecting a fresh session for work, ensure task title exists and at least one todo checklist item is present; infer task title from user request when needed.
 MUST: update the active session `session-plan.md` first for every new user request, and keep it current while working.

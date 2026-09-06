@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "test" || exit $?
 set -euo pipefail
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"

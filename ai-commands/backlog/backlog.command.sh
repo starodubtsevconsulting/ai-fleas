@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "backlog" || exit $?
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -7,8 +9,8 @@ CURRENT_PLAN_POINTER="$ROOT_DIR/session-root/.current-plan-path"
 CURRENT_BACKLOG_POINTER="$ROOT_DIR/session-root/.current-backlog-path"
 TERMINAL_SESSION_NAME="${AI_TERMINAL_SESSION_NAME:-ai-shell}"
 REFLOW_LAYOUT="$ROOT_DIR/ai-terminal/reflow-layout.sh"
-PROJECTS_DIR="$ROOT_DIR/rules/commands/projects/registry"
-BROWSER_COMMAND_SH="$ROOT_DIR/rules/commands/browser/browser.command.sh"
+PROJECT_FILE="${AI_PROFILE_PROJECT_FILE:-}"
+BROWSER_COMMAND_SH="$ROOT_DIR/ai-commands/browser/browser.command.sh"
 
 ACTION="${1:-list}"
 BACKLOG_ARG=""
@@ -101,32 +103,17 @@ extract_backlog_field() {
 
 resolve_repo_url_from_registry() {
   local selector="$1"
-  local file_path line id label repo_url
+  local id label repo_url
 
-  if [ ! -d "$PROJECTS_DIR" ]; then
+  if [ -z "$PROJECT_FILE" ] || [ ! -f "$PROJECT_FILE" ]; then
     return 1
   fi
-
-  while IFS= read -r file_path; do
-    [ -n "$file_path" ] || continue
-    id=""
-    label=""
-    repo_url=""
-    while IFS= read -r line; do
-      case "$line" in
-        id:*) id=$(unquote "${line#id:}") ;;
-        label:*) label=$(unquote "${line#label:}") ;;
-        name:*) if [ -z "$label" ]; then label=$(unquote "${line#name:}"); fi ;;
-        repo_url:*) repo_url=$(unquote "${line#repo_url:}") ;;
-      esac
-    done < "$file_path"
-    if [ "$selector" = "$id" ] || [ "$selector" = "$label" ]; then
-      printf '%s
-' "$repo_url"
-      return 0
-    fi
-  done < <(find "$PROJECTS_DIR" -mindepth 2 -maxdepth 2 -type f -name 'project.yml' | sort)
-  return 1
+  id="$(unquote "$(awk '/^id:[[:space:]]*/ { sub(/^id:[[:space:]]*/, "", $0); print; exit }' "$PROJECT_FILE")")"
+  label="$(unquote "$(awk '/^label:[[:space:]]*/ { sub(/^label:[[:space:]]*/, "", $0); print; exit }' "$PROJECT_FILE")")"
+  [ "$selector" = "$id" ] || [ "$selector" = "$label" ] || return 1
+  repo_url="$(unquote "$(awk '/^(remote_url|repo_url):[[:space:]]*/ { sub(/^[^:]+:[[:space:]]*/, "", $0); print; exit }' "$PROJECT_FILE")")"
+  [ -n "$repo_url" ] || return 1
+  printf '%s\n' "$repo_url"
 }
 
 canonical_backlog_file() {
@@ -324,7 +311,7 @@ resolve_profile_id() {
     return 0
   fi
 
-  printf 'sc\n'
+  printf 'example\n'
 }
 
 WORK_PROFILE_ID="$(resolve_profile_id)"

@@ -1,5 +1,28 @@
 # source-control
 
+## Purpose
+
+`source-control` is the provider-neutral command for repository inspection and mutation. It owns intent such as status,
+diff, branch, commit, pull, push, and remote-policy validation. It resolves the provider only from the active profile's
+explicit command binding and never infers one from a repository, executable, URL, or remembered context.
+
+The selected provider implementation command owns mechanical interaction. For `capability: git`, the registered `git`
+command owns Git CLI semantics, identity inspection, branch/upstream handling, remote parsing, and credential-helper
+integration.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes the command and resolves profile-owned configuration. |
+| Command-specific input | Yes | User, workflow, profile, or source artifact | Repository intent and profile-selected source-control provider binding. |
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Command result | Caller, configured artifact path, or authorized external system | Provider-neutral repository result and verified mutation evidence when applicable. |
+
 ```mermaid
 flowchart TD
   Actor["Actor: user or workflow requests source-control work"]
@@ -17,15 +40,15 @@ Command kind: `adapter`.
 
 Adapter layer: `provider-neutral`.
 
-## Purpose
+## Entry Point
 
-`source-control` is the provider-neutral command for repository inspection and mutation. It owns intent such as status,
-diff, branch, commit, pull, push, and remote-policy validation. It resolves the provider only from the active profile's
-explicit command binding and never infers one from a repository, executable, URL, or remembered context.
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `source-control/source-control.command.md` | AI-readable contract | The initialized workflow role loads this contract after the host activates the selected profile and workflow. |
 
-The selected provider implementation command owns mechanical interaction. For `capability: git`, the registered `git`
-command owns Git CLI semantics, identity inspection, branch/upstream handling, remote parsing, and credential-helper
-integration.
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `source-control/source-control.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
 ## Profile binding
 

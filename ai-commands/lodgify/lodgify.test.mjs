@@ -20,6 +20,15 @@ import {
   temporaryCsv,
 } from './lodgify-core.mjs';
 const execFileAsync = promisify(execFile);
+const lodgifyCommandDirectory = path.dirname(new URL(import.meta.url).pathname);
+const commandsRoot = path.dirname(lodgifyCommandDirectory);
+const repositoryRoot = path.dirname(commandsRoot);
+const profileEnvironment = {
+  AI_PROFILE_FILE: path.join(repositoryRoot, 'ai-profile/example/example-work-profile.yml'),
+  AI_WORK_PROFILE_ID: 'example',
+  AI_FLOW_WORKFLOW: 'dev.workflow.md',
+  AI_COMMANDS_ROOT: commandsRoot,
+};
 test('validates strict config and quarter', () => {
   assert.throws(() => config(''));
   assert.throws(() => config('API_KEY=[TODO]\nRENTAL_ID=7'));
@@ -771,8 +780,8 @@ test('network exhaustion retries exactly twice and CLI failures redact all synth
     const run = (args) =>
       execFileAsync(
         process.execPath,
-        [path.join(dir, 'lodgify.command.mjs'), ...args],
-        { env: { ...process.env, LODGIFY_TEST_ORIGIN: '1' } },
+        [path.join(lodgifyCommandDirectory, 'lodgify.command.mjs'), ...args],
+        { env: { ...process.env, ...profileEnvironment, LODGIFY_TEST_ORIGIN: '1', LODGIFY_CONFIG_PATH: path.join(dir, 'lodgify.config') } },
       );
     for (const args of [
       ['connection-test'],
@@ -851,8 +860,8 @@ test('CLI orchestrates only against an injected local synthetic endpoint', async
       `API_KEY=synthetic\nRENTAL_ID=7\nLODGIFY_API_BASE_URL=http://127.0.0.1:${port}\n`,
       { mode: 0o600 },
     );
-    const env = { ...process.env, LODGIFY_TEST_ORIGIN: '1' };
-    const script = path.join(dir, 'lodgify.command.mjs');
+    const env = { ...process.env, ...profileEnvironment, LODGIFY_TEST_ORIGIN: '1', LODGIFY_CONFIG_PATH: path.join(dir, 'lodgify.config') };
+    const script = path.join(lodgifyCommandDirectory, 'lodgify.command.mjs');
     const connected = await execFileAsync(
       process.execPath,
       [script, 'connection-test'],
@@ -948,13 +957,14 @@ test('CLI orchestrates only against an injected local synthetic endpoint', async
 test('top-level dispatcher has strict help and output-dir gate', () => {
   const script = new URL('./lodgify.command.mjs', import.meta.url).pathname;
   assert.match(
-    execFileSync(process.execPath, [script, '--help'], { encoding: 'utf8' }),
+    execFileSync(process.execPath, [script, '--help'], { encoding: 'utf8', env: { ...process.env, ...profileEnvironment } }),
     /connection-test/,
   );
   assert.throws(
     () =>
       execFileSync(process.execPath, [script, 'quarter-report'], {
         stdio: 'pipe',
+        env: { ...process.env, ...profileEnvironment },
       }),
     /output-dir/,
   );
