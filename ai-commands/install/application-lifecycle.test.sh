@@ -38,23 +38,36 @@ touch "$test_root/ChatGPT.app/Contents/Info.plist"
 export PATH="$test_root/bin:$PATH"
 export GPT_APP_TEST_PATH="$test_root/ChatGPT.app"
 export HERMES_BIN="$test_root/bin/hermes"
-
-gpt_status="$($command_dir/install.sh GPT status)"
-grep -F 'GPT_APP_INSTALLED' <<<"$gpt_status" >/dev/null
-grep -F 'version=1.2.3' <<<"$gpt_status" >/dev/null
-grep -F 'GPT_APP_SMOKE_PASS' < <($command_dir/install.sh gpt-app smoke-test) >/dev/null
-
-hermes_status="$($command_dir/install.sh Hermes status)"
-grep -F 'Hermes Agent v0.21.0' <<<"$hermes_status" >/dev/null
-grep -F 'HERMES_APP_SMOKE_PASS' < <($command_dir/install.sh hermes-app smoke-test) >/dev/null
+gpt_lifecycle="$command_dir/chatgpt/lifecycle.sh"
+hermes_lifecycle="$command_dir/hermes/lifecycle.sh"
 
 set +e
-unsupported="$(TEST_UNAME_M=x86_64 $command_dir/install.sh gpt status 2>&1)"
+profile_guard="$($command_dir/install.sh GPT status 2>&1)"
+profile_guard_exit=$?
+set -e
+[[ $profile_guard_exit -eq 64 ]]
+grep -F 'PROFILE_REQUIRED' <<<"$profile_guard" >/dev/null
+
+gpt_status="$($gpt_lifecycle status)"
+grep -F 'GPT_APP_INSTALLED' <<<"$gpt_status" >/dev/null
+grep -F 'version=1.2.3' <<<"$gpt_status" >/dev/null
+grep -F 'GPT_APP_SMOKE_PASS' < <($gpt_lifecycle smoke-test) >/dev/null
+
+hermes_status="$($hermes_lifecycle status)"
+grep -F 'Hermes Agent v0.21.0' <<<"$hermes_status" >/dev/null
+grep -F 'HERMES_APP_SMOKE_PASS' < <($hermes_lifecycle smoke-test) >/dev/null
+
+set +e
+unsupported="$(TEST_UNAME_M=x86_64 $gpt_lifecycle status 2>&1)"
 unsupported_exit=$?
-install_unavailable="$($command_dir/install.sh gpt install 2>&1)"
+install_unavailable="$($gpt_lifecycle install 2>&1)"
 install_exit=$?
 direct_hermes_unsupported="$(TEST_UNAME_M=x86_64 "$command_dir/../hermes-app/install-hermes.sh" --dry-run 2>&1)"
 direct_hermes_exit=$?
+chatgpt_component="$($gpt_lifecycle status --component backend 2>&1)"
+chatgpt_component_exit=$?
+hermes_component="$($hermes_lifecycle status --component backend 2>&1)"
+hermes_component_exit=$?
 set -e
 [[ $unsupported_exit -eq 4 ]]
 grep -F 'LOCAL_INSTALL_PLATFORM_UNSUPPORTED' <<<"$unsupported" >/dev/null
@@ -62,5 +75,9 @@ grep -F 'LOCAL_INSTALL_PLATFORM_UNSUPPORTED' <<<"$unsupported" >/dev/null
 grep -F 'GPT_APP_INSTALL_UNAVAILABLE' <<<"$install_unavailable" >/dev/null
 [[ $direct_hermes_exit -eq 4 ]]
 grep -F 'LOCAL_INSTALL_PLATFORM_UNSUPPORTED' <<<"$direct_hermes_unsupported" >/dev/null
+[[ $chatgpt_component_exit -eq 3 ]]
+grep -F 'CHATGPT_COMPONENT_UNSUPPORTED: backend' <<<"$chatgpt_component" >/dev/null
+[[ $hermes_component_exit -eq 3 ]]
+grep -F 'HERMES_COMPONENT_UNSUPPORTED: backend' <<<"$hermes_component" >/dev/null
 
 printf '%s\n' 'application lifecycle test: PASS'
