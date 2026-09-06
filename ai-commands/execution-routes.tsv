@@ -17,7 +17,7 @@ doc/doc.command.md	coder	-	-	-	-
 done/done.command.md	mixed	designer-reviewer	-	command-runner	-
 gh-auth/gh-auth.command.md	command-runner	-	-	-	-
 git/git.command.md	command-runner	-	-	-	-
-hermes/hermes.command.md	command-runner	-	-	-	-
+hermes-app/hermes-app.command.md	command-runner	-	-	-	-
 hurl-test-runner/hurl-test-runner.command.md	command-runner	-	-	-	-
 ide/ide.command.md	command-runner	-	-	-	-
 init-prompt/init-prompt.command.md	command-runner	-	-	-	-

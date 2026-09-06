@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 readonly COMMAND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly COMMAND="${COMMAND_DIR}/hermes.command.sh"
+readonly COMMAND="${COMMAND_DIR}/hermes-app.command.sh"
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/hermes-command-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
-mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/commands/coding" "${test_root}/commands/hermes" "${test_root}/workflows/dev" "${test_root}/workspace" "${test_root}/platforms/gpt-app"
+mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/commands/coding" "${test_root}/commands/hermes-app" "${test_root}/workflows/dev" "${test_root}/workspace" "${test_root}/platforms/gpt-app"
 touch "${test_root}/AGENTS.md" "${test_root}/README.md" "${test_root}/why.md"
 cat >"${test_root}/platforms/registry.yml" <<'YAML'
 platforms:
@@ -14,7 +14,7 @@ platforms:
 YAML
 printf 'id: gpt-app\n' >"${test_root}/platforms/gpt-app/platform.yml"
 printf '# Coding\n' >"${test_root}/commands/coding/coding.command.md"
-printf '# Hermes\n' >"${test_root}/commands/hermes/hermes.command.md"
+printf '# Hermes\n' >"${test_root}/commands/hermes-app/hermes-app.command.md"
 printf '# Dev\n' >"${test_root}/workflows/dev/dev.workflow.md"
 printf '# Instructions\n' >"${test_root}/ai-profile/example/AGENTS.md"
 cat >"${test_root}/ai-profile/example/example-work-profile.yml" <<YAML
@@ -32,7 +32,7 @@ ai_commands_root: ../../commands
 ai_workflows_root: ../../workflows
 ai_platforms_root: ../../platforms
 commands:
-  - id: hermes
+  - id: hermes-app
     config: local-ai-providers.yml
 workflows:
   - path: dev.workflow.md
@@ -40,7 +40,7 @@ workflows:
     local_ai: { providers_config: local-ai-providers.yml, provider: example-box, model: example-coder }
     commands:
       - coding
-      - hermes
+      - hermes-app
     projects:
       - ref: projects/dev/service/project.yml
 YAML
@@ -90,8 +90,10 @@ export TEST_WORKSPACE="${test_root}/workspace" PATH="${test_root}/bin:${PATH}" A
 export WORK_PROFILE_ID=example AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=dev.workflow.md
 scope="$(node "${COMMAND_DIR}/resolve-profile-scope.mjs" "${test_root}/ai-profile" example dev service)"
 [[ "${scope}" == *$'example-box\tExample box\thttp://192.0.2.10:1234/v1\texample-coder-model\t65536\t0.25\t0.15\t8'* ]]
-"${COMMAND}" configure --work-profile example --workflow dev --project service >"${test_root}/output"
+"${COMMAND}" initialize --work-profile example --workflow dev --project service >"${test_root}/output"
 grep -F 'Hermes bot ready: example-dev-service' "${test_root}/output" >/dev/null
+"${COMMAND}" reconcile --work-profile example --workflow dev --project service >"${test_root}/reconcile-output"
+grep -F 'Hermes bot ready: example-dev-service' "${test_root}/reconcile-output" >/dev/null
 "${COMMAND}" status example-dev-service | grep -F 'HERMES_READY' >/dev/null
 "${COMMAND}" delete throwaway --confirm-delete | grep -F 'HERMES_PROFILE_DELETED: throwaway' >/dev/null
 printf '%s\n' 'hermes command test passed'

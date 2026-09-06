@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# ai_command_require_profile runs immediately after explicit configure selections are bootstrapped below.
+# ai_command_require_profile runs immediately after explicit lifecycle selections are bootstrapped below.
 
-# `configure` is also a profile bootstrap operation, so expose its explicit
+# Initialization and reconciliation are profile bootstrap operations, so expose their explicit
 # selections to the common command guard before normal argument processing.
-if [[ "${1:-}" == configure || "${1:-}" == setup ]]; then
+if [[ "${1:-}" == initialize || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup ]]; then
   bootstrap_args=("$@")
   for ((bootstrap_index=1; bootstrap_index<${#bootstrap_args[@]}; bootstrap_index++)); do
     case "${bootstrap_args[bootstrap_index]}" in
@@ -25,7 +25,7 @@ if [[ "${1:-}" == configure || "${1:-}" == setup ]]; then
   done
 fi
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)/_runtime/profile/command-profile.guard.sh"
-ai_command_require_profile "hermes" || exit $?
+ai_command_require_profile "hermes-app" || exit $?
 
 readonly COMMAND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPOSITORY_ROOT="$(cd "${COMMAND_DIR}/../.." && pwd)"
@@ -36,13 +36,14 @@ readonly PROFILE_RESOLVER="${COMMAND_DIR}/resolve-profile-scope.mjs"
 
 usage() {
   printf '%s\n' \
-    'Usage: hermes.command.sh install [--dry-run]' \
-    '       hermes.command.sh configure --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
+    'Usage: hermes-app.command.sh install [--dry-run]' \
+    '       hermes-app.command.sh initialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
     '                               [--agent-instructions FILE] [setup overrides]' \
-    '       hermes.command.sh list' \
-    '       hermes.command.sh show PROFILE' \
-    '       hermes.command.sh status PROFILE' \
-    '       hermes.command.sh delete PROFILE --confirm-delete'
+    '       hermes-app.command.sh reconcile --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
+    '       hermes-app.command.sh list' \
+    '       hermes-app.command.sh show PROFILE' \
+    '       hermes-app.command.sh status PROFILE' \
+    '       hermes-app.command.sh delete PROFILE --confirm-delete'
 }
 
 resolve_hermes() {
@@ -74,7 +75,7 @@ case "${action}" in
     [[ -x "${INSTALL_SCRIPT}" ]] || { printf 'Installer is not executable: %s\n' "${INSTALL_SCRIPT}" >&2; exit 1; }
     "${INSTALL_SCRIPT}" "$@"
     ;;
-  configure|setup)
+  initialize|reconcile|configure|setup)
     [[ -x "${SETUP_SCRIPT}" ]] || { printf 'Setup script is not executable: %s\n' "${SETUP_SCRIPT}" >&2; exit 1; }
     work_profile="${WORK_PROFILE_ID:-}"
     workflow=''
