@@ -16,7 +16,9 @@ The portable vocabulary maps as follows:
 | agent instance | user-visible Codex task |
 | instance ID | app-returned task/thread ID |
 | runtime scope | Codex project ID |
+| logical project / workflow group | exact custom sidebar section ID plus recorded agent-task bindings |
 | activate | create and initialize a task |
 | deactivate | recoverably archive the exact task ID |
 | send/receive | exact task-ID message delivery |
 | check update | trusted host update-channel query; no automatic installation |
+| delete workflow / delete group | recoverably archive its exact bound tasks and delete its exact sidebar section; preserve the saved Codex project and repository |

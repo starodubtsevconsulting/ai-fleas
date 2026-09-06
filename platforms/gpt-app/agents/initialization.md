@@ -31,3 +31,8 @@ candidate while the first may still resolve.
 
 Messaging targets exact task IDs. Remove and delete map to recoverable archival. Replacement verifies successors before
 archiving predecessors. Never use titles, sidebar order, recency, or remembered conversation as lifecycle identity.
+
+A human request to delete a group routes to the `gpt-app` command's `delete-workflow` lifecycle operation. The logical
+project selects the recorded agent-task bindings and exact custom sidebar section ID; it does not identify the saved
+Codex project itself. The operation recoverably archives all exact bound tasks, deletes only that exact section, retains
+a deletion receipt, and preserves the saved project, checkout, repository, and work target.
