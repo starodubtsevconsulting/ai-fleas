@@ -97,15 +97,21 @@ group=''
 member=''
 title=''
 hide_only=false
+delete_group=false
 while (($#)); do
   case "$1" in
     --group) group="$2"; shift 2;;
     --member) member="$2"; shift 2;;
     --title) title="$2"; shift 2;;
     --hide-only) hide_only=true; shift;;
+    --delete-group) delete_group=true; shift;;
     *) shift;;
   esac
 done
+if [[ "${delete_group}" == true ]]; then
+  printf 'Hermes group deleted: %s\n' "$group"
+  exit 0
+fi
 if [[ "${hide_only}" == true ]]; then
   printf 'Hermes top-level profile hidden: %s\n' "$member"
   exit 0
@@ -133,4 +139,18 @@ grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-coder/profile.yaml" >
 grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/reconcile-output" >/dev/null
 "${COMMAND}" status example-dev-admin | grep -F 'HERMES_READY' >/dev/null
 "${COMMAND}" delete throwaway --confirm-delete | grep -F 'HERMES_PROFILE_DELETED: throwaway' >/dev/null
+if "${COMMAND}" delete-workflow --work-profile example --workflow dev --project service >"${test_root}/delete-without-confirm" 2>&1; then
+  printf '%s\n' 'delete-workflow unexpectedly succeeded without confirmation' >&2
+  exit 1
+fi
+grep -F 'HERMES_DELETE_CONFIRMATION_REQUIRED' "${test_root}/delete-without-confirm" >/dev/null
+"${COMMAND}" delete-workflow --work-profile example --workflow dev --project service --confirm-delete >"${test_root}/delete-workflow-output"
+grep -F 'HERMES_PROFILE_DELETED: example-dev-admin' "${test_root}/delete-workflow-output" >/dev/null
+grep -F 'HERMES_PROFILE_DELETED: example-dev-coder' "${test_root}/delete-workflow-output" >/dev/null
+grep -F 'HERMES_WORKFLOW_DELETED: example-dev (service)' "${test_root}/delete-workflow-output" >/dev/null
+grep -Fx 'default' "${HERMES_TEST_STATE}" >/dev/null
+if grep -E '^example-dev-(admin|coder)$' "${HERMES_TEST_STATE}" >/dev/null; then
+  printf '%s\n' 'delete-workflow left a declared role profile behind' >&2
+  exit 1
+fi
 printf '%s\n' 'hermes command test passed'

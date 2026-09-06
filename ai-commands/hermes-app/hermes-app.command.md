@@ -24,7 +24,7 @@ flowchart LR
     Initialize["initialize"]
     Reconcile["reconcile"]
     Inspect["list / show / status"]
-    Delete["delete + confirmation"]
+    Delete["delete profile / workflow + confirmation"]
     Dispatcher --> Install
     Dispatcher --> Initialize
     Dispatcher --> Reconcile
@@ -97,6 +97,7 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 | `show PROFILE` | Inspect one exact profile. |
 | `status PROFILE` | Verify its provider, model endpoint, advertised model, and workspace. |
 | `delete PROFILE --confirm-delete` | Delete one exact non-default profile after explicit confirmation. |
+| `delete-workflow --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] --confirm-delete` | Resolve the exact workflow roster, remove every declared role profile, and tombstone its Hermes group so it cannot be reconstructed from profile metadata. |
 
 ## Agent realization
 
@@ -125,6 +126,7 @@ active AI profile supplies the workflow, project, provider, model, workspace, an
 - Generate agent instructions that identify the selected workflow and commands without embedding private configuration.
 - Preserve conversations and memory during reconciliation unless the human explicitly requests replacement from scratch.
 - Require explicit confirmation and an exact profile identifier before deletion.
+- For workflow deletion, resolve the complete profile/workflow/project identity and delete only the adapter-declared roster and its exact group.
 - Refuse credentials, private endpoints, machine paths, or organization-specific defaults in this public contract.
 
 ## Platform boundary
