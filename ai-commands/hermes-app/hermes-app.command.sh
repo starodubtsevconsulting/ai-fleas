@@ -119,7 +119,7 @@ case "${action}" in
       exit 2
     }
     scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}")"
-    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project resolved_provider resolved_provider_label resolved_endpoint resolved_model resolved_context_window resolved_compression_threshold resolved_compression_target resolved_protect_last_messages resolved_workspace resolved_agent_instructions resolved_commands_root resolved_workflow_instructions resolved_command_ids <<<"${scope}"
+    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project resolved_provider resolved_provider_label resolved_endpoint resolved_model resolved_context_window resolved_compression_threshold resolved_compression_target resolved_protect_last_messages resolved_workspace resolved_agent_instructions resolved_commands_root resolved_workflow_instructions resolved_command_ids resolved_role_bindings <<<"${scope}"
     if [[ -n "${agent_instructions}" ]]; then
       [[ "${agent_instructions}" == /* && -f "${agent_instructions}" ]] || {
         printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: --agent-instructions must be an existing absolute file.' >&2
@@ -128,7 +128,7 @@ case "${action}" in
       resolved_agent_instructions="${agent_instructions}"
     fi
     if [[ -n "${instance}" ]]; then validate_profile "${instance}"; fi
-    derived_hermes_profile="${resolved_profile}-${resolved_workflow}-${resolved_project}${instance:+-${instance}}"
+    derived_group="${resolved_profile}-${resolved_workflow}${instance:+-${instance}}"
     export HERMES_WORK_PROFILE="${resolved_profile}"
     export HERMES_WORKFLOW="${resolved_workflow}"
     export HERMES_PROJECT="${resolved_project}"
@@ -141,16 +141,38 @@ case "${action}" in
     export HERMES_COMPRESSION_TARGET_RATIO="${resolved_compression_target}"
     export HERMES_COMPRESSION_PROTECT_LAST_N="${resolved_protect_last_messages}"
     export HERMES_WORKSPACE="${resolved_workspace}"
-    export HERMES_PROFILE="${derived_hermes_profile}"
+    export HERMES_GROUP="${derived_group}"
     export HERMES_AGENT_INSTRUCTIONS_PATH="${resolved_agent_instructions}"
     export HERMES_AI_COMMANDS_ROOT="${resolved_commands_root}"
     export HERMES_WORKFLOW_INSTRUCTIONS_PATH="${resolved_workflow_instructions}"
     export HERMES_WORKFLOW_COMMAND_IDS="${resolved_command_ids}"
-    if [[ ${#setup_args[@]} -eq 0 ]]; then
-      "${SETUP_SCRIPT}"
-    else
-      "${SETUP_SCRIPT}" "${setup_args[@]}"
-    fi
+    IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
+    for role_binding in "${role_bindings[@]}"; do
+      role="${role_binding%%:*}"
+      profile_suffix="${role_binding#*:}"
+      [[ -n "${role}" && -n "${profile_suffix}" && "${role}" != "${profile_suffix}:" ]] || {
+        printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: malformed Hermes role binding.' >&2
+        exit 2
+      }
+      case "${role}" in
+        admin) role_title='Admin' ;;
+        designer-reviewer) role_title='Designer/Reviewer' ;;
+        judge) role_title='Judge' ;;
+        manager) role_title='Manager' ;;
+        coder) role_title='Coder' ;;
+        command-runner) role_title='Command Runner' ;;
+        ui-acceptance-tester) role_title='UI Acceptance Tester' ;;
+        *) role_title="${role}" ;;
+      esac
+      export HERMES_PROFILE="${derived_group}-${resolved_project}-${profile_suffix}"
+      export HERMES_ROLE="${role}"
+      export HERMES_ROLE_TITLE="${role_title}"
+      if [[ ${#setup_args[@]} -eq 0 ]]; then
+        "${SETUP_SCRIPT}"
+      else
+        "${SETUP_SCRIPT}" "${setup_args[@]}"
+      fi
+    done
     ;;
   list)
     [[ $# -eq 0 ]] || { usage >&2; exit 2; }
