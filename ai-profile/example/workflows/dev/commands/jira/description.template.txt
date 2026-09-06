@@ -1,8 +1,0 @@
-Outcome
-<Describe the required user-visible or operational outcome.>
-
-Scope
-<List the bounded project and affected behavior.>
-
-Acceptance
-<List verifiable completion evidence.>
