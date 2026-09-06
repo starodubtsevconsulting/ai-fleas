@@ -45,7 +45,7 @@ grep -Fq '          command_path: datadog/datadog.sh' "${PROFILE}" || fail "Exam
 grep -Fq '    config: commands-config/hermes/config.yml' "${PROFILE}" || fail "Example must reference sanitized Hermes configuration"
 grep -Fq '  root: ${AI_COMMANDS_ROOT}' "${ROOT}/example/commands-config/hermes/config.yml" || fail "Hermes example must use the resolved command root"
 grep -Fq 'schema_version: local-ai-providers.v1' "${ROOT}/example/commands-config/hermes/config.yml" || fail "Hermes example must declare the provider-map schema"
-grep -Fq '      url: http://192.0.2.10:1234/v1' "${ROOT}/example/commands-config/hermes/config.yml" || fail "Hermes example must use the documented non-operational endpoint"
+grep -Fq '      url: http://127.0.0.1:8000/v1' "${ROOT}/example/commands-config/hermes/config.yml" || fail "Hermes example must use the safe loopback endpoint"
 grep -Fq '        hermes:' "${ROOT}/example/commands-config/hermes/config.yml" || fail "Hermes example must map per-model Hermes settings"
 grep -Fq 'EXAMPLE ONLY:' "${ROOT}/example/commands-config/hermes/config.yml" || fail "Hermes config must be labeled as example-only"
 grep -Fq 'EXAMPLE ONLY:' "${ROOT}/example/commands-config/lodgify/config.example.env" || fail "Lodgify config must be labeled as example-only"
