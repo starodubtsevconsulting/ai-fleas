@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
+operating_system="$(uname -s)"
+architecture="$(uname -m)"
+if [[ "$operating_system" != Darwin || "$architecture" != arm64 ]]; then
+  printf 'LOCAL_INSTALL_PLATFORM_UNSUPPORTED: expected Darwin/arm64, found %s/%s.\n' "$operating_system" "$architecture" >&2
+  exit 4
+fi
+
 readonly HERMES_INSTALLER_URL='https://hermes-agent.nousresearch.com/install.sh'
 readonly HERMES_COMMIT='29112bef099274229cadff79cdff7bf7b99c4b77'
 readonly HERMES_VERSION='Hermes Agent v0.21.0 (2026.8.31)'
