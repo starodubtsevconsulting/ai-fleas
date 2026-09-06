@@ -20,7 +20,7 @@ const purposeByCommand = {
   discussion: 'record, retrieve, and develop structured discussion threads without treating them as implementation authorization.',
   done: 'evaluate whether work satisfies its Definition of Done and report any remaining completion gates.',
   git: 'perform bounded, authorized source-control operations with explicit repository scope and resulting-state evidence.',
-  hermes: 'route an authorized prompt through the profile-selected local Hermes provider and return its result.',
+  hermes-app: 'route an authorized prompt through the profile-selected local Hermes provider and return its result.',
   'hurl-test-runner': 'execute configured Hurl HTTP tests and return request-level validation evidence.',
   ide: 'open or operate the selected project in a supported development environment.',
   'init-prompt': 'generate the portable initialization prompt for a selected profile, workflow, project, and platform context.',
