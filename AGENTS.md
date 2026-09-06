@@ -84,7 +84,7 @@ routes.
 
 Safe public profile examples include `org-a`, `client-a`, `client-b`, and `personal`. Public examples must never use a
 real client, organization, person, project, or machine name. The selected platform adapter determines realization: it
-may create a complete managed-agent roster, one workflow-scoped bot, or another platform-specific representation.
+may create a managed-agent roster, a platform-specific role roster and group such as Hermes, or another adapter-specific representation.
 
 The routing identity is the profile's `commands[].id` plus its profile-owned `config`, not a command guessed from natural
 language. `GPT` resolves to platform `gpt-app`, whose lifecycle command is `gpt-app`; `Hermes` resolves to platform
