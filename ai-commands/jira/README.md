@@ -51,13 +51,13 @@ flows preview or validate without committing the Jira change.
 Print the active profile's Jira ticket template:
 
 ```bash
-./ai-commands/jira/jira.command.sh template
+${AI_COMMANDS_ROOT}/jira/jira.command.sh template
 ```
 
 Update a ticket using a prepared description:
 
 ```bash
-./ai-commands/jira/jira.command.sh update EXAMPLE-8336 \
+${AI_COMMANDS_ROOT}/jira/jira.command.sh update EXAMPLE-8336 \
   --description-file /path/to/description.txt \
   --submit
 ```
@@ -65,13 +65,13 @@ Update a ticket using a prepared description:
 Synchronize the active Flow plan with Smart Checklist:
 
 ```bash
-./ai-commands/jira/jira.command.sh sync-plan EXAMPLE-8336 --submit
+${AI_COMMANDS_ROOT}/jira/jira.command.sh sync-plan EXAMPLE-8336 --submit
 ```
 
 Add a comment with mentions and a link:
 
 ```bash
-./ai-commands/jira/jira.command.sh comment EXAMPLE-8336 \
+${AI_COMMANDS_ROOT}/jira/jira.command.sh comment EXAMPLE-8336 \
   --body "The dev deployment is healthy; targeted validation remains pending." \
   --mention sshapiro \
   --mention schaturvedi \
@@ -82,7 +82,7 @@ Add a comment with mentions and a link:
 Move an owned ticket to In Progress:
 
 ```bash
-./ai-commands/jira/jira.command.sh set-in-progress EXAMPLE-8399 --submit
+${AI_COMMANDS_ROOT}/jira/jira.command.sh set-in-progress EXAMPLE-8399 --submit
 ```
 
 `--mention USER` renders Jira's `[~USER]` syntax. `--link "LABEL|URL"` renders `[LABEL|URL]`; links must use HTTPS.

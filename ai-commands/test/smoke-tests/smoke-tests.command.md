@@ -1,5 +1,37 @@
 # smoke-tests.command
 
+## Purpose
+
+Use `smoke-tests` to run configured high-value health checks and report whether the target is basically operational.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- `{project_location}/apps/{app_name}-e2e/src/*`
+- `{project_location}/apps/{app_name}-e2e/src/helpers/*`
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- `{project_location}/apps/{app_name}-e2e/src/*`
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `test/smoke-tests/smoke-tests.command.md` | AI-readable contract | The initialized workflow role loads this contract after the host activates the selected profile and workflow. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `test/smoke-tests/smoke-tests.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #ai-command #test #smoke-tests #testing #e2e #qa
@@ -69,21 +101,12 @@ Use for smoke/e2e checks validating main user flows (API + browser). Assumes `{a
   - `actions/login.action.ts`
 
 (we could have named them commands, which would align with how backend code is structured, but we avoid that to keep
-concepts separate—this is explicitly about UI interactions, even if they end up calling commands/APIs underneath;
+concepts separate—this is explicitly about UI interactions, even if they end up calling ai-commands/APIs underneath;
 sometimes it’s 1:1, but not always)
 
 ## Roles
 
 - qa
-
-## Input
-
-- `{project_location}/apps/{app_name}-e2e/src/*`
-- `{project_location}/apps/{app_name}-e2e/src/helpers/*`
-
-## Output
-
-- `{project_location}/apps/{app_name}-e2e/src/*`
 
 ## Definition of done
 

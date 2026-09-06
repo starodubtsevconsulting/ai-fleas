@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "voice-report" || exit $?
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,9 +22,9 @@ voice_profile_file="$VOICE_PROFILE_DEFAULT"
 usage() {
   cat <<'USAGE'
 Usage:
-  ./rules/commands/voice-report/voice-report.command.sh --text "Spoken report text"
-  ./rules/commands/voice-report/voice-report.command.sh --text-file /tmp/report.txt
-  printf 'Spoken report text\n' | ./rules/commands/voice-report/voice-report.command.sh
+  ${AI_COMMANDS_ROOT}/voice-report/voice-report.command.sh --text "Spoken report text"
+  ${AI_COMMANDS_ROOT}/voice-report/voice-report.command.sh --text-file /tmp/report.txt
+  printf 'Spoken report text\n' | ${AI_COMMANDS_ROOT}/voice-report/voice-report.command.sh
 USAGE
 }
 

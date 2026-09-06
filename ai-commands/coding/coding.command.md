@@ -1,4 +1,39 @@
+# coding.command
+
+## Purpose
+
+Use `coding` to implement an authorized code change from defined scope, design, and acceptance criteria.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- `<session-root>/<work-profile>/<session-id>/session-plan.md` and the current context, current codebase
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- generated code
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `coding/coding.command.md` | AI-readable contract | The initialized workflow role loads this contract after the host activates the selected profile and workflow. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `coding/coding.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Coding command
+
+
 
 ## Tags
 
@@ -70,9 +105,9 @@ Any change in the code base should take into account the domain.
 Any coding is to follow DDD principles, to keep the core, shred domain,
 to know where is domain is in the project.
 
-Every project must include a `domain.md` that explains the ubiquitous language
-and the plain DDD view of what the project is about. Use
-`docs/apps/locusesse/domain.md` as a reference example.
+Every project should document its ubiquitous language and plain DDD view in the documentation location selected by that
+project—for example, `<project-docs>/domain.md`. This is an illustrative target-project path, not a file provided by AI
+Fleas.
 
 Example template:
 
@@ -80,23 +115,28 @@ Example template:
 # Domain Specification (Your Project Name)
 
 ## Bounded contexts
+
 - Context A: short description
 - Context B: short description
 
 ## Ubiquitous language
+
 - **Aggregate**: meaning
 - **Entity**: meaning
 - **Value Object**: meaning
 - **Event**: meaning
 
 ## Invariants
+
 - Rule 1
 - Rule 2
 
 ## Behaviors
+
 - **Command/Action**: expected behavior and events raised
 
 ## Domain events
+
 - **EventName**: payload summary and when it fires
 ```
 
@@ -135,8 +175,8 @@ Use this command as a short checklist when making code changes.
   - code -> spec: primary implementation classes/files include `Spec: .../*.spec.md` comments
 - For every primary class that implements a spec-defined behavior, add and preserve a class doc comment linking to the spec file.
 - The code comment is part of the implementation contract and should be maintained together with code and spec updates.
-- Example:
-  - `/** Spec: docs/specs/ai/AiAgents.spec.md */`
+- Example placeholder:
+  - `/** Spec: <project-docs>/specs/<domain>/<Capability>.spec.md */`
 - Do not leave the spec path only in chat context or only in the spec `Code Paths` section; keep the backlink in code as well.
 
 ### Naming convention (repositories)
@@ -148,7 +188,7 @@ For typescript (if java follow `java` convention (camelCase, but same idea;use c
 
 ### Architecture expectations
 
-- CQRS: commands/queries are separate types and handlers.
+- CQRS: ai-commands/queries are separate types and handlers.
 - DDD: domain entities encapsulate business rules; repositories abstract storage.
 - Backend-originated events must use domain/resource naming, not UI naming.
   - Prefer concrete channels such as `agent:update`, `session:update`, `plan:update`, `terminal:started`, `show:open`.
@@ -234,11 +274,3 @@ TODO: will add more
 ## Roles selection
 
 - dev
-
-## Input
-
-- `<session-root>/<work-profile>/<session-id>/session-plan.md` and the current context, current codebase
-
-## Output
-
-- generated code

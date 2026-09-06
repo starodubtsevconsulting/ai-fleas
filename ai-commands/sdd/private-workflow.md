@@ -69,9 +69,9 @@ unless they change behavior, accessibility, or an agreed UX rule
 
 8. **Resync gate for commit/push**
    - Before commit/push, refresh working memory with:
-     - `commands/sdd/sdd.command-resync.sh`
+     - `ai-commands/sdd/sdd.command-resync.sh`
    - Commit/push flows are guarded by:
-     - `commands/sdd/sdd.command-guard.sh`
+     - `ai-commands/sdd/sdd.command-guard.sh`
    - Guard blocks publication when:
      - active plan/session is missing or closed
      - no checked spec/SDD evidence exists in plan progress
@@ -85,10 +85,11 @@ unless they change behavior, accessibility, or an agreed UX rule
 
 Specs and code should stay separate.
 
-Use a docs/specs tree (can be flat-ish for convenience), for example:
+In the target product repository, use its documentation tree when one exists. The following are illustrative paths, not
+files shipped by AI Fleas:
 
-- `docs/specs/ai/AiAgents.spec.md`
-- `docs/specs/ai/UX.spec.md`
+- `<project-docs>/specs/<domain>/<Capability>.spec.md`
+- `<project-docs>/specs/product/UserExperience.spec.md`
 
 Do **not** force a strict 1:1 folder mirror of code paths.
 Instead, each spec must include explicit mapping to code files.
@@ -96,9 +97,9 @@ Instead, each spec must include explicit mapping to code files.
 Prefer a single conceptual spec when multiple components/services implement one user-facing behavior.
 Example:
 
-- prefer `docs/specs/ai/AiAgents.spec.md`
+- prefer `<project-docs>/specs/<domain>/<Capability>.spec.md`
 - avoid splitting too early into files like `AgentPanel.spec.md` and `FlowPanel.spec.md` when both describe the same AI Agents behavior
-- prefer `docs/specs/ai/UX.spec.md`
+- prefer `<project-docs>/specs/product/UserExperience.spec.md`
 - avoid narrow technical labels like `PanelZoom.spec.md` when the behavior belongs to a broader UX contract
 
 ---
@@ -315,7 +316,7 @@ owning `*.spec.md` file.
 - Use a short `/** ... */` comment directly above the class declaration.
 - Preferred pattern:
   - `/**`
-  - ` * Spec: docs/specs/ai/AiAgents.spec.md`
+  - ` * Spec: <project-docs>/specs/<domain>/<Capability>.spec.md`
   - ` */`
 - If a file contains multiple major classes tied to different specs, each class should point to its own primary spec.
 - If a class is only partially related to a spec, link the dominant spec and keep method-level comments only when needed for exceptions.
@@ -367,7 +368,7 @@ Typical order for behavior work:
 
 SDD guard and resync use the selected profile's
 `<ai-profile>/<profile-id>/.local/work-session-state/.current-plan-path`
-resolver, matching the session command. For `sc-dev`, the canonical profile is
-`<workspace>/ai-profile/sc`. Bundle precedence is
+resolver, matching the session command. For `example-dev`, the canonical profile is
+`<workspace>/ai-profile/example`. Bundle precedence is
 `AI_PROFILE_BUNDLE_ROOT`, legacy `AI_CONFIG_BUNDLE_ROOT`, then `APP_ROOT` or
 repository topology; SDD does not use a separate fallback pointer.

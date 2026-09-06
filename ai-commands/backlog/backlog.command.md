@@ -1,4 +1,21 @@
-## Tags
+# backlog.command
+
+## Purpose
+
+Use `backlog` to capture, organize, prioritize, and inspect pending work without starting implementation.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes the command and resolves profile-owned configuration. |
+| Command-specific input | Yes | User, workflow, profile, or source artifact | Backlog operation, item name/path, and active session context. |
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Command result | Caller, configured artifact path, or authorized external system | Updated backlog files, selected plan, or synchronization receipt. |
 
 #command #ai-command #backlog #work-session #plan
 
@@ -6,6 +23,20 @@ Manage shared backlog files stored under `session-root/<work-profile>/backlog/`,
 active session when it is picked, sync a backlog story to a GitHub issue when requested, and compile the selected
 backlog into the active session plan file:
 `session-root/<work-profile>/<session-id>/plan.md`.
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `backlog/backlog.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `backlog/backlog.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
+## Tags
+
+
 
 ## Behavior
 
@@ -33,11 +64,11 @@ backlog story unchanged
 ## Usage
 
 ```bash
-./rules/commands/backlog/backlog.command.sh list
-./rules/commands/backlog/backlog.command.sh pick --backlog add-backlog-dropdown-in-session-flow-story.md
-./rules/commands/backlog/backlog.command.sh get --backlog add-backlog-dropdown-in-session-flow-story.md
-./rules/commands/backlog/backlog.command.sh open --backlog add-backlog-dropdown-in-session-flow-story.md
-./rules/commands/backlog/backlog.command.sh show
-./rules/commands/backlog/backlog.command.sh delete
-./rules/commands/backlog/backlog.command.sh sync --backlog rename-cottageinsights-repo-local-tmp-storage-to-data-firebase-story.md
+${AI_COMMANDS_ROOT}/backlog/backlog.command.sh list
+${AI_COMMANDS_ROOT}/backlog/backlog.command.sh pick --backlog add-backlog-dropdown-in-session-flow-story.md
+${AI_COMMANDS_ROOT}/backlog/backlog.command.sh get --backlog add-backlog-dropdown-in-session-flow-story.md
+${AI_COMMANDS_ROOT}/backlog/backlog.command.sh open --backlog add-backlog-dropdown-in-session-flow-story.md
+${AI_COMMANDS_ROOT}/backlog/backlog.command.sh show
+${AI_COMMANDS_ROOT}/backlog/backlog.command.sh delete
+${AI_COMMANDS_ROOT}/backlog/backlog.command.sh sync --backlog rename-cottageinsights-repo-local-tmp-storage-to-data-firebase-story.md
 ```

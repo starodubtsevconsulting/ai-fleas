@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "test" || exit $?
 set -euo pipefail
 
 PROJECT_DIR="$(pwd)"
@@ -23,7 +25,7 @@ Options:
   -h, --help               Show this help
 
 Example:
-  ./commands/test/java-maven-cheap.command.sh \
+  ${AI_COMMANDS_ROOT}/test/java-maven-cheap.command.sh \
     --module-dir example-module \
     --report-glob '*ExampleTest*' \
     -- mvn -q -Dtest=ExampleTest test

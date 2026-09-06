@@ -1,5 +1,16 @@
 # Show Context
 
+## Purpose
+
+Use `show-context` to present a file, URL, report, or other selected artifact in an appropriate visible context.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes the command and resolves profile-owned configuration. |
+| Command-specific input | Yes | User, workflow, profile, or source artifact | Files, URLs, paths, or bounded evidence plus presentation options. |
+
 ```mermaid
 flowchart TD
   Context["Relevant context"]
@@ -22,6 +33,42 @@ Start with what the person needs to understand. Then show the smallest useful
 visual, explain what it means, and add code or other evidence only when it helps.
 The command presents evidence; it does not decide approval, modify the subject,
 or replace a specialized review command.
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+```mermaid
+flowchart TD
+  Render["Render succeeds"]
+  Render --> Artifact["Visible HTML artifact"]
+  Artifact --> Evidence["Print recoverable artifact/source paths"]
+  Evidence --> Human["Human can inspect the same context"]
+```
+
+Completion requires a readable artifact, recoverable location, faithful source
+links, and no silent mutation of the material being presented. If the available
+evidence cannot answer the question, say what is missing instead of producing a
+confident but ungrounded report.
+
+The Python renderer embeds the HTML structure and CSS directly in the generated
+page. By default `<source>` becomes `<source>.html` beside the input; `--output`
+selects another location. It prints the artifact path and opens the system
+browser unless `--no-open` is used. Mermaid renders in the browser from its
+documented public CDN, with diagram source retained as the fallback. Generated
+HTML is runtime output and must remain outside version control.
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `show-context/show-context.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `show-context/show-context.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
 ## Execution role
 
@@ -114,8 +161,8 @@ evidence; they do not rebuild that template manually. Without `--template`, the 
 or evidence-incompatible template fails closed instead of falling back silently.
 
 The currently registered template is `md-rules-changed`. A future purpose such as code review may register a separate
-template, for example `code-review`, without changing the general report contract. That example documents the extension
-design only; `code-review` is not currently registered or accepted by the command.
+template, for example `review`, without changing the general report contract. That example documents the extension
+design only; `review` is not currently registered or accepted by the command.
 
 The `md-rules-changed` template requires the following:
 
@@ -274,28 +321,6 @@ may contain an `indexed/` folder of prepared meetings and legacy `*-feature`
 folders. The command must not assume a meeting provider, home-directory layout,
 or provider-specific storage convention.
 
-## Output and completion
-
-```mermaid
-flowchart TD
-  Render["Render succeeds"]
-  Render --> Artifact["Visible HTML artifact"]
-  Artifact --> Evidence["Print recoverable artifact/source paths"]
-  Evidence --> Human["Human can inspect the same context"]
-```
-
-Completion requires a readable artifact, recoverable location, faithful source
-links, and no silent mutation of the material being presented. If the available
-evidence cannot answer the question, say what is missing instead of producing a
-confident but ungrounded report.
-
-The Python renderer embeds the HTML structure and CSS directly in the generated
-page. By default `<source>` becomes `<source>.html` beside the input; `--output`
-selects another location. It prints the artifact path and opens the system
-browser unless `--no-open` is used. Mermaid renders in the browser from its
-documented public CDN, with diagram source retained as the fallback. Generated
-HTML is runtime output and must remain outside version control.
-
 ## Tags
 
 ```mermaid
@@ -305,4 +330,4 @@ flowchart TD
 ```
 
 `#command` `#ai-command` `#show-context` `#human-context` `#visual-report`
-`#code-review` `#evidence`
+`#review` `#evidence`

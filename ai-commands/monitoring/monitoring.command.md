@@ -1,5 +1,40 @@
 # monitoring.command
 
+## Purpose
+
+Use `monitoring` to inspect configured system or application signals and report actionable health evidence.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- See command description
+- AI_FLOW_PROJECT_DIR / AI_FLOW_OUTPUT_DIR when applicable
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- Current runtime summary
+- Recent scaling activities
+- Alarm states
+- Datadog and AWS console URLs
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `monitoring/monitoring.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `monitoring/monitoring.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Roles
 
 - `devops`
@@ -15,13 +50,13 @@ runtime tabs`, `watch the load test`, `service auto scaling tab`, or `ALB reques
 
 ## Usage
 
-- `./commands/monitoring/monitoring.command.sh --service <service> [--project-dir <path>] [--env <env>] [--open]`
+- `${AI_COMMANDS_ROOT}/monitoring/monitoring.command.sh --service <service> [--project-dir <path>] [--env <env>] [--open]`
 - `--project-dir` defaults to `AI_FLOW_PROJECT_DIR` when available.
 - `--env` defaults from active active AWS context when omitted.
 
 ## Steps
 
-1. Resolve project metadata from `commands/projects/projects-registry.yml`.
+1. Resolve project metadata from the selected profile project definition (`AI_PROFILE_PROJECT_FILE`).
    - Uses service label / app name / repo path to find region and ECS cluster.
 2. Query AWS for:
    - ECS desired/running/pending counts
@@ -44,22 +79,10 @@ runtime tabs`, `watch the load test`, `service auto scaling tab`, or `ALB reques
    - ECS service auto scaling
    - target groups
    - load balancers
-5. If `--open` is provided, open the collected URLs through `commands/browser/browser.command.sh`.
+5. If `--open` is provided, open the collected URLs through `ai-commands/browser/browser.command.sh`.
 
 ## Notes
 
 - Requires `aws`, `jq`, and `python3`.
-- Browser opens must go through `commands/browser/browser.command.sh`.
+- Browser opens must go through `ai-commands/browser/browser.command.sh`.
 - This helper is read-only; it does not mutate ECS or autoscaling state.
-
-## Inputs
-
-- See command description
-- AI_FLOW_PROJECT_DIR / AI_FLOW_OUTPUT_DIR when applicable
-
-## Output
-
-- Current runtime summary
-- Recent scaling activities
-- Alarm states
-- Datadog and AWS console URLs

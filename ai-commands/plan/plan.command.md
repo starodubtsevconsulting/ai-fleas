@@ -1,3 +1,36 @@
+# plan.command
+
+## Purpose
+
+Use `plan` to turn a defined outcome into an ordered, verifiable implementation or execution plan.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- TBD
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- `<session-root>/<work-profile>/<session-id>/session-plan.md`
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `plan/plan.command.md` | AI-readable contract | The initialized workflow role loads this contract after the host activates the selected profile and workflow. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `plan/plan.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #ai-command #plan #planning #checklist #workflow
@@ -33,7 +66,7 @@ publication authority. Designer/Reviewer owns plan meaning; Manager reads it onl
 - the active session `session-plan.md` is to be used for other commands like pr, commit, and others that need current
 context of the work in progress
 - when starting new work, you may seed the active session `session-plan.md` from a story in `<session-root>/<work-profile>/backlog/`
-- see `plan.command.config` for command matching strictness
+- configure command matching strictness in the selected profile through `AI_COMMAND_CONFIG_PATH`
 - when asked to archive the plan, run `archive-plan.sh` (calls backend `/api/plan/clear`)
 
 ## Documentation
@@ -51,11 +84,3 @@ timestamped session directories are the retained history.
 ## Roles selection
 
 - planner
-
-## Input
-
-- TBD
-
-## Output
-
-- `<session-root>/<work-profile>/<session-id>/session-plan.md`

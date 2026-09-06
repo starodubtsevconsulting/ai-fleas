@@ -1,5 +1,38 @@
 # discussion.command
 
+## Purpose
+
+Use `discussion` to record, retrieve, and develop structured discussion threads without treating them as implementation authorization.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
+| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
+
+- See command description
+- AI_FLOW_PROJECT_DIR / AI_FLOW_OUTPUT_DIR when applicable
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Detailed command outputs | Caller, configured artifact path, or authorized external system | Observable results, evidence, and effects documented below. |
+
+- Created discussion folders/files under `session-root/<work-profile>/discussions/`
+- Optional summary markdown and backlog draft markdown
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `discussion/discussion.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `discussion/discussion.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## Tags
 
 #command #discussion #conversation-history #zoom #indexing #lookup #context-lookup #current-meeting #live-meeting #backlog #summary
@@ -46,20 +79,20 @@ a ready indexed folder when applicable.
 
 ## Usage
 
-- `./commands/discussion/discussion.command.sh init [--date DD_MM_YYYY]`
-- `./commands/discussion/discussion.command.sh add-text [--date DD_MM_YYYY] [--name file.txt] (--file <path> | --text "<raw text>")`
-- `./commands/discussion/discussion.command.sh add-screen [--date DD_MM_YYYY] [--name file.png] --file <path>`
-- `./commands/discussion/discussion.command.sh list [--date DD_MM_YYYY]`
-- `./commands/discussion/discussion.command.sh summarize [--date DD_MM_YYYY] [--summary-name <name>] [--out <path>]`
-- `./commands/discussion/discussion.command.sh current-conversation [--set|--show|--summary|--clear] [--date
+- `${AI_COMMANDS_ROOT}/discussion/discussion.command.sh init [--date DD_MM_YYYY]`
+- `${AI_COMMANDS_ROOT}/discussion/discussion.command.sh add-text [--date DD_MM_YYYY] [--name file.txt] (--file <path> | --text "<raw text>")`
+- `${AI_COMMANDS_ROOT}/discussion/discussion.command.sh add-screen [--date DD_MM_YYYY] [--name file.png] --file <path>`
+- `${AI_COMMANDS_ROOT}/discussion/discussion.command.sh list [--date DD_MM_YYYY]`
+- `${AI_COMMANDS_ROOT}/discussion/discussion.command.sh summarize [--date DD_MM_YYYY] [--summary-name <name>] [--out <path>]`
+- `${AI_COMMANDS_ROOT}/discussion/discussion.command.sh current-conversation [--set|--show|--summary|--clear] [--date
 DD_MM_YYYY] [--name <text>] [--file <path>|--source-dir <path>] [--no-open]`
-- `./commands/discussion/discussion.command.sh prep-conversation [--date DD_MM_YYYY] (--feature <name>|--recent)
+- `${AI_COMMANDS_ROOT}/discussion/discussion.command.sh prep-conversation [--date DD_MM_YYYY] (--feature <name>|--recent)
 [--source-dir <path>] [--ready-root <path>] [--pattern <glob>] [--limit <n>] [--chronological|--order
 newest|chronological] [--tag <tag> ...]`
-- `./commands/discussion/discussion.command.sh index-conversations [--root <path> ...] [--index-path <path>] [--json]`
-- `./commands/discussion/discussion.command.sh lookup-conversation (--query <text>|<text>) [--root <path> ...] [--limit
+- `${AI_COMMANDS_ROOT}/discussion/discussion.command.sh index-conversations [--root <path> ...] [--index-path <path>] [--json]`
+- `${AI_COMMANDS_ROOT}/discussion/discussion.command.sh lookup-conversation (--query <text>|<text>) [--root <path> ...] [--limit
 <n>] [--show] [--json] [--reindex] [--no-index] [--index-path <path>] [--no-open]`
-- `./commands/discussion/discussion.command.sh backlog-draft [--date DD_MM_YYYY] [--title <text>] [--project <label>]
+- `${AI_COMMANDS_ROOT}/discussion/discussion.command.sh backlog-draft [--date DD_MM_YYYY] [--title <text>] [--project <label>]
 [--scope <text>] [--out <path>]`
 
 ## Conversation Prep Contract
@@ -87,14 +120,14 @@ to `lookup-conversation`.
 Example:
 
 ```bash
-./commands/discussion/discussion.command.sh prep-conversation \
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh prep-conversation \
   --feature "tagged app config cache" \
   --source-dir "$HOME/Documents/Zoom/2026-05-14 12.17.55 Refinement session" \
   --pattern "meeting_saved_closed_caption.txt" \
   --tag config-service \
   --tag tags
 
-./commands/discussion/discussion.command.sh prep-conversation \
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh prep-conversation \
   --recent \
   --source-dir "$HOME/Documents/Zoom" \
   --pattern "meeting_saved_closed_caption.txt" \
@@ -168,10 +201,10 @@ mtimes. If a newly prepared meeting is newer, lookup refreshes the common index 
 Examples:
 
 ```bash
-./commands/discussion/discussion.command.sh index-conversations
-./commands/discussion/discussion.command.sh lookup-conversation --query "tag feature" --limit 5
-./commands/discussion/discussion.command.sh lookup-conversation --query "tag feature" --reindex
-./commands/discussion/discussion.command.sh lookup-conversation --query "tag feature" --no-index
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh index-conversations
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh lookup-conversation --query "tag feature" --limit 5
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh lookup-conversation --query "tag feature" --reindex
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh lookup-conversation --query "tag feature" --no-index
 ```
 
 ## Current Conversation Contract
@@ -215,13 +248,13 @@ Current meeting summary template:
 Examples:
 
 ```bash
-./commands/discussion/discussion.command.sh current-conversation \
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh current-conversation \
   --set \
   --name "tag rollout discussion" \
   --source-dir "$HOME/Documents/Zoom/current-meeting"
 
-./commands/discussion/discussion.command.sh current-conversation --summary --show
-./commands/discussion/discussion.command.sh current-conversation --clear
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh current-conversation --summary --show
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh current-conversation --clear
 ```
 
 When the meeting is finished, run `prep-conversation` to move/index the final conversation under `~/Documents/Zoom/indexed/`.
@@ -250,10 +283,10 @@ Ranking rules:
 Examples:
 
 ```bash
-./commands/discussion/discussion.command.sh lookup-conversation --query "tag feature" --limit 5
-./commands/discussion/discussion.command.sh lookup-conversation "tag feature" --show
-./commands/discussion/discussion.command.sh lookup-conversation --query "cache eviction tags" --json
-./commands/discussion/discussion.command.sh lookup-conversation --query "tag feature" --no-index
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh lookup-conversation --query "tag feature" --limit 5
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh lookup-conversation "tag feature" --show
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh lookup-conversation --query "cache eviction tags" --json
+${AI_COMMANDS_ROOT}/discussion/discussion.command.sh lookup-conversation --query "tag feature" --no-index
 ```
 
 Use `--show` when the lookup should immediately render the top result through `show-context`. Without `--show`, report
@@ -279,13 +312,3 @@ do not ask follow-up naming questions unless required inputs are truly missing.
 otherwise use available day `*.txt` files.
 - Privacy/path rule: generated markdown files must not include absolute local filesystem paths (for example
 `/home/...`); use repo-relative paths instead.
-
-## Inputs
-
-- See command description
-- AI_FLOW_PROJECT_DIR / AI_FLOW_OUTPUT_DIR when applicable
-
-## Output
-
-- Created discussion folders/files under `session-root/<work-profile>/discussions/`
-- Optional summary markdown and backlog draft markdown

@@ -77,7 +77,7 @@ test('init-prompt exposes bounded semantic text only and succeeds through fixed 
     config: {
       toolName: 'workflow.init_prompt.v1',
       projectDir: path.resolve('../..'),
-      projectLabel: 'sc-services'
+      projectLabel: 'example-project'
     },
     executionPolicy: { envAllowlist: ['PATH', 'LANG', 'LC_ALL'] }
   });
@@ -91,7 +91,7 @@ test('init-prompt exposes bounded semantic text only and succeeds through fixed 
   assert.equal(result.argvShape.shell, false);
   assert.equal(result.argvShape.command, 'bash');
   assert.equal(result.ok, true);
-  assert.match(result.stdout, /Project already selected: sc-services/);
+  assert.match(result.stdout, /Project already selected: example-project/);
   assert.match(result.stdout, /Session task: Validate MCP init prompt/);
 });
 

@@ -3,7 +3,8 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root_dir="$(cd "$script_dir/.." && pwd)"
-config_file="$script_dir/install.config"
+config_file="${AI_COMMAND_CONFIG_PATH:-}"
+[[ -n "$config_file" && -f "$config_file" ]] || { echo 'Profile-owned Whisper config required.' >&2; exit 2; }
 # shellcheck disable=SC1091
 source "$root_dir/scripts/report-log.sh"
 report_log_init "whisper/install.sh" "$root_dir"

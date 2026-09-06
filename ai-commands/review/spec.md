@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Define the operating rules for the `review` command.
+Define the operating rules for independently assessing a proposed code or configuration change against repository,
+workflow, role, correctness, security, documentation, testing, and Definition-of-Done requirements. The command reports
+actionable findings and an acceptance disposition; it does not implement, test, deliver, deploy, or close the work.
 
 ## Command Files
 

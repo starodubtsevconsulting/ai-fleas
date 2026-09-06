@@ -8,7 +8,7 @@ FORCE="false"
 
 usage() {
   cat <<'EOF'
-Usage: ./commands/install/java/java.sh [--major N] [--switch] [--force]
+Usage: ${AI_COMMANDS_ROOT}/install/java/java.sh [--major N] [--switch] [--force]
 
 Installs AWS Corretto JDK N into ~/java/N-aws. Use --switch to update
 ~/java/current to the installed version for this shell profile layout.

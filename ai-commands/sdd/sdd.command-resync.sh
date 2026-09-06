@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 REPO_ROOT="$(git -C "$CONFIG_ROOT" rev-parse --show-toplevel 2>/dev/null || true)"
 
-PROFILE_ID="${AI_WORK_PROFILE_ID:-sc}"
+PROFILE_ID="${AI_WORK_PROFILE_ID:-example}"
 if [ -n "$REPO_ROOT" ] && [ -d "$REPO_ROOT/ai-profile/$PROFILE_ID" ]; then
   APP_ROOT="${AI_PROFILE_BUNDLE_ROOT:-$REPO_ROOT/ai-profile/$PROFILE_ID}"
 else

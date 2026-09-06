@@ -44,7 +44,7 @@ export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR
 # Wrapper to run a single Hurl file with proper service context.
 #
 # Usage:
-#   ./commands/hurl-test-runner/hurl-test-runner.sh \
+#   ${AI_COMMANDS_ROOT}/hurl-test-runner/hurl-test-runner.sh \
 #     --service-name <svc> \
 #     --stage <stage> \
 #     --region <region> \
@@ -55,8 +55,8 @@ export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "$SCRIPT_DIR/../.." && pwd)
 
-CONF_FILE="${SCRIPT_DIR}/hurl-test-runner.command.conf"
-if [[ -f "$CONF_FILE" ]]; then
+CONF_FILE="${HURL_TEST_COMMAND_CONF:-${AI_COMMAND_CONFIG_PATH:-}}"
+if [[ -n "$CONF_FILE" && -f "$CONF_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$CONF_FILE"
 fi
@@ -100,7 +100,8 @@ while [[ "$SEARCH_DIR" != "/" ]]; do
 done
 
 if [[ -z "$REPO_CALLER" ]]; then
-  REPO_CALLER="$ROOT_DIR/commands/smoke-tests/smoke-tests.command-hurl-api-caller.sh"
+  COMMANDS_ROOT="${AI_COMMANDS_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd -P)}"
+  REPO_CALLER="$COMMANDS_ROOT/smoke-tests/smoke-tests.command-hurl-api-caller.sh"
 fi
 
 CMD=("$REPO_CALLER"

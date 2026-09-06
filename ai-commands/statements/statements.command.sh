@@ -1,23 +1,21 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "statements" || exit $?
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../command-python.setup.sh"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-SHOW_CONTEXT_CMD="$ROOT_DIR/rules/commands/show-context/show-context.command.sh"
+SHOW_CONTEXT_CMD="$ROOT_DIR/ai-commands/show-context/show-context.command.sh"
 
-if [[ -f "$SCRIPT_DIR/statements.command-default.config" ]]; then
+if [[ -n "${AI_COMMAND_CONFIG_PATH:-}" && -f "$AI_COMMAND_CONFIG_PATH" ]]; then
   # shellcheck disable=SC1091
-  source "$SCRIPT_DIR/statements.command-default.config"
+  source "$AI_COMMAND_CONFIG_PATH"
 fi
 
-if [[ -f "$SCRIPT_DIR/statements.command.config" ]]; then
-  # shellcheck disable=SC1091
-  source "$SCRIPT_DIR/statements.command.config"
-fi
-
-INCORPORATED_ROOT="${INCORPORATED_ROOT:-${HOME}/data/SynologyDrive/documents/incorparated}"
+INCORPORATED_ROOT="${INCORPORATED_ROOT:-${HOME}/accounting}"
 REPORTS_ROOT="${REPORTS_ROOT:-${INCORPORATED_ROOT}/reports}"
+STATEMENTS_PROVIDER="${STATEMENTS_PROVIDER:-fs}"
 STATEMENTS_OUTPUT_DIR="${STATEMENTS_OUTPUT_DIR:-}"
 
 ACTION="${1:-tax-candidates}"
@@ -32,12 +30,14 @@ OPEN="true"
 usage() {
   cat <<'USAGE'
 Usage:
-  statements.command.sh tax-candidates [--year YYYY] [--reports-root <path>] [--incorporated-root <path>] [--output-dir <path>] [--show] [--no-open]
+  statements.command.sh tax-candidates [--provider fs] [--year YYYY] [--reports-root <path>] [--incorporated-root <path>] [--output-dir <path>] [--show] [--no-open]
 USAGE
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --provider)
+      STATEMENTS_PROVIDER="${2:-}"; shift 2 ;;
     --year)
       YEAR="${2:-}"; shift 2 ;;
     --reports-root)
@@ -60,6 +60,11 @@ while [[ $# -gt 0 ]]; do
       exit 2 ;;
   esac
 done
+
+if [[ "$STATEMENTS_PROVIDER" != "fs" ]]; then
+  echo "Unsupported statements provider: $STATEMENTS_PROVIDER (available: fs)" >&2
+  exit 2
+fi
 
 if [[ "$ACTION" != "tax-candidates" ]]; then
   echo "Unsupported action: $ACTION" >&2

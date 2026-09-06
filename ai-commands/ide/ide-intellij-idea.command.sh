@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "ide" || exit $?
 set -euo pipefail
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"
@@ -42,7 +44,7 @@ export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../command-python.setup.sh"
-CONF_FILE="$SCRIPT_DIR/ide.command.conf"
+CONF_FILE="${IDE_COMMAND_CONF:-${AI_COMMAND_CONFIG_PATH:-}}"
 
 MAIN_CLASS_ENV="${MAIN_CLASS:-}"
 PROFILE_ENV="${PROFILE:-}"
@@ -50,7 +52,7 @@ RUN_AWS_REGION_ENV="${RUN_AWS_REGION:-}"
 DEVTOOLS_RESTART_ENABLED_ENV="${DEVTOOLS_RESTART_ENABLED:-}"
 DEVTOOLS_RESTART_JVM_DISABLE_ENV="${DEVTOOLS_RESTART_JVM_DISABLE:-}"
 
-if [ -f "$CONF_FILE" ]; then
+if [ -n "$CONF_FILE" ] && [ -f "$CONF_FILE" ]; then
   # shellcheck source=/dev/null
   source "$CONF_FILE"
 fi
@@ -76,7 +78,7 @@ if [ ! -d "$REPO_DIR" ]; then
 fi
 
 if [ -z "$MAIN_CLASS" ]; then
-  echo "MAIN_CLASS is required (set it in ide.command.conf or env)." >&2
+  echo "MAIN_CLASS is required (set it in the selected profile or environment)." >&2
   exit 1
 fi
 

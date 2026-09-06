@@ -1,24 +1,22 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "taxes" || exit $?
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../command-python.setup.sh"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-SHOW_CONTEXT_CMD="$ROOT_DIR/rules/commands/show-context/show-context.command.sh"
-STATEMENTS_CMD="$ROOT_DIR/rules/commands/statements/statements.command.sh"
+SHOW_CONTEXT_CMD="$ROOT_DIR/ai-commands/show-context/show-context.command.sh"
+STATEMENTS_CMD="$ROOT_DIR/ai-commands/statements/statements.command.sh"
 
-if [[ -f "$SCRIPT_DIR/taxes.command-default.config" ]]; then
+if [[ -n "${AI_COMMAND_CONFIG_PATH:-}" && -f "$AI_COMMAND_CONFIG_PATH" ]]; then
   # shellcheck disable=SC1091
-  source "$SCRIPT_DIR/taxes.command-default.config"
+  source "$AI_COMMAND_CONFIG_PATH"
 fi
 
-if [[ -f "$SCRIPT_DIR/taxes.command.config" ]]; then
-  # shellcheck disable=SC1091
-  source "$SCRIPT_DIR/taxes.command.config"
-fi
-
-INCORPORATED_ROOT="${INCORPORATED_ROOT:-${HOME}/data/SynologyDrive/documents/incorparated}"
-REPORTS_ROOT="${INCORPORATED_ROOT}/reports"
+INCORPORATED_ROOT="${INCORPORATED_ROOT:-${HOME}/accounting}"
+REPORTS_ROOT="${REPORTS_ROOT:-${INCORPORATED_ROOT}/reports}"
+TAXES_PROVIDER="${TAXES_PROVIDER:-fs}"
 TAXES_OUTPUT_DIR="${TAXES_OUTPUT_DIR:-}"
 
 ACTION="${1:-summary}"
@@ -33,12 +31,14 @@ OPEN="true"
 usage() {
   cat <<'USAGE'
 Usage:
-  taxes.command.sh summary [--year YYYY] [--reports-root <path>] [--incorporated-root <path>] [--output-dir <path>] [--show] [--no-open]
+  taxes.command.sh summary [--provider fs] [--year YYYY] [--reports-root <path>] [--incorporated-root <path>] [--output-dir <path>] [--show] [--no-open]
 USAGE
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --provider)
+      TAXES_PROVIDER="${2:-}"; shift 2 ;;
     --year)
       YEAR="${2:-}"; shift 2 ;;
     --reports-root)
@@ -61,6 +61,11 @@ while [[ $# -gt 0 ]]; do
       exit 2 ;;
   esac
 done
+
+if [[ "$TAXES_PROVIDER" != "fs" ]]; then
+  echo "Unsupported taxes provider: $TAXES_PROVIDER (available: fs)" >&2
+  exit 2
+fi
 
 if [[ "$ACTION" != "summary" ]]; then
   echo "Unsupported action: $ACTION" >&2
@@ -95,7 +100,7 @@ if ! find "$YEAR_ROOT" -type f -name 'taxes.md' | grep -E '/(taxes|statements)/'
     echo "statements command not executable: $STATEMENTS_CMD" >&2
     exit 1
   fi
-  statement_args=(tax-candidates --year "$YEAR" --reports-root "$REPORTS_ROOT" --output-dir "$OUTPUT_DIR")
+  statement_args=(tax-candidates --provider fs --year "$YEAR" --reports-root "$REPORTS_ROOT" --output-dir "$OUTPUT_DIR")
   if [[ "$SHOW" == "true" ]]; then
     statement_args+=(--show)
   fi

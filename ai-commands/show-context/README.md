@@ -17,8 +17,8 @@ layer of code review, investigation, handoff, architecture, and testing flows.
 summaries, or reports; select what matters; then present it in the form a human
 can understand most easily. Connect the command to the human-facing agent that
 has access to—and responsibility for—the relevant knowledge. The
-[`agents` command](../agents/README.md) explains the shared identity,
-capability, context-boundary, and communication rules for that connection.
+[workflow roles](../../ai-workflows/README.md) define the identity, capability, context boundary, and communication rules
+for that connection.
 
 ## Portable package
 

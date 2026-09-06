@@ -261,7 +261,7 @@ export function initPromptCapability() {
       const mounted = mountContext(context);
       const toolName = mounted.config.toolName ?? 'workflow.init_prompt.v1';
       const projectDir = path.resolve(mounted.config.projectDir ?? repoRoot);
-      const projectLabel = mounted.config.projectLabel ?? 'sc-services';
+      const projectLabel = mounted.config.projectLabel ?? 'example-project';
       if (!fs.existsSync(projectDir) || !fs.lstatSync(projectDir).isDirectory()) {
         failConfig('init-prompt projectDir must be a fixed workflow-supplied existing directory');
       }

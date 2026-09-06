@@ -1,5 +1,33 @@
 # video-handwriting-effect.command
 
+## Purpose
+
+Use `video-handwriting-effect` to generate and verify a video that animates supplied text or artwork as handwriting.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes the command and resolves profile-owned configuration. |
+| Command-specific input | Yes | User, workflow, profile, or source artifact | Source text/media, render settings, output target, and profile context. |
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Command result | Caller, configured artifact path, or authorized external system | Rendered handwriting-effect video and validation evidence. |
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `video-handwriting-effect/video-handwriting-effect.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+| `video-handwriting-effect/app.sh` | Command-owned UI launcher | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+
+Committed configuration template: `video-handwriting-effect/video-handwriting-effect.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
 ## What It Does
 
 Builds a named handwriting font from PNG samples and renders text into handwriting MP4s/MOV video.

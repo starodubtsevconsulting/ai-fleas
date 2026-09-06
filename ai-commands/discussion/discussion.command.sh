@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "discussion" || exit $?
 set -euo pipefail
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"
@@ -136,7 +138,7 @@ conversation_index_db() {
 
 refresh_conversation_index_quiet() {
   local index_helper
-  index_helper="$ROOT_DIR/commands/discussion/discussion_index.py"
+  index_helper="${AI_COMMANDS_ROOT:-$ROOT_DIR/ai-commands}/discussion/discussion_index.py"
   if [ ! -x "$index_helper" ]; then
     return 0
   fi
@@ -715,7 +717,7 @@ case "$ACTION" in
         summary_path="$(discussion_day_dir)/$(slugify "${SUMMARY_NAME:-current-conversation}")-current-summary.md"
         generate_current_conversation_summary "$summary_path" "${SUMMARY_NAME:-current conversation}" "$(discussion_day_dir)" "${marker_dir_source:-}"
         if [ "$LOOKUP_OPEN_BROWSER" = "true" ]; then
-          show_context_cmd="$ROOT_DIR/commands/show-context/show-context.command.sh"
+          show_context_cmd="${AI_COMMANDS_ROOT:-$ROOT_DIR/ai-commands}/show-context/show-context.command.sh"
           if [ -x "$show_context_cmd" ]; then
             "$show_context_cmd" --file "$summary_path"
           fi
@@ -836,7 +838,7 @@ case "$ACTION" in
     echo "Summary created: $SUMMARY_OUT"
     ;;
   index|index-conversations)
-    index_helper="$ROOT_DIR/commands/discussion/discussion_index.py"
+    index_helper="${AI_COMMANDS_ROOT:-$ROOT_DIR/ai-commands}/discussion/discussion_index.py"
     if [ ! -x "$index_helper" ]; then
       echo "Conversation index helper not found: $index_helper" >&2
       exit 1
@@ -859,7 +861,7 @@ case "$ACTION" in
       echo "Invalid --limit '$LOOKUP_LIMIT'. Use a positive integer." >&2
       exit 2
     fi
-    index_helper="$ROOT_DIR/commands/discussion/discussion_index.py"
+    index_helper="${AI_COMMANDS_ROOT:-$ROOT_DIR/ai-commands}/discussion/discussion_index.py"
     if [ ! -x "$index_helper" ]; then
       echo "Conversation index helper not found: $index_helper" >&2
       exit 1
@@ -885,7 +887,7 @@ case "$ACTION" in
         echo "No top result to show." >&2
         exit 1
       fi
-      show_context_cmd="$ROOT_DIR/commands/show-context/show-context.command.sh"
+      show_context_cmd="${AI_COMMANDS_ROOT:-$ROOT_DIR/ai-commands}/show-context/show-context.command.sh"
       if [ ! -x "$show_context_cmd" ]; then
         echo "show-context command not found: $show_context_cmd" >&2
         exit 1
@@ -1092,7 +1094,7 @@ for caption in selected:
     lines.append("## Show Context")
     lines.append(f"- Indexed folder: `{display_source(dest)}`")
     lines.append(f"- Session index: `{rel(session_md)}`")
-    lines.append(f"- Suggested lookup: `./commands/show-context/show-context.command.sh --feature \"{title}\"`")
+    lines.append(f"- Suggested lookup: `${AI_COMMANDS_ROOT}/show-context/show-context.command.sh --feature \"{title}\"`")
     lines.append("")
     lines.append("## Summary")
     lines.append(f"- Title hint: {clean_title(folder.name)}")
@@ -1348,7 +1350,7 @@ lines.append(f"- Prepared feature context: `{rel(out)}`")
 lines.append(f"- Source folder: `{raw_source_rel}`")
 if ready_dir is not None:
     lines.append(f"- Indexed folder: `{display_source(ready_dir)}`")
-lines.append(f"- Suggested lookup: `./commands/show-context/show-context.command.sh --feature \"{feature}\"`")
+lines.append(f"- Suggested lookup: `${AI_COMMANDS_ROOT}/show-context/show-context.command.sh --feature \"{feature}\"`")
 lines.append("")
 lines.append("## Raw Sources")
 for src in selected:

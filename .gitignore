@@ -18,8 +18,22 @@
 **/.secrets/
 **/start.config
 **/*.command.conf
+**/*.conf
+**/*.config
+!**/*.example.config
+!**/*.command-default.config
 **/.env
 **/.env.*
+
+# Operational AI Profile command overrides. Only sanitized files under ai-profile/example are publishable.
+/ai-profile/*/commands/**/config.yml
+/ai-profile/*/commands/**/config.yaml
+/ai-profile/*/commands/**/config.env
+/ai-profile/*/commands/**/config.conf
+!/ai-profile/example/commands/**/config.yml
+!/ai-profile/example/commands/**/config.yaml
+!/ai-profile/example/commands/**/config.example.env
+!/ai-profile/example/commands/**/config.example.conf
 
 # Local operational profile copied from the private platform for development.
 /ai-profile/sc/

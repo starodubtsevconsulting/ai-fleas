@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createCoreAdapters } from './application/core-adapters.mjs';
 import { LocalConfigProvider } from './application/local-config-provider.mjs';
 import { runConnectionTest } from './subcommands/connection-test.command.mjs';
 import { runQuarterReport } from './subcommands/quarter-report.command.mjs';
+import { fileURLToPath } from 'node:url';
+import { requireCommandProfile } from '../_runtime/profile/command-profile.guard.mjs';
 
 const USAGE = 'usage: lodgify <connection-test|quarter-report> [options]';
 
 export async function runCommand(
   argumentsList,
-  dependencies = createDependencies(),
+  dependencies,
   write = writeJson,
 ) {
   const [subcommand, ...subcommandArguments] = argumentsList;
@@ -20,20 +20,26 @@ export async function runCommand(
     return 0;
   }
   if (subcommand === 'connection-test') {
-    return runConnectionTest({ argumentsList: subcommandArguments, dependencies, write });
+    const resolvedDependencies = dependencies || createDependencies();
+    return runConnectionTest({ argumentsList: subcommandArguments, dependencies: resolvedDependencies, write });
   }
   if (subcommand === 'quarter-report') {
-    return runQuarterReport({ argumentsList: subcommandArguments, dependencies, write });
+    if (!subcommandArguments.includes('--dry-run') && !subcommandArguments.includes('--output-dir')) {
+      throw Error('output-dir required');
+    }
+    const resolvedDependencies = dependencies || createDependencies();
+    return runQuarterReport({ argumentsList: subcommandArguments, dependencies: resolvedDependencies, write });
   }
   throw Error(USAGE);
 }
 
 function createDependencies() {
-  const commandDirectory = path.dirname(fileURLToPath(import.meta.url));
   const allowTestOrigin = process.env.LODGIFY_TEST_ORIGIN === '1';
+  const configPath = process.env.LODGIFY_CONFIG_PATH || process.env.AI_COMMAND_CONFIG_PATH;
+  if (!configPath) throw Error('profile-owned Lodgify config required');
   return {
     configProvider: new LocalConfigProvider({
-      commandDirectory,
+      configPath,
       allowTestOrigin,
     }),
     createAdapters: (settings) => createCoreAdapters({ settings, allowTestOrigin }),
@@ -47,6 +53,7 @@ function writeJson(value) {
 
 if (process.argv[1]?.endsWith('/lodgify.command.mjs')) {
   try {
+    requireCommandProfile('lodgify', fileURLToPath(import.meta.url));
     process.exitCode = await runCommand(process.argv.slice(2));
   } catch (error) {
     const message = displayErrorMessage(error.message, process.argv[2]);
@@ -56,6 +63,7 @@ if (process.argv[1]?.endsWith('/lodgify.command.mjs')) {
 }
 
 function displayErrorMessage(errorMessage, subcommand) {
+  if (errorMessage.startsWith('PROFILE_REQUIRED:') || errorMessage.startsWith('PROFILE_BLOCKED:')) return errorMessage;
   if (errorMessage === USAGE || errorMessage === 'usage') return USAGE;
   if (
     errorMessage === 'completed quarter authorization required' ||

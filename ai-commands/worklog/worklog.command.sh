@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "worklog" || exit $?
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -38,13 +40,13 @@ done
 if [[ -z "$TITLE" ]]; then
   cat >&2 <<'USAGE'
 Usage:
-  ./commands/worklog/worklog.command.sh \
+  ${AI_COMMANDS_ROOT}/worklog/worklog.command.sh \
     --title "Story title" \
     [--role "dev"] \
     [--want "goal"] \
     [--so-that "benefit"] \
     [--project "project-id-or-path"] \
-    [--profile "sc"] \
+    [--profile "example"] \
     [--slug "custom-slug"]
 USAGE
   exit 2

@@ -10,8 +10,8 @@
 # Lines starting with # are comments.
 #
 # Examples:
-# work|Sergii Starodubtsev|sergii@company.com|starodubtsevconsulting|123
-# personal|Sergii Starodubtsev|sergii@gmail.com|sergii-starodubtsev
+# work|Example User|developer@example.com|example-org|123
+# personal|Example User|developer@example.net|example-user
 
 work|REPLACE_WITH_NAME|REPLACE_WITH_EMAIL|REPLACE_WITH_GITHUB_USERNAME|REPLACE_WITH_GITHUB_PAT
 personal|REPLACE_WITH_NAME|REPLACE_WITH_EMAIL|REPLACE_WITH_GITHUB_USERNAME|REPLACE_WITH_GITHUB_PAT

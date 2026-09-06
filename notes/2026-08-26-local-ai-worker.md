@@ -10,7 +10,7 @@ So I figured that having a **local minion box sitting on the shelf** would be a 
 
 I tested two Qwen models through Hermes, measured speed, memory, and agent/tool performance, and picked **Qwen3-Coder-Next** as the current everyday local worker. It is fast enough to be practical while still giving me a fairly large model that can take work away from the expensive hosted models.
 
-[See the GX10 benchmark](../benchmarks/local-models/README.md)
+[See the GX10 benchmark](benchmarks/local-models/README.md)
 
 ---
 

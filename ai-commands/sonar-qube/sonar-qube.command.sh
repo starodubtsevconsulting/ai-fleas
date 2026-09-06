@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+ai_command_require_profile "sonar-qube" || exit $?
 set -euo pipefail
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"
@@ -52,23 +54,15 @@ export AI_FLOW_PROJECT_DIR AI_FLOW_OUTPUT_DIR AI_FLOW_PROFILE AI_FLOW_TASK_NAME
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../command-python.setup.sh"
-CONF_FILE="$SCRIPT_DIR/sonar-qube.command.conf"
-PROFILE_CONF_FILE=""
+CONF_FILE="${SONAR_COMMAND_CONF:-${AI_COMMAND_CONFIG_PATH:-}}"
 CREDS_FILE="${CREDS_FILE:-$SCRIPT_DIR/../../../ai-config/.creds/creds.json}"
 
-if [ -f "$CONF_FILE" ]; then
+if [ -n "$CONF_FILE" ] && [ -f "$CONF_FILE" ]; then
   # shellcheck source=/dev/null
   source "$CONF_FILE"
 fi
 
 PROFILE="${AI_FLOW_PROFILE:-${DEFAULT_PROFILE:-}}"
-if [ -n "$PROFILE" ]; then
-  PROFILE_CONF_FILE="$SCRIPT_DIR/sonar-qube.command.${PROFILE}.conf"
-  if [ -f "$PROFILE_CONF_FILE" ]; then
-    # shellcheck source=/dev/null
-    source "$PROFILE_CONF_FILE"
-  fi
-fi
 
 REPO_DIR="${1:-${DEFAULT_REPO_DIR:-${AI_FLOW_PROJECT_DIR:-}}}"
 SONAR_TOKEN="${SONAR_TOKEN:-${DEFAULT_SONAR_TOKEN:-}}"
@@ -109,7 +103,7 @@ PY
 load_sonar_token_from_creds
 
 if [ -z "$SONAR_TOKEN" ]; then
-  echo "SONAR_TOKEN is required; generate one at https://sonarqube.local/account/security and set it in the environment or sonar-qube.command.conf." >&2
+  echo "SONAR_TOKEN is required; set it in the environment or selected profile configuration." >&2
   exit 1
 fi
 
