@@ -407,7 +407,7 @@ export function accountingTaxesUsageCapability() {
     ...capability,
     mount(context) {
       const mounted = mountContext(context);
-      const toolName = mounted.config.toolName ?? 'workflow.accounting.taxes_usage.v1';
+      const toolName = mounted.config.toolName ?? 'workflow.financial_insights.taxes_usage.v1';
       return [mountedTool({
         capability,
         context: mounted,

@@ -62,11 +62,12 @@ effect after Admin's bypass warning. Worker receipt is an operational trigger ra
 ```mermaid
 flowchart TD
   Actor["Actor: Admin receives a human initialization lifecycle request"] --> Gate{"Decision: initialized Manager exists?"}
-  Gate -->|Yes| Delegate["Allowed: send one complete canonical lifecycle packet to Manager"]
-  Gate -->|No or unusable, human authorized bootstrap| Bootstrap["Allowed: create and canonically initialize exactly one Manager"]
+  Gate -->|Yes| Command["Allowed: invoke selected platform lifecycle command"]
+  Gate -->|No or unusable, human authorized bootstrap| Bootstrap["Allowed: command creates and canonically initializes exactly one Manager"]
   Gate -->|Human separately confirms exact bypass| Override["Allowed: execute only the confirmed direct action and targets"]
   Gate -->|No confirmation, duplicate, or ambiguity| Blocked["BLOCKED: no direct worker lifecycle action"]
-  Bootstrap --> Delegate
+  Bootstrap --> Command
+  Command --> Delegate["Allowed: command sends one complete canonical lifecycle packet to Manager"]
   Delegate --> Outcome["Outcome: Manager-owned evidence-backed lifecycle transaction"]
   Override --> Outcome
   Blocked --> Outcome
@@ -82,6 +83,12 @@ authority. If the human insists that Admin execute directly, Admin first states 
 and asks for confirmation of one closed list of actions and exact targets. Only a new human reply explicitly confirming
 that same list authorizes the bypass. The initial request, repetition, impatience, or a general grant such as “you can do
 anything” is insufficient. The override expires when the listed effects finish or its scope changes.
+
+When the selected platform provides a registered lifecycle command, Admin must invoke that command for the transaction.
+For `agent_platform: gpt-app`, use the public `gpt-app` command. The command is the validated adapter route: it may perform
+the one missing-Manager bootstrap allowed above, but all remaining governed-roster lifecycle execution is dispatched to
+that Manager. Using raw task APIs directly is not an alternative initialization path and grants Admin no additional
+authority.
 
 For the missing-Manager bootstrap only, before accepting phase-one readiness, Admin requires evidence that the created task read and validated every canonical
 source-manifest entry, including the complete Team capability matrix, role contract, shared execution-routing contract,
@@ -108,7 +115,7 @@ flowchart TD
 
 | Human prompt case                                                                                     | Required interpretation                                                                                             |
 | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| "Initialize the agents" in a bound project.                                                           | Send one complete initialization request to Manager; if Manager is absent and the human authorized initialization, bootstrap exactly one Manager first. |
+| "Initialize the agents" in a bound project.                                                           | Invoke the selected platform lifecycle command; it sends one complete request to Manager or bootstraps exactly one missing Manager first. |
 | "Reinitialize every agent, including Admin."                                                          | Delegate the complete exact scope to Manager; Manager owns the authorized Admin successor and governed-roster transaction. |
 | "Reinitialize the governed agents."                                                                   | Preserve Admin and delegate the complete transaction to Manager.                                                    |
 | "Replace/reinitialize this existing active Agent" or "apply the new rules to this active Agent."    | Delegate the exact request to Manager, which owns the Team-declared context-clone transaction.                       |
