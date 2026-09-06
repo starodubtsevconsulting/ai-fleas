@@ -34,19 +34,22 @@ The diagram below shows the main pieces and how they fit together.
 
 AI Fleas can be used as an entry point for setting up a structured way of working with AI agents without tying that setup too closely to one platform.
 
-You can take the pieces you need, extend them, switch between hosted and local models, combine different harnesses, experiment with different agent arrangements, and keep your own profiles, project context and private configuration outside the public reusable definitions.
+Your **[Profile](https://github.com/starodubtsevconsulting/ai-profile)** is the entry point for the context you work from. It might represent you personally, your organization, or a client you are working with. Your **[Workflow](ai-workflows/)** describes the kind of work you are doing: software development, personal bookkeeping, a YouTube channel, writing a book, blogging, multimedia work, or something entirely your own. **[Commands](ai-commands/)** add reusable capabilities to those workflows.
 
-The goal is not to hide the differences between platforms. It is to keep the **way you organize the work portable**, while letting each harness or provider implement it in its own way.
+You can keep your own profile, projects and private context to yourself while reusing and extending the public workflows and commands here.
+
+Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes or a local model for another task. Your **profiles, workflows, commands and way of working can remain yours**. That portability is one of the main reasons for this project.
 
 ## How do I start?
 
 The simplest path is to use the AI application you already have and let it help initialize the setup.
 
-1. **Create your profile.** Start from the [example AI Profile](https://github.com/starodubtsevconsulting/ai-profile) and adapt it to your environment, projects and preferences.
-2. **Choose a workflow.** Pick what you are doing — for example software development, book writing, blogging or multimedia work. Workflows are extendable, so you can also create your own.
-3. **Choose your platform.** Give your profile and AI Fleas to ChatGPT/Codex, Claude Code or another harness you already use, and point it to the folder where that platform keeps its Agent/AI instruction files.
-4. **Connect your project.** Add the project you want to work on through your profile and initialize the selected workflow for it.
-5. **Start working with your team.** The workflow's roles, team rules and configuration are projected into concrete Agents for that platform. Commands used by the workflow are made available alongside any native skills or tools provided by the harness.
+1. **Create your profile.** Start from the [example AI Profile](https://github.com/starodubtsevconsulting/ai-profile). Make it personal, organization-specific or client-specific depending on the context you work from.
+2. **Choose a workflow.** Pick what you are doing from [AI Workflows](ai-workflows/) — software development, book writing, blogging, multimedia and others — or create your own workflow for something such as personal bookkeeping or running a YouTube channel.
+3. **Mix in capabilities.** Workflows use reusable [AI Commands](ai-commands/), and you can combine them with native skills or tools provided by the AI platform you choose.
+4. **Choose your platform.** Give your profile and AI Fleas to ChatGPT/Codex, Claude Code or another harness you already use, and point it to the folder where that platform keeps its Agent/AI instruction files.
+5. **Connect your project.** Add the project you want to work on through your profile and initialize the selected workflow for it.
+6. **Start working with your team.** The workflow's roles, team rules and configuration are projected into concrete Agents for that platform, giving you a configured team for the work you selected.
 
 The basic composition is:
 
