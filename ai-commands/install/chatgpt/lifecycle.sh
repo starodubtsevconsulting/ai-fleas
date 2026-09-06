@@ -6,6 +6,16 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/../scripts/require-darwin-arm64.sh"
 action="${1:-status}"
 shift || true
+component="app"
+if [[ "${1:-}" == --component ]]; then
+  [[ -n "${2:-}" ]] || { printf '%s\n' 'CHATGPT_COMPONENT_REQUIRED' >&2; exit 2; }
+  component="$2"
+  shift 2
+fi
+case "$component" in
+  app|desktop-app) ;;
+  *) printf 'CHATGPT_COMPONENT_UNSUPPORTED: %s\n' "$component" >&2; exit 3 ;;
+esac
 
 find_app() {
   local candidate
@@ -63,10 +73,10 @@ case "$action" in
     exit 3
     ;;
   -h|--help|help)
-    printf '%s\n' 'Usage: lifecycle.sh {status|smoke-test|install|check-update|update|upgrade|uninstall}'
+    printf '%s\n' 'Usage: lifecycle.sh {status|smoke-test|install|check-update|update|upgrade|uninstall} [--component app]'
     ;;
   *)
-    printf 'Unknown GPT App lifecycle action: %s\n' "$action" >&2
+    printf 'Unknown ChatGPT lifecycle action: %s\n' "$action" >&2
     exit 2
     ;;
 esac

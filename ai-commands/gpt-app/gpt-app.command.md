@@ -6,8 +6,8 @@ Use `gpt-app` to check for stable application updates, initialize, inspect, reco
 as Codex tasks. The command composes the selected profile, portable workflow roster, and public `gpt-app` platform adapter;
 it never infers tasks from titles, recency, or nearby repositories.
 
-Physical GPT/ChatGPT desktop application installation, upgrade, and uninstall belong to the generic `install` command's
-canonical `gpt-app` target. This command owns the logical-agent lifecycle after the application is available.
+Physical GPT/ChatGPT desktop application installation, upgrade, and uninstall belong to the `chatgpt` command
+under the `install` command group. This command owns the logical-agent lifecycle after the application is available.
 
 ```mermaid
 flowchart LR
@@ -73,6 +73,16 @@ Every invocation is profile-aware: the host must activate the selected AI Profil
 allowed, resolve its platform contract, and bind the exact saved Codex project before any task mutation.
 
 Committed configuration template: `gpt-app/gpt-app.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+
+## Linked Commands
+
+| Command | Relationship | Use when |
+|---|---|---|
+| [`chatgpt`](../install/chatgpt/chatgpt.command.md) | Physical application prerequisite | ChatGPT must be inspected, installed, smoke-tested, updated, upgraded, or uninstalled. |
+| [`install`](../install/install.command.md) | Parent installation command group | The human asks generically to install or update GPT and the request must be routed to the exact child command. |
+
+The application must be installed and pass its smoke test before agent initialization. Do not substitute the linked
+`install/codex` CLI installer.
 
 ## Subcommands
 
