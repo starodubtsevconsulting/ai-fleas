@@ -244,7 +244,7 @@ its canonical path, and, for Git projects, its expected remote. Project configur
 being embedded as a large block in the Work Profile.
 
 The first directory below `projects/` should match the owning workflow ID: `projects/dev/` contains project definitions
-used by `dev.workflow.md`, while `projects/accounting/` contains definitions used by `accounting.workflow.md`. This folder
+used by `dev.workflow.md`, while `projects/financial-insights/` contains definitions used by `financial-insights.workflow.md`. This folder
 name is a human-readable organization convention; it does not create the relationship automatically. The explicit `ref`
 under that workflow's `projects:` list is the authoritative mapping. A project is available to a workflow only when that
 workflow references its definition.

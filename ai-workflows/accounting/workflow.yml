@@ -1,9 +1,0 @@
-id: accounting
-label: Accounting
-tags:
-  - accounting
-  - money
-entry: accounting.workflow.md
-required_commands:
-  - statements
-  - taxes
