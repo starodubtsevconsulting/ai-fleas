@@ -8,6 +8,27 @@ report_log_init "install.sh" "$root_dir"
 
 include_installed="${CONFS_SETUP_INCLUDE_INSTALLED:-}"
 
+if [[ $# -gt 0 ]]; then
+  target="$1"
+  shift
+  action="${1:-status}"
+  [[ $# -eq 0 ]] || shift
+
+  normalized_target="$(printf '%s' "$target" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-|-$//g')"
+  case "$normalized_target" in
+    gpt|gpt-app|codex-app|chatgpt|chatgpt-app) canonical_target="gpt-app" ;;
+    hermes|hermes-app) canonical_target="hermes-app" ;;
+    *) canonical_target="$normalized_target" ;;
+  esac
+
+  lifecycle="$root_dir/$canonical_target/lifecycle.sh"
+  if [[ ! -x "$lifecycle" ]]; then
+    printf 'INSTALL_TARGET_UNAVAILABLE: no lifecycle adapter for %s\n' "$canonical_target" >&2
+    exit 2
+  fi
+  exec "$lifecycle" "$action" "$@"
+fi
+
 normalize_name() {
   printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+//g'
 }

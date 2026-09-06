@@ -2,7 +2,8 @@
 
 ## Purpose
 
-Use `hermes-app` to install Hermes and create, reconcile, inspect, verify, or explicitly delete profile-scoped Hermes bots.
+Use `hermes-app` to create, reconcile, inspect, verify, or explicitly delete profile-scoped Hermes bots. Physical
+application installation and upgrades belong to the generic `install` command's `hermes-app` target.
 The command is portable; operational machine, endpoint, model, credential, workflow, and project values come from the
 selected AI Profile.
 
@@ -20,13 +21,11 @@ flowchart LR
 
   subgraph PublicCommand["Public hermes-app command — reusable mechanics"]
     Dispatcher["hermes-app.command.sh"]
-    Install["install"]
     CheckUpdate["check-update"]
     Initialize["initialize"]
     Reconcile["reconcile"]
     Inspect["list / show / status"]
     Delete["delete profile / workflow + confirmation"]
-    Dispatcher --> Install
     Dispatcher --> CheckUpdate
     Dispatcher --> Initialize
     Dispatcher --> Reconcile
@@ -91,7 +90,7 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 
 | Subcommand | Purpose |
 |---|---|
-| `install` | Safely install or reconcile the supported Hermes CLI distribution; accepts `--dry-run`. |
+| `install` | Compatibility delegate to the generic `install` command's canonical `hermes-app` target; new callers should invoke that target directly. |
 | `check-update` | Read-only comparison of the installed release, newest stable upstream date tag, and reviewed public installer pin; recommends an explicit upgrade when appropriate. |
 | `initialize` | Resolve the selected profile/workflow/project, idempotently create every platform-bound role profile, and realize their profile-workflow Hermes group. |
 | `reconcile` | Reapply the resolved role-profile and group configuration while preserving conversations and memory. |
@@ -134,7 +133,9 @@ active AI profile supplies the workflow, project, provider, model, workspace, an
 
 ## Platform boundary
 
-This public command owns portable Hermes installation and bot-profile lifecycle mechanics. The public Hermes platform
+This public command owns portable Hermes bot-profile lifecycle mechanics. The generic `install` command owns physical
+Hermes package installation, update, upgrade, and uninstall semantics; this command's legacy `install` verb is a
+compatibility delegate. The public Hermes platform
 adapter maps logical AI Fleas agents to those profiles. The operational AI Profile owns provider authentication,
 endpoints, model mappings, context tuning, and project bindings. A launcher may invoke the command or open the Hermes
 application, but it does not own or duplicate these configuration semantics.
