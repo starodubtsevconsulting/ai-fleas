@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 readonly HERMES_INSTALLER_URL='https://hermes-agent.nousresearch.com/install.sh'
-readonly HERMES_COMMIT='fcbd1076a93841fa88855acce810e342a5b78101'
-readonly HERMES_VERSION='Hermes Agent v0.20.5 (2026.8.19)'
+readonly HERMES_COMMIT='29112bef099274229cadff79cdff7bf7b99c4b77'
+readonly HERMES_VERSION='Hermes Agent v0.21.0 (2026.8.31)'
 readonly HERMES_ROOT="${HERMES_HOME:-${HOME}/.hermes}"
 readonly HERMES_CHECKOUT="${HERMES_ROOT}/hermes-agent"
 readonly COMMAND_ROOT="${HOME}/.local/bin"
@@ -20,7 +20,31 @@ trap cleanup EXIT INT TERM
 acquire_lock() { mkdir -p "${HERMES_ROOT}"; if mkdir "${LOCK_DIR}" 2>/dev/null; then printf '%s\n' "$$" > "${LOCK_DIR}/pid"; return; fi; [[ -f "${LOCK_DIR}/pid" ]] || { echo 'Hermes install lock exists without owner metadata.' >&2; exit 1; }; lock_pid="$(cat "${LOCK_DIR}/pid")"; if [[ "${lock_pid}" =~ ^[0-9]+$ ]] && kill -0 "${lock_pid}" 2>/dev/null; then echo "Another Hermes install is active (PID ${lock_pid})." >&2; exit 1; fi; rm -rf -- "${LOCK_DIR}"; mkdir "${LOCK_DIR}" || exit 1; printf '%s\n' "$$" > "${LOCK_DIR}/pid"; }
 acquire_lock
 work_dir="$(mktemp -d "${TMPDIR:-/tmp}/install-hermes-work.XXXXXX")"
-discover_owned_processes() { OWNED_PIDS=(''); OWNED_COUNT=0; ps -axo pid=,ppid=,comm=,command= > "${work_dir}/ps"; while read -r pid ppid executable command; do [[ "${pid}" != "$$" && "${pid}" != "${PPID}" ]] || continue; process_cwd=''; if command -v lsof >/dev/null 2>&1; then process_cwd="$(lsof -a -p "${pid}" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | sed -n '1p')"; fi; case "${executable}:${process_cwd}" in "${HERMES_CHECKOUT}"/*:*|"${installer}":*|*:"${HERMES_CHECKOUT}"|*:"${HERMES_CHECKOUT}"/*) OWNED_PIDS[OWNED_COUNT]="${pid}"; OWNED_COUNT=$((OWNED_COUNT + 1)) ;; esac; done < "${work_dir}/ps"; changed=true; while ${changed}; do changed=false; while read -r pid ppid executable command; do [[ " ${OWNED_PIDS[*]} " != *" ${pid} "* ]] || continue; if [[ " ${OWNED_PIDS[*]} " == *" ${ppid} "* ]]; then OWNED_PIDS[OWNED_COUNT]="${pid}"; OWNED_COUNT=$((OWNED_COUNT + 1)); changed=true; fi; done < "${work_dir}/ps"; done; }
+discover_owned_processes() {
+  OWNED_PIDS=('')
+  OWNED_COUNT=0
+  ps -axo pid=,ppid=,comm=,command= > "${work_dir}/ps"
+  while read -r pid ppid executable command; do
+    [[ "${pid}" != "$$" && "${pid}" != "${PPID}" ]] || continue
+    if [[ "${executable}" == "${HERMES_CHECKOUT}"/* ]] ||
+       [[ -n "${installer}" && "${executable}" == "${installer}" ]]; then
+      OWNED_PIDS[OWNED_COUNT]="${pid}"
+      OWNED_COUNT=$((OWNED_COUNT + 1))
+    fi
+  done < "${work_dir}/ps"
+  changed=true
+  while ${changed}; do
+    changed=false
+    while read -r pid ppid executable command; do
+      [[ " ${OWNED_PIDS[*]} " != *" ${pid} "* ]] || continue
+      if [[ " ${OWNED_PIDS[*]} " == *" ${ppid} "* ]]; then
+        OWNED_PIDS[OWNED_COUNT]="${pid}"
+        OWNED_COUNT=$((OWNED_COUNT + 1))
+        changed=true
+      fi
+    done < "${work_dir}/ps"
+  done
+}
 pid_is_running() { state="$(ps -o stat= -p "$1" 2>/dev/null | tr -d ' ')"; [[ -n "${state}" && "${state}" != Z* ]]; }
 stop_owned_processes() { discover_owned_processes; for ((index=OWNED_COUNT-1; index>=0; index--)); do kill -TERM "${OWNED_PIDS[index]}" 2>/dev/null || true; done; for _ in 1 2 3 4 5; do survivors=(''); survivor_count=0; for ((index=0; index<OWNED_COUNT; index++)); do pid="${OWNED_PIDS[index]}"; if pid_is_running "${pid}"; then survivors[survivor_count]="${pid}"; survivor_count=$((survivor_count + 1)); fi; done; ((survivor_count == 0)) && return 0; sleep 1; done; for ((index=survivor_count-1; index>=0; index--)); do kill -KILL "${survivors[index]}" 2>/dev/null || true; done; for ((index=0; index<survivor_count; index++)); do pid="${survivors[index]}"; pid_is_running "${pid}" && { echo "Owned Hermes process ${pid} did not exit." >&2; exit 1; }; done; return 0; }
 
@@ -112,7 +136,7 @@ fi
 hermes_executable="${COMMAND_ROOT}/hermes"
 [[ -x "${hermes_executable}" ]] || fail_and_restore 'Hermes installer did not create the expected command; restored the prior installation.'
 actual_version="$(${hermes_executable} --version 2>/dev/null | sed -n '1p')"
-[[ "${actual_version}" == "${HERMES_VERSION}" ]] || fail_and_restore "Hermes version verification failed: ${actual_version}; restored the prior installation."
+[[ "${actual_version}" == "${HERMES_VERSION}"* ]] || fail_and_restore "Hermes version verification failed: ${actual_version}; restored the prior installation."
 actual_commit="$(git -C "${HERMES_CHECKOUT}" rev-parse HEAD 2>/dev/null)"
 [[ "${actual_commit}" == "${HERMES_COMMIT}" ]] || fail_and_restore "Hermes commit verification failed: ${actual_commit}; restored the prior installation."
 discover_owned_processes

@@ -71,6 +71,7 @@ YAML
 cat >"${test_root}/bin/hermes" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
+if [[ "$1" == --version ]]; then printf 'Hermes Agent v0.20.5 (2026.8.19) · test\n'; exit 0; fi
 if [[ "$1" == profile && "$2" == create ]]; then mkdir -p "${HERMES_HOME}/profiles/$3"; printf '{}\n' >"${HERMES_HOME}/profiles/$3/profile.yaml"; printf '%s\n' "$3" >>"${HERMES_TEST_STATE}"; exit 0; fi
 if [[ "$1" == profile && "$2" == list ]]; then printf 'Profile Model\n'; while read -r id; do printf '%s model\n' "$id"; done <"${HERMES_TEST_STATE}"; exit 0; fi
 if [[ "$1" == profile && "$2" == show ]]; then printf 'Profile: %s\n' "$3"; exit 0; fi
@@ -85,6 +86,16 @@ if [[ "$1" == -p && "$3" == config && "$4" == get ]]; then
   exit 0
 fi
 exit 1
+SH
+cat >"${test_root}/bin/git" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "$1" == ls-remote ]]; then
+  printf '%s\t%s\n' deadbeef refs/tags/v2026.8.19
+  printf '%s\t%s\n' feedface refs/tags/v2026.8.31
+  exit 0
+fi
+exec /usr/bin/git "$@"
 SH
 cat >"${test_root}/bin/curl" <<'SH'
 #!/usr/bin/env bash
@@ -119,7 +130,7 @@ fi
 printf 'Hermes group member ready: %s (%s as %s)\n' "$group" "$member" "$title"
 printf '%s\n' 'example-dev' >>"${HERMES_HOME}/profiles/${member}/profile.yaml"
 SH
-chmod +x "${test_root}/bin/hermes" "${test_root}/bin/curl" "${test_root}/group-configurator"
+chmod +x "${test_root}/bin/hermes" "${test_root}/bin/git" "${test_root}/bin/curl" "${test_root}/group-configurator"
 printf 'default\nthrowaway\n' >"${test_root}/profiles.state"
 export HERMES_BIN="${test_root}/bin/hermes" HERMES_TEST_STATE="${test_root}/profiles.state" HERMES_HOME="${test_root}/hermes-home"
 export HERMES_GROUP_CONFIGURATOR="${test_root}/group-configurator" HERMES_PYTHON_BIN='/bin/bash'
@@ -129,6 +140,10 @@ export TEST_WORKSPACE="${test_root}/workspace" PATH="${test_root}/bin:${PATH}" A
 export WORK_PROFILE_ID=example AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=dev.workflow.md
 scope="$(node "${COMMAND_DIR}/resolve-profile-scope.mjs" "${test_root}/ai-profile" example dev service)"
 [[ "${scope}" == *$'example-box\tExample box\thttp://192.0.2.10:1234/v1\texample-coder-model\t65536\t0.25\t0.15\t8'* ]]
+"${COMMAND}" check-update >"${test_root}/check-update-output"
+grep -F 'Installed: v2026.8.19' "${test_root}/check-update-output" >/dev/null
+grep -F 'Latest stable: v2026.8.31' "${test_root}/check-update-output" >/dev/null
+grep -F 'HERMES_UPDATE_AVAILABLE' "${test_root}/check-update-output" >/dev/null
 "${COMMAND}" initialize --work-profile example --workflow dev --project service >"${test_root}/output"
 grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/output" >/dev/null
 grep -F 'Hermes bot ready: example-dev-coder' "${test_root}/output" >/dev/null
