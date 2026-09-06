@@ -14,9 +14,12 @@ Verified exact task receipts or a precise no-mutation failure.
 ## Invariants
 
 - The selected profile resolves `agent_platform: gpt-app` exactly once.
+- `check-update` is read-only, uses only the host application's trusted stable update channel, and returns an explicit
+  unavailable result rather than treating missing version evidence as current.
+- An available update produces a recommendation only; installation requires a separate explicit human decision.
 - Logical roles come from the portable workflow roster; GPT-specific realization comes from the registered adapter.
-- `initialize` realizes the complete GPT-specific workflow roster; it does not inherit Hermes App's one-bot mapping or
-  impose its own task count on other platform adapters.
+- `initialize` realizes the complete GPT-specific workflow roster; it does not inherit Hermes App's profile/group
+  realization or impose its own task count on other platform adapters.
 - One logical agent maps to one exact app-returned task ID in one exact saved Codex project.
 - One logical project maps to one exact app-returned sidebar section ID. Names are presentation; unrelated collisions use
   a deterministic numeric suffix and never cause roster merging.
@@ -38,4 +41,5 @@ Verified exact task receipts or a precise no-mutation failure.
 ## Completion criteria
 
 The requested lifecycle operation returns exact project, logical-agent, role, task, and host bindings, with all affected
-instances verified in their requested state.
+instances verified in their requested state. A `check-update` operation instead returns installed/latest stable version
+evidence and a recommendation, or an explicit no-mutation unavailable result.
