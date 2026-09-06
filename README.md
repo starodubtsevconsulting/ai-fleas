@@ -38,6 +38,16 @@ You can take the pieces you need, extend them, switch between hosted and local m
 
 The goal is not to hide the differences between platforms. It is to keep the **way you organize the work portable**, while letting each harness or provider implement it in its own way.
 
+## How do I start?
+
+It depends on how far you want to take it. The simplest entry point does not require building another AI platform.
+
+Start with the [example AI Profile](https://github.com/starodubtsevconsulting/ai-profile) and create your own profile from it. Then give that profile and this repository to the AI application you already use — for example ChatGPT/Codex or Claude Code — and ask it to initialize the setup for your environment.
+
+Point it to the folder where your Agent/AI instruction files live and connect the project you want to work on through your profile. During initialization, the workflow, role and team rules are projected into the concrete Agents created for that platform. The result is your own configured AI team, ready to work against the project and tasks you provide.
+
+For more advanced setups, the same definitions can be adapted to other harnesses such as Hermes or to locally hosted models. The harness changes; the profile, workflow concepts, role definitions, mappings and operating rules remain the common layer.
+
 ### For people who already build this stuff
 
 **This is not another AI agent framework.** Agents, tools, workflows, MCP and many of the individual ideas here already exist in excellent systems, and that is expected.
