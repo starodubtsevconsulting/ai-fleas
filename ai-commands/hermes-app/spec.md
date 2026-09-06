@@ -1,4 +1,4 @@
-# Hermes — Specification
+# Hermes App — Specification
 
 **Status: ACTIVE**
 
@@ -20,6 +20,9 @@ Verified Hermes profile state or a precise, non-secret failure.
   update and workflow selection change, never a public command-code change.
 - Workflow and command contracts are resolved exactly and injected as references, not duplicated into this command.
 - Setup validates dependencies before mutation.
+- `initialize` realizes exactly one workflow-scoped Hermes bot with the current adapter; it does not infer the GPT
+  adapter's multi-agent roster or a universal agent count.
+- `reconcile` uses the same resolved identity and preserves conversations and memory by default.
 - Reconciliation preserves profile data by default.
 - Destructive replacement or deletion requires explicit human authorization and an exact safe profile identifier.
 - Hermes profile resolution and reconciliation live in this public command. A platform adapter may launch the command or

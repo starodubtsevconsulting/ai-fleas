@@ -10,8 +10,8 @@ grep -Fq '/platforms/gpt-app/platform.yml' <<< "$base"
 grep -Fq 'AI_GOVERNANCE_RULES_REPOSITORY=example-governance-rules' <<< "$base"
 grep -Fq 'AI_COMMAND_CONFIG_PATH=' <<< "$base"
 grep -Fq '/ai-profile/example/commands-config/source-control/config.yml' <<< "$base"
-hermes="$($SCRIPT_DIR/activate-profile.sh --profile example --workflow dev.workflow.md --command hermes)"
-grep -Fq '/ai-profile/example/commands-config/hermes/config.yml' <<< "$hermes"
+hermes="$($SCRIPT_DIR/activate-profile.sh --profile example --workflow dev.workflow.md --command hermes-app)"
+grep -Fq '/ai-profile/example/commands-config/hermes-app/config.yml' <<< "$hermes"
 if "$SCRIPT_DIR/activate-profile.sh" --profile example --workflow dev.workflow.md --command taxes >/dev/null 2>&1; then
   echo 'workflow-disallowed command was accepted' >&2; exit 1
 fi

@@ -1,8 +1,8 @@
-# Hermes
+# Hermes App
 
 ## Purpose
 
-Use `hermes` to install Hermes and create, reconcile, inspect, verify, or explicitly delete profile-scoped Hermes bots.
+Use `hermes-app` to install Hermes and create, reconcile, inspect, verify, or explicitly delete profile-scoped Hermes bots.
 The command is portable; operational machine, endpoint, model, credential, workflow, and project values come from the
 selected AI Profile.
 
@@ -18,22 +18,25 @@ flowchart LR
     ModelAlias -. resolves .-> Model
   end
 
-  subgraph PublicCommand["Public hermes command — reusable mechanics"]
-    Dispatcher["hermes.command.sh"]
+  subgraph PublicCommand["Public hermes-app command — reusable mechanics"]
+    Dispatcher["hermes-app.command.sh"]
     Install["install"]
-    Configure["configure / setup"]
+    Initialize["initialize"]
+    Reconcile["reconcile"]
     Inspect["list / show / status"]
     Delete["delete + confirmation"]
     Dispatcher --> Install
-    Dispatcher --> Configure
+    Dispatcher --> Initialize
+    Dispatcher --> Reconcile
     Dispatcher --> Inspect
     Dispatcher --> Delete
   end
 
   Workflow --> Dispatcher
-  Target --> Configure
-  Model --> Configure
-  Configure --> Bot["Hermes bot profile"]
+  Target --> Initialize
+  Model --> Initialize
+  Initialize --> Bot["One workflow-scoped Hermes bot"]
+  Reconcile --> Bot
   Inspect --> Bot
   Delete --> Bot
   Bot --> App["Hermes application"]
@@ -61,11 +64,11 @@ without changing this command, the workflow contract, or the bot lifecycle.
 
 | Entry point | Type | Profile-aware invocation |
 |---|---|---|
-| `hermes/hermes.command.sh` | Shell executable | Run through the initialized profile runtime; setup resolves the selected workflow, project, provider target, and model from profile configuration. |
+| `hermes-app/hermes-app.command.sh` | Shell executable | Run through the initialized profile runtime; setup resolves the selected workflow, project, provider target, and model from profile configuration. |
 
 Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide the selected profile root as `AI_PROFILE_ROOT` before this entry point is used.
 
-Committed configuration template: `hermes/hermes.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+Committed configuration template: `hermes-app/hermes-app.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
 The profile-owned provider catalog is the target map. Each `providers[]` entry describes one model box or service and its endpoint; each nested `models[]` entry maps a stable model alias to the concrete provider model and optional `hermes` context settings. Adding or replacing a computer therefore changes profile configuration, not this reusable command or its workflows.
 
@@ -74,12 +77,21 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 | Subcommand | Purpose |
 |---|---|
 | `install` | Safely install or reconcile the supported Hermes CLI distribution; accepts `--dry-run`. |
-| `configure` | Resolve the selected profile/workflow/project target and create or reconcile its Hermes profile. |
-| `setup` | Compatibility alias for `configure`. |
+| `initialize` | Resolve the selected profile/workflow/project and idempotently create its one workflow-scoped Hermes bot. |
+| `reconcile` | Reapply the resolved configuration to that bot while preserving conversations and memory. |
+| `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
 | `list` | List existing Hermes profiles. |
 | `show PROFILE` | Inspect one exact profile. |
 | `status PROFILE` | Verify its provider, model endpoint, advertised model, and workspace. |
 | `delete PROFILE --confirm-delete` | Delete one exact non-default profile after explicit confirmation. |
+
+## Agent realization
+
+`initialize` has the same lifecycle meaning as it does in `gpt-app`: realize the agents declared for the selected
+workflow on the selected platform. The realization cardinality differs by platform. Hermes App currently maps the
+workflow to one bot profile that receives the workflow instructions and allowed command catalog. GPT App maps the same
+workflow governance model to its declared multi-agent roster, such as Admin, Manager, and the five governed Dev roles.
+This difference belongs to the platform adapters and must not be hardcoded as a universal agent count in either command.
 
 ## Tags
 

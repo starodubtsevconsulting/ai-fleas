@@ -16,7 +16,7 @@ flowchart TD
 `install-hermes.sh` is the developer-only, one-command clean installer for Hermes on macOS Apple Silicon. Run it through the public command with:
 
 ```sh
-hermes/hermes.command.sh install
+hermes-app/hermes-app.command.sh install
 ```
 
 Use `--dry-run` to print the proven-owned processes and installer-managed paths that would be affected. Dry-run acquires the same per-user lock and performs the same safety preflight, but it does not signal processes, download an installer, move files, or install anything.
@@ -39,7 +39,7 @@ After a clean Hermes installation, recreate the profile-backed Desktop bot with:
 
 ```sh
 AI_CONFIG_PROJECT=/path/to/profile-repository \
-  /path/to/ai-fleas/ai-commands/hermes/hermes.command.sh configure \
+  /path/to/ai-fleas/ai-commands/hermes-app/hermes-app.command.sh initialize \
   --work-profile PROFILE --workflow WORKFLOW --project PROJECT
 ```
 

@@ -24,8 +24,8 @@ governance_rules_surface:
 commands:
   - id: source-control
     config: commands-config/source-control/config.yml
-  - id: hermes
-    config: commands-config/hermes/config.yml
+  - id: hermes-app
+    config: commands-config/hermes-app/config.yml
   - id: gpt-app
     config: commands-config/gpt-app/config.yml
   - id: lodgify
@@ -40,7 +40,7 @@ workflows:
       - test
       - review
       - commit
-      - hermes
+      - hermes-app
       - gpt-app
       - source-control
       - lodgify
