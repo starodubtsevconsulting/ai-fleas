@@ -8,6 +8,7 @@
   only with explicit human authorization for each separate action.
 * Judge can synchronize protected configuration with a public repository only when the synchronization is exact, 
   registered, and explicitly authorized.
+* Judge can read ai-profile/* as it helps it to understand the rules' dynamics.
 
 ## Judge cannot
 
