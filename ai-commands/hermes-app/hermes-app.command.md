@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Use `hermes-app` to create, reconcile, inspect, verify, or explicitly delete profile-scoped Hermes bots. Physical
+Use `hermes-app` to create, freshly reinitialize, reconcile, inspect, verify, or explicitly delete profile-scoped Hermes bots. Physical
 application installation and upgrades belong to the `hermes` command under the `install` command group.
 The command is portable; operational machine, endpoint, model, credential, workflow, and project values come from the
 selected AI Profile.
@@ -103,6 +103,7 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 | `install` | Compatibility delegate to the `install/hermes` command; new callers should invoke that install command directly. |
 | `check-update` | Read-only comparison of the installed release, newest stable upstream date tag, and reviewed public installer pin; recommends an explicit upgrade when appropriate. |
 | `initialize` | Resolve the selected profile/workflow/project, idempotently create every platform-bound role profile, and realize their profile-workflow Hermes group. |
+| `reinitialize` / `re-init` | After `--confirm-reinitialize`, delete the exact active workflow group and all its role profiles, then create a fresh complete generation from current contracts. Existing conversations and memory for those profiles are removed. |
 | `reconcile` | Reapply the resolved role-profile and group configuration while preserving conversations and memory. |
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
 | `list` | List existing Hermes profiles. |
@@ -110,6 +111,11 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 | `status PROFILE` | Verify its provider, model endpoint, advertised model, and workspace. |
 | `delete PROFILE --confirm-delete` | Delete one exact non-default profile after explicit confirmation. |
 | `delete-workflow --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] --confirm-delete` | Resolve the exact workflow roster, remove every declared role profile, and tombstone its Hermes group so it cannot be reconstructed from profile metadata. |
+
+Human wording such as “re-init” or “reinitialize” routes to `reinitialize`, not `initialize` or `reconcile`. The explicit
+request supplies replacement intent; the executable still requires `--confirm-reinitialize` before deleting runtime data.
+The operation holds a short synchronization barrier between deletion and recreation so a running Hermes Desktop can
+retire the old room identity and its conversation log before the same logical group name is created again.
 
 ## Agent realization
 

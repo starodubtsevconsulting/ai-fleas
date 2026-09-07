@@ -15,6 +15,14 @@ cat >"${test_root}/bin/hermes" <<'FAKE_HERMES'
 #!/usr/bin/env bash
 set -euo pipefail
 root="${HERMES_HOME}"
+if [[ "$1" == profile && "$2" == list ]]; then
+  printf 'Profile Model\n'
+  for directory in "${root}"/profiles/*; do
+    [[ -d "${directory}" ]] || continue
+    printf '%s model\n' "$(basename "${directory}")"
+  done
+  exit 0
+fi
 if [[ "$1" == profile && "$2" == create ]]; then
   mkdir -p "${root}/profiles/$3"
   printf '{}\n' >"${root}/profiles/$3/config.yaml"
