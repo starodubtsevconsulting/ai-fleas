@@ -137,6 +137,7 @@ chmod +x "${test_root}/bin/hermes" "${test_root}/bin/git" "${test_root}/bin/curl
 printf 'default\nthrowaway\n' >"${test_root}/profiles.state"
 export HERMES_BIN="${test_root}/bin/hermes" HERMES_TEST_STATE="${test_root}/profiles.state" HERMES_HOME="${test_root}/hermes-home"
 export HERMES_GROUP_CONFIGURATOR="${test_root}/group-configurator" HERMES_PYTHON_BIN='/bin/bash'
+export HERMES_REINITIALIZE_SYNC_SECONDS=0
 mkdir -p "${HERMES_HOME}"
 printf '{}\n' >"${HERMES_HOME}/profile.yaml"
 export TEST_WORKSPACE="${test_root}/workspace" PATH="${test_root}/bin:${PATH}" AI_CONFIG_PROJECT="${test_root}"
@@ -155,6 +156,16 @@ grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-admin/profile.yaml" >
 grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-coder/profile.yaml" >/dev/null
 "${COMMAND}" reconcile --work-profile example --workflow dev --project service >"${test_root}/reconcile-output"
 grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/reconcile-output" >/dev/null
+if "${COMMAND}" reinitialize --work-profile example --workflow dev --project service >"${test_root}/reinitialize-without-confirm" 2>&1; then
+  printf '%s\n' 'reinitialize unexpectedly succeeded without confirmation' >&2
+  exit 1
+fi
+grep -F 'HERMES_REINITIALIZE_CONFIRMATION_REQUIRED' "${test_root}/reinitialize-without-confirm" >/dev/null
+"${COMMAND}" re-init --work-profile example --workflow dev --project service --confirm-reinitialize >"${test_root}/reinitialize-output"
+grep -F 'HERMES_WORKFLOW_DELETED: example-dev (service)' "${test_root}/reinitialize-output" >/dev/null
+grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/reinitialize-output" >/dev/null
+grep -F 'Hermes bot ready: example-dev-coder' "${test_root}/reinitialize-output" >/dev/null
+[[ "$(grep -Ec '^example-dev-(admin|coder)$' "${HERMES_TEST_STATE}")" -eq 2 ]]
 "${COMMAND}" status example-dev-admin | grep -F 'HERMES_READY' >/dev/null
 "${COMMAND}" delete throwaway --confirm-delete | grep -F 'HERMES_PROFILE_DELETED: throwaway' >/dev/null
 if "${COMMAND}" delete-workflow --work-profile example --workflow dev --project service >"${test_root}/delete-without-confirm" 2>&1; then

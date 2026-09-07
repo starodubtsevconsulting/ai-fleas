@@ -113,6 +113,29 @@ def remove_membership(path: Path, group: str) -> None:
         write_document(path, document)
 
 
+def restore_group(hermes_home: Path, group: str) -> None:
+    """Clear an exact deletion tombstone before intentionally recreating a group."""
+    path = profile_dir(hermes_home, "default")
+    meta_path = path / "profile.yaml"
+    lock_path = path / ".ai-fleas-group.lock"
+    with lock_path.open("a+", encoding="utf-8") as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        loaded = yaml.safe_load(meta_path.read_text(encoding="utf-8")) if meta_path.is_file() else {}
+        document = loaded or {}
+        ui_meta = document.setdefault("ui_meta", {})
+        group_meta = ui_meta.setdefault("hermes-bots-groups", {})
+        deleted = group_meta.setdefault("deleted", {})
+        tombstone = f"name:{group}"
+        if tombstone not in deleted:
+            return
+        del deleted[tombstone]
+        revisions = document.setdefault("_ui_meta_revisions", {})
+        revisions["hermes-bots-groups"] = max(
+            0, int(revisions.get("hermes-bots-groups", 0)) + 1
+        )
+        write_document(path, document)
+
+
 def tombstone_group(hermes_home: Path, group: str) -> None:
     path = profile_dir(hermes_home, "default")
     meta_path = path / "profile.yaml"
@@ -172,6 +195,8 @@ def main() -> None:
         raise SystemExit("Hermes member title is empty or unsafe")
 
     member = args.member[0]
+    if not args.hide_only:
+        restore_group(args.hermes_home, args.group)
     update_membership(profile_dir(args.hermes_home, member), None if args.hide_only else args.group, title)
     if args.hide_only:
         print(f"Hermes top-level profile hidden: {member}")

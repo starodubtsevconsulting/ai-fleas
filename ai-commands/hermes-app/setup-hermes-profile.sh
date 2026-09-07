@@ -140,7 +140,11 @@ if expected not in available:
 
 hermes_root="${HERMES_HOME:-${HOME}/.hermes}"
 profile_dir="${hermes_root}/profiles/${profile}"
-if [[ ! -d "${profile_dir}" ]]; then
+# Hermes Desktop can briefly recreate an incomplete directory for a profile
+# whose active UI session was just deleted. Directory existence therefore is
+# not lifecycle identity; the CLI registry is authoritative.
+registered_profiles="$("${hermes_bin}" profile list | awk 'NR > 1 { print $1 }')"
+if ! grep -Fx -- "${profile}" <<<"${registered_profiles}" >/dev/null; then
   "${hermes_bin}" profile create "${profile}" \
     --description "Assistant for ${workspace}, backed by ${model} on ${provider_label}."
 fi
