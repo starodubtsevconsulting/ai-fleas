@@ -81,8 +81,9 @@ Committed configuration template: `hermes-app/hermes-app.command.example.config`
 
 Hermes must be installed and pass its smoke test before profile, bot, or workflow-group initialization.
 
-The selected adapter manifest at `platforms/hermes/workflows/<workflow>/agents.yml` is authoritative for role names and
-profile suffixes. The command does not invent generic workers or borrow another platform's runtime roster.
+The selected portable workflow manifest at `ai-workflows/<workflow>/agents.yml` is authoritative for role names and
+portable role properties such as `aiProvider`. The Hermes adapter realizes that roster as Hermes profiles and a group
+chat; it does not maintain a second platform-specific roster or invent generic workers.
 
 Hermes role-profile identity is `<profile>-<workflow>-<role-suffix>`. The selected project remains runtime scope and
 workspace configuration; repository or folder names never become part of the stable agent identity.
