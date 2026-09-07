@@ -8,4 +8,4 @@ required_commands:
   - coding
   - test
   - review
-  - commit
+  - source-control
