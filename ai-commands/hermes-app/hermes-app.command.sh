@@ -182,9 +182,8 @@ case "${action}" in
     export HERMES_WORKFLOW_COMMAND_IDS="${resolved_command_ids}"
     IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
     for role_binding in "${role_bindings[@]}"; do
-      role="${role_binding%%:*}"
-      profile_suffix="${role_binding#*:}"
-      [[ -n "${role}" && -n "${profile_suffix}" && "${role}" != "${profile_suffix}:" ]] || {
+      IFS=':' read -r role profile_suffix role_provider role_endpoint <<<"${role_binding}"
+      [[ -n "${role}" && -n "${profile_suffix}" && -n "${role_provider}" && -n "${role_endpoint}" ]] || {
         printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: malformed Hermes role binding.' >&2
         exit 2
       }
@@ -201,6 +200,9 @@ case "${action}" in
       export HERMES_PROFILE="${derived_group}-${profile_suffix}"
       export HERMES_ROLE="${role}"
       export HERMES_ROLE_TITLE="${role_title}"
+      export HERMES_PROVIDER_ID="${role_provider}"
+      export HERMES_PROVIDER_LABEL="${role_provider}"
+      export HERMES_ENDPOINT="${role_endpoint}"
       if [[ ${#setup_args[@]} -eq 0 ]]; then
         "${SETUP_SCRIPT}"
       else
@@ -290,14 +292,18 @@ if expected not in available:
     [[ "${confirmed}" == true ]] || { printf '%s\n' 'HERMES_DELETE_CONFIRMATION_REQUIRED: use delete-workflow ... --confirm-delete.' >&2; exit 2; }
     [[ -n "${work_profile}" ]] || { printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: use --work-profile or set WORK_PROFILE_ID.' >&2; exit 2; }
     scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}")"
-    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project _ _ _ _ _ _ _ _ _ _ _ _ resolved_role_bindings <<<"${scope}"
+    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project _ _ _ _ _ _ _ _ _ _ _ _ _ resolved_role_bindings <<<"${scope}"
     if [[ -n "${instance}" ]]; then validate_profile "${instance}"; fi
     group="${resolved_profile}-${resolved_workflow}${instance:+-${instance}}"
     validate_profile "${group}"
     members=()
     IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
     for role_binding in "${role_bindings[@]}"; do
-      suffix="${role_binding#*:}"
+      IFS=':' read -r role suffix role_provider role_endpoint <<<"${role_binding}"
+      [[ -n "${role}" && -n "${suffix}" && -n "${role_provider}" && -n "${role_endpoint}" ]] || {
+        printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: malformed Hermes role binding.' >&2
+        exit 2
+      }
       member="${group}-${suffix}"
       validate_profile "${member}"
       members+=("${member}")

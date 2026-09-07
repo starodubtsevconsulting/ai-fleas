@@ -17,8 +17,8 @@ test -r "$ROOT/platforms/gpt-app/agents/initialization.md" || fail "missing gpt-
 test -r "$ROOT/platforms/gpt-app/workflows/dev/agents.yml" || fail "missing gpt-app Dev roster"
 test -r "$ROOT/platforms/hermes/platform.yml" || fail "missing Hermes contract"
 test -r "$ROOT/platforms/hermes/agents/initialization.md" || fail "missing Hermes initializer"
-test -r "$ROOT/platforms/hermes/workflows/dev/agents.yml" || fail "missing Hermes Dev roster"
 grep -Fq 'creation_environment: profile-selected-provider' "$ROOT/platforms/hermes/platform.yml" || fail "Hermes must use profile-selected providers"
+grep -Fq "path.join(workflowsRoot, workflowId, 'agents.yml')" "$ROOT/ai-commands/hermes-app/resolve-profile-scope.mjs" || fail "Hermes must consume the portable workflow roster"
 grep -Fq 'creation_environment: saved-project-local' "$ROOT/platforms/gpt-app/platform.yml" || fail "gpt-app must use saved-project local creation"
 grep -Fq '  creation_environment: saved-project-local' "$ROOT/platforms/gpt-app/workflows/dev/agents.yml" || fail "gpt-app Dev roster must use saved-project local creation"
 grep -Fq '`environment.type: local`' "$ROOT/platforms/gpt-app/agents/initialization.md" || fail "gpt-app initializer must require local environment"
@@ -33,7 +33,6 @@ for role in admin designer-reviewer judge manager coder command-runner ui-accept
   else
     grep -Fq "  - agentId: $role" "$ROOT/ai-workflows/dev/agents.yml" || fail "missing portable logical agent: $role"
   fi
-  grep -Fq "  - role: $role" "$ROOT/platforms/hermes/workflows/dev/agents.yml" || fail "missing Hermes role binding: $role"
 done
 
 if rg -n '^[[:space:]]+(title|model|reasoning):' "$ROOT/ai-workflows/dev/agents.yml" >/dev/null; then
