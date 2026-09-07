@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Initialization and reconciliation are profile bootstrap operations, so expose their explicit
 # selections to the common command guard before normal argument processing.
-if [[ "${1:-}" == initialize || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow ]]; then
+if [[ "${1:-}" == initialize || "${1:-}" == reinitialize || "${1:-}" == re-init || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow ]]; then
   bootstrap_args=("$@")
   for ((bootstrap_index=1; bootstrap_index<${#bootstrap_args[@]}; bootstrap_index++)); do
     case "${bootstrap_args[bootstrap_index]}" in
@@ -43,6 +43,8 @@ usage() {
     '       hermes-app.command.sh check-update' \
     '       hermes-app.command.sh initialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
     '                               [--agent-instructions FILE] [setup overrides]' \
+    '       hermes-app.command.sh reinitialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
+    '                               --confirm-reinitialize [--agent-instructions FILE] [setup overrides]' \
     '       hermes-app.command.sh reconcile --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
     '       hermes-app.command.sh delete-workflow --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] --confirm-delete' \
     '       hermes-app.command.sh list' \
@@ -108,6 +110,49 @@ case "${action}" in
   install)
     [[ -x "${INSTALL_SCRIPT}" ]] || { printf 'Installer is not executable: %s\n' "${INSTALL_SCRIPT}" >&2; exit 1; }
     "${INSTALL_SCRIPT}" "$@"
+    ;;
+  reinitialize|re-init)
+    confirmed=false
+    delete_args=()
+    initialize_args=()
+    while (($#)); do
+      case "$1" in
+        --work-profile|--workflow|--project|--instance)
+          [[ $# -ge 2 ]] || { usage >&2; exit 2; }
+          delete_args+=("$1" "$2")
+          initialize_args+=("$1" "$2")
+          shift 2
+          ;;
+        --agent-instructions)
+          [[ $# -ge 2 ]] || { usage >&2; exit 2; }
+          initialize_args+=("$1" "$2")
+          shift 2
+          ;;
+        --confirm-reinitialize)
+          confirmed=true
+          shift
+          ;;
+        *)
+          initialize_args+=("$1")
+          shift
+          ;;
+      esac
+    done
+    [[ "${confirmed}" == true ]] || {
+      printf '%s\n' 'HERMES_REINITIALIZE_CONFIRMATION_REQUIRED: use reinitialize ... --confirm-reinitialize.' >&2
+      exit 2
+    }
+    "$0" delete-workflow "${delete_args[@]}" --confirm-delete
+    sync_seconds="${HERMES_REINITIALIZE_SYNC_SECONDS:-5}"
+    [[ "${sync_seconds}" =~ ^([0-9]|[12][0-9]|30)$ ]] || {
+      printf '%s\n' 'HERMES_REINITIALIZE_SYNC_INVALID: HERMES_REINITIALIZE_SYNC_SECONDS must be an integer from 0 through 30.' >&2
+      exit 2
+    }
+    if ((sync_seconds > 0)); then
+      printf 'HERMES_REINITIALIZE_SYNC: waiting %s seconds for Hermes Desktop to retire the deleted room.\n' "${sync_seconds}"
+      sleep "${sync_seconds}"
+    fi
+    "$0" initialize "${initialize_args[@]}"
     ;;
   initialize|reconcile|configure|setup)
     [[ -x "${SETUP_SCRIPT}" ]] || { printf 'Setup script is not executable: %s\n' "${SETUP_SCRIPT}" >&2; exit 1; }
