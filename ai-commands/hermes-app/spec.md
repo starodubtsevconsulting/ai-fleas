@@ -13,25 +13,25 @@ Verified Hermes profile state or a precise, non-secret failure.
 ## Invariants
 
 - Public files contain no organization, client, machine, endpoint, credential, or private-platform defaults.
-- Provider and model selection comes only from the active profile.
-- A workflow selects stable provider-target and model aliases; the profile-owned catalog maps them to a machine endpoint,
-  concrete provider model ID, capabilities, authentication reference, and optional Hermes context settings.
-- Multiple computers and multiple models may coexist in one catalog. Replacing a model box must require only a catalog
-  update and workflow selection change, never a public command-code change.
+- The workflow owns the team/role roster in its [`agents.yml`](../../ai-workflows/dev/agents.yml). Hermes does not define a second roster.
+- Hermes honors the workflow role properties it supports, including `aiProvider`, when realizing those roles as Hermes profiles.
+- The profile-owned provider catalog maps provider aliases to endpoint, protocol, authentication and available model details.
+- Unknown provider aliases or provider configurations Hermes cannot realize fail closed before the affected role is mutated.
+- Provider endpoint and authentication details remain profile-owned and are never embedded in reusable role definitions.
 - Workflow and command contracts are resolved exactly and injected as references, not duplicated into this command.
 - Setup validates dependencies before mutation.
-- `initialize` realizes exactly the named roles in the selected Hermes workflow binding and an idempotent
-  profile-workflow group containing those profiles; it does not infer the GPT adapter's runtime roster.
-- Initialized role profiles remain active in their group but are hidden from Hermes's flat top-level bot roster so the
-  profile-workflow groups are the primary navigation surface.
+- `initialize` realizes exactly the roles declared by the selected workflow and creates an idempotent profile-workflow group containing the resulting Hermes profiles.
+- Initialized role profiles remain active in their group but are hidden from Hermes's flat top-level bot roster so profile-workflow groups are the primary navigation surface.
 - Role-profile IDs contain profile, workflow, and role suffix only; project/repository IDs remain runtime configuration.
 - `reconcile` uses the same resolved identity and preserves conversations and memory by default.
-- Reconciliation preserves profile data by default.
 - Destructive replacement or deletion requires explicit human authorization and an exact safe profile identifier.
-- Hermes profile resolution and reconciliation live in this public command. A platform adapter may launch the command or
-  present its result, but must not own or duplicate its configuration semantics.
+
+## Provider realization
+
+For each workflow role, Hermes resolves `aiProvider` through the active profile configuration and applies the resulting provider configuration when creating or reconciling that Hermes profile.
+
+Hermes-specific code owns only the mechanics of realizing a workflow role as a Hermes profile/group member. The role set and portable role properties remain workflow-owned.
 
 ## Completion criteria
 
-The command verifies the resulting profile identity, provider, model, workspace, workflow contract, allowed command
-contracts, and context-management configuration without exposing secrets.
+Hermes initialization verifies that every role declared by the workflow is realized exactly once and that each resulting profile uses the resolved AI provider requested by that role without exposing provider credentials.

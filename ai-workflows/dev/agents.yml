@@ -10,6 +10,9 @@ policy:
   elasticPool: agents/elastic-agent-pool.md
   contextClone: agents/role-context-clone.md
 
+# Logical agent properties act like a portable interface. A platform adapter
+# realizes the properties it supports. `aiProvider` is independent from model;
+# `profile-default` means resolve the concrete provider from the active profile.
 initializer:
   agentId: admin
   roleDefinition: ../_common/roles/admin.md
@@ -18,6 +21,7 @@ initializer:
   communicationMode: direct-human-administration-only
   readinessToken: ADMIN_READY
   governedRosterOwner: manager
+  aiProvider: profile-default
 
 agents:
   - agentId: designer-reviewer
@@ -28,6 +32,7 @@ agents:
     communicationMode: human-dialogue-and-canonical-packets
     readinessToken: DESIGNER_REVIEWER_READY
     requiresTicket: false
+    aiProvider: profile-default
   - agentId: judge
     roleDefinition: ../_common/roles/judge.md
     aliases: [judge, workflow judge]
@@ -36,6 +41,7 @@ agents:
     communicationMode: direct-human-governance-only
     readinessToken: WORKFLOW_GOVERNANCE_JUDGE_READY
     requiresTicket: false
+    aiProvider: profile-default
   - agentId: manager
     roleDefinition: ../_common/roles/manager.md
     aliases: [manager, ask manager]
@@ -44,6 +50,7 @@ agents:
     communicationMode: internal-canonical-packets-only
     readinessToken: MANAGER_READY
     requiresTicket: false
+    aiProvider: profile-default
   - agentId: coder
     roleDefinition: ../_common/roles/coder.md
     aliases: [coder]
@@ -52,6 +59,7 @@ agents:
     communicationMode: internal-canonical-packets-only
     readinessToken: CODER_READY
     requiresTicket: true
+    aiProvider: profile-default
     elasticPool: { enabled: true, minReady: 0, maxActive: 3 }
   - agentId: command-runner
     roleDefinition: ../_common/roles/command-runner.md
@@ -61,6 +69,7 @@ agents:
     communicationMode: internal-canonical-packets-only
     readinessToken: COMMAND_RUNNER_READY
     requiresTicket: true
+    aiProvider: profile-default
     elasticPool: { enabled: true, minReady: 1, maxActive: 4 }
   - agentId: ui-acceptance-tester
     roleDefinition: ../_common/roles/ui-acceptance-tester.md
@@ -70,6 +79,7 @@ agents:
     communicationMode: internal-canonical-packets-only
     readinessToken: UI_ACCEPTANCE_TESTER_READY
     requiresTicket: true
+    aiProvider: profile-default
 
 dependencies:
   - { consumerAgentId: designer-reviewer, providerAgentId: manager, kind: capability-provider }
