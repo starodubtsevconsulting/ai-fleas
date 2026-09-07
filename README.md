@@ -90,7 +90,7 @@ These are the main building blocks used across the public collection.
 | **Role** | A reusable behavioral contract describing responsibilities, boundaries and lifecycle. | [Common roles](ai-workflows/_common/roles/) |
 | **Agent** | A runtime participant that realizes a role with concrete configuration and identity. | [AI Workflows](ai-workflows/) |
 | **Profile** | Personal or organization-specific configuration that activates workflows and supplies runtime policy. | [AI Profile](https://github.com/starodubtsevconsulting/ai-profile) |
-| **AI Provider** | An AI/inference service through which an agent accesses a model, such as a remote provider or locally hosted endpoint. | [AI Profile](ai-profile/) |
+| **AI Provider** | An AI/inference service through which an agent accesses a model, such as a remote provider or locally hosted endpoint. | [Workflow agent contract](ai-workflows/dev/agents.yml) |
 
 A useful mental model is:
 
