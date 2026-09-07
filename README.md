@@ -90,11 +90,11 @@ These are the main building blocks used across the public collection.
 | **Role** | A reusable behavioral contract describing responsibilities, boundaries and lifecycle. | [Common roles](ai-workflows/_common/roles/) |
 | **Agent** | A runtime participant that realizes a role with concrete configuration and identity. | [AI Workflows](ai-workflows/) |
 | **Profile** | Personal or organization-specific configuration that activates workflows and supplies runtime policy. | [AI Profile](https://github.com/starodubtsevconsulting/ai-profile) |
-| **Provider** | A concrete implementation behind a generic capability. | [AI Commands](ai-commands/) |
+| **AI Provider** | An AI/inference service through which an agent accesses a model, such as a remote provider or locally hosted endpoint. | [AI Profile](ai-profile/) |
 
 A useful mental model is:
 
-`Profile -> Workflow -> Agents/Roles -> Flow -> Commands -> Providers -> Result`
+`Profile -> Workflow -> Agents/Roles -> Flow -> Commands -> AI Providers -> Result`
 
 ## AI vocabulary
 
