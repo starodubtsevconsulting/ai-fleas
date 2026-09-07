@@ -5,7 +5,7 @@ readonly COMMAND="${COMMAND_DIR}/hermes-app.command.sh"
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/hermes-command-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
-mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/commands/coding" "${test_root}/commands/hermes-app" "${test_root}/workflows/dev" "${test_root}/workspace" "${test_root}/platforms/hermes/workflows/dev"
+mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/commands/coding" "${test_root}/commands/hermes-app" "${test_root}/workflows/dev" "${test_root}/workspace" "${test_root}/platforms/hermes"
 touch "${test_root}/AGENTS.md" "${test_root}/README.md" "${test_root}/why.md"
 cat >"${test_root}/platforms/registry.yml" <<'YAML'
 platforms:
@@ -13,12 +13,15 @@ platforms:
     contract: hermes/platform.yml
 YAML
 printf 'id: hermes\n' >"${test_root}/platforms/hermes/platform.yml"
-cat >"${test_root}/platforms/hermes/workflows/dev/agents.yml" <<'YAML'
-platform: hermes
-workflow: dev
-bindings:
-  - { role: admin, profile_suffix: admin }
-  - { role: coder, profile_suffix: coder }
+cat >"${test_root}/workflows/dev/agents.yml" <<'YAML'
+schemaVersion: workflow-logical-agents.v1
+workflowId: dev
+initializer:
+  agentId: admin
+  aiProvider: profile-default
+agents:
+  - agentId: coder
+    aiProvider: profile-default
 YAML
 printf '# Coding\n' >"${test_root}/commands/coding/coding.command.md"
 printf '# Hermes\n' >"${test_root}/commands/hermes-app/hermes-app.command.md"
