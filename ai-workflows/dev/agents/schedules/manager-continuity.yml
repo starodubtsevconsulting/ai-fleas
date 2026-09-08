@@ -1,0 +1,6 @@
+instruction: |
+  Reconcile continuity for every managed workflow agent, including Manager.
+  Ask the selected platform adapter for each agent's current health or exhaustion state.
+  If an agent is near exhaustion, exhausted, or unavailable and its continuity policy still permits continuation, resume, restore, or replace it according to the common continuity policy.
+  Do not guess from labels or stale runtime objects. Preserve identity and bounded context, verify the successor before making it authoritative, and deactivate the predecessor last.
+  If no lifecycle change is needed, do nothing.
