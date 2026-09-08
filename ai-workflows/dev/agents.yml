@@ -51,7 +51,7 @@ agents:
     requiresTicket: false
     aiProvider: profile-default
     continuity: { maxDuration: 24h }
-    schedule: { enabled: false }
+    schedule: { enabled: true, every: 10m, instruction: agents/schedules/judge-governance-audit.yml }
   - agentId: manager
     roleDefinition: ../_common/roles/manager.md
     aliases: [manager, ask manager]
