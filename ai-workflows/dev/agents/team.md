@@ -23,7 +23,7 @@ These are the workflow roles. Platform configuration may change how they are ins
 | -------------------- | --------------------------------------------------------------------------------- |
 | Designer / Reviewer  | Requirements, architecture, design, review, acceptance, and workflow coordination |
 | Judge                | Human-seeded governance-rule maintenance and publication                          |
-| Manager              | Tickets, staffing, and agent lifecycle                                            |
+| Manager              | Tickets, staffing, agent lifecycle, and continuity                                |
 | Coder                | Product, configuration, and test-source implementation                            |
 | Command Runner       | Commands, Git, builds, tests, delivery, and deployment mechanics                  |
 | UI Acceptance Tester | Independent visible UI acceptance                                                 |
@@ -34,12 +34,10 @@ Judge is isolated from the workflow agents and communicates only with the human.
 
 ## Lifecycle
 
-Manager owns workflow-agent lifecycle.
+Manager owns workflow-agent lifecycle and applies the common [agent continuity](../../_common/agents/continuity.md) policy when a persistent agent needs to continue across runtime instances.
 
 Coder can have up to 3 active instances and Command Runner up to 4. All other workflow roles can have only one active instance.
 
 Multiple instances must have independent, non-overlapping assignments.
-
-When replacing an agent, preserve its required context, verify the replacement is ready, and deactivate the previous instance last.
 
 Delete, remove, and archive mean platform-appropriate deactivation unless explicitly stated otherwise.
