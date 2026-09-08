@@ -4,6 +4,9 @@ The development workflow follows the common [agent rules](../agents.md) and reus
 
 The workflow proceeds through the steps below in order. When one step completes successfully, it continues to the next applicable step without waiting for additional human instruction. A step cannot start until the required evidence from the previous applicable step exists.
 
+## Team
+- Include: [team.md](agents/team.md)
+
 ## Workflow
 
 1. Manager resolves the ticket and required agents.
