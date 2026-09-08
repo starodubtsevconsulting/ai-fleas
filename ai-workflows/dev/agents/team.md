@@ -34,7 +34,9 @@ Judge is isolated from the workflow agents and communicates only with the human.
 
 ## Lifecycle
 
-Manager owns workflow-agent lifecycle and applies the common [agent continuity](../../_common/agents/continuity.md) policy when a persistent agent needs to continue across runtime instances.
+Manager owns workflow-agent lifecycle and applies the common [agent continuity](../../_common/agents/continuity.md) policy when an agent needs to continue across runtime instances.
+
+Agent scheduling follows the common [agent scheduling](../../_common/agents/scheduling.md) policy. The Dev Manager runs its configured continuity reconciliation instruction on schedule; other agent schedules are declared independently in `agents.yml`.
 
 Coder can have up to 3 active instances and Command Runner up to 4. All other workflow roles can have only one active instance.
 
