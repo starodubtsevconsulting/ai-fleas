@@ -8,7 +8,7 @@ policy:
   routing: agents/shared-execution-routing.md
   permissionEnvelope: agents/permission-envelope.md
   elasticPool: agents/elastic-agent-pool.md
-  contextClone: agents/role-context-clone.md
+  continuity: ../_common/agents/continuity.md
 
 # Logical agent properties act like a portable interface. A platform adapter
 # realizes the properties it supports. `aiProvider` is independent from model;
