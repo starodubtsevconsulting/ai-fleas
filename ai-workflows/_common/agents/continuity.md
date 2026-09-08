@@ -6,7 +6,7 @@ A logical agent must remain available across runtime exhaustion, loss, or replac
 
 A workflow may disable continuity or set a maximum logical-agent duration, for example `continuity: { enabled: false }` or `continuity: { maxDuration: 24h }`. Duration applies to the logical agent across all underlying runtime instances, not to an individual session or replacement.
 
-If replacement is required, verify the successor is ready before making it authoritative and deactivate the predecessor last. Ambiguous lineage or incomplete handoff blocks continuity rather than guessing.
+If replacement is required, collect the predecessor's [knowledge transfer](knowledge-transfer.md) when available, initialize the successor with it, verify the successor is ready, make it authoritative, and deactivate the predecessor last. If the predecessor is unavailable, use only trusted persisted transfer or status. Ambiguous lineage or incomplete handoff blocks continuity rather than guessing.
 
 Continuity stops when explicitly disabled, terminated, or its configured maximum duration is reached.
 
