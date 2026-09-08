@@ -9,6 +9,7 @@ policy:
   permissionEnvelope: agents/permission-envelope.md
   elasticPool: agents/elastic-agent-pool.md
   continuity: ../_common/agents/continuity.md
+  knowledgeTransfer: ../_common/agents/knowledge-transfer.md
   scheduling: ../_common/agents/scheduling.md
 
 # Logical agent properties act like a portable interface. A platform adapter
