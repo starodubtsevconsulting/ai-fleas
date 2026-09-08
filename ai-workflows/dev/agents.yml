@@ -13,6 +13,8 @@ policy:
 # Logical agent properties act like a portable interface. A platform adapter
 # realizes the properties it supports. `aiProvider` is independent from model;
 # `profile-default` means resolve the concrete provider from the active profile.
+# Continuity follows the common default unless an agent overrides it, for example:
+# `continuity: { enabled: false }` or `continuity: { maxDuration: 24h }`.
 initializer:
   agentId: admin
   roleDefinition: ../_common/roles/admin.md
