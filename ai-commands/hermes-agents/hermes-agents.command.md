@@ -10,7 +10,7 @@ selected AI Profile.
 ```mermaid
 flowchart LR
   subgraph PrivateProfile["Selected AI Profile — operational values"]
-    Profile["Work profile"] --> Workflow["Workflow + project"]
+    Profile["Work profile"] --> Workflow["Workflow + ordered project set"]
     Workflow --> TargetAlias["Provider target alias"]
     Workflow --> ModelAlias["Model alias"]
     Catalog["Provider catalog"] --> Target["Computer / service endpoint"]
@@ -66,7 +66,7 @@ without changing this command, the workflow contract, or the bot lifecycle.
 
 | Entry point | Type | Profile-aware invocation |
 |---|---|---|
-|| `hermes-agents/hermes-agents.command.sh` | Shell executable | Run through the initialized profile runtime; setup resolves the selected workflow, project, provider target, and model from profile configuration. |
+| `hermes-agents/hermes-agents.command.sh` | Shell executable | Run through the initialized profile runtime; setup resolves the selected workflow, complete ordered project set, provider target, and model from profile configuration. |
 
 Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide the selected profile root as `AI_PROFILE_ROOT` before this entry point is used.
 
@@ -85,8 +85,11 @@ The selected portable workflow manifest at `ai-workflows/<workflow>/agents.yml` 
 portable role properties such as `aiProvider`. The Hermes adapter realizes that roster as Hermes profiles and a group
 chat; it does not maintain a second platform-specific roster or invent generic workers.
 
-Hermes role-profile identity is `<profile>-<workflow>-<role-suffix>`. The selected project remains runtime scope and
-workspace configuration; repository or folder names never become part of the stable agent identity.
+Hermes role-profile identity is `<profile>-<workflow>-<role-suffix>`. The workflow's complete ordered project set is
+the logical group's runtime scope; repository or folder names never become part of stable agent identity. The first
+project is primary and becomes Hermes `terminal.cwd`; all later entries remain authorized associated projects and are
+written into the generated runtime instructions. `--project` is a compatibility selector that validates membership in
+the configured set and never narrows it.
 
 Hermes presents bots and group chats in one flat roster rather than a folder tree. Initialization therefore marks the
 individual role profiles hidden in the top-level roster while retaining their group memberships and runtime behavior.
@@ -102,7 +105,7 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 |---|---|
 | `install` | Compatibility delegate to the `install/hermes` command; new callers should invoke that install command directly. |
 | `check-update` | Read-only comparison of the installed release, newest stable upstream date tag, and reviewed public installer pin; recommends an explicit upgrade when appropriate. |
-| `initialize` | Resolve the selected profile/workflow/project, idempotently create every platform-bound role profile, and realize their profile-workflow Hermes group. |
+| `initialize` | Resolve the selected profile/workflow and complete ordered project set, idempotently create every platform-bound role profile, and realize their profile-workflow Hermes group. |
 | `reinitialize` / `re-init` | After `--confirm-reinitialize`, delete the exact active workflow group and all its role profiles, then create a fresh complete generation from current contracts. Existing conversations and memory for those profiles are removed. |
 | `reconcile` | Reapply the resolved role-profile and group configuration while preserving conversations and memory. |
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
@@ -122,7 +125,9 @@ retire the old room identity and its conversation log before the same logical gr
 `initialize` has the same lifecycle meaning as it does in `gpt-agents`: realize the agents declared for the selected
 workflow on the selected platform. The realization cardinality differs by platform. Hermes App currently maps the
 workflow to one named Hermes profile per configured role plus a profile-workflow group containing that roster.
-Each profile receives the workflow instructions and allowed command catalog. GPT App maps the same
+Each profile receives references to the same portable agent instructions, workflow instructions, allowed command
+catalog, and complete project scope. `SOUL.md` is only the Hermes runtime delivery surface for that resolved contract;
+it is not a second source of initialization truth. GPT App maps the same
 workflow governance model to its declared multi-agent roster, such as Admin, Manager, and the five governed Dev roles.
 This difference belongs to the platform adapters and must not be hardcoded as a universal agent count in either command.
 

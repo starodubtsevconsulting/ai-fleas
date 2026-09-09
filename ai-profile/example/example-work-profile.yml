@@ -58,6 +58,10 @@ commands:
 workflows:
   - path: dev.workflow.md
     harness: pi
+    local_ai:
+      providers_config: local-ai-providers.yml
+      provider: local-coding-service
+      model: qwen-coder
     commands:
       - coding
       - ticket-tracker
