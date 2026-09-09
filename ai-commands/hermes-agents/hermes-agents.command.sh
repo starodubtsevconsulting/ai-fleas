@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Initialization and reconciliation are profile bootstrap operations, so expose their explicit
 # selections to the common command guard before normal argument processing.
-if [[ "${1:-}" == initialize || "${1:-}" == reinitialize || "${1:-}" == re-init || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow ]]; then
+if [[ "${1:-}" == initialize || "${1:-}" == initialize-system || "${1:-}" == status-system || "${1:-}" == reinitialize || "${1:-}" == re-init || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow ]]; then
   bootstrap_args=("$@")
   for ((bootstrap_index=1; bootstrap_index<${#bootstrap_args[@]}; bootstrap_index++)); do
     case "${bootstrap_args[bootstrap_index]}" in
@@ -33,6 +33,9 @@ readonly SETUP_SCRIPT="${COMMAND_DIR}/setup-hermes-profile.sh"
 readonly INSTALL_SCRIPT="${COMMAND_DIR}/install-agents.sh"
 readonly PROFILE_ROOT="${AI_PROFILE_ROOT:-$(dirname "$(dirname "${AI_PROFILE_FILE}")")}"
 readonly PROFILE_RESOLVER="${COMMAND_DIR}/resolve-profile-scope.mjs"
+readonly SYSTEM_RESOLVER="${COMMAND_DIR}/resolve-system-scope.mjs"
+readonly SYSTEM_BINDING_WRITER="${HERMES_SYSTEM_BINDING_WRITER:-${COMMAND_DIR}/write-system-binding.py}"
+readonly WORKFLOW_BINDING_WRITER="${HERMES_WORKFLOW_BINDING_WRITER:-${COMMAND_DIR}/write-workflow-binding.py}"
 readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${COMMAND_DIR}/configure-hermes-group.py}"
 readonly PYTHON_BIN="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
 readonly HERMES_UPSTREAM_REPOSITORY="${HERMES_UPSTREAM_REPOSITORY:-https://github.com/NousResearch/hermes-agent.git}"
@@ -50,7 +53,9 @@ usage() {
     '       hermes-agents.command.sh list' \
     '       hermes-agents.command.sh show PROFILE' \
     '       hermes-agents.command.sh status PROFILE' \
-    '       hermes-agents.command.sh delete PROFILE --confirm-delete'
+    '       hermes-agents.command.sh delete PROFILE --confirm-delete' \
+    '       hermes-agents.command.sh initialize-system --work-profile ID [--watch-group ID]... [--every DURATION]' \
+    '       hermes-agents.command.sh status-system --work-profile ID'
 }
 
 resolve_hermes() {
@@ -78,6 +83,79 @@ action="${1:-}"
 shift
 
 case "${action}" in
+  initialize-system)
+    work_profile="${WORK_PROFILE_ID:-}"
+    every=''
+    watch_groups=()
+    while (($#)); do
+      case "$1" in
+        --work-profile) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; work_profile="$2"; shift 2 ;;
+        --watch-group) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; validate_profile "$2"; watch_groups+=("$2"); shift 2 ;;
+        --every) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; every="$2"; shift 2 ;;
+        *) usage >&2; exit 2 ;;
+      esac
+    done
+    [[ -n "${work_profile}" ]] || { printf '%s\n' 'HERMES_SYSTEM_SCOPE_INVALID: use --work-profile or activate a profile.' >&2; exit 2; }
+    validate_profile "${work_profile}"
+    system_scope="$(node "${SYSTEM_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}")"
+    IFS=$'\t' read -r resolved_profile system_profile system_title system_provider system_provider_label system_endpoint system_model system_context system_threshold system_target system_protect system_workspace system_role_path system_schedule_path configured_every <<<"${system_scope}"
+    [[ -n "${every}" ]] || every="${configured_every}"
+    [[ "${every}" =~ ^[1-9][0-9]*[mhd]$ ]] || { printf '%s\n' 'HERMES_SYSTEM_SCOPE_INVALID: --every must use a positive m, h, or d duration.' >&2; exit 2; }
+    watch_csv=''
+    if ((${#watch_groups[@]})); then watch_csv="$(IFS=,; printf '%s' "${watch_groups[*]}")"; fi
+    binding_registry="${PROFILE_ROOT}/${resolved_profile}/.local/hermes-agents/bindings.yml"
+    export HERMES_SCOPE=system HERMES_PROFILE="${system_profile}" HERMES_ROLE=system HERMES_ROLE_TITLE="${system_title}"
+    export HERMES_WORK_PROFILE="${resolved_profile}" HERMES_PROVIDER_ID="${system_provider}" HERMES_PROVIDER_LABEL="${system_provider_label}"
+    export HERMES_ENDPOINT="${system_endpoint}" HERMES_MODEL="${system_model}" HERMES_CONTEXT_LENGTH="${system_context}"
+    export HERMES_COMPRESSION_THRESHOLD="${system_threshold}" HERMES_COMPRESSION_TARGET_RATIO="${system_target}" HERMES_COMPRESSION_PROTECT_LAST_N="${system_protect}"
+    export HERMES_WORKSPACE="${system_workspace}" HERMES_SYSTEM_ROLE_PATH="${system_role_path}" HERMES_SYSTEM_SCHEDULE_PATH="${system_schedule_path}"
+    export HERMES_SYSTEM_WATCH_GROUPS="${watch_csv}" HERMES_BINDING_REGISTRY_PATH="${binding_registry}" HERMES_GROUP=''
+    "${SETUP_SCRIPT}"
+    hermes_python="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
+    "${hermes_python}" "${GROUP_CONFIGURATOR}" --hermes-home "${HERMES_HOME:-${HOME}/.hermes}" --member "${system_profile}" --title "${system_title}" --global-pinned
+    schedule_prompt="$(cat "${system_schedule_path}")
+
+Trusted binding registry: ${binding_registry}
+Exact ordered watch groups: ${watch_csv:-none}
+Before answering, read that exact registry with file or terminal tools. A trusted group receipt exists exactly when the group has an entry under workflow_groups; never infer receipt state from memory or the watch list.
+Operate as the System profile defined by SOUL.md. Perform the same lifecycle check as a direct human request."
+    jobs_file="${HERMES_HOME:-${HOME}/.hermes}/profiles/${system_profile}/cron/jobs.json"
+    scheduler_name="${system_profile}-lifecycle-monitor"
+    scheduler_id="$(JOBS_FILE="${jobs_file}" JOB_NAME="${scheduler_name}" python3 -c 'import json, os; p=os.environ["JOBS_FILE"]; d=json.load(open(p)) if os.path.isfile(p) else {}; jobs=d.get("jobs", d if isinstance(d,list) else []); matches=[str(j.get("id")) for j in jobs if isinstance(j,dict) and j.get("name")==os.environ["JOB_NAME"]]; print(matches[0] if len(matches)==1 else "")')"
+    hermes_bin="$(resolve_hermes)"
+    if [[ -n "${scheduler_id}" ]]; then
+      "${hermes_bin}" -p "${system_profile}" cron edit "${scheduler_id}" --schedule "${every}" --prompt "${schedule_prompt}" --name "${scheduler_name}" --deliver "bot-chat:${system_profile}" --workdir "${system_workspace}" --model "${system_model}" --provider "${system_provider}" --continuity
+    else
+      "${hermes_bin}" -p "${system_profile}" cron create "${every}" "${schedule_prompt}" --name "${scheduler_name}" --deliver "bot-chat:${system_profile}" --workdir "${system_workspace}" --model "${system_model}" --provider "${system_provider}" --continuity
+      scheduler_id="$(JOBS_FILE="${jobs_file}" JOB_NAME="${scheduler_name}" python3 -c 'import json, os; d=json.load(open(os.environ["JOBS_FILE"])); jobs=d.get("jobs", []); matches=[str(j.get("id")) for j in jobs if isinstance(j,dict) and j.get("name")==os.environ["JOB_NAME"]]; print(matches[0] if len(matches)==1 else "")')"
+    fi
+    [[ -n "${scheduler_id}" ]] || { printf '%s\n' 'HERMES_SYSTEM_SCHEDULER_INVALID: exact scheduler receipt was not found.' >&2; exit 1; }
+    binding_args=(--path "${binding_registry}" --profile "${system_profile}" --title "${system_title}" --provider "${system_provider}" --model "${system_model}" --every "${every}" --scheduler-id "${scheduler_id}")
+    for group in "${watch_groups[@]}"; do binding_args+=(--watch-group "${group}"); done
+    "${hermes_python}" "${SYSTEM_BINDING_WRITER}" "${binding_args[@]}"
+    cron_status="$("${hermes_bin}" -p "${system_profile}" cron status 2>&1 || true)"
+    if [[ "${cron_status}" != *'Gateway is running'* || "${cron_status}" != *'cron jobs will fire automatically'* ]]; then
+      "${hermes_bin}" -p "${system_profile}" gateway install --start-now --start-on-login
+      for _ in 1 2 3 4 5; do
+        cron_status="$("${hermes_bin}" -p "${system_profile}" cron status 2>&1 || true)"
+        [[ "${cron_status}" == *'Gateway is running'* && "${cron_status}" == *'cron jobs will fire automatically'* ]] && break
+        sleep 1
+      done
+    fi
+    [[ "${cron_status}" == *'Gateway is running'* && "${cron_status}" == *'cron jobs will fire automatically'* ]] || {
+      printf '%s\n' 'HERMES_SYSTEM_SCHEDULER_INACTIVE: scheduler exists but its profile gateway/ticker is not ready.' >&2
+      exit 1
+    }
+    printf 'SYSTEM_READY: %s; pinned globally; groups=none; scheduler=%s; every=%s; watch=%s\n' "${system_profile}" "${scheduler_id}" "${every}" "${watch_csv:-none}"
+    ;;
+  status-system)
+    work_profile="${WORK_PROFILE_ID:-}"
+    while (($#)); do case "$1" in --work-profile) work_profile="${2:-}"; shift 2 ;; *) usage >&2; exit 2 ;; esac; done
+    validate_profile "${work_profile}"
+    binding_registry="${PROFILE_ROOT}/${work_profile}/.local/hermes-agents/bindings.yml"
+    [[ -f "${binding_registry}" ]] || { printf 'HERMES_SYSTEM_NOT_INITIALIZED: %s\n' "${work_profile}" >&2; exit 1; }
+    "${PYTHON_BIN}" -c 'import sys,yaml; d=yaml.safe_load(open(sys.argv[1])); s=d["system"]; assert s["scope"]=="system" and s["pinned"] is True and s["groups"]==[]; print("HERMES_SYSTEM_READY: {} scheduler={} watch={}".format(s["profile_id"],s["scheduler"]["id"],",".join(s["watch_groups"])))' "${binding_registry}"
+    ;;
   check-update)
     [[ $# -eq 0 ]] || { usage >&2; exit 2; }
     hermes_bin="$(resolve_hermes)"
@@ -228,6 +306,7 @@ case "${action}" in
     export HERMES_WORKFLOW_INSTRUCTIONS_PATH="${resolved_workflow_instructions}"
     export HERMES_WORKFLOW_COMMAND_IDS="${resolved_command_ids}"
     role_bindings=()
+    realized_profiles=()
     IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
     for role_binding in "${role_bindings[@]}"; do
       IFS=':' read -r role profile_suffix role_provider role_endpoint <<<"${role_binding}"
@@ -251,12 +330,18 @@ case "${action}" in
       export HERMES_PROVIDER_ID="${role_provider}"
       export HERMES_PROVIDER_LABEL="${role_provider}"
       export HERMES_ENDPOINT="${role_endpoint}"
+      realized_profiles+=("${HERMES_PROFILE}")
       if [[ ${#setup_args[@]} -eq 0 ]]; then
         "${SETUP_SCRIPT}"
       else
         "${SETUP_SCRIPT}" "${setup_args[@]}"
       fi
     done
+    binding_registry="${PROFILE_ROOT}/${resolved_profile}/.local/hermes-agents/bindings.yml"
+    binding_args=(--path "${binding_registry}" --group "${derived_group}" --project-scope "${resolved_project_scope}")
+    for realized_profile in "${realized_profiles[@]}"; do binding_args+=(--profile "${realized_profile}"); done
+    "${HERMES_BINDING_PYTHON_BIN:-${PYTHON_BIN}}" "${WORKFLOW_BINDING_WRITER}" "${binding_args[@]}"
+    printf 'HERMES_WORKFLOW_READY: %s; profiles=%s; binding=%s\n' "${derived_group}" "${#realized_profiles[@]}" "${binding_registry}"
     ;;
   list)
     [[ $# -eq 0 ]] || { usage >&2; exit 2; }

@@ -25,6 +25,11 @@ workflow_command_ids="${HERMES_WORKFLOW_COMMAND_IDS:-}"
 group="${HERMES_GROUP:-}"
 role="${HERMES_ROLE:-worker}"
 role_title="${HERMES_ROLE_TITLE:-Worker}"
+scope="${HERMES_SCOPE:-workflow}"
+system_role_path="${HERMES_SYSTEM_ROLE_PATH:-}"
+system_schedule_path="${HERMES_SYSTEM_SCHEDULE_PATH:-}"
+system_watch_groups="${HERMES_SYSTEM_WATCH_GROUPS:-}"
+binding_registry_path="${HERMES_BINDING_REGISTRY_PATH:-}"
 hermes_bin="${HERMES_BIN:-}"
 context_length="${HERMES_CONTEXT_LENGTH:-${DEFAULT_CONTEXT_LENGTH}}"
 compression_threshold="${HERMES_COMPRESSION_THRESHOLD:-${DEFAULT_COMPRESSION_THRESHOLD}}"
@@ -178,6 +183,27 @@ soul_tmp="$(mktemp "${profile_dir}/.SOUL.md.XXXXXX")"
 cleanup() { [[ -z "${soul_tmp:-}" ]] || rm -f -- "${soul_tmp}"; }
 trap cleanup EXIT INT TERM
 printf '# Hermes Profile: %s\n\n' "${profile}" >"${soul_tmp}"
+if [[ "${scope}" == 'system' ]]; then
+  [[ -f "${system_role_path}" && -f "${system_schedule_path}" ]] || {
+    echo 'System role and schedule contracts must be readable files.' >&2
+    exit 2
+  }
+  printf '%s\n' \
+    "You are the globally scoped Hermes System agent for AI work profile \`${work_profile}\`." \
+    'You exist outside every workflow group. Never join a group and never expose your direct profile ID to workflow agents.' \
+    "Your visible title is \`${role_title}\`. You are a narrow, user-facing lifecycle operator, not a product-work assistant." \
+    "Your portable authority and human-facing intent map are defined below and remain authoritative:" \
+    >>"${soul_tmp}"
+  printf '\n' >>"${soul_tmp}"
+  cat "${system_role_path}" >>"${soul_tmp}"
+  printf '\n## Active lifecycle binding\n\n' >>"${soul_tmp}"
+  printf '%s\n' \
+    "Trusted Hermes binding registry: \`${binding_registry_path}\`. Resolve lifecycle identities only from that exact registry." \
+    "For every check, status, watch, unwatch, or lifecycle request, first read that exact registry with the available file or terminal tools. Never answer from this prompt's watch list, memory, UI names, or a previous run. A group has a trusted receipt exactly when it has a matching entry under \`workflow_groups\` in the registry." \
+    "Ordered watched logical groups: \`${system_watch_groups:-none}\`. A missing group receipt is pending state, not authorization to guess." \
+    "Scheduled lifecycle instruction: \`${system_schedule_path}\`. Manual checks execute the same operation immediately." \
+    >>"${soul_tmp}"
+else
 printf '%s\n' \
   "You are an assistant backed by the profile-selected ${provider_label} model target." \
   "Your logical workflow role is \`${role}\` (${role_title})." \
@@ -209,16 +235,17 @@ print("\n".join(lines))
 else
   printf '%s\n' "Your primary and only recorded project is \`${project:-not-recorded}\` at \`${workspace}\`." >>"${soul_tmp}"
 fi
-if [[ -n "${agent_instructions_path}" ]]; then
+fi
+if [[ "${scope}" != 'system' && -n "${agent_instructions_path}" ]]; then
   [[ "${agent_instructions_path}" == /* && -f "${agent_instructions_path}" ]] || {
     echo "Agent instructions path is not an existing absolute file: ${agent_instructions_path}" >&2
     exit 2
   }
   printf '%s\n' "Your AI configuration instructions are \`${agent_instructions_path}\`; read them completely before work and follow the rules that apply to the task." >>"${soul_tmp}"
-else
+elif [[ "${scope}" != 'system' ]]; then
   printf '%s\n' 'No separate AI configuration instructions file was assigned to this Hermes profile.' >>"${soul_tmp}"
 fi
-if [[ -n "${ai_commands_root}" || -n "${workflow_instructions_path}" || -n "${workflow_command_ids}" ]]; then
+if [[ "${scope}" != 'system' && ( -n "${ai_commands_root}" || -n "${workflow_instructions_path}" || -n "${workflow_command_ids}" ) ]]; then
   [[ "${ai_commands_root}" == /* && -d "${ai_commands_root}" ]] || {
     echo "AI commands root is not an existing absolute directory: ${ai_commands_root}" >&2
     exit 2
@@ -238,10 +265,14 @@ if [[ -n "${ai_commands_root}" || -n "${workflow_instructions_path}" || -n "${wo
     'Load only the matching command contracts; do not treat unselected catalog commands as authorized merely because they exist.' \
     >>"${soul_tmp}"
 fi
-printf '%s\n' \
-  'Begin coding tasks in the primary project unless the request concerns another project in the authorized ordered scope.' \
-  'Explain intended destructive or external effects before performing them. Never reveal credentials or secret values.' \
-  >>"${soul_tmp}"
+if [[ "${scope}" == 'system' ]]; then
+  printf '%s\n' 'Never answer out-of-domain requests. Explain intended lifecycle mutations before performing them and never reveal credentials or secret values.' >>"${soul_tmp}"
+else
+  printf '%s\n' \
+    'Begin coding tasks in the primary project unless the request concerns another project in the authorized ordered scope.' \
+    'Explain intended destructive or external effects before performing them. Never reveal credentials or secret values.' \
+    >>"${soul_tmp}"
+fi
 chmod 0600 "${soul_tmp}"
 mv -f -- "${soul_tmp}" "${profile_dir}/SOUL.md"
 soul_tmp=''

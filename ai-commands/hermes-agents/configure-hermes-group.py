@@ -84,6 +84,30 @@ def update_membership(path: Path, group: str | None, title: str | None) -> None:
         write_document(path, document)
 
 
+def configure_global_pinned(path: Path, title: str) -> None:
+    """Expose one profile globally without assigning it to any workflow group."""
+    meta_path = path / "profile.yaml"
+    if not path.is_dir():
+        raise SystemExit(f"Hermes profile directory does not exist: {path}")
+    lock_path = path / ".ai-fleas-group.lock"
+    with lock_path.open("a+", encoding="utf-8") as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        loaded = yaml.safe_load(meta_path.read_text(encoding="utf-8")) if meta_path.is_file() else {}
+        document = loaded or {}
+        if not isinstance(document, dict):
+            raise SystemExit(f"Hermes profile metadata is not a mapping: {meta_path}")
+        ui_meta = document.setdefault("ui_meta", {})
+        bot_meta = ui_meta.setdefault("hermes-bots", {})
+        bot_meta["groups"] = []
+        bot_meta.pop("group", None)
+        bot_meta["hidden"] = False
+        bot_meta["pinned"] = True
+        bot_meta["title"] = title
+        revisions = document.setdefault("_ui_meta_revisions", {})
+        revisions["hermes-bots"] = max(0, int(revisions.get("hermes-bots", 0))) + 1
+        write_document(path, document)
+
+
 def remove_membership(path: Path, group: str) -> None:
     meta_path = path / "profile.yaml"
     if not path.is_dir():
@@ -169,13 +193,14 @@ def main() -> None:
     parser.add_argument("--title")
     parser.add_argument("--hide-only", action="store_true")
     parser.add_argument("--delete-group", action="store_true")
+    parser.add_argument("--global-pinned", action="store_true")
     args = parser.parse_args()
 
     if args.delete_group:
         if not args.group or not args.member:
             raise SystemExit("--delete-group requires --group and at least one --member")
-    elif not args.hide_only and not args.group:
-        raise SystemExit("--group is required unless --hide-only is used")
+    elif not args.hide_only and not args.global_pinned and not args.group:
+        raise SystemExit("--group is required unless --hide-only or --global-pinned is used")
     for label, value in (("group", args.group), *(("member", member) for member in args.member or [])):
         if value is None:
             continue
@@ -195,6 +220,10 @@ def main() -> None:
         raise SystemExit("Hermes member title is empty or unsafe")
 
     member = args.member[0]
+    if args.global_pinned:
+        configure_global_pinned(profile_dir(args.hermes_home, member), title)
+        print(f"Hermes global profile pinned: {member} ({title})")
+        return
     if not args.hide_only:
         restore_group(args.hermes_home, args.group)
     update_membership(profile_dir(args.hermes_home, member), None if args.hide_only else args.group, title)

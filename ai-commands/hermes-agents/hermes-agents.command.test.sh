@@ -143,10 +143,15 @@ fi
 printf 'Hermes group member ready: %s (%s as %s)\n' "$group" "$member" "$title"
 printf '%s\n' 'example-dev' >>"${HERMES_HOME}/profiles/${member}/profile.yaml"
 SH
-chmod +x "${test_root}/bin/hermes" "${test_root}/bin/git" "${test_root}/bin/curl" "${test_root}/group-configurator"
+cat >"${test_root}/binding-writer" <<'SH'
+#!/usr/bin/env bash
+exit 0
+SH
+chmod +x "${test_root}/bin/hermes" "${test_root}/bin/git" "${test_root}/bin/curl" "${test_root}/group-configurator" "${test_root}/binding-writer"
 printf 'default\nthrowaway\n' >"${test_root}/profiles.state"
 export HERMES_BIN="${test_root}/bin/hermes" HERMES_TEST_STATE="${test_root}/profiles.state" HERMES_HOME="${test_root}/hermes-home"
 export HERMES_GROUP_CONFIGURATOR="${test_root}/group-configurator" HERMES_PYTHON_BIN='/bin/bash'
+export HERMES_WORKFLOW_BINDING_WRITER="${test_root}/binding-writer" HERMES_BINDING_PYTHON_BIN='/bin/bash'
 export HERMES_REINITIALIZE_SYNC_SECONDS=0
 mkdir -p "${HERMES_HOME}"
 printf '{}\n' >"${HERMES_HOME}/profile.yaml"

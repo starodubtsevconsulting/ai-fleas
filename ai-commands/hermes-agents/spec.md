@@ -21,6 +21,8 @@ Verified Hermes profile state or a precise, non-secret failure.
 - Workflow and command contracts are resolved exactly and injected as references, not duplicated into this command.
 - Setup validates dependencies before mutation.
 - `initialize` realizes exactly the roles declared by the selected workflow and creates an idempotent profile-workflow group containing the resulting Hermes profiles.
+- `initialize-system` realizes exactly one globally pinned profile with no workflow-group membership and exactly one profile-scoped scheduler covering its ordered watch set.
+- System and workflow initialization preserve one profile-owned Hermes binding registry. System resolves groups and profiles only from exact receipts; a missing group receipt remains pending.
 - `reinitialize` deletes the exact resolved group and role profiles, verifies their removal, observes a bounded desktop synchronization barrier, clears only that group's deletion tombstone, and creates a fresh complete generation; it requires `--confirm-reinitialize`.
 - Initialized role profiles remain active in their group but are hidden from Hermes's flat top-level bot roster so profile-workflow groups are the primary navigation surface.
 - Role-profile IDs contain profile, workflow, and role suffix only; project/repository IDs remain runtime configuration.
