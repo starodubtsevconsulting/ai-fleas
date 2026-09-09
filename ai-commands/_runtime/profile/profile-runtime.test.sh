@@ -7,11 +7,23 @@ grep -Fq 'LOGICAL_PROJECT_ID=example-dev' <<< "$base"
 grep -Fq 'AI_AGENT_PLATFORM=gpt-agents' <<< "$base"
 grep -Fq 'AI_AGENT_PLATFORM_CONTRACT=' <<< "$base"
 grep -Fq '/platforms/gpt-agents/platform.yml' <<< "$base"
+grep -Fq 'AI_AGENT_RUNTIME_PROJECT_ID=example-service' <<< "$base"
+grep -Fq '/ai-profile/example/projects-config/dev/example-service/project.yml' <<< "$base"
+grep -Fq 'AI_AGENT_RUNTIME_PROJECT_ROOT=/absolute/path/to/example-workspace/example-service' <<< "$base"
+grep -Fq 'AI_PRIMARY_PROJECT_ID=example-service' <<< "$base"
+grep -Fq '/ai-profile/example/projects-config/dev/example-service/project.yml' <<< "$base"
+grep -Fq 'AI_PRIMARY_PROJECT_ROOT=/absolute/path/to/example-workspace/example-service' <<< "$base"
 grep -Fq 'AI_GOVERNANCE_RULES_REPOSITORY=example-governance-rules' <<< "$base"
 grep -Fq 'AI_COMMAND_CONFIG_PATH=' <<< "$base"
 grep -Fq '/ai-profile/example/commands-config/source-control/config.yml' <<< "$base"
 hermes="$($SCRIPT_DIR/activate-profile.sh --profile example --workflow dev.workflow.md --command hermes-agents)"
 grep -Fq '/ai-profile/example/commands-config/hermes-agents/config.yml' <<< "$hermes"
+explicit_hermes="$($SCRIPT_DIR/activate-profile.sh --profile example --workflow dev.workflow.md --agent-platform hermes --command hermes-agents)"
+grep -Fq 'AI_AGENT_PLATFORM=hermes' <<< "$explicit_hermes"
+grep -Fq '/platforms/hermes/platform.yml' <<< "$explicit_hermes"
+if "$SCRIPT_DIR/activate-profile.sh" --profile example --workflow dev.workflow.md --agent-platform unavailable >/dev/null 2>&1; then
+  echo 'profile-unavailable agent platform was accepted' >&2; exit 1
+fi
 if "$SCRIPT_DIR/activate-profile.sh" --profile example --workflow dev.workflow.md --command taxes >/dev/null 2>&1; then
   echo 'workflow-disallowed command was accepted' >&2; exit 1
 fi

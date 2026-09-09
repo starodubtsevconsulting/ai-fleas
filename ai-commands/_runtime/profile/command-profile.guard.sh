@@ -18,5 +18,6 @@ ai_command_require_profile() {
     "${AI_WORK_PROFILE_ID:-$WORK_PROFILE_ID}" \
     "$AI_FLOW_WORKFLOW" \
     "${AI_WORKFLOW_INSTANCE_ID:-}" \
-    "$command_id" || return
+    "$command_id" \
+    "${AI_AGENT_PLATFORM:-}" || return
 }

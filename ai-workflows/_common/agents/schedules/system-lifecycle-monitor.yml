@@ -1,0 +1,21 @@
+instruction: |
+  This is the scheduled trigger for the same lifecycle check System performs when the human says “check”, “look at”,
+  “how is”, “can you see”, “check on the agents”, or “do your check now”. Manual requests run immediately and never wait
+  for this timer.
+  Monitor only the exact logical-project IDs in System's ordered watch-scope set. One System scheduler supports multiple
+  groups; do not create one scheduler per group.
+  Resolve each watched group and its agent instance IDs from trusted host lifecycle receipts; never infer identity from
+  titles, sidebar position, recency, or similar names.
+  A requested watch scope may be pending before its group receipt exists. Treat that as normal asynchronous state, make
+  no agent mutation, and report a compact user-facing status on every scheduled check naming the missing exact logical
+  project and stating that it will be checked again at the configured interval.
+  Inspect the platform's agent list, lifecycle state, availability, and explicit context-health or exhaustion metadata.
+  Do not read product conversation payloads merely to estimate context consumption and do not expose System's identity
+  or routing address to workflow agents.
+  When trusted platform evidence shows that an agent is near exhaustion, exhausted, or unavailable, apply the common
+  continuity and knowledge-transfer contracts: prepare and verify a successor before making it authoritative, and
+  deactivate the predecessor last. Block rather than guess when lineage, authority, or health evidence is incomplete.
+  On every run, iterate each watched logical project once and keep independent receipt cursor, pending/active state,
+  agent bindings, context-health evidence, and last reported result per group. A failure or missing receipt in one group
+  must not prevent safe read-only checks of the remaining groups.
+  For receipt-backed groups, stay quiet when watched state is unchanged and no lifecycle action or human decision is required.

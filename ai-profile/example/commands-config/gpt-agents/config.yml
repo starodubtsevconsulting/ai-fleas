@@ -9,11 +9,15 @@ lifecycle:
   preserve_history: true
   require_exact_instance_receipts: true
   archive_is_recoverable: true
+binding_state:
+  owner: profile
+  path: .local/gpt-agents/bindings.yml
+  schema_version: gpt-agents-binding-state.v1
 grouping:
-  section_name_template: '{profile}-{workflow}{suffix}'
+  project_name_template: '{profile}-{workflow}{suffix}'
   suffix_separator: '-'
   collision_policy: increment
-  reuse_requires_recorded_section_id: true
+  reuse_requires_recorded_project_id: true
 
 # Roles and authority come from the workflow. A profile may override only
 # platform realization fields declared by the gpt-agents command contract.

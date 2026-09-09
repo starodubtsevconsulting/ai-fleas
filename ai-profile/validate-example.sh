@@ -11,7 +11,7 @@ grep -Fq 'ai_commands_root: ../../ai-commands' "${PROFILE}" || fail "Example mus
 grep -Fq 'ai_workflows_root: ../../ai-workflows' "${PROFILE}" || fail "Example must use the AI Workflows catalog"
 grep -Fq 'ai_platforms_root: ../../platforms' "${PROFILE}" || fail "Example must use the platform registry"
 grep -Fq 'agent_platforms:' "${PROFILE}" || fail "Example must declare available agent platforms"
-grep -Fq '  default: gpt' "${PROFILE}" || fail "Example must declare the default platform"
+grep -Fq '  default: gpt-agents' "${PROFILE}" || fail "Example must declare the default platform"
 for platform in gpt-agents hermes sc; do
   grep -Fq "    - ${platform}" "${PROFILE}" || fail "Example must expose platform: ${platform}"
 done
@@ -20,5 +20,12 @@ test -r "${ROOT}/../platforms/hermes/platform.yml" || fail "Missing Hermes platf
 test -r "${ROOT}/../platforms/sc/platform.yml" || fail "Missing SC platform contract"
 grep -Fq 'config: agent-identities.yml' "${PROFILE}" || fail "Example must reference agent identity configuration"
 python3 "${ROOT}/example/validate-agent-identities.py" "${ROOT}/example/agent-identities.yml" example.com
+node "${ROOT}/validate-profile-structure.mjs" "${PROFILE}"
+for operational in sc sxm; do
+  operational_profile="${ROOT}/${operational}/${operational}-work-profile.yml"
+  if [[ -f "${operational_profile}" ]]; then
+    node "${ROOT}/validate-profile-structure.mjs" "${operational_profile}"
+  fi
+done
 
 echo 'AI Profile example: PASS'
