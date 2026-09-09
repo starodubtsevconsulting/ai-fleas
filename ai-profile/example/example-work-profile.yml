@@ -21,6 +21,7 @@ agent_identities:
 system_agent:
   scope: system
   cardinality: one-per-platform
+  providers_config: local-ai-providers.yml
   schedule:
     enabled: true
     every: 10m

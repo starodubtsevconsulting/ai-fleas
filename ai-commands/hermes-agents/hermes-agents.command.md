@@ -24,11 +24,13 @@ flowchart LR
     CheckUpdate["check-update"]
     Initialize["initialize"]
     Reconcile["reconcile"]
+    System["initialize-system / status-system"]
     Inspect["list / show / status"]
     Delete["delete profile / workflow + confirmation"]
     Dispatcher --> CheckUpdate
     Dispatcher --> Initialize
     Dispatcher --> Reconcile
+    Dispatcher --> System
     Dispatcher --> Inspect
     Dispatcher --> Delete
   end
@@ -106,6 +108,8 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 | `install` | Compatibility delegate to the `install/hermes` command; new callers should invoke that install command directly. |
 | `check-update` | Read-only comparison of the installed release, newest stable upstream date tag, and reviewed public installer pin; recommends an explicit upgrade when appropriate. |
 | `initialize` | Resolve the selected profile/workflow and complete ordered project set, idempotently create every platform-bound role profile, and realize their profile-workflow Hermes group. |
+| `initialize-system [--watch-group ID]... [--every DURATION]` | Create or reconcile one globally visible pinned System profile outside all workflow groups, record its exact binding, and create or reconcile its profile-scoped scheduler. |
+| `status-system --work-profile ID` | Verify the exact profile-owned Hermes System receipt. |
 | `reinitialize` / `re-init` | After `--confirm-reinitialize`, delete the exact active workflow group and all its role profiles, then create a fresh complete generation from current contracts. Existing conversations and memory for those profiles are removed. |
 | `reconcile` | Reapply the resolved role-profile and group configuration while preserving conversations and memory. |
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
@@ -130,6 +134,11 @@ catalog, and complete project scope. `SOUL.md` is only the Hermes runtime delive
 it is not a second source of initialization truth. GPT App maps the same
 workflow governance model to its declared multi-agent roster, such as Admin, Manager, and the five governed Dev roles.
 This difference belongs to the platform adapters and must not be hardcoded as a universal agent count in either command.
+
+Workflow initialization writes an exact profile-owned group receipt containing the logical group ID, ordered projects,
+realized profile IDs, and readiness. System initialization preserves that receipt, records its own profile and scheduler
+identity beside it, and supplies the same registry path to `SOUL.md` and the cron prompt. System remains globally pinned
+with `groups: []`; its profile gateway runs as a user login service so scheduling does not depend on an open desktop window.
 
 ## Tags
 
