@@ -1,8 +1,8 @@
-# Hermes App
+# Hermes Agents
 
 ## Purpose
 
-Use `hermes-app` to create, freshly reinitialize, reconcile, inspect, verify, or explicitly delete profile-scoped Hermes bots. Physical
+Use `hermes-agents` to create, freshly reinitialize, reconcile, inspect, verify, or explicitly delete profile-scoped Hermes bots. Physical
 application installation and upgrades belong to the `hermes` command under the `install` command group.
 The command is portable; operational machine, endpoint, model, credential, workflow, and project values come from the
 selected AI Profile.
@@ -19,8 +19,8 @@ flowchart LR
     ModelAlias -. resolves .-> Model
   end
 
-  subgraph PublicCommand["Public hermes-app command — reusable mechanics"]
-    Dispatcher["hermes-app.command.sh"]
+  subgraph PublicCommand["Public hermes-agents command — reusable mechanics"]
+    Dispatcher["hermes-agents.command.sh"]
     CheckUpdate["check-update"]
     Initialize["initialize"]
     Reconcile["reconcile"]
@@ -66,11 +66,11 @@ without changing this command, the workflow contract, or the bot lifecycle.
 
 | Entry point | Type | Profile-aware invocation |
 |---|---|---|
-| `hermes-app/hermes-app.command.sh` | Shell executable | Run through the initialized profile runtime; setup resolves the selected workflow, project, provider target, and model from profile configuration. |
+|| `hermes-agents/hermes-agents.command.sh` | Shell executable | Run through the initialized profile runtime; setup resolves the selected workflow, project, provider target, and model from profile configuration. |
 
 Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide the selected profile root as `AI_PROFILE_ROOT` before this entry point is used.
 
-Committed configuration template: `hermes-app/hermes-app.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+Committed configuration template: `hermes-agents/hermes-agents.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
 ## Linked Commands
 
@@ -119,7 +119,7 @@ retire the old room identity and its conversation log before the same logical gr
 
 ## Agent realization
 
-`initialize` has the same lifecycle meaning as it does in `gpt-app`: realize the agents declared for the selected
+`initialize` has the same lifecycle meaning as it does in `gpt-agents`: realize the agents declared for the selected
 workflow on the selected platform. The realization cardinality differs by platform. Hermes App currently maps the
 workflow to one named Hermes profile per configured role plus a profile-workflow group containing that roster.
 Each profile receives the workflow instructions and allowed command catalog. GPT App maps the same

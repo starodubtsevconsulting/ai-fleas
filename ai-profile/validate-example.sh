@@ -12,10 +12,10 @@ grep -Fq 'ai_workflows_root: ../../ai-workflows' "${PROFILE}" || fail "Example m
 grep -Fq 'ai_platforms_root: ../../platforms' "${PROFILE}" || fail "Example must use the platform registry"
 grep -Fq 'agent_platforms:' "${PROFILE}" || fail "Example must declare available agent platforms"
 grep -Fq '  default: gpt' "${PROFILE}" || fail "Example must declare the default platform"
-for platform in gpt hermes sc; do
+for platform in gpt-agents hermes sc; do
   grep -Fq "    - ${platform}" "${PROFILE}" || fail "Example must expose platform: ${platform}"
 done
-test -r "${ROOT}/../platforms/gpt-app/platform.yml" || fail "Missing GPT platform contract"
+test -r "${ROOT}/../platforms/gpt-agents/platform.yml" || fail "Missing GPT Agents platform contract"
 test -r "${ROOT}/../platforms/hermes/platform.yml" || fail "Missing Hermes platform contract"
 test -r "${ROOT}/../platforms/sc/platform.yml" || fail "Missing SC platform contract"
 grep -Fq 'config: agent-identities.yml' "${PROFILE}" || fail "Example must reference agent identity configuration"

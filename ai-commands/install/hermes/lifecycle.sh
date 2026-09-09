@@ -2,7 +2,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-hermes_command="$script_dir/../../hermes-app/hermes-app.command.sh"
+hermes_command="$script_dir/../../hermes-agents/hermes-agents.command.sh"
 # shellcheck disable=SC1091
 source "$script_dir/../scripts/require-darwin-arm64.sh"
 action="${1:-status}" # Physical Hermes package action.

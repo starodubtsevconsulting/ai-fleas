@@ -6,7 +6,7 @@ default_agent: codex
 agent_platforms:
   default: gpt
   available:
-    - gpt
+    - gpt-agents
     - hermes
     - sc
 agent_login_method: web_sso
@@ -22,7 +22,7 @@ system_agent:
   scope: system
   cardinality: one-per-platform
   platform_bindings:
-    gpt:
+    gpt-agents:
       model: gpt-5.6-luna
       reasoning: low
     hermes:
@@ -41,10 +41,10 @@ governance_rules_surface:
 commands:
   - id: source-control
     config: commands-config/source-control/config.yml
-  - id: hermes-app
-    config: commands-config/hermes-app/config.yml
-  - id: gpt-app
-    config: commands-config/gpt-app/config.yml
+  - id: hermes-agents
+    config: commands-config/hermes-agents/config.yml
+  - id: gpt-agents
+    config: commands-config/gpt-agents/config.yml
   - id: lodgify
     config: commands-config/lodgify/config.example.env
 workflows:
@@ -57,8 +57,8 @@ workflows:
       - test
       - review
       - commit
-      - hermes-app
-      - gpt-app
+      - hermes-agents
+      - gpt-agents
       - source-control
       - lodgify
       - logs

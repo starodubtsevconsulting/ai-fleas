@@ -8,9 +8,9 @@ import { parse } from 'yaml';
 const commandDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(commandDir, '../..');
 const portable = parse(fs.readFileSync(path.join(root, 'ai-workflows/dev/agents.yml'), 'utf8'));
-const adapter = parse(fs.readFileSync(path.join(root, 'platforms/gpt-app/workflows/dev/agents.yml'), 'utf8'));
-const contract = fs.readFileSync(path.join(commandDir, 'gpt-app.command.md'), 'utf8');
-const exampleConfig = parse(fs.readFileSync(path.join(root, 'ai-profile/example/commands-config/gpt-app/config.yml'), 'utf8'));
+const adapter = parse(fs.readFileSync(path.join(root, 'platforms/gpt-agents/workflows/dev/agents.yml'), 'utf8'));
+const contract = fs.readFileSync(path.join(commandDir, 'gpt-agents.command.md'), 'utf8');
+const exampleConfig = parse(fs.readFileSync(path.join(root, 'ai-profile/example/commands-config/gpt-agents/config.yml'), 'utf8'));
 
 const portableRoles = [portable.initializer.agentId, ...portable.agents.map((agent) => agent.agentId)];
 const adapterRoles = adapter.agents.map((agent) => agent.role);
@@ -42,4 +42,4 @@ assert.match(contract, /Changes to that list must come from\s+the portable workf
 assert.match(contract, /public GPT role-binding defaults, then supported profile-owned `role_overrides`/);
 assert.match(contract, /direct-human-only role such as Judge receives its own binding/);
 assert.match(contract, /matching sidebar-section name as identity/);
-console.log('gpt-app command mapping: PASS');
+console.log('gpt-agents command mapping: PASS');
