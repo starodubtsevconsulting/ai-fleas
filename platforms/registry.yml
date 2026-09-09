@@ -1,8 +1,8 @@
 version: 1
 platforms:
-  - id: gpt
-    label: GPT Platform
-    contract: gpt-app/platform.yml
+  - id: gpt-agents
+    label: GPT Agents Platform
+    contract: gpt-agents/platform.yml
   - id: hermes
     label: Hermes Platform
     contract: hermes/platform.yml

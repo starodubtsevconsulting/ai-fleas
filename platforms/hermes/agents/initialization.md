@@ -14,7 +14,7 @@ For workflow initialization, resolve the exact profile, workflow, complete logic
 profile-owned catalog. Never infer a nearby machine, endpoint, model, launcher, or companion repository.
 
 One logical workflow agent maps to one exact Hermes profile ID. Reconcile it through
-`ai-commands/hermes-app/hermes-app.command.sh initialize`; preserve conversations and memory by default. The generated profile must
+|`ai-commands/hermes-agents/hermes-agents.command.sh initialize`; preserve conversations and memory by default. The generated profile must
 reference the selected workflow contract, allowed commands, project workspace, and applicable repository instructions.
 Verify provider, concrete model, endpoint reachability, context settings, and workspace after setup. A plain `initialize` is workflow-scoped and never initializes System.
 

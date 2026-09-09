@@ -1,9 +1,9 @@
-# GPT App
+# GPT Agents
 
 ## Purpose
 
-Use `gpt-app` to check for stable application updates, initialize, inspect, reconcile, message, replace, or recoverably archive AI Fleas logical agents realized
-as Codex tasks. The command composes the selected profile, portable workflow roster, and public `gpt-app` platform adapter;
+Use `gpt-agents` to check for stable application updates, initialize, inspect, reconcile, message, replace, or recoverably archive AI Fleas logical agents realized
+as Codex tasks. The command composes the selected profile, portable workflow roster, and public `gpt-agents` platform adapter;
 it never infers tasks from titles, recency, or nearby repositories.
 
 Physical GPT/ChatGPT desktop application installation, upgrade, and uninstall belong to the `chatgpt` command
@@ -17,8 +17,8 @@ flowchart LR
     Profile --> Overrides["Model / reasoning / grouping overrides"]
   end
 
-  subgraph PublicCommand["Public gpt-app command — reusable lifecycle"]
-    Contract["gpt-app.command.md"]
+  subgraph PublicCommand["Public gpt-agents command — reusable lifecycle"]
+    Contract["gpt-agents.command.md"]
     Initialize["initialize"]
     Inspect["list / status"]
     CheckUpdate["check-update"]
@@ -30,7 +30,7 @@ flowchart LR
   end
 
   Workflow --> Contract
-  Adapter["Public gpt-app platform adapter"] --> Contract
+  Adapter["Public gpt-agents platform adapter"] --> Contract
   Project --> Initialize
   Overrides --> Initialize
   Initialize --> Mapping["Portable roles → Codex tasks"]
@@ -49,7 +49,7 @@ therefore changes profile configuration rather than the portable workflow roster
 
 | Input | Required | Source | Description |
 |---|---|---|---|
-| Active AI Profile | Yes | Host activation | Must select the registered `gpt-app` agent platform and its public registry. |
+| Active AI Profile | Yes | Host activation | Must select the registered `gpt-agents` agent platform and its public registry. |
 | Workflow and complete logical project | Yes | User and profile | Select the portable roster and exact saved Codex project/work target. |
 | GPT role overrides | No | Profile-owned `commands[].config` | Override supported model, reasoning, title, or elastic-pool realization values without changing role authority. |
 | Grouping policy | No | Profile-owned `commands[].config` | Defines the sidebar section template and deterministic collision suffix policy. |
@@ -67,12 +67,12 @@ therefore changes profile configuration rather than the portable workflow roster
 
 | Entry point | Type | Profile-aware invocation |
 |---|---|---|
-| `gpt-app/gpt-app.command.md` | AI-readable contract | The initialized admin loads this contract and invokes the selected app adapter's exact task lifecycle capabilities. |
+|| `gpt-agents/gpt-agents.command.md` | AI-readable contract | The initialized admin loads this contract and invokes the selected app adapter's exact task lifecycle capabilities. |
 
-Every invocation is profile-aware: the host must activate the selected AI Profile and workflow, verify that `gpt-app` is
+Every invocation is profile-aware: the host must activate the selected AI Profile and workflow, verify that `gpt-agents` is
 allowed, resolve its platform contract, and bind the exact saved Codex project before any task mutation.
 
-Committed configuration template: `gpt-app/gpt-app.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+Committed configuration template: `gpt-agents/gpt-agents.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
 ## Linked Commands
 
@@ -127,7 +127,7 @@ title, sidebar position, or phrase such as `sc-dev` is never sufficient deletion
 
 ## Agent realization
 
-`initialize` has the same lifecycle meaning as it does in `hermes-app`: realize the agents declared for the selected
+`initialize` has the same lifecycle meaning as it does in `hermes-agents`: realize the agents declared for the selected
 workflow on the selected platform. GPT App realizes the workflow's complete governed role roster as separate Codex
 tasks. Hermes App realizes its declared roles as named profiles collected in a workflow group. The selected platform
 adapter—not the shared lifecycle verb—determines the concrete task/profile mapping.
@@ -135,7 +135,7 @@ adapter—not the shared lifecycle verb—determines the concrete task/profile m
 ## Initialization contract
 
 1. Require an exact profile, workflow, complete logical-project ID, and work target.
-2. Resolve `agent_platform: gpt-app` through `platforms/registry.yml`; reject any other selected platform.
+2. Resolve `agent_platform: gpt-agents` through `platforms/registry.yml`; reject any other selected platform.
 3. Load the portable workflow agent manifest and the GPT workflow role bindings completely.
 4. Resolve one saved Codex project whose configured root is the exact work target.
 5. Resolve the profile-configured sidebar section name from the complete logical project. The default is
@@ -182,6 +182,6 @@ the portable workflow manifest and corresponding GPT bindings—not from edits t
 
 ## Tags
 
-#command #ai-command #gpt-app #codex #agents #lifecycle
+#command #ai-command #gpt-agents #codex #agents #lifecycle
 
-See [spec.md](spec.md) and the registered [`gpt-app` platform adapter](../../platforms/gpt-app/README.md).
+See [spec.md](spec.md) and the registered [`gpt-agents` platform adapter](../../platforms/gpt-agents/README.md).

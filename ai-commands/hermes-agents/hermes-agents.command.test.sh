@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 readonly COMMAND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly COMMAND="${COMMAND_DIR}/hermes-app.command.sh"
+readonly COMMAND="${COMMAND_DIR}/hermes-agents.command.sh"
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/hermes-command-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
-mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/commands/coding" "${test_root}/commands/hermes-app" "${test_root}/workflows/dev" "${test_root}/workspace" "${test_root}/platforms/hermes"
+mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/commands/coding" "${test_root}/commands/hermes-agents" "${test_root}/workflows/dev" "${test_root}/workspace" "${test_root}/platforms/hermes"
 touch "${test_root}/AGENTS.md" "${test_root}/README.md" "${test_root}/why.md"
 cat >"${test_root}/platforms/registry.yml" <<'YAML'
 platforms:
@@ -24,7 +24,7 @@ agents:
     aiProvider: profile-default
 YAML
 printf '# Coding\n' >"${test_root}/commands/coding/coding.command.md"
-printf '# Hermes\n' >"${test_root}/commands/hermes-app/hermes-app.command.md"
+printf '# Hermes\n' >"${test_root}/commands/hermes-agents/hermes-agents.command.md"
 printf '# Dev\n' >"${test_root}/workflows/dev/dev.workflow.md"
 printf '# Instructions\n' >"${test_root}/ai-profile/example/AGENTS.md"
 cat >"${test_root}/ai-profile/example/example-work-profile.yml" <<YAML
@@ -41,16 +41,14 @@ agent_instructions_path: AGENTS.md
 ai_commands_root: ../../commands
 ai_workflows_root: ../../workflows
 ai_platforms_root: ../../platforms
-commands:
-  - id: hermes-app
+commands:\n  - id: hermes-agents
     config: local-ai-providers.yml
 workflows:
   - path: dev.workflow.md
     harness: hermes
     local_ai: { providers_config: local-ai-providers.yml, provider: example-box, model: example-coder }
     commands:
-      - coding
-      - hermes-app
+      - coding\n      - hermes-agents
     projects:
       - ref: projects/dev/service/project.yml
 YAML

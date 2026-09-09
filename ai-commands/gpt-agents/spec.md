@@ -1,4 +1,4 @@
-# GPT App command — Specification
+# GPT Agents command — Specification
 
 **Status: ACTIVE**
 
@@ -13,7 +13,7 @@ Verified exact task receipts or a precise no-mutation failure.
 
 ## Invariants
 
-- The selected profile resolves `agent_platform: gpt-app` exactly once.
+- The selected profile resolves `agent_platform: gpt-agents` exactly once.
 - `check-update` is read-only, uses only the host application's trusted stable update channel, and returns an explicit
   unavailable result rather than treating missing version evidence as current.
 - An available update produces a recommendation only; installation requires a separate explicit human decision.

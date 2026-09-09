@@ -1,5 +1,5 @@
-schema_version: gpt-app-workflow-agents.v1
-platform: gpt-app
+schema_version: gpt-agents-workflow-agents.v1
+platform: gpt-agents
 workflow: dev
 logical_project_pattern: <profile-id>-dev[-<suffix>]
 initialization: ../../agents/initialization.md

@@ -25,12 +25,12 @@ if [[ "${1:-}" == initialize || "${1:-}" == reinitialize || "${1:-}" == re-init 
   done
 fi
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)/_runtime/profile/command-profile.guard.sh"
-ai_command_require_profile "hermes-app" || exit $?
+ai_command_require_profile "hermes-agents" || exit $?
 
 readonly COMMAND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPOSITORY_ROOT="$(cd "${COMMAND_DIR}/../.." && pwd)"
 readonly SETUP_SCRIPT="${COMMAND_DIR}/setup-hermes-profile.sh"
-readonly INSTALL_SCRIPT="${COMMAND_DIR}/install-hermes.sh"
+readonly INSTALL_SCRIPT="${COMMAND_DIR}/install-agents.sh"
 readonly PROFILE_ROOT="${AI_PROFILE_ROOT:-$(dirname "$(dirname "${AI_PROFILE_FILE}")")}"
 readonly PROFILE_RESOLVER="${COMMAND_DIR}/resolve-profile-scope.mjs"
 readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${COMMAND_DIR}/configure-hermes-group.py}"
@@ -39,18 +39,18 @@ readonly HERMES_UPSTREAM_REPOSITORY="${HERMES_UPSTREAM_REPOSITORY:-https://githu
 
 usage() {
   printf '%s\n' \
-    'Usage: hermes-app.command.sh install [--dry-run]' \
-    '       hermes-app.command.sh check-update' \
-    '       hermes-app.command.sh initialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
+    'Usage: hermes-agents.command.sh install [--dry-run]' \
+    '       hermes-agents.command.sh check-update' \
+    '       hermes-agents.command.sh initialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
     '                               [--agent-instructions FILE] [setup overrides]' \
-    '       hermes-app.command.sh reinitialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
+    '       hermes-agents.command.sh reinitialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
     '                               --confirm-reinitialize [--agent-instructions FILE] [setup overrides]' \
-    '       hermes-app.command.sh reconcile --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
-    '       hermes-app.command.sh delete-workflow --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] --confirm-delete' \
-    '       hermes-app.command.sh list' \
-    '       hermes-app.command.sh show PROFILE' \
-    '       hermes-app.command.sh status PROFILE' \
-    '       hermes-app.command.sh delete PROFILE --confirm-delete'
+    '       hermes-agents.command.sh reconcile --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
+    '       hermes-agents.command.sh delete-workflow --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] --confirm-delete' \
+    '       hermes-agents.command.sh list' \
+    '       hermes-agents.command.sh show PROFILE' \
+    '       hermes-agents.command.sh status PROFILE' \
+    '       hermes-agents.command.sh delete PROFILE --confirm-delete'
 }
 
 resolve_hermes() {
@@ -102,7 +102,7 @@ case "${action}" in
     if [[ "${installed_tag}" == "${latest_tag}" || "${newest}" == "${installed_tag}" ]]; then
       printf '%s\n' 'HERMES_UP_TO_DATE: no stable upgrade is currently recommended.'
     elif [[ "${supported_tag}" == "${latest_tag}" ]]; then
-      printf '%s\n' 'HERMES_UPDATE_AVAILABLE: review the release, then run hermes-app.command.sh install to apply the supported stable upgrade.'
+      printf '%s\n' 'HERMES_UPDATE_AVAILABLE: review the release, then run hermes-agents.command.sh install to apply the supported stable upgrade.'
     else
       printf '%s\n' 'HERMES_UPDATE_AVAILABLE: a newer stable release exists, but the public installer pin must be reviewed and updated before installation.'
     fi

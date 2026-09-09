@@ -56,8 +56,8 @@ flowchart LR
   Target -->|hermes| Hermes["Hermes package command"]
   GPT --> Physical["status / smoke-test / install / update / upgrade / uninstall"]
   Hermes --> Physical
-  GPT -. agent lifecycle .-> GPTCommand["gpt-app command"]
-  Hermes -. bot lifecycle .-> HermesCommand["hermes-app command"]
+  GPT -. agent lifecycle .-> GPTCommand["gpt-agents command"]
+  Hermes -. bot lifecycle .-> HermesCommand["hermes-agents command"]
 ```
 
 ## Tags

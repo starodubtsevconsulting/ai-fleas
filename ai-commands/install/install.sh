@@ -17,7 +17,7 @@ if [[ $# -gt 0 ]]; then
   normalized_target="$(printf '%s' "$target" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-|-$//g')"
   case "$normalized_target" in
     gpt|gpt-app|codex-app|chatgpt|chatgpt-app) canonical_target="chatgpt" ;;
-    hermes|hermes-app) canonical_target="hermes" ;;
+    hermes|hermes-agents) canonical_target="hermes" ;;
     *) canonical_target="$normalized_target" ;;
   esac
 
