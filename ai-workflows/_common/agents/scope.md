@@ -9,4 +9,11 @@ Scope defines where an agent belongs, not what it may access. Cross-scope access
 
 A system-scoped agent is not part of any workflow-group lifecycle transaction. Ordinary workflow initialization, reconciliation, reinitialization, and deletion leave it unchanged. System lifecycle uses an explicit system initialization/reinitialization operation. Only one active System agent may exist for a selected platform binding.
 
+System-to-workflow communication is asymmetric and host-mediated. Workflow agents are initialized without System's
+runtime identity, do not receive its instance ID or routing address, and cannot directly address it. System may resolve
+exact workflow-agent bindings from trusted host lifecycle receipts and contact those agents only for authorized health,
+continuity, context-exhaustion, and lifecycle operations. Workflow initialization never depends on System being active.
+Any future disclosure of System identity to a workflow agent requires a separate explicit secure-registration contract;
+it is not part of current initialization.
+
 Scope does not choose where an agent runs or which provider/model it uses. Those are resolved by the selected profile and platform implementation.

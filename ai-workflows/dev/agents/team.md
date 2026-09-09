@@ -16,6 +16,10 @@ The team follows the common [Agent contract](../../agents.md), [Dev workflow](..
 
 These are the workflow roles. Platform configuration may change how they are instantiated, but not their responsibilities or communication boundaries.
 
+System is not a Dev team role or peer. The team can initialize and operate without a System instance and receives no
+System instance ID or direct route. An independently initialized System may contact exact team instances through the
+platform's trusted lifecycle channel, but team agents do not initiate direct System communication.
+
 ## Responsibilities
 
 | Agent                | Owns                                                                              |

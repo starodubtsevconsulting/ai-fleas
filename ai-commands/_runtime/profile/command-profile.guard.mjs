@@ -17,7 +17,10 @@ export function requireCommandProfile(commandId, modulePath) {
 
   const profileProjectRoot = resolve(dirname(profileFile), '..', '..');
   const resolver = resolve(commandsRoot, 'runtime', 'profile', 'activate-profile.sh');
-  const result = spawnSync(resolver, ['--profile', profileId, '--workflow', workflow, '--command', commandId], {
+  const args = ['--profile', profileId, '--workflow', workflow];
+  if (process.env.AI_AGENT_PLATFORM) args.push('--agent-platform', process.env.AI_AGENT_PLATFORM);
+  args.push('--command', commandId);
+  const result = spawnSync(resolver, args, {
     encoding: 'utf8',
     env: { ...process.env, AI_CONFIG_PROJECT: profileProjectRoot },
   });

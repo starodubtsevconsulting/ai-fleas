@@ -6,6 +6,7 @@ creation_environment: profile-selected-provider
 initialization: agents/initialization.md
 role_overlays: roles
 capabilities:
+  - agent-pinning
   - persistent-identity
   - profile-binding
   - model-selection

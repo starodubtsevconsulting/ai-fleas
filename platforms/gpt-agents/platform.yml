@@ -1,18 +1,20 @@
 version: 1
-id: gpt
-label: GPT Platform
+id: gpt-agents
+label: GPT Agents Platform
 runtime_object: codex-task
 creation_environment: saved-project-local
 initialization: agents/initialization.md
 role_overlays: roles
 capabilities:
   - visible-agents
+  - agent-pinning
   - persistent-identity
   - exact-instance-id
   - peer-messaging
   - recoverable-archive
   - workflow-group-delete
   - project-binding
+  - saved-project-creation
   - model-selection
   - reasoning-selection
   - shared-main-checkout
