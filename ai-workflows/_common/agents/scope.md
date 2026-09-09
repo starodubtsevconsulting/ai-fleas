@@ -6,3 +6,5 @@ Every initialized agent declares a `scope`.
 - `system` means the agent exists outside workflow logical projects/groups and may operate across them only through explicitly granted system capabilities.
 
 Scope defines where an agent belongs, not what it may access. Cross-scope access still requires explicit authority.
+
+Scope does not select where an agent runs or which provider or model it uses. Those choices belong to the active profile and platform implementation.

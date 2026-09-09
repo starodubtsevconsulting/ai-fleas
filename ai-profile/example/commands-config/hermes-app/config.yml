@@ -40,6 +40,34 @@ providers:
           compression_target: 0.15
           protect_last_messages: 8
 
+  # Example of a separate provider/model suitable for a system-scoped agent.
+  # It may run on the same box or another machine; the profile/platform decides.
+  # Keeping it independent from supervised workflow agents improves resilience.
+  - id: system-service
+    label: System model service
+    location:
+      kind: lan
+      label: System model service
+    protocol: openai-compatible
+    endpoint:
+      url: http://127.0.0.1:8001/v1
+      environment_variable: HERMES_SYSTEM_ENDPOINT
+    authentication:
+      type: none
+      credential_environment_variable: HERMES_SYSTEM_API_KEY
+    models:
+      - id: system-small
+        label: Small operational model
+        provider_model: qwen3:8b
+        capabilities:
+          - reasoning
+          - chat
+        hermes:
+          context_window_tokens: 32768
+          compression_threshold: 0.25
+          compression_target: 0.15
+          protect_last_messages: 8
+
 command_access:
   root: ${AI_COMMANDS_ROOT}
   inherit_workflow_commands: true
