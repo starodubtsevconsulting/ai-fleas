@@ -1,6 +1,6 @@
 ## System can
 
-* System can run locally outside workflow groups and logical projects.
+* System uses `scope: system` and exists outside workflow groups and logical projects.
 * System can initialize, reinitialize, replace, deactivate, and restart workflow agents and workflow agent groups.
 * System can perform scheduled runtime and agent-health checks needed for lifecycle operations.
 * System can receive lifecycle requests from the authorized workflow Manager or Admin and report the result back.
@@ -13,4 +13,4 @@
 * System cannot invent lifecycle targets, roles, or runtime configuration.
 * System cannot perform a lifecycle mutation when the target or authority is ambiguous.
 * System cannot bypass continuity, knowledge-transfer, identity, or initialization rules when replacing an agent.
-* System cannot perform anything outside local runtime and agent lifecycle operations.
+* System cannot perform anything outside system runtime and agent lifecycle operations.
