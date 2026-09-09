@@ -5,7 +5,7 @@
 Use `hermes` inside the `install` command group to manage physical Hermes software without encoding its installation
 form in the command identity. It can inspect, smoke-test, install, check for updates, upgrade, or uninstall a selected
 component on macOS Apple Silicon. The current implementation supports the reviewed `bundle`; future adapters may add
-standalone application, backend, or CLI forms without renaming the command. The separate `hermes-app` command manages Hermes profiles,
+standalone application, backend, or CLI forms without renaming the command. The separate `hermes-agents` command manages Hermes profiles,
 bots, conversations, and workflow groups.
 
 ## Inputs
@@ -50,7 +50,7 @@ Committed configuration template: `install/hermes/hermes.command.example.config`
 | Command | Relationship | Use when |
 |---|---|---|
 | [`install`](../install.command.md) | Parent command group and alias router | A generic installation request such as `Install Hermes` needs routing to this command. |
-| [`hermes-app`](../../hermes-app/hermes-app.command.md) | Dependent platform lifecycle command | The installed application will initialize or manage Hermes profiles, bots, conversations, or workflow groups. |
+| [`hermes-agents`](../../hermes-agents/hermes-agents.command.md) | Dependent platform lifecycle command | The installed application will initialize or manage Hermes profiles, bots, conversations, or workflow groups. |
 
 This command establishes the physical prerequisite only. A successful installation never initializes bots automatically.
 
@@ -66,4 +66,4 @@ This command establishes the physical prerequisite only. A successful installati
 
 ## Tags
 
-#command #install #hermes-app #macos #apple-silicon #smoke-test
+#command #install #hermes-agents #macos #apple-silicon #smoke-test

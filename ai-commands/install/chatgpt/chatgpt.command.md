@@ -5,7 +5,7 @@
 Use `chatgpt` inside the `install` command group to manage physical ChatGPT software without encoding its installation
 form in the command identity. It can inspect, smoke-test, install, check for updates, upgrade, or uninstall a selected
 component on macOS Apple Silicon. The current implementation supports `app`; future reviewed adapters may add other
-components without renaming the command. The separate `gpt-app` command manages
+components without renaming the command. The separate `gpt-agents` command manages
 logical agents, Codex tasks, saved-project bindings, and sidebar groups.
 
 ## Inputs
@@ -50,7 +50,7 @@ Committed configuration template: `install/chatgpt/chatgpt.command.example.confi
 | Command | Relationship | Use when |
 |---|---|---|
 | [`install`](../install.command.md) | Parent command group and alias router | A generic installation request such as `Install ChatGPT` or `Install GPT` needs routing to this command. |
-| [`gpt-app`](../../gpt-app/gpt-app.command.md) | Dependent platform lifecycle command | The installed application will initialize or manage AI Fleas logical agents, Codex tasks, or sidebar groups. |
+| [`gpt-agents`](../../gpt-agents/gpt-agents.command.md) | Dependent platform lifecycle command | The installed application will initialize or manage AI Fleas logical agents, Codex tasks, or sidebar groups. |
 
 This command establishes the physical prerequisite only. A successful installation never initializes agents automatically.
 
@@ -66,4 +66,4 @@ This command establishes the physical prerequisite only. A successful installati
 
 ## Tags
 
-#command #install #gpt-app #chatgpt #macos #apple-silicon
+#command #install #gpt-agents #chatgpt #macos #apple-silicon

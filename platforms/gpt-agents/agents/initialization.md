@@ -1,6 +1,6 @@
-# GPT/Codex App agent initialization
+# GPT/Codex Agents agent initialization
 
-This adapter runs only when the selected profile names `agent_platform: gpt-app` and the host exposes compatible Codex
+This adapter runs only when the selected profile names `agent_platform: gpt-agents` and the host exposes compatible Codex
 project, task, messaging, and archival capabilities.
 
 Initialization has two scopes:
@@ -12,7 +12,7 @@ Workflow initialization must never create, replace, archive, move, or otherwise 
 
 One logical workflow agent maps to one user-visible Codex task. The configured Codex project ID is the runtime-project binding; the
 app-returned task ID is the concrete agent-instance ID; a title is presentation only. Model and reasoning values come from
-the selected GPT role overlay or explicit compatible defaults. System instead uses the profile's `system_agent.platform_bindings.gpt-app` realization values and remains outside workflow sidebar groups.
+the selected GPT role overlay or explicit compatible defaults. System instead uses the profile's `system_agent.platform_bindings.gpt-agents` realization values and remains outside workflow sidebar groups.
 
 Before workflow mutation, validate the exact profile, workflow, complete logical-project ID including any suffix, work target,
 portable roster, communication topology, role contracts, and host capabilities. Resolve an existing Codex project whose
@@ -23,7 +23,7 @@ Never request a worktree, temporary checkout, detached checkout, clone, or proje
 agents in one runtime scope share the saved project's main working tree; repository dirty-state and concurrent-write
 rules remain governed by the repository and workflow contracts.
 
-Run workflow lifecycle initialization through the public `gpt-app` command. The calling Admin binds itself but does not directly
+Run workflow lifecycle initialization through the public `gpt-agents` command. The calling Admin binds itself but does not directly
 create governed workers. If Manager is absent, the command creates and canonically initializes exactly one Manager under
 the Admin bootstrap exception, then delivers the complete transaction to that Manager. Manager creates and initializes
 the remaining explicitly requested workflow roster and returns exact receipts through Admin. Missing receipts, duplicate roles,
@@ -37,7 +37,7 @@ candidate while the first may still resolve.
 Messaging targets exact task IDs. Remove and delete map to recoverable archival. Replacement verifies successors before
 archiving predecessors. Never use titles, sidebar order, recency, or remembered conversation as lifecycle identity.
 
-A human request to delete a group routes to the `gpt-app` command's `delete-workflow` lifecycle operation. The logical
+A human request to delete a group routes to the `gpt-agents` command's `delete-workflow` lifecycle operation. The logical
 project selects the recorded workflow agent-task bindings and exact custom sidebar section ID; it does not identify System or the saved
 Codex project itself. The operation recoverably archives all exact bound workflow tasks, deletes only that exact section, retains
 a deletion receipt, and preserves System, the saved project, checkout, repository, and work target.

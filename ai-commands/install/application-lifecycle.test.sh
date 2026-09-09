@@ -36,7 +36,7 @@ chmod +x "$test_root/bin/"* "$test_root/ChatGPT.app/Contents/MacOS/ChatGPT"
 touch "$test_root/ChatGPT.app/Contents/Info.plist"
 
 export PATH="$test_root/bin:$PATH"
-export GPT_APP_TEST_PATH="$test_root/ChatGPT.app"
+export GPT_AGENTS_TEST_PATH="$test_root/ChatGPT.app"
 export HERMES_BIN="$test_root/bin/hermes"
 gpt_lifecycle="$command_dir/chatgpt/lifecycle.sh"
 hermes_lifecycle="$command_dir/hermes/lifecycle.sh"
@@ -49,9 +49,9 @@ set -e
 grep -F 'PROFILE_REQUIRED' <<<"$profile_guard" >/dev/null
 
 gpt_status="$($gpt_lifecycle status)"
-grep -F 'GPT_APP_INSTALLED' <<<"$gpt_status" >/dev/null
+grep -F 'GPT_AGENTS_INSTALLED' <<<"$gpt_status" >/dev/null
 grep -F 'version=1.2.3' <<<"$gpt_status" >/dev/null
-grep -F 'GPT_APP_SMOKE_PASS' < <($gpt_lifecycle smoke-test) >/dev/null
+grep -F 'GPT_AGENTS_SMOKE_PASS' < <($gpt_lifecycle smoke-test) >/dev/null
 
 hermes_status="$($hermes_lifecycle status)"
 grep -F 'Hermes Agent v0.21.0' <<<"$hermes_status" >/dev/null
@@ -62,7 +62,7 @@ unsupported="$(TEST_UNAME_M=x86_64 $gpt_lifecycle status 2>&1)"
 unsupported_exit=$?
 install_unavailable="$($gpt_lifecycle install 2>&1)"
 install_exit=$?
-direct_hermes_unsupported="$(TEST_UNAME_M=x86_64 "$command_dir/../hermes-app/install-hermes.sh" --dry-run 2>&1)"
+direct_hermes_unsupported="$(TEST_UNAME_M=x86_64 "$command_dir/../hermes-agents/install-agents.sh" --dry-run 2>&1)"
 direct_hermes_exit=$?
 chatgpt_component="$($gpt_lifecycle status --component backend 2>&1)"
 chatgpt_component_exit=$?
@@ -72,7 +72,7 @@ set -e
 [[ $unsupported_exit -eq 4 ]]
 grep -F 'LOCAL_INSTALL_PLATFORM_UNSUPPORTED' <<<"$unsupported" >/dev/null
 [[ $install_exit -eq 3 ]]
-grep -F 'GPT_APP_INSTALL_UNAVAILABLE' <<<"$install_unavailable" >/dev/null
+grep -F 'GPT_AGENTS_INSTALL_UNAVAILABLE' <<<"$install_unavailable" >/dev/null
 [[ $direct_hermes_exit -eq 4 ]]
 grep -F 'LOCAL_INSTALL_PLATFORM_UNSUPPORTED' <<<"$direct_hermes_unsupported" >/dev/null
 [[ $chatgpt_component_exit -eq 3 ]]

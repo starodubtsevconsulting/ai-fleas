@@ -1,9 +1,9 @@
-# EXAMPLE ONLY: sanitized GPT App command binding with no operational project or task IDs.
-schema_version: gpt-app-command-config.v1
-capability: gpt-app
-registered_command: gpt-app
-command_path: gpt-app/gpt-app.command.md
-platform: gpt-app
+# EXAMPLE ONLY: sanitized GPT Agents command binding with no operational project or task IDs.
+schema_version: gpt-agents-command-config.v1
+capability: gpt-agents
+registered_command: gpt-agents
+command_path: gpt-agents/gpt-agents.command.md
+platform: gpt-agents
 lifecycle:
   creation_environment: saved-project-local
   preserve_history: true
@@ -16,7 +16,7 @@ grouping:
   reuse_requires_recorded_section_id: true
 
 # Roles and authority come from the workflow. A profile may override only
-# platform realization fields declared by the gpt-app command contract.
+# platform realization fields declared by the gpt-agents command contract.
 role_overrides:
   admin:
     model: gpt-5.6-sol
