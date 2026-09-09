@@ -1,6 +1,6 @@
 version: 1
-id: gpt-app
-label: GPT/Codex App
+id: gpt
+label: GPT Platform
 runtime_object: codex-task
 creation_environment: saved-project-local
 initialization: agents/initialization.md
