@@ -198,7 +198,8 @@ case "${action}" in
       exit 2
     }
     scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}")"
-    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project resolved_provider resolved_provider_label resolved_endpoint resolved_model resolved_context_window resolved_compression_threshold resolved_compression_target resolved_protect_last_messages resolved_workspace resolved_agent_instructions resolved_commands_root resolved_workflow_instructions resolved_command_ids resolved_role_bindings <<<"${scope}"
+    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project resolved_provider resolved_provider_label resolved_endpoint resolved_model resolved_context_window resolved_compression_threshold resolved_compression_target resolved_protect_last_messages resolved_workspace resolved_project_scope resolved_agent_instructions resolved_commands_root resolved_workflow_instructions resolved_command_ids resolved_role_bindings <<<"${scope}"
+    [[ "${resolved_agent_instructions}" == '-' ]] && resolved_agent_instructions=''
     if [[ -n "${agent_instructions}" ]]; then
       [[ "${agent_instructions}" == /* && -f "${agent_instructions}" ]] || {
         printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: --agent-instructions must be an existing absolute file.' >&2
@@ -220,11 +221,13 @@ case "${action}" in
     export HERMES_COMPRESSION_TARGET_RATIO="${resolved_compression_target}"
     export HERMES_COMPRESSION_PROTECT_LAST_N="${resolved_protect_last_messages}"
     export HERMES_WORKSPACE="${resolved_workspace}"
+    export HERMES_PROJECT_SCOPE_B64="${resolved_project_scope}"
     export HERMES_GROUP="${derived_group}"
     export HERMES_AGENT_INSTRUCTIONS_PATH="${resolved_agent_instructions}"
     export HERMES_AI_COMMANDS_ROOT="${resolved_commands_root}"
     export HERMES_WORKFLOW_INSTRUCTIONS_PATH="${resolved_workflow_instructions}"
     export HERMES_WORKFLOW_COMMAND_IDS="${resolved_command_ids}"
+    role_bindings=()
     IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
     for role_binding in "${role_bindings[@]}"; do
       IFS=':' read -r role profile_suffix role_provider role_endpoint <<<"${role_binding}"
@@ -337,11 +340,12 @@ if expected not in available:
     [[ "${confirmed}" == true ]] || { printf '%s\n' 'HERMES_DELETE_CONFIRMATION_REQUIRED: use delete-workflow ... --confirm-delete.' >&2; exit 2; }
     [[ -n "${work_profile}" ]] || { printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: use --work-profile or set WORK_PROFILE_ID.' >&2; exit 2; }
     scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}")"
-    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project _ _ _ _ _ _ _ _ _ _ _ _ _ resolved_role_bindings <<<"${scope}"
+    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project _ _ _ _ _ _ _ _ _ _ _ _ _ _ resolved_role_bindings <<<"${scope}"
     if [[ -n "${instance}" ]]; then validate_profile "${instance}"; fi
     group="${resolved_profile}-${resolved_workflow}${instance:+-${instance}}"
     validate_profile "${group}"
     members=()
+    role_bindings=()
     IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
     for role_binding in "${role_bindings[@]}"; do
       IFS=':' read -r role suffix role_provider role_endpoint <<<"${role_binding}"

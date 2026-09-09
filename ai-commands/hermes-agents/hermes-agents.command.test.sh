@@ -5,7 +5,7 @@ readonly COMMAND="${COMMAND_DIR}/hermes-agents.command.sh"
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/hermes-command-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
-mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/commands/coding" "${test_root}/commands/hermes-agents" "${test_root}/workflows/dev" "${test_root}/workspace" "${test_root}/platforms/hermes"
+mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/ai-profile/example/projects/dev/web" "${test_root}/commands/coding" "${test_root}/commands/hermes-agents" "${test_root}/workflows/dev" "${test_root}/workspace" "${test_root}/web-workspace" "${test_root}/platforms/hermes"
 touch "${test_root}/AGENTS.md" "${test_root}/README.md" "${test_root}/why.md"
 cat >"${test_root}/platforms/registry.yml" <<'YAML'
 platforms:
@@ -32,6 +32,10 @@ version: 3
 name: example
 default_workflow: dev.workflow.md
 agent_platform: hermes
+agent_platforms:
+  default: hermes
+  available:
+    - hermes
 governance_rules_repository: example-rules
 governance_rules_surface:
   - AGENTS.md
@@ -41,16 +45,19 @@ agent_instructions_path: AGENTS.md
 ai_commands_root: ../../commands
 ai_workflows_root: ../../workflows
 ai_platforms_root: ../../platforms
-commands:\n  - id: hermes-agents
+commands:
+  - id: hermes-agents
     config: local-ai-providers.yml
 workflows:
   - path: dev.workflow.md
-    harness: hermes
+    harness: pi
     local_ai: { providers_config: local-ai-providers.yml, provider: example-box, model: example-coder }
     commands:
-      - coding\n      - hermes-agents
+      - coding
+      - hermes-agents
     projects:
       - ref: projects/dev/service/project.yml
+      - ref: projects/dev/web/project.yml
 YAML
 cat >"${test_root}/ai-profile/example/local-ai-providers.yml" <<'YAML'
 schema_version: local-ai-providers.v1
@@ -68,6 +75,11 @@ cat >"${test_root}/ai-profile/example/projects/dev/service/project.yml" <<YAML
 id: service
 label: Example service
 repo_path: ${test_root}/workspace
+YAML
+cat >"${test_root}/ai-profile/example/projects/dev/web/project.yml" <<YAML
+id: web
+label: Example web
+repo_path: ${test_root}/web-workspace
 YAML
 cat >"${test_root}/bin/hermes" <<'SH'
 #!/usr/bin/env bash
@@ -150,6 +162,9 @@ grep -F 'HERMES_UPDATE_AVAILABLE' "${test_root}/check-update-output" >/dev/null
 grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/output" >/dev/null
 grep -F 'Hermes bot ready: example-dev-coder' "${test_root}/output" >/dev/null
 grep -F 'Hermes group member ready: example-dev (example-dev-admin as Admin)' "${test_root}/output" >/dev/null
+grep -F 'Your complete ordered project scope is:' "${HERMES_HOME}/profiles/example-dev-admin/SOUL.md" >/dev/null
+grep -F "${test_root}/workspace" "${HERMES_HOME}/profiles/example-dev-admin/SOUL.md" >/dev/null
+grep -F "${test_root}/web-workspace" "${HERMES_HOME}/profiles/example-dev-admin/SOUL.md" >/dev/null
 grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-admin/profile.yaml" >/dev/null
 grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-coder/profile.yaml" >/dev/null
 "${COMMAND}" reconcile --work-profile example --workflow dev --project service >"${test_root}/reconcile-output"

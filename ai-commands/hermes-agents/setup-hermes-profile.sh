@@ -17,6 +17,7 @@ workspace="${HERMES_WORKSPACE:-}"
 work_profile="${HERMES_WORK_PROFILE:-}"
 workflow="${HERMES_WORKFLOW:-}"
 project="${HERMES_PROJECT:-}"
+project_scope_b64="${HERMES_PROJECT_SCOPE_B64:-}"
 agent_instructions_path="${HERMES_AGENT_INSTRUCTIONS_PATH:-}"
 ai_commands_root="${HERMES_AI_COMMANDS_ROOT:-}"
 workflow_instructions_path="${HERMES_WORKFLOW_INSTRUCTIONS_PATH:-}"
@@ -180,9 +181,34 @@ printf '# Hermes Profile: %s\n\n' "${profile}" >"${soul_tmp}"
 printf '%s\n' \
   "You are an assistant backed by the profile-selected ${provider_label} model target." \
   "Your logical workflow role is \`${role}\` (${role_title})." \
-  "Your AI work profile is \`${work_profile:-not-recorded}\`, workflow is \`${workflow:-not-recorded}\`, and project is \`${project:-not-recorded}\`." \
-  "Your default and authorized project folder is \`${workspace}\`." \
+  "Your AI work profile is \`${work_profile:-not-recorded}\` and workflow/logical group is \`${workflow:-not-recorded}\`." \
   >>"${soul_tmp}"
+if [[ -n "${project_scope_b64}" ]]; then
+  project_scope_text="$(PROJECT_SCOPE_B64="${project_scope_b64}" PRIMARY_PROJECT="${project}" python3 -c '
+import base64
+import json
+import os
+
+try:
+    projects = json.loads(base64.b64decode(os.environ["PROJECT_SCOPE_B64"], validate=True))
+except Exception as error:
+    raise SystemExit(f"Invalid encoded Hermes project scope: {error}")
+if not isinstance(projects, list) or not projects:
+    raise SystemExit("Hermes project scope must contain at least one project")
+lines = ["Your complete ordered project scope is:"]
+for index, project in enumerate(projects):
+    if not isinstance(project, dict) or not all(isinstance(project.get(key), str) and project[key] for key in ("id", "repo_path")):
+        raise SystemExit("Hermes project scope contains an invalid project record")
+    kind = "primary/default" if index == 0 else "associated"
+    lines.append("- `{}` ({}): `{}`".format(project["id"], kind, project["repo_path"]))
+if projects[0]["id"] != os.environ["PRIMARY_PROJECT"]:
+    raise SystemExit("Hermes primary project does not match the ordered project scope")
+print("\n".join(lines))
+')"
+  printf '%s\n' "${project_scope_text}" "The primary project is the default terminal working directory. Every listed project is authorized work scope for this logical group; projects outside this list are not." >>"${soul_tmp}"
+else
+  printf '%s\n' "Your primary and only recorded project is \`${project:-not-recorded}\` at \`${workspace}\`." >>"${soul_tmp}"
+fi
 if [[ -n "${agent_instructions_path}" ]]; then
   [[ "${agent_instructions_path}" == /* && -f "${agent_instructions_path}" ]] || {
     echo "Agent instructions path is not an existing absolute file: ${agent_instructions_path}" >&2
@@ -213,7 +239,7 @@ if [[ -n "${ai_commands_root}" || -n "${workflow_instructions_path}" || -n "${wo
     >>"${soul_tmp}"
 fi
 printf '%s\n' \
-  'Begin coding tasks in the authorized project folder and do not access another project unless the user explicitly changes this profile configuration.' \
+  'Begin coding tasks in the primary project unless the request concerns another project in the authorized ordered scope.' \
   'Explain intended destructive or external effects before performing them. Never reveal credentials or secret values.' \
   >>"${soul_tmp}"
 chmod 0600 "${soul_tmp}"

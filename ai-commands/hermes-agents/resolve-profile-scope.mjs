@@ -34,7 +34,8 @@ const desiredWorkflow = workflowSelector || String(profile.default_workflow || '
 const workflowMatches = workflows.filter((item) => { if (!item || typeof item !== 'object' || Array.isArray(item)) return false; const p = String(item.path || ''); const id = path.basename(p).replace(/\.workflow\.md$/, '').replace(/\.md$/, ''); return p === desiredWorkflow || id === desiredWorkflow; });
 if (workflowMatches.length !== 1) fail(`workflow '${desiredWorkflow}' did not resolve exactly once.`);
 const workflow = workflowMatches[0];
-if (workflow.harness !== 'hermes') fail(`workflow '${desiredWorkflow}' does not select the Hermes harness.`);
+const availablePlatforms = Array.isArray(profile.agent_platforms?.available) ? profile.agent_platforms.available : [];
+if (!availablePlatforms.includes('hermes')) fail(`work profile '${workProfileId}' does not declare Hermes as an available agent platform.`);
 
 const commandsRoot = resolveCatalogRoot(String(profile.ai_commands_root || ''), 'ai_commands_root');
 const workflowsRoot = resolveCatalogRoot(String(profile.ai_workflows_root || ''), 'ai_workflows_root');
@@ -95,12 +96,23 @@ if (commandIds.length === 0) fail(`workflow '${desiredWorkflow}' has no commands
 for (const commandId of commandIds) { const contract = path.join(commandsRoot, commandId, `${commandId}.command.md`); if (!fs.statSync(contract, { throwIfNoEntry: false })?.isFile()) fail(`command contract is not a readable file: ${contract}`); }
 
 const candidates = (Array.isArray(workflow.projects) ? workflow.projects : []).map((item) => { const ref = item && typeof item === 'object' ? String(item.ref || '') : ''; if (!ref || path.isAbsolute(ref)) fail('workflow project ref must be a relative path.'); const file = inside(selectedProfileRoot, path.join(selectedProfileRoot, ref), 'project ref'); return { file, project: readYaml(file) }; });
-const projectMatches = projectSelector ? candidates.filter(({ project }) => project.id === projectSelector || project.label === projectSelector) : candidates;
-if (projectMatches.length !== 1) fail(projectSelector ? `project '${projectSelector}' did not resolve exactly once.` : 'workflow does not have exactly one project; use --project.');
-const project = projectMatches[0].project, projectId = safeId(String(project.id || ''), 'project ID'), workspace = String(project.repo_path || '');
-if (!path.isAbsolute(workspace) || !fs.statSync(workspace, { throwIfNoEntry: false })?.isDirectory()) fail(`project '${projectId}' repo_path is not an existing absolute directory.`);
+if (candidates.length === 0) fail(`workflow '${workflowId}' has no projects.`);
+const projects = candidates.map(({ project }) => {
+  const projectId = safeId(String(project.id || ''), 'project ID');
+  const workspace = String(project.repo_path || '');
+  if (!path.isAbsolute(workspace) || !fs.statSync(workspace, { throwIfNoEntry: false })?.isDirectory()) fail(`project '${projectId}' repo_path is not an existing absolute directory.`);
+  return { id: projectId, label: String(project.label || projectId), repo_path: workspace };
+});
+if (new Set(projects.map(({ id }) => id)).size !== projects.length) fail(`workflow '${workflowId}' contains duplicate project IDs.`);
+if (projectSelector && projects.filter((project) => project.id === projectSelector || project.label === projectSelector).length !== 1) fail(`project '${projectSelector}' did not resolve exactly once.`);
+// The profile's ordered project set is the logical group scope on every platform.
+// --project remains a compatibility validation selector; it must never narrow that set.
+const primaryProject = projects[0];
+const projectScope = Buffer.from(JSON.stringify(projects), 'utf8').toString('base64');
 
 const providerLabel = String(defaultProvider.provider.label || defaultProvider.provider.id);
-const fields = [workProfileId, workflowId, projectId, defaultProviderAlias, providerLabel, defaultProvider.endpoint, providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages, workspace, agentInstructions, commandsRoot, workflowInstructions, commandIds.join(','), roleBindings.join(',')];
+// Bash treats tab as whitespace and collapses an empty field during `read`, so use
+// an explicit sentinel for the one optional positional field in this wire format.
+const fields = [workProfileId, workflowId, primaryProject.id, defaultProviderAlias, providerLabel, defaultProvider.endpoint, providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages, primaryProject.repo_path, projectScope, agentInstructions || '-', commandsRoot, workflowInstructions, commandIds.join(','), roleBindings.join(',')];
 if (fields.some((value) => /[\t\r\n]/.test(value))) fail('resolved values contain unsupported control characters.');
 process.stdout.write(`${fields.join('\t')}\n`);

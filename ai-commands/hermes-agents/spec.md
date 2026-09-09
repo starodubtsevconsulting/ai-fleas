@@ -4,7 +4,7 @@
 
 ## Input
 
-A profile-management intent plus an explicitly selected AI profile, workflow, project, and any action-specific options.
+A profile-management intent plus an explicitly selected AI profile, workflow, complete ordered project set, and any action-specific options.
 
 ## Output
 
@@ -24,6 +24,10 @@ Verified Hermes profile state or a precise, non-secret failure.
 - `reinitialize` deletes the exact resolved group and role profiles, verifies their removal, observes a bounded desktop synchronization barrier, clears only that group's deletion tombstone, and creates a fresh complete generation; it requires `--confirm-reinitialize`.
 - Initialized role profiles remain active in their group but are hidden from Hermes's flat top-level bot roster so profile-workflow groups are the primary navigation surface.
 - Role-profile IDs contain profile, workflow, and role suffix only; project/repository IDs remain runtime configuration.
+- Every role profile receives the complete ordered workflow project set. The first entry is the primary/default working
+  directory and later entries remain authorized associated projects; a project selector never collapses that scope.
+- Generated `SOUL.md` content is a platform delivery artifact derived from profile, workflow, role, command, and project
+  contracts. It must not redefine or omit those portable contracts.
 - `reconcile` uses the same resolved identity and preserves conversations and memory by default.
 - Destructive replacement or deletion requires explicit human authorization, executable confirmation, and an exact resolved workflow identity.
 

@@ -1,77 +1,22 @@
-# EXAMPLE ONLY: realistic, sanitized values. Never use this as a real host configuration without reviewing it.
-# Keep the populated copy in the operational AI Profile and ignored by Git.
-schema_version: local-ai-providers.v1
-capability: hermes
+# EXAMPLE ONLY: sanitized Hermes Agents command binding.
+schema_version: hermes-agents-command-config.v1
+capability: hermes-agents
 registered_command: hermes-agents
 command_path: hermes-agents/hermes-agents.command.sh
-
-profile_defaults:
-  name_template: example-{workflow}-{project}
-  preserve_conversations: true
-
-# A provider is a stable target ID for a computer, service, or cloud endpoint.
-# Add another entry when another model box is introduced; workflows select the
-# target by ID and never need to embed its address.
-providers:
-  - id: local-coding-service
-    label: SX-10 — LAN
-    location:
-      kind: lan
-      label: SX-10 — LAN
-    protocol: openai-compatible
-    endpoint:
-      # Safe loopback fallback; an operational profile supplies its private LAN
-      # endpoint directly or through this environment variable.
-      url: http://127.0.0.1:8000/v1
-      environment_variable: HERMES_LOCAL_CODING_ENDPOINT
-    authentication:
-      type: none
-      credential_environment_variable: HERMES_LOCAL_CODING_API_KEY
-    models:
-      # This alias is stable even if the provider's installed model ID changes.
-      - id: qwen-coder
-        label: Qwen3 Coder Next Q5_K_M
-        provider_model: qwen3-coder-next-q5km
-        capabilities:
-          - coding
-        hermes:
-          context_window_tokens: 65536
-          compression_threshold: 0.25
-          compression_target: 0.15
-          protect_last_messages: 8
-
-  # Example of a separate provider/model suitable for a system-scoped agent.
-  # It may run on the same box or another machine; the profile/platform decides.
-  # Keeping it independent from supervised workflow agents improves resilience.
-  - id: system-service
-    label: System model service
-    location:
-      kind: lan
-      label: System model service
-    protocol: openai-compatible
-    endpoint:
-      url: http://127.0.0.1:8001/v1
-      environment_variable: HERMES_SYSTEM_ENDPOINT
-    authentication:
-      type: none
-      credential_environment_variable: HERMES_SYSTEM_API_KEY
-    models:
-      - id: system-small
-        label: Small operational model
-        provider_model: qwen3:4b
-        capabilities:
-          - reasoning
-          - chat
-        hermes:
-          context_window_tokens: 32768
-          compression_threshold: 0.25
-          compression_target: 0.15
-          protect_last_messages: 8
-
-command_access:
-  root: ${AI_COMMANDS_ROOT}
-  inherit_workflow_commands: true
-
-# Real addresses, credentials, and machine-specific paths belong only in an
-# operational profile. A workflow selects this map with:
-# local_ai: { providers_config: <this file>, provider: local-coding-service, model: qwen-coder }
+platform: hermes
+lifecycle:
+  preserve_conversations_on_reconcile: true
+  require_confirmation_for_reinitialize: true
+  require_confirmation_for_delete: true
+binding_state:
+  owner: profile
+  path: .local/hermes-agents/bindings.yml
+  schema_version: hermes-agents-binding-state.v1
+grouping:
+  name_template: '{profile}-{workflow}{suffix}'
+  suffix_separator: '-'
+  hide_member_profiles: true
+project_scope:
+  ordered: true
+  primary: first
+  terminal_cwd: primary

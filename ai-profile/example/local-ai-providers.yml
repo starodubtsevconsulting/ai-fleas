@@ -1,0 +1,41 @@
+# EXAMPLE ONLY: sanitized model targets. Operational endpoints and credentials belong in an ignored profile.
+schema_version: local-ai-providers.v1
+providers:
+  - id: local-coding-service
+    label: Local coding service
+    protocol: openai-compatible
+    endpoint:
+      url: http://127.0.0.1:8000/v1
+      environment_variable: HERMES_LOCAL_CODING_ENDPOINT
+    authentication:
+      type: none
+      credential_environment_variable: HERMES_LOCAL_CODING_API_KEY
+    models:
+      - id: qwen-coder
+        label: Coding model
+        provider_model: qwen3-coder-next-q5km
+        capabilities: [coding]
+        hermes:
+          context_window_tokens: 65536
+          compression_threshold: 0.25
+          compression_target: 0.15
+          protect_last_messages: 8
+  - id: system-service
+    label: System model service
+    protocol: openai-compatible
+    endpoint:
+      url: http://127.0.0.1:8001/v1
+      environment_variable: HERMES_SYSTEM_ENDPOINT
+    authentication:
+      type: none
+      credential_environment_variable: HERMES_SYSTEM_API_KEY
+    models:
+      - id: system-small
+        label: Small operational model
+        provider_model: qwen3:4b
+        capabilities: [reasoning, chat]
+        hermes:
+          context_window_tokens: 32768
+          compression_threshold: 0.25
+          compression_target: 0.15
+          protect_last_messages: 8
