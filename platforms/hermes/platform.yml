@@ -1,6 +1,6 @@
 version: 1
 id: hermes
-label: Hermes Agent
+label: Hermes Platform
 runtime_object: hermes-profile
 creation_environment: profile-selected-provider
 initialization: agents/initialization.md

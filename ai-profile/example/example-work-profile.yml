@@ -3,7 +3,12 @@ name: example
 description: Copyable example work profile
 default_workflow: dev.workflow.md
 default_agent: codex
-agent_platform: gpt-app
+agent_platforms:
+  default: gpt
+  available:
+    - gpt
+    - hermes
+    - sc
 agent_login_method: web_sso
 web_auth_policies:
   codex: reuse_scoped_login
@@ -17,12 +22,14 @@ system_agent:
   scope: system
   cardinality: one-per-platform
   platform_bindings:
-    gpt-app:
+    gpt:
       model: gpt-5.6-luna
       reasoning: low
     hermes:
       provider: system-service
       model: system-small
+    sc:
+      model: platform-default
 governance_rules_repository: example-governance-rules
 governance_rules_surface:
   - AGENTS.md
