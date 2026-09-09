@@ -7,4 +7,6 @@ Every initialized agent declares a `scope`.
 
 Scope defines where an agent belongs, not what it may access. Cross-scope access still requires explicit authority.
 
-Scope does not select where an agent runs or which provider or model it uses. Those choices belong to the active profile and platform implementation.
+A system-scoped agent is not part of any workflow-group lifecycle transaction. Ordinary workflow initialization, reconciliation, reinitialization, and deletion leave it unchanged. System lifecycle uses an explicit system initialization/reinitialization operation. Only one active System agent may exist for a selected platform binding.
+
+Scope does not choose where an agent runs or which provider/model it uses. Those are resolved by the selected profile and platform implementation.

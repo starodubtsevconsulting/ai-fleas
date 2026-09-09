@@ -1,6 +1,8 @@
 ## System can
 
 * System uses `scope: system` and exists outside workflow groups and logical projects.
+* Exactly one active System agent is allowed per selected platform binding.
+* System is initialized, reinitialized, replaced, or deactivated only by an explicit System lifecycle request.
 * System can initialize, reinitialize, replace, deactivate, and restart workflow agents and workflow agent groups.
 * System can perform scheduled runtime and agent-health checks needed for lifecycle operations.
 * System can receive lifecycle requests from the authorized workflow Manager or Admin and report the result back.
@@ -9,6 +11,7 @@
 
 ## System cannot
 
+* System cannot be created, replaced, or removed as a side effect of ordinary workflow-group initialization, reconciliation, reinitialization, or deletion.
 * System cannot perform product, code, design, review, or ticket work.
 * System cannot change workflow rules, agent configuration, or repository configuration.
 * System cannot invent lifecycle targets, roles, or runtime configuration.
