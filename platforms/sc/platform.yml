@@ -1,0 +1,13 @@
+version: 1
+id: sc
+label: SC Platform
+runtime_object: platform-managed-agent
+creation_environment: platform-managed
+capabilities:
+  - visible-agents
+  - persistent-identity
+  - workflow-navigation
+  - model-selection
+  - scheduling
+  - lifecycle-management
+  - visual-components
