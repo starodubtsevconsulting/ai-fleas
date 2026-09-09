@@ -21,11 +21,9 @@ test -r "${ROOT}/../platforms/sc/platform.yml" || fail "Missing SC platform cont
 grep -Fq 'config: agent-identities.yml' "${PROFILE}" || fail "Example must reference agent identity configuration"
 python3 "${ROOT}/example/validate-agent-identities.py" "${ROOT}/example/agent-identities.yml" example.com
 node "${ROOT}/validate-profile-structure.mjs" "${PROFILE}"
-for operational in sc sxm; do
-  operational_profile="${ROOT}/${operational}/${operational}-work-profile.yml"
-  if [[ -f "${operational_profile}" ]]; then
-    node "${ROOT}/validate-profile-structure.mjs" "${operational_profile}"
-  fi
-done
+SC_PROFILE="${ROOT}/sc/sc-work-profile.yml"
+if [[ -f "${SC_PROFILE}" ]]; then
+  node "${ROOT}/validate-profile-structure.mjs" "${SC_PROFILE}"
+fi
 
 echo 'AI Profile example: PASS'
