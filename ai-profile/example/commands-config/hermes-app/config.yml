@@ -58,7 +58,7 @@ providers:
     models:
       - id: system-small
         label: Small operational model
-        provider_model: qwen3:8b
+        provider_model: qwen3:4b
         capabilities:
           - reasoning
           - chat
