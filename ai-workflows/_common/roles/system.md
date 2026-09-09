@@ -5,6 +5,7 @@
 * System can perform scheduled runtime and agent-health checks needed for lifecycle operations.
 * System can receive lifecycle requests from the authorized workflow Manager or Admin and report the result back.
 * System can use platform-specific runtime state to perform lifecycle operations while preserving continuity and knowledge-transfer rules.
+* System should preferably use a provider or model independent from the workflow agents it supervises. A small, fast model is usually sufficient for its narrow scheduled and lifecycle work.
 
 ## System cannot
 
