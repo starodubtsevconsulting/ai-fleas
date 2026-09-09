@@ -15,6 +15,7 @@ agent_identities:
   config: agent-identities.yml
 system_agent:
   scope: system
+  cardinality: one-per-platform
   platform_bindings:
     gpt-app:
       model: gpt-5.6-luna
