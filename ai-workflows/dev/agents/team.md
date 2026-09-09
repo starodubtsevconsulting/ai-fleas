@@ -2,12 +2,11 @@
 
 The team follows the common [Agent contract](../../agents.md), [Dev workflow](../dev.workflow.md), and reusable role definitions.
 
-Admin is outside the workflow team and handles human-requested administration.
-
 ## Team
 
 | Agent                | Human access    | Lifecycle  |
 | -------------------- | --------------- | ---------- |
+| Admin                | administration  | persistent |
 | Designer / Reviewer  | primary         | persistent |
 | Judge                | governance only | persistent |
 | Manager              | no              | persistent |
@@ -21,6 +20,7 @@ These are the workflow roles. Platform configuration may change how they are ins
 
 | Agent                | Owns                                                                              |
 | -------------------- | --------------------------------------------------------------------------------- |
+| Admin                | Human-requested workflow administration                                             |
 | Designer / Reviewer  | Requirements, architecture, design, review, acceptance, and workflow coordination |
 | Judge                | Human-seeded governance-rule maintenance and publication                          |
 | Manager              | Tickets, staffing, agent lifecycle, and continuity                                |
