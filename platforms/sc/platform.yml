@@ -5,6 +5,7 @@ runtime_object: platform-managed-agent
 creation_environment: platform-managed
 capabilities:
   - visible-agents
+  - agent-pinning
   - persistent-identity
   - workflow-navigation
   - model-selection

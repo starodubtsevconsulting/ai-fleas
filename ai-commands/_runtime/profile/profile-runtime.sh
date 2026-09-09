@@ -29,6 +29,29 @@ ai_profile_list() {
   ' "$1"
 }
 
+ai_profile_agent_platform_default() {
+  awk '
+    /^agent_platforms:/ { in_platforms=1; next }
+    in_platforms && /^[^[:space:]]/ { exit }
+    in_platforms && /^  default:[[:space:]]*/ {
+      value=$0; sub(/^  default:[[:space:]]*/, "", value); print value; exit
+    }
+  ' "$1"
+}
+
+ai_profile_agent_platform_available() {
+  awk -v wanted="$2" '
+    /^agent_platforms:/ { in_platforms=1; next }
+    in_platforms && /^[^[:space:]]/ { exit }
+    in_platforms && /^  available:/ { in_available=1; next }
+    in_platforms && in_available && /^    -[[:space:]]*/ {
+      value=$0; sub(/^    -[[:space:]]*/, "", value); if (value == wanted) found=1; next
+    }
+    in_platforms && in_available && !/^    / { in_available=0 }
+    END { exit(found ? 0 : 1) }
+  ' "$1"
+}
+
 ai_profile_has_workflow() {
   awk -v wanted="$2" '
     /^workflows:/ { in_workflows=1; next }
@@ -53,6 +76,34 @@ ai_profile_workflow_has_command() {
     }
     selected && in_commands && !/^      / { in_commands=0 }
     END { exit(found ? 0 : 1) }
+  ' "$1"
+}
+
+ai_profile_workflow_scalar() {
+  awk -v workflow="$2" -v wanted="$3" '
+    /^workflows:/ { in_workflows=1; next }
+    in_workflows && /^[^[:space:]]/ { exit }
+    in_workflows && /^  - path:[[:space:]]*/ {
+      value=$0; sub(/^  - path:[[:space:]]*/, "", value); selected=(value == workflow); next
+    }
+    selected && $0 ~ "^    " wanted ":[[:space:]]*" {
+      value=$0; sub("^    " wanted ":[[:space:]]*", "", value); print value; exit
+    }
+  ' "$1"
+}
+
+ai_profile_workflow_project_refs() {
+  awk -v workflow="$2" '
+    /^workflows:/ { in_workflows=1; next }
+    in_workflows && /^[^[:space:]]/ { exit }
+    in_workflows && /^  - path:[[:space:]]*/ {
+      value=$0; sub(/^  - path:[[:space:]]*/, "", value); selected=(value == workflow); in_projects=0; next
+    }
+    selected && /^    projects:/ { in_projects=1; next }
+    selected && in_projects && /^      - ref:[[:space:]]*/ {
+      value=$0; sub(/^      - ref:[[:space:]]*/, "", value); print value; next
+    }
+    selected && in_projects && !/^      / { in_projects=0 }
   ' "$1"
 }
 
@@ -93,7 +144,9 @@ ai_profile_activate() {
   local requested_profile="${1:-${WORK_PROFILE_ID:-${AI_WORK_PROFILE_ID:-example}}}"
   local requested_workflow="${2:-${AI_FLOW_WORKFLOW:-${WORKFLOW_NAME:-}}}"
   local requested_instance="${3:-${AI_WORKFLOW_INSTANCE_ID:-}}"
+  local requested_agent_platform="${4:-${AI_AGENT_PLATFORM_REQUESTED:-}}"
   local profile_file profile_dir commands_ref workflows_ref platforms_ref agent_platform platform_contract governance_repository governance_surface workflow_id path
+  local runtime_project_id runtime_project_ref runtime_project_file="" runtime_project_root="" candidate_file candidate_id
   local -a governance_paths
   profile_file="$(ai_profile_file "$requested_profile")" || return 1
   [[ -f "$profile_file" ]] || { ai_profile_error "unknown profile: $requested_profile"; return 1; }
@@ -104,13 +157,20 @@ ai_profile_activate() {
   commands_ref="$(ai_profile_scalar "$profile_file" ai_commands_root)"
   workflows_ref="$(ai_profile_scalar "$profile_file" ai_workflows_root)"
   platforms_ref="$(ai_profile_scalar "$profile_file" ai_platforms_root)"
-  agent_platform="$(ai_profile_scalar "$profile_file" agent_platform)"
+  if [[ -n "$requested_agent_platform" ]]; then
+    agent_platform="$requested_agent_platform"
+  else
+    agent_platform="$(ai_profile_agent_platform_default "$profile_file")"
+  fi
   governance_repository="$(ai_profile_scalar "$profile_file" governance_rules_repository)"
   governance_surface="$(ai_profile_list "$profile_file" governance_rules_surface | paste -sd: -)"
   AI_COMMANDS_ROOT="$(ai_profile_resolve_path "$profile_dir" "$commands_ref")" || return 1
   AI_WORKFLOWS_ROOT="$(ai_profile_resolve_path "$profile_dir" "$workflows_ref")" || return 1
   AI_PLATFORMS_ROOT="$(ai_profile_resolve_path "$profile_dir" "$platforms_ref")" || return 1
   ai_profile_safe_id "$agent_platform" || { ai_profile_error 'missing or unsafe agent platform'; return 1; }
+  ai_profile_agent_platform_available "$profile_file" "$agent_platform" || {
+    ai_profile_error "agent platform is not available in profile: $agent_platform"; return 1;
+  }
   platform_contract="$(ai_platform_contract "$AI_PLATFORMS_ROOT" "$agent_platform")" || {
     ai_profile_error "agent platform is not registered: $agent_platform"; return 1;
   }
@@ -126,16 +186,40 @@ ai_profile_activate() {
     [[ -e "$(ai_profile_root)/$path" ]] || { ai_profile_error "missing governance surface: $path"; return 1; }
   done
   workflow_id="$(basename "$requested_workflow" .workflow.md)"
+  runtime_project_ref="$(ai_profile_workflow_project_refs "$profile_file" "$requested_workflow" | head -n 1)"
+  if [[ -n "$runtime_project_ref" ]]; then
+    ai_profile_safe_relative_path "$runtime_project_ref" || { ai_profile_error "unsafe primary project reference: $runtime_project_ref"; return 1; }
+    runtime_project_file="$(ai_profile_resolve_path "$profile_dir" "$runtime_project_ref")" || return 1
+    [[ -f "$runtime_project_file" ]] || { ai_profile_error "missing primary project record: $runtime_project_ref"; return 1; }
+    runtime_project_id="$(ai_profile_scalar "$runtime_project_file" id)"
+    runtime_project_root="$(ai_profile_scalar "$runtime_project_file" repo_path)"
+    if [[ "$runtime_project_root" == \'*\' || "$runtime_project_root" == \"*\" ]]; then
+      runtime_project_root="${runtime_project_root:1:${#runtime_project_root}-2}"
+    fi
+    [[ -n "$runtime_project_id" ]] || { ai_profile_error 'primary project ID is missing'; return 1; }
+    [[ -n "$runtime_project_root" ]] || { ai_profile_error 'primary project root is missing'; return 1; }
+    [[ "$runtime_project_root" == /* ]] || { ai_profile_error 'workflow agent runtime project root must be absolute'; return 1; }
+  fi
   [[ -z "$requested_instance" ]] || ai_profile_safe_id "$requested_instance" || { ai_profile_error "unsafe workflow instance ID: $requested_instance"; return 1; }
   WORK_PROFILE_ID="$requested_profile"; AI_WORK_PROFILE_ID="$requested_profile"; AI_PROFILE_FILE="$profile_file"
   AI_FLOW_WORKFLOW="$requested_workflow"; AI_WORKFLOW_ID="$workflow_id"; AI_WORKFLOW_INSTANCE_ID="$requested_instance"
   AI_LOGICAL_PROJECT_ID="$requested_profile-$workflow_id${requested_instance:+-$requested_instance}"
   AI_AGENT_PLATFORM="$agent_platform"
+  AI_AGENT_RUNTIME_PROJECT_ID="$runtime_project_id"; AI_AGENT_RUNTIME_PROJECT_FILE="$runtime_project_file"
+  if [[ -n "$runtime_project_root" && -d "$runtime_project_root" ]]; then
+    AI_AGENT_RUNTIME_PROJECT_ROOT="$(cd "$runtime_project_root" && pwd -P)" || return 1
+  else
+    AI_AGENT_RUNTIME_PROJECT_ROOT="$runtime_project_root"
+  fi
+  AI_PRIMARY_PROJECT_ID="$AI_AGENT_RUNTIME_PROJECT_ID"; AI_PRIMARY_PROJECT_FILE="$AI_AGENT_RUNTIME_PROJECT_FILE"
+  AI_PRIMARY_PROJECT_ROOT="$AI_AGENT_RUNTIME_PROJECT_ROOT"
   AI_GOVERNANCE_RULES_REPOSITORY="$governance_repository"; AI_GOVERNANCE_RULES_ROOT="$(ai_profile_root)"
   AI_GOVERNANCE_RULES_SURFACE="$governance_surface"
   export WORK_PROFILE_ID AI_WORK_PROFILE_ID AI_PROFILE_FILE AI_COMMANDS_ROOT AI_WORKFLOWS_ROOT AI_PLATFORMS_ROOT
   export AI_FLOW_WORKFLOW AI_WORKFLOW_ID AI_WORKFLOW_INSTANCE_ID AI_LOGICAL_PROJECT_ID
   export AI_AGENT_PLATFORM AI_AGENT_PLATFORM_CONTRACT
+  export AI_AGENT_RUNTIME_PROJECT_ID AI_AGENT_RUNTIME_PROJECT_FILE AI_AGENT_RUNTIME_PROJECT_ROOT
+  export AI_PRIMARY_PROJECT_ID AI_PRIMARY_PROJECT_FILE AI_PRIMARY_PROJECT_ROOT
   export AI_GOVERNANCE_RULES_REPOSITORY AI_GOVERNANCE_RULES_ROOT AI_GOVERNANCE_RULES_SURFACE
 }
 
@@ -147,9 +231,12 @@ ai_profile_command_config_path() {
 }
 
 ai_profile_activate_command() {
-  local profile_id="$1" workflow="$2" instance="$3" command_id="$4" config_ref=""
+  local profile_id="$1" workflow="$2" instance="$3" command_id="$4" agent_platform="${5:-}" config_ref=""
   ai_profile_safe_id "$command_id" || { ai_profile_error "unsafe command ID: $command_id"; return 1; }
-  ai_profile_activate "$profile_id" "$workflow" "$instance" || return 1
+  ai_profile_activate "$profile_id" "$workflow" "$instance" "$agent_platform" || return 1
+  if [[ "$command_id" == gpt-agents && -z "$AI_AGENT_RUNTIME_PROJECT_ID" ]]; then
+    ai_profile_error 'gpt-agents requires at least one workflow project; the first is primary'; return 1
+  fi
   ai_profile_workflow_has_command "$AI_PROFILE_FILE" "$AI_FLOW_WORKFLOW" "$command_id" || {
     ai_profile_error "command is not allowed by workflow: $command_id"; return 1;
   }

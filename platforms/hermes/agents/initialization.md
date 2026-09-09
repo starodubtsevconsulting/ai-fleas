@@ -18,7 +18,12 @@ One logical workflow agent maps to one exact Hermes profile ID. Reconcile it thr
 reference the selected workflow contract, allowed commands, project workspace, and applicable repository instructions.
 Verify provider, concrete model, endpoint reachability, context settings, and workspace after setup. A plain `initialize` is workflow-scoped and never initializes System.
 
-System uses the profile's `system_agent.platform_bindings.hermes` provider/model realization and remains outside Hermes workflow groups. Its lifecycle is separate from workflow-group initialize, reconcile, reinitialize, and delete operations.
+System uses the profile's `system_agent.platform_bindings.hermes` provider/model realization and remains outside Hermes workflow groups. Its lifecycle is separate from workflow-group initialize, reconcile, reinitialize, and delete operations. When Hermes exposes profile pinning, pin System in its global navigation without adding it to any workflow group; otherwise report pinning as unsupported.
+
+When System scheduling is enabled, supply the portable schedule and initial watch scopes in the System profile's
+initialization message. System owns scheduler bootstrap: it requests Hermes's scheduling adapter to create or reconcile
+the concrete timer and verifies that receipt before declaring readiness. The public lifecycle contract must not encode
+Hermes timer storage or trigger mechanics.
 
 Provider endpoints, authentication references, concrete model IDs, and machine labels remain in the operational profile.
 They are configuration of this adapter, not part of its public contract. Workflow deletion requires exact workflow identities and must leave System unchanged.

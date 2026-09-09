@@ -15,10 +15,18 @@ The portable vocabulary maps as follows:
 | logical agent | configured workflow role binding |
 | agent instance | user-visible Codex task |
 | instance ID | app-returned task/thread ID |
-| runtime scope | Codex project ID |
-| logical project / workflow group | exact custom sidebar section ID plus recorded agent-task bindings |
+| logical work scope | complete set of project records registered by the selected profile workflow |
+| primary project | first workflow project; hosts rules, commands, workflow definitions, and the Codex saved-project agents |
+| associated projects | all later workflow project entries; remain in the group's logical work scope |
+| missing saved Codex Project | stop before task mutation; the exact folder-backed Project is a GPT-platform prerequisite |
+| logical project / group | one exact folder-backed Codex saved project containing its agent tasks |
+| project | one profile-registered folder in that saved project's ordered scope |
 | activate | create and initialize a task |
 | deactivate | recoverably archive the exact task ID |
 | send/receive | exact task-ID message delivery |
 | check update | trusted host update-channel query; no automatic installation |
-| delete workflow / delete group | recoverably archive its exact bound tasks and delete its exact sidebar section; preserve the saved Codex project and repository |
+| delete workflow / delete group | recoverably archive its exact bound tasks; preserve the saved Codex project and scoped folders |
+
+The host persists all immutable IDs in the activated profile's configured `gpt-agents-binding-state.v1` registry. The
+caller acts only as a mechanical initialization controller: after resolving and verifying the pre-existing project it creates every
+missing roster task directly, including the temporary Admin compatibility role, and initializes them concurrently.
