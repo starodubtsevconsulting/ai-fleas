@@ -23,3 +23,9 @@ So perhaps the goal isn't to eliminate bureaucracy.
 The goal is to **automate the bureaucracy itself**.
 
 If you spend enough time and money tuning it once, eventually it may start saving much more time and money than it took to build.
+
+**P.S. — Stoic quote of the day**
+
+> “No great thing is created suddenly.”
+>
+> — Epictetus, *Discourses*
