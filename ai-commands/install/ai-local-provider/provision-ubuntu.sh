@@ -110,6 +110,11 @@ for _ in $(seq 1 90); do
       -d '{"messages":[{"role":"user","content":"Reply with exactly READY"}],"temperature":0,"max_tokens":8}' \
       "http://127.0.0.1:$provider_port/v1/chat/completions")"
     grep -q 'READY' <<<"$response" || { echo 'PROVIDER_INFERENCE_VERIFICATION_FAILED' >&2; exit 9; }
+    while IFS= read -r inactive_model; do
+      [[ -n "$inactive_model" ]] || continue
+      rm -f -- "$inactive_model"
+      printf 'Removed inactive model after successful replacement: %s\n' "$inactive_model"
+    done < <(find "$model_root" -maxdepth 1 -type f -name '*.gguf' ! -name "$model_file" -print)
     systemctl --no-pager --full status "$service_name" | sed -n '1,12p'
     echo 'AI_LOCAL_PROVIDER_INSTALLED'
     exit 0
