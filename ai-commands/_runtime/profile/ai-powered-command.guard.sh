@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-command_dir="${1:?command directory required}"
-manifest="$command_dir/command.yml"
+manifest="${1:?command manifest required}"
 
 [[ -f "$manifest" ]] || {
   echo "Command manifest missing: $manifest" >&2
