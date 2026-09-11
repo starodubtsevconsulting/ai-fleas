@@ -1,21 +1,21 @@
 id: qwen3-coder-next
-name: Qwen3 Coder 30B A3B Instruct Q8
+name: Qwen3 Coder 30B A3B Instruct Q4_K_M
 
 model:
   source: huggingface
-  repository: ggml-org/Qwen3-Coder-30B-A3B-Instruct-Q8_0-GGUF
-  file: qwen3-coder-30b-a3b-instruct-q8_0.gguf
-  api_alias: qwen3-coder-30b-a3b-instruct-q8_0
-  sha256: f22993e29318b5b9ec2026f6b65802a5ca99b38ab4844aab83aed8a26ce00ff6
-  size_bytes: 32483933856
-  quantization: Q8_0
+  repository: n00b001/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M-GGUF
+  file: qwen3-coder-30b-a3b-instruct-q4_k_m.gguf
+  api_alias: qwen3-coder-30b-a3b-instruct-q4_k_m
+  sha256: ab4fc2b27b2043483a9e346c802809dfbe9b775efbeea7ca74dc2fd1aa4a0f71
+  size_bytes: 18556688704
+  quantization: Q4_K_M
   context: 65536
 
 runtime:
   type: llama.cpp
   source_repository: https://github.com/ggml-org/llama.cpp.git
   source_revision: 8ea290247c87ced2ab245b056ffe96dbcf90d36c
-  gpu_layers: 12
+  gpu_layers: 20
   parallel: 1
 
 requirements:
@@ -25,8 +25,8 @@ requirements:
     minimum_gb: 40
     recommended_gb: 48
   disk:
-    minimum_free_gb: 42
-    recommended_free_gb: 55
+    minimum_free_gb: 27
+    recommended_free_gb: 40
     reserve_after_install_gb: 10
     runtime_root_free_gb: 8
   gpu:
@@ -55,6 +55,7 @@ service:
 
 notes:
   - Initial beta candidate for measured validation on a 48 GiB RAM / 12 GiB VRAM machine.
-  - The 64K context satisfies Hermes Agent's minimum and must be validated against measured RAM, VRAM, throughput and stability.
-  - CUDA layer offload must be tuned from measured behavior; the 32.5 GB model cannot fit entirely in 12 GiB VRAM.
+  - Q4_K_M is the default for a responsive always-on Hermes System agent on a 12 GiB GPU.
+  - The 64K context satisfies Hermes Agent's minimum and uses one inference slot to bound KV-cache memory.
+  - Twenty CUDA layers are a conservative initial candidate and must be tuned from observed VRAM and stability.
   - HTTP without authentication is intended only for a trusted LAN and must not be exposed to the public Internet by default.
