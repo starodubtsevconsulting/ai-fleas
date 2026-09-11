@@ -96,11 +96,32 @@ The command MUST:
 12. Set the selected model as active/default when requested by the installation operation.
 13. Create/update the systemd service.
 14. Enable the service at boot.
-15. Start/restart the service as required and load only the configured active model.
-16. Make the HTTP endpoint reachable on the intended LAN interface without public exposure.
-17. Verify the configured API endpoint.
-18. Perform a minimal inference/health test against the active model.
-19. Return observable installation and verification evidence.
+15. Launch the service immediately as part of installation and load only the configured active model.
+16. Wait for the provider/model to become ready or fail with evidence.
+17. Make the HTTP endpoint reachable on the intended LAN interface without public exposure.
+18. Verify that the HTTP endpoint responds.
+19. Send a minimal real inference request to the active model.
+20. Validate that the inference response is structurally valid and non-empty.
+21. Return `SUCCESS` only after service, model, HTTP and inference verification all pass.
+22. Return observable installation and verification evidence.
+
+## Post-install verification gate
+
+Installation is not complete when files/packages are merely present.
+
+The command MUST finish with the provider running and ready for requests. The mandatory verification sequence is:
+
+**install -> configure -> launch service -> load model -> verify HTTP -> run inference -> validate response -> success**.
+
+`SUCCESS` MUST NOT be returned unless all of the following are observable:
+
+- the systemd service is active;
+- the selected model is loaded and ready;
+- the configured HTTP endpoint responds;
+- a real minimal inference request completes successfully;
+- the inference response is valid and non-empty.
+
+Any failure in this gate MUST return a non-success result and include enough service/journal/API evidence to diagnose the failure.
 
 ## Model switching
 
@@ -151,7 +172,7 @@ The command MUST NOT:
 - expose the provider to the public Internet by default;
 - configure router/NAT port forwarding or public tunnels;
 - commit or print private SSH keys or credentials;
-- report success without endpoint verification.
+- report success without endpoint and inference verification.
 
 ## Result states
 
@@ -167,9 +188,12 @@ At minimum:
 - `RUNTIME_INSTALL_FAILED`
 - `MODEL_INSTALL_FAILED`
 - `SERVICE_FAILED`
+- `MODEL_NOT_READY`
+- `HTTP_VERIFICATION_FAILED`
+- `INFERENCE_VERIFICATION_FAILED`
 - `VERIFICATION_FAILED`
 - `SNAPSHOT_NOT_RUNNABLE`
 
 ## Completion
 
-Complete only when the provider has no more than one active model, the selected default model is configured, the systemd service is enabled and running, that model is loaded, and the trusted-LAN HTTP endpoint passes the configured health/inference verification.
+Complete only when the provider has no more than one active model, the selected default model is configured, the systemd service is enabled and running, that model is loaded and ready, the trusted-LAN HTTP endpoint responds, and a real minimal inference request succeeds with a valid non-empty response.
