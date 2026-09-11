@@ -13,7 +13,7 @@ providers:
       - id: qwen-coder
         provider_model: qwen3-coder-30b-a3b-instruct-q8_0
         hermes:
-          context_window_tokens: 16384
+          context_window_tokens: 65536
           compression_threshold: 0.25
           compression_target: 0.15
           protect_last_messages: 8
