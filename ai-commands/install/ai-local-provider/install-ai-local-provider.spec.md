@@ -14,11 +14,13 @@ SNAPSHOT. The command MUST NOT perform installation until implementation and tes
 
 The initial contract is intentionally simple:
 
-**one machine -> one provider server -> one model**.
+**one machine -> one provider server -> maximum one active model at a time**.
 
-The configured model is loaded when the provider starts. The provider is managed by systemd and starts automatically with the machine.
+A machine may have multiple model files/presets installed. The provider process loads only one model at a time. The active model can be unloaded and another installed model can then be selected and loaded.
 
-The initial implementation does not support multiple simultaneously hosted models, model switching, or a model registry. To use a different model, re-provision the machine with another preset or use another machine.
+The selected active/default model is loaded when the provider starts. The provider is managed by systemd and starts automatically with the machine. On reboot, the currently configured default model is loaded.
+
+Running multiple models concurrently from the same provider is out of scope for the initial implementation.
 
 ## Default API and network contract
 
@@ -89,15 +91,30 @@ The command MUST:
 7. Stop before changes when minimum requirements are not met.
 8. Install required Ubuntu packages.
 9. Install/configure the preset runtime.
-10. Install or download the preset model.
-11. Configure exactly one provider service/model for the machine.
-12. Create the systemd service.
-13. Enable the service at boot.
-14. Start/restart the service as required and load the configured model.
-15. Make the HTTP endpoint reachable on the intended LAN interface without public exposure.
-16. Verify the configured API endpoint.
-17. Perform a minimal inference/health test.
-18. Return observable installation and verification evidence.
+10. Install or download the selected model without requiring other installed models to be deleted.
+11. Configure the provider so no more than one model can be active at a time.
+12. Set the selected model as active/default when requested by the installation operation.
+13. Create/update the systemd service.
+14. Enable the service at boot.
+15. Start/restart the service as required and load only the configured active model.
+16. Make the HTTP endpoint reachable on the intended LAN interface without public exposure.
+17. Verify the configured API endpoint.
+18. Perform a minimal inference/health test against the active model.
+19. Return observable installation and verification evidence.
+
+## Model switching
+
+The machine MAY retain multiple installed models.
+
+Switching models means:
+
+1. stop/unload the current active model;
+2. select another installed model/preset;
+3. update the active/default model configuration;
+4. start/load the selected model;
+5. verify the API and inference result.
+
+At no point may the initial provider intentionally keep two models active concurrently. Model switching may be exposed by a dedicated command or lifecycle operation later; this install command only establishes the required provider semantics.
 
 ## Idempotency
 
@@ -115,9 +132,9 @@ The provider MUST run as a systemd service rather than requiring an interactive 
 
 The service MUST:
 
-- own exactly one configured model in the initial implementation;
+- run no more than one active model at a time;
 - start automatically after reboot;
-- load that model as part of provider startup;
+- load the configured active/default model as part of provider startup;
 - restart according to configured service policy;
 - expose the configured HTTP API endpoint to the trusted LAN;
 - require no API key by default;
@@ -155,4 +172,4 @@ At minimum:
 
 ## Completion
 
-Complete only when the machine has exactly one configured provider/model, the systemd service is enabled and running, the model is loaded, and the trusted-LAN HTTP endpoint passes the configured health/inference verification.
+Complete only when the provider has no more than one active model, the selected default model is configured, the systemd service is enabled and running, that model is loaded, and the trusted-LAN HTTP endpoint passes the configured health/inference verification.
