@@ -10,6 +10,29 @@ The user selects a model preset. A preset defines the model/runtime defaults and
 
 SNAPSHOT. The command MUST NOT perform installation until implementation and tests are complete.
 
+## Initial deployment model
+
+The initial contract is intentionally simple:
+
+**one machine -> one provider server -> one model**.
+
+The configured model is loaded when the provider starts. The provider is managed by systemd and starts automatically with the machine.
+
+The initial implementation does not support multiple simultaneously hosted models, model switching, or a model registry. To use a different model, re-provision the machine with another preset or use another machine.
+
+## Default API and network contract
+
+The initial default is a trusted-LAN provider:
+
+- HTTP API;
+- no TLS/HTTPS;
+- no API key;
+- no application-level authentication;
+- reachable from the local LAN;
+- never exposed to the public Internet by default.
+
+Because the default API is unauthenticated HTTP, network isolation is the security boundary. Installation MUST NOT create router/NAT port forwarding, public tunnels, or other public exposure.
+
 ## Supported platform
 
 Initial implementation supports only:
@@ -44,7 +67,8 @@ Each preset MUST be able to describe:
 - minimum and recommended memory;
 - minimum free disk space;
 - GPU requirements when applicable;
-- default systemd/API settings.
+- HTTP API and LAN exposure defaults;
+- systemd/autostart settings.
 
 The preset is the portable definition of a known local AI provider configuration. SSH targets, credentials and machine-specific secrets are not preset data.
 
@@ -66,12 +90,14 @@ The command MUST:
 8. Install required Ubuntu packages.
 9. Install/configure the preset runtime.
 10. Install or download the preset model.
-11. Create a systemd service for the provider.
-12. Enable the service at boot.
-13. Start/restart the service as required.
-14. Verify the configured API endpoint.
-15. Perform a minimal inference/health test.
-16. Return observable installation and verification evidence.
+11. Configure exactly one provider service/model for the machine.
+12. Create the systemd service.
+13. Enable the service at boot.
+14. Start/restart the service as required and load the configured model.
+15. Make the HTTP endpoint reachable on the intended LAN interface without public exposure.
+16. Verify the configured API endpoint.
+17. Perform a minimal inference/health test.
+18. Return observable installation and verification evidence.
 
 ## Idempotency
 
@@ -89,9 +115,12 @@ The provider MUST run as a systemd service rather than requiring an interactive 
 
 The service MUST:
 
+- own exactly one configured model in the initial implementation;
 - start automatically after reboot;
+- load that model as part of provider startup;
 - restart according to configured service policy;
-- expose the configured local API endpoint;
+- expose the configured HTTP API endpoint to the trusted LAN;
+- require no API key by default;
 - have observable status and logs through systemd/journald.
 
 ## Safety
@@ -102,7 +131,8 @@ The command MUST NOT:
 - modify a machine that fails the selected preset's minimum requirements;
 - install ARM64 binaries on the initial AMD64 implementation;
 - overwrite SSH configuration unnecessarily;
-- expose the provider publicly by default;
+- expose the provider to the public Internet by default;
+- configure router/NAT port forwarding or public tunnels;
 - commit or print private SSH keys or credentials;
 - report success without endpoint verification.
 
@@ -125,4 +155,4 @@ At minimum:
 
 ## Completion
 
-Complete only when the remote provider service is enabled, running, reachable at its configured endpoint, and passes the configured health/inference verification.
+Complete only when the machine has exactly one configured provider/model, the systemd service is enabled and running, the model is loaded, and the trusted-LAN HTTP endpoint passes the configured health/inference verification.
