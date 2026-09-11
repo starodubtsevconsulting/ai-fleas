@@ -24,10 +24,25 @@ requirements:
     vendor: any
     minimum_vram_gb: null
 
+provider:
+  model_count: 1
+  autostart: true
+
+api:
+  protocol: http
+  authentication: none
+  api_key: none
+
+network:
+  exposure: lan
+
 service:
-  listen_address: 127.0.0.1
+  manager: systemd
+  listen_address: 0.0.0.0
   port: 8080
   name: ai-local-provider
+  restart: on-failure
 
 notes:
   - Exact model repository, quantization and GPU requirements must be validated before this preset becomes runnable.
+  - HTTP without authentication is intended only for a trusted LAN and must not be exposed to the public Internet by default.
