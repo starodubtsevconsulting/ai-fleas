@@ -1,41 +1,51 @@
-# EXAMPLE ONLY: sanitized model targets. Operational endpoints and credentials belong in an ignored profile.
-schema_version: local-ai-providers.v1
+# EXAMPLE ONLY. Operational endpoints and credentials belong in an ignored/private profile.
+# AI providers belong to the profile. System agents and AI-enabled commands consume them by provider ID.
+schema_version: ai-providers.v1
+
 providers:
-  - id: local-coding-service
-    label: Local coding service
+  - id: local
+    label: Profile local AI
+    type: local
     protocol: openai-compatible
     endpoint:
-      url: http://127.0.0.1:8000/v1
-      environment_variable: HERMES_LOCAL_CODING_ENDPOINT
+      url: http://127.0.0.1:8080/v1
     authentication:
       type: none
-      credential_environment_variable: HERMES_LOCAL_CODING_API_KEY
-    models:
-      - id: qwen-coder
-        label: Coding model
-        provider_model: qwen3-coder-next-q5km
-        capabilities: [coding]
-        hermes:
-          context_window_tokens: 65536
-          compression_threshold: 0.25
-          compression_target: 0.15
-          protect_last_messages: 8
-  - id: system-service
-    label: System model service
-    protocol: openai-compatible
-    endpoint:
-      url: http://127.0.0.1:8001/v1
-      environment_variable: HERMES_SYSTEM_ENDPOINT
-    authentication:
-      type: none
-      credential_environment_variable: HERMES_SYSTEM_API_KEY
+    installation:
+      managed_by: install-ai-local-provider
+      platform: macos
+      preset: system-small
     models:
       - id: system-small
-        label: Small operational model
-        provider_model: qwen3:4b
-        capabilities: [reasoning, chat]
-        hermes:
-          context_window_tokens: 32768
-          compression_threshold: 0.25
-          compression_target: 0.15
-          protect_last_messages: 8
+        label: Small fast profile model
+        provider_model: system-small
+        capabilities: [reasoning, chat, command-assistance]
+        context_window_tokens: 32768
+
+  - id: mini-01
+    label: Dedicated AI box 1
+    type: remote
+    protocol: openai-compatible
+    endpoint:
+      url: http://192.168.1.41:8080/v1
+    authentication:
+      type: none
+
+  - id: mini-02
+    label: Dedicated AI box 2
+    type: remote
+    protocol: openai-compatible
+    endpoint:
+      url: http://192.168.1.42:8080/v1
+    authentication:
+      type: none
+
+bindings:
+  system_agent:
+    # Each (profile, platform) System instance resolves this profile-level provider binding.
+    provider: local
+    model: system-small
+
+  commands:
+    # AI-enabled commands may use this default when their own policy does not select another provider.
+    default_provider: local
