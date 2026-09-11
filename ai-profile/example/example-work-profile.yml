@@ -34,8 +34,9 @@ system_agent:
       readiness_token: SYSTEM_READY
     hermes:
       title: "⚙️ System"
-      provider: system-service
-      model: system-small
+      lifecycle_command: hermes-agents
+      provider: ai-lab-service
+      model: qwen-coder
     sc:
       title: "⚙️ System"
       model: platform-default
@@ -54,6 +55,10 @@ commands:
     config: commands-config/hermes-agents/config.yml
   - id: gpt-agents
     config: commands-config/gpt-agents/config.yml
+  - id: install
+    config: commands-config/install/config.yml
+  - id: machine-profile
+    config: commands-config/install/config.yml
   - id: lodgify
     config: commands-config/lodgify/config.example.env
 workflows:
@@ -73,6 +78,8 @@ workflows:
       - hermes-agents
       - gpt-agents
       - source-control
+      - install
+      - machine-profile
       - lodgify
       - logs
       - datadog
