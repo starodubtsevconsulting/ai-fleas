@@ -2,19 +2,13 @@
 
 ## Purpose
 
-Use `install-ai-local-provider` to interactively provision a remote Ubuntu AMD64 machine as a local AI inference provider over SSH.
+Use `install-ai-local-provider` to install an AI Local Provider either on the active profile's local computer or on a dedicated remote AI machine.
 
-The command is profile-aware. Normally the user runs it without arguments and the active profile supplies known boxes, SSH settings and defaults. Missing information is collected interactively.
+The command is interactive and profile-aware. The installed provider belongs to the AI profile and may be consumed by the profile's `(profile, platform)` System agents and by commands that declare optional AI assistance.
 
 Normative behavior is defined by [`install-ai-local-provider.spec.md`](install-ai-local-provider.spec.md).
 
 **Status: SNAPSHOT — not runnable until implemented and tested.**
-
-## Entry point
-
-```text
-install/ai-local-provider/install-ai-local-provider.sh
-```
 
 ## Normal invocation
 
@@ -22,121 +16,108 @@ install/ai-local-provider/install-ai-local-provider.sh
 install-ai-local-provider.sh
 ```
 
-When the active profile already contains boxes, the command presents them and an option to add another target:
+The command first selects installation mode:
 
 ```text
-AI Local Provider
+Install AI Local Provider
 
+1. This profile / local computer
+2. Dedicated remote machine
+3. Exit
+```
+
+## Profile-local provider
+
+The first implementation targets macOS, where the active AI profile commonly runs on the user's laptop/desktop.
+
+The profile-local flow:
+
+1. detect macOS and CPU architecture;
+2. inspect available memory/resources;
+3. present compatible small/fast model presets;
+4. install/reuse `llama.cpp` / `llama-server` locally;
+5. download/reuse the selected model;
+6. configure a localhost-only HTTP provider;
+7. configure local autostart/service lifecycle appropriate for macOS;
+8. launch the provider;
+9. verify HTTP and real inference;
+10. register/reconcile the provider in the active profile's `ai_providers` configuration when explicitly authorized.
+
+The default profile-local endpoint is localhost only and is intended as a small, always-available inference capability for System and AI-enabled commands.
+
+## Dedicated remote provider
+
+The remote flow provisions Ubuntu AMD64 over SSH. When profile command configuration contains known boxes, the command lists them plus `Add new machine`.
+
+```text
 Available machines:
 1. mini-01   192.168.1.41
 2. mini-02   192.168.1.42
 3. gx10-01   192.168.1.43
 4. Add new machine
-
-Select machine:
 ```
 
-After selecting a machine, the command resolves its profile configuration, asks only for unresolved required values, presents available model presets, shows the final plan and asks for confirmation before provisioning.
+It resolves SSH settings from the active profile, installs the provider under `/opt/ai-local-provider`, downloads/reuses the model, installs/enables systemd, launches the model and verifies real inference.
 
 ## First-run / incomplete configuration
 
-If no command configuration exists, or it contains no boxes, the command MUST NOT fail with an unexplained missing-config error. It explains what it needs and guides the user through adding a target machine.
+Missing configuration is handled interactively. The command explains what is needed and offers to configure the local provider, add a remote machine, show the relevant profile configuration/example, or exit.
 
-Example interaction:
+It MUST NOT fail with only a low-level missing-config/path/parser error.
 
-```text
-No AI provider machines are configured for the active profile.
+## Profile AI providers
 
-This command provisions an Ubuntu AMD64 machine over SSH.
-You can add a machine now. Its connection settings can then be saved in the profile command configuration for reuse.
+AI provider definitions belong to the profile, not to individual commands or System instances. A profile can expose providers such as:
 
-1. Add machine
-2. Show configuration example/path
-3. Exit
+```yaml
+providers:
+  - id: local
+    type: local
+    endpoint:
+      url: http://127.0.0.1:8080/v1
+
+  - id: mini-01
+    type: remote
+    endpoint:
+      url: http://192.168.1.41:8080/v1
 ```
 
-The interaction then collects a logical box name, host/IP, SSH user, SSH port if non-default, SSH key path if required, and preset/default choices. Before connection or installation it summarizes the resolved target.
+Consumers bind by provider ID. A System instance may use the profile's `system_agent` provider binding; AI-enabled commands may use the profile's command default or their own allowed provider policy.
 
-The command may tell the user exactly which active-profile command configuration needs to be created/updated. It MUST NOT silently write secrets into the public command repository.
+Provider selection supplies inference only. It never expands a command's or System agent's authority.
 
-## Non-interactive overrides
+## System cardinality
 
-Explicit arguments remain supported for agents/automation:
+System remains exactly one active instance per `(profile, platform)` binding. Several profiles may run on one platform, each with an isolated System instance. One profile may also have separate System instances on several platforms.
 
-```text
-install-ai-local-provider.sh \
-  --box mini-02 \
-  --preset qwen3-coder-next
-```
+Those instances may share the same profile-level AI provider without sharing their platform runtime state, watch scope or lifecycle authority.
 
-A direct target may also be supplied when intentionally bypassing the saved box list:
+## Remote box configuration
 
-```text
-install-ai-local-provider.sh \
-  --target ai@192.168.1.50 \
-  --preset qwen3-coder-next
-```
+Remote provisioning details stay in profile-owned command configuration. A profile may define multiple named boxes with host/IP, SSH user, SSH port, SSH key path/reference, optional preset and supported overrides.
+
+Private key contents/passwords MUST NOT be committed. Reference local key paths or supported private credential mechanisms.
 
 ## Resolution order
 
-Values are resolved in this order, highest precedence first:
+Values resolve in this order:
 
 1. explicit CLI arguments;
-2. selected box values from active-profile command configuration;
+2. selected profile provider/box values;
 3. active-profile command defaults;
-4. selected committed preset defaults;
-5. interactive prompt for still-required values.
+4. committed preset defaults;
+5. interactive prompt for unresolved required values.
 
-The command MUST show the resolved target/model before provisioning.
-
-## Profile configuration
-
-The host activates the selected AI profile/workflow and exposes profile-owned command configuration through `AI_COMMAND_CONFIG_PATH` according to the common command contract.
-
-A profile configuration may contain multiple named boxes. This represents the user's shelf/pool of dedicated AI machines. Each box can define:
-
-- logical name;
-- host/IP;
-- SSH user;
-- SSH port;
-- SSH key path;
-- optional default model preset;
-- supported machine-specific overrides.
-
-SSH private key contents and passwords MUST NOT be stored in this public repository. Configuration should reference a local SSH key path or compatible SSH configuration/agent instead.
-
-See `install-ai-local-provider.command.example.config`.
+The command shows the resolved plan before provisioning and requires confirmation unless an explicitly supported non-interactive authorization mode is used.
 
 ## Presets
 
-Presets are committed selectable local-model definitions under [`presets/`](presets/). They describe model/runtime defaults and minimum/recommended machine requirements.
-
-The command presents available presets interactively unless a preset is already resolved. Selecting a preset includes downloading the model if a valid matching model is not already installed.
-
-## Execution
-
-After target/model resolution and confirmation, the command connects over SSH, validates Ubuntu 24.04 and `x86_64`, validates machine requirements, provisions `/opt/ai-local-provider`, downloads/reuses the model, installs the systemd service, launches the provider and completes a real inference verification.
-
-The operation is idempotent.
-
-## Initial scope
-
-- interactive by default;
-- profile-aware;
-- multiple saved AI boxes per profile;
-- Ubuntu 24.04 LTS Desktop or Server;
-- AMD64 / x86_64 only;
-- SSH remote provisioning;
-- selectable model presets;
-- systemd-managed provider;
-- trusted-LAN HTTP API without authentication by default.
-
-ARM64 is not supported by the initial implementation.
+Presets are committed selectable model/runtime definitions under [`presets/`](presets/). The command presents compatible presets interactively when one is not already resolved. Selecting a preset includes downloading the model when a valid matching artifact is not already installed.
 
 ## Completion
 
-Complete only when the selected target is provisioned, the provider is running, the selected model is loaded, and real HTTP inference verification succeeds.
+Complete only when the selected provider is installed, launched, its model is ready, HTTP responds and real inference succeeds. When profile registration was requested, the profile provider binding must also be reconciled successfully.
 
 ## Tags
 
-`#command` `#ai-command` `#install` `#ai` `#local-ai` `#provider` `#interactive` `#profile-aware` `#model-preset` `#ubuntu` `#amd64` `#ssh` `#systemd` `#sdd`
+`#command` `#ai-command` `#install` `#ai` `#local-ai` `#provider` `#macos` `#ubuntu` `#interactive` `#profile-aware` `#system-agent` `#model-preset` `#ssh` `#sdd`
