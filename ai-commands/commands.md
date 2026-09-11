@@ -10,11 +10,11 @@ Reusable command directories must not contain populated operational configuratio
 
 ### Structure
 
-Each public command lives under `ai-commands/<command-name>/`.
+Each public command has a command contract and adjacent metadata manifest. A directory may contain more than one command, so metadata is named per command rather than once per directory.
 
 - `<command-name>.command.md` — required command contract.
+- `<command-name>.command.yml` — required lightweight command metadata.
 - `<command-name>.command.example.config` — required safe configuration template.
-- `command.yml` — required lightweight command metadata.
 - Profile-owned configuration — optional operational values and credential references.
 - `<command-name>.command.sh` / `.mjs` — optional deterministic executable.
 - `spec.md` — optional detailed normative behavior.
@@ -22,14 +22,14 @@ Each public command lives under `ai-commands/<command-name>/`.
 - `<command-name>.scenario.md` — optional live acceptance scenario.
 - `feature.yml` / `app.sh` — optional command-owned visual application.
 
-Every public command MUST have `command.yml` with an explicit AI-powered flag. The canonical minimum is:
+Every public command MUST have an adjacent `<command-name>.command.yml` with an explicit AI-powered flag. The canonical minimum is:
 
 ```yaml
 ai:
   powered: false
 ```
 
-`false` is the default for the catalog. Existing and newly created commands remain deterministic unless a human intentionally changes the command metadata/contract to `true` and defines the AI-powered behavior. Hosts MUST fail validation for a public command whose `command.yml` is missing or whose `ai.powered` value is absent/non-boolean; they must not infer `true` from model availability.
+`false` is the default for the catalog. Existing and newly created commands remain deterministic unless a human intentionally changes that command's metadata/contract to `true` and defines the AI-powered behavior. Hosts MUST fail validation for a public command whose adjacent manifest is missing or whose `ai.powered` value is absent/non-boolean; they must not infer `true` from model availability.
 
 ### AI-powered commands
 
@@ -42,12 +42,12 @@ ai:
 
 When `ai.powered: false`, the Command Runner invokes the deterministic executable/UI path normally.
 
-When `ai.powered: true`, invoking the command opens an interactive command-scoped AI terminal/chat session using the locally running Hermes harness by default:
+When `ai.powered: true`, the intended future behavior is to open an interactive command-scoped AI terminal/chat session using the locally running Hermes harness by default:
 
 ```mermaid
 flowchart LR
   User["User runs command"] --> Runner["Command Runner"]
-  Runner --> Mode{"command.yml ai.powered"}
+  Runner --> Mode{"<command>.command.yml ai.powered"}
   Mode -->|false| Exec["Deterministic executable / UI"]
   Mode -->|true| Hermes["Local Hermes command session"]
   Hermes --> Context["Command contract + active profile + workflow + command config"]
@@ -56,7 +56,9 @@ flowchart LR
   Hermes --> Capability["Command-authorized capabilities"]
 ```
 
-The AI-powered session is temporary and scoped to that command invocation. Hermes loads the command contract, active profile/workflow context, resolved command configuration, and only capabilities the command is authorized to use. The model may reason, explain, ask questions, guide interactively, and invoke allowed mechanics.
+AI-powered command execution is not implemented yet. Until that runtime exists, if a command is changed to `ai.powered: true`, the runner MUST stop before deterministic execution and report clearly that AI-powered command support is not implemented yet. It MUST NOT silently ignore the flag or fall back to ordinary execution.
+
+The future AI-powered session is temporary and scoped to that command invocation. Hermes loads the command contract, active profile/workflow context, resolved command configuration, and only capabilities the command is authorized to use. The model may reason, explain, ask questions, guide interactively, and invoke allowed mechanics.
 
 AI-powered mode MUST NOT expand command authority. The command contract remains the authorization boundary. Hermes/model reasoning cannot create permissions, bypass confirmations, broaden external effects, access unrelated capabilities, or reinterpret prohibited behavior as allowed.
 
@@ -68,8 +70,6 @@ A command may also use direct provider inference for narrow deterministic operat
 simple inference: command -> profile provider -> model
 AI-powered command: command -> Hermes -> profile provider -> model
 ```
-
-If `ai.powered: true` but the harness/provider/model is unavailable, the command explains the missing dependency and either offers deterministic fallback when explicitly supported or fails with an explicit unavailable state.
 
 ### Command App Launchers (`app.sh`)
 
@@ -83,11 +83,11 @@ Platform commands are workflow-independent utilities; workflow commands belong t
 
 Every command documentation file must contain `## Purpose`, `## Inputs`, `## Outputs`, and `## Entry Point` in that order, followed by a mandatory `## Supported Prompts` section before behavior/implementation detail.
 
-Every command contract must acknowledge its `command.yml` AI execution declaration. Commands with `ai.powered: false` need only state that execution is deterministic by default. Commands with `ai.powered: true` additionally document deterministic fallback, interactive outcome, allowed capabilities/tools, confirmations/external effects, and unavailable-Hermes/provider behavior.
+Every command contract has an adjacent `<command-name>.command.yml` AI execution declaration. Commands with `ai.powered: false` remain deterministic. Commands changed to `ai.powered: true` are considered declared for future AI execution and, until support lands, must stop with the explicit unsupported message.
 
 ### Command Resolution
 
-User input is interpreted through the selected workflow and evaluated against available commands. The host reads the command's explicit `command.yml` flag and chooses deterministic versus AI-powered execution accordingly. Profile policy may disable AI execution but MUST NOT turn a command whose catalog flag is `false` into an AI-powered command without an explicitly governed command metadata change.
+User input is interpreted through the selected workflow and evaluated against available commands. The host reads the command's explicit adjacent manifest and chooses deterministic versus AI-powered execution accordingly. Profile policy may disable AI execution but MUST NOT turn a command whose catalog flag is `false` into an AI-powered command without an explicitly governed command metadata change.
 
 ### Workflow Integration
 
