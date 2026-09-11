@@ -33,6 +33,9 @@ ai_profile_safe_relative_path "$entrypoint" || { ai_profile_error 'unsafe comman
 [[ "$entrypoint" == "$command_id/"* ]] || { ai_profile_error 'entrypoint must belong to selected command'; exit 1; }
 
 ai_profile_activate_command "$profile" "$workflow" "$instance" "$command_id" "$agent_platform"
+command_dir="$AI_COMMANDS_ROOT/$command_id"
+"$SCRIPT_DIR/ai-powered-command.guard.sh" "$command_dir"
+
 resolved_entrypoint="$AI_COMMANDS_ROOT/$entrypoint"
 [[ -f "$resolved_entrypoint" ]] || { ai_profile_error "missing command entrypoint: $entrypoint"; exit 1; }
 case "$resolved_entrypoint" in
