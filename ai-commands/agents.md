@@ -6,6 +6,20 @@ It does not reuse the persistent System agent conversation. Instead, the host cr
 
 This contract is NOT used when a workflow agent, Manager, Coder, Command Runner, scheduler, or other automation invokes the command programmatically. Those callers use the deterministic command path directly, regardless of the command's `ai.powered` value.
 
+## Session identity and lifecycle
+
+The ephemeral session is System-style, but it is not the persistent System agent.
+
+- Its logical name should make both scope and temporary identity obvious, using `system-<command>` as the readable base name and a runtime-unique suffix when multiple sessions may coexist, for example `system-install-<session-id>`.
+- It inherits the active profile/platform System role/configuration and, by default, the same `system_agent` provider/model binding.
+- It starts with fresh conversational context and must not inherit persistent System conversation history.
+- It exists only for the lifetime of the human's interactive command invocation.
+- It is destroyed when the command completes, fails terminally, is cancelled, or the interactive terminal/session exits.
+- A short inactivity timeout may be used only as a cleanup fallback for abandoned sessions; it is not the primary lifetime rule.
+- Destroying the session discards its conversational context. Only command-authorized durable artifacts or machine changes survive.
+
+A temporary command session must never be registered as another persistent System identity for the profile/platform.
+
 ## Initialization
 
 For a human-initiated AI-powered command, the ephemeral session must load:
