@@ -1,25 +1,37 @@
 # Common AI command agent contract
 
-This file defines the shared behavior for the existing System agent when any top-level command runs in AI-powered mode.
+This file defines the shared behavior for the existing System agent when a human manually runs a top-level command in AI-powered mode.
 
 It does not define a new agent. The active `(profile, platform)` System agent remains the agent identity and temporarily enters the selected command scope.
 
+This contract is NOT used when a workflow agent, Manager, Coder, Command Runner, scheduler, or other automation invokes the command programmatically. Those callers use the deterministic command path directly, regardless of the command's `ai.powered` value.
+
 ## Initialization
 
-For an AI-powered command, System must load:
+For a human-initiated AI-powered command, System must load:
 
 1. this common `ai-commands/agents.md` contract;
 2. the selected top-level command contract `<command>.command.md`;
 3. the selected command metadata `<command>.command.yml`;
-4. the active AI Profile, selected platform binding, workflow context when applicable, and resolved profile-owned command configuration;
+4. the active AI Profile, selected platform binding, and resolved profile-owned command configuration;
 5. the command-specific `agents.md` when one exists;
 6. only the deterministic subcommands/capabilities relevant to the requested operation.
 
 Command-specific `agents.md` extends this common contract. It may narrow behavior or add command-specific guidance, but it must not weaken the common authority, confirmation, validation, or safety rules.
 
+## Invocation boundary
+
+The System-agent layer exists only to assist a human who invoked the command interactively.
+
+- Human/manual invocation + `ai.powered: false` -> deterministic command.
+- Human/manual invocation + `ai.powered: true` -> System agent enters command scope and orchestrates deterministic mechanics.
+- Workflow/agent/scheduler/automation invocation -> deterministic command, regardless of `ai.powered`.
+
+A workflow agent already provides the reasoning/orchestration layer for its workflow. It must not delegate a normal command call into the System agent merely because the command is AI-powered for humans. This avoids recursive agents, competing reasoning layers, and confusing ownership.
+
 ## Responsibilities
 
-Within command scope, System is responsible for the AI-facing orchestration layer. It may:
+Within a human-initiated command scope, System is responsible for the AI-facing orchestration layer. It may:
 
 - interpret the human's intent conversationally;
 - select and call deterministic command mechanics and subcommands;
@@ -47,6 +59,7 @@ System must:
 
 System must not:
 
+- intercept or wrap workflow/agent/automation command calls;
 - broaden the command's permissions;
 - bypass required confirmation;
 - silently substitute another target or unrelated command;
@@ -56,7 +69,7 @@ System must not:
 
 ## Recovery
 
-Error handling is part of AI-powered command execution.
+Error handling is part of human-facing AI-powered command execution.
 
 When a deterministic operation fails, System should:
 
