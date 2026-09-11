@@ -74,4 +74,6 @@ if grep -Fq 'sudo bash $(printf' "$dir/install-ai-local-provider.sh" && grep -Fq
   exit 1
 fi
 grep -Fq 'if [[ -t 0 ]]; then ssh_provision_args+=(-tt); fi' "$dir/install-ai-local-provider.sh"
+grep -Fq 'setfacl -m u:ai-local-provider:--x "$storage_parent"' "$dir/provision-ubuntu.sh"
+grep -Fq 'setfacl -m u:ai-local-provider:r-- "$model_path"' "$dir/provision-ubuntu.sh"
 printf '%s\n' 'install-ai-local-provider tests: PASS'
