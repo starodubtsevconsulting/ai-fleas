@@ -33,11 +33,22 @@ ai_profile_safe_relative_path "$entrypoint" || { ai_profile_error 'unsafe comman
 [[ "$entrypoint" == "$command_id/"* ]] || { ai_profile_error 'entrypoint must belong to selected command'; exit 1; }
 
 ai_profile_activate_command "$profile" "$workflow" "$instance" "$command_id" "$agent_platform"
-command_dir="$AI_COMMANDS_ROOT/$command_id"
-"$SCRIPT_DIR/ai-powered-command.guard.sh" "$command_dir"
-
 resolved_entrypoint="$AI_COMMANDS_ROOT/$entrypoint"
 [[ -f "$resolved_entrypoint" ]] || { ai_profile_error "missing command entrypoint: $entrypoint"; exit 1; }
+
+entry_dir="$(dirname "$resolved_entrypoint")"
+entry_file="$(basename "$resolved_entrypoint")"
+entry_base="${entry_file%%.command.*}"
+if [[ "$entry_base" == "$entry_file" ]]; then
+  entry_base="${entry_file%.*}"
+fi
+manifest="$entry_dir/$entry_base.command.yml"
+if [[ ! -f "$manifest" ]]; then
+  fallback_manifest="$AI_COMMANDS_ROOT/$command_id/$command_id.command.yml"
+  [[ -f "$fallback_manifest" ]] && manifest="$fallback_manifest"
+fi
+"$SCRIPT_DIR/ai-powered-command.guard.sh" "$manifest"
+
 case "$resolved_entrypoint" in
   *.mjs) exec node "$resolved_entrypoint" ${command_args[@]+"${command_args[@]}"} ;;
   *)
