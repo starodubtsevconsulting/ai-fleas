@@ -34,6 +34,18 @@ for (const entry of await readdir(commandsRoot, { withFileTypes: true })) {
     errors.push(`${entry.name}: missing ${entry.name}.command.md`);
   }
 
+  const manifest = path.join(bundle, `${entry.name}.command.yml`);
+  const relativeManifest = path.relative(commandsRoot, manifest);
+  try {
+    const metadata = await readFile(manifest, 'utf8');
+    const powered = metadata.match(/^ai:\s*\n(?:[ \t]+.*\n)*?[ \t]+powered:\s*(true|false)\s*$/m)?.[1];
+    if (!powered) {
+      errors.push(`${relativeManifest}: missing boolean ai.powered; expected true or false`);
+    }
+  } catch {
+    errors.push(`${entry.name}: missing required ${entry.name}.command.yml`);
+  }
+
   for (const file of bundleEntries) {
     if (/\.command\.example\.(conf|config|ya?ml)$/.test(file) &&
         !new RegExp(`^${entry.name}(?:-[a-z0-9]+)*\\.command\\.example\\.`).test(file)) {
@@ -55,18 +67,6 @@ for (const legacy of await commandExampleFiles(commandsRoot)) {
 for (const contract of await commandContracts(commandsRoot)) {
   const relative = path.relative(commandsRoot, contract);
   const commandId = path.basename(contract, '.command.md');
-  const manifest = path.join(path.dirname(contract), `${commandId}.command.yml`);
-  const relativeManifest = path.relative(commandsRoot, manifest);
-  try {
-    const metadata = await readFile(manifest, 'utf8');
-    const powered = metadata.match(/^ai:\s*\n(?:[ \t]+.*\n)*?[ \t]+powered:\s*(true|false)\s*$/m)?.[1];
-    if (!powered) {
-      errors.push(`${relativeManifest}: missing boolean ai.powered; expected true or false`);
-    }
-  } catch {
-    errors.push(`${relative}: missing required ${commandId}.command.yml`);
-  }
-
   const exampleConfig = path.join(path.dirname(contract), `${commandId}.command.example.config`);
   const content = await readFile(contract, 'utf8');
   const headings = [...content.matchAll(/^## ([^\n]+)$/gm)].map((match) => match[1]);
