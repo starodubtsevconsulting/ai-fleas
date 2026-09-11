@@ -10,11 +10,11 @@ Reusable command directories must not contain populated operational configuratio
 
 ### Structure
 
-Each public command has a command contract and adjacent metadata manifest. A directory may contain more than one command, so metadata is named per command rather than once per directory.
+Each top-level public command has a command contract and adjacent metadata manifest.
 
-- `<command-name>.command.md` — required command contract.
-- `<command-name>.command.yml` — required lightweight command metadata.
-- `<command-name>.command.example.config` — required safe configuration template.
+- `<command-name>/<command-name>.command.md` — required command contract.
+- `<command-name>/<command-name>.command.yml` — required lightweight command metadata for the top-level command.
+- `<command-name>/<command-name>.command.example.config` — required safe configuration template.
 - Profile-owned configuration — optional operational values and credential references.
 - `<command-name>.command.sh` / `.mjs` — optional deterministic executable.
 - `spec.md` — optional detailed normative behavior.
@@ -22,14 +22,16 @@ Each public command has a command contract and adjacent metadata manifest. A dir
 - `<command-name>.scenario.md` — optional live acceptance scenario.
 - `feature.yml` / `app.sh` — optional command-owned visual application.
 
-Every public command MUST have an adjacent `<command-name>.command.yml` with an explicit AI-powered flag. The canonical minimum is:
+A command bundle may contain subcommands. Subcommands execute under the parent command's contract and AI execution mode and do not declare their own `ai.powered` metadata unless they are promoted to independent top-level commands.
+
+Every top-level public command MUST have an adjacent `<command-name>.command.yml` with an explicit AI-powered flag. The canonical minimum is:
 
 ```yaml
 ai:
   powered: false
 ```
 
-`false` is the default for the catalog. Existing and newly created commands remain deterministic unless a human intentionally changes that command's metadata/contract to `true` and defines the AI-powered behavior. Hosts MUST fail validation for a public command whose adjacent manifest is missing or whose `ai.powered` value is absent/non-boolean; they must not infer `true` from model availability.
+`false` is the default for the catalog. Existing and newly created commands remain deterministic unless a human intentionally changes that command's metadata/contract to `true` and defines the AI-powered behavior. Hosts MUST fail validation for a top-level public command whose adjacent manifest is missing or whose `ai.powered` value is absent/non-boolean; they must not infer `true` from model availability.
 
 ### AI-powered commands
 
@@ -42,33 +44,36 @@ ai:
 
 When `ai.powered: false`, the Command Runner invokes the deterministic executable/UI path normally.
 
-When `ai.powered: true`, the intended future behavior is to open an interactive command-scoped AI terminal/chat session using the locally running Hermes harness by default:
+When `ai.powered: true`, the command delegates its interactive AI execution to the active AI Profile's System agent for the selected platform:
 
 ```mermaid
 flowchart LR
   User["User runs command"] --> Runner["Command Runner"]
-  Runner --> Mode{"<command>.command.yml ai.powered"}
-  Mode -->|false| Exec["Deterministic executable / UI"]
-  Mode -->|true| Hermes["Local Hermes command session"]
-  Hermes --> Context["Command contract + active profile + workflow + command config"]
-  Context --> Provider["Profile AI provider"]
+  Runner --> Profile["Active AI Profile"]
+  Profile --> Mode{"top-level command ai.powered"}
+  Mode -->|false| Exec["Deterministic command"]
+  Mode -->|true| System["Profile + platform System agent"]
+  System --> Context["Command contract + profile + workflow + command config"]
+  Context --> Capability["Command-authorized capabilities / subcommands"]
+  System --> Provider["Profile System-agent provider binding"]
   Provider --> Model["Model"]
-  Hermes --> Capability["Command-authorized capabilities"]
 ```
 
-AI-powered command execution is not implemented yet. Until that runtime exists, if a command is changed to `ai.powered: true`, the runner MUST stop before deterministic execution and report clearly that AI-powered command support is not implemented yet. It MUST NOT silently ignore the flag or fall back to ordinary execution.
+The System agent is profile-aware and platform-specific: there is exactly one active System agent per `(profile, platform)` binding. Whether its inference provider is local or remote is an implementation detail of the profile binding and does not change its identity or authority.
 
-The future AI-powered session is temporary and scoped to that command invocation. Hermes loads the command contract, active profile/workflow context, resolved command configuration, and only capabilities the command is authorized to use. The model may reason, explain, ask questions, guide interactively, and invoke allowed mechanics.
+AI-powered command execution is not implemented yet. Until that runtime exists, if a top-level command is changed to `ai.powered: true`, the runner MUST stop before deterministic execution and report clearly that AI-powered command support is not implemented yet. It MUST NOT silently ignore the flag or fall back to ordinary execution.
 
-AI-powered mode MUST NOT expand command authority. The command contract remains the authorization boundary. Hermes/model reasoning cannot create permissions, bypass confirmations, broaden external effects, access unrelated capabilities, or reinterpret prohibited behavior as allowed.
+For an AI-powered invocation, the System agent acts only inside the selected command's scope. It may reason, explain, ask questions, guide interactively, and invoke only the deterministic mechanics, subcommands, and external effects authorized by that command contract.
 
-The default harness assumption is locally running Hermes. Commands do not hard-code Hermes provider/model details; Hermes resolves the active profile's configured AI provider/model.
+AI-powered mode MUST NOT expand command authority or permanently expand System authority. The command contract remains the authorization boundary for the invocation. System/model reasoning cannot create permissions, bypass confirmations, broaden external effects, access unrelated capabilities, or reinterpret prohibited behavior as allowed.
 
-A command may also use direct provider inference for narrow deterministic operations. Agentic/interactive behavior uses the harness path:
+Commands do not hard-code Hermes, provider, or model details. The selected platform realizes the profile's System agent, and that System agent resolves the profile's configured `system_agent` provider/model binding. Hermes is currently the default local platform/harness assumption, but the command contract remains platform-independent.
+
+A command may also use direct provider inference for narrow deterministic operations. Agentic/interactive behavior uses the System-agent path:
 
 ```text
 simple inference: command -> profile provider -> model
-AI-powered command: command -> Hermes -> profile provider -> model
+AI-powered command: command -> active profile/platform System agent -> command scope -> deterministic mechanics/subcommands
 ```
 
 ### Command App Launchers (`app.sh`)
@@ -81,13 +86,15 @@ Platform commands are workflow-independent utilities; workflow commands belong t
 
 ### Command Documentation Convention (`*.command.md`)
 
-Every command documentation file must contain `## Purpose`, `## Inputs`, `## Outputs`, and `## Entry Point` in that order, followed by a mandatory `## Supported Prompts` section before behavior/implementation detail.
+Every top-level command documentation file must contain `## Purpose`, `## Inputs`, `## Outputs`, and `## Entry Point` in that order, followed by a mandatory `## Supported Prompts` section before behavior/implementation detail.
 
-Every command contract has an adjacent `<command-name>.command.yml` AI execution declaration. Commands with `ai.powered: false` remain deterministic. Commands changed to `ai.powered: true` are considered declared for future AI execution and, until support lands, must stop with the explicit unsupported message.
+Every top-level command contract has an adjacent `<command-name>.command.yml` AI execution declaration. Commands with `ai.powered: false` remain deterministic. Commands changed to `ai.powered: true` are considered declared for future System-agent execution and, until support lands, must stop with the explicit unsupported message.
+
+Subcommand contracts may exist inside a bundle but inherit the parent command's execution mode and authority envelope. They do not independently select AI execution.
 
 ### Command Resolution
 
-User input is interpreted through the selected workflow and evaluated against available commands. The host reads the command's explicit adjacent manifest and chooses deterministic versus AI-powered execution accordingly. Profile policy may disable AI execution but MUST NOT turn a command whose catalog flag is `false` into an AI-powered command without an explicitly governed command metadata change.
+User input is interpreted through the selected workflow and evaluated against available commands. The host resolves the top-level command first, reads that command's manifest, then either executes it deterministically or delegates the invocation to the active profile/platform System agent. Profile policy may disable AI execution but MUST NOT turn a command whose catalog flag is `false` into an AI-powered command without an explicitly governed command metadata change.
 
 ### Workflow Integration
 
@@ -95,4 +102,4 @@ Commands accept workflow-provided input, produce workflow-consumable output, res
 
 ### AI provider relationship
 
-AI providers belong to the active profile. Provider selection supplies inference only; it does not grant capabilities. The current default architecture assumes local Hermes as the harness and a profile-local `llama-server`/model as its inference provider, with optional dedicated remote providers for heavier workloads.
+AI providers belong to the active profile. Provider selection supplies inference only; it does not grant capabilities. AI-powered commands use the provider/model bound to the active profile/platform System agent. The provider may be local or remote; command authority remains defined by the command contract.
