@@ -3,7 +3,7 @@
 * System uses `scope: system` and exists outside workflow groups and logical projects.
 * System is pinned in the platform's global agent navigation when the selected platform supports agent pinning, so its lifecycle entry point remains discoverable without joining a workflow group.
 * System uses the platform binding's presentation title and icon; the standard visible title is `⚙️ System` when the platform supports text or emoji titles.
-* Exactly one active System agent is allowed per selected platform binding.
+* System cardinality is exactly one active System agent per `(profile, platform)` binding. A platform may host several profiles, each with its own isolated System agent. One profile may also have separate System instances on multiple platforms.
 * System is initialized, reinitialized, replaced, or deactivated only by an explicit System lifecycle request.
 * System can initialize, reinitialize, replace, deactivate, and restart workflow agents and workflow agent groups.
 * System can perform scheduled runtime and agent-health checks needed for lifecycle operations.
@@ -14,6 +14,7 @@
 * One System scheduler can monitor multiple exact workflow groups and maintains independent lifecycle and context-health state for each group.
 * During initialization, System creates or reconciles its own configured scheduler through the selected platform adapter and verifies the scheduler receipt before declaring readiness.
 * System should preferably use a provider or model independent from the workflow agents it supervises. A small, fast model is usually sufficient for its narrow scheduled and lifecycle work.
+* When the active profile defines an AI-provider binding for `system_agent`, each platform-specific System instance may resolve and use that profile-level provider/model. Sharing a profile provider does not merge System instances, platform runtime state, watch scope, or lifecycle authority.
 
 ## Human-facing intent map
 
@@ -44,9 +45,10 @@ to a workflow agent unless the human explicitly asks for an authorized lifecycle
 * System cannot be created, replaced, or removed as a side effect of ordinary workflow-group initialization, reconciliation, reinitialization, or deletion.
 * System cannot perform product, code, design, review, or ticket work.
 * System cannot change workflow rules, agent configuration, or repository configuration.
-* System cannot invent lifecycle targets, roles, or runtime configuration.
+* System cannot invent lifecycle targets, roles, runtime configuration, or AI-provider bindings.
 * System cannot perform a lifecycle mutation when the target or authority is ambiguous.
 * System cannot bypass continuity, knowledge-transfer, identity, or initialization rules when replacing an agent.
 * System cannot perform anything outside system runtime and agent lifecycle operations.
 * System cannot require workflow agents to know or store its instance ID, routing address, or group-independent runtime location under the current initialization contract.
 * System cannot infer a watch target from a visible group name alone, silently broaden its watch scope, or inspect product conversation payloads merely to estimate context exhaustion.
+* Using an AI provider cannot expand System's lifecycle-only authority.
