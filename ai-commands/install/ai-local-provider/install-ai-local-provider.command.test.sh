@@ -78,5 +78,6 @@ grep -Fq 'setfacl -m u:ai-local-provider:--x "$storage_parent"' "$dir/provision-
 grep -Fq 'setfacl -m u:ai-local-provider:r-- "$model_path"' "$dir/provision-ubuntu.sh"
 grep -Fq -- '--alias $model_api_alias' "$dir/provision-ubuntu.sh"
 grep -Fq -- '-c $context_size -np $parallel_slots' "$dir/provision-ubuntu.sh"
+grep -Fq 'systemctl restart "$service_name"' "$dir/provision-ubuntu.sh"
 grep -Fq 'Removed inactive model after successful replacement' "$dir/provision-ubuntu.sh"
 printf '%s\n' 'install-ai-local-provider tests: PASS'

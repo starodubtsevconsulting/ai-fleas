@@ -101,7 +101,8 @@ ExecStart=$binary_root/llama-server -m $model_path --alias $model_api_alias --ho
 WantedBy=multi-user.target
 EOF
 systemctl daemon-reload
-systemctl enable --now "$service_name"
+systemctl enable "$service_name"
+systemctl restart "$service_name"
 
 plan_step AI-LOCAL-09 'Verify the result'
 for _ in $(seq 1 90); do
