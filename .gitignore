@@ -13,6 +13,11 @@
 **/playwright-report/
 **/tmp/
 **/*.log
+# Command-owned runtime logs. Depth-specific patterns intentionally preserve
+# the public top-level `ai-commands/logs` command bundle.
+/ai-commands/*/logs/
+/ai-commands/*/*/logs/
+/ai-commands/*/*/*/logs/
 **/events/sent/
 **/output/
 **/.secrets/

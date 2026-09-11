@@ -1,51 +1,19 @@
 # EXAMPLE ONLY. Operational endpoints and credentials belong in an ignored/private profile.
 # AI providers belong to the profile. System agents and AI-enabled commands consume them by provider ID.
-schema_version: ai-providers.v1
+schema_version: local-ai-providers.v1
 
 providers:
-  - id: local
-    label: Profile local AI
-    type: local
+  - id: ai-lab-service
+    label: Dedicated AI lab service
     protocol: openai-compatible
     endpoint:
-      url: http://127.0.0.1:8080/v1
-    authentication:
-      type: none
-    installation:
-      managed_by: install-ai-local-provider
-      platform: macos
-      preset: system-small
+      # 192.0.2.0/24 is reserved for documentation and cannot identify a real host.
+      url: http://192.0.2.27:8080/v1
     models:
-      - id: system-small
-        label: Small fast profile model
-        provider_model: system-small
-        capabilities: [reasoning, chat, command-assistance]
-        context_window_tokens: 32768
-
-  - id: mini-01
-    label: Dedicated AI box 1
-    type: remote
-    protocol: openai-compatible
-    endpoint:
-      url: http://192.168.1.41:8080/v1
-    authentication:
-      type: none
-
-  - id: mini-02
-    label: Dedicated AI box 2
-    type: remote
-    protocol: openai-compatible
-    endpoint:
-      url: http://192.168.1.42:8080/v1
-    authentication:
-      type: none
-
-bindings:
-  system_agent:
-    # Each (profile, platform) System instance resolves this profile-level provider binding.
-    provider: local
-    model: system-small
-
-  commands:
-    # AI-enabled commands may use this default when their own policy does not select another provider.
-    default_provider: local
+      - id: qwen-coder
+        provider_model: qwen3-coder-30b-a3b-instruct-q8_0.gguf
+        hermes:
+          context_window_tokens: 16384
+          compression_threshold: 0.25
+          compression_target: 0.15
+          protect_last_messages: 8

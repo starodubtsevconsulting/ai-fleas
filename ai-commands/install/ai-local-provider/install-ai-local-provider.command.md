@@ -8,13 +8,57 @@ The command is interactive and profile-aware. The installed provider belongs to 
 
 Normative behavior is defined by [`install-ai-local-provider.spec.md`](install-ai-local-provider.spec.md).
 
-**Status: SNAPSHOT — not runnable until implemented and tested.**
+**Status: BETA — SSH onboarding, machine qualification, fresh-Ubuntu dependency installation, pinned model/runtime provisioning, service setup, and inference verification are runnable.**
+
+The normative, human-readable execution contract is [`PLAN.md`](PLAN.md). Stable
+step IDs are emitted during execution, and automated plan-sync validation prevents
+the document and implementation from drifting apart.
+
+Every invocation prints and writes a timestamped, permission-restricted transcript
+under `ai-commands/install/ai-local-provider/logs/`. The terminal and log receive the same progress,
+so a human or AI collaborator with workspace access can inspect an active or failed
+run. Interactive sudo password input is never echoed or logged.
+
+## Inputs
+
+| Input | Required | Source | Description |
+|---|---|---|---|
+| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned machine configuration. |
+| Action | No | Human or workflow | `inspect`, `status`, `preflight`, or `install`; defaults to `install`. |
+| Target | Yes for remote mode | Profile, CLI, or interactive prompt | A configured box ID, SSH alias, or explicit host and SSH user. |
+| Model preset | Yes for installation | Profile, CLI, or committed preset default | Reviewed model/runtime definition to validate and provision. |
+
+## Outputs
+
+| Output | Destination | Description |
+|---|---|---|
+| Connection and machine evidence | Caller or private profile inventory | Structured SSH, identity, OS, architecture, resource, GPU, privilege, and service status. |
+| Guided recovery | Caller | Safe host-key, public-key enrollment, configuration, and retry guidance. |
+| Provider installation | Selected local or remote machine | Reconciled runtime, model, service, endpoint, and verified inference when supported. |
+
+## Entry Point
+
+| Entry point | Type | Profile-aware invocation |
+|---|---|---|
+| `install/ai-local-provider/install-ai-local-provider.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+
+Every invocation is profile-aware: the host must verify workflow authorization and expose the selected profile-owned
+configuration as `AI_COMMAND_CONFIG_PATH`.
+
+Committed configuration template: `install/ai-local-provider/install-ai-local-provider.command.example.config`. Copy it
+into the selected profile, set only supported non-secret overrides, reference the copy through `commands[].config`, and let
+the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be operational configuration.
 
 ## Normal invocation
 
 ```text
-install-ai-local-provider.sh
+install-ai-local-provider.sh [status|preflight|install]
 ```
+
+Launching the shell file with no arguments in a terminal opens a deterministic guided menu. It explains the command's
+current capabilities, offers first-run preflight, status, installation-plan validation, help or exit, lists machines from
+the active profile, and collects a one-run target when the profile has none. This interface does not require AI-powered
+execution. A future AI layer orchestrates the same entry point and result states rather than replacing its mechanics.
 
 The command first selects installation mode:
 
@@ -59,11 +103,36 @@ Available machines:
 
 It resolves SSH settings from the active profile, installs the provider under `/opt/ai-local-provider`, downloads/reuses the model, installs/enables systemd, launches the model and verifies real inference.
 
+Before installation it performs conservative system cleanup using Ubuntu's own
+temporary-file policy, trims old journals and package caches, and removes stale
+partial downloads owned by this command. It does not delete Downloads, user
+documents, arbitrary home caches or backups, or unrelated application data.
+
+Selecting a machine applies only to the current invocation. The profile may contain any number of named machines, and the
+human can choose a different configured machine or `Add new machine` each time without changing the default.
+
+Before provisioning, the command guides SSH onboarding:
+
+1. resolve or collect the machine's logical ID, host, user, port and key/SSH-alias reference;
+2. verify reachability and present an unknown SSH host-key fingerprint for human verification;
+3. test non-interactive public-key or SSH-agent authentication;
+4. if authorization is missing, show the public key being used and a copyable `ssh-copy-id` command, then let the human retry;
+5. verify the remote user, Ubuntu/architecture and required `sudo` access;
+6. optionally save only non-secret connection references to the active profile; and
+7. continue directly to model selection and installation.
+
+The command never accepts a password override and never asks for a password in AI chat. A one-time SSH or `sudo` password
+may be entered only into a trusted, non-echoing interactive terminal prompt. Passwords and private-key contents are never
+stored in the profile, command arguments, environment variables, logs or this repository.
+
 ## First-run / incomplete configuration
 
 Missing configuration is handled interactively. The command explains what is needed and offers to configure the local provider, add a remote machine, show the relevant profile configuration/example, or exit.
 
 It MUST NOT fail with only a low-level missing-config/path/parser error.
+
+Connection discovery is read-only. Saving a new machine to the profile and provisioning it are separate choices. The human
+may use an entered machine once without saving it, and may retry after authorizing a public key without restarting the command.
 
 ## Profile AI providers
 
@@ -97,6 +166,8 @@ Those instances may share the same profile-level AI provider without sharing the
 Remote provisioning details stay in profile-owned command configuration. A profile may define multiple named boxes with host/IP, SSH user, SSH port, SSH key path/reference, optional preset and supported overrides.
 
 Private key contents/passwords MUST NOT be committed. Reference local key paths or supported private credential mechanisms.
+An `ssh_alias` from the user's SSH configuration is also supported. Conflicting alias and explicit connection values fail
+closed instead of being guessed.
 
 ## Resolution order
 

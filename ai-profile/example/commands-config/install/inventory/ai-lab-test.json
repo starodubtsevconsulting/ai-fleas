@@ -1,0 +1,51 @@
+{
+  "schema": "ai-machine-profile.v1",
+  "observed_at": "2026-09-11T20:09:00.000Z",
+  "target": {
+    "kind": "remote",
+    "logical_id": "ai-lab-test",
+    "connection": {
+      "target": "ai-lab-test"
+    }
+  },
+  "identity": {
+    "hostname": "ai-lab.example.invalid",
+    "user": "ai-operator"
+  },
+  "operating_system": {
+    "id": "ubuntu",
+    "version": "24.04",
+    "kernel": "6.8.0-generic",
+    "architecture": "x86_64"
+  },
+  "cpu": {
+    "model": "AMD Ryzen Threadripper 2990WX 32-Core Processor",
+    "logical_cpus": 64,
+    "cores_per_socket": 32,
+    "sockets": 1,
+    "numa_nodes": 4
+  },
+  "memory": {
+    "total_kb": 49290932,
+    "total_gib": 47
+  },
+  "storage": {
+    "root_total_kb": 479595176,
+    "root_available_kb": 100086836,
+    "root_available_gib": 95
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 3080 Ti",
+    "vram_mb": 12288,
+    "driver": "580.173.02"
+  },
+  "access": {
+    "sudo": "interactive-required"
+  },
+  "services": {
+    "ai_local_provider": "absent"
+  },
+  "selection": {
+    "requested_preset": "qwen3-coder-next"
+  }
+}
