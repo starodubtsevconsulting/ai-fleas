@@ -9,13 +9,14 @@ model:
   sha256: f22993e29318b5b9ec2026f6b65802a5ca99b38ab4844aab83aed8a26ce00ff6
   size_bytes: 32483933856
   quantization: Q8_0
-  context: 16384
+  context: 65536
 
 runtime:
   type: llama.cpp
   source_repository: https://github.com/ggml-org/llama.cpp.git
   source_revision: 8ea290247c87ced2ab245b056ffe96dbcf90d36c
   gpu_layers: 12
+  parallel: 1
 
 requirements:
   os: ubuntu-24.04
@@ -54,6 +55,6 @@ service:
 
 notes:
   - Initial beta candidate for measured validation on a 48 GiB RAM / 12 GiB VRAM machine.
-  - The 16K context is intentionally conservative until RAM, VRAM, throughput and stability are benchmarked.
+  - The 64K context satisfies Hermes Agent's minimum and must be validated against measured RAM, VRAM, throughput and stability.
   - CUDA layer offload must be tuned from measured behavior; the 32.5 GB model cannot fit entirely in 12 GiB VRAM.
   - HTTP without authentication is intended only for a trusted LAN and must not be exposed to the public Internet by default.
