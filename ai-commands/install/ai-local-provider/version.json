@@ -1,7 +1,7 @@
 {
-  "version": "0.0.1-SNAPSHOT",
-  "stage": "snapshot",
-  "ready": false,
-  "tested": false,
-  "message": "AI local provider installation is not implemented or tested yet. SNAPSHOT commands must not execute."
+  "version": "0.1.0-beta.1",
+  "stage": "beta",
+  "ready": true,
+  "tested": true,
+  "message": "Remote SSH onboarding, qualification, native Ubuntu provisioning, pinned model installation, service setup, and inference verification are runnable."
 }

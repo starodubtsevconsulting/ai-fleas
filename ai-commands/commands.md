@@ -20,6 +20,8 @@ Each top-level public command has a command contract and adjacent metadata manif
 - `spec.md` — optional detailed normative behavior.
 - `<command-name>.command.test.*` — optional deterministic test.
 - `<command-name>.scenario.md` — optional live acceptance scenario.
+- `PLAN.md` — optional human/AI execution-flow contract for a complex multi-step command.
+- `logs/` — optional command-owned runtime transcripts; always local and Git-ignored.
 - `feature.yml` / `app.sh` — optional command-owned visual application.
 
 A command bundle may contain subcommands. Subcommands execute under the parent command's contract and do not declare their own `ai.powered` metadata unless they are promoted to independent top-level commands.
@@ -111,6 +113,48 @@ Every top-level command documentation file must contain `## Purpose`, `## Inputs
 Every top-level command contract has an adjacent `<command-name>.command.yml` AI execution declaration. Commands with `ai.powered: false` remain deterministic for manual invocation. Commands changed to `ai.powered: true` are considered declared for future human-facing ephemeral System-scoped execution. This metadata never changes workflow/agent/automation invocation into AI-powered execution.
 
 Subcommand contracts may exist inside a bundle but inherit the parent command's authority envelope. They do not independently select AI execution.
+
+### Optional Execution Plan (`PLAN.md`)
+
+`PLAN.md` is optional. It is not a second command contract, usage guide, or a
+requirement for every command or every AI-powered command. Add it when the work
+itself is a consequential multi-step flow whose ordering, checkpoints, recovery,
+or human visibility benefits from a shared execution map—for example installation,
+migration, deployment, or staged reconciliation.
+
+The adjacent `*.command.md` remains authoritative for purpose, inputs, outputs,
+entry points, authority, and supported prompts. `PLAN.md` describes what happens
+during execution so a human and an AI collaborator can follow the same flow.
+
+When present:
+
+- the adjacent command contract MUST link to `PLAN.md` and explain its role;
+- each step MUST have a unique stable marker in the form
+  `<!-- PLAN_STEP: COMMAND-01 -->`;
+- steps MUST describe observable outcomes, prerequisites, safety boundaries, and
+  relevant resume/recovery behavior rather than duplicate CLI usage;
+- an executable command that maps directly to the plan MUST emit the same step
+  IDs while running and MUST include a deterministic synchronization check;
+- implementation and plan changes MUST be updated together; execution MUST stop
+  or validation MUST fail when declared step mappings drift.
+
+Commands that are simple, atomic, primarily descriptive, or adequately explained
+by their command contract SHOULD omit `PLAN.md`.
+
+### Command-Owned Runtime Logs (`logs/`)
+
+When a command produces execution logs, they MUST live in a `logs/` directory
+inside the command folder that owns the execution. They must not be placed in a
+profile, another command's folder, or a shared repository-level runtime directory.
+
+Command-owned logs are operational artifacts and MUST remain outside Git. A
+human-facing invocation SHOULD print the exact log path before meaningful work and
+SHOULD stream the same progress to both the terminal and log. Logs MUST use
+restrictive permissions when they may contain machine, profile, path, or diagnostic
+details, and MUST NOT capture passwords, tokens, private keys, or other secrets.
+
+Subcommands with independent multi-step execution may own their own nested
+`logs/` directory. A parent router's own logs remain in the parent command folder.
 
 ### Command Resolution
 

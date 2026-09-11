@@ -69,6 +69,16 @@ for (const contract of await commandContracts(commandsRoot)) {
   const commandId = path.basename(contract, '.command.md');
   const exampleConfig = path.join(path.dirname(contract), `${commandId}.command.example.config`);
   const content = await readFile(contract, 'utf8');
+  const planPath = path.join(path.dirname(contract), 'PLAN.md');
+  try {
+    const plan = await readFile(planPath, 'utf8');
+    const stepIds = [...plan.matchAll(/<!-- PLAN_STEP: ([A-Z][A-Z0-9-]*-[0-9][0-9]) -->/g)].map((match) => match[1]);
+    if (stepIds.length === 0) errors.push(`${path.relative(commandsRoot, planPath)}: missing stable PLAN_STEP markers`);
+    if (new Set(stepIds).size !== stepIds.length) errors.push(`${path.relative(commandsRoot, planPath)}: duplicate PLAN_STEP marker`);
+    if (!/\[(?:`)?PLAN\.md(?:`)?\]\(PLAN\.md\)/.test(content)) errors.push(`${relative}: adjacent PLAN.md must be linked as [PLAN.md](PLAN.md)`);
+  } catch (error) {
+    if (error?.code !== 'ENOENT') errors.push(`${path.relative(commandsRoot, planPath)}: cannot read optional execution plan`);
+  }
   const headings = [...content.matchAll(/^## ([^\n]+)$/gm)].map((match) => match[1]);
   const opening = headings.slice(0, 4).join('|');
   if (opening !== 'Purpose|Inputs|Outputs|Entry Point') {
