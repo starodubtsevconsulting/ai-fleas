@@ -244,6 +244,7 @@ runtime_repository="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' '
 runtime_revision="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.source_revision')"
 context_size="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.context')"
 gpu_layers="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.gpu_layers')"
+parallel_slots="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.parallel')"
 listen_address="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:service.listen_address')"
 provider_port="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:service.port')"
 service_name="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:service.name')"
@@ -264,7 +265,7 @@ scp "${scp_args[@]}" "$provision_script" "$target:$remote_provision_script" || f
 trap 'rm -f -- "$auth_error"' EXIT
 set +e
 ssh "${ssh_provision_args[@]}" "$target" \
-  "sudo bash $(printf '%q' "$remote_provision_script") $(printf '%q ' "$storage_volume" "$model_repository" "$model_file" "$model_sha256" "$runtime_repository" "$runtime_revision" "$context_size" "$gpu_layers" "$listen_address" "$provider_port" "$service_name" "$model_api_alias")"
+  "sudo bash $(printf '%q' "$remote_provision_script") $(printf '%q ' "$storage_volume" "$model_repository" "$model_file" "$model_sha256" "$runtime_repository" "$runtime_revision" "$context_size" "$gpu_layers" "$listen_address" "$provider_port" "$service_name" "$model_api_alias" "$parallel_slots")"
 provision_code=$?
 set -e
 ssh "${ssh_args[@]}" "$target" "rm -f -- $(printf '%q' "$remote_provision_script")" >/dev/null 2>&1 || true
