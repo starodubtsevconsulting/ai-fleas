@@ -322,3 +322,6 @@ At minimum:
 ## Completion
 
 Complete only when the selected provider is installed, its selected model is present/verified and ready, no more than one model is active, lifecycle/autostart is configured, HTTP responds and real inference succeeds. When profile registration was requested, that registration must also be reconciled successfully.
+
+When replacing a model, the provisioner MUST retain the currently active artifact until the replacement passes checksum,
+service health, and real inference verification. Only then may it remove inactive GGUF artifacts owned by this provider.
