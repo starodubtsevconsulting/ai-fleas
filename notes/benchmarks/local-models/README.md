@@ -64,3 +64,22 @@ Those experiments are not benchmarked here yet. When tested, their measurements 
 The existing Qwen measurements will remain here for historical reference even if a later model becomes the preferred worker.
 
 These numbers describe this specific GX10/runtime/configuration and should be treated as empirical baselines rather than general model-performance claims.
+
+## RTX 3080 Ti workstation — Hermes System agent
+
+This comparison uses a 12 GiB NVIDIA GeForce RTX 3080 Ti workstation with approximately 47 GiB of OS-visible RAM. The provider runs a pinned CUDA build of `llama.cpp` with a 65,536-token context and one inference slot. Unlike the controlled GX10 measurements above, the first result records a real, existing Hermes System-agent conversation and is therefore an operational baseline rather than a synthetic benchmark.
+
+| Metric | Qwen3-Coder 30B A3B Q8_0 | Qwen3-Coder 30B A3B Q4_K_M |
+|---|---:|---:|
+| Model size | 30.2 GiB | 17.3 GiB |
+| GPU layers | 12 | 20 |
+| Configured context | 65,536 | 65,536 |
+| Inference slots | 1 | 1 |
+| Existing conversation input | ~19K tokens | Pending equivalent test |
+| Prompt-processing time | ~2 minutes | Pending equivalent test |
+| Generation | ~7.3 tok/s | Pending equivalent test |
+| User-observed response time | ~5 minutes | Pending equivalent test |
+| Direct API verification | PASS | Pending installation |
+| Hermes existing-session test | PASS | Pending equivalent test |
+
+The Q8_0 result was functionally correct but too slow for an interactive System agent. The Q4_K_M replacement is intended to improve responsiveness and reclaim approximately 12.9 GiB of model storage. Its final measurements will replace the pending values after the same preserved Hermes conversation and direct endpoint are tested.
