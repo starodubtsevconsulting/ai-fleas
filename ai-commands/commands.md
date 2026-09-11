@@ -51,6 +51,12 @@ For a manual interactive invocation:
 
 The ephemeral session is System-scoped for authority and configuration, but it is NOT the persistent System agent conversation. It must not read, append to, or retain the persistent System agent's conversational context unless a command contract explicitly authorizes a narrowly scoped persisted artifact.
 
+The temporary identity should make the relationship obvious: use `system-<command>` as the readable base name and append a runtime-unique suffix when needed, for example `system-install-<session-id>`. This is a temporary session name, not another persistent System identity.
+
+By default, the temporary session uses the same System role/configuration and `system_agent` provider/model binding as the active profile/platform System agent. The provider may still be local or remote.
+
+The session lifetime follows the interactive command, not a fixed duration. It is destroyed when the command completes, fails terminally, is cancelled, or the terminal/session exits. A short inactivity timeout may exist only as abandoned-session cleanup. Destroying the session discards its conversational context; only command-authorized durable artifacts or machine changes survive.
+
 For an agent-, workflow-, scheduler-, or automation-initiated invocation, the command ALWAYS executes through its deterministic path. The caller must not activate the command's AI interaction mode, even when the command declares `ai.powered: true`.
 
 ```mermaid
@@ -60,12 +66,12 @@ flowchart LR
   Caller -->|workflow / agent / automation| Exec["Deterministic command"]
   Mode -->|false| Exec
   Mode -->|true| Profile["Active AI Profile"]
-  Profile --> Session["Ephemeral System-scoped command session"]
+  Profile --> Session["Ephemeral system-<command> session"]
   Session --> Context["System role/config + command contract + profile + command config"]
   Context --> Capability["Command-authorized capabilities / subcommands"]
   Session --> Provider["Profile System-agent provider binding"]
   Provider --> Model["Model"]
-  Session --> Done["Finish command and discard session context"]
+  Session --> Done["Finish command and destroy session context"]
 ```
 
 This prevents recursive or competing agent orchestration. A workflow agent that already owns reasoning for a workflow calls commands as deterministic capabilities; it must not cause the command to create another reasoning layer merely because `ai.powered` is enabled for humans.
@@ -86,7 +92,7 @@ A command may also use direct provider inference for narrow deterministic operat
 
 ```text
 human + ai.powered=false -> deterministic command
-human + ai.powered=true  -> ephemeral System-scoped session -> command scope -> deterministic mechanics/subcommands -> discard context
+human + ai.powered=true  -> ephemeral system-<command> session -> command scope -> deterministic mechanics/subcommands -> destroy context
 workflow/agent/automation -> deterministic command
 ```
 
