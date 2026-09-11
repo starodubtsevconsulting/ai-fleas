@@ -23,7 +23,7 @@ find "$model_root" -maxdepth 1 -type f -name '*.part' -mtime +1 -delete 2>/dev/n
 
 plan_step AI-LOCAL-05 'Install native CUDA dependencies'
 apt-get update
-apt-get install -y ca-certificates curl git build-essential cmake gcc-12 g++-12 nvidia-cuda-toolkit
+apt-get install -y acl ca-certificates curl git build-essential cmake gcc-12 g++-12 nvidia-cuda-toolkit
 if ! command -v nvidia-smi >/dev/null 2>&1; then
   printf '\n    Installing the recommended NVIDIA driver\n'
   apt-get install -y ubuntu-drivers-common
@@ -39,6 +39,16 @@ install -d -m 0755 "$install_root" "$binary_root" "$model_root"
 if ! id ai-local-provider >/dev/null 2>&1; then
   useradd --system --user-group --home-dir /nonexistent --shell /usr/sbin/nologin ai-local-provider
 fi
+
+# Removable and user-mounted volumes commonly deny traversal above an otherwise
+# readable model directory. Grant this service identity traversal only; do not
+# broaden mode bits or expose sibling files to other users.
+storage_parent="$storage_volume"
+while [[ "$storage_parent" != / ]]; do
+  setfacl -m u:ai-local-provider:--x "$storage_parent"
+  storage_parent="$(dirname "$storage_parent")"
+done
+setfacl -m u:ai-local-provider:r-x "$storage_volume/ai-local-provider" "$model_root"
 
 plan_step AI-LOCAL-06 'Build the pinned runtime'
 printf '\n    Fetching pinned llama.cpp source\n'
@@ -70,6 +80,7 @@ else
   mv -- "$model_path.part" "$model_path"
 fi
 chmod 0644 "$model_path"
+setfacl -m u:ai-local-provider:r-- "$model_path"
 
 plan_step AI-LOCAL-08 'Reconcile the service'
 cat >"/etc/systemd/system/$service_name.service" <<EOF
@@ -92,7 +103,7 @@ systemctl enable --now "$service_name"
 
 plan_step AI-LOCAL-09 'Verify the result'
 for _ in $(seq 1 90); do
-  if curl -fsS "http://127.0.0.1:$provider_port/health" >/dev/null; then
+  if curl -fs "http://127.0.0.1:$provider_port/health" >/dev/null; then
     response="$(curl -fsS --max-time 180 -H 'Content-Type: application/json' \
       -d '{"messages":[{"role":"user","content":"Reply with exactly READY"}],"temperature":0,"max_tokens":8}' \
       "http://127.0.0.1:$provider_port/v1/chat/completions")"
@@ -100,6 +111,12 @@ for _ in $(seq 1 90); do
     systemctl --no-pager --full status "$service_name" | sed -n '1,12p'
     echo 'AI_LOCAL_PROVIDER_INSTALLED'
     exit 0
+  fi
+  restart_count="$(systemctl show "$service_name" -p NRestarts --value 2>/dev/null || echo 0)"
+  if [[ "$restart_count" =~ ^[0-9]+$ ]] && ((restart_count >= 3)) && ! systemctl is-active --quiet "$service_name"; then
+    journalctl -u "$service_name" -n 80 --no-pager >&2
+    echo 'PROVIDER_START_FAILED' >&2
+    exit 9
   fi
   sleep 2
 done
