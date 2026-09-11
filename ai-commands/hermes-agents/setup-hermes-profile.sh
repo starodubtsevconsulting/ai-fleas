@@ -179,6 +179,17 @@ print(json.dumps({
 "${hermes_bin}" -p "${profile}" config set terminal.backend local
 "${hermes_bin}" -p "${profile}" config set terminal.cwd "${workspace}"
 
+# Canonical Bot Chats are eternal, history-preserving sessions. Some Hermes
+# CLI delivery paths still restore their persisted route even when the session
+# explicitly follows profile configuration, so reconcile that metadata before
+# scheduler delivery without deleting messages.
+python3 "${SCRIPT_DIR}/migrate-follow-profile-sessions.py" \
+  --state-db "${profile_dir}/state.db" \
+  --title 'Bot Chat' \
+  --model "${model}" \
+  --provider "${provider_id}" \
+  --base-url "${endpoint%/}"
+
 soul_tmp="$(mktemp "${profile_dir}/.SOUL.md.XXXXXX")"
 cleanup() { [[ -z "${soul_tmp:-}" ]] || rm -f -- "${soul_tmp}"; }
 trap cleanup EXIT INT TERM
