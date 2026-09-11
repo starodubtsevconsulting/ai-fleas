@@ -230,7 +230,7 @@ Network isolation is the security boundary. Installation MUST NOT create router/
 
 Presets live under `presets/` and are selectable by ID. The command presents compatible presets interactively when one is not already resolved.
 
-Selecting a preset includes downloading actual model weights/artifacts unless a valid matching artifact is already installed. Presets describe/resolves model source/artifact, quantization, context, runtime, supported OS/architecture, memory/disk/GPU requirements and service/API defaults.
+Selecting a preset includes downloading actual model weights/artifacts unless a valid matching artifact is already installed. Presets describe/resolves model source/artifact, stable API alias, quantization, context, runtime, supported OS/architecture, memory/disk/GPU requirements and service/API defaults. Consumers bind to the alias rather than a machine-specific model path.
 
 Minimum requirement failures block installation; recommendations are advisory. Unresolved required preset values return `PRESET_NOT_READY`.
 
