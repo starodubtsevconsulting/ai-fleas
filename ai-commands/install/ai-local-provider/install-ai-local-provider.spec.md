@@ -2,7 +2,9 @@
 
 ## Purpose
 
-`install-ai-local-provider` provisions a remote Ubuntu machine as a reusable local AI inference provider.
+`install-ai-local-provider` provisions a remote Ubuntu machine as a self-contained local AI inference provider.
+
+The install command is a machine provisioner. It connects over SSH, installs the AI Local Provider onto the target, downloads the selected model, launches it, verifies inference, and leaves the target independently runnable after installation.
 
 The user selects a model preset. A preset defines the model/runtime defaults and the machine requirements for that model. Machine-specific connection details remain profile-owned configuration.
 
@@ -10,15 +12,48 @@ The user selects a model preset. A preset defines the model/runtime defaults and
 
 SNAPSHOT. The command MUST NOT perform installation until implementation and tests are complete.
 
-## Initial deployment model
+## Installed component
 
-The initial contract is intentionally simple:
+The target receives a machine-level AI Local Provider installation under:
+
+```text
+/opt/ai-local-provider/
+├── runtime/
+│   └── llama.cpp/
+│       └── bin/
+│           └── llama-server
+├── models/
+│   ├── <model-a>/
+│   └── <model-b>/
+└── config/
+    └── active-model.yml
+```
+
+The lifecycle service is installed separately as:
+
+```text
+/etc/systemd/system/ai-local-provider.service
+```
+
+Logs use systemd/journald rather than a separate provider log directory.
+
+The provider installation is self-contained: after provisioning, the original install command/host is not required for normal boot and inference operation.
+
+## Privilege model
+
+The target is assumed to be a dedicated AI machine. The SSH installation user MUST have root access or passwordless/interactive `sudo` sufficient to provision machine-level files, packages, users and systemd services.
+
+The inference server MUST NOT run as root. Installation MUST create or use a dedicated unprivileged service account (default `ai-local-provider`) and give that account only the filesystem/device access required to run the provider and access acceleration hardware.
+
+Root/sudo privileges are for provisioning; normal inference execution is unprivileged.
+
+## Initial deployment model
 
 **one machine -> one provider server -> maximum one active model at a time**.
 
-A machine may have multiple model files/presets installed. The provider process loads only one model at a time. The active model can be unloaded and another installed model can then be selected and loaded.
+A machine may have multiple downloaded models under `/opt/ai-local-provider/models/`. The provider process loads only one model at a time. The active model can be unloaded and another installed model can then be selected and loaded.
 
-The selected active/default model is loaded when the provider starts. The provider is managed by systemd and starts automatically with the machine. On reboot, the currently configured default model is loaded.
+The selected active/default model is recorded in provider configuration and loaded when the provider starts. The provider is managed by systemd and starts automatically with the machine. On reboot, the currently configured default model is loaded.
 
 Running multiple models concurrently from the same provider is out of scope for the initial implementation.
 
@@ -60,6 +95,8 @@ Secrets and machine-specific credentials MUST NOT be committed to this repositor
 
 Presets live under `presets/` and are selectable by ID.
 
+Each preset MUST describe or resolve the model artifact required for installation. Selecting a preset means the command downloads the actual model weights/artifacts unless a valid matching artifact is already present in `/opt/ai-local-provider/models/`.
+
 Each preset MUST be able to describe:
 
 - model source, repository/file and quantization;
@@ -72,8 +109,6 @@ Each preset MUST be able to describe:
 - HTTP API and LAN exposure defaults;
 - systemd/autostart settings.
 
-The preset is the portable definition of a known local AI provider configuration. SSH targets, credentials and machine-specific secrets are not preset data.
-
 Before making changes, the command MUST inspect the target and compare detected capabilities with the selected preset. Minimum requirements are blocking. Recommended requirements are advisory.
 
 A failed requirement check MUST return `REQUIREMENTS_NOT_MET` and identify the failed requirements. A preset containing unresolved required values MUST return `PRESET_NOT_READY`.
@@ -83,45 +118,42 @@ A failed requirement check MUST return `REQUIREMENTS_NOT_MET` and identify the f
 The command MUST:
 
 1. Resolve and validate the selected preset.
-2. Verify SSH connectivity.
+2. Verify SSH connectivity and required sudo/root provisioning capability.
 3. Detect the remote OS and architecture without changing the target.
 4. Refuse unsupported OS/architecture before installation.
 5. Detect available CPU, memory, free disk and GPU hardware.
 6. Compare the machine against the preset requirements.
 7. Stop before changes when minimum requirements are not met.
-8. Install required Ubuntu packages.
-9. Install/configure the preset runtime.
-10. Install or download the selected model without requiring other installed models to be deleted.
-11. Configure the provider so no more than one model can be active at a time.
-12. Set the selected model as active/default when requested by the installation operation.
-13. Create/update the systemd service.
-14. Enable the service at boot.
-15. Launch the service immediately as part of installation and load only the configured active model.
-16. Wait for the provider/model to become ready or fail with evidence.
-17. Make the HTTP endpoint reachable on the intended LAN interface without public exposure.
-18. Verify that the HTTP endpoint responds.
-19. Send a minimal real inference request to the active model.
-20. Validate that the inference response is structurally valid and non-empty.
-21. Return `SUCCESS` only after service, model, HTTP and inference verification all pass.
-22. Return observable installation and verification evidence.
+8. Create/update the dedicated unprivileged provider service account.
+9. Create/reconcile `/opt/ai-local-provider/` and its runtime, models and config directories with appropriate ownership/permissions.
+10. Install required Ubuntu packages.
+11. Install/configure the preset runtime under `/opt/ai-local-provider/runtime/` (initially `llama.cpp` / `llama-server`).
+12. Download and verify the selected model under `/opt/ai-local-provider/models/`, reusing an already valid matching artifact.
+13. Preserve other installed models unless explicitly asked to remove them.
+14. Configure the provider so no more than one model can be active at a time.
+15. Record/set the selected model as active/default when requested by installation.
+16. Create/update `/etc/systemd/system/ai-local-provider.service` to run as the unprivileged provider account.
+17. Enable the service at boot.
+18. Launch the service immediately as part of installation and load only the configured active model.
+19. Wait for the provider/model to become ready or fail with evidence.
+20. Make the HTTP endpoint reachable on the intended LAN interface without public exposure.
+21. Verify that the HTTP endpoint responds.
+22. Send a minimal real inference request to the active model.
+23. Validate that the inference response is structurally valid and non-empty.
+24. Return `SUCCESS` only after service, model, HTTP and inference verification all pass.
+25. Return observable installation and verification evidence.
 
 ## Post-install verification gate
 
 Installation is not complete when files/packages are merely present.
 
-The command MUST finish with the provider running and ready for requests. The mandatory verification sequence is:
+The mandatory verification sequence is:
 
-**install -> configure -> launch service -> load model -> verify HTTP -> run inference -> validate response -> success**.
+**install provider -> download model -> configure -> launch service -> load model -> verify HTTP -> run inference -> validate response -> success**.
 
-`SUCCESS` MUST NOT be returned unless all of the following are observable:
+`SUCCESS` MUST NOT be returned unless the systemd service is active under the intended unprivileged account, the selected model is loaded and ready, the HTTP endpoint responds, and a real minimal inference request returns a valid non-empty response.
 
-- the systemd service is active;
-- the selected model is loaded and ready;
-- the configured HTTP endpoint responds;
-- a real minimal inference request completes successfully;
-- the inference response is valid and non-empty.
-
-Any failure in this gate MUST return a non-success result and include enough service/journal/API evidence to diagnose the failure.
+Any failure MUST return a non-success result and include enough systemd/journal/API evidence to diagnose it.
 
 ## Model switching
 
@@ -131,19 +163,21 @@ Switching models means:
 
 1. stop/unload the current active model;
 2. select another installed model/preset;
-3. update the active/default model configuration;
+3. update `/opt/ai-local-provider/config/active-model.yml`;
 4. start/load the selected model;
 5. verify the API and inference result.
 
-At no point may the initial provider intentionally keep two models active concurrently. Model switching may be exposed by a dedicated command or lifecycle operation later; this install command only establishes the required provider semantics.
+At no point may the initial provider intentionally keep two models active concurrently. Model switching may be exposed by a dedicated command or lifecycle operation later; this install command establishes the provider semantics.
 
 ## Idempotency
 
-The command MUST be idempotent. Re-running it against an already configured target brings the machine to the requested preset/configuration instead of blindly reinstalling components.
+The command MUST be idempotent. Re-running it reconciles the target with the requested preset/configuration. Valid runtimes/models MUST be reused rather than blindly downloaded/reinstalled.
 
 ## Runtime
 
-Runtime is defined by the selected preset, not command identity. Initial implementation may support `llama.cpp`; additional runtimes such as Ollama may be added without changing the command name.
+Runtime is defined by the selected preset, not command identity. The initial runtime may be `llama.cpp`, installed under `/opt/ai-local-provider/runtime/llama.cpp/`, with `llama-server` used as the provider process.
+
+Additional runtimes may be added later without changing the command name.
 
 Hardware-specific acceleration (for example CUDA or ROCm) MUST be selected only when detected and supported by the preset/runtime. The command MUST NOT assume a GPU vendor.
 
@@ -153,19 +187,22 @@ The provider MUST run as a systemd service rather than requiring an interactive 
 
 The service MUST:
 
+- run as the dedicated unprivileged provider account, never root;
 - run no more than one active model at a time;
 - start automatically after reboot;
 - load the configured active/default model as part of provider startup;
 - restart according to configured service policy;
 - expose the configured HTTP API endpoint to the trusted LAN;
 - require no API key by default;
-- have observable status and logs through systemd/journald.
+- write operational logs to systemd/journald.
 
 ## Safety
 
 The command MUST NOT:
 
 - modify an unsupported target;
+- proceed without required provisioning privileges;
+- run the inference server as root;
 - modify a machine that fails the selected preset's minimum requirements;
 - install ARM64 binaries on the initial AMD64 implementation;
 - overwrite SSH configuration unnecessarily;
@@ -180,13 +217,15 @@ At minimum:
 
 - `SUCCESS`
 - `SSH_UNREACHABLE`
+- `INSUFFICIENT_PRIVILEGES`
 - `PRESET_NOT_FOUND`
 - `PRESET_NOT_READY`
 - `REQUIREMENTS_NOT_MET`
 - `UNSUPPORTED_OS`
 - `UNSUPPORTED_ARCHITECTURE`
 - `RUNTIME_INSTALL_FAILED`
-- `MODEL_INSTALL_FAILED`
+- `MODEL_DOWNLOAD_FAILED`
+- `MODEL_VERIFICATION_FAILED`
 - `SERVICE_FAILED`
 - `MODEL_NOT_READY`
 - `HTTP_VERIFICATION_FAILED`
@@ -196,4 +235,4 @@ At minimum:
 
 ## Completion
 
-Complete only when the provider has no more than one active model, the selected default model is configured, the systemd service is enabled and running, that model is loaded and ready, the trusted-LAN HTTP endpoint responds, and a real minimal inference request succeeds with a valid non-empty response.
+Complete only when the AI Local Provider is independently installed under `/opt/ai-local-provider/`, the selected model artifact is present and verified, no more than one model is active, the systemd service is enabled and running as the unprivileged provider account, the model is loaded and ready, the trusted-LAN HTTP endpoint responds, and a real minimal inference request succeeds with a valid non-empty response.
