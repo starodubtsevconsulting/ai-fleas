@@ -21,7 +21,11 @@ if [[ $# -gt 0 ]]; then
     *) canonical_target="$normalized_target" ;;
   esac
 
-  lifecycle="$root_dir/$canonical_target/$canonical_target.command.sh"
+  if [[ "$canonical_target" == "ai-local-provider" ]]; then
+    lifecycle="$root_dir/ai-local-provider/install-ai-local-provider.sh"
+  else
+    lifecycle="$root_dir/$canonical_target/$canonical_target.command.sh"
+  fi
   if [[ ! -x "$lifecycle" ]]; then
     printf 'INSTALL_TARGET_UNAVAILABLE: no lifecycle adapter for %s\n' "$canonical_target" >&2
     exit 2

@@ -47,7 +47,7 @@ if [[ ! -f "$manifest" ]]; then
   fallback_manifest="$AI_COMMANDS_ROOT/$command_id/$command_id.command.yml"
   [[ -f "$fallback_manifest" ]] && manifest="$fallback_manifest"
 fi
-"$SCRIPT_DIR/ai-powered-command.guard.sh" "$manifest"
+bash "$SCRIPT_DIR/ai-powered-command.guard.sh" "$manifest"
 
 case "$resolved_entrypoint" in
   *.mjs) exec node "$resolved_entrypoint" ${command_args[@]+"${command_args[@]}"} ;;

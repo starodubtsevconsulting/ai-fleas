@@ -56,7 +56,10 @@ The important boundaries are:
 
 ## Status
 
-SNAPSHOT. The command MUST NOT perform installation until implementation and tests are complete.
+BETA. Remote SSH onboarding, preflight, status, plan validation, and Ubuntu 24.04 provisioning are implemented. The
+provisioner installs missing native build dependencies, NVIDIA driver/CUDA toolkit, a revision-pinned llama.cpp runtime,
+a checksum-pinned model, an unprivileged systemd service, and verifies health plus real inference. A driver installation that needs a reboot
+stops explicitly and resumes safely when the command is rerun.
 
 ## Installation modes
 
@@ -70,6 +73,10 @@ Install AI Local Provider
 3. Exit
 ```
 
+The implemented beta may present capability choices before target selection: recommended first-run preflight, provider
+status, installation-plan validation, help, or exit. The menu is deterministic and available while `ai.powered` is false.
+When AI-powered orchestration is enabled later, it MUST call the same entry point and honor the same result states.
+
 ### Profile-local
 
 The first implementation supports macOS. The command detects the Mac architecture/resources, presents compatible small/fast presets, installs/reuses `llama.cpp` and `llama-server`, downloads/reuses the selected model, configures localhost-only HTTP and macOS autostart, launches the model, verifies real inference, and may register/reconcile the provider in the active profile when explicitly authorized.
@@ -78,11 +85,37 @@ The first implementation supports macOS. The command detects the Mac architectur
 
 The first implementation supports Ubuntu 24.04 LTS AMD64/x86_64 over SSH. When profile command configuration contains known boxes, the command presents them plus `Add new machine` and asks only for unresolved values.
 
+The selected box is invocation-scoped. A profile may contain many boxes, and choosing one MUST NOT silently replace the
+profile default or change another box. The human may select a different configured box or add a new box on every run.
+
 ## Interaction contract
 
 When configuration is absent, empty or incomplete, the command MUST remain useful. It explains what is missing and offers guided next actions: configure the profile-local provider, add a remote machine, show the relevant profile configuration/example, or exit.
 
 The command MUST NOT respond to missing configuration with only a low-level file/path/parser error.
+
+For a remote target, the guided interaction MUST distinguish connection setup from provider installation. Before showing
+an installation plan it:
+
+1. lists configured profile boxes with logical ID, host, user and port, plus `Add new machine`;
+2. accepts a configured box, an explicit supported override, or interactively collects a new logical ID, host, user and port;
+3. checks network reachability and obtains the SSH host-key fingerprint without trusting it silently;
+4. asks the human to verify an unknown or changed fingerprint before recording trust;
+5. tries non-interactive public-key/agent authentication using the resolved SSH configuration;
+6. when authentication is unavailable, explains that a public key must be authorized and offers actionable key-enrollment
+   guidance appropriate to the host, then pauses with `SSH_AUTHORIZATION_REQUIRED`;
+7. after the human completes enrollment, supports retrying the connection in the same invocation;
+8. validates the remote identity, supported OS/architecture and required `sudo` capability;
+9. offers to save only the non-secret box configuration to the active profile, with explicit authorization; and
+10. continues to preset selection and the installation plan without making the human restart the discovery process.
+
+The interaction SHOULD show the exact public-key file or SSH-agent identity being tested and a copyable enrollment command
+such as `ssh-copy-id -i <public-key> -p <port> <user>@<host>`. It MUST NOT ask the human to paste a password into the AI
+conversation. Password entry, when required for one-time key enrollment or `sudo`, occurs only in a trusted interactive SSH
+or terminal prompt whose input is not echoed, captured, stored or forwarded through command arguments.
+
+An SSH password is bootstrap authentication, not profile configuration. There is no password CLI override, environment
+variable, committed example field or persisted command value.
 
 ## Profile awareness and multiple boxes
 
@@ -92,7 +125,17 @@ A profile may define multiple named remote boxes with logical name, host/IP, SSH
 
 Private key contents/passwords MUST NOT be committed. A profile should reference a local key path, SSH agent/configuration or another supported private credential mechanism.
 
+Each box may use either explicit `host`/`user`/`ssh_port`/`ssh_key` references or an `ssh_alias` resolved by the user's SSH
+configuration. The command MUST resolve exactly one connection identity and report conflicting or ambiguous settings rather
+than guessing. Machine-specific values remain in the active private profile or user SSH configuration and never become
+public AI Fleas examples or runtime state in this repository.
+
 AI provider endpoint/model bindings belong to profile `ai_providers` configuration; SSH provisioning details belong to this command's profile-owned command configuration.
+
+Machine discovery delegates to the reusable `machine-profile` capability and returns `ai-machine-profile.v1` JSON. With explicit
+`--save-profile`, the command writes that JSON beneath the selected private profile command configuration and records its
+relative `inventory` reference on the selected box. The snapshot contains observed hardware/software facts and timestamp,
+never credentials, and is refreshed rather than treated as permanent truth.
 
 ## Value resolution
 
@@ -105,6 +148,33 @@ Values resolve with this precedence:
 5. interactive prompt for still-required values.
 
 Before target modification, the command displays the resolved target, connection identity where applicable, model preset and material installation choices and obtains confirmation unless explicitly running in a supported non-interactive authorization mode.
+
+Installation performs only conservative, recreatable cleanup: OS-expired
+temporary files, package caches, bounded journal retention, and stale partial
+model downloads owned by this command. Personal data, Downloads, arbitrary user
+cache or backup directories, and unrelated application data are outside cleanup
+scope.
+
+Connection discovery and read-only validation do not authorize profile mutation or remote provisioning. Saving a newly
+discovered box and installing the provider are separate confirmation boundaries. A newly entered box may be used once
+without being persisted.
+
+## SSH trust and authentication
+
+Remote automation requires non-interactive public-key or SSH-agent authentication after any interactive bootstrap. The
+command MUST use normal OpenSSH behavior and MUST NOT implement password injection with `sshpass`, `expect`, command-line
+passwords, generated askpass helpers or equivalent mechanisms.
+
+For an unknown host, the command displays the key type and SHA-256 fingerprint and requires human verification before
+adding or updating trust. A changed host key blocks with `SSH_HOST_KEY_CHANGED`; it is never accepted automatically.
+
+If a configured private-key reference is unreadable, the command explains which reference failed without printing private
+key material and offers to choose another existing identity, use the SSH agent/configured alias, show key-generation and
+enrollment guidance, or exit. It does not generate or overwrite a key unless the human explicitly selects that action.
+
+Successful onboarding proves all of the following before installation: the TCP endpoint is reachable, host identity is
+trusted, public-key/agent authentication succeeds without prompting, the reported remote user matches the resolved user,
+and required privilege escalation is available. The command reports each gate independently and provides a retry action.
 
 ## Installed remote component
 
@@ -164,6 +234,11 @@ Selecting a preset includes downloading actual model weights/artifacts unless a 
 
 Minimum requirement failures block installation; recommendations are advisory. Unresolved required preset values return `PRESET_NOT_READY`.
 
+Capacity assessment MUST use the configured model-storage volume rather than assuming `/`. It reports the exact model
+artifact size, currently available space, minimum and recommended headroom, estimated remaining space after installation,
+and a separate runtime-root reserve. Upgrades account for retaining the active model until the replacement verifies; the
+command recommends another volume or smaller preset before downloading when capacity is insufficient.
+
 ## Required behavior
 
 The command MUST:
@@ -220,6 +295,12 @@ At minimum:
 - `SUCCESS`
 - `CONFIGURATION_REQUIRED`
 - `SSH_UNREACHABLE`
+- `SSH_HOST_KEY_VERIFICATION_REQUIRED`
+- `SSH_HOST_KEY_CHANGED`
+- `SSH_AUTHORIZATION_REQUIRED`
+- `SSH_IDENTITY_INVALID`
+- `SUDO_AUTHORIZATION_REQUIRED`
+- `GPU_CONTAINER_RUNTIME_REQUIRED`
 - `INSUFFICIENT_PRIVILEGES`
 - `PRESET_NOT_FOUND`
 - `PRESET_NOT_READY`

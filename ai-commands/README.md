@@ -173,6 +173,8 @@ by an explicit `None` row; it is never left implicit.
 ├── <name>.command.example.config # required committed safe override template
 ├── <name>.command.test.sh       # optional executable contract test
 ├── <name>.scenario.md           # optional agent-run live acceptance scenario
+├── PLAN.md                      # optional complex multi-step human/AI execution map
+├── logs/                        # optional local command-owned runtime logs; Git-ignored
 ├── feature.yml                  # optional visual-feature metadata
 ├── app.sh                       # optional launcher owned by this command
 ├── launcher/                    # optional command-owned Electron or browser UI
