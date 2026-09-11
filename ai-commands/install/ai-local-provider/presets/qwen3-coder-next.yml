@@ -1,0 +1,33 @@
+id: qwen3-coder-next
+name: Qwen3 Coder Next
+
+model:
+  source: huggingface
+  repository: ""
+  file: ""
+  quantization: ""
+  context: 65536
+
+runtime:
+  type: llama.cpp
+
+requirements:
+  os: ubuntu-24.04
+  architecture: amd64
+  memory:
+    minimum_gb: 64
+    recommended_gb: 96
+  disk:
+    minimum_free_gb: 80
+  gpu:
+    optional: true
+    vendor: any
+    minimum_vram_gb: null
+
+service:
+  listen_address: 127.0.0.1
+  port: 8080
+  name: ai-local-provider
+
+notes:
+  - Exact model repository, quantization and GPU requirements must be validated before this preset becomes runnable.
