@@ -29,7 +29,9 @@ assert.deepEqual(exampleConfig.binding_state, {
   path: '.local/gpt-agents/bindings.yml',
   schema_version: 'gpt-agents-binding-state.v1',
 });
-assert.deepEqual(Object.keys(exampleConfig.role_overrides).sort(), [...portableRoles].sort(), 'example overrides must reference only known roles');
+for (const overrideRole of Object.keys(exampleConfig.role_overrides ?? {})) {
+  assert.ok(portableRoles.includes(overrideRole), `unknown example override role: ${overrideRole}`);
+}
 assert.equal(exampleProfile.system_agent.platform_bindings['gpt-agents'].readiness_token, 'SYSTEM_READY');
 assert.equal(exampleProfile.system_agent.platform_bindings['gpt-agents'].title, '⚙️ System');
 assert.ok(exampleWorkflow.projects.length > 1, 'a workflow must support a multi-project scope');
@@ -49,8 +51,13 @@ for (const role of portableRoles) {
     ? portable.initializer
     : portable.agents.find((agent) => agent.agentId === role);
   const binding = adapter.agents.find((agent) => agent.role === role);
-  assert.equal(binding.readiness_token, portableAgent.readinessToken, `${role} readiness token must agree`);
-  assert.ok(binding.title && binding.model && binding.reasoning && binding.lifecycle, `${role} binding is incomplete`);
+  assert.ok(binding.title && binding.model && binding.reasoning, `${role} GPT realization is incomplete`);
+  assert.equal('readiness_token' in binding, false, `${role} must inherit readiness from portable manifest`);
+  assert.equal('lifecycle' in binding, false, `${role} must inherit lifecycle from portable manifest`);
+  assert.equal('human_facing' in binding, false, `${role} must inherit human-facing semantics from portable manifest`);
+  assert.ok(portableAgent.readinessToken, `${role} portable readiness token is missing`);
+  assert.ok(portableAgent.lifecycle, `${role} portable lifecycle is missing`);
+  assert.notEqual(portableAgent.humanFacing, undefined, `${role} portable human-facing value is missing`);
   assert.ok(adapter.role_contracts[role], `${role} role contract is missing`);
 }
 
