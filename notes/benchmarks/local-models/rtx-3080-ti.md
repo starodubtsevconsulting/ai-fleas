@@ -10,7 +10,7 @@ The RTX 3080 Ti turned out to be **useful, but for a different role than a large
 
 - **Compute is not the main problem.** A fully GPU-resident Qwen3.5 9B Q4_K_M generated about 95 tok/s in the measured direct request, with live inference reaching 94% GPU utilization.
 - **Small and medium models are a good fit.** Qwen3.5 9B fits completely in VRAM together with its caches, uses about 6.7 GiB, and still provides the 65,536-token context required by Hermes.
-- **Good fit for fast local System agents and micro-command workers** where responsiveness and low-cost repeated inference matter more than running the largest possible model.
+- **Good fit for the local [System agent](../../../ai-workflows/_common/roles/system.md) and micro-command workers** where responsiveness and low-cost repeated inference matter more than running the largest possible model. This is the intended practical use for this workstation.
 - **Already available hardware with CUDA support**, so it can add useful local inference capacity without buying another AI box.
 
 ### Cons
@@ -21,7 +21,7 @@ The RTX 3080 Ti turned out to be **useful, but for a different role than a large
 - **Less attractive for incremental scaling.** Adding multiple compact AI boxes is operationally easier than adding more full-size workstations of this type.
 - **Hermes latency can hide the GPU's actual speed.** In the first Desktop acceptance run, the substantive provider request completed in 6.9 seconds; much of the remaining 37–63 second wall time came from orchestration overhead, especially automatic title-generation requests competing for the single inference slot.
 
-The practical architecture is therefore complementary rather than competitive: **GX10-class hardware handles larger heavyweight workers, while the RTX 3080 Ti can serve fast smaller agents and frequent local tasks.** Its inference performance makes it worth using, but its size, weight, noise, and VRAM ceiling make it less attractive as the pattern for future cluster expansion.
+The practical architecture is therefore complementary rather than competitive: **GX10-class hardware handles larger heavyweight workers, while the RTX 3080 Ti is intended to run the local [System agent](../../../ai-workflows/_common/roles/system.md) and other fast, frequent local tasks.** Its inference performance makes it worth using, but its size, weight, noise, and VRAM ceiling make it less attractive as the pattern for future cluster expansion.
 
 | Metric | Qwen3-Coder 30B A3B Q8_0 | Qwen3-Coder 30B A3B Q4_K_M | Qwen3 8B Q4_K_M |
 |---|---:|---:|---:|
