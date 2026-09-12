@@ -67,7 +67,7 @@ These numbers describe this specific GX10/runtime/configuration and should be tr
 
 ## RTX 3080 Ti workstation — Hermes System agent
 
-This comparison uses a 12 GiB NVIDIA GeForce RTX 3080 Ti workstation with approximately 47 GiB of OS-visible RAM. The provider runs a pinned CUDA build of `llama.cpp` with a 65,536-token context and one inference slot. Unlike the controlled GX10 measurements above, the first result records a real, existing Hermes System-agent conversation and is therefore an operational baseline rather than a synthetic benchmark.
+This comparison uses a 12 GiB NVIDIA GeForce RTX 3080 Ti workstation with approximately 47 GiB of OS-visible RAM. The provider runs a pinned CUDA build of `llama.cpp` with one inference slot; context varies by candidate. Unlike the controlled GX10 measurements above, the first result records a real, existing Hermes System-agent conversation and is therefore an operational baseline rather than a synthetic benchmark.
 
 | Metric | Qwen3-Coder 30B A3B Q8_0 | Qwen3-Coder 30B A3B Q4_K_M | Qwen3 8B Q4_K_M |
 |---|---:|---:|---:|
@@ -82,7 +82,7 @@ This comparison uses a 12 GiB NVIDIA GeForce RTX 3080 Ti workstation with approx
 | Direct request wall time | Not recorded | Not recorded | 0.27 s |
 | Preserved-session wall time | ~5 minutes observed | 165 s, including ~103 s waiting for the single occupied slot | Not tested |
 | Direct API verification | PASS | PASS | PASS |
-| Hermes existing-session test | PASS | PASS | Pending lean-profile test |
+| Hermes existing-session test | PASS | PASS | FAIL: below Hermes 64K minimum |
 
 The Q8_0 result was functionally correct but too slow for an interactive System agent. Q4_K_M approximately doubled sustained generation in the longer direct response, reduced large-conversation prompt processing to about one minute, and reduced the observed preserved-session wall time from roughly five minutes to 165 seconds. The service itself completed that Hermes request in 61.8 seconds; approximately 103 seconds were queue time behind another request because the memory-safe configuration exposes one inference slot. Switching away from the still-open Q8 process immediately released about 31 GiB on disk, while the Q4 artifact is about 12.9 GiB smaller than Q8.
 
@@ -111,3 +111,9 @@ The model and endpoint remained healthy throughout the test. The failure is arch
 Qwen3 8B Q4_K_M replaced the 30B artifact and kept its weights plus Q8 key/value caches entirely within the RTX 3080 Ti's VRAM. A fresh direct request completed in 0.27 seconds, with 734.7 prompt tokens per second and 122.9 generated tokens per second. The provider advertised the expected alias and its native 40,960-token context, and the machine retained 91 GiB of free model-volume storage after the installer removed the inactive 30B artifact.
 
 This direct result is fast enough to proceed, but it is not yet a Hermes acceptance result. The previously measured default Hermes System request contained 46,536 prompt tokens, which exceeds this model's native context before response generation. The next acceptance test must therefore use a reduced System prompt/tool surface and a fresh or compressed session; silently truncating the existing full request would not be a valid migration.
+
+### Hermes-compatible fully GPU-resident candidate
+
+Qwen3.5 9B Q4_K_M replaced the incompatible 8B candidate. The server advertises a real 65,536-token context against the model's native 262,144-token limit, satisfying Hermes Agent's 64K minimum. With all layers and Q8 key/value caches on the RTX 3080 Ti, the process used 6,674 MiB of VRAM. The only retained model artifact is 5,680,522,464 bytes and the model volume has 91 GiB free.
+
+A fresh direct marker request completed in 0.23 seconds. The measured request processed 19 prompt tokens at 306.0 tokens per second and generated five tokens at 95.4 tokens per second. Direct inference, endpoint advertisement, profile reconciliation, and the Hermes System binding check all passed. Full Hermes chat latency remains to be measured because its default bootstrap previously supplied 46,536 prompt tokens.
