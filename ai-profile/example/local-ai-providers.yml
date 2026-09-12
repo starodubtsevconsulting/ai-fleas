@@ -10,8 +10,8 @@ providers:
       # 192.0.2.0/24 is reserved for documentation and cannot identify a real host.
       url: http://192.0.2.27:8080/v1
     models:
-      - id: qwen-coder
-        provider_model: qwen3-8b-q4_k_m
+      - id: qwen-hermes
+        provider_model: qwen3.5-9b-q4_k_m
         hermes:
           context_window_tokens: 65536
           compression_threshold: 0.25

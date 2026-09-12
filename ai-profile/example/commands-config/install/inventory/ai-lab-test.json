@@ -46,6 +46,6 @@
     "ai_local_provider": "absent"
   },
   "selection": {
-    "requested_preset": "qwen3-8b-gpu"
+    "requested_preset": "qwen3.5-9b-hermes"
   }
 }
