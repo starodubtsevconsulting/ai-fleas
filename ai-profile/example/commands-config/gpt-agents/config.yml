@@ -19,33 +19,6 @@ grouping:
   collision_policy: increment
   reuse_requires_recorded_project_id: true
 
-# Roles and authority come from the workflow. A profile may override only
-# platform realization fields declared by the gpt-agents command contract.
-role_overrides:
-  admin:
-    model: gpt-5.6-sol
-    reasoning: high
-  designer-reviewer:
-    model: gpt-5.6-sol
-    reasoning: low
-  judge:
-    model: gpt-5.6-terra
-    reasoning: low
-  manager:
-    model: gpt-5.6-luna
-    reasoning: medium
-  coder:
-    model: gpt-5.6-terra
-    reasoning: medium
-    pool:
-      min_ready: 0
-      max_active: 3
-  command-runner:
-    model: gpt-5.6-terra
-    reasoning: low
-    pool:
-      min_ready: 1
-      max_active: 4
-  ui-acceptance-tester:
-    model: gpt-5.6-terra
-    reasoning: low
+# Platform defaults come from the GPT Agents role/workflow overlays.
+# Add role_overrides only when this profile intentionally differs from those defaults.
+role_overrides: {}
