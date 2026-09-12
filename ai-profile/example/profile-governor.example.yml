@@ -41,6 +41,11 @@ goals:
       - Repetitive steps are automated where useful.
       - Routine work requires less manual coordination.
 
+reviewSchedule:
+  enabled: true
+  every: 1w
+  purpose: Review goal alignment and advise the governed human only when a meaningful adjustment is justified.
+
 memory:
   - name: canonical-strategy
     uri: https://docs.example.invalid/governor/canonical-strategy
@@ -62,5 +67,6 @@ memory:
     access: read-only
     privacy: profile-private
 
-commands:
-  - source-control
+# No intervention commands are configured in this public example. A real profile
+# may explicitly add narrow commands such as calendar, reminders, or messaging.
+commands: []
