@@ -64,14 +64,3 @@ memory:
 
 commands:
   - source-control
-
-platformBindings:
-  gpt-agents:
-    title: "Governor"
-    model: profile-default
-    reasoning: high
-
-  hermes:
-    title: "Governor"
-    provider: profile-default
-    model: profile-default
