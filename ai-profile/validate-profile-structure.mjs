@@ -33,6 +33,7 @@ for (const profileAgent of profile.profile_agents ?? []) {
   assert.equal(binding.scope, 'profile', `${profile.name}/${profileAgent.id}: binding scope`);
   assert.equal(binding.profile?.id, profile.name, `${profile.name}/${profileAgent.id}: binding profile`);
   assert.equal(binding.agentId, profileAgent.id, `${profile.name}/${profileAgent.id}: binding agent id`);
+  assert.equal(binding.platformBindings, undefined, `${profile.name}/${profileAgent.id}: platform realization belongs to platform role overlays`);
 
   for (const workflowId of binding.workflows ?? []) {
     assert.ok(enabledWorkflowIds.has(workflowId), `${profile.name}/${profileAgent.id}: workflow ${workflowId} is outside the profile binding`);
