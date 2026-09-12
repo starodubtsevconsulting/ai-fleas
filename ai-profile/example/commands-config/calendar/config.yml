@@ -1,0 +1,11 @@
+# EXAMPLE ONLY: fictional, non-operational profile binding.
+capability: calendar
+provider: google-calendar
+integration: plugin-or-mcp
+account: jonathan@example.invalid
+calendars:
+  - id: primary
+    label: Primary
+  - id: example-secondary
+    label: Secondary
+allowed_operations: [agenda, search, free-busy, create, update]
