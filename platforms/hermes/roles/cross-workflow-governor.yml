@@ -1,0 +1,14 @@
+schema_version: hermes-role-overlay.v1
+platform: hermes
+role: cross-workflow-governor
+portable_role: ../../../ai-workflows/_common/roles/cross-workflow-governor.yml
+
+realization:
+  title: "Governor"
+  provider: profile-default
+  model: profile-default
+  lifecycle: persistent
+  readiness_token: CROSS_WORKFLOW_GOVERNOR_READY
+
+# This overlay realizes the portable role on Hermes only.
+# Provider/model values resolve through the selected profile and do not change role authority.
