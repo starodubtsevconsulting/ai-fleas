@@ -79,6 +79,7 @@ grep -Fq 'setfacl -m u:ai-local-provider:r-- "$model_path"' "$dir/provision-ubun
 grep -Fq -- '--alias $model_api_alias' "$dir/provision-ubuntu.sh"
 grep -Fq -- '-c $context_size -np $parallel_slots' "$dir/provision-ubuntu.sh"
 grep -Fq -- '-ctk $cache_key_type -ctv $cache_value_type' "$dir/provision-ubuntu.sh"
+grep -Fq '"chat_template_kwargs":{"enable_thinking":false}' "$dir/provision-ubuntu.sh"
 grep -Fq 'systemctl restart "$service_name"' "$dir/provision-ubuntu.sh"
 grep -Fq 'Removed inactive model after successful replacement' "$dir/provision-ubuntu.sh"
 printf '%s\n' 'install-ai-local-provider tests: PASS'

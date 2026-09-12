@@ -9,7 +9,7 @@ model:
   sha256: d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785
   size_bytes: 5027783488
   quantization: Q4_K_M
-  context: 65536
+  context: 40960
 
 runtime:
   type: llama.cpp
@@ -57,6 +57,6 @@ service:
 
 notes:
   - Official Apache-2.0 Qwen GGUF pinned by artifact checksum.
-  - All model layers are offloaded to CUDA; Q8 key/value caches keep the 64K context within a 12 GiB GPU budget.
+  - All model layers are offloaded to CUDA; Q8 key/value caches keep the model's native 40K context within a 12 GiB GPU budget.
   - One inference slot prevents duplicate KV caches from exceeding VRAM.
   - HTTP without authentication is intended only for a trusted LAN and must not be exposed to the public Internet by default.
