@@ -40,6 +40,12 @@ system_agent:
     sc:
       title: "⚙️ System"
       model: platform-default
+# Profile agents are logical, portable agents owned directly by this profile.
+# Platform-specific model/reasoning/runtime tuning belongs in platform role overlays.
+profile_agents:
+  - id: cross-workflow-governor
+    scope: profile
+    config: profile-governor.example.yml
 governance_rules_repository: example-governance-rules
 governance_rules_surface:
   - AGENTS.md
@@ -51,6 +57,12 @@ governance_rules_surface:
 commands:
   - id: source-control
     config: commands-config/source-control/config.yml
+  - id: calendar
+    config: commands-config/calendar/config.yml
+  - id: messaging
+    config: commands-config/messaging/config.yml
+  - id: email
+    config: commands-config/email/config.yml
   - id: hermes-agents
     config: commands-config/hermes-agents/config.yml
   - id: gpt-agents
