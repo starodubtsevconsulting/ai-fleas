@@ -5,9 +5,10 @@ portable_role: ../../../ai-workflows/_common/roles/cross-workflow-governor.yml
 
 realization:
   title: "Governor"
-  model_selection: strongest-eligible-remote
+  model: gpt-5.6-sol
   reasoning: high
 
 # Portable lifecycle, readiness, scope, human-facing semantics, authority, and
-# intelligence requirements come from the profile binding and portable role.
-# This overlay maps those requirements to GPT/Codex-specific realization.
+# intelligence requirement come from the profile binding and portable role.
+# This overlay must still resolve initialization to a concrete GPT model and
+# reasoning level; it cannot leave runtime model selection abstract.
