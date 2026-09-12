@@ -4,6 +4,7 @@ set -euo pipefail
 storage_volume="$1"; model_repository="$2"; model_file="$3"; model_sha256="$4"
 runtime_repository="$5"; runtime_revision="$6"; context_size="$7"; gpu_layers="$8"
 listen_address="$9"; provider_port="${10}"; service_name="${11}"; model_api_alias="${12}"; parallel_slots="${13}"
+cache_key_type="${14}"; cache_value_type="${15}"
 install_root=/opt/ai-local-provider
 source_root="$install_root/src/llama.cpp"; build_root="$install_root/build"; binary_root="$install_root/bin"
 model_root="$storage_volume/ai-local-provider/models"; model_path="$model_root/$model_file"
@@ -15,6 +16,8 @@ plan_step() { printf '\n[%s] %s\n' "$1" "$2"; }
 [[ -d "$storage_volume" ]] || { echo "STORAGE_VOLUME_MISSING: $storage_volume" >&2; exit 4; }
 [[ "$model_api_alias" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || { echo 'MODEL_API_ALIAS_INVALID' >&2; exit 4; }
 [[ "$parallel_slots" =~ ^[1-9][0-9]*$ ]] || { echo 'PARALLEL_SLOTS_INVALID' >&2; exit 4; }
+[[ "$cache_key_type" =~ ^(f16|bf16|q8_0|q4_0)$ ]] || { echo 'CACHE_KEY_TYPE_INVALID' >&2; exit 4; }
+[[ "$cache_value_type" =~ ^(f16|bf16|q8_0|q4_0)$ ]] || { echo 'CACHE_VALUE_TYPE_INVALID' >&2; exit 4; }
 
 export DEBIAN_FRONTEND=noninteractive
 plan_step AI-LOCAL-04 'Clean disposable system data'
@@ -95,7 +98,7 @@ User=ai-local-provider
 Group=ai-local-provider
 Restart=on-failure
 RestartSec=5
-ExecStart=$binary_root/llama-server -m $model_path --alias $model_api_alias --host $listen_address --port $provider_port -c $context_size -np $parallel_slots -ngl $gpu_layers
+ExecStart=$binary_root/llama-server -m $model_path --alias $model_api_alias --host $listen_address --port $provider_port -c $context_size -np $parallel_slots -ngl $gpu_layers -ctk $cache_key_type -ctv $cache_value_type
 
 [Install]
 WantedBy=multi-user.target

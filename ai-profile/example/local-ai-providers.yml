@@ -11,7 +11,7 @@ providers:
       url: http://192.0.2.27:8080/v1
     models:
       - id: qwen-coder
-        provider_model: qwen3-coder-30b-a3b-instruct-q4_k_m
+        provider_model: qwen3-8b-q4_k_m
         hermes:
           context_window_tokens: 65536
           compression_threshold: 0.25
