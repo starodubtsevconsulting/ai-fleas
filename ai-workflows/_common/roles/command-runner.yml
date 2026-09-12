@@ -1,0 +1,17 @@
+schemaVersion: role.v1
+extends: _role.yml
+
+id: command-runner
+contract: command-runner.md
+
+scope:
+  kind: workflow
+  bindingOwner: workflow
+
+humanFacing: false
+
+lifecycle:
+  default: task-scoped
+
+fixed:
+  canonicalRole: command-runner
