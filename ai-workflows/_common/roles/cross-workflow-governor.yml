@@ -15,6 +15,7 @@ lifecycle:
 
 fixed:
   canonicalRole: cross-workflow-governor
+  profileCardinality: one
   governedSubjectCardinality: one
   goalCardinality: many
   workflowCardinality: many
@@ -27,6 +28,17 @@ configurable:
     owner: binding
 
 bindings:
+  profile:
+    type: profile-reference
+    required: true
+    cardinality: one
+    owner: profile
+    fields:
+      id:
+        type: string
+        required: true
+    description: Exact profile trust boundary for this Governor. Every governed workflow, command, memory reference, goal projection, and external effect must resolve inside this profile unless a separate cross-profile contract explicitly authorizes otherwise.
+
   subject:
     type: human-reference
     required: true
@@ -78,7 +90,7 @@ bindings:
       reviewTrigger:
         type: any
         required: false
-    description: Human-owned goals are independent of workflows and may span several workflows.
+    description: Human-owned goals are independent of workflows and may span several workflows inside this Governor's profile scope.
 
   workflows:
     type: workflow-reference
@@ -86,7 +98,7 @@ bindings:
     cardinality: many
     owner: profile
     examples: [dev, multimedia, bookkeeping, investment]
-    description: Logical workflows inside the Governor's governance scope; examples are illustrative only and the concrete binding supplies the actual list.
+    description: Logical workflows selected from the exact bound profile. A workflow from another profile is outside the Governor's authority even when it has the same workflow ID.
 
   memory:
     type: memory-reference
@@ -113,7 +125,7 @@ bindings:
       precedence:
         type: any
         required: false
-    description: Durable external memory references; storage/provider mechanics are adapter-specific.
+    description: Durable external memory references authorized by the exact bound profile; storage/provider mechanics are adapter-specific.
 
   commands:
     type: command-reference
@@ -121,4 +133,4 @@ bindings:
     cardinality: many
     owner: profile
     providerNeutral: true
-    description: Registered provider-neutral commands required for governance, such as ticket-tracker, calendar, or source-control. Concrete providers and supported overrides resolve through normal profile command configuration.
+    description: Registered provider-neutral commands required for governance. Concrete providers and supported overrides resolve only through the exact bound profile's command configuration.
