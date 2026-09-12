@@ -1,4 +1,6 @@
 schemaVersion: role.v1
+extends: _role.yml
+
 id: cross-workflow-governor
 contract: cross-workflow-governor.md
 
