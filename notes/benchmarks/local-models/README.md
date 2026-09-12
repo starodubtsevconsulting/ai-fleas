@@ -69,18 +69,20 @@ These numbers describe this specific GX10/runtime/configuration and should be tr
 
 This comparison uses a 12 GiB NVIDIA GeForce RTX 3080 Ti workstation with approximately 47 GiB of OS-visible RAM. The provider runs a pinned CUDA build of `llama.cpp` with a 65,536-token context and one inference slot. Unlike the controlled GX10 measurements above, the first result records a real, existing Hermes System-agent conversation and is therefore an operational baseline rather than a synthetic benchmark.
 
-| Metric | Qwen3-Coder 30B A3B Q8_0 | Qwen3-Coder 30B A3B Q4_K_M |
-|---|---:|---:|
-| Model size | 30.2 GiB | 17.3 GiB |
-| GPU layers | 12 | 20 |
-| Configured context | 65,536 | 65,536 |
-| Inference slots | 1 | 1 |
-| Existing conversation input | ~19K tokens | 17,282 input + 1,839 cache-read tokens |
-| Prompt-processing time | ~2 minutes | 60.0 s (288.2 tok/s) |
-| Longer direct generation | ~7.3 tok/s | 14.5 tok/s (157-token response) |
-| Preserved-session wall time | ~5 minutes observed | 165 s, including ~103 s waiting for the single occupied slot |
-| Direct API verification | PASS | PASS |
-| Hermes existing-session test | PASS | PASS |
+| Metric | Qwen3-Coder 30B A3B Q8_0 | Qwen3-Coder 30B A3B Q4_K_M | Qwen3 8B Q4_K_M |
+|---|---:|---:|---:|
+| Model size | 30.2 GiB | 17.3 GiB | 4.68 GiB |
+| GPU residency | Partial | Partial | Full (8,040 MiB observed) |
+| GPU layers | 12 | 20 | All (`-ngl 99`) |
+| Configured context | 65,536 | 65,536 | 40,960 (native maximum) |
+| Inference slots | 1 | 1 | 1 |
+| Existing conversation input | ~19K tokens | 17,282 input + 1,839 cache-read tokens | Not tested |
+| Prompt-processing time | ~2 minutes | 60.0 s (288.2 tok/s) | 734.7 tok/s (21-token uncached portion) |
+| Longer direct generation | ~7.3 tok/s | 14.5 tok/s (157-token response) | 122.9 tok/s (25-token response) |
+| Direct request wall time | Not recorded | Not recorded | 0.27 s |
+| Preserved-session wall time | ~5 minutes observed | 165 s, including ~103 s waiting for the single occupied slot | Not tested |
+| Direct API verification | PASS | PASS | PASS |
+| Hermes existing-session test | PASS | PASS | Pending lean-profile test |
 
 The Q8_0 result was functionally correct but too slow for an interactive System agent. Q4_K_M approximately doubled sustained generation in the longer direct response, reduced large-conversation prompt processing to about one minute, and reduced the observed preserved-session wall time from roughly five minutes to 165 seconds. The service itself completed that Hermes request in 61.8 seconds; approximately 103 seconds were queue time behind another request because the memory-safe configuration exposes one inference slot. Switching away from the still-open Q8 process immediately released about 31 GiB on disk, while the Q4 artifact is about 12.9 GiB smaller than Q8.
 
@@ -103,3 +105,9 @@ A second Q4 test started a genuinely new Hermes chat containing only the user qu
 | Skills index | 5.7 KB |
 
 The model and endpoint remained healthy throughout the test. The failure is architectural: the default full Hermes tool surface and System prompt are too large for responsive inference on this hardware. A useful deployment needs a lean System profile with only the required toolsets and a scheduler whose reports do not continuously expand the interactive chat. Model self-identification is not a valid routing test; this run repeated a stale Q8 identifier found in earlier preserved history even though session metadata, the running process, and the provider's `/v1/models` response all proved that Q4_K_M handled the request.
+
+### Fully GPU-resident candidate
+
+Qwen3 8B Q4_K_M replaced the 30B artifact and kept its weights plus Q8 key/value caches entirely within the RTX 3080 Ti's VRAM. A fresh direct request completed in 0.27 seconds, with 734.7 prompt tokens per second and 122.9 generated tokens per second. The provider advertised the expected alias and its native 40,960-token context, and the machine retained 91 GiB of free model-volume storage after the installer removed the inactive 30B artifact.
+
+This direct result is fast enough to proceed, but it is not yet a Hermes acceptance result. The previously measured default Hermes System request contained 46,536 prompt tokens, which exceeds this model's native context before response generation. The next acceptance test must therefore use a reduced System prompt/tool surface and a fresh or compressed session; silently truncating the existing full request would not be a valid migration.
