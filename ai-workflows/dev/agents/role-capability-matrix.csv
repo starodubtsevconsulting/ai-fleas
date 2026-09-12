@@ -1,8 +1,1 @@
-role,display_label,model,reasoning,lifecycle,human_facing,communication_mode
-admin,Admin,profile-default,profile-default,persistent-control,human-owned,direct-human-administration-only
-designer_reviewer,Designer / Reviewer,profile-default,profile-default,persistent-control,primary,human-dialogue-and-canonical-packets
-judge,Judge,profile-default,profile-default,persistent-control,oversight-only,direct-human-governance-only
-manager,Manager,profile-default,profile-default,persistent-control,false,internal-canonical-packets-only
-coder,Coder,profile-default,profile-default,disposable-worker,false,internal-canonical-packets-only
-command_runner,Command Runner,profile-default,profile-default,disposable-worker,false,internal-canonical-packets-only
-ui_acceptance_tester,UI Acceptance Tester,profile-default,profile-default,disposable-worker,false,internal-canonical-packets-only
+# legacy placeholder intentionally not used
