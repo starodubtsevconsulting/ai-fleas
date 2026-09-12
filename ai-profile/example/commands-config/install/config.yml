@@ -1,7 +1,7 @@
 # EXAMPLE ONLY: all identities and targets are fictional and non-operational.
 defaults:
   ssh_port: 22
-  preset: qwen3-8b-gpu
+  preset: qwen3.5-9b-hermes
   provider_port: 8080
   storage_volume: /srv/ai-models
 
@@ -9,5 +9,5 @@ boxes:
   ai-lab-test:
     # Define this alias in the operator's private ~/.ssh/config.
     ssh_alias: ai-lab-test
-    preset: qwen3-8b-gpu
+    preset: qwen3.5-9b-hermes
     inventory: inventory/ai-lab-test.json

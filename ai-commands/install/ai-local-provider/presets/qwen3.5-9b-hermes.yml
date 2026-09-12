@@ -1,0 +1,63 @@
+id: qwen3.5-9b-hermes
+name: Qwen3.5 9B Q4_K_M Hermes 64K
+
+model:
+  source: huggingface
+  repository: unsloth/Qwen3.5-9B-GGUF
+  file: Qwen3.5-9B-Q4_K_M.gguf
+  api_alias: qwen3.5-9b-q4_k_m
+  sha256: 03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8
+  size_bytes: 5680522464
+  quantization: Q4_K_M
+  context: 65536
+
+runtime:
+  type: llama.cpp
+  source_repository: https://github.com/ggml-org/llama.cpp.git
+  source_revision: 8ea290247c87ced2ab245b056ffe96dbcf90d36c
+  gpu_layers: 99
+  cache_key_type: q8_0
+  cache_value_type: q8_0
+  parallel: 1
+
+requirements:
+  os: ubuntu-24.04
+  architecture: amd64
+  memory:
+    minimum_gb: 16
+    recommended_gb: 24
+  disk:
+    minimum_free_gb: 16
+    recommended_free_gb: 25
+    reserve_after_install_gb: 8
+    runtime_root_free_gb: 8
+  gpu:
+    optional: false
+    vendor: nvidia
+    minimum_vram_gb: 12
+
+provider:
+  model_count: 1
+  autostart: true
+
+api:
+  protocol: http
+  authentication: none
+  api_key: none
+
+network:
+  exposure: lan
+
+service:
+  manager: systemd
+  listen_address: 0.0.0.0
+  port: 8080
+  name: ai-local-provider
+  restart: on-failure
+
+notes:
+  - Quantized from the Apache-2.0 Qwen3.5 9B model and pinned by artifact checksum.
+  - The model has a native 262K context; this preset exposes a real 64K window required by Hermes Agent.
+  - All model layers are targeted to CUDA and Q8 key/value caches are used for a 12 GiB GPU budget.
+  - One inference slot prevents duplicate KV caches from exceeding VRAM.
+  - HTTP without authentication is intended only for a trusted LAN and must not be exposed to the public Internet by default.
