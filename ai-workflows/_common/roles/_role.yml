@@ -10,7 +10,7 @@ requiredFields:
   - contract
   - scope.kind
   - scope.bindingOwner
-  - humanFacing.mode
+  - humanFacing
   - lifecycle.default
   - fixed.canonicalRole
 
@@ -28,18 +28,17 @@ fieldModel:
   scope:
     kind:
       type: enum
-      values: [workflow, cross-workflow, profile, platform]
+      values: [workflow, cross-workflow, profile, platform, system]
       required: true
     bindingOwner:
       type: enum
-      values: [workflow, profile, platform, binding]
+      values: [workflow, profile, platform, profile-platform, binding]
       required: true
 
   humanFacing:
-    mode:
-      type: enum
-      values: [required, allowed, prohibited]
-      required: true
+    type: boolean
+    required: true
+    description: Whether an initialized Agent bound to this role may communicate directly with the human.
 
   lifecycle:
     default:
