@@ -1,0 +1,10 @@
+# EXAMPLE ONLY: fictional, non-operational profile binding.
+capability: messaging
+provider: slack
+integration: plugin-or-mcp
+workspace: example-workspace
+account: jonathan-example
+allowed_channels: [direct-message, channel]
+allowed_operations: [search, read, send]
+# SMS remains part of the messaging capability. A real profile may select an
+# SMS-capable provider/integration instead of Slack when text delivery is needed.
