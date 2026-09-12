@@ -1,50 +1,76 @@
 schemaVersion: role.v1
+abstract: true
 
-# Structural companion for a reusable role Markdown contract.
-# Copy this file beside <role-id>.md as <role-id>.yml and fill only the fields
-# that describe the reusable role interface. Runtime values belong to the
-# concrete Agent binding, profile, workflow, project, or selected platform.
+# Base structural contract for reusable roles.
+# Concrete role companions declare `extends: _role.yml` and provide only
+# role-specific values and structural additions/overrides.
 
-id: example-role
-contract: example-role.md
+requiredFields:
+  - id
+  - contract
+  - scope.kind
+  - scope.bindingOwner
+  - humanFacing.mode
+  - lifecycle.default
+  - fixed.canonicalRole
 
-scope:
-  # workflow | cross-workflow | profile | platform
-  kind: workflow
-  # workflow means a workflow manifest normally binds the role to an Agent.
-  # cross-workflow/profile roles are bound outside one workflow.
-  bindingOwner: workflow
-
-humanFacing:
-  # required | allowed | prohibited
-  mode: allowed
-
-lifecycle:
-  # persistent | task-scoped | adapter-defined
-  default: adapter-defined
-
-fixed:
-  # Values that are part of the role contract and cannot be changed by an Agent implementation.
-  canonicalRole: example-role
-
-configurable:
-  # Structural slots that an Agent implementation may/must fill.
-  # Each slot declares ownership/cardinality instead of provider-specific values.
-  displayLabel:
+fieldModel:
+  id:
     type: string
+    required: true
+    description: Stable canonical role identifier.
+
+  contract:
+    type: path
+    required: true
+    description: Adjacent Markdown semantic/behavioral contract.
+
+  scope:
+    kind:
+      type: enum
+      values: [workflow, cross-workflow, profile, platform]
+      required: true
+    bindingOwner:
+      type: enum
+      values: [workflow, profile, platform, binding]
+      required: true
+
+  humanFacing:
+    mode:
+      type: enum
+      values: [required, allowed, prohibited]
+      required: true
+
+  lifecycle:
+    default:
+      type: enum
+      values: [persistent, task-scoped, adapter-defined]
+      required: true
+
+  fixed:
+    type: map
+    required: true
+    description: Role invariants that concrete Agent bindings cannot override.
+
+  configurable:
+    type: map
     required: false
-    owner: binding
+    description: Open fields that an Agent binding may fill according to each entry's type, ownership, and required flag.
 
-bindings: {}
+  bindings:
+    type: map
+    required: false
+    description: Typed role-specific references/resources that implementations must or may resolve.
 
-# Example binding entry:
-# bindings:
-#   project:
-#     type: reference
-#     required: true
-#     cardinality: one
-#     owner: workflow
-#     description: Exact project/workspace reference supplied by the initialized Agent context.
+inheritance:
+  merge: deep
+  maps: merge-by-key
+  scalars: child-overrides-parent
+  lists: child-replaces-parent
+  unknownFields: prohibited-unless-schema-allows
 
-# The role YAML is the machine-readable structural interface.
-# The adjacent Markdown file remains the semantic/behavioral contract.
+# The base file defines the structural vocabulary, not concrete role values.
+# Concrete role YAML should not copy inherited definitions merely for readability.
+# Repeat a field only when the concrete role sets/overrides its value or adds
+# role-specific structure. Tooling may render an expanded/effective view when
+# humans or software need to inspect the fully resolved role.
