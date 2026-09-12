@@ -1,0 +1,77 @@
+schemaVersion: profile-agent-binding.v1
+
+agentId: cross-workflow-governor
+roleDefinition: ../../ai-workflows/_common/roles/cross-workflow-governor.yml
+scope: profile
+lifecycle: persistent
+humanFacing: true
+readinessToken: CROSS_WORKFLOW_GOVERNOR_READY
+aiProvider: profile-default
+
+profile:
+  id: example
+
+subject:
+  id: jonathan-example
+  name: Jonathan Example
+  coordinates:
+    email: jonathan@example.invalid
+
+workflows:
+  - dev
+
+goals:
+  - id: improve-ai-tool-proficiency
+    intent: Become proficient with AI tools used in routine work.
+    status: active
+    priority: high
+    workflows:
+      - dev
+    successSignals:
+      - Common AI-assisted tasks can be completed reliably.
+      - Tool selection and usage become more consistent.
+
+  - id: improve-work-efficiency
+    intent: Reduce repeated manual work and improve delivery efficiency with appropriate automation.
+    status: active
+    priority: medium
+    workflows:
+      - dev
+    successSignals:
+      - Repetitive steps are automated where useful.
+      - Routine work requires less manual coordination.
+
+memory:
+  - name: canonical-strategy
+    uri: https://docs.example.invalid/governor/canonical-strategy
+    purpose: Fictional external reference for current goals, priorities, constraints, and strategic decisions.
+    access: read-write
+    privacy: profile-private
+    precedence: canonical
+
+  - name: decision-history
+    uri: https://docs.example.invalid/governor/decision-history
+    purpose: Fictional external reference for durable decision history and rationale.
+    access: read-write
+    privacy: profile-private
+    precedence: historical
+
+  - name: project-context
+    uri: repo://example-profile/project-context
+    purpose: Fictional read-only supporting project and workflow context.
+    access: read-only
+    privacy: profile-private
+
+commands:
+  - source-control
+
+platformBindings:
+  gpt-agents:
+    title: "Governor"
+    model: profile-default
+    reasoning: high
+
+  hermes:
+    title: "Governor"
+    provider: profile-default
+    model: profile-default
