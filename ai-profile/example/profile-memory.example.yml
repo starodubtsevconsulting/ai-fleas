@@ -1,0 +1,52 @@
+# DRAFT EXAMPLE ONLY: memory runtime/integration is not implemented yet.
+# The profile owns physical storage and retrieval-provider selection.
+# Portable roles such as Cross-Workflow Governor reference logical memory areas,
+# not platform-specific storage mechanics.
+
+schemaVersion: profile-memory.v0-draft
+status: draft
+
+canonical:
+  type: markdown-vault
+  # Example local path only. A real profile chooses its own private location.
+  root: ~/.ai-fleas/example/memory
+  format: markdown
+  humanInterface: obsidian-compatible
+  sourceOfTruth: true
+
+retrieval:
+  # Derived/indexed memory is optional and must be rebuildable from canonical files.
+  mode: derived
+  provider: mem0
+  status: candidate-not-configured
+  source: canonical
+  sourceOfTruth: false
+
+areas:
+  canonical-strategy:
+    path: strategy
+    access: read-write
+  decision-history:
+    path: decisions
+    access: read-write
+  project-context:
+    path: context
+    access: read-only
+
+platformAccess:
+  hermes:
+    # Prefer a native Hermes memory provider/adapter when it preserves the same
+    # profile-level canonical-memory semantics.
+    route: native-or-command-adapter
+    status: not-configured
+  gpt-agents:
+    # GPT may use MCP, a profile command, or another supported connector to reach
+    # the same profile memory. The concrete route is intentionally undecided.
+    route: mcp-or-command-adapter
+    status: not-configured
+
+rules:
+  - canonical-markdown-is-human-readable-source-of-truth
+  - retrieval-index-is-derived-and-rebuildable
+  - memory-never-crosses-profile-boundary-without-explicit-transfer
+  - platform-native-memory-must-not-become-the-only-source-of-truth
