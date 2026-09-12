@@ -18,6 +18,14 @@ ai_workflows_root: ../../ai-workflows
 ai_platforms_root: ../../platforms
 agent_identities:
   config: agent-identities.yml
+
+# Draft profile-owned permanent-memory configuration. Canonical storage is
+# human-readable local Markdown; retrieval/indexing and platform routes are
+# implementation choices and are not operational in this example yet.
+memory:
+  config: profile-memory.example.yml
+  status: draft
+
 system_agent:
   scope: system
   cardinality: one-per-platform
