@@ -16,6 +16,8 @@ runtime:
   source_repository: https://github.com/ggml-org/llama.cpp.git
   source_revision: 8ea290247c87ced2ab245b056ffe96dbcf90d36c
   gpu_layers: 20
+  cache_key_type: f16
+  cache_value_type: f16
   parallel: 1
 
 requirements:
