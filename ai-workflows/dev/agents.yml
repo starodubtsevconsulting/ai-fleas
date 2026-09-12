@@ -5,6 +5,10 @@ teamPolicy: agents/team.md
 
 policy:
   authority: agents/team.md
+  roleMatrix: agents/role-capability-matrix.csv
+  capabilityOwnershipMatrix: agents/role-capability-ownership.csv
+  communicationMatrix: agents/role-communication-matrix.csv
+  accessMatrixMechanism: ../_common/policy/access-matrix.md
   routing: agents/shared-execution-routing.md
   permissionEnvelope: agents/permission-envelope.md
   elasticPool: agents/elastic-agent-pool.md
@@ -17,12 +21,14 @@ policy:
 # realizes the properties it supports. `aiProvider` is independent from model;
 # `profile-default` means resolve the concrete provider from the active profile.
 # Scope declares where the agent belongs, independently from what it may access.
+# Matrix columns bind each declared agent to the workflow-local mechanical policy.
 # Continuity follows the common default unless an agent overrides it, for example:
 # `continuity: { enabled: false }` or `continuity: { maxDuration: 24h }`.
 # Scheduling is independent from continuity. Each agent declares whether it is
 # scheduled and, when enabled, its interval and instruction.
 initializer:
   agentId: admin
+  matrixColumn: admin
   roleDefinition: ../_common/roles/admin.md
   scope: workflow
   lifecycle: persistent-control
@@ -35,6 +41,7 @@ initializer:
 
 agents:
   - agentId: designer-reviewer
+    matrixColumn: designer_reviewer
     roleDefinition: ../_common/roles/designer-reviewer.md
     scope: workflow
     aliases: [designer reviewer, designer/reviewer]
@@ -47,6 +54,7 @@ agents:
     continuity: { maxDuration: 24h }
     schedule: { enabled: false }
   - agentId: judge
+    matrixColumn: judge
     roleDefinition: ../_common/roles/judge.md
     scope: workflow
     aliases: [judge, workflow judge]
@@ -59,6 +67,7 @@ agents:
     continuity: { maxDuration: 24h }
     schedule: { enabled: true, every: 10m, instruction: agents/schedules/judge-governance-audit.yml }
   - agentId: manager
+    matrixColumn: manager
     roleDefinition: ../_common/roles/manager.md
     scope: workflow
     aliases: [manager, ask manager]
@@ -71,6 +80,7 @@ agents:
     continuity: { maxDuration: 24h }
     schedule: { enabled: true, every: 10m, instruction: agents/schedules/manager-continuity.yml }
   - agentId: coder
+    matrixColumn: coder
     roleDefinition: ../_common/roles/coder.md
     scope: workflow
     aliases: [coder]
@@ -84,6 +94,7 @@ agents:
     schedule: { enabled: false }
     elasticPool: { enabled: true, minReady: 0, maxActive: 3 }
   - agentId: command-runner
+    matrixColumn: command_runner
     roleDefinition: ../_common/roles/command-runner.md
     scope: workflow
     aliases: [command runner, command-runner]
@@ -97,6 +108,7 @@ agents:
     schedule: { enabled: false }
     elasticPool: { enabled: true, minReady: 1, maxActive: 4 }
   - agentId: ui-acceptance-tester
+    matrixColumn: ui_acceptance_tester
     roleDefinition: ../_common/roles/ui-acceptance-tester.md
     scope: workflow
     aliases: [ui tester, ui-acceptance-tester]
