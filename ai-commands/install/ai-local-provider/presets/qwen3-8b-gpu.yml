@@ -1,0 +1,62 @@
+id: qwen3-8b-gpu
+name: Qwen3 8B Q4_K_M Full GPU
+
+model:
+  source: huggingface
+  repository: Qwen/Qwen3-8B-GGUF
+  file: Qwen3-8B-Q4_K_M.gguf
+  api_alias: qwen3-8b-q4_k_m
+  sha256: d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785
+  size_bytes: 5027783488
+  quantization: Q4_K_M
+  context: 65536
+
+runtime:
+  type: llama.cpp
+  source_repository: https://github.com/ggml-org/llama.cpp.git
+  source_revision: 8ea290247c87ced2ab245b056ffe96dbcf90d36c
+  gpu_layers: 99
+  cache_key_type: q8_0
+  cache_value_type: q8_0
+  parallel: 1
+
+requirements:
+  os: ubuntu-24.04
+  architecture: amd64
+  memory:
+    minimum_gb: 16
+    recommended_gb: 24
+  disk:
+    minimum_free_gb: 15
+    recommended_free_gb: 24
+    reserve_after_install_gb: 8
+    runtime_root_free_gb: 8
+  gpu:
+    optional: false
+    vendor: nvidia
+    minimum_vram_gb: 12
+
+provider:
+  model_count: 1
+  autostart: true
+
+api:
+  protocol: http
+  authentication: none
+  api_key: none
+
+network:
+  exposure: lan
+
+service:
+  manager: systemd
+  listen_address: 0.0.0.0
+  port: 8080
+  name: ai-local-provider
+  restart: on-failure
+
+notes:
+  - Official Apache-2.0 Qwen GGUF pinned by artifact checksum.
+  - All model layers are offloaded to CUDA; Q8 key/value caches keep the 64K context within a 12 GiB GPU budget.
+  - One inference slot prevents duplicate KV caches from exceeding VRAM.
+  - HTTP without authentication is intended only for a trusted LAN and must not be exposed to the public Internet by default.
