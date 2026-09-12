@@ -40,6 +40,10 @@ system_agent:
     sc:
       title: "⚙️ System"
       model: platform-default
+profile_agents:
+  - id: cross-workflow-governor
+    scope: profile
+    config: profile-governor.example.yml
 governance_rules_repository: example-governance-rules
 governance_rules_surface:
   - AGENTS.md
