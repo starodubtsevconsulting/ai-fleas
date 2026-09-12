@@ -2,6 +2,18 @@
 
 This comparison uses a 12 GiB NVIDIA GeForce RTX 3080 Ti workstation with approximately 47 GiB of OS-visible RAM. The provider runs a pinned CUDA build of `llama.cpp` with one inference slot; context varies by candidate. Unlike the controlled GX10 measurements, the first result records a real, existing Hermes System-agent conversation and is therefore an operational baseline rather than a synthetic benchmark.
 
+## Takeaways
+
+The RTX 3080 Ti turned out to be **useful, but for a different role than a large-model worker**.
+
+- **Compute is not the main problem.** A fully GPU-resident Qwen3.5 9B Q4_K_M generated about 95 tok/s in the measured direct request, with live inference reaching 94% GPU utilization.
+- **12 GiB VRAM is the main constraint.** The 30B candidates only partially fit on the GPU and become too slow for an interactive Hermes System agent.
+- **Small and medium models are a good fit.** Qwen3.5 9B fits completely in VRAM together with its caches, uses about 6.7 GiB, and still provides the 65,536-token context required by Hermes.
+- **The GPU is therefore well suited to fast local System agents and micro-command workers** where responsiveness and low-cost repeated inference matter more than running the largest possible model.
+- **Hermes latency should not be confused with GPU/model latency.** In the first Desktop acceptance run, the substantive provider request completed in 6.9 seconds; much of the remaining 37–63 second wall time came from orchestration overhead, especially automatic title-generation requests competing for the single inference slot.
+
+The practical architecture is therefore complementary rather than competitive: **GX10-class hardware handles larger heavyweight workers, while the RTX 3080 Ti can serve fast smaller agents and frequent local tasks.**
+
 | Metric | Qwen3-Coder 30B A3B Q8_0 | Qwen3-Coder 30B A3B Q4_K_M | Qwen3 8B Q4_K_M |
 |---|---:|---:|---:|
 | Model size | 30.2 GiB | 17.3 GiB | 4.68 GiB |
