@@ -125,13 +125,19 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     hermes_bin="$(resolve_hermes)"
     if [[ -n "${scheduler_id}" ]]; then
       "${hermes_bin}" -p "${system_profile}" cron edit "${scheduler_id}" --schedule "${every}" --prompt "${schedule_prompt}" --name "${scheduler_name}" --deliver "bot-chat:${system_profile}" --workdir "${system_workspace}" --model "${system_model}" --provider "${system_provider}" --continuity
+      # Reconciliation is authoritative for an enabled profile schedule. An
+      # earlier provider failure may have auto-paused the existing job, and
+      # editing its configuration does not resume it.
+      "${hermes_bin}" -p "${system_profile}" cron resume "${scheduler_id}"
     else
       "${hermes_bin}" -p "${system_profile}" cron create "${every}" "${schedule_prompt}" --name "${scheduler_name}" --deliver "bot-chat:${system_profile}" --workdir "${system_workspace}" --model "${system_model}" --provider "${system_provider}" --continuity
       scheduler_id="$(JOBS_FILE="${jobs_file}" JOB_NAME="${scheduler_name}" python3 -c 'import json, os; d=json.load(open(os.environ["JOBS_FILE"])); jobs=d.get("jobs", []); matches=[str(j.get("id")) for j in jobs if isinstance(j,dict) and j.get("name")==os.environ["JOB_NAME"]]; print(matches[0] if len(matches)==1 else "")')"
     fi
     [[ -n "${scheduler_id}" ]] || { printf '%s\n' 'HERMES_SYSTEM_SCHEDULER_INVALID: exact scheduler receipt was not found.' >&2; exit 1; }
     binding_args=(--path "${binding_registry}" --profile "${system_profile}" --title "${system_title}" --provider "${system_provider}" --model "${system_model}" --every "${every}" --scheduler-id "${scheduler_id}")
-    for group in "${watch_groups[@]}"; do binding_args+=(--watch-group "${group}"); done
+    if ((${#watch_groups[@]})); then
+      for group in "${watch_groups[@]}"; do binding_args+=(--watch-group "${group}"); done
+    fi
     "${hermes_python}" "${SYSTEM_BINDING_WRITER}" "${binding_args[@]}"
     cron_status="$("${hermes_bin}" -p "${system_profile}" cron status 2>&1 || true)"
     if [[ "${cron_status}" != *'Gateway is running'* || "${cron_status}" != *'cron jobs will fire automatically'* ]]; then

@@ -9,7 +9,7 @@ let data;
 try { data = parse(fs.readFileSync(file, 'utf8')) || {}; } catch { fail('CONFIGURATION_INVALID: YAML could not be parsed.'); }
 if (field === 'preset-ready') {
   const model = data.model || {};
-  process.exit(model.repository && model.file && model.quantization ? 0 : 3);
+  process.exit(model.repository && model.file && model.api_alias && model.quantization ? 0 : 3);
 }
 if (field?.startsWith('preset-field:')) {
   const path = field.slice('preset-field:'.length).split('.');

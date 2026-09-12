@@ -238,11 +238,15 @@ node "$command_dir/resolve-config.mjs" "$preset_file" '' preset-ready >/dev/null
 [[ "$sudo_mode" != unavailable ]] || fail "INSUFFICIENT_PRIVILEGES: SSH user is not authorized for sudo provisioning."
 model_repository="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.repository')"
 model_file="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.file')"
+model_api_alias="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.api_alias')"
 model_sha256="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.sha256')"
 runtime_repository="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.source_repository')"
 runtime_revision="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.source_revision')"
 context_size="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.context')"
 gpu_layers="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.gpu_layers')"
+cache_key_type="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.cache_key_type')"
+cache_value_type="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.cache_value_type')"
+parallel_slots="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.parallel')"
 listen_address="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:service.listen_address')"
 provider_port="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:service.port')"
 service_name="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:service.name')"
@@ -263,7 +267,7 @@ scp "${scp_args[@]}" "$provision_script" "$target:$remote_provision_script" || f
 trap 'rm -f -- "$auth_error"' EXIT
 set +e
 ssh "${ssh_provision_args[@]}" "$target" \
-  "sudo bash $(printf '%q' "$remote_provision_script") $(printf '%q ' "$storage_volume" "$model_repository" "$model_file" "$model_sha256" "$runtime_repository" "$runtime_revision" "$context_size" "$gpu_layers" "$listen_address" "$provider_port" "$service_name")"
+  "sudo bash $(printf '%q' "$remote_provision_script") $(printf '%q ' "$storage_volume" "$model_repository" "$model_file" "$model_sha256" "$runtime_repository" "$runtime_revision" "$context_size" "$gpu_layers" "$listen_address" "$provider_port" "$service_name" "$model_api_alias" "$parallel_slots" "$cache_key_type" "$cache_value_type")"
 provision_code=$?
 set -e
 ssh "${ssh_args[@]}" "$target" "rm -f -- $(printf '%q' "$remote_provision_script")" >/dev/null 2>&1 || true
