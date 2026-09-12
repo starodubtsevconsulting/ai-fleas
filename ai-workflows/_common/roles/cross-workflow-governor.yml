@@ -121,11 +121,4 @@ bindings:
     cardinality: many
     owner: profile
     providerNeutral: true
-    description: Registered provider-neutral commands such as ticket-tracker or source-control; concrete providers resolve through normal profile command configuration.
-
-  capabilities:
-    type: capability-reference
-    required: false
-    cardinality: many
-    owner: profile-or-platform
-    description: Abstract capabilities without a registered command, such as calendar or metrics access, resolved by the selected platform/profile.
+    description: Registered provider-neutral commands required for governance, such as ticket-tracker, calendar, or source-control. Concrete providers and supported overrides resolve through normal profile command configuration.
