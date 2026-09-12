@@ -40,11 +40,16 @@ Same basic observation: context can help decide what should be put in front of s
 objective.
 
 I have been calling this role the **Cross-Workflow Governor** (earlier: **Global Governor**). It sits above individual
-workflows, remembers the goals and the broader human context, and asks not only whether an activity is worthwhile, but
-whether it is the right activity **now**.
+workflows, can follow several human-owned goals across them, remembers broader context, and asks not only whether an
+activity is worthwhile, but whether it is the right activity **now**.
 
-The portable role contract is now defined in
-[`_common/roles/cross-workflow-governor.md`](../_common/roles/cross-workflow-governor.md). Its distinguishing trait is
+The Governor is intentionally strongly human-facing. It is configured for a governed human, understands the workflows
+inside its governance scope, and may use approved capabilities such as calendars, task systems, repositories, or metrics
+to observe current reality. The initial contract supports one governed human; multi-human governance is left as a future
+extension because it introduces additional authority, consent, privacy, and conflicting-goal semantics.
+
+The portable role contract is defined in
+[`_common/roles/cross-workflow-governor.md`](../_common/roles/cross-workflow-governor.md). Another distinguishing trait is
 durable external memory: one or more configured, annotated memory references that survive model sessions. A local
 Markdown/Obsidian directory is the simplest implementation, but the role contract is deliberately protocol-neutral so
 platform adapters can resolve filesystem, HTTP(S), repository, or other supported memory locations.
