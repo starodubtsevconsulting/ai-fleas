@@ -46,24 +46,27 @@ reviewSchedule:
   every: 1w
   purpose: Review goal alignment and advise the governed human only when a meaningful adjustment is justified.
 
+# Logical profile-memory references only. Physical storage, retrieval/indexing,
+# and Hermes/GPT access routes are owned by the profile memory configuration.
+# The current example is a draft and is not an implemented runtime integration.
 memory:
   - name: canonical-strategy
-    uri: https://docs.example.invalid/governor/canonical-strategy
-    purpose: Fictional external reference for current goals, priorities, constraints, and strategic decisions.
+    uri: profile-memory://canonical-strategy
+    purpose: Current goals, priorities, constraints, and strategic decisions.
     access: read-write
     privacy: profile-private
     precedence: canonical
 
   - name: decision-history
-    uri: https://docs.example.invalid/governor/decision-history
-    purpose: Fictional external reference for durable decision history and rationale.
+    uri: profile-memory://decision-history
+    purpose: Durable decision history and rationale.
     access: read-write
     privacy: profile-private
     precedence: historical
 
   - name: project-context
-    uri: repo://example-profile/project-context
-    purpose: Fictional read-only supporting project and workflow context.
+    uri: profile-memory://project-context
+    purpose: Read-only supporting project and workflow context.
     access: read-only
     privacy: profile-private
 
