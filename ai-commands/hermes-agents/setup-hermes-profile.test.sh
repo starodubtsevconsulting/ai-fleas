@@ -46,6 +46,7 @@ if [[ "$1" == -p ]]; then
       compression.threshold) value='0.25' ;;
       compression.target_ratio) value='0.15' ;;
       compression.protect_last_n) value='8' ;;
+      auxiliary.title_generation.enabled) value='false' ;;
       terminal.cwd) value="${TEST_WORKSPACE}" ;;
       *) exit 1 ;;
     esac
@@ -94,5 +95,24 @@ grep -F "Your active workflow contract is \`${test_root}/workflows/financial-ins
 grep -F "Your selected AI command catalog root is \`${test_root}/commands\`. The commands allowed by this workflow are: \`statements\`." "${profile_dir}/SOUL.md" >/dev/null
 grep -F 'For every user request, first match the intent against those selected commands.' "${profile_dir}/SOUL.md" >/dev/null
 grep -F 'Hermes bot ready: example-dev-service' "${test_root}/output" >/dev/null
+
+# System profiles disable automatic title generation so it cannot block a
+# single-slot local model ahead of the actual lifecycle request.
+HERMES_SCOPE='system' \
+HERMES_HOME="${test_root}/hermes-home" \
+HERMES_BIN="${test_root}/bin/hermes" \
+HERMES_PROFILE='example-system' \
+HERMES_PROVIDER_ID='example-box' \
+HERMES_PROVIDER_LABEL='Example box' \
+HERMES_MODEL='example-coder-model' \
+HERMES_ENDPOINT='http://192.0.2.10:1234/v1' \
+HERMES_WORKSPACE="${test_root}/workspace" \
+HERMES_SYSTEM_ROLE_PATH="${test_root}/instructions.md" \
+HERMES_SYSTEM_SCHEDULE_PATH="${test_root}/instructions.md" \
+HERMES_BINDING_REGISTRY_PATH="${test_root}/bindings.yml" \
+TEST_WORKSPACE="${test_root}/workspace" \
+PATH="${test_root}/bin:${PATH}" \
+  "${SETUP_SCRIPT}" --workspace "${test_root}/workspace" >"${test_root}/system-output"
+grep -F 'auxiliary.title_generation.enabled=false' "${test_root}/hermes-home/profiles/example-system/values" >/dev/null
 
 echo 'setup-hermes-profile test passed'
