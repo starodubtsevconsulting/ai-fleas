@@ -1,0 +1,6 @@
+# EXAMPLE ONLY: fictional, non-operational profile binding.
+capability: email
+provider: gmail
+integration: plugin-or-mcp
+account: jonathan@example.invalid
+allowed_operations: [search, read, draft, send]
