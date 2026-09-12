@@ -1,0 +1,17 @@
+schemaVersion: role.v1
+extends: _role.yml
+
+id: designer-reviewer
+contract: designer-reviewer.md
+
+scope:
+  kind: workflow
+  bindingOwner: workflow
+
+humanFacing: true
+
+lifecycle:
+  default: persistent
+
+fixed:
+  canonicalRole: designer-reviewer
