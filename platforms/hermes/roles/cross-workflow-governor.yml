@@ -7,8 +7,7 @@ realization:
   title: "Governor"
   provider: profile-default
   model: profile-default
-  lifecycle: persistent
-  readiness_token: CROSS_WORKFLOW_GOVERNOR_READY
 
-# This overlay realizes the portable role on Hermes only.
-# Provider/model values resolve through the selected profile and do not change role authority.
+# Portable lifecycle, readiness, scope, human-facing semantics, and authority
+# come from the profile binding and portable role. This overlay owns only
+# Hermes-specific realization details.
