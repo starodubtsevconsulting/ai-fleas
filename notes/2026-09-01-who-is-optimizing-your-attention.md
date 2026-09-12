@@ -39,11 +39,15 @@ The inversion is:
 Same basic observation: context can help decide what should be put in front of someone next. Different owner of the
 objective.
 
-I have been calling this potential role the **Global Governor**. It sits above individual workflows, remembers the goals and the
-broader human context, and asks not only whether an activity is worthwhile, but whether it is the right activity **now**.
+I have been calling this role the **Cross-Workflow Governor** (earlier: **Global Governor**). It sits above individual
+workflows, remembers the goals and the broader human context, and asks not only whether an activity is worthwhile, but
+whether it is the right activity **now**.
 
-For now, this remains a design concept rather than an active AI Fleas workflow role. A future role contract would still
-need explicit capability, privacy, memory, human-authority, and platform-binding rules.
+The portable role contract is now defined in
+[`_common/roles/cross-workflow-governor.md`](../_common/roles/cross-workflow-governor.md). Its distinguishing trait is
+durable external memory: one or more configured, annotated memory references that survive model sessions. A local
+Markdown/Obsidian directory is the simplest implementation, but the role contract is deliberately protocol-neutral so
+platform adapters can resolve filesystem, HTTP(S), repository, or other supported memory locations.
 
 Maybe the useful personal AI is not the one that knows how to do everything for you. Maybe it is the one that remembers
 what you asked your life to optimize for.
