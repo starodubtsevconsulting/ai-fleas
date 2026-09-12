@@ -75,11 +75,13 @@ This comparison uses a 12 GiB NVIDIA GeForce RTX 3080 Ti workstation with approx
 | GPU layers | 12 | 20 |
 | Configured context | 65,536 | 65,536 |
 | Inference slots | 1 | 1 |
-| Existing conversation input | ~19K tokens | Pending equivalent test |
-| Prompt-processing time | ~2 minutes | Pending equivalent test |
-| Generation | ~7.3 tok/s | Pending equivalent test |
-| User-observed response time | ~5 minutes | Pending equivalent test |
-| Direct API verification | PASS | Pending installation |
-| Hermes existing-session test | PASS | Pending equivalent test |
+| Existing conversation input | ~19K tokens | 17,282 input + 1,839 cache-read tokens |
+| Prompt-processing time | ~2 minutes | 60.0 s (288.2 tok/s) |
+| Longer direct generation | ~7.3 tok/s | 14.5 tok/s (157-token response) |
+| Preserved-session wall time | ~5 minutes observed | 165 s, including ~103 s waiting for the single occupied slot |
+| Direct API verification | PASS | PASS |
+| Hermes existing-session test | PASS | PASS |
 
-The Q8_0 result was functionally correct but too slow for an interactive System agent. The Q4_K_M replacement is intended to improve responsiveness and reclaim approximately 12.9 GiB of model storage. Its final measurements will replace the pending values after the same preserved Hermes conversation and direct endpoint are tested.
+The Q8_0 result was functionally correct but too slow for an interactive System agent. Q4_K_M approximately doubled sustained generation in the longer direct response, reduced large-conversation prompt processing to about one minute, and reduced the observed preserved-session wall time from roughly five minutes to 165 seconds. The service itself completed that Hermes request in 61.8 seconds; approximately 103 seconds were queue time behind another request because the memory-safe configuration exposes one inference slot. Switching away from the still-open Q8 process immediately released about 31 GiB on disk, while the Q4 artifact is about 12.9 GiB smaller than Q8.
+
+The preserved-session test resumed the existing `Bot Chat`, retained its history, and returned the exact requested marker through the Q4 provider in one API call. Short-response generation rates are unstable, so the seven-token Hermes marker's 3.2 tok/s rate is not used as the representative generation measurement.
