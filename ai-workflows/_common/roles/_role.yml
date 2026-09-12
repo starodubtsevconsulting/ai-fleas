@@ -1,0 +1,50 @@
+schemaVersion: role.v1
+
+# Structural companion for a reusable role Markdown contract.
+# Copy this file beside <role-id>.md as <role-id>.yml and fill only the fields
+# that describe the reusable role interface. Runtime values belong to the
+# concrete Agent binding, profile, workflow, project, or selected platform.
+
+id: example-role
+contract: example-role.md
+
+scope:
+  # workflow | cross-workflow | profile | platform
+  kind: workflow
+  # workflow means a workflow manifest normally binds the role to an Agent.
+  # cross-workflow/profile roles are bound outside one workflow.
+  bindingOwner: workflow
+
+humanFacing:
+  # required | allowed | prohibited
+  mode: allowed
+
+lifecycle:
+  # persistent | task-scoped | adapter-defined
+  default: adapter-defined
+
+fixed:
+  # Values that are part of the role contract and cannot be changed by an Agent implementation.
+  canonicalRole: example-role
+
+configurable:
+  # Structural slots that an Agent implementation may/must fill.
+  # Each slot declares ownership/cardinality instead of provider-specific values.
+  displayLabel:
+    type: string
+    required: false
+    owner: binding
+
+bindings: {}
+
+# Example binding entry:
+# bindings:
+#   project:
+#     type: reference
+#     required: true
+#     cardinality: one
+#     owner: workflow
+#     description: Exact project/workspace reference supplied by the initialized Agent context.
+
+# The role YAML is the machine-readable structural interface.
+# The adjacent Markdown file remains the semantic/behavioral contract.
