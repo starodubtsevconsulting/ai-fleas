@@ -1,0 +1,75 @@
+schemaVersion: role.v1
+abstract: true
+
+# Base structural contract for reusable roles.
+# Concrete role companions declare `extends: _role.yml` and provide only
+# role-specific values and structural additions/overrides.
+
+requiredFields:
+  - id
+  - contract
+  - scope.kind
+  - scope.bindingOwner
+  - humanFacing
+  - lifecycle.default
+  - fixed.canonicalRole
+
+fieldModel:
+  id:
+    type: string
+    required: true
+    description: Stable canonical role identifier.
+
+  contract:
+    type: path
+    required: true
+    description: Adjacent Markdown semantic/behavioral contract.
+
+  scope:
+    kind:
+      type: enum
+      values: [workflow, cross-workflow, profile, platform, system]
+      required: true
+    bindingOwner:
+      type: enum
+      values: [workflow, profile, platform, profile-platform, binding]
+      required: true
+
+  humanFacing:
+    type: boolean
+    required: true
+    description: Whether an initialized Agent bound to this role may communicate directly with the human.
+
+  lifecycle:
+    default:
+      type: enum
+      values: [persistent, task-scoped, adapter-defined]
+      required: true
+
+  fixed:
+    type: map
+    required: true
+    description: Role invariants that concrete Agent bindings cannot override.
+
+  configurable:
+    type: map
+    required: false
+    description: Open fields that an Agent binding may fill according to each entry's type, ownership, and required flag.
+
+  bindings:
+    type: map
+    required: false
+    description: Typed role-specific references/resources that implementations must or may resolve.
+
+inheritance:
+  merge: deep
+  maps: merge-by-key
+  scalars: child-overrides-parent
+  lists: child-replaces-parent
+  unknownFields: prohibited-unless-schema-allows
+
+# The base file defines the structural vocabulary, not concrete role values.
+# Concrete role YAML should not copy inherited definitions merely for readability.
+# Repeat a field only when the concrete role sets/overrides its value or adds
+# role-specific structure. Tooling may render an expanded/effective view when
+# humans or software need to inspect the fully resolved role.
