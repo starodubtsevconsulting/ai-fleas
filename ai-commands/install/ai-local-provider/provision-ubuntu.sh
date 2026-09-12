@@ -111,7 +111,7 @@ plan_step AI-LOCAL-09 'Verify the result'
 for _ in $(seq 1 90); do
   if curl -fs "http://127.0.0.1:$provider_port/health" >/dev/null; then
     response="$(curl -fsS --max-time 180 -H 'Content-Type: application/json' \
-      -d '{"messages":[{"role":"user","content":"Reply with exactly READY"}],"temperature":0,"max_tokens":8}' \
+      -d '{"messages":[{"role":"user","content":"Reply with exactly READY"}],"temperature":0,"max_tokens":64,"chat_template_kwargs":{"enable_thinking":false}}' \
       "http://127.0.0.1:$provider_port/v1/chat/completions")"
     grep -q 'READY' <<<"$response" || { echo 'PROVIDER_INFERENCE_VERIFICATION_FAILED' >&2; exit 9; }
     while IFS= read -r inactive_model; do
