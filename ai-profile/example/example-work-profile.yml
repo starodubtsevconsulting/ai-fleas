@@ -40,6 +40,8 @@ system_agent:
     sc:
       title: "⚙️ System"
       model: platform-default
+# Profile agents are logical, portable agents owned directly by this profile.
+# Platform-specific model/reasoning/runtime tuning belongs in platform role overlays.
 profile_agents:
   - id: cross-workflow-governor
     scope: profile
