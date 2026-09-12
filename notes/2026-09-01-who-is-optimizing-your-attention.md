@@ -44,15 +44,20 @@ workflows, can follow several human-owned goals across them, remembers broader c
 activity is worthwhile, but whether it is the right activity **now**.
 
 The Governor is intentionally strongly human-facing. It is configured for a governed human, understands the workflows
-inside its governance scope, and may use approved capabilities such as calendars, task systems, repositories, or metrics
-to observe current reality. The initial contract supports one governed human; multi-human governance is left as a future
-extension because it introduces additional authority, consent, privacy, and conflicting-goal semantics.
+inside its governance scope, and may use approved provider-neutral commands/capabilities to observe current reality. The
+initial contract supports one governed human; multi-human governance is left as a future extension because it introduces
+additional authority, consent, privacy, and conflicting-goal semantics.
 
 The portable role contract is defined in
-[`_common/roles/cross-workflow-governor.md`](../_common/roles/cross-workflow-governor.md). Another distinguishing trait is
-durable external memory: one or more configured, annotated memory references that survive model sessions. A local
-Markdown/Obsidian directory is the simplest implementation, but the role contract is deliberately protocol-neutral so
-platform adapters can resolve filesystem, HTTP(S), repository, or other supported memory locations.
+[`ai-workflows/_common/roles/cross-workflow-governor.md`](../ai-workflows/_common/roles/cross-workflow-governor.md). It
+follows the same profile-aware composition model as the rest of AI Fleas: reusable roles and commands stay provider-
+agnostic, while the selected AI Profile supplies enabled workflows, registered commands, supported overrides, provider
+bindings, project context, and other operational values. For example, the Governor may use the provider-neutral
+`ticket-tracker` command without knowing whether the active profile resolves it to Jira, Trello, or another provider.
+
+Another distinguishing trait is durable external memory: one or more configured, annotated memory references that survive
+model sessions. A local Markdown/Obsidian directory is the simplest implementation, but the role contract remains
+protocol-neutral so platform adapters can resolve filesystem, HTTP(S), repository, or other supported memory locations.
 
 Maybe the useful personal AI is not the one that knows how to do everything for you. Maybe it is the one that remembers
 what you asked your life to optimize for.
