@@ -1,12 +1,20 @@
-# Workflow role capability matrix template
+# Workflow access matrix templates
 
-The adjacent [role-capability-matrix.csv](role-capability-matrix.csv),
-[role-capability-ownership.csv](role-capability-ownership.csv), and
-[role-communication-matrix.csv](role-communication-matrix.csv) are empty reusable schemas. They grant no capability.
+The reusable mechanical policy uses two workflow-local matrices:
 
-Each agent-enabled workflow copies all three schemas into its workflow-local agent directory. It fills the role matrix
-with exact initialized roles and extends the ownership and communication headers with those role IDs before adding rows.
-Every role contract links its readable top capability declaration to all three filled workflow-local matrices.
+- [role-capability-ownership.csv](role-capability-ownership.csv) for capability ownership;
+- [role-communication-matrix.csv](role-communication-matrix.csv) for directional communication routes.
 
-The readable declaration summarizes the effective boundary; the filled CSV files are the mechanical routing authority.
-A missing link, empty workflow-local matrix, undeclared role, or declaration/matrix disagreement fails closed.
+Each agent-enabled workflow copies and fills those two schemas in its workflow-local agent directory. Its `agents.yml`
+remains the single source for agent identity, lifecycle, human-facing mode, communication mode, provider binding, and other
+runtime-facing role metadata, and supplies the unique `matrixColumn` value used by both matrices.
+
+The adjacent `role-capability-matrix.csv` is retained only as a legacy schema and must not be copied into new workflows;
+its metadata duplicates `agents.yml`.
+
+Readable role and team documents explain intent and rationale. They must not create capability ownership or a communication
+route absent from the workflow-local matrices. Reusable common roles do not link to one workflow's concrete matrices;
+the selected workflow manifest and Team page bind those roles to the workflow-local policy.
+
+A missing referenced matrix, missing or duplicate matrix column, empty cell, undeclared role, or disagreement with the
+selected role boundary fails closed.
