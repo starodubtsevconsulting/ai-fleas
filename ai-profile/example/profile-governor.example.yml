@@ -67,6 +67,9 @@ memory:
     access: read-only
     privacy: profile-private
 
-# No intervention commands are configured in this public example. A real profile
-# may explicitly add narrow commands such as calendar, reminders, or messaging.
-commands: []
+# Narrow intervention capabilities only. Provider/account details are resolved
+# from the profile-owned command configs; the Governor does not choose brands.
+commands:
+  - calendar
+  - messaging
+  - email
