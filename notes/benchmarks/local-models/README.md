@@ -27,12 +27,14 @@ The purpose of these benchmarks is practical: find the strongest local model tha
 | Hardware | Current choice | Context | Generation | Status |
 |---|---|---:|---:|---|
 | ASUS Ascent GX10, 128 GB unified memory | **Qwen3-Coder-Next Q5_K_M** | 65,536 | 55.68 tok/s | Default single-GX10 worker |
-| RTX 3080 Ti, 12 GiB VRAM | **Qwen3.5 9B Q4_K_M** | 65,536 | 95.4 tok/s direct | Hermes-compatible candidate; latency optimization in progress |
+| RTX 3080 Ti, 12 GiB VRAM | **Qwen3.5 9B Q4_K_M** | 65,536 | 95.4 tok/s direct | Hermes-compatible System-agent candidate |
+| MacBook Pro M5, ~40 GB unified memory | **Qwen 8B-class** | TBD | TBD | Operationally fast; controlled benchmark pending |
 
 ## Benchmark reports
 
-- [ASUS Ascent GX10](gx10.md) — Qwen worker comparison and planned DeepSeek V4 experiments.
-- [RTX 3080 Ti workstation](rtx-3080-ti.md) — 30B Q8/Q4, 8B and 9B experiments plus Hermes System-agent overhead.
+- [ASUS Ascent GX10](gx10.md) — Qwen worker comparison, single-GX10 capacity tests and DeepSeek V4 experiments.
+- [RTX 3080 Ti workstation](rtx-3080-ti.md) — System-agent target; 30B Q8/Q4, 8B and 9B experiments plus Hermes overhead.
+- [MacBook Pro M5](macbook-pro-m5.md) — lightweight portable local-inference tier; controlled benchmark pending.
 - [Methodology](methodology.md) — what is measured and how direct inference differs from full agent acceptance testing.
 
 ## Main findings
@@ -41,12 +43,13 @@ The purpose of these benchmarks is practical: find the strongest local model tha
 
 **RTX 3080 Ti:** the 30B candidates work but are too slow for an interactive Hermes System agent. Qwen3 8B is fast but cannot satisfy Hermes' 64K context requirement. Qwen3.5 9B Q4_K_M provides both full GPU residency and a 65,536-token configured context and is the current candidate.
 
-The RTX experiments also show that model generation speed alone is not enough: Hermes bootstrap size, tool schemas, extra model calls, and single-slot contention can dominate end-to-end latency.
+**MacBook Pro M5:** an 8B-class Qwen model is already operationally responsive, making the laptop a useful portable/lightweight local tier. Controlled measurements are still required before comparing it numerically with the dedicated worker machines.
 
 ## Next experiments
 
+- Benchmark the existing MacBook Pro M5 + Qwen 8B-class setup.
 - Repeat Hermes timing on the RTX 3080 Ti after disabling automatic title generation.
-- Test a practical DeepSeek V4 configuration on one GX10 if available.
-- Test larger DeepSeek V4 inference across two GX10-class boxes.
+- Test the higher-capacity single-GX10 candidates documented in the GX10 report.
+- Test DeepSeek V4 Flash on one GX10 and the documented FP8/TP=2 configuration across two GX10-class boxes.
 
 Detailed measurements and historical results remain in the hardware-specific reports rather than this dashboard.
