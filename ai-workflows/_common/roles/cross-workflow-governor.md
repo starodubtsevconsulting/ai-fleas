@@ -64,7 +64,7 @@ flowchart TD
 
     C --> C1[ticket-tracker]
     C --> C2[calendar capability]
-    C --> C3[source-control / repositories]
+    C --> C3[source-control]
     C --> C4[metrics / other approved utilities]
 ```
 
@@ -149,11 +149,25 @@ The Governor MUST be configured with the workflows inside its governance scope. 
 
 Workflow references are logical references resolved by the selected profile/platform configuration. Unconfigured workflows are outside the Governor's assumed authority.
 
+## Profile-aware configuration
+
+The Cross-Workflow Governor follows the same configuration ownership model as the rest of AI Fleas:
+
+- reusable role behavior stays in `ai-workflows/**`;
+- reusable command semantics stay in `ai-commands/**`;
+- the selected AI Profile chooses enabled workflows and commands and supplies supported values/overrides;
+- command-specific operational values belong to profile-owned command configuration at profile, workflow, or project scope;
+- provider mechanics remain inside registered provider commands/adapters.
+
+The role MUST NOT introduce a parallel Governor-specific provider configuration schema for concepts already modeled by the AI Profile or commands.
+
+Task/ticket access is therefore expressed through the existing provider-neutral `ticket-tracker` command. Its active provider and supported values come from the selected profile/workflow context and command configuration. The Governor role never contains Jira/Trello names, provider URLs, tracker workspace IDs, lifecycle names, or other provider-owned values.
+
+This same rule applies to all Governor utilities: reference a registered provider-neutral command when one exists; otherwise reference an abstract capability that the selected profile/platform resolves.
+
 ## Provider-neutral commands and utilities
 
 The Governor consumes reusable commands/capabilities by logical identity. Runtime/provider details remain in the same configuration system used elsewhere in AI Fleas.
-
-The selected AI Profile may enable commands/capabilities and provide supported overrides at profile, workflow, or project scope. A reusable Governor role must not duplicate those values.
 
 Conceptually:
 
@@ -167,11 +181,7 @@ capabilities:
     access: read
 ```
 
-`ticket-tracker` is intentionally provider-neutral. The active profile/workflow context resolves the actual tracker implementation and command configuration. The Governor asks for ticket semantics; it does not ask for a provider by name.
-
-The same rule applies to other utilities: prefer an established provider-neutral command when one exists; otherwise reference an abstract capability whose concrete adapter/provider is resolved by the selected platform/profile layer.
-
-Configured access never implies unlimited authority. External effects remain subject to the command's own contract and human-authorization rules.
+Configured access never implies unlimited authority. External effects remain subject to the command's own contract, profile scope, and human-authorization rules.
 
 ## Permanent memory
 
