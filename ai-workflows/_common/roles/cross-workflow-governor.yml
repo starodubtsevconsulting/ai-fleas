@@ -8,8 +8,7 @@ scope:
   kind: cross-workflow
   bindingOwner: profile
 
-humanFacing:
-  mode: required
+humanFacing: true
 
 lifecycle:
   default: persistent
@@ -86,7 +85,8 @@ bindings:
     required: true
     cardinality: many
     owner: profile
-    description: Logical workflows inside the Governor's governance scope; concrete definitions are resolved by configuration/platform.
+    examples: [dev, multimedia, bookkeeping, investment]
+    description: Logical workflows inside the Governor's governance scope; examples are illustrative only and the concrete binding supplies the actual list.
 
   memory:
     type: memory-reference
