@@ -1,0 +1,17 @@
+schemaVersion: role.v1
+extends: _role.yml
+
+id: coder
+contract: coder.md
+
+scope:
+  kind: workflow
+  bindingOwner: workflow
+
+humanFacing: false
+
+lifecycle:
+  default: task-scoped
+
+fixed:
+  canonicalRole: coder
