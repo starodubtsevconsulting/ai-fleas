@@ -4,6 +4,8 @@ The Cross-Workflow Governor is the persistent strategic role above workflow-leve
 
 The Governor is distinct from ordinary workflow roles because it is always human-facing, multi-workflow, multi-goal, and backed by durable external memory.
 
+Structural interface: [`cross-workflow-governor.yml`](cross-workflow-governor.yml). The YAML companion is the machine-readable role shape: fixed properties, binding scope, cardinality, and configurable/open fields. This Markdown file remains the semantic/behavioral contract. A concrete Agent implementation fills only the YAML fields owned by its binding/profile/platform and must preserve the fixed role invariants.
+
 ## Role header
 
 ```mermaid
