@@ -4,13 +4,12 @@ The team follows the common [Agent contract](../../agents.md), [Dev workflow](..
 
 ## Mechanical policy
 
-The workflow-local matrices are the mechanical authority for instantiated-role metadata, capability ownership, and communication routes:
+Two workflow-local matrices are the mechanical authority for permissions:
 
-- [role-capability-matrix.csv](role-capability-matrix.csv) — role metadata and runtime-facing properties;
-- [role-capability-ownership.csv](role-capability-ownership.csv) — one explicit owner or prohibition for each declared capability;
+- [role-capability-ownership.csv](role-capability-ownership.csv) — explicit capability ownership;
 - [role-communication-matrix.csv](role-communication-matrix.csv) — explicit directional communication routes.
 
-[`agents.yml`](../agents.yml) binds every initialized agent to one matrix column. The common [access-matrix mechanism](../../_common/policy/access-matrix.md) defines composition and fail-closed behavior.
+[`agents.yml`](../agents.yml) remains the single source for agent identity and runtime-facing role metadata and binds each initialized agent to one matrix column. The common [access-matrix mechanism](../../_common/policy/access-matrix.md) defines composition and fail-closed behavior.
 
 This document explains the team in readable form. It must not create a capability or communication route absent from the matrices.
 
