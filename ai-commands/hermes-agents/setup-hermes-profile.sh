@@ -176,8 +176,25 @@ print(json.dumps({
 "${hermes_bin}" -p "${profile}" config set compression.threshold "${compression_threshold}"
 "${hermes_bin}" -p "${profile}" config set compression.target_ratio "${compression_target_ratio}"
 "${hermes_bin}" -p "${profile}" config set compression.protect_last_n "${compression_protect_last_n}"
+if [[ "${scope}" == 'system' ]]; then
+  # The System profile has a fixed visible identity. Automatic chat-title
+  # generation adds no lifecycle value and can monopolize a one-slot local
+  # provider ahead of the user's actual request.
+  "${hermes_bin}" -p "${profile}" config set auxiliary.title_generation.enabled false
+fi
 "${hermes_bin}" -p "${profile}" config set terminal.backend local
 "${hermes_bin}" -p "${profile}" config set terminal.cwd "${workspace}"
+
+# Canonical Bot Chats are eternal, history-preserving sessions. Some Hermes
+# CLI delivery paths still restore their persisted route even when the session
+# explicitly follows profile configuration, so reconcile that metadata before
+# scheduler delivery without deleting messages.
+python3 "${SCRIPT_DIR}/migrate-follow-profile-sessions.py" \
+  --state-db "${profile_dir}/state.db" \
+  --title 'Bot Chat' \
+  --model "${model}" \
+  --provider "${provider_id}" \
+  --base-url "${endpoint%/}"
 
 soul_tmp="$(mktemp "${profile_dir}/.SOUL.md.XXXXXX")"
 cleanup() { [[ -z "${soul_tmp:-}" ]] || rm -f -- "${soul_tmp}"; }
@@ -284,6 +301,9 @@ actual_context_length="$("${hermes_bin}" -p "${profile}" config get model.contex
 actual_compression_threshold="$("${hermes_bin}" -p "${profile}" config get compression.threshold)"
 actual_compression_target_ratio="$("${hermes_bin}" -p "${profile}" config get compression.target_ratio)"
 actual_compression_protect_last_n="$("${hermes_bin}" -p "${profile}" config get compression.protect_last_n)"
+if [[ "${scope}" == 'system' ]]; then
+  actual_title_generation_enabled="$("${hermes_bin}" -p "${profile}" config get auxiliary.title_generation.enabled)"
+fi
 actual_workspace="$("${hermes_bin}" -p "${profile}" config get terminal.cwd)"
 [[ "${actual_provider}" == "${provider_id}" ]]
 [[ "${actual_model}" == "${model}" ]]
@@ -292,6 +312,7 @@ actual_workspace="$("${hermes_bin}" -p "${profile}" config get terminal.cwd)"
 [[ "${actual_compression_threshold}" == "${compression_threshold}" ]]
 [[ "${actual_compression_target_ratio}" == "${compression_target_ratio}" ]]
 [[ "${actual_compression_protect_last_n}" == "${compression_protect_last_n}" ]]
+[[ "${scope}" != 'system' || "${actual_title_generation_enabled}" == 'false' ]]
 [[ "${actual_workspace}" == "${workspace}" ]]
 
 if [[ -n "${group}" ]]; then
