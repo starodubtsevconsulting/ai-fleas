@@ -20,6 +20,11 @@ fixed:
   goalCardinality: many
   workflowCardinality: many
   permanentMemoryRequired: true
+  intelligenceRequirement:
+    class: strategic-reasoning
+    minimumCapability: high
+    preferStrongestEligibleModel: true
+    localFallback: disabled
 
 configurable:
   displayLabel:
