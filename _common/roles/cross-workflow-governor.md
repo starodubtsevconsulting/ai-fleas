@@ -4,6 +4,30 @@ The Cross-Workflow Governor is the persistent strategic role above workflow-leve
 
 The Governor is distinct from ordinary workflow roles because it is **human-facing**, **multi-workflow**, **multi-goal**, and requires **durable external memory**. Its strategic context must survive agent sessions, model changes, context compaction, and agent recreation.
 
+```mermaid
+flowchart TD
+    H[Governed Human] -->|owns goals / receives advice| G[Cross-Workflow Governor]
+    G -->|governs WHY / WHEN / priority| GOALS[Goals]
+    G -->|coordinates across| W[Configured Workflows]
+    G -->|reads / writes durable context| M[Permanent Memory]
+    G -->|observes current reality via| C[Capabilities / Utilities]
+
+    W --> W1[Software Development]
+    W --> W2[Multimedia]
+    W --> W3[Investment]
+    W --> WX[...]
+
+    M --> M1[Canonical Strategy]
+    M --> M2[Decision History]
+    M --> M3[Project Context]
+    M --> M4[Evidence]
+
+    C --> C1[Calendar]
+    C --> C2[Tasks / Projects]
+    C --> C3[Repositories]
+    C --> C4[Metrics / Other Skills]
+```
+
 ## Can
 
 - Preserve human-owned goals, strategic decisions, rationale, hypotheses, opportunities, risks, and reusable learning across sessions.
@@ -81,6 +105,27 @@ goals:
 ```
 
 A goal is not owned by a workflow. One goal may span several workflows, and one workflow may support several goals.
+
+```mermaid
+flowchart LR
+    H[Human] --> G[Governor]
+    G --> GA[Goal A]
+    G --> GB[Goal B]
+    G --> GC[Goal C]
+
+    GA --> W1[Workflow 1]
+    GA --> W2[Workflow 2]
+    GB --> W2
+    GB --> W3[Workflow 3]
+    GC --> W1
+    GC --> W3
+
+    W1 --> S1[Workflow Strategist 1]
+    W2 --> S2[Workflow Strategist 2]
+    W3 --> S3[Workflow Strategist 3]
+```
+
+The diagram is intentionally many-to-many: goals sit above workflows, not inside them.
 
 ## Workflow awareness
 
@@ -160,6 +205,20 @@ memory:
 
 The exact configuration schema belongs to the platform/configuration contract. The role depends only on the semantics above.
 
+```mermaid
+flowchart LR
+    G[Cross-Workflow Governor]
+    G -->|read-write| S[(Canonical Strategy)]
+    G -->|read-write| D[(Decision History)]
+    G -->|read-only| P[(Project Context)]
+    G -->|read-only| E[(Evidence)]
+
+    S -. URI .-> FS1[file:// Obsidian / Markdown]
+    D -. URI .-> FS2[file:// Decision Log]
+    P -. URI .-> REPO[repo:// or file:// Project Docs]
+    E -. URI .-> HTTP[https:// External Source]
+```
+
 ## Memory semantics
 
 Memory sources should be annotated sufficiently for the Governor to know how to use them. At minimum a platform SHOULD be able to express:
@@ -187,6 +246,25 @@ The Governor should:
 4. reason over that subset plus fresh evidence;
 5. advise the governed human and/or project minimal context to relevant workflow strategists;
 6. record durable decisions/learning only to an authorized writable memory target.
+
+```mermaid
+sequenceDiagram
+    actor Human
+    participant Governor
+    participant Memory as Permanent Memory
+    participant Capability as Live Capability
+    participant Strategist as Workflow Strategist
+
+    Human->>Governor: Question / action / new evidence
+    Governor->>Memory: Retrieve relevant durable context
+    Memory-->>Governor: Goals, decisions, rationale, references
+    Governor->>Capability: Read current state if needed
+    Capability-->>Governor: Calendar / tasks / metrics / repository state
+    Governor->>Governor: Compare against goals and priorities
+    Governor-->>Human: Advice / priority / trade-off
+    Governor->>Strategist: Project minimal goal + constraints + evidence
+    Governor->>Memory: Record authorized durable decision / learning
+```
 
 This keeps implementation detail from poisoning long-lived strategic context and allows memory to grow beyond one model context window.
 
