@@ -1,0 +1,129 @@
+schemaVersion: role.v1
+id: cross-workflow-governor
+contract: cross-workflow-governor.md
+
+scope:
+  kind: cross-workflow
+  bindingOwner: profile
+
+humanFacing:
+  mode: required
+
+lifecycle:
+  default: persistent
+
+fixed:
+  canonicalRole: cross-workflow-governor
+  governedSubjectCardinality: one
+  goalCardinality: many
+  workflowCardinality: many
+  permanentMemoryRequired: true
+
+configurable:
+  displayLabel:
+    type: string
+    required: false
+    owner: binding
+
+bindings:
+  subject:
+    type: human-reference
+    required: true
+    cardinality: one
+    owner: profile
+    fields:
+      id:
+        type: string
+        required: true
+      name:
+        type: string
+        required: false
+      coordinates:
+        type: map
+        required: true
+        adapterDefined: true
+    description: Stable identity plus platform-specific coordinates for the one governed human.
+
+  goals:
+    type: goal-reference
+    required: false
+    cardinality: many
+    owner: profile-or-memory
+    fields:
+      id:
+        type: string
+        required: true
+      intent:
+        type: string
+        required: true
+      status:
+        type: string
+        required: true
+      priority:
+        type: any
+        required: false
+      constraints:
+        type: list
+        required: false
+      successSignals:
+        type: list
+        required: false
+      workflows:
+        type: reference-list
+        required: false
+      memory:
+        type: reference-list
+        required: false
+      reviewTrigger:
+        type: any
+        required: false
+    description: Human-owned goals are independent of workflows and may span several workflows.
+
+  workflows:
+    type: workflow-reference
+    required: true
+    cardinality: many
+    owner: profile
+    description: Logical workflows inside the Governor's governance scope; concrete definitions are resolved by configuration/platform.
+
+  memory:
+    type: memory-reference
+    required: true
+    cardinality: many
+    owner: profile
+    fields:
+      name:
+        type: string
+        required: true
+      uri:
+        type: uri
+        required: true
+      purpose:
+        type: string
+        required: true
+      access:
+        type: enum
+        values: [read-only, read-write]
+        required: true
+      privacy:
+        type: any
+        required: false
+      precedence:
+        type: any
+        required: false
+    description: Durable external memory references; storage/provider mechanics are adapter-specific.
+
+  commands:
+    type: command-reference
+    required: false
+    cardinality: many
+    owner: profile
+    providerNeutral: true
+    description: Registered provider-neutral commands such as ticket-tracker or source-control; concrete providers resolve through normal profile command configuration.
+
+  capabilities:
+    type: capability-reference
+    required: false
+    cardinality: many
+    owner: profile-or-platform
+    description: Abstract capabilities without a registered command, such as calendar or metrics access, resolved by the selected platform/profile.
