@@ -2,6 +2,18 @@
 
 The team follows the common [Agent contract](../../agents.md), [Dev workflow](../dev.workflow.md), and reusable role definitions.
 
+## Mechanical policy
+
+The workflow-local matrices are the mechanical authority for instantiated-role metadata, capability ownership, and communication routes:
+
+- [role-capability-matrix.csv](role-capability-matrix.csv) — role metadata and runtime-facing properties;
+- [role-capability-ownership.csv](role-capability-ownership.csv) — one explicit owner or prohibition for each declared capability;
+- [role-communication-matrix.csv](role-communication-matrix.csv) — explicit directional communication routes.
+
+[`agents.yml`](../agents.yml) binds every initialized agent to one matrix column. The common [access-matrix mechanism](../../_common/policy/access-matrix.md) defines composition and fail-closed behavior.
+
+This document explains the team in readable form. It must not create a capability or communication route absent from the matrices.
+
 ## Team
 
 | Agent                | Human access    | Lifecycle  |
@@ -20,11 +32,11 @@ System is not a Dev team role or peer. The team can initialize and operate witho
 System instance ID or direct route. An independently initialized System may contact exact team instances through the
 platform's trusted lifecycle channel, but team agents do not initiate direct System communication.
 
-## Responsibilities
+## Responsibility summary
 
 | Agent                | Owns                                                                              |
 | -------------------- | --------------------------------------------------------------------------------- |
-| Admin                | Human-requested workflow administration                                             |
+| Admin                | Human-requested workflow administration                                           |
 | Designer / Reviewer  | Requirements, architecture, design, review, acceptance, and workflow coordination |
 | Judge                | Human-seeded governance-rule maintenance and publication                          |
 | Manager              | Tickets, staffing, agent lifecycle, and continuity                                |
@@ -32,7 +44,9 @@ platform's trusted lifecycle channel, but team agents do not initiate direct Sys
 | Command Runner       | Commands, Git, builds, tests, delivery, and deployment mechanics                  |
 | UI Acceptance Tester | Independent visible UI acceptance                                                 |
 
-An agent can request work from another agent when that agent owns the required responsibility. It cannot perform another agent's responsibility itself.
+The capability-ownership matrix is authoritative when this summary and a matrix cell disagree.
+
+An agent can request work from another agent only through a route authorized by the communication matrix and shared routing contract. Ownership remains with the capability owner; delegation does not transfer it.
 
 Judge is isolated from the workflow agents and communicates only with the human.
 
