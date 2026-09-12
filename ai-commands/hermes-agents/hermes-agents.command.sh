@@ -131,7 +131,9 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     fi
     [[ -n "${scheduler_id}" ]] || { printf '%s\n' 'HERMES_SYSTEM_SCHEDULER_INVALID: exact scheduler receipt was not found.' >&2; exit 1; }
     binding_args=(--path "${binding_registry}" --profile "${system_profile}" --title "${system_title}" --provider "${system_provider}" --model "${system_model}" --every "${every}" --scheduler-id "${scheduler_id}")
-    for group in "${watch_groups[@]}"; do binding_args+=(--watch-group "${group}"); done
+    if ((${#watch_groups[@]})); then
+      for group in "${watch_groups[@]}"; do binding_args+=(--watch-group "${group}"); done
+    fi
     "${hermes_python}" "${SYSTEM_BINDING_WRITER}" "${binding_args[@]}"
     cron_status="$("${hermes_bin}" -p "${system_profile}" cron status 2>&1 || true)"
     if [[ "${cron_status}" != *'Gateway is running'* || "${cron_status}" != *'cron jobs will fire automatically'* ]]; then
