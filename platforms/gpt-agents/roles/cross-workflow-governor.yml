@@ -7,8 +7,7 @@ realization:
   title: "Governor"
   model: gpt-5.6-sol
   reasoning: high
-  lifecycle: persistent
-  readiness_token: CROSS_WORKFLOW_GOVERNOR_READY
 
-# This overlay realizes the portable role on GPT Agents only.
-# It may tune model/runtime presentation but cannot grant additional authority.
+# Portable lifecycle, readiness, scope, human-facing semantics, and authority
+# come from the profile binding and portable role. This overlay owns only
+# GPT/Codex-specific realization details.
