@@ -85,3 +85,21 @@ This comparison uses a 12 GiB NVIDIA GeForce RTX 3080 Ti workstation with approx
 The Q8_0 result was functionally correct but too slow for an interactive System agent. Q4_K_M approximately doubled sustained generation in the longer direct response, reduced large-conversation prompt processing to about one minute, and reduced the observed preserved-session wall time from roughly five minutes to 165 seconds. The service itself completed that Hermes request in 61.8 seconds; approximately 103 seconds were queue time behind another request because the memory-safe configuration exposes one inference slot. Switching away from the still-open Q8 process immediately released about 31 GiB on disk, while the Q4 artifact is about 12.9 GiB smaller than Q8.
 
 The preserved-session test resumed the existing `Bot Chat`, retained its history, and returned the exact requested marker through the Q4 provider in one API call. Short-response generation rates are unstable, so the seven-token Hermes marker's 3.2 tok/s rate is not used as the representative generation measurement.
+
+### Full Hermes System-agent overhead
+
+A second Q4 test started a genuinely new Hermes chat containing only the user question `what model do you use?`. It was still not interactive because the full System-agent configuration constructed a 46,536-token request before generation. This isolates agent bootstrap and tool-schema overhead from accumulated conversation history.
+
+| Metric | New-chat result |
+|---|---:|
+| User conversation messages before request | 1 |
+| Provider prompt tokens | 46,536 |
+| Prompt processing | 188.0 s (247.6 tok/s) |
+| Generation | 53 tokens in 47.0 s (1.1 tok/s) |
+| Provider total | 235.0 s |
+| Hermes timely interactive completion | FAIL |
+| System prompt | 32.7 KB |
+| Tool schemas | 46.2 KB across 30 tools |
+| Skills index | 5.7 KB |
+
+The model and endpoint remained healthy throughout the test. The failure is architectural: the default full Hermes tool surface and System prompt are too large for responsive inference on this hardware. A useful deployment needs a lean System profile with only the required toolsets and a scheduler whose reports do not continuously expand the interactive chat. Model self-identification is not a valid routing test; this run repeated a stale Q8 identifier found in earlier preserved history even though session metadata, the running process, and the provider's `/v1/models` response all proved that Q4_K_M handled the request.
