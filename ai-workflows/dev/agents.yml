@@ -5,7 +5,6 @@ teamPolicy: agents/team.md
 
 policy:
   authority: agents/team.md
-  roleMatrix: agents/role-capability-matrix.csv
   capabilityOwnershipMatrix: agents/role-capability-ownership.csv
   communicationMatrix: agents/role-communication-matrix.csv
   accessMatrixMechanism: ../_common/policy/access-matrix.md
@@ -21,7 +20,7 @@ policy:
 # realizes the properties it supports. `aiProvider` is independent from model;
 # `profile-default` means resolve the concrete provider from the active profile.
 # Scope declares where the agent belongs, independently from what it may access.
-# Matrix columns bind each declared agent to the workflow-local mechanical policy.
+# Matrix columns bind each declared agent to workflow-local capability and route policy.
 # Continuity follows the common default unless an agent overrides it, for example:
 # `continuity: { enabled: false }` or `continuity: { maxDuration: 24h }`.
 # Scheduling is independent from continuity. Each agent declares whether it is
