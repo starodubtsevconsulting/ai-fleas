@@ -4,10 +4,10 @@ role: cross-workflow-governor
 portable_role: ../../../ai-workflows/_common/roles/cross-workflow-governor.yml
 
 realization:
-  title: "Governor"
-  provider: profile-default
-  model: profile-default
+  supported: false
+  reason: No sufficiently capable concrete Governor model is configured for the public example profile.
 
-# Portable lifecycle, readiness, scope, human-facing semantics, and authority
-# come from the profile binding and portable role. This overlay owns only
-# Hermes-specific realization details.
+# Portable lifecycle, readiness, scope, human-facing semantics, authority, and
+# intelligence requirement come from the profile binding and portable role.
+# Hermes must not initialize this Governor until the selected profile supplies
+# an explicitly configured model that satisfies the portable requirement.
