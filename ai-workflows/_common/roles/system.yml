@@ -1,0 +1,18 @@
+schemaVersion: role.v1
+extends: _role.yml
+
+id: system
+contract: system.md
+
+scope:
+  kind: system
+  bindingOwner: profile-platform
+
+humanFacing: true
+
+lifecycle:
+  default: persistent
+
+fixed:
+  canonicalRole: system
+  cardinality: one-per-profile-platform
