@@ -20,17 +20,23 @@ fixed:
   goalCardinality: many
   workflowCardinality: many
   permanentMemoryRequired: true
-  intelligenceRequirement:
-    class: strategic-reasoning
-    minimumCapability: high
-    preferStrongestEligibleModel: true
-    localFallback: disabled
+  ordinaryWorkflowExecutionAllowed: false
+
+intelligenceRequirement:
+  class: strategic-reasoning
+  minimumCapability: high
+  localFallback: disabled
 
 configurable:
   displayLabel:
     type: string
     required: false
     owner: binding
+  reviewSchedule:
+    type: schedule
+    required: false
+    owner: profile
+    description: Optional daily, weekly, or other strategic review cadence. A scheduled review may observe, reason, advise, or use explicitly configured narrow interventions; it never grants ordinary workflow execution.
 
 bindings:
   profile:
@@ -103,7 +109,7 @@ bindings:
     cardinality: many
     owner: profile
     examples: [dev, multimedia, bookkeeping, investment]
-    description: Logical workflows selected from the exact bound profile. A workflow from another profile is outside the Governor's authority even when it has the same workflow ID.
+    description: Logical workflows selected from the exact bound profile. Workflow awareness supports strategic reasoning and alignment only; it does not grant ordinary workflow execution.
 
   memory:
     type: memory-reference
@@ -138,4 +144,4 @@ bindings:
     cardinality: many
     owner: profile
     providerNeutral: true
-    description: Registered provider-neutral commands required for governance. Concrete providers and supported overrides resolve only through the exact bound profile's command configuration.
+    description: Registered provider-neutral commands used only for observation or narrow governance interventions such as reminders, calendar actions, or messages. Command access never grants ordinary workflow execution.
