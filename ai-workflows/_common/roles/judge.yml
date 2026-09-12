@@ -1,0 +1,17 @@
+schemaVersion: role.v1
+extends: _role.yml
+
+id: judge
+contract: judge.md
+
+scope:
+  kind: workflow
+  bindingOwner: workflow
+
+humanFacing: true
+
+lifecycle:
+  default: persistent
+
+fixed:
+  canonicalRole: judge
