@@ -135,10 +135,45 @@ it is not a second source of initialization truth. GPT App maps the same
 workflow governance model to its declared multi-agent roster, such as Admin, Manager, and the five governed Dev roles.
 This difference belongs to the platform adapters and must not be hardcoded as a universal agent count in either command.
 
+The integration boundary is:
+
+```text
+AI Fleas workflow contract
+  -> Hermes platform adapter
+  -> Hermes profiles and group metadata
+  -> Hermes Desktop-supervised profile backends
+  -> configured model provider
+```
+
+AI Fleas owns the portable workflow contracts and their translation into Hermes configuration. Hermes owns the desktop
+UI, profiles, sessions, backend process lifecycle, and model-provider communication. The adapter does not embed an AI
+Fleas runtime inside Hermes and does not directly run the long-lived profile backends.
+
 Workflow initialization writes an exact profile-owned group receipt containing the logical group ID, ordered projects,
 realized profile IDs, and readiness. System initialization preserves that receipt, records its own profile and scheduler
 identity beside it, and supplies the same registry path to `SOUL.md` and the cron prompt. System remains globally pinned
 with `groups: []`; its profile gateway runs as a user login service so scheduling does not depend on an open desktop window.
+
+### Local background processes
+
+`initialize` and `reconcile` create or update Hermes profiles; they do not themselves fork long-running processes. While
+Hermes Desktop is open, Hermes may lazily start one local backend for each workflow profile that the UI or an active
+session uses. These backends run from the Hermes virtual environment as commands equivalent to:
+
+```text
+python -m hermes_cli.main --profile <profile-id> serve --host 127.0.0.1 --port 0
+```
+
+Consequently, macOS Activity Monitor may show several generically named `python3` processes after realizing a workflow.
+The command line's `--profile` value identifies the owning role, for example `example-dev-coder`; the parent process is
+Hermes Desktop. They bind to loopback, are supervised by Hermes Desktop, and may be retired after Hermes considers them
+idle. Quitting Hermes Desktop stops Desktop-owned workflow backends. AI Fleas does not rename these processes because
+Hermes Desktop owns their launch and process-title behavior.
+
+The System profile is intentionally different. `initialize-system` installs its profile gateway as a user login service
+and starts it immediately so scheduled lifecycle checks continue without an open Hermes Desktop window. Use
+`status-system` to verify that service. Deleting or reinitializing profiles is a separate, explicit lifecycle operation;
+do not terminate individual Python processes as a substitute for those commands.
 
 ## Tags
 

@@ -348,6 +348,8 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     for realized_profile in "${realized_profiles[@]}"; do binding_args+=(--profile "${realized_profile}"); done
     "${HERMES_BINDING_PYTHON_BIN:-${PYTHON_BIN}}" "${WORKFLOW_BINDING_WRITER}" "${binding_args[@]}"
     printf 'HERMES_WORKFLOW_READY: %s; profiles=%s; binding=%s\n' "${derived_group}" "${#realized_profiles[@]}" "${binding_registry}"
+    printf '%s\n' \
+      'HERMES_RUNTIME_NOTE: while Hermes Desktop is open, it may run one local Python backend per active profile; identify it by the --profile argument.'
     ;;
   list)
     [[ $# -eq 0 ]] || { usage >&2; exit 2; }
