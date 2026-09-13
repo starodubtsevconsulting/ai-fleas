@@ -1,0 +1,6 @@
+id: commit
+version: 0.0.1-SNAPSHOT
+category: connect
+type: executable
+ai:
+  powered: false

@@ -1,0 +1,6 @@
+id: monitoring
+version: 0.0.1-SNAPSHOT
+category: system
+type: executable
+ai:
+  powered: false

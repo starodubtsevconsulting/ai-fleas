@@ -1,6 +1,6 @@
-id: install
+id: plan
 version: 0.0.1-SNAPSHOT
-category: install
-type: flow
+category: utility
+type: executable
 ai:
   powered: false

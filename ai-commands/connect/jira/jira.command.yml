@@ -1,6 +1,6 @@
-id: install
+id: jira
 version: 0.0.1-SNAPSHOT
-category: install
-type: flow
+category: connect
+type: provider
 ai:
   powered: false
