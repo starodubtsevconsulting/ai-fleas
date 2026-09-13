@@ -1,51 +1,64 @@
 # DRAFT EXAMPLE ONLY: concrete memory runtime/index integration remains evolving.
-# The profile owns physical storage and retrieval-provider selection.
+# A profile may define several permanent-memory bindings for different consumers.
 
 schemaVersion: profile-memory.v0-draft
 status: draft
 
-canonical:
-  type: permanent-memory
-  command: permanent-memory
-  provider: permanent-memory-synology
-  format: markdown
-  humanInterface: obsidian-compatible
-  sourceOfTruth: true
-  method: zettelkasten-v1
-  access: read-only
-  # Provider-specific connection values live under:
-  # commands-config/permanent-memory-synology/permanent-memory-synology.command.config
-  # A private profile replaces placeholders with its own host/user/root/key.
+permanentMemory:
+  personal:
+    command: permanent-memory
+    provider: permanent-memory-synology
+    format: markdown
+    humanInterface: obsidian-compatible
+    sourceOfTruth: true
+    method: zettelkasten-v1
+    access: read-only
+    providerConfig: commands-config/permanent-memory-synology/permanent-memory-synology.command.config
+
+# Future examples; intentionally not enabled/configured in this profile:
+#  dev:
+#    command: permanent-memory
+#    provider: permanent-memory-local
+#    access: read-write
+#  investment:
+#    command: permanent-memory
+#    provider: permanent-memory-synology
+#    access: read-only
+
+consumers:
+  personalGovernor:
+    permanentMemoryRef: personal
+
+  # A workflow may explicitly reference its own permanent-memory binding.
+  # It does not automatically inherit the Personal Governor's memory.
+  # workflows:
+  #   dev:
+  #     permanentMemoryRef: dev
 
 retrieval:
-  # Derived/indexed memory is optional and rebuildable from canonical memory.
   mode: derived
   provider: mem0
   status: candidate-not-configured
-  source: canonical
+  sourcePermanentMemoryRef: personal
   sourceOfTruth: false
 
-areas:
-  inbox:
-    semanticType: fleeting
-  references:
-    semanticType: reference
-  concepts:
-    semanticType: permanent
-  outputs:
-    semanticType: composed-output
+semanticAreas:
+  inbox: fleeting
+  references: reference
+  concepts: permanent
+  outputs: composed-output
 
 platformAccess:
   hermes:
     route: permanent-memory-command
-    status: provider-configured-by-profile
   gpt-agents:
     route: permanent-memory-command-or-mcp-adapter
-    status: provider-configured-by-profile
 
 rules:
   - canonical-markdown-is-human-readable-source-of-truth
   - retrieval-index-is-derived-and-rebuildable
+  - memory-bindings-are-explicit-per-consumer
+  - workflow-memory-does-not-implicitly-inherit-personal-memory
+  - bindings-may-share-a-provider-or-root-only-when-explicitly-configured
   - memory-never-crosses-profile-boundary-without-explicit-transfer
-  - platform-native-memory-must-not-become-the-only-source-of-truth
   - portable-agents-use-permanent-memory-not-provider-directly
