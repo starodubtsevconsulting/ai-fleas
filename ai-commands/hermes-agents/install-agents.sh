@@ -138,7 +138,7 @@ for command_name in "${COMMAND_NAMES[@]}"; do
   command_path="${COMMAND_ROOT}/${command_name}"
   if [[ -e "${command_path}" || -L "${command_path}" ]]; then mv -- "${command_path}" "${backup_root}/${command_name}"; fi
 done
-if ! python3 "$(cd "$(dirname "$0")" && pwd)/run-hermes-installer.py" "${WATCHDOG_SECONDS}" bash "${installer}" --commit "${HERMES_COMMIT}" --skip-setup --skip-browser; then
+if ! python3 "$(cd "$(dirname "$0")" && pwd)/src/run-installer-with-timeout.py" "${WATCHDOG_SECONDS}" bash "${installer}" --commit "${HERMES_COMMIT}" --skip-setup --skip-browser; then
   fail_and_restore 'Hermes installer failed; restored the prior installation.'
 fi
 hermes_executable="${COMMAND_ROOT}/hermes"

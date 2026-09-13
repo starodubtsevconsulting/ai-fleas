@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-readonly SCRIPT="$(cd "$(dirname "$0")" && pwd)/install-hermes.sh"
+readonly TEST_DIR="$(cd "$(dirname "$0")" && pwd)"
+readonly SCRIPT="$(cd "${TEST_DIR}/.." && pwd)/install-agents.sh"
 readonly COMMIT='29112bef099274229cadff79cdff7bf7b99c4b77'
 readonly SYSTEM_TMPDIR="${TMPDIR:-/tmp}"
 tests=0

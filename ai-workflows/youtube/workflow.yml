@@ -1,0 +1,14 @@
+id: youtube
+label: YouTube
+tags:
+  - youtube
+  - video
+  - creative
+  - publishing
+entry: youtube.workflow.md
+required_commands:
+  - writing
+  - tts
+  - lyrics-timestamp
+  - kdenlive
+  - video-handwriting-effect
