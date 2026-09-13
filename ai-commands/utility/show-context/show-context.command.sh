@@ -11,7 +11,7 @@ source "$SCRIPT_DIR/../command-python.setup.sh"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 APP_ROOT="${APP_ROOT:-$ROOT_DIR/ai-config}"
 source "$SCRIPT_DIR/../runtime-paths.sh"
-BROWSER_CMD="$ROOT_DIR/ai-commands/browser/browser.command.sh"
+BROWSER_CMD="$ROOT_DIR/ai-commands/connect/browser/browser.command.sh"
 PYTHON_INSTALLER=""
 NODE_INSTALLER=""
 PROJECTS_REGISTRY="${AI_PROFILE_PROJECT_FILE:-}"
@@ -452,15 +452,12 @@ PYCHECK
 output_root() {
   if [[ -n "$AI_FLOW_OUTPUT_DIR" ]]; then
     if [[ "${AI_FLOW_OUTPUT_DIR%/}" == */.ai ]]; then
-      printf '%s
-' "${AI_FLOW_OUTPUT_DIR%/}/tmp/show-context"
+      printf '%s\n' "${AI_FLOW_OUTPUT_DIR%/}/tmp/show-context"
     else
-      printf '%s
-' "$AI_FLOW_OUTPUT_DIR"
+      printf '%s\n' "$AI_FLOW_OUTPUT_DIR"
     fi
   else
-    printf '%s
-' "$ROOT_DIR/.ai/tmp/show-context"
+    printf '%s\n' "$ROOT_DIR/.ai/tmp/show-context"
   fi
 }
 render_see_context() {
