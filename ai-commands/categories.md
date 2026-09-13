@@ -36,6 +36,64 @@ Rules:
 
 Prefer an existing category over creating a new one. Add a new category only when several commands share a stable capability type that does not fit the existing list.
 
+## Command metadata
+
+Each public command uses `<name>.command.yml` as its canonical machine-readable metadata file. Do not introduce a separate `meta.yml` for the same information.
+
+Required metadata:
+
+```yaml
+id: ticket-tracker
+version: 1.0.0
+category: connect
+type: adapter
+```
+
+Fields:
+
+- `id` — globally unique public command ID. It does not include the category path.
+- `version` — command contract/implementation version.
+- `category` — one value from the flat category catalog above.
+- `type` — the command's primary architectural role.
+
+### Command types
+
+Use one primary type per command:
+
+| Type | Meaning | Typical examples |
+| --- | --- | --- |
+| `contract` | Reasoning/guidance contract with no required deterministic executable | policy or reasoning commands |
+| `executable` | Deterministic script/tool capability | validation, transformation, setup |
+| `adapter` | Provider-neutral capability that resolves a configured provider command | `ticket-tracker`, `source-control`, `health-data`, `activity-data` |
+| `provider` | Provider-specific implementation selected by an adapter | `jira`, `git`, `health-data-garmin`, `activity-data-android` |
+| `flow` | Command-level composition of multiple commands into one bounded outcome | composed operational commands |
+| `visual` | Command whose primary interaction surface is a dedicated UI | command-owned Electron/web surfaces |
+
+`category` and `type` are independent dimensions:
+
+```text
+category = capability family / where the command belongs
+type     = architectural behavior / how the command operates
+```
+
+Examples:
+
+```yaml
+id: health-data
+version: 0.0.1-SNAPSHOT
+category: data
+type: adapter
+```
+
+```yaml
+id: health-data-garmin
+version: 0.0.1-SNAPSHOT
+category: data
+type: provider
+```
+
+A command can have secondary implementation characteristics, but `type` remains singular for now. Choose the command's primary architectural role rather than turning `type` into an array.
+
 ## Identity and lookup
 
 Category is a physical/catalog organization concern. It is not part of the public command ID.
