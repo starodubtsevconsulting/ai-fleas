@@ -1,0 +1,54 @@
+schemaVersion: workflow-logical-agents.v1
+workflowId: youtube
+logicalProjectIdPattern: <profile-id>-youtube[-<suffix>]
+teamPolicy: agents/team.md
+
+agents:
+  - agentId: lyrics-script-worker
+    roleDefinition: ../_common/roles/worker.md
+    scope: workflow
+    assignedStep: lyrics-or-script
+    requiredArtifact: approved lyrics, script, or narration
+    lifecycle: persistent-worker
+    humanFacing: true
+    readinessToken: LYRICS_SCRIPT_WORKER_READY
+    aiProvider: youtube-lyrics-script
+    commands: [writing]
+
+  - agentId: audio-worker
+    roleDefinition: ../_common/roles/worker.md
+    scope: workflow
+    assignedStep: audio
+    requiredArtifact: approved final audio
+    lifecycle: persistent-worker
+    humanFacing: true
+    readinessToken: AUDIO_WORKER_READY
+    aiProvider: youtube-default-worker
+    commands: [tts, lyrics-timestamp]
+
+  - agentId: scene-worker
+    roleDefinition: ../_common/roles/worker.md
+    scope: workflow
+    assignedStep: scene
+    requiredArtifact: approved picture, cover, video, or combined scene package
+    lifecycle: persistent-worker
+    humanFacing: true
+    readinessToken: SCENE_WORKER_READY
+    aiProvider: youtube-default-worker
+    commands: [kdenlive, video-handwriting-effect]
+
+  - agentId: release-worker
+    roleDefinition: ../_common/roles/worker.md
+    scope: workflow
+    assignedStep: release
+    requiredArtifact: approved YouTube release package or authorized YouTube reference
+    lifecycle: persistent-worker
+    humanFacing: true
+    readinessToken: RELEASE_WORKER_READY
+    aiProvider: youtube-default-worker
+    commands: []
+
+dependencies:
+  - { consumerAgentId: audio-worker, providerAgentId: lyrics-script-worker, kind: upstream-artifact }
+  - { consumerAgentId: scene-worker, providerAgentId: audio-worker, kind: upstream-artifact }
+  - { consumerAgentId: release-worker, providerAgentId: scene-worker, kind: upstream-artifact }
