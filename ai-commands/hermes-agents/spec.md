@@ -27,6 +27,18 @@ requires a verified profile, scheduler, running gateway, and durable System rece
 - Workflow initialization preflights the complete resolved roster before mutation, writes no ready receipt after a partial failure, and emits `HERMES_WORKFLOW_READY` with the exact Agent count, ordered profile IDs, and `all_agents_ready=true` only after every Agent and the receipt writer succeed.
 - `initialize-system` realizes exactly one globally pinned profile with no workflow-group membership and exactly one profile-scoped scheduler. By default, its ordered watch set contains every Hermes workflow declared by the selected work profile. Explicit `--watch-group` arguments may select a narrower subset of that derived set but cannot cross the work-profile boundary. It writes or replaces the System receipt only after the profile, scheduler, gateway, and ticker are verified ready.
 - A System profile's runtime ID and visible title are `<profile-id>-system` (for example, `example-system`).
+- A System profile uses the selected profile root as its isolated runtime working directory. The resolver validates the
+  primary project but must not use a workflow repository as System's working directory or inject that repository's
+  coding posture and project instructions.
+- System realization disables coding context and unrelated toolsets so its runtime capabilities remain aligned with its
+  lifecycle-monitor responsibilities.
+- System's generated `SOUL.md` references the canonical System contract and contains resolved identity and dynamic
+  profile binding. A generated late `agent.system_prompt` overlay repeats only the mandatory conversational boundary
+  after Hermes runtime guidance; it must remain derived from, and must not replace, the canonical contract.
+- Hermes caches the effective prompt per conversation. Reconciliation may update installed prompt sources while
+  preserving an existing conversation's cached prompt; it does not promise retroactive prompt replacement. A fresh
+  conversation loads the updated installed configuration. `reinitialize-system` removes the old profile conversations,
+  memory, and prompt snapshots before creating the replacement generation.
 - `reinitialize-system` requires `--confirm-reinitialize`, validates the complete replacement before deletion, deletes and verifies the exact profile-owned System instance, and only then initializes a fresh profile, scheduler, gateway, and receipt.
 - System and workflow initialization preserve one profile-owned Hermes binding registry. System resolves groups and profiles only from exact receipts; a missing group receipt remains pending.
 - `reinitialize` requires `--confirm-reinitialize` and preflights the complete replacement generation before deleting anything. Only after successful preflight may it delete the exact resolved group and role profiles, verify their removal, observe a bounded desktop synchronization barrier, clear only that group's deletion tombstone, and create the fresh generation.

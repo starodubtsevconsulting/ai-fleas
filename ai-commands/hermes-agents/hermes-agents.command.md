@@ -128,6 +128,76 @@ Replacement preflight happens before deletion. The operation then holds a short 
 and recreation so a running Hermes Desktop can retire the old room identity and its conversation log before the same
 logical group name is created again.
 
+### System initialization and prompt realization
+
+Use the System-specific lifecycle commands for the profile-scoped System agent. Do not manually delete only its Hermes
+profile: that can leave its scheduler, gateway service, receipt, or cached conversation prompt behind.
+
+```sh
+# Create the profile-scoped System agent and watch every workflow declared by this profile.
+hermes-agents.command.sh initialize-system --work-profile example
+
+# Inspect the profile, scheduler, gateway, ticker, and receipt as one unit.
+hermes-agents.command.sh status-system --work-profile example
+
+# Safely remove the complete old generation and create a fresh one.
+hermes-agents.command.sh reinitialize-system --work-profile example --confirm-reinitialize
+```
+
+`initialize-system` derives its default watch set from the selected profile. It does not watch workflows belonging to
+other profiles. `--watch-group` is only needed to select a narrower subset of the selected profile's workflows.
+
+System prompt realization deliberately has several layers with distinct jobs:
+
+| Layer | Responsibility |
+|---|---|
+| Canonical System contract | The reusable source of truth for identity, responsibilities, conversational scope, and lifecycle rules. |
+| Generated `SOUL.md` | A thin Hermes entry point containing the resolved profile identity, canonical contract reference, binding-registry path, and dynamic watch scope. Hermes loads it automatically. Referenced files are not textually expanded by Hermes. |
+| Runtime `agent.system_prompt` | A generated late enforcement overlay for the small set of non-negotiable scope rules. It is derived from the canonical contract and dynamic profile binding; it is not a second policy source. |
+| Isolated System workspace | The selected profile root, rather than a workflow repository. This prevents repository coding instructions and project-specific `AGENTS.md` files from changing the System agent's identity. |
+| Runtime capability settings | Coding context and unrelated toolsets are disabled so the prompt and available capabilities agree with the lifecycle-monitor role. |
+| Binding receipt | The authoritative profile-owned list of workflow groups and agents that System is configured to monitor. A ready receipt is configuration evidence, not proof that every backend is currently running. |
+| Conversation prompt snapshot | Hermes constructs and caches the effective prompt when a conversation begins. Changing a source file does not retroactively rewrite an existing conversation's snapshot. |
+
+The late overlay exists because Hermes also supplies its own general runtime guidance. Keeping the full policy in the
+canonical contract avoids duplication, while repeating only the mandatory scope boundary late in the effective prompt
+makes that boundary reliable for smaller local models.
+
+```mermaid
+sequenceDiagram
+  actor Human
+  participant Command as hermes-agents.command.sh
+  participant Resolver as Profile/system resolver
+  participant Hermes as Hermes profile runtime
+  participant Prompt as Prompt builder
+  participant Runtime as Scheduler + gateway
+  participant Registry as Binding registry
+
+  Human->>Command: initialize-system or reinitialize-system
+  Command->>Resolver: Resolve selected profile, providers, models, workflows, and isolated profile workspace
+  Resolver-->>Command: Validated System generation and profile-owned watch set
+  alt reinitialize-system
+    Command->>Hermes: Delete exact old System profile, sessions, memory, and prompt snapshots
+    Command->>Runtime: Remove exact old scheduler and gateway binding
+    Command->>Registry: Remove old System receipt
+    Hermes-->>Command: Old generation absent
+  end
+  Command->>Hermes: Create profile and apply model, workspace, capability, and prompt settings
+  Command->>Hermes: Write thin SOUL.md and late scope overlay
+  Command->>Runtime: Create scheduler and start profile gateway
+  Command->>Registry: Write verified System receipt with derived watch set
+  Command-->>Human: SYSTEM_READY
+  Human->>Hermes: Start a new conversation
+  Hermes->>Prompt: Build one effective prompt snapshot
+  Prompt->>Prompt: Load SOUL + Hermes guidance + late scope overlay
+  Prompt-->>Hermes: Profile-scoped System identity and rules
+```
+
+Use `reconcile` when bindings or generated configuration should be reapplied without losing conversations. Use
+`reinitialize-system` when testing a new System identity or prompt behavior, or whenever the old conversation snapshots
+must be removed. Starting a new conversation is sufficient to pick up prompt changes only when the installed profile
+configuration has already been reconciled and no other part of the generation must be replaced.
+
 ## Agent realization
 
 `initialize` has the same lifecycle meaning as it does in `gpt-agents`: realize the agents declared for the selected
@@ -148,6 +218,7 @@ The Hermes adapter separates resolution, validation, orchestration, and mutation
 | Component | Responsibility |
 |---|---|
 | `src/resolve-workflow-scope.mjs` | Resolve profile-owned workflow, projects, Agents, providers, models, and flows into a portable roster. |
+| `src/resolve-system-scope.mjs` | Resolve one profile-scoped System agent, its provider/model, isolated profile workspace, and allowed workflow watch set. |
 | `src/realize-workflow.py` | Parse the complete roster, preflight every Agent, track progress, write the binding receipt, and report the aggregate outcome. |
 | `src/validate-profile.py` | Validate one Agent's static contracts, runtime dependencies, endpoint response, and advertised model without mutation. |
 | `setup-hermes-profile.sh` | Apply one already-validated Hermes profile and group membership. |
