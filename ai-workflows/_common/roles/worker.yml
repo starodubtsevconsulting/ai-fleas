@@ -1,0 +1,27 @@
+schemaVersion: role.v1
+extends: _role.yml
+
+id: worker
+contract: worker.md
+
+scope:
+  kind: workflow
+  bindingOwner: workflow
+
+humanFacing: true
+
+lifecycle:
+  default: adapter-defined
+
+fixed:
+  canonicalRole: worker
+
+configurable:
+  flow:
+    type: path
+    ownership: workflow
+    required: true
+  aiProvider:
+    type: provider-binding
+    ownership: profile
+    required: true
