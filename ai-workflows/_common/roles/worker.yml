@@ -17,19 +17,11 @@ fixed:
   canonicalRole: worker
 
 configurable:
-  assignedStep:
-    type: string
-    ownership: workflow
-    required: true
-  requiredArtifact:
-    type: string
+  flow:
+    type: path
     ownership: workflow
     required: true
   aiProvider:
     type: provider-binding
     ownership: profile
     required: true
-  commands:
-    type: command-id-list
-    ownership: workflow
-    required: false
