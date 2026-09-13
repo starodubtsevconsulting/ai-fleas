@@ -173,6 +173,17 @@ workflows:
           policy_file: workflows-config/dev/commands/jira/ticket-policy.md
           summary_format: '[project name]: title'
           description_template_file: workflows-config/dev/commands/jira/description.template.txt
+  - path: youtube.workflow.md
+    harness: hermes
+    agent_providers_config: workflows-config/youtube/agent-providers.example.yml
+    commands:
+      - writing
+      - tts
+      - lyrics-timestamp
+      - kdenlive
+      - video-handwriting-effect
+    projects:
+      - ref: projects-config/youtube/example-channel/project.yml
 app_mode:
   default: dev
   ui_surface: electron
@@ -185,6 +196,7 @@ app_mode:
   allow_codex_logout: true
   workflow_layouts:
     dev.workflow.md: terminal
+    youtube.workflow.md: chat
 projects_root_path: /absolute/path/to/example-workspace
 sessions_root: ~/.ai-work-sessions/example
 org_domain: example.com
