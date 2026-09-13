@@ -1,0 +1,6 @@
+id: cloudflare-connector
+version: 0.0.1-SNAPSHOT
+category: install
+type: executable
+ai:
+  powered: false
