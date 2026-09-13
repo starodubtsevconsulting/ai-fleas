@@ -1,21 +1,24 @@
-# DRAFT EXAMPLE ONLY: memory runtime/integration is not implemented yet.
+# DRAFT EXAMPLE ONLY: concrete memory runtime/index integration remains evolving.
 # The profile owns physical storage and retrieval-provider selection.
-# Portable roles such as Cross-Workflow Governor reference logical memory areas,
-# not platform-specific storage mechanics.
 
 schemaVersion: profile-memory.v0-draft
 status: draft
 
 canonical:
-  type: markdown-vault
-  # Example local path only. A real profile chooses its own private location.
-  root: ~/.ai-fleas/example/memory
+  type: permanent-memory
+  command: permanent-memory
+  provider: permanent-memory-synology
   format: markdown
   humanInterface: obsidian-compatible
   sourceOfTruth: true
+  method: zettelkasten-v1
+  access: read-only
+  # Provider-specific connection values live under:
+  # commands-config/permanent-memory-synology/permanent-memory-synology.command.config
+  # A private profile replaces placeholders with its own host/user/root/key.
 
 retrieval:
-  # Derived/indexed memory is optional and must be rebuildable from canonical files.
+  # Derived/indexed memory is optional and rebuildable from canonical memory.
   mode: derived
   provider: mem0
   status: candidate-not-configured
@@ -23,30 +26,26 @@ retrieval:
   sourceOfTruth: false
 
 areas:
-  canonical-strategy:
-    path: strategy
-    access: read-write
-  decision-history:
-    path: decisions
-    access: read-write
-  project-context:
-    path: context
-    access: read-only
+  inbox:
+    semanticType: fleeting
+  references:
+    semanticType: reference
+  concepts:
+    semanticType: permanent
+  outputs:
+    semanticType: composed-output
 
 platformAccess:
   hermes:
-    # Prefer a native Hermes memory provider/adapter when it preserves the same
-    # profile-level canonical-memory semantics.
-    route: native-or-command-adapter
-    status: not-configured
+    route: permanent-memory-command
+    status: provider-configured-by-profile
   gpt-agents:
-    # GPT may use MCP, a profile command, or another supported connector to reach
-    # the same profile memory. The concrete route is intentionally undecided.
-    route: mcp-or-command-adapter
-    status: not-configured
+    route: permanent-memory-command-or-mcp-adapter
+    status: provider-configured-by-profile
 
 rules:
   - canonical-markdown-is-human-readable-source-of-truth
   - retrieval-index-is-derived-and-rebuildable
   - memory-never-crosses-profile-boundary-without-explicit-transfer
   - platform-native-memory-must-not-become-the-only-source-of-truth
+  - portable-agents-use-permanent-memory-not-provider-directly
