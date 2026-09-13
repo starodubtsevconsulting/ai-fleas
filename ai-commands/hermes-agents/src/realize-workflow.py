@@ -117,6 +117,7 @@ def main() -> int:
     parser.add_argument("--binding-python", required=True)
     parser.add_argument("--binding-registry", type=Path, required=True)
     parser.add_argument("--project-scope", required=True)
+    parser.add_argument("--preflight-only", action="store_true")
     parser.add_argument("setup_args", nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
@@ -144,6 +145,13 @@ def main() -> int:
             flush=True,
         )
         return 1
+
+    if args.preflight_only:
+        print(
+            f"HERMES_WORKFLOW_PREFLIGHT_READY: group={args.group} agents={len(bindings)} no_profiles_changed=true",
+            flush=True,
+        )
+        return 0
 
     completed: list[str] = []
     for binding, environment in environments:

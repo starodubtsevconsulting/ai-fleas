@@ -296,6 +296,7 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
       printf '%s\n' 'HERMES_REINITIALIZE_CONFIRMATION_REQUIRED: use reinitialize ... --confirm-reinitialize.' >&2
       exit 2
     }
+    "$0" initialize "${initialize_args[@]}" --preflight-only
     "$0" delete-workflow "${delete_args[@]}" --confirm-delete
     sync_seconds="${HERMES_REINITIALIZE_SYNC_SECONDS:-5}"
     [[ "${sync_seconds}" =~ ^([0-9]|[12][0-9]|30)$ ]] || {
@@ -315,6 +316,7 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     project=''
     instance=''
     agent_instructions=''
+    preflight_only=false
     setup_args=()
     while (($#)); do
       case "$1" in
@@ -337,6 +339,9 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
         --agent-instructions)
           [[ $# -ge 2 ]] || { usage >&2; exit 2; }
           agent_instructions="$2"; shift 2
+          ;;
+        --preflight-only)
+          preflight_only=true; shift
           ;;
         *)
           setup_args+=("$1"); shift
@@ -382,14 +387,18 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     export HERMES_WORKFLOW_INSTRUCTIONS_PATH="${resolved_workflow_instructions}"
     export HERMES_WORKFLOW_COMMAND_IDS="${resolved_command_ids}"
     binding_registry="${PROFILE_ROOT}/${resolved_profile}/.local/hermes-agents/bindings.yml"
-    "${HERMES_WORKFLOW_REALIZER_PYTHON_BIN:-python3}" "${WORKFLOW_REALIZER}" \
+    realizer_args=(
       --group "${derived_group}" \
       --role-bindings "${resolved_role_bindings}" \
       --setup-script "${SETUP_SCRIPT}" \
       --binding-writer "${WORKFLOW_BINDING_WRITER}" \
       --binding-python "${HERMES_BINDING_PYTHON_BIN:-${PYTHON_BIN}}" \
       --binding-registry "${binding_registry}" \
-      --project-scope "${resolved_project_scope}" \
+      --project-scope "${resolved_project_scope}"
+    )
+    if [[ "${preflight_only}" == true ]]; then realizer_args+=(--preflight-only); fi
+    "${HERMES_WORKFLOW_REALIZER_PYTHON_BIN:-python3}" "${WORKFLOW_REALIZER}" \
+      "${realizer_args[@]}" \
       -- ${setup_args[@]+"${setup_args[@]}"}
     ;;
   list)
