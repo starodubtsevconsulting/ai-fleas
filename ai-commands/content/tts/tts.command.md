@@ -25,7 +25,7 @@ synthesize from that compiled speaker script.
 - Prints runtime status and log location.
 - Default generated file path: `session-root/<profile>/<session-id>/output/tts/<input-stem>.wav` (from active session
 plan pointer when `--text-file` is used).
-- If no active session pointer is available, fallback default is `ai-commands/tts/output/output.wav`.
+- If no active session pointer is available, fallback default is `ai-commands/content/tts/output/output.wav`.
 - Session-scoped output keeps generated audio with its owning work session.
 
 ## Entry Point
@@ -50,8 +50,7 @@ Convert text/script to audio via standalone TTS execution (`edge-tts` primary, `
 - Treat `text-to-audio` as an alias of `tts`, including multimedia narration requests for files such as `script.md`.
 - Use this alias when the user or workflow expects spoken progress/final reporting rather than generic text-to-speech phrasing.
 - This command is for narration/story/report audio, not for song generation; songs should not be routed through `tts`.
-- Future synthesis providers belong behind this command boundary rather than in separate provider-named or
-  presentation-named command bundles.
+- Future synthesis providers belong behind this command boundary rather than in separate provider-named or presentation-named command bundles.
 
 ## Intent
 
@@ -61,7 +60,7 @@ Use when the user asks to generate audio from text, script, story, or sample fil
 
 - When `OPENAI_API_KEY` is missing and the request is handled by Codex in the current AI session, do not rely on
 shell/API compile for raw input.
-- Instead, compile raw text in-session by following `ai-commands/tts/prompts/compile-post.prompt.md` directly.
+- Instead, compile raw text in-session by following `ai-commands/content/tts/prompts/compile-post.prompt.md` directly.
 - Write the compiled result to the active session output path:
   - `session-root/<profile>/<session-id>/output/tts/<input-stem>-compiled.txt`
 - Then run `tts.command.sh` only for synthesis with:
@@ -70,15 +69,18 @@ shell/API compile for raw input.
 
 ## Usage
 
-- `${AI_COMMANDS_ROOT}/tts/tts.command.sh`
-- `${AI_COMMANDS_ROOT}/tts/tts.command.sh --text "Hello world"`
-- `${AI_COMMANDS_ROOT}/tts/tts.command.sh --text-file ai-commands/tts/test/fixtures/post-ufo.source.md`
-- `${AI_COMMANDS_ROOT}/tts/tts.command.sh --text-file path/to/script.txt --output /tmp/out.wav --no-autoplay`
-- `${AI_COMMANDS_ROOT}/tts/tts.command.sh --text-file ai-commands/tts/test/fixtures/post-ufo.source.md
---compiled-text-out /tmp/post-compiled.txt`
-- `${AI_COMMANDS_ROOT}/tts/tts.command.sh --text-file ai-commands/tts/test/fixtures/post-ufo.expected.md --input-is-compiled`
-- `${AI_COMMANDS_ROOT}/tts/tts.command.sh --list-voice-profiles`
-- `${AI_COMMANDS_ROOT}/tts/test/test.sh`
+Direct catalog paths:
+
+- `${AI_COMMANDS_ROOT}/content/tts/tts.command.sh`
+- `${AI_COMMANDS_ROOT}/content/tts/tts.command.sh --text "Hello world"`
+- `${AI_COMMANDS_ROOT}/content/tts/tts.command.sh --text-file ai-commands/content/tts/test/fixtures/post-ufo.source.md`
+- `${AI_COMMANDS_ROOT}/content/tts/tts.command.sh --text-file path/to/script.txt --output /tmp/out.wav --no-autoplay`
+- `${AI_COMMANDS_ROOT}/content/tts/tts.command.sh --text-file ai-commands/content/tts/test/fixtures/post-ufo.source.md --compiled-text-out /tmp/post-compiled.txt`
+- `${AI_COMMANDS_ROOT}/content/tts/tts.command.sh --text-file ai-commands/content/tts/test/fixtures/post-ufo.expected.md --input-is-compiled`
+- `${AI_COMMANDS_ROOT}/content/tts/tts.command.sh --list-voice-profiles`
+- `${AI_COMMANDS_ROOT}/content/tts/test/test.sh`
+
+Workflows and profiles should continue to reference the logical command ID `tts`; the paths above are only for direct catalog execution/documentation.
 
 ## Options
 
@@ -106,35 +108,33 @@ shell/API compile for raw input.
   - `Robert: ...`
 - This compile step ensures speaker roles map to voice profiles consistently.
 - `--compile-mode ai` requires `OPENAI_API_KEY` and fails if compile fails.
-- `--compile-mode auto` tries AI compile when key is available; if unavailable/failing, it uses raw input directly (no
-non-AI compile transform).
+- `--compile-mode auto` tries AI compile when key is available; if unavailable/failing, it uses raw input directly (no non-AI compile transform).
 - In Codex Session Mode (no key), prefer in-session compilation and then `--input-is-compiled` synthesis.
-- Default compiled path: `ai-commands/tts/output/<input-stem>-compiled.txt`.
+- Default compiled path: `ai-commands/content/tts/output/<input-stem>-compiled.txt`.
 - You can override compiled output path with `--compiled-text-out`.
 - If your input is already compiled, pass `--input-is-compiled` to skip AI compilation.
 
 Example files:
 
-- Raw example: `ai-commands/tts/test/fixtures/post-ufo.source.md`
-- Compiled example: `ai-commands/tts/test/fixtures/post-ufo.expected.md`
-- Additional fixture examples (source/expected pairs for prompt quality checks):
-`ai-commands/tts/test/fixtures/*.source.md` and `ai-commands/tts/test/fixtures/*.expected.md`
+- Raw example: `ai-commands/content/tts/test/fixtures/post-ufo.source.md`
+- Compiled example: `ai-commands/content/tts/test/fixtures/post-ufo.expected.md`
+- Additional fixture examples: `ai-commands/content/tts/test/fixtures/*.source.md` and `ai-commands/content/tts/test/fixtures/*.expected.md`
 
 ## Voice profiles (JSON)
 
-- Folder: `ai-commands/tts/voice-profiles/`
+- Folder: `ai-commands/content/tts/voice-profiles/`
 - Default files:
   - `narrator.json`
   - `maria.json`
   - `robert.json`
 - These JSON files define exact voice/rate/pitch values used by the command.
-- Copy the shape from `install/whisper/install.command.example.config` into the selected profile and resolve it through `AI_COMMAND_CONFIG_PATH`.
+- Copy the shape from `ai-commands/install/whisper/install.command.example.config` into the selected profile and resolve it through `AI_COMMAND_CONFIG_PATH`.
 
 ## Smoke test
 
-- Sample 3-voice script: `ai-commands/tts/test/sample-three-voices.txt`
-- Run: `${AI_COMMANDS_ROOT}/tts/test/test.sh`
-- Test output: `ai-commands/tts/output/test-output.wav`
+- Sample 3-voice script: `ai-commands/content/tts/test/sample-three-voices.txt`
+- Run: `${AI_COMMANDS_ROOT}/content/tts/test/test.sh`
+- Test output: `ai-commands/content/tts/output/test-output.wav`
 
 ## Prerequisite behavior
 
