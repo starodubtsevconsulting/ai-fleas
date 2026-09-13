@@ -23,6 +23,12 @@ Activity data is evidence, not a judgment about productivity, distraction, or in
 
 Normalized evidence may include total screen time, app/category duration, social-media duration, unlock/pickup counts when available, and time-of-day usage. Missing values remain unknown.
 
+## Persistence boundary
+
+`activity-data` acquires and normalizes attention/activity evidence; it is not the canonical longitudinal database for the human. Long-term storage, cross-source correlation, history, and derived observations belong to a separate provider-neutral human-data-store capability when implemented.
+
+Keep raw provider payloads, normalized observations, and derived Governor knowledge distinguishable so provenance is preserved.
+
 ## Privacy boundary
 
 V1 is usage metadata only. Do not collect message contents, notification contents, typed text, browser contents/history, photos, microphone/camera data, contacts, or location merely to infer attention.
