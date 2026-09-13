@@ -452,12 +452,15 @@ PYCHECK
 output_root() {
   if [[ -n "$AI_FLOW_OUTPUT_DIR" ]]; then
     if [[ "${AI_FLOW_OUTPUT_DIR%/}" == */.ai ]]; then
-      printf '%s\n' "${AI_FLOW_OUTPUT_DIR%/}/tmp/show-context"
+      printf '%s
+' "${AI_FLOW_OUTPUT_DIR%/}/tmp/show-context"
     else
-      printf '%s\n' "$AI_FLOW_OUTPUT_DIR"
+      printf '%s
+' "$AI_FLOW_OUTPUT_DIR"
     fi
   else
-    printf '%s\n' "$ROOT_DIR/.ai/tmp/show-context"
+    printf '%s
+' "$ROOT_DIR/.ai/tmp/show-context"
   fi
 }
 render_see_context() {
