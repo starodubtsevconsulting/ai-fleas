@@ -1,6 +1,16 @@
 # Command categories
 
-Public commands are organized by capability type, not by workflow ownership.
+## Core principle
+
+Group commands by **capability type**, never by workflow ownership.
+
+```text
+workflow = who/why uses the command
+category = what kind of capability the command is
+type     = how the command behaves architecturally
+```
+
+A workflow may use commands from any category. A command does not move categories because a different workflow starts using it.
 
 ## Structure
 
@@ -35,6 +45,22 @@ Rules:
 | `utility` | Generic reusable helpers that do not fit another capability family | planning, discussion, demo |
 
 Prefer an existing category over creating a new one. Add a new category only when several commands share a stable capability type that does not fit the existing list.
+
+### Existing `install` command
+
+The current `ai-commands/install/` folder serves both as the `install` command bundle and as a container for installer commands. Under the categorized layout those two concepts become explicit:
+
+```text
+ai-commands/
+  install/                 # category
+    install/               # public router/flow command: id=install
+    docker/                # public command
+    git/                   # public command
+    grapheneos/            # public command
+    hermes/                # public command
+```
+
+The command ID remains `install`; only its physical catalog path changes to `ai-commands/install/install/`.
 
 ## Command metadata
 
