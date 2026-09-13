@@ -11,7 +11,7 @@ source "$SCRIPT_DIR/../command-python.setup.sh"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 APP_ROOT="${APP_ROOT:-$ROOT_DIR/ai-config}"
 source "$SCRIPT_DIR/../runtime-paths.sh"
-BROWSER_CMD="$ROOT_DIR/ai-commands/connect/browser/browser.command.sh"
+BROWSER_CMD="$ROOT_DIR/ai-commands/browser/browser.command.sh"
 PYTHON_INSTALLER=""
 NODE_INSTALLER=""
 PROJECTS_REGISTRY="${AI_PROFILE_PROJECT_FILE:-}"
@@ -452,12 +452,15 @@ PYCHECK
 output_root() {
   if [[ -n "$AI_FLOW_OUTPUT_DIR" ]]; then
     if [[ "${AI_FLOW_OUTPUT_DIR%/}" == */.ai ]]; then
-      printf '%s\n' "${AI_FLOW_OUTPUT_DIR%/}/tmp/show-context"
+      printf '%s
+' "${AI_FLOW_OUTPUT_DIR%/}/tmp/show-context"
     else
-      printf '%s\n' "$AI_FLOW_OUTPUT_DIR"
+      printf '%s
+' "$AI_FLOW_OUTPUT_DIR"
     fi
   else
-    printf '%s\n' "$ROOT_DIR/.ai/tmp/show-context"
+    printf '%s
+' "$ROOT_DIR/.ai/tmp/show-context"
   fi
 }
 render_see_context() {
@@ -791,10 +794,60 @@ if section:
 page_title = title_arg or selected_heading or source.name
 
 code_language_by_suffix = {
-    ".bash": "bash", ".c": "c", ".conf": "ini", ".cpp": "cpp", ".cs": "csharp", ".css": "css", ".diff": "diff", ".go": "go", ".gradle": "gradle", ".groovy": "groovy", ".h": "c", ".hpp": "cpp", ".html": "xml", ".java": "java", ".js": "javascript", ".json": "json", ".jsx": "javascript", ".kt": "kotlin", ".kts": "kotlin", ".log": "plaintext", ".mjs": "javascript", ".properties": "properties", ".proto": "protobuf", ".py": "python", ".rb": "ruby", ".rs": "rust", ".scala": "scala", ".sh": "bash", ".smithy": "plaintext", ".sql": "sql", ".toml": "toml", ".ts": "typescript", ".tsx": "typescript", ".txt": "plaintext", ".xml": "xml", ".yaml": "yaml", ".yml": "yaml", ".zsh": "bash",
+    ".bash": "bash",
+    ".c": "c",
+    ".conf": "ini",
+    ".cpp": "cpp",
+    ".cs": "csharp",
+    ".css": "css",
+    ".diff": "diff",
+    ".go": "go",
+    ".gradle": "gradle",
+    ".groovy": "groovy",
+    ".h": "c",
+    ".hpp": "cpp",
+    ".html": "xml",
+    ".java": "java",
+    ".js": "javascript",
+    ".json": "json",
+    ".jsx": "javascript",
+    ".kt": "kotlin",
+    ".kts": "kotlin",
+    ".log": "plaintext",
+    ".mjs": "javascript",
+    ".properties": "properties",
+    ".proto": "protobuf",
+    ".py": "python",
+    ".rb": "ruby",
+    ".rs": "rust",
+    ".scala": "scala",
+    ".sh": "bash",
+    ".smithy": "plaintext",
+    ".sql": "sql",
+    ".toml": "toml",
+    ".ts": "typescript",
+    ".tsx": "typescript",
+    ".txt": "plaintext",
+    ".xml": "xml",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".zsh": "bash",
 }
 markdown_suffixes = {".md", ".markdown", ".mdown"}
-code_language_aliases = {"c++": "cpp", "c#": "csharp", "console": "plaintext", "js": "javascript", "md": "markdown", "shell": "bash", "sh": "bash", "text": "plaintext", "ts": "typescript", "yml": "yaml", "zsh": "bash"}
+code_language_aliases = {
+    "c++": "cpp",
+    "c#": "csharp",
+    "console": "plaintext",
+    "js": "javascript",
+    "md": "markdown",
+    "shell": "bash",
+    "sh": "bash",
+    "text": "plaintext",
+    "ts": "typescript",
+    "yml": "yaml",
+    "zsh": "bash",
+}
+
 
 def normalize_code_language(value: str) -> str:
     stripped = (value or "").strip()
@@ -805,6 +858,7 @@ def normalize_code_language(value: str) -> str:
     token = re.sub(r"[^a-z0-9_+#.-]", "", token)
     return code_language_aliases.get(token, token)
 
+
 source_code_language = ""
 if source.suffix.lower() not in markdown_suffixes:
     source_code_language = code_language_by_suffix.get(source.suffix.lower(), "plaintext")
@@ -814,11 +868,13 @@ url_pattern = re.compile(r"https?://[^\s<>\")\]']+")
 def file_url(path: Path) -> str:
     return "file://" + quote(str(path.resolve()))
 
+
 def resolve_href(raw_href: str) -> str:
     href = html.unescape(raw_href).strip()
     if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", href) or href.startswith("#"):
         return href
     return file_url((source.parent / href).resolve())
+
 
 def linkify_escaped(escaped):
     def replace(match):
@@ -834,10 +890,12 @@ def linkify_escaped(escaped):
 def plain_code_html(text):
     return linkify_escaped(html.escape(text))
 
+
 def pygments_css():
     if not PYGMENTS_AVAILABLE:
         return ""
     return HtmlFormatter(style="monokai").get_style_defs(".codehilite")
+
 
 def pygments_code_html(text, language=""):
     if not PYGMENTS_AVAILABLE:
@@ -853,13 +911,23 @@ def pygments_code_html(text, language=""):
     formatter = HtmlFormatter(nowrap=True, style="monokai")
     return pygments_highlight(text, lexer, formatter).rstrip("\n")
 
+
 def fallback_syntax_html(text):
     escaped = html.escape(text)
-    token_pattern = re.compile(r"(?P<comment>//[^\n]*|#[^\n]*)|(?P<string>&quot;[^&]*&quot;|&#x27;[^&]*&#x27;|`[^`]*`)|(?P<keyword>\b(?:async|await|class|const|def|else|export|for|from|function|if|import|in|interface|let|new|null|private|public|return|static|string|true|false|type|undefined|void|while)\b)|(?P<number>\b\d+(?:\.\d+)?\b)")
+    token_pattern = re.compile(
+        r"(?P<comment>//[^\n]*|#[^\n]*)|"
+        r"(?P<string>&quot;[^&]*&quot;|&#x27;[^&]*&#x27;|`[^`]*`)|"
+        r"(?P<keyword>\b(?:async|await|class|const|def|else|export|for|from|function|if|import|in|interface|"
+        r"let|new|null|private|public|return|static|string|true|false|type|undefined|void|while)\b)|"
+        r"(?P<number>\b\d+(?:\.\d+)?\b)"
+    )
+
     def replace(match):
         kind = match.lastgroup
         return f'<span class="code-{kind}">{match.group(0)}</span>'
+
     return token_pattern.sub(replace, escaped)
+
 
 def highlight_code(text, language=""):
     highlighted = pygments_code_html(text, language)
@@ -878,15 +946,31 @@ def highlight_code(text, language=""):
         return "\n".join(highlighted_lines)
     return fallback_syntax_html(text)
 
+
 def code_block_html(text, language=""):
     normalized = normalize_code_language(language)
     class_attr = f' class="language-{html.escape(normalized, quote=True)}"' if normalized else ""
     lang_label = f'<div class="code-language">{html.escape(normalized)}</div>' if normalized else ""
-    fallback_attr = ' data-show-context-fallback="true"' if not PYGMENTS_AVAILABLE and normalized == "diff" else ""
+    fallback_attr = (
+        ' data-show-context-fallback="true"'
+        if not PYGMENTS_AVAILABLE and normalized == "diff"
+        else ""
+    )
     return f'<div class="code-frame">{lang_label}<pre class="code-block codehilite"><code{class_attr}{fallback_attr}>' + highlight_code(text, normalized) + '</code></pre></div>'
 
+
 def render_mermaid_block(text):
-    return '<div class="diagram-block"><div class="mermaid">' + html.escape(text) + '</div><details><summary>Diagram source</summary>' + code_block_html(text, "mermaid") + '</details></div>'
+    return (
+        '<div class="diagram-block">'
+        '<div class="mermaid">'
+        + html.escape(text)
+        + '</div>'
+        '<details><summary>Diagram source</summary>'
+        + code_block_html(text, "mermaid")
+        + '</details>'
+        '</div>'
+    )
+
 
 def inline_md(text):
     escaped = html.escape(text)
@@ -904,7 +988,8 @@ def inline_md(text):
 def render_table(table_lines):
     rows = []
     for raw in table_lines:
-        rows.append([cell.strip() for cell in raw.strip().strip("|").split("|")])
+        cells = [cell.strip() for cell in raw.strip().strip("|").split("|")]
+        rows.append(cells)
     if len(rows) < 2:
         return "".join(f"<p>{inline_md(line)}</p>" for line in table_lines)
     html_rows = ["<table>"]
@@ -950,7 +1035,11 @@ for line in selected:
         continue
     if fence and in_code:
         fence_text = fence.group(1)
-        closes_current_fence = fence_text[0] == code_fence_character and len(fence_text) >= code_fence_length and not fence.group(2).strip()
+        closes_current_fence = (
+            fence_text[0] == code_fence_character
+            and len(fence_text) >= code_fence_length
+            and not fence.group(2).strip()
+        )
         if closes_current_fence:
             code_text = "\n".join(code)
             if code_lang == "mermaid":
@@ -1018,7 +1107,10 @@ else:
     result_meta = ""
 if mermaid_asset.is_file():
     mermaid_source = mermaid_asset.read_text(encoding="utf-8", errors="replace").replace("</script", "<\\/script")
-    mermaid_scripts = f"<script>{mermaid_source}</script>\n" + '<script>mermaid.initialize({ startOnLoad: true, securityLevel: "loose", theme: "default" });</script>'
+    mermaid_scripts = (
+        f"<script>{mermaid_source}</script>\n"
+        '<script>mermaid.initialize({ startOnLoad: true, securityLevel: "loose", theme: "default" });</script>'
+    )
 else:
     mermaid_scripts = """<script type="module">
   import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
