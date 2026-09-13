@@ -46,21 +46,34 @@ Rules:
 
 Prefer an existing category over creating a new one. Add a new category only when several commands share a stable capability type that does not fit the existing list.
 
-### Existing `install` command
+## Category commands
 
-The current `ai-commands/install/` folder serves both as the `install` command bundle and as a container for installer commands. Under the categorized layout those two concepts become explicit:
+A category may optionally also expose a public command with the same ID as the category. This is a **category command**.
+
+A category command owns a real capability whose scope is the category itself, such as routing to member commands, category-wide status/check behavior, or shared lifecycle behavior. It is not created merely because the category exists.
+
+When a category command exists, its files live directly in the category folder; do not add a redundant `<category>/<category>/` directory.
+
+Example:
 
 ```text
 ai-commands/
-  install/                 # category
-    install/               # public router/flow command: id=install
-    docker/                # public command
-    git/                   # public command
-    grapheneos/            # public command
-    hermes/                # public command
+  install/                       # category
+    install.command.md           # optional category command: id=install
+    install.command.yml
+    install.sh
+    chatgpt/                     # member command
+    claude/                      # member command
+    codex/                       # member command
+    docker/                      # member command
+    git/                         # member command
+    grapheneos/                  # member command
+    hermes/                      # member command
 ```
 
-The command ID remains `install`; only its physical catalog path changes to `ai-commands/install/install/`.
+The `install` category command provides the generic installation lifecycle/router capability across installer commands. The child folders remain independent public commands for installing or managing particular dependencies/software.
+
+Most categories do not need a category command. Add one only when there is a meaningful category-wide capability.
 
 ## Command metadata
 
