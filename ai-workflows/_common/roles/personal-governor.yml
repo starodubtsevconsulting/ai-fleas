@@ -1,0 +1,79 @@
+schemaVersion: role.v1
+extends: _role.yml
+
+id: personal-governor
+contract: personal-governor.md
+
+scope:
+  kind: profile
+  bindingOwner: profile
+
+humanFacing: true
+
+lifecycle:
+  default: persistent
+
+fixed:
+  canonicalRole: personal-governor
+  profileCardinality: one
+  governedSubjectCardinality: one
+  goalCardinality: many
+  workflowCardinality: many
+  permanentMemoryRequired: true
+  ordinaryWorkflowExecutionAllowed: false
+  strategyComponents: [strategy, human]
+  strategyComponentVersionsIndependent: true
+  strategyInstanceDataExternal: true
+
+intelligenceRequirement:
+  class: strategic-reasoning
+  minimumCapability: high
+  localFallback: disabled
+
+configurable:
+  displayLabel:
+    type: string
+    required: false
+    owner: binding
+  reviewSchedule:
+    type: schedule
+    required: false
+    owner: profile
+
+bindings:
+  profile:
+    type: profile-reference
+    required: true
+    cardinality: one
+    owner: profile
+  subject:
+    type: human-reference
+    required: true
+    cardinality: one
+    owner: profile
+  governorStrategy:
+    type: governor-strategy-binding
+    required: true
+    cardinality: one
+    owner: profile
+  goals:
+    type: goal-reference
+    required: false
+    cardinality: many
+    owner: profile-or-memory
+  workflows:
+    type: workflow-reference
+    required: true
+    cardinality: many
+    owner: profile
+  memory:
+    type: memory-reference
+    required: false
+    cardinality: many
+    owner: profile
+  commands:
+    type: command-reference
+    required: false
+    cardinality: many
+    owner: profile
+    providerNeutral: true
