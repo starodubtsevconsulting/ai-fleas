@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-# Category-local compatibility entry point.
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)/command-python.setup.sh"
