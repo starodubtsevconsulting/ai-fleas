@@ -1,11 +1,11 @@
 schemaVersion: profile-agent-binding.v1
 
-agentId: cross-workflow-governor
-roleDefinition: ../../ai-workflows/_common/roles/cross-workflow-governor.yml
+agentId: personal-governor
+roleDefinition: ../../ai-workflows/_common/roles/personal-governor.yml
 scope: profile
 lifecycle: persistent
 humanFacing: true
-readinessToken: CROSS_WORKFLOW_GOVERNOR_READY
+readinessToken: PERSONAL_GOVERNOR_READY
 aiProvider: profile-default
 
 profile:
@@ -17,9 +17,6 @@ subject:
   coordinates:
     email: jonathan@example.invalid
 
-# Reusable methodology coordinates plus profile-owned mutable instance data.
-# A private profile may point these URIs at Google Docs today and another
-# memory/database implementation later without changing the strategy version.
 governorStrategy:
   id: default
   strategyVersion: v1
@@ -29,12 +26,10 @@ governorStrategy:
       uri: profile-memory://governor/strategy
       access: read-write
       privacy: profile-private
-      purpose: Mutable goals, priorities, progress, decisions, evidence, reports, metrics, and workflow-allocation state for this Governor instance.
     human:
       uri: profile-memory://governor/human
       access: read-write
       privacy: profile-private
-      purpose: Mutable human operating model, commitments, execution evidence, learned patterns, and guidance state for this Governor instance.
 
 workflows:
   - dev
@@ -44,37 +39,25 @@ goals:
     intent: Become proficient with AI tools used in routine work.
     status: active
     priority: high
-    workflows:
-      - dev
-    successSignals:
-      - Common AI-assisted tasks can be completed reliably.
-      - Tool selection and usage become more consistent.
-
+    workflows: [dev]
   - id: improve-work-efficiency
     intent: Reduce repeated manual work and improve delivery efficiency with appropriate automation.
     status: active
     priority: medium
-    workflows:
-      - dev
-    successSignals:
-      - Repetitive steps are automated where useful.
-      - Routine work requires less manual coordination.
+    workflows: [dev]
 
 reviewSchedule:
   enabled: true
   every: 1w
   purpose: Review goal alignment and advise the governed human only when a meaningful adjustment is justified.
 
-# Additional durable context may be bound separately. The two canonical mutable
-# strategy-instance stores above belong directly to governorStrategy.data.
 memory:
   - name: decision-history
     uri: profile-memory://decision-history
-    purpose: Durable historical decision log when separated from canonical strategy state.
+    purpose: Durable historical decision log.
     access: read-write
     privacy: profile-private
     precedence: historical
-
   - name: project-context
     uri: profile-memory://project-context
     purpose: Read-only supporting project and workflow context.
