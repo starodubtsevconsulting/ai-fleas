@@ -1,11 +1,11 @@
 schemaVersion: role.v1
 extends: _role.yml
 
-id: cross-workflow-governor
-contract: cross-workflow-governor.md
+id: personal-governor
+contract: personal-governor.md
 
 scope:
-  kind: cross-workflow
+  kind: profile
   bindingOwner: profile
 
 humanFacing: true
@@ -14,7 +14,7 @@ lifecycle:
   default: persistent
 
 fixed:
-  canonicalRole: cross-workflow-governor
+  canonicalRole: personal-governor
   profileCardinality: one
   governedSubjectCardinality: one
   goalCardinality: many
@@ -46,151 +46,31 @@ bindings:
     required: true
     cardinality: one
     owner: profile
-    fields:
-      id:
-        type: string
-        required: true
-
   subject:
     type: human-reference
     required: true
     cardinality: one
     owner: profile
-    fields:
-      id:
-        type: string
-        required: true
-      name:
-        type: string
-        required: false
-      coordinates:
-        type: map
-        required: true
-        adapterDefined: true
-
   governorStrategy:
     type: governor-strategy-binding
     required: true
     cardinality: one
     owner: profile
-    fields:
-      id:
-        type: string
-        required: true
-      strategyVersion:
-        type: string
-        required: true
-      humanVersion:
-        type: string
-        required: true
-      data:
-        type: map
-        required: true
-        fields:
-          strategy:
-            type: memory-reference
-            required: true
-            fields:
-              uri:
-                type: uri
-                required: true
-              access:
-                type: enum
-                values: [read-only, read-write]
-                required: true
-              privacy:
-                type: any
-                required: false
-              purpose:
-                type: string
-                required: false
-          human:
-            type: memory-reference
-            required: true
-            fields:
-              uri:
-                type: uri
-                required: true
-              access:
-                type: enum
-                values: [read-only, read-write]
-                required: true
-              privacy:
-                type: any
-                required: false
-              purpose:
-                type: string
-                required: false
-    description: Profile-owned binding selecting reusable Governor methodology coordinates and the two canonical external mutable data stores that instantiate those components. Strategy definitions describe how to govern; data references contain the concrete goals, progress, evidence, reports, human model, and execution history. Data storage may change without changing strategy versions.
-
   goals:
     type: goal-reference
     required: false
     cardinality: many
     owner: profile-or-memory
-    fields:
-      id:
-        type: string
-        required: true
-      intent:
-        type: string
-        required: true
-      status:
-        type: string
-        required: true
-      priority:
-        type: any
-        required: false
-      constraints:
-        type: list
-        required: false
-      successSignals:
-        type: list
-        required: false
-      workflows:
-        type: reference-list
-        required: false
-      memory:
-        type: reference-list
-        required: false
-      reviewTrigger:
-        type: any
-        required: false
-
   workflows:
     type: workflow-reference
     required: true
     cardinality: many
     owner: profile
-    examples: [dev, multimedia, bookkeeping, investment]
-
   memory:
     type: memory-reference
     required: false
     cardinality: many
     owner: profile
-    description: Optional additional Governor context/history beyond the two canonical strategy-instance data bindings.
-    fields:
-      name:
-        type: string
-        required: true
-      uri:
-        type: uri
-        required: true
-      purpose:
-        type: string
-        required: true
-      access:
-        type: enum
-        values: [read-only, read-write]
-        required: true
-      privacy:
-        type: any
-        required: false
-      precedence:
-        type: any
-        required: false
-
   commands:
     type: command-reference
     required: false
