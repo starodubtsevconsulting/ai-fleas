@@ -79,10 +79,10 @@ runtime tabs`, `watch the load test`, `service auto scaling tab`, or `ALB reques
    - ECS service auto scaling
    - target groups
    - load balancers
-5. If `--open` is provided, open the collected URLs through `ai-commands/browser/browser.command.sh`.
+5. If `--open` is provided, open the collected URLs through `ai-commands/connect/browser/browser.command.sh`.
 
 ## Notes
 
 - Requires `aws`, `jq`, and `python3`.
-- Browser opens must go through `ai-commands/browser/browser.command.sh`.
+- Browser opens must go through `ai-commands/connect/browser/browser.command.sh`.
 - This helper is read-only; it does not mutate ECS or autoscaling state.

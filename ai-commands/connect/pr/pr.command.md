@@ -57,7 +57,7 @@ another default branch.
   - If CLI args do not include reviewer options, it applies `REVIEWERS` from config.
   - If CLI args do not include base options, it applies `BASE_BRANCH` from config. For Bitbucket Data Center remotes,
 if `BASE_BRANCH` is empty, the script defaults to `master`.
-  - After PR creation, it auto-opens the PR URL via `ai-commands/browser/browser.command.sh` when `OPEN_PR_IN_BROWSER=true`.
+  - After PR creation, it auto-opens the PR URL via `ai-commands/connect/browser/browser.command.sh` when `OPEN_PR_IN_BROWSER=true`.
   - Explicit CLI args always win over config defaults.
 
 ## Default PR Explanation
