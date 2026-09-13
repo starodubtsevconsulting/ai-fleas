@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Initialization and reconciliation are profile bootstrap operations, so expose their explicit
 # selections to the common command guard before normal argument processing.
-if [[ "${1:-}" == initialize || "${1:-}" == initialize-system || "${1:-}" == status-system || "${1:-}" == reinitialize || "${1:-}" == re-init || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow ]]; then
+if [[ "${1:-}" == initialize || "${1:-}" == initialize-system || "${1:-}" == reinitialize-system || "${1:-}" == status-system || "${1:-}" == reinitialize || "${1:-}" == re-init || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow ]]; then
   bootstrap_args=("$@")
   for ((bootstrap_index=1; bootstrap_index<${#bootstrap_args[@]}; bootstrap_index++)); do
     case "${bootstrap_args[bootstrap_index]}" in
@@ -26,7 +26,7 @@ if [[ "${1:-}" == initialize || "${1:-}" == initialize-system || "${1:-}" == sta
 fi
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)/_runtime/profile/command-profile.guard.sh"
 case "${1:-}" in
-  initialize-system|status-system) ai_command_require_profile_only "hermes-agents" || exit $? ;;
+  initialize-system|reinitialize-system|status-system) ai_command_require_profile_only "hermes-agents" || exit $? ;;
   *) ai_command_require_profile "hermes-agents" || exit $? ;;
 esac
 
@@ -60,6 +60,7 @@ usage() {
     '       hermes-agents.command.sh status PROFILE' \
     '       hermes-agents.command.sh delete PROFILE --confirm-delete' \
     '       hermes-agents.command.sh initialize-system --work-profile ID [--watch-group ID]... [--every DURATION]' \
+    '       hermes-agents.command.sh reinitialize-system --work-profile ID --confirm-reinitialize [--watch-group ID]... [--every DURATION]' \
     '       hermes-agents.command.sh status-system --work-profile ID'
 }
 
@@ -92,15 +93,55 @@ action="${1:-}"
 shift
 
 case "${action}" in
+  reinitialize-system)
+    confirmed=false
+    initialize_args=()
+    while (($#)); do
+      case "$1" in
+        --work-profile|--watch-group|--every)
+          [[ $# -ge 2 ]] || { usage >&2; exit 2; }
+          initialize_args+=("$1" "$2"); shift 2
+          ;;
+        --confirm-reinitialize) confirmed=true; shift ;;
+        *) usage >&2; exit 2 ;;
+      esac
+    done
+    [[ "${confirmed}" == true ]] || {
+      printf '%s\n' 'HERMES_SYSTEM_REINITIALIZE_CONFIRMATION_REQUIRED: use reinitialize-system ... --confirm-reinitialize.' >&2
+      exit 2
+    }
+    "$0" initialize-system "${initialize_args[@]}" --validate-only
+    work_profile="${WORK_PROFILE_ID:-}"
+    for ((argument_index=0; argument_index<${#initialize_args[@]}; argument_index++)); do
+      if [[ "${initialize_args[argument_index]}" == '--work-profile' ]]; then
+        work_profile="${initialize_args[argument_index + 1]}"
+        break
+      fi
+    done
+    system_profile="${work_profile}-system"
+    validate_profile "${system_profile}"
+    hermes_bin="$(resolve_hermes)"
+    if "${hermes_bin}" profile list | awk 'NR > 1 { print $1 }' | grep -Fx -- "${system_profile}" >/dev/null; then
+      "${hermes_bin}" profile delete "${system_profile}" --yes
+    fi
+    if "${hermes_bin}" profile list | awk 'NR > 1 { print $1 }' | grep -Fx -- "${system_profile}" >/dev/null; then
+      printf 'HERMES_SYSTEM_DELETE_FAILED: profile=%s still exists; recreation was not attempted.\n' "${system_profile}" >&2
+      exit 1
+    fi
+    printf 'HERMES_SYSTEM_DELETED: %s\n' "${system_profile}"
+    "$0" initialize-system "${initialize_args[@]}"
+    ;;
   initialize-system)
     work_profile="${WORK_PROFILE_ID:-}"
     every=''
     watch_groups=()
+    validate_only=false
     while (($#)); do
       case "$1" in
         --work-profile) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; work_profile="$2"; shift 2 ;;
         --watch-group) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; validate_profile "$2"; watch_groups+=("$2"); shift 2 ;;
         --every) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; every="$2"; shift 2 ;;
+        --validate-only) validate_only=true; shift ;;
         *) usage >&2; exit 2 ;;
       esac
     done
@@ -134,6 +175,11 @@ case "${action}" in
     export HERMES_COMPRESSION_THRESHOLD="${system_threshold}" HERMES_COMPRESSION_TARGET_RATIO="${system_target}" HERMES_COMPRESSION_PROTECT_LAST_N="${system_protect}"
     export HERMES_WORKSPACE="${system_workspace}" HERMES_SYSTEM_ROLE_PATH="${system_role_path}" HERMES_SYSTEM_SCHEDULE_PATH="${system_schedule_path}"
     export HERMES_SYSTEM_WATCH_GROUPS="${watch_csv}" HERMES_BINDING_REGISTRY_PATH="${binding_registry}" HERMES_GROUP=''
+    if [[ "${validate_only}" == true ]]; then
+      "${SETUP_SCRIPT}" --validate-only
+      printf 'HERMES_SYSTEM_REINITIALIZE_PREFLIGHT_READY: profile=%s watch=%s; no System changes were made.\n' "${system_profile}" "${watch_csv}"
+      exit 0
+    fi
     "${SETUP_SCRIPT}"
     hermes_python="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
     "${hermes_python}" "${GROUP_CONFIGURATOR}" --hermes-home "${HERMES_HOME:-${HOME}/.hermes}" --member "${system_profile}" --title "${system_title}" --global-pinned
