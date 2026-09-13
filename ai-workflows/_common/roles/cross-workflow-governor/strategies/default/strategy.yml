@@ -1,0 +1,16 @@
+schemaVersion: governor-strategy.v1
+id: default
+
+components:
+  strategy:
+    defaultVersion: v1
+    versions:
+      v1: strategy.v1.md
+  human:
+    defaultVersion: v1
+    versions:
+      v1: human.v1.md
+
+selection:
+  componentsIndependent: true
+  description: A concrete Governor binding selects the strategy id plus a version for each component. Components may evolve independently.
