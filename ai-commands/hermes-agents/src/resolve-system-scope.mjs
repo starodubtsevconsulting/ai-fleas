@@ -23,6 +23,15 @@ const selectedProfileRoot = inside(profileRoot, path.join(profileRoot, workProfi
 const profile = readYaml(path.join(selectedProfileRoot, `${workProfileId}-work-profile.yml`));
 if (profile.name !== workProfileId) fail('profile name does not match the selected ID.');
 if (!Array.isArray(profile.agent_platforms?.available) || !profile.agent_platforms.available.includes('hermes')) fail('Hermes is not an available platform.');
+const workflows = Array.isArray(profile.workflows) ? profile.workflows : [];
+const watchedWorkflowGroups = workflows
+  .filter((item) => item && typeof item === 'object' && !Array.isArray(item) && String(item.harness || '') === 'hermes')
+  .map((item) => {
+    const workflowId = path.basename(String(item.path || '')).replace(/\.workflow\.md$/, '').replace(/\.md$/, '');
+    return `${workProfileId}-${safeId(workflowId, 'Hermes workflow ID')}`;
+  });
+if (watchedWorkflowGroups.length === 0) fail('work profile has no Hermes workflows for System to watch.');
+if (new Set(watchedWorkflowGroups).size !== watchedWorkflowGroups.length) fail('work profile contains duplicate Hermes workflow IDs.');
 const system = profile.system_agent;
 if (!system || system.scope !== 'system' || system.cardinality !== 'one-per-platform') fail('system_agent contract is missing or invalid.');
 const binding = system.platform_bindings?.hermes;
@@ -45,7 +54,7 @@ const model = modelMatches[0], hermes = model.hermes;
 if (!hermes || typeof hermes !== 'object') fail(`model '${modelAlias}' has no Hermes settings.`);
 const providerModel = String(model.provider_model || '');
 if (!/^[A-Za-z0-9._:/+-]+$/.test(providerModel)) fail('System provider model ID is unsafe.');
-const workflow = (Array.isArray(profile.workflows) ? profile.workflows : [])[0];
+const workflow = workflows.find((item) => item?.harness === 'hermes');
 const projectRef = workflow?.projects?.[0]?.ref;
 if (!projectRef || path.isAbsolute(projectRef)) fail('System requires the profile primary project.');
 const project = readYaml(inside(selectedProfileRoot, path.join(selectedProfileRoot, projectRef), 'primary project'));
@@ -59,6 +68,6 @@ const every = String(system.schedule?.every || '');
 if (system.schedule?.enabled !== true || !/^[1-9][0-9]*[mhd]$/.test(every)) fail('enabled System schedule has an invalid interval.');
 const title = String(binding.title || '⚙️ System');
 if (!title || /[\t\r\n]/.test(title)) fail('System title is invalid.');
-const values = [workProfileId, `${workProfileId}-system`, title, providerAlias, String(provider.label || providerAlias), endpoint, providerModel, String(hermes.context_window_tokens), String(hermes.compression_threshold), String(hermes.compression_target), String(hermes.protect_last_messages), workspace, rolePath, schedulePath, every];
+const values = [workProfileId, `${workProfileId}-system`, title, providerAlias, String(provider.label || providerAlias), endpoint, providerModel, String(hermes.context_window_tokens), String(hermes.compression_threshold), String(hermes.compression_target), String(hermes.protect_last_messages), workspace, rolePath, schedulePath, every, watchedWorkflowGroups.join(',')];
 if (values.some((value) => !value || /[\t\r\n]/.test(value))) fail('resolved System values are empty or contain control characters.');
 process.stdout.write(`${values.join('\t')}\n`);
