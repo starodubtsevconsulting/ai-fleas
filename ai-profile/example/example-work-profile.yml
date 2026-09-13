@@ -36,17 +36,17 @@ system_agent:
     instruction: _common/agents/schedules/system-lifecycle-monitor.yml
   platform_bindings:
     gpt-agents:
-      title: "⚙️ System"
+      title: "example-system"
       model: gpt-5.6-luna
       reasoning: low
       readiness_token: SYSTEM_READY
     hermes:
-      title: "⚙️ System"
+      title: "example-system"
       lifecycle_command: hermes-agents
-      provider: ai-lab-service
-      model: qwen-coder
+      provider: rtx-3080-ti-model-provider
+      model: qwen-hermes
     sc:
-      title: "⚙️ System"
+      title: "example-system"
       model: platform-default
 # Profile agents are logical, portable agents owned directly by this profile.
 # Platform-specific model/reasoning/runtime tuning belongs in platform role overlays.
@@ -86,7 +86,7 @@ workflows:
     harness: pi
     local_ai:
       providers_config: local-ai-providers.yml
-      provider: local-coding-service
+      provider: asus-gx10-model-provider
       model: qwen-coder
     commands:
       - coding
@@ -173,6 +173,25 @@ workflows:
           policy_file: workflows-config/dev/commands/jira/ticket-policy.md
           summary_format: '[project name]: title'
           description_template_file: workflows-config/dev/commands/jira/description.template.txt
+  - path: youtube.workflow.md
+    harness: hermes
+    agent_providers_config: workflows-config/youtube/agent-providers.example.yml
+    local_ai:
+      providers_config: local-ai-providers.yml
+      # Intended cloud assignment when that provider and model are configured:
+      # provider: openai-service
+      # model: gpt-sol
+      provider: asus-gx10-model-provider
+      model: qwen-coder
+    commands:
+      - hermes-agents
+      - writing
+      - tts
+      - lyrics-timestamp
+      - kdenlive
+      - video-handwriting-effect
+    projects:
+      - ref: projects-config/youtube/example-channel/project.yml
 app_mode:
   default: dev
   ui_surface: electron
@@ -185,6 +204,7 @@ app_mode:
   allow_codex_logout: true
   workflow_layouts:
     dev.workflow.md: terminal
+    youtube.workflow.md: chat
 projects_root_path: /absolute/path/to/example-workspace
 sessions_root: ~/.ai-work-sessions/example
 org_domain: example.com

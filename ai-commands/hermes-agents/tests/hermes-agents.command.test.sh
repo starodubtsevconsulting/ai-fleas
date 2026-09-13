@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
-readonly COMMAND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly COMMAND_DIR="$(cd "${TEST_DIR}/.." && pwd)"
+readonly SOURCE_DIR="${COMMAND_DIR}/src"
 readonly COMMAND="${COMMAND_DIR}/hermes-agents.command.sh"
-bash "${COMMAND_DIR}/migrate-follow-profile-sessions.test.sh" >/dev/null
+bash "${TEST_DIR}/migrate-profile-sessions.test.sh" >/dev/null
+bash "${TEST_DIR}/resolve-workflow-scope.test.sh" >/dev/null
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/hermes-command-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
-mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/ai-profile/example/projects/dev/web" "${test_root}/commands/coding" "${test_root}/commands/hermes-agents" "${test_root}/workflows/dev" "${test_root}/workspace" "${test_root}/web-workspace" "${test_root}/platforms/hermes"
+mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/ai-profile/example/projects/dev/web" "${test_root}/commands/coding" "${test_root}/commands/hermes-agents" "${test_root}/workflows/dev" "${test_root}/workflows/_common/roles" "${test_root}/workflows/_common/agents/schedules" "${test_root}/workspace" "${test_root}/web-workspace" "${test_root}/platforms/hermes"
 touch "${test_root}/AGENTS.md" "${test_root}/README.md" "${test_root}/why.md"
 cat >"${test_root}/platforms/registry.yml" <<'YAML'
 platforms:
@@ -27,6 +30,8 @@ YAML
 printf '# Coding\n' >"${test_root}/commands/coding/coding.command.md"
 printf '# Hermes\n' >"${test_root}/commands/hermes-agents/hermes-agents.command.md"
 printf '# Dev\n' >"${test_root}/workflows/dev/dev.workflow.md"
+printf '# System\n' >"${test_root}/workflows/_common/roles/system.md"
+printf 'instruction: monitor\n' >"${test_root}/workflows/_common/agents/schedules/system-lifecycle-monitor.yml"
 printf '# Instructions\n' >"${test_root}/ai-profile/example/AGENTS.md"
 cat >"${test_root}/ai-profile/example/example-work-profile.yml" <<YAML
 version: 3
@@ -49,9 +54,22 @@ ai_platforms_root: ../../platforms
 commands:
   - id: hermes-agents
     config: local-ai-providers.yml
+system_agent:
+  scope: system
+  cardinality: one-per-platform
+  providers_config: local-ai-providers.yml
+  schedule:
+    enabled: true
+    every: 10m
+    instruction: _common/agents/schedules/system-lifecycle-monitor.yml
+  platform_bindings:
+    hermes:
+      title: System
+      provider: example-box
+      model: example-coder
 workflows:
   - path: dev.workflow.md
-    harness: pi
+    harness: hermes
     local_ai: { providers_config: local-ai-providers.yml, provider: example-box, model: example-coder }
     commands:
       - coding
@@ -59,6 +77,10 @@ workflows:
     projects:
       - ref: projects/dev/service/project.yml
       - ref: projects/dev/web/project.yml
+  - path: external.workflow.md
+    harness: gpt-agents
+    projects:
+      - ref: projects/dev/service/project.yml
 YAML
 cat >"${test_root}/ai-profile/example/local-ai-providers.yml" <<'YAML'
 schema_version: local-ai-providers.v1
@@ -90,7 +112,10 @@ if [[ "$1" == profile && "$2" == create ]]; then mkdir -p "${HERMES_HOME}/profil
 if [[ "$1" == profile && "$2" == list ]]; then printf 'Profile Model\n'; while read -r id; do printf '%s model\n' "$id"; done <"${HERMES_TEST_STATE}"; exit 0; fi
 if [[ "$1" == profile && "$2" == show ]]; then printf 'Profile: %s\n' "$3"; exit 0; fi
 if [[ "$1" == profile && "$2" == delete ]]; then grep -Fxv "$3" "${HERMES_TEST_STATE}" >"${HERMES_TEST_STATE}.next" || true; mv "${HERMES_TEST_STATE}.next" "${HERMES_TEST_STATE}"; exit 0; fi
-if [[ "$1" == -p && "$3" == config && "$4" == set ]]; then exit 0; fi
+if [[ "$1" == -p && "$3" == config && "$4" == set ]]; then
+  [[ "${HERMES_TEST_FAIL_PROFILE:-}" != "$2" ]] || exit 42
+  exit 0
+fi
 if [[ "$1" == -p && "$3" == config && "$4" == get ]]; then
   case "$5" in
     model.provider) printf 'example-box\n';; model.default) printf 'example-coder-model\n';; model.base_url) printf 'http://192.0.2.10:1234/v1\n';;
@@ -113,7 +138,7 @@ exec /usr/bin/git "$@"
 SH
 cat >"${test_root}/bin/curl" <<'SH'
 #!/usr/bin/env bash
-printf '%s\n' '{"data":[{"id":"example-coder-model"}]}'
+printf '{"data":[{"id":"%s"}]}\n' "${HERMES_TEST_ADVERTISED_MODEL:-example-coder-model}"
 SH
 cat >"${test_root}/group-configurator" <<'SH'
 #!/usr/bin/env bash
@@ -158,8 +183,46 @@ mkdir -p "${HERMES_HOME}"
 printf '{}\n' >"${HERMES_HOME}/profile.yaml"
 export TEST_WORKSPACE="${test_root}/workspace" PATH="${test_root}/bin:${PATH}" AI_CONFIG_PROJECT="${test_root}"
 export WORK_PROFILE_ID=example AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=dev.workflow.md
-scope="$(node "${COMMAND_DIR}/resolve-profile-scope.mjs" "${test_root}/ai-profile" example dev service)"
+scope="$(node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/ai-profile" example dev service)"
 [[ "${scope}" == *$'example-box\tExample box\thttp://192.0.2.10:1234/v1\texample-coder-model\t65536\t0.25\t0.15\t8'* ]]
+system_scope="$(node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_root}/ai-profile" example)"
+[[ "${system_scope}" == *$'\t10m\texample-dev' ]]
+[[ "${system_scope}" != *'example-external'* ]]
+unset AI_FLOW_WORKFLOW
+if "${COMMAND}" reinitialize-system --work-profile example >"${test_root}/system-reinitialize-without-confirm" 2>&1; then
+  printf '%s\n' 'reinitialize-system unexpectedly succeeded without confirmation' >&2
+  exit 1
+fi
+grep -F 'HERMES_SYSTEM_REINITIALIZE_CONFIRMATION_REQUIRED' "${test_root}/system-reinitialize-without-confirm" >/dev/null
+if "${COMMAND}" initialize-system --work-profile example --watch-group other-dev >"${test_root}/cross-profile-watch-output" 2>&1; then
+  printf '%s\n' 'initialize-system unexpectedly accepted a cross-profile watch group' >&2
+  exit 1
+fi
+grep -F "HERMES_SYSTEM_WATCH_SCOPE_INVALID: System for work profile 'example' cannot watch 'other-dev'; allowed Hermes workflow groups: example-dev. No System changes were made." "${test_root}/cross-profile-watch-output" >/dev/null
+export AI_FLOW_WORKFLOW=dev.workflow.md
+export HERMES_TEST_ADVERTISED_MODEL=different-model
+profiles_before="$(cat "${HERMES_TEST_STATE}")"
+if "${COMMAND}" initialize --work-profile example --workflow dev --project service >"${test_root}/missing-model-output" 2>"${test_root}/missing-model-error"; then
+  printf '%s\n' 'initialize unexpectedly succeeded with an unadvertised model' >&2
+  exit 1
+fi
+[[ "$(grep -c '^HERMES_MODEL_NOT_ADVERTISED:' "${test_root}/missing-model-error")" -eq 2 ]]
+grep -F 'profile=example-dev-admin provider=example-box model=example-coder-model; advertised=different-model; no profile changes were made.' "${test_root}/missing-model-error" >/dev/null
+grep -F 'profile=example-dev-coder provider=example-box model=example-coder-model; advertised=different-model; no profile changes were made.' "${test_root}/missing-model-error" >/dev/null
+grep -F 'HERMES_WORKFLOW_PREFLIGHT_FAILED: group=example-dev agents=2 failed_agents=2 failed_profiles=example-dev-admin,example-dev-coder; all provider/model errors are listed above; no workflow profiles were changed.' "${test_root}/missing-model-error" >/dev/null
+[[ "$(cat "${HERMES_TEST_STATE}")" == "${profiles_before}" ]]
+unset HERMES_TEST_ADVERTISED_MODEL
+unset AI_FLOW_WORKFLOW
+if "${COMMAND}" status-system --work-profile example >"${test_root}/system-status-output" 2>&1; then
+  printf '%s\n' 'status-system unexpectedly succeeded without a System receipt' >&2
+  exit 1
+fi
+grep -F 'HERMES_SYSTEM_NOT_INITIALIZED: example' "${test_root}/system-status-output" >/dev/null
+if grep -F 'select a workflow' "${test_root}/system-status-output" >/dev/null; then
+  printf '%s\n' 'profile-scoped System command incorrectly required a workflow' >&2
+  exit 1
+fi
+export AI_FLOW_WORKFLOW=dev.workflow.md
 "${COMMAND}" check-update >"${test_root}/check-update-output"
 grep -F 'Installed: v2026.8.19' "${test_root}/check-update-output" >/dev/null
 grep -F 'Latest stable: v2026.8.31' "${test_root}/check-update-output" >/dev/null
@@ -168,12 +231,21 @@ grep -F 'HERMES_UPDATE_AVAILABLE' "${test_root}/check-update-output" >/dev/null
 grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/output" >/dev/null
 grep -F 'Hermes bot ready: example-dev-coder' "${test_root}/output" >/dev/null
 grep -F 'Hermes group member ready: example-dev (example-dev-admin as Admin)' "${test_root}/output" >/dev/null
+grep -F 'HERMES_WORKFLOW_PREFLIGHT: group=example-dev agents=2' "${test_root}/output" >/dev/null
+grep -F 'HERMES_WORKFLOW_READY: group=example-dev agents=2 all_agents_ready=true profiles=example-dev-admin,example-dev-coder' "${test_root}/output" >/dev/null
 grep -F 'HERMES_RUNTIME_NOTE: while Hermes Desktop is open, it may run one local Python backend per active profile' "${test_root}/output" >/dev/null
 grep -F 'Your complete ordered project scope is:' "${HERMES_HOME}/profiles/example-dev-admin/SOUL.md" >/dev/null
 grep -F "${test_root}/workspace" "${HERMES_HOME}/profiles/example-dev-admin/SOUL.md" >/dev/null
 grep -F "${test_root}/web-workspace" "${HERMES_HOME}/profiles/example-dev-admin/SOUL.md" >/dev/null
 grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-admin/profile.yaml" >/dev/null
 grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-coder/profile.yaml" >/dev/null
+export HERMES_TEST_FAIL_PROFILE=example-dev-coder
+if "${COMMAND}" reconcile --work-profile example --workflow dev --project service >"${test_root}/partial-output" 2>"${test_root}/partial-error"; then
+  printf '%s\n' 'reconcile unexpectedly succeeded after injected profile failure' >&2
+  exit 1
+fi
+grep -F 'HERMES_WORKFLOW_PARTIAL_FAILURE: group=example-dev failed_profile=example-dev-coder completed_profiles=example-dev-admin; binding receipt was not written.' "${test_root}/partial-error" >/dev/null
+unset HERMES_TEST_FAIL_PROFILE
 "${COMMAND}" reconcile --work-profile example --workflow dev --project service >"${test_root}/reconcile-output"
 grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/reconcile-output" >/dev/null
 if "${COMMAND}" reinitialize --work-profile example --workflow dev --project service >"${test_root}/reinitialize-without-confirm" 2>&1; then
@@ -182,7 +254,9 @@ if "${COMMAND}" reinitialize --work-profile example --workflow dev --project ser
 fi
 grep -F 'HERMES_REINITIALIZE_CONFIRMATION_REQUIRED' "${test_root}/reinitialize-without-confirm" >/dev/null
 "${COMMAND}" re-init --work-profile example --workflow dev --project service --confirm-reinitialize >"${test_root}/reinitialize-output"
+grep -F 'HERMES_WORKFLOW_PREFLIGHT_READY: group=example-dev agents=2 no_profiles_changed=true' "${test_root}/reinitialize-output" >/dev/null
 grep -F 'HERMES_WORKFLOW_DELETED: example-dev (service)' "${test_root}/reinitialize-output" >/dev/null
+[[ "$(grep -nE 'HERMES_WORKFLOW_PREFLIGHT_READY|HERMES_WORKFLOW_DELETED' "${test_root}/reinitialize-output" | head -n 1)" == *HERMES_WORKFLOW_PREFLIGHT_READY* ]]
 grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/reinitialize-output" >/dev/null
 grep -F 'Hermes bot ready: example-dev-coder' "${test_root}/reinitialize-output" >/dev/null
 [[ "$(grep -Ec '^example-dev-(admin|coder)$' "${HERMES_TEST_STATE}")" -eq 2 ]]

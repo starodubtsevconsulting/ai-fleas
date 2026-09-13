@@ -10,7 +10,7 @@ import sys
 
 def main() -> int:
     if len(sys.argv) < 3:
-        print("Usage: run-hermes-installer.py TIMEOUT COMMAND [ARG ...]", file=sys.stderr)
+        print("Usage: run-installer-with-timeout.py TIMEOUT COMMAND [ARG ...]", file=sys.stderr)
         return 2
     try:
         timeout = int(sys.argv[1])

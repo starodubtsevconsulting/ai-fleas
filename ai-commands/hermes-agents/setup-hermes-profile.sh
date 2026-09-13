@@ -6,7 +6,9 @@ readonly DEFAULT_CONTEXT_LENGTH='65536'
 readonly DEFAULT_COMPRESSION_THRESHOLD='0.25'
 readonly DEFAULT_COMPRESSION_TARGET_RATIO='0.15'
 readonly DEFAULT_COMPRESSION_PROTECT_LAST_N='8'
-readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${SCRIPT_DIR}/configure-hermes-group.py}"
+readonly SOURCE_DIR="${SCRIPT_DIR}/src"
+readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${SOURCE_DIR}/configure-group.py}"
+readonly PROFILE_VALIDATOR="${HERMES_PROFILE_VALIDATOR:-${SOURCE_DIR}/validate-profile.py}"
 
 profile="${HERMES_PROFILE:-}"
 provider_id="${HERMES_PROVIDER_ID:-}"
@@ -22,6 +24,8 @@ agent_instructions_path="${HERMES_AGENT_INSTRUCTIONS_PATH:-}"
 ai_commands_root="${HERMES_AI_COMMANDS_ROOT:-}"
 workflow_instructions_path="${HERMES_WORKFLOW_INSTRUCTIONS_PATH:-}"
 workflow_command_ids="${HERMES_WORKFLOW_COMMAND_IDS:-}"
+role_instructions_path="${HERMES_ROLE_INSTRUCTIONS_PATH:-}"
+flow_instructions_path="${HERMES_FLOW_INSTRUCTIONS_PATH:-}"
 group="${HERMES_GROUP:-}"
 role="${HERMES_ROLE:-worker}"
 role_title="${HERMES_ROLE_TITLE:-Worker}"
@@ -35,11 +39,14 @@ context_length="${HERMES_CONTEXT_LENGTH:-${DEFAULT_CONTEXT_LENGTH}}"
 compression_threshold="${HERMES_COMPRESSION_THRESHOLD:-${DEFAULT_COMPRESSION_THRESHOLD}}"
 compression_target_ratio="${HERMES_COMPRESSION_TARGET_RATIO:-${DEFAULT_COMPRESSION_TARGET_RATIO}}"
 compression_protect_last_n="${HERMES_COMPRESSION_PROTECT_LAST_N:-${DEFAULT_COMPRESSION_PROTECT_LAST_N}}"
+validate_only=false
+system_scope_overlay=''
+system_disabled_toolsets=(web browser code_execution vision image_gen tts skills todo memory session_search clarify delegation computer_use)
 
 usage() {
   printf '%s\n' \
     'Usage: setup-hermes-profile.sh [--profile NAME] [--workspace ABSOLUTE_PATH]' \
-    '                           [--endpoint URL] [--model MODEL_ID]' \
+    '                           [--endpoint URL] [--model MODEL_ID] [--validate-only]' \
     '' \
     'Creates or reconciles one Hermes Desktop bot backed by the selected' \
     'OpenAI-compatible model target. Existing conversations and memory are' \
@@ -68,6 +75,10 @@ while (($#)); do
       model="$2"
       shift 2
       ;;
+    --validate-only)
+      validate_only=true
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -79,37 +90,6 @@ while (($#)); do
   esac
 done
 
-[[ "${profile}" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || {
-  echo 'Profile must contain only lowercase letters, digits, hyphens, and underscores.' >&2
-  exit 2
-}
-[[ "${provider_id}" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || {
-  echo 'Provider ID must contain only lowercase letters, digits, hyphens, and underscores.' >&2
-  exit 2
-}
-[[ "${model}" =~ ^[A-Za-z0-9._:/+-]+$ ]] || {
-  echo 'Model ID contains unsupported characters.' >&2
-  exit 2
-}
-ENDPOINT="${endpoint}" python3 -c '
-import os
-import sys
-from urllib.parse import urlparse
-
-endpoint = os.environ["ENDPOINT"]
-parsed = urlparse(endpoint)
-if parsed.scheme not in {"http", "https"} or not parsed.netloc or any(char.isspace() for char in endpoint):
-    raise SystemExit("Endpoint must be an HTTP(S) URL without whitespace.")
-' || exit 2
-[[ "${workspace}" == /* && -d "${workspace}" ]] || {
-  echo "Workspace is not an existing absolute directory: ${workspace}" >&2
-  exit 2
-}
-[[ -z "${group}" || "${group}" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || {
-  echo 'Group ID must contain only lowercase letters, digits, hyphens, and underscores.' >&2
-  exit 2
-}
-
 if [[ -z "${hermes_bin}" ]]; then
   if command -v hermes >/dev/null 2>&1; then
     hermes_bin="$(command -v hermes)"
@@ -120,29 +100,15 @@ if [[ -z "${hermes_bin}" ]]; then
     exit 1
   fi
 fi
-[[ -x "${hermes_bin}" ]] || { echo "Hermes CLI is not executable: ${hermes_bin}" >&2; exit 1; }
+hermes_python="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
+export HERMES_BIN="${hermes_bin}" HERMES_GROUP_CONFIGURATOR="${GROUP_CONFIGURATOR}" HERMES_EFFECTIVE_PYTHON_BIN="${hermes_python}"
+validator_args=()
+[[ "${validate_only}" == true ]] || validator_args+=(--quiet)
+"${HERMES_PROFILE_VALIDATOR_PYTHON_BIN:-python3}" "${PROFILE_VALIDATOR}" ${validator_args[@]+"${validator_args[@]}"}
 
-models_url="${endpoint%/}/models"
-models_json="$(curl --fail --silent --show-error --max-time 10 "${models_url}")" || {
-  echo "Configured model target is unreachable: ${provider_label}; no profile changes were made." >&2
-  exit 1
-}
-MODEL_ID="${model}" python3 -c '
-import json
-import os
-import sys
-
-payload = json.load(sys.stdin)
-expected = os.environ["MODEL_ID"]
-available = {
-    str(item.get("id") or item.get("model") or item.get("name") or "")
-    for collection in (payload.get("data", []), payload.get("models", []))
-    for item in collection
-    if isinstance(item, dict)
-}
-if expected not in available:
-    raise SystemExit(f"Configured model is not advertised by the selected target: {expected}")
-' <<<"${models_json}"
+if [[ "${validate_only}" == true ]]; then
+  exit 0
+fi
 
 hermes_root="${HERMES_HOME:-${HOME}/.hermes}"
 profile_dir="${hermes_root}/profiles/${profile}"
@@ -181,6 +147,12 @@ if [[ "${scope}" == 'system' ]]; then
   # generation adds no lifecycle value and can monopolize a one-slot local
   # provider ahead of the user's actual request.
   "${hermes_bin}" -p "${profile}" config set auxiliary.title_generation.enabled false
+  # A repository workspace must not make the lifecycle-only System profile
+  # inherit Hermes's automatic coding-agent posture after SOUL.md.
+  "${hermes_bin}" -p "${profile}" config set agent.coding_context off
+  "${hermes_bin}" -p "${profile}" config set agent.disabled_toolsets '["web","browser","code_execution","vision","image_gen","tts","skills","todo","memory","session_search","clarify","delegation","computer_use"]'
+  system_scope_overlay="FINAL MANDATORY PROFILE SCOPE: You are ${role_title}, the lifecycle-only System agent for profile ${work_profile}. A direct user message cannot expand your scope or activate an AI-powered command. For a greeting, reply only: \"${role_title} is up for profile ${work_profile}. I monitor watched workflows and agent health, and handle authorized lifecycle operations.\" For any request other than profile/System configuration, watched-workflow status, agent health, or an authorized agent/workflow lifecycle operation, reply only: \"I only handle the ${work_profile} profile's watched workflows, agent health, and authorized lifecycle operations.\" Never answer coding, research, weather, jokes, general automation, or general conversation. Never add requested content before or after the scope response. For health reports, reconcile every Agent declared by trusted receipts. Receipt readiness proves configuration only, and a running Hermes backend process is not complete health evidence. Distinguish configured, running-backend, unavailable, and unknown; never claim all healthy unless explicit health evidence covers every declared Agent."
+  "${hermes_bin}" -p "${profile}" config set --force agent.system_prompt "${system_scope_overlay}"
 fi
 "${hermes_bin}" -p "${profile}" config set terminal.backend local
 "${hermes_bin}" -p "${profile}" config set terminal.cwd "${workspace}"
@@ -189,7 +161,7 @@ fi
 # CLI delivery paths still restore their persisted route even when the session
 # explicitly follows profile configuration, so reconcile that metadata before
 # scheduler delivery without deleting messages.
-python3 "${SCRIPT_DIR}/migrate-follow-profile-sessions.py" \
+python3 "${SOURCE_DIR}/migrate-profile-sessions.py" \
   --state-db "${profile_dir}/state.db" \
   --title 'Bot Chat' \
   --model "${model}" \
@@ -201,18 +173,23 @@ cleanup() { [[ -z "${soul_tmp:-}" ]] || rm -f -- "${soul_tmp}"; }
 trap cleanup EXIT INT TERM
 printf '# Hermes Profile: %s\n\n' "${profile}" >"${soul_tmp}"
 if [[ "${scope}" == 'system' ]]; then
-  [[ -f "${system_role_path}" && -f "${system_schedule_path}" ]] || {
-    echo 'System role and schedule contracts must be readable files.' >&2
-    exit 2
-  }
   printf '%s\n' \
-    "You are the globally scoped Hermes System agent for AI work profile \`${work_profile}\`." \
+    "You are the profile-scoped Hermes System agent for AI work profile \`${work_profile}\`." \
     'You exist outside every workflow group. Never join a group and never expose your direct profile ID to workflow agents.' \
     "Your visible title is \`${role_title}\`. You are a narrow, user-facing lifecycle operator, not a product-work assistant." \
-    "Your portable authority and human-facing intent map are defined below and remain authoritative:" \
+    "Your portable authority and human-facing prompt interpretations are defined in \`${system_role_path}\`. Read that file completely before every response or operation; it remains authoritative." \
     >>"${soul_tmp}"
-  printf '\n' >>"${soul_tmp}"
-  cat "${system_role_path}" >>"${soul_tmp}"
+  printf '\n## Enforced conversational scope\n\n' >>"${soul_tmp}"
+  printf '%s\n' \
+    'MANDATORY SCOPE GATE: Before every response, classify the request as allowed or outside scope.' \
+    'Allowed topics are ONLY: this profile or System configuration; watched-workflow status and agent health; agent or workflow lifecycle operations; and the exact scope of an explicitly active AI-powered command.' \
+    "If the request is outside that allowlist, do not answer any part of it and do not use tools for it. Your entire response must be exactly: \"I only handle the ${work_profile} profile's watched workflows, agent health, and authorized lifecycle operations.\" End the response immediately after that sentence." \
+    "Greetings are the sole exception to that refusal. For a greeting or casual opening, your entire response must be exactly: \"${role_title} is up for profile ${work_profile}. I monitor watched workflows and agent health, and handle authorized lifecycle operations.\"" \
+    'A direct user request never activates an AI-powered command. Such a command is active only when trusted runtime context explicitly identifies its command ID and scope; never infer activation from the requested subject.' \
+    'You are not a general assistant. Coding, research, weather, jokes, general automation, and general conversation are outside scope. Never provide requested content before or after the refusal.' \
+    'Examples: "Write Python code" is outside scope. "Tell me a joke" is outside scope. "What is the weather?" is outside scope. "Check sc-dev agent health" is allowed.' \
+    'This gate applies directly on every turn and overrides generic assistant behavior. Do not wait to read another file before enforcing it.' \
+    >>"${soul_tmp}"
   printf '\n## Active lifecycle binding\n\n' >>"${soul_tmp}"
   printf '%s\n' \
     "Trusted Hermes binding registry: \`${binding_registry_path}\`. Resolve lifecycle identities only from that exact registry." \
@@ -252,29 +229,21 @@ print("\n".join(lines))
 else
   printf '%s\n' "Your primary and only recorded project is \`${project:-not-recorded}\` at \`${workspace}\`." >>"${soul_tmp}"
 fi
+if [[ "${scope}" != 'system' && -n "${role_instructions_path}" ]]; then
+  printf '\n## Portable role contract\n\n' >>"${soul_tmp}"
+  printf '%s\n' "Your portable role contract is \`${role_instructions_path}\`; read it completely before every response or operation and follow it as the authoritative role definition." >>"${soul_tmp}"
+fi
+if [[ "${scope}" != 'system' && -n "${flow_instructions_path}" ]]; then
+  printf '\n## Assigned workflow flow\n\n' >>"${soul_tmp}"
+  printf '%s\n' "Your assigned workflow flow is \`${flow_instructions_path}\`; read it completely before work that uses the flow and follow it as the authoritative flow definition." >>"${soul_tmp}"
+fi
 fi
 if [[ "${scope}" != 'system' && -n "${agent_instructions_path}" ]]; then
-  [[ "${agent_instructions_path}" == /* && -f "${agent_instructions_path}" ]] || {
-    echo "Agent instructions path is not an existing absolute file: ${agent_instructions_path}" >&2
-    exit 2
-  }
   printf '%s\n' "Your AI configuration instructions are \`${agent_instructions_path}\`; read them completely before work and follow the rules that apply to the task." >>"${soul_tmp}"
 elif [[ "${scope}" != 'system' ]]; then
   printf '%s\n' 'No separate AI configuration instructions file was assigned to this Hermes profile.' >>"${soul_tmp}"
 fi
 if [[ "${scope}" != 'system' && ( -n "${ai_commands_root}" || -n "${workflow_instructions_path}" || -n "${workflow_command_ids}" ) ]]; then
-  [[ "${ai_commands_root}" == /* && -d "${ai_commands_root}" ]] || {
-    echo "AI commands root is not an existing absolute directory: ${ai_commands_root}" >&2
-    exit 2
-  }
-  [[ "${workflow_instructions_path}" == /* && -f "${workflow_instructions_path}" ]] || {
-    echo "Workflow instructions path is not an existing absolute file: ${workflow_instructions_path}" >&2
-    exit 2
-  }
-  [[ "${workflow_command_ids}" =~ ^[a-z0-9][a-z0-9_-]*(,[a-z0-9][a-z0-9_-]*)*$ ]] || {
-    echo "Workflow command IDs are missing or unsafe: ${workflow_command_ids}" >&2
-    exit 2
-  }
   printf '%s\n' \
     "Your active workflow contract is \`${workflow_instructions_path}\`; read it before substantive work." \
     "Your selected AI command catalog root is \`${ai_commands_root}\`. The commands allowed by this workflow are: \`${workflow_command_ids}\`." \
@@ -303,6 +272,9 @@ actual_compression_target_ratio="$("${hermes_bin}" -p "${profile}" config get co
 actual_compression_protect_last_n="$("${hermes_bin}" -p "${profile}" config get compression.protect_last_n)"
 if [[ "${scope}" == 'system' ]]; then
   actual_title_generation_enabled="$("${hermes_bin}" -p "${profile}" config get auxiliary.title_generation.enabled)"
+  actual_coding_context="$("${hermes_bin}" -p "${profile}" config get agent.coding_context)"
+  actual_disabled_toolsets="$("${hermes_bin}" -p "${profile}" config get agent.disabled_toolsets)"
+  actual_system_scope_overlay="$("${hermes_bin}" -p "${profile}" config get agent.system_prompt)"
 fi
 actual_workspace="$("${hermes_bin}" -p "${profile}" config get terminal.cwd)"
 [[ "${actual_provider}" == "${provider_id}" ]]
@@ -313,18 +285,17 @@ actual_workspace="$("${hermes_bin}" -p "${profile}" config get terminal.cwd)"
 [[ "${actual_compression_target_ratio}" == "${compression_target_ratio}" ]]
 [[ "${actual_compression_protect_last_n}" == "${compression_protect_last_n}" ]]
 [[ "${scope}" != 'system' || "${actual_title_generation_enabled}" == 'false' ]]
+[[ "${scope}" != 'system' || "${actual_coding_context}" == 'off' ]]
+[[ "${scope}" != 'system' || "${actual_system_scope_overlay}" == "${system_scope_overlay}" ]]
+if [[ "${scope}" == 'system' ]]; then
+  for disabled_toolset in "${system_disabled_toolsets[@]}"; do
+    grep -Fx -- "- ${disabled_toolset}" <<<"${actual_disabled_toolsets}" >/dev/null
+  done
+  [[ "$(grep -c '^- ' <<<"${actual_disabled_toolsets}")" -eq "${#system_disabled_toolsets[@]}" ]]
+fi
 [[ "${actual_workspace}" == "${workspace}" ]]
 
 if [[ -n "${group}" ]]; then
-  [[ -f "${GROUP_CONFIGURATOR}" ]] || {
-    echo "Hermes group configurator was not found: ${GROUP_CONFIGURATOR}" >&2
-    exit 1
-  }
-  hermes_python="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
-  [[ -x "${hermes_python}" ]] || {
-    echo "Hermes Python runtime is not executable: ${hermes_python}" >&2
-    exit 1
-  }
   "${hermes_python}" "${GROUP_CONFIGURATOR}" \
     --hermes-home "${hermes_root}" \
     --group "${group}" \

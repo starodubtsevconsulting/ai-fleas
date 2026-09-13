@@ -6,6 +6,16 @@ import { parseDocument } from 'yaml';
 
 const [profileRoot, workProfileId, workflowSelector = '', projectSelector = ''] = process.argv.slice(2);
 function fail(message) { console.error(`HERMES_PROFILE_SCOPE_INVALID: ${message}`); process.exit(1); }
+function configurationError(summary, reason, source, available, nextStep) {
+  console.error(`HERMES_CONFIGURATION_ERROR: ${summary}`);
+  console.error(`Reason: ${reason}`);
+  console.error(`Configuration file: ${source}`);
+  console.error(`Currently configured: ${available}`);
+  console.error(`How to fix: ${nextStep}`);
+  console.error('Model availability was not checked because the configuration could not be resolved.');
+  console.error('Safety: initialization stopped before Hermes was changed; no profiles or groups were created or updated.');
+  process.exit(1);
+}
 function safeId(value, label) { if (!/^[a-z0-9][a-z0-9_-]*$/.test(value)) fail(`${label} is unsafe or missing.`); return value; }
 function readYaml(file) {
   let text;
@@ -53,11 +63,22 @@ const localAi = workflow.local_ai;
 if (!localAi || typeof localAi !== 'object' || Array.isArray(localAi)) fail('workflow local_ai mapping is required.');
 const providersConfig = String(localAi.providers_config || '');
 if (!providersConfig || path.isAbsolute(providersConfig)) fail('local_ai.providers_config must be a relative path.');
-const catalog = readYaml(inside(selectedProfileRoot, path.join(selectedProfileRoot, providersConfig), 'provider catalog'));
+const catalogFile = inside(selectedProfileRoot, path.join(selectedProfileRoot, providersConfig), 'provider catalog');
+const catalog = readYaml(catalogFile);
 const providers = Array.isArray(catalog.providers) ? catalog.providers : [];
 function resolveProvider(alias) {
   const matches = providers.filter((item) => item && typeof item === 'object' && item.id === alias);
-  if (matches.length !== 1) fail(`provider '${alias}' did not resolve exactly once.`);
+  if (matches.length === 0) {
+    const available = providers.map((item) => String(item?.id || '')).filter(Boolean).sort().join(',') || 'none';
+    configurationError(
+      `Cannot initialize Hermes workflow '${workflowId}' for work profile '${workProfileId}'.`,
+      `The workflow requests AI provider '${alias}', but that provider is not defined in this profile's provider catalog.`,
+      catalogFile,
+      `providers: ${available}`,
+      `Add exactly one provider with id '${alias}', including its real endpoint and model definitions, then run initialization again.`,
+    );
+  }
+  if (matches.length > 1) fail(`work_profile=${workProfileId} workflow=${workflowId} provider=${alias}; provider is declared ${matches.length} times in ${catalogFile}; exactly one declaration is required; no profile changes were made.`);
   const provider = matches[0];
   if (provider.protocol !== 'openai-compatible') fail(`provider '${alias}' is not OpenAI-compatible.`);
   const endpointEnv = String(provider.endpoint?.environment_variable || '');
@@ -71,24 +92,73 @@ const defaultProvider = resolveProvider(defaultProviderAlias);
 const modelAlias = safeId(String(localAi.model || ''), 'model alias');
 const modelMatches = (Array.isArray(defaultProvider.provider.models) ? defaultProvider.provider.models : []).filter((item) => item && typeof item === 'object' && item.id === modelAlias);
 if (modelMatches.length !== 1) fail(`model '${modelAlias}' did not resolve exactly once.`);
-const selectedModel = modelMatches[0];
-const providerModel = String(selectedModel.provider_model || '');
-if (!/^[A-Za-z0-9._:/+-]+$/.test(providerModel)) fail(`model '${modelAlias}' has an unsafe provider model ID.`);
-const hermes = selectedModel.hermes;
-if (!hermes || typeof hermes !== 'object' || Array.isArray(hermes)) fail(`model '${modelAlias}' has no Hermes settings.`);
-const contextWindow = String(hermes.context_window_tokens || ''), compressionThreshold = String(hermes.compression_threshold ?? ''), compressionTarget = String(hermes.compression_target ?? ''), protectLastMessages = String(hermes.protect_last_messages || '');
-if (!/^[1-9][0-9]*$/.test(contextWindow)) fail(`model '${modelAlias}' has an invalid Hermes context window.`);
-for (const [label, value] of [['compression threshold', compressionThreshold], ['compression target', compressionTarget]]) if (!/^(?:0(?:\.[0-9]+)?|1(?:\.0+)?)$/.test(value)) fail(`model '${modelAlias}' has an invalid Hermes ${label}.`);
-if (!/^[1-9][0-9]*$/.test(protectLastMessages)) fail(`model '${modelAlias}' has an invalid Hermes protected-message count.`);
+function resolveModel(provider, alias) {
+  const matches = (Array.isArray(provider.models) ? provider.models : []).filter((item) => item && typeof item === 'object' && item.id === alias);
+  if (matches.length === 0) {
+    const available = (Array.isArray(provider.models) ? provider.models : []).map((item) => String(item?.id || '')).filter(Boolean).sort().join(',') || 'none';
+    configurationError(
+      `Cannot initialize Hermes workflow '${workflowId}' for work profile '${workProfileId}'.`,
+      `The workflow requests model alias '${alias}' from provider '${provider.id}', but that alias is not defined for the provider.`,
+      catalogFile,
+      `model aliases for '${provider.id}': ${available}`,
+      `Add exactly one model with id '${alias}' under provider '${provider.id}', then run initialization again.`,
+    );
+  }
+  if (matches.length > 1) fail(`work_profile=${workProfileId} workflow=${workflowId} provider=${provider.id} model=${alias}; model alias is declared ${matches.length} times in ${catalogFile}; exactly one declaration is required; no profile changes were made.`);
+  const selected = matches[0];
+  const providerModel = String(selected.provider_model || '');
+  if (!/^[A-Za-z0-9._:/+-]+$/.test(providerModel)) fail(`model '${alias}' has an unsafe provider model ID.`);
+  const hermes = selected.hermes;
+  if (!hermes || typeof hermes !== 'object' || Array.isArray(hermes)) fail(`model '${alias}' has no Hermes settings.`);
+  const contextWindow = String(hermes.context_window_tokens || '');
+  const compressionThreshold = String(hermes.compression_threshold ?? '');
+  const compressionTarget = String(hermes.compression_target ?? '');
+  const protectLastMessages = String(hermes.protect_last_messages || '');
+  if (!/^[1-9][0-9]*$/.test(contextWindow)) fail(`model '${alias}' has an invalid Hermes context window.`);
+  for (const [label, value] of [['compression threshold', compressionThreshold], ['compression target', compressionTarget]]) if (!/^(?:0(?:\.[0-9]+)?|1(?:\.0+)?)$/.test(value)) fail(`model '${alias}' has an invalid Hermes ${label}.`);
+  if (!/^[1-9][0-9]*$/.test(protectLastMessages)) fail(`model '${alias}' has an invalid Hermes protected-message count.`);
+  return { providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages };
+}
+const defaultModel = resolveModel(defaultProvider.provider, modelAlias);
+const { providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages } = defaultModel;
 
+let agentProviderBindings = {};
+const agentProvidersConfig = String(workflow.agent_providers_config || '');
+if (agentProvidersConfig) {
+  if (path.isAbsolute(agentProvidersConfig)) fail('agent_providers_config must be a relative path.');
+  const bindingFile = inside(selectedProfileRoot, path.join(selectedProfileRoot, agentProvidersConfig), 'agent provider bindings');
+  const bindingConfig = readYaml(bindingFile);
+  if (bindingConfig.schema_version !== 'workflow-agent-providers.v1' || bindingConfig.workflow_id !== workflowId) fail(`agent provider bindings do not match workflow '${workflowId}'.`);
+  if (!bindingConfig.bindings || typeof bindingConfig.bindings !== 'object' || Array.isArray(bindingConfig.bindings)) fail('agent provider bindings must contain a bindings mapping.');
+  agentProviderBindings = bindingConfig.bindings;
+}
+
+const usedAgentProviderBindings = new Set();
 const roleBindings = roleDefinitions.map((definition) => {
   if (!definition || typeof definition !== 'object' || Array.isArray(definition)) fail('workflow role configuration must be a mapping.');
   const role = safeId(String(definition.agentId || ''), 'workflow role');
-  const configuredProvider = String(definition.aiProvider || 'profile-default');
+  const declaredBinding = String(definition.aiProvider || 'profile-default');
+  const bindingKey = Object.hasOwn(agentProviderBindings, role) ? role : (Object.hasOwn(agentProviderBindings, declaredBinding) ? declaredBinding : '');
+  const configuredBinding = bindingKey ? agentProviderBindings[bindingKey] : undefined;
+  if (bindingKey) usedAgentProviderBindings.add(bindingKey);
+  if (configuredBinding !== undefined && (!configuredBinding || typeof configuredBinding !== 'object' || Array.isArray(configuredBinding))) fail(`agent provider binding for '${role}' must be a mapping.`);
+  const configuredProvider = String(configuredBinding?.provider || declaredBinding);
   const aiProvider = configuredProvider === 'profile-default' ? defaultProviderAlias : safeId(configuredProvider, `AI provider for ${role}`);
   const resolved = resolveProvider(aiProvider);
-  return `${role}:${role}:${aiProvider}:${resolved.endpoint}`;
+  const roleModelAlias = safeId(String(configuredBinding?.model || (aiProvider === defaultProviderAlias ? modelAlias : '')), `model alias for ${role}`);
+  const roleModel = resolveModel(resolved.provider, roleModelAlias);
+  const roleDefinition = String(definition.roleDefinition || '');
+  const rolePath = roleDefinition ? path.resolve(path.dirname(logicalAgentsFile), roleDefinition) : '';
+  if (rolePath && !rolePath.startsWith(`${path.resolve(workflowsRoot)}${path.sep}`)) fail(`role definition for '${role}' escapes the workflow catalog.`);
+  if (rolePath && !fs.statSync(rolePath, { throwIfNoEntry: false })?.isFile()) fail(`role definition for '${role}' is not readable.`);
+  const configuredFlow = String(definition.flow || '');
+  const flowPath = configuredFlow ? path.resolve(path.dirname(logicalAgentsFile), configuredFlow) : '';
+  if (flowPath && !flowPath.startsWith(`${path.resolve(workflowsRoot)}${path.sep}`)) fail(`flow for '${role}' escapes the workflow catalog.`);
+  if (flowPath && !fs.statSync(flowPath, { throwIfNoEntry: false })?.isFile()) fail(`flow for '${role}' is not readable.`);
+  const encode = (value) => Buffer.from(value, 'utf8').toString('base64');
+  return [role, role, aiProvider, encode(String(resolved.provider.label || aiProvider)), encode(resolved.endpoint), roleModel.providerModel, roleModel.contextWindow, roleModel.compressionThreshold, roleModel.compressionTarget, roleModel.protectLastMessages, encode(rolePath), encode(flowPath)].join('|');
 });
+for (const bindingKey of Object.keys(agentProviderBindings)) if (!usedAgentProviderBindings.has(bindingKey)) fail(`agent provider binding '${bindingKey}' is not referenced by the workflow roster.`);
 if (roleBindings.length === 0 || new Set(roleBindings).size !== roleBindings.length) fail(`workflow '${workflowId}' role roster is empty or contains duplicates.`);
 
 const commandIds = Array.isArray(workflow.commands) ? workflow.commands.map((value) => safeId(String(value || ''), 'command ID')) : [];

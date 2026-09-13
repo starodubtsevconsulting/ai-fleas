@@ -1,0 +1,46 @@
+schemaVersion: workflow-logical-agents.v1
+workflowId: youtube
+logicalProjectIdPattern: <profile-id>-youtube[-<suffix>]
+teamPolicy: agents/team.md
+
+agents:
+  - agentId: lyrics-script-worker
+    roleDefinition: ../_common/roles/worker.md
+    scope: workflow
+    flow: flows/lyrics-script-writing.md
+    lifecycle: persistent-worker
+    humanFacing: true
+    readinessToken: LYRICS_SCRIPT_WORKER_READY
+    aiProvider: youtube-lyrics-script
+
+  - agentId: audio-worker
+    roleDefinition: ../_common/roles/worker.md
+    scope: workflow
+    flow: flows/audio-production.md
+    lifecycle: persistent-worker
+    humanFacing: true
+    readinessToken: AUDIO_WORKER_READY
+    aiProvider: youtube-default-worker
+
+  - agentId: scene-worker
+    roleDefinition: ../_common/roles/worker.md
+    scope: workflow
+    flow: flows/scene-production.md
+    lifecycle: persistent-worker
+    humanFacing: true
+    readinessToken: SCENE_WORKER_READY
+    aiProvider: youtube-default-worker
+
+  - agentId: release-worker
+    roleDefinition: ../_common/roles/worker.md
+    scope: workflow
+    flow: flows/release.md
+    lifecycle: persistent-worker
+    humanFacing: true
+    readinessToken: RELEASE_WORKER_READY
+    aiProvider: youtube-default-worker
+
+dependencies:
+  - { consumerAgentId: audio-worker, providerAgentId: lyrics-script-worker, kind: upstream-artifact }
+  - { consumerAgentId: scene-worker, providerAgentId: audio-worker, kind: upstream-artifact }
+  - { consumerAgentId: release-worker, providerAgentId: scene-worker, kind: upstream-artifact }

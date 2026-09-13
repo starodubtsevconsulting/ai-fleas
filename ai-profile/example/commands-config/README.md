@@ -8,7 +8,11 @@ Reusable command definitions live in the monorepo `ai-commands/` catalog. This `
 
 The source-control example binds the provider-neutral `source-control` command to the reusable `git` provider command. Authentication and the populated Git identity remain local.
 
-The `hermes-agents/config.yml` file demonstrates a realistic but non-operational Hermes Agents binding. Its provider, model, endpoint, profile name, and context settings are intentionally generic. The selected profile still resolves the actual command catalog through `ai_commands_root`; `${AI_COMMANDS_ROOT}` is not replaced with a machine path in committed examples.
+The `hermes-agents/config.yml` file demonstrates a realistic but non-operational Hermes Agents binding. The provider
+catalog uses recognizable hardware classes to show that a provider identifies the serving host rather than one temporary
+workload; its endpoints remain documentation-only addresses and contain no operational host information. The selected
+profile still resolves the actual command catalog through `ai_commands_root`; `${AI_COMMANDS_ROOT}` is not replaced with
+a machine path in committed examples.
 
 The `install/config.yml` file demonstrates a reusable SSH alias, model-storage volume, pinned preset selection, and a
 machine-inventory reference. Its companion inventory uses realistic capacity and GPU values, but its identity and network
