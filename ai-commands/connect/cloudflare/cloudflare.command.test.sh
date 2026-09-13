@@ -20,6 +20,7 @@ CLOUDFLARE_PUBLIC_URL="https://ai.example.invalid"
 CLOUDFLARE_ORIGIN_URL="$origin"
 CLOUDFLARE_TUNNEL_NAME="example-private-ai"
 CLOUDFLARE_TUNNEL_TOKEN_ENV="TEST_TUNNEL_TOKEN"
+CLOUDFLARE_TUNNEL_TOKEN_FILE=""
 CLOUDFLARE_API_TOKEN_ENV="TEST_API_TOKEN"
 CLOUDFLARE_ACCOUNT_ID="0123456789abcdef0123456789abcdef"
 CLOUDFLARE_ZONE_ID="abcdef0123456789abcdef0123456789"
@@ -57,6 +58,22 @@ if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" install-ser
   exit 1
 fi
 grep -F 'requires the exact --apply flag' "$fixture_dir/err" >/dev/null
+
+mkdir -p "$fixture_dir/fake-bin"
+cat >"$fixture_dir/fake-bin/cloudflared" <<'SH'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >"$CLOUDFLARE_FAKE_ARGS"
+SH
+chmod +x "$fixture_dir/fake-bin/cloudflared"
+printf '%s' 'synthetic-file-tunnel-token' >"$fixture_dir/file-tunnel-token"
+chmod 600 "$fixture_dir/file-tunnel-token"
+sed -i.bak "s|CLOUDFLARE_TUNNEL_TOKEN_FILE=\"\"|CLOUDFLARE_TUNNEL_TOKEN_FILE=\"$fixture_dir/file-tunnel-token\"|" "$fixture_dir/config.env"
+unset TEST_TUNNEL_TOKEN || true
+PATH="$fixture_dir/fake-bin:$PATH" \
+  CLOUDFLARE_FAKE_ARGS="$fixture_dir/cloudflared-args" \
+  CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
+  "$command_path" run-tunnel
+grep -F 'tunnel --no-autoupdate run --token synthetic-file-tunnel-token' "$fixture_dir/cloudflared-args" >/dev/null
 
 cat >"$fixture_dir/server.py" <<'PY'
 import json

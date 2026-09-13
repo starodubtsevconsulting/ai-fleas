@@ -30,7 +30,7 @@ async function status(context) {
     ? await run(context.commandPath, ['verify-access'], context.spawnOptions())
     : { ok: false, stdout: '', stderr: 'Configuration validation failed.' };
   const installed = await run('cloudflared', ['--version'], context.spawnOptions());
-  const processes = await run('pgrep', ['-f', 'cloudflared.*tunnel.*run'], context.spawnOptions());
+  const processes = await run('pgrep', ['-x', 'cloudflared'], context.spawnOptions());
   return {
     configured: validate.ok,
     connectorInstalled: installed.ok,

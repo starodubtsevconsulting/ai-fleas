@@ -75,7 +75,9 @@ token scope; a Global API Key is not supported.
 - The origin must use `http` or `https` and resolve to a loopback, RFC1918 IPv4, `.internal`, `.local`, or `.localhost`
   host. Public origins fail closed.
 - The public URL must be HTTPS and must not contain credentials, query parameters, or fragments.
-- Tunnel and API tokens are loaded only through the configured environment-variable names and are never printed.
+- Tunnel and API tokens are loaded through configured environment-variable names and are never printed. The tunnel token
+  may alternatively use a profile-owned absolute `CLOUDFLARE_TUNNEL_TOKEN_FILE` with mode `0600`, allowing UI and service
+  launches without placing the token in a desktop process environment. API tokens remain environment-only.
 - `create-tunnel` requires an explicit absolute, nonexistent token-output path. It never overwrites a credential file and
   retains the token for recovery if a later ingress or DNS step fails.
 - The Access policy must allow exact approved identities and deny unauthenticated traffic. OTP must never be enabled with
@@ -97,6 +99,12 @@ The controller displays configuration validity, installed connector version, whe
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
 **Start connector** runs `run-tunnel` with the activated profile environment. **Stop connector** is enabled only for the
 child process started by the same window; an externally detected connector is intentionally read-only.
+
+To acceptance-test the controller, first stop any externally managed test connector. Select **Refresh** and require
+**Connector → Closed** with Start enabled and Stop disabled. Select **Start connector**, require **Open · managed here**
+with Stop enabled, and verify both `/` and `/v1/models` redirect to Cloudflare Access. Select **Stop connector**, require
+**Closed** and no `cloudflared` process, then select **Start connector** once more and repeat the public-boundary check so
+the test finishes with the service online.
 
 ## Operator runbook
 
@@ -238,7 +246,8 @@ idempotent when `cloudflared` is already on `PATH`. On Homebrew-based macOS host
 `brew install cloudflared`. Do not use a generic `brew services start cloudflared` invocation for a remotely managed
 tunnel because the connector must run with this tunnel's saved token.
 
-Load the saved connector token into the environment variable named by `CLOUDFLARE_TUNNEL_TOKEN_ENV`, then run
+Load the saved connector token into the environment variable named by `CLOUDFLARE_TUNNEL_TOKEN_ENV`, or configure the
+profile-owned absolute mode-`0600` token path as `CLOUDFLARE_TUNNEL_TOKEN_FILE`. Then run
 `cloudflare.command.sh run-tunnel` in the foreground for the first test. In another activated terminal, run
 `cloudflare.command.sh verify-access`. It must observe a Cloudflare Access login redirect while unauthenticated.
 
