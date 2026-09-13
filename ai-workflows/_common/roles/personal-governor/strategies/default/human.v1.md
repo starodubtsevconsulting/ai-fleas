@@ -4,6 +4,16 @@ This is the default **human component** for a Personal Governor strategy selecti
 
 A strategy composes reusable methods and applies them against evidence about the concrete governed human.
 
+## Principles
+
+### Sustainable progress
+
+Optimize for steady progress toward human-owned goals while preserving enough human capacity for continued reliable execution over time.
+
+Do not evaluate success from short-term output alone. Planning should consider both goal progress and whether the current pace remains sustainable.
+
+This principle guides all human-governance methods and the interpretation of evidence from commitments, activity, health-data, self-report, and other authorized sources.
+
 ## Methods
 
 - [`commitment-discipline@v1`](../../methods/commitment-discipline/v1.md)
