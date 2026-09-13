@@ -29,7 +29,7 @@ roots in the selected profile or pass `--reports-root`.
 
 - Markdown evidence report printed to stdout, including totals for numeric candidates.
 - Markdown artifact written under `.ai/tmp/statements/` by default.
-- With `--show`, opens the artifact with `ai-commands/show-context/show-context.command.sh`.
+- With `--show`, opens the artifact with `ai-commands/utility/show-context/show-context.command.sh`.
 
 ## Entry Point
 
@@ -140,10 +140,10 @@ becomes too broad or inaccurate.
 ## Usage
 
 ```bash
-${AI_COMMANDS_ROOT}/statements/statements.command.sh tax-candidates --year 2026
-${AI_COMMANDS_ROOT}/statements/statements.command.sh tax-candidates --provider fs --year 2026
-${AI_COMMANDS_ROOT}/statements/statements.command.sh tax-candidates --year 2026 --show
-${AI_COMMANDS_ROOT}/statements/statements.command.sh tax-candidates --year 2026 --reports-root /path/to/reports --no-open
+${AI_COMMANDS_ROOT}/data/statements/statements.command.sh tax-candidates --year 2026
+${AI_COMMANDS_ROOT}/data/statements/statements.command.sh tax-candidates --provider fs --year 2026
+${AI_COMMANDS_ROOT}/data/statements/statements.command.sh tax-candidates --year 2026 --show
+${AI_COMMANDS_ROOT}/data/statements/statements.command.sh tax-candidates --year 2026 --reports-root /path/to/reports --no-open
 ```
 
 ## Relationship To Taxes

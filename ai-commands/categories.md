@@ -152,3 +152,17 @@ git
 ```
 
 Workflows and profiles should reference command IDs rather than encoding physical catalog paths wherever possible. Runtime discovery resolves the category path from the globally unique command ID.
+
+## Internal migration compatibility
+
+A compatibility path may exist temporarily under `ai-commands/` only to keep older executable references working during the category migration.
+
+Compatibility paths:
+
+- are internal implementation details, not public commands;
+- do not contain a public command contract or command metadata;
+- must delegate immediately to the categorized canonical command or canonical runtime helper;
+- are explicitly excluded from public command discovery;
+- must not be referenced by new workflows, profiles, or command contracts.
+
+The canonical location remains `<category>/<command>`. Compatibility paths exist only to preserve older direct executable references until those callers are migrated.
