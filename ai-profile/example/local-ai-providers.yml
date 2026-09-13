@@ -17,6 +17,19 @@ providers:
           compression_threshold: 0.25
           compression_target: 0.15
           protect_last_messages: 8
+  - id: local-coding-provider
+    label: Local coding model provider
+    protocol: openai-compatible
+    endpoint:
+      url: http://192.0.2.32:8000/v1
+    models:
+      - id: qwen-coder
+        provider_model: qwen3-coder-next-q5km
+        hermes:
+          context_window_tokens: 65536
+          compression_threshold: 0.25
+          compression_target: 0.15
+          protect_last_messages: 8
   - id: gx10-local
     label: Local GX10 writing service
     protocol: openai-compatible
