@@ -3,6 +3,7 @@ set -euo pipefail
 readonly COMMAND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly COMMAND="${COMMAND_DIR}/hermes-agents.command.sh"
 bash "${COMMAND_DIR}/migrate-follow-profile-sessions.test.sh" >/dev/null
+bash "${COMMAND_DIR}/resolve-profile-scope.test.sh" >/dev/null
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/hermes-command-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
