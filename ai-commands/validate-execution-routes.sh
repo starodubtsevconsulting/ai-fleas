@@ -38,6 +38,20 @@ is_unsafe_path() {
   esac
 }
 
+logical_command_path() {
+  local relative="$1"
+  case "$relative" in
+    data/*|connect/*|development/*|content/*|system/*|utility/*)
+      printf '%s\n' "${relative#*/}"
+      ;;
+    *)
+      # install is both a category and an existing category command. Its
+      # established logical paths already start with install/ and stay stable.
+      printf '%s\n' "$relative"
+      ;;
+  esac
+}
+
 find_pruned() {
   local root="$1"
   shift
@@ -68,7 +82,7 @@ while IFS= read -r -d '' definition; do
     echo 'execution route error: managed command paths may not contain tab, CR, or newline' >&2
     exit 1
   fi
-  printf '%s\n' "$relative"
+  logical_command_path "$relative"
 done < "${definitions_nul}" | LC_ALL=C sort > "${inventory}"
 
 while IFS= read -r registry_line || [[ -n "$registry_line" ]]; do
@@ -87,8 +101,7 @@ awk -F '\t' '
     if (seen[$1]++) fail("duplicate path", $1)
     if (!valid_route($2)) fail("invalid execution_route " $2, $1)
     if ($2 != "mixed") {
-      if ($3 != "-" || $4 != "-" || $5 != "-" || $6 != "-")
-        fail("non-mixed route must not define portion mappings", $1)
+      if ($3 != "-" || $4 != "-" || $5 != "-" || $6 != "-") fail("non-mixed route must not define portion mappings", $1)
     } else {
       if ($3 != "-" && $3 != "designer-reviewer") fail("invalid reasoning mapping", $1)
       if ($4 != "-" && $4 != "coder") fail("invalid implementation mapping", $1)
