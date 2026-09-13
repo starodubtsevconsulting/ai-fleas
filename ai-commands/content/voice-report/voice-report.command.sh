@@ -5,10 +5,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../command-python.setup.sh"
-WHISPER_DIR="$(cd "$SCRIPT_DIR/../install/whisper" && pwd)"
+WHISPER_DIR="$(cd "$SCRIPT_DIR/../../install/whisper" && pwd)"
 WHISPER_TTS_CMD="$WHISPER_DIR/text-to-audio.sh"
 VOICE_PROFILE_DEFAULT="$WHISPER_DIR/voice-report-fast.json"
-BROWSER_CMD_SCRIPT="$(cd "$SCRIPT_DIR/../browser" && pwd)/browser.command.sh"
+BROWSER_CMD_SCRIPT="$(cd "$SCRIPT_DIR/../../connect/browser" && pwd)/browser.command.sh"
 BROWSER_ASSETS_DIR="$SCRIPT_DIR/browser"
 BROWSER_RENDERER="$BROWSER_ASSETS_DIR/render-voice-report.py"
 VOICE_REPORT_APP="$SCRIPT_DIR/app.sh"
@@ -22,9 +22,9 @@ voice_profile_file="$VOICE_PROFILE_DEFAULT"
 usage() {
   cat <<'USAGE'
 Usage:
-  ${AI_COMMANDS_ROOT}/voice-report/voice-report.command.sh --text "Spoken report text"
-  ${AI_COMMANDS_ROOT}/voice-report/voice-report.command.sh --text-file /tmp/report.txt
-  printf 'Spoken report text\n' | ${AI_COMMANDS_ROOT}/voice-report/voice-report.command.sh
+  ${AI_COMMANDS_ROOT}/content/voice-report/voice-report.command.sh --text "Spoken report text"
+  ${AI_COMMANDS_ROOT}/content/voice-report/voice-report.command.sh --text-file /tmp/report.txt
+  printf 'Spoken report text\n' | ${AI_COMMANDS_ROOT}/content/voice-report/voice-report.command.sh
 USAGE
 }
 
