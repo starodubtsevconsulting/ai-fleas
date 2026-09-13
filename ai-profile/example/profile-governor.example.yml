@@ -17,6 +17,13 @@ subject:
   coordinates:
     email: jonathan@example.invalid
 
+# Strategy coordinates are explicit. The strategy family and its two components
+# may evolve independently; a concrete Governor chooses exactly what it follows.
+governorStrategy:
+  id: default
+  strategyVersion: v1
+  humanVersion: v1
+
 workflows:
   - dev
 
@@ -47,12 +54,18 @@ reviewSchedule:
   purpose: Review goal alignment and advise the governed human only when a meaningful adjustment is justified.
 
 # Logical profile-memory references only. Physical storage, retrieval/indexing,
-# and Hermes/GPT access routes are owned by the profile memory configuration.
-# The current example is a draft and is not an implemented runtime integration.
+# and platform access routes are owned by the profile memory configuration.
 memory:
   - name: canonical-strategy
     uri: profile-memory://canonical-strategy
     purpose: Current goals, priorities, constraints, and strategic decisions.
+    access: read-write
+    privacy: profile-private
+    precedence: canonical
+
+  - name: human-operating-model
+    uri: profile-memory://human-operating-model
+    purpose: Human traits, execution evidence, learned patterns, and transparent guidance state.
     access: read-write
     privacy: profile-private
     precedence: canonical
@@ -70,8 +83,6 @@ memory:
     access: read-only
     privacy: profile-private
 
-# Narrow intervention capabilities only. Provider/account details are resolved
-# from the profile-owned command configs; the Governor does not choose brands.
 commands:
   - calendar
   - messaging
