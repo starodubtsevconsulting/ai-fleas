@@ -83,9 +83,11 @@ Committed configuration template: `hermes-agents/hermes-agents.command.example.c
 
 Hermes must be installed and pass its smoke test before profile, bot, or workflow-group initialization.
 
-The selected portable workflow manifest at `ai-workflows/<workflow>/agents.yml` is authoritative for role names and
-portable role properties such as `aiProvider`. The Hermes adapter realizes that roster as Hermes profiles and a group
-chat; it does not maintain a second platform-specific roster or invent generic workers.
+The selected portable workflow manifest at `ai-workflows/<workflow>/agents.yml` is authoritative for Agent names and
+portable properties such as `aiProvider` and `flow`. The Hermes adapter realizes that roster as Hermes profiles and a
+group chat; it does not maintain a second platform-specific roster or invent generic workers. A workflow entry may
+reference a profile-owned `agent_providers_config` file that binds individual Agents or their stable binding names to a
+provider alias and model alias from the profile provider catalog.
 
 Hermes role-profile identity is `<profile>-<workflow>-<role-suffix>`. The workflow's complete ordered project set is
 the logical group's runtime scope; repository or folder names never become part of stable agent identity. The first
@@ -129,8 +131,9 @@ retire the old room identity and its conversation log before the same logical gr
 `initialize` has the same lifecycle meaning as it does in `gpt-agents`: realize the agents declared for the selected
 workflow on the selected platform. The realization cardinality differs by platform. Hermes App currently maps the
 workflow to one named Hermes profile per configured role plus a profile-workflow group containing that roster.
-Each profile receives references to the same portable agent instructions, workflow instructions, allowed command
-catalog, and complete project scope. `SOUL.md` is only the Hermes runtime delivery surface for that resolved contract;
+Each profile receives the same portable Agent instructions, workflow instructions, allowed command catalog, and
+complete project scope, plus its own reusable Role contract and assigned flow when declared. Each profile also receives
+its independently resolved provider, model, context, and compression settings. `SOUL.md` is only the Hermes runtime delivery surface for that resolved contract;
 it is not a second source of initialization truth. GPT App maps the same
 workflow governance model to its declared multi-agent roster, such as Admin, Manager, and the five governed Dev roles.
 This difference belongs to the platform adapters and must not be hardcoded as a universal agent count in either command.
