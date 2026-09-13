@@ -12,7 +12,7 @@ fail() {
 
 usage() {
   printf '%s\n' \
-    'Usage: cloudflare.command.sh validate|token-check|run-tunnel|verify-access' \
+    'Usage: cloudflare.command.sh validate|token-check|run-tunnel|verify-access|ui' \
     '       cloudflare.command.sh install-connector --apply' \
     '       cloudflare.command.sh create-tunnel --apply --token-output ABSOLUTE_PATH' \
     '       cloudflare.command.sh install-service --apply'
@@ -120,6 +120,11 @@ operation="${1:-}"
 shift || true
 
 case "$operation" in
+  ui)
+    [[ $# -eq 0 ]] || fail 'ui accepts no additional arguments'
+    validate_config
+    exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/app.sh"
+    ;;
   validate)
     [[ $# -eq 0 ]] || fail 'validate accepts no additional arguments'
     validate_config
