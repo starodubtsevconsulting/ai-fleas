@@ -43,8 +43,8 @@ system_agent:
     hermes:
       title: "example-system"
       lifecycle_command: hermes-agents
-      provider: ai-lab-service
-      model: qwen-coder
+      provider: rtx-3080-ti-model-provider
+      model: qwen-hermes
     sc:
       title: "example-system"
       model: platform-default
@@ -86,7 +86,7 @@ workflows:
     harness: pi
     local_ai:
       providers_config: local-ai-providers.yml
-      provider: local-coding-provider
+      provider: asus-gx10-model-provider
       model: qwen-coder
     commands:
       - coding
@@ -178,9 +178,13 @@ workflows:
     agent_providers_config: workflows-config/youtube/agent-providers.example.yml
     local_ai:
       providers_config: local-ai-providers.yml
-      provider: openai-service
-      model: gpt-sol
+      # Intended cloud assignment when that provider and model are configured:
+      # provider: openai-service
+      # model: gpt-sol
+      provider: asus-gx10-model-provider
+      model: qwen-coder
     commands:
+      - hermes-agents
       - writing
       - tts
       - lyrics-timestamp

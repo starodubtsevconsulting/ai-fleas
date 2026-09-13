@@ -139,8 +139,8 @@ instead of indexing its configuration maps directly.
 
 Use `example/` as the publication-ready, sanitized template. It contains explicit TODO projects plus non-secret
 ticket-tracker, Git, and Hermes override patterns; replace every placeholder before using a copied profile. The Hermes
-example intentionally shows a loopback endpoint, fictional provider/model IDs, context-window settings, and
-`${AI_COMMANDS_ROOT}` command access without exposing an operational host. Operational profiles,
+example uses recognizable hardware-based provider names, reserved documentation endpoints, illustrative model mappings,
+context-window settings, and `${AI_COMMANDS_ROOT}` command access without exposing an operational host. Operational profiles,
 project bindings, provider settings, credentials, and platform implementation-root bindings belong in the consuming
 private platform. Run `./ai-profile/validate-example.sh` before publishing the example.
 

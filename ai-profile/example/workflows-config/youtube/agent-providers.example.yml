@@ -4,9 +4,12 @@ workflow_id: youtube
 
 bindings:
   youtube-lyrics-script:
-    provider: gx10-local
+    provider: asus-gx10-model-provider
     model: gemma-writing-q8
 
   youtube-default-worker:
-    provider: openai-service
-    model: gpt-sol
+    # Intended cloud assignment when that provider and model are configured:
+    # provider: openai-service
+    # model: gpt-sol
+    provider: asus-gx10-model-provider
+    model: qwen-coder

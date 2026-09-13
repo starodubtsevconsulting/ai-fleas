@@ -3,8 +3,9 @@
 schema_version: local-ai-providers.v1
 
 providers:
-  - id: ai-lab-service
-    label: Dedicated AI lab service
+  # A smaller local GPU host can serve the profile-scoped System agent.
+  - id: rtx-3080-ti-model-provider
+    label: NVIDIA GeForce RTX 3080 Ti model provider
     protocol: openai-compatible
     endpoint:
       # 192.0.2.0/24 is reserved for documentation and cannot identify a real host.
@@ -17,8 +18,10 @@ providers:
           compression_threshold: 0.25
           compression_target: 0.15
           protect_last_messages: 8
-  - id: local-coding-provider
-    label: Local coding model provider
+  # One machine/provider may advertise models used by several workflows; the
+  # provider name describes the host rather than one temporary model purpose.
+  - id: asus-gx10-model-provider
+    label: ASUS GX10 model provider
     protocol: openai-compatible
     endpoint:
       url: http://192.0.2.32:8000/v1
@@ -30,29 +33,10 @@ providers:
           compression_threshold: 0.25
           compression_target: 0.15
           protect_last_messages: 8
-  - id: gx10-local
-    label: Local GX10 writing service
-    protocol: openai-compatible
-    endpoint:
-      url: http://192.0.2.31:8080/v1
-    models:
       - id: gemma-writing-q8
         provider_model: TrevorJS/gemma-4-31B-it-uncensored-GGUF:Q8_0
         hermes:
           context_window_tokens: 32768
-          compression_threshold: 0.25
-          compression_target: 0.15
-          protect_last_messages: 8
-  - id: openai-service
-    label: OpenAI-compatible service
-    protocol: openai-compatible
-    endpoint:
-      url: https://api.example.invalid/v1
-    models:
-      - id: gpt-sol
-        provider_model: gpt-5.6-sol
-        hermes:
-          context_window_tokens: 65536
           compression_threshold: 0.25
           compression_target: 0.15
           protect_last_messages: 8
