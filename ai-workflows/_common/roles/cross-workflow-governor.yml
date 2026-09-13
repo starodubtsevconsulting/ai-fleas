@@ -21,6 +21,8 @@ fixed:
   workflowCardinality: many
   permanentMemoryRequired: true
   ordinaryWorkflowExecutionAllowed: false
+  strategyComponents: [strategy, human]
+  strategyComponentVersionsIndependent: true
 
 intelligenceRequirement:
   class: strategic-reasoning
@@ -36,7 +38,6 @@ configurable:
     type: schedule
     required: false
     owner: profile
-    description: Optional daily, weekly, or other strategic review cadence. A scheduled review may observe, reason, advise, or use explicitly configured narrow interventions; it never grants ordinary workflow execution.
 
 bindings:
   profile:
@@ -48,7 +49,6 @@ bindings:
       id:
         type: string
         required: true
-    description: Exact profile trust boundary for this Governor. Every governed workflow, command, memory reference, goal projection, and external effect must resolve inside this profile unless a separate cross-profile contract explicitly authorizes otherwise.
 
   subject:
     type: human-reference
@@ -66,7 +66,23 @@ bindings:
         type: map
         required: true
         adapterDefined: true
-    description: Stable identity plus platform-specific coordinates for the one governed human.
+
+  governorStrategy:
+    type: governor-strategy-coordinate
+    required: true
+    cardinality: one
+    owner: profile
+    fields:
+      id:
+        type: string
+        required: true
+      strategyVersion:
+        type: string
+        required: true
+      humanVersion:
+        type: string
+        required: true
+    description: Explicit coordinate selecting one Governor strategy family and independent versions of its strategy/workflow and human-guidance components. Selection must resolve to the portable strategy catalog and may not change silently at runtime.
 
   goals:
     type: goal-reference
@@ -101,7 +117,6 @@ bindings:
       reviewTrigger:
         type: any
         required: false
-    description: Human-owned goals are independent of workflows and may span several workflows inside this Governor's profile scope.
 
   workflows:
     type: workflow-reference
@@ -109,7 +124,6 @@ bindings:
     cardinality: many
     owner: profile
     examples: [dev, multimedia, bookkeeping, investment]
-    description: Logical workflows selected from the exact bound profile. Workflow awareness supports strategic reasoning and alignment only; it does not grant ordinary workflow execution.
 
   memory:
     type: memory-reference
@@ -136,7 +150,6 @@ bindings:
       precedence:
         type: any
         required: false
-    description: Durable external memory references authorized by the exact bound profile; storage/provider mechanics are adapter-specific.
 
   commands:
     type: command-reference
@@ -144,4 +157,3 @@ bindings:
     cardinality: many
     owner: profile
     providerNeutral: true
-    description: Registered provider-neutral commands used only for observation or narrow governance interventions such as reminders, calendar actions, or messages. Command access never grants ordinary workflow execution.
