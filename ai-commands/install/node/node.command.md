@@ -33,8 +33,6 @@ Committed configuration template: `install/node/node.command.example.config`. Co
 
 ## Tags
 
-
-
 ## Behavior
 
 - Detects whether a requested Node package can be resolved from a target directory.
@@ -46,10 +44,10 @@ Committed configuration template: `install/node/node.command.example.config`. Co
 ## Usage
 
 ```bash
-${AI_COMMANDS_ROOT}/install/node/node.sh --package mermaid --prefix ai-commands/show-context
+${AI_COMMANDS_ROOT}/install/node/node.sh --package mermaid --prefix ai-commands/utility/show-context
 ```
 
 ## Notes
 
-- Use this for npm-backed renderers or CLIs that ai-config commands need locally.
+- Use this for npm-backed renderers or CLIs that AI Commands need locally.
 - Prefer command-local detection before calling this installer so startup remains fast when dependencies are already present.

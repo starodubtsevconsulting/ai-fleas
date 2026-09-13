@@ -17,8 +17,10 @@ Turn approved lyrics, a script, or narration into approved final audio.
 
 ## Commands
 
-- [`tts`](../../../ai-commands/tts/)
-- [`lyrics-timestamp`](../../../ai-commands/lyrics-timestamp/) when timing data is required
+- [`tts`](../../../ai-commands/content/tts/)
+- [`lyrics-timestamp`](../../../ai-commands/content/lyrics-timestamp/) when timing data is required
+
+Workflows use the logical command IDs `tts` and `lyrics-timestamp`; the links above show their catalog locations.
 
 ## Output
 
