@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-# Category-local compatibility entry point for the canonical profile guard.
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd -P)/_runtime/profile/command-profile.guard.sh"
