@@ -5,15 +5,15 @@ reusable [Worker role](../../_common/roles/worker.md).
 
 ## Team
 
-| Agent | Owns | Connected Commands |
-| --- | --- | --- |
-| `lyrics-script-worker` | Lyrics or script | `writing` |
-| `audio-worker` | Audio | `tts`, `lyrics-timestamp` |
-| `scene-worker` | Scene | `kdenlive`, `video-handwriting-effect` |
-| `release-worker` | Release package and authorized release | planned `youtube-release` |
+| Agent | Assigned flow |
+| --- | --- |
+| `@lyrics-script-worker` | [Lyrics or script writing](../flows/lyrics-script-writing.md) |
+| `@audio-worker` | [Audio production](../flows/audio-production.md) |
+| `@scene-worker` | [Scene production](../flows/scene-production.md) |
+| `@release-worker` | [Release](../flows/release.md) |
 
-All four Agents use the same Worker role. Their workflow bindings specialize their step, artifact, Commands, context,
-and profile-selected AI provider without creating four nearly identical reusable roles.
+All four Agents use the same Worker role. Their assigned flow owns the detailed work, Commands, validation, and output.
+The Agent binding stays minimal: stable identity, Worker role, assigned flow, lifecycle, and profile-selected provider.
 
 The workflow requests two profile-owned provider bindings:
 
