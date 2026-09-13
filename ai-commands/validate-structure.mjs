@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const commandsRoot = path.dirname(fileURLToPath(import.meta.url));
 const categories = new Set(['install', 'data', 'connect', 'development', 'content', 'system', 'utility']);
 const internalDirectories = new Set(['.venv', '_runtime', 'assets', 'tooling']);
+const rootCompatibilityDirectories = new Set(['.codex', 'browser', 'show-context']);
 const allowedTypes = new Set(['contract', 'executable', 'adapter', 'provider', 'flow', 'visual']);
 const errors = [];
 const commandIds = new Set();
@@ -29,7 +30,7 @@ async function commandContracts(directory) {
 async function commandBundles() {
   const bundles = [];
   for (const categoryEntry of await readdir(commandsRoot, { withFileTypes: true })) {
-    if (!categoryEntry.isDirectory() || internalDirectories.has(categoryEntry.name)) continue;
+    if (!categoryEntry.isDirectory() || internalDirectories.has(categoryEntry.name) || rootCompatibilityDirectories.has(categoryEntry.name)) continue;
     if (!categories.has(categoryEntry.name)) {
       errors.push(`${categoryEntry.name}: public command directories must live inside a registered category`);
       continue;
