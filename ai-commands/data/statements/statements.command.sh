@@ -6,7 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../command-python.setup.sh"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-SHOW_CONTEXT_CMD="$ROOT_DIR/ai-commands/show-context/show-context.command.sh"
+SHOW_CONTEXT_CMD="$ROOT_DIR/ai-commands/utility/show-context/show-context.command.sh"
 
 if [[ -n "${AI_COMMAND_CONFIG_PATH:-}" && -f "$AI_COMMAND_CONFIG_PATH" ]]; then
   # shellcheck disable=SC1091
