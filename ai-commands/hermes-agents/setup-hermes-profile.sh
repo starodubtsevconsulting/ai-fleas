@@ -6,7 +6,9 @@ readonly DEFAULT_CONTEXT_LENGTH='65536'
 readonly DEFAULT_COMPRESSION_THRESHOLD='0.25'
 readonly DEFAULT_COMPRESSION_TARGET_RATIO='0.15'
 readonly DEFAULT_COMPRESSION_PROTECT_LAST_N='8'
-readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${SCRIPT_DIR}/configure-hermes-group.py}"
+readonly SOURCE_DIR="${SCRIPT_DIR}/src"
+readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${SOURCE_DIR}/configure-group.py}"
+readonly PROFILE_VALIDATOR="${HERMES_PROFILE_VALIDATOR:-${SOURCE_DIR}/validate-profile.py}"
 
 profile="${HERMES_PROFILE:-}"
 provider_id="${HERMES_PROVIDER_ID:-}"
@@ -37,11 +39,12 @@ context_length="${HERMES_CONTEXT_LENGTH:-${DEFAULT_CONTEXT_LENGTH}}"
 compression_threshold="${HERMES_COMPRESSION_THRESHOLD:-${DEFAULT_COMPRESSION_THRESHOLD}}"
 compression_target_ratio="${HERMES_COMPRESSION_TARGET_RATIO:-${DEFAULT_COMPRESSION_TARGET_RATIO}}"
 compression_protect_last_n="${HERMES_COMPRESSION_PROTECT_LAST_N:-${DEFAULT_COMPRESSION_PROTECT_LAST_N}}"
+validate_only=false
 
 usage() {
   printf '%s\n' \
     'Usage: setup-hermes-profile.sh [--profile NAME] [--workspace ABSOLUTE_PATH]' \
-    '                           [--endpoint URL] [--model MODEL_ID]' \
+    '                           [--endpoint URL] [--model MODEL_ID] [--validate-only]' \
     '' \
     'Creates or reconciles one Hermes Desktop bot backed by the selected' \
     'OpenAI-compatible model target. Existing conversations and memory are' \
@@ -70,6 +73,10 @@ while (($#)); do
       model="$2"
       shift 2
       ;;
+    --validate-only)
+      validate_only=true
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -81,37 +88,6 @@ while (($#)); do
   esac
 done
 
-[[ "${profile}" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || {
-  echo 'Profile must contain only lowercase letters, digits, hyphens, and underscores.' >&2
-  exit 2
-}
-[[ "${provider_id}" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || {
-  echo 'Provider ID must contain only lowercase letters, digits, hyphens, and underscores.' >&2
-  exit 2
-}
-[[ "${model}" =~ ^[A-Za-z0-9._:/+-]+$ ]] || {
-  echo 'Model ID contains unsupported characters.' >&2
-  exit 2
-}
-ENDPOINT="${endpoint}" python3 -c '
-import os
-import sys
-from urllib.parse import urlparse
-
-endpoint = os.environ["ENDPOINT"]
-parsed = urlparse(endpoint)
-if parsed.scheme not in {"http", "https"} or not parsed.netloc or any(char.isspace() for char in endpoint):
-    raise SystemExit("Endpoint must be an HTTP(S) URL without whitespace.")
-' || exit 2
-[[ "${workspace}" == /* && -d "${workspace}" ]] || {
-  echo "Workspace is not an existing absolute directory: ${workspace}" >&2
-  exit 2
-}
-[[ -z "${group}" || "${group}" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || {
-  echo 'Group ID must contain only lowercase letters, digits, hyphens, and underscores.' >&2
-  exit 2
-}
-
 if [[ -z "${hermes_bin}" ]]; then
   if command -v hermes >/dev/null 2>&1; then
     hermes_bin="$(command -v hermes)"
@@ -122,29 +98,15 @@ if [[ -z "${hermes_bin}" ]]; then
     exit 1
   fi
 fi
-[[ -x "${hermes_bin}" ]] || { echo "Hermes CLI is not executable: ${hermes_bin}" >&2; exit 1; }
+hermes_python="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
+export HERMES_BIN="${hermes_bin}" HERMES_GROUP_CONFIGURATOR="${GROUP_CONFIGURATOR}" HERMES_EFFECTIVE_PYTHON_BIN="${hermes_python}"
+validator_args=()
+[[ "${validate_only}" == true ]] || validator_args+=(--quiet)
+"${HERMES_PROFILE_VALIDATOR_PYTHON_BIN:-python3}" "${PROFILE_VALIDATOR}" ${validator_args[@]+"${validator_args[@]}"}
 
-models_url="${endpoint%/}/models"
-models_json="$(curl --fail --silent --show-error --max-time 10 "${models_url}")" || {
-  echo "Configured model target is unreachable: ${provider_label}; no profile changes were made." >&2
-  exit 1
-}
-MODEL_ID="${model}" python3 -c '
-import json
-import os
-import sys
-
-payload = json.load(sys.stdin)
-expected = os.environ["MODEL_ID"]
-available = {
-    str(item.get("id") or item.get("model") or item.get("name") or "")
-    for collection in (payload.get("data", []), payload.get("models", []))
-    for item in collection
-    if isinstance(item, dict)
-}
-if expected not in available:
-    raise SystemExit(f"Configured model is not advertised by the selected target: {expected}")
-' <<<"${models_json}"
+if [[ "${validate_only}" == true ]]; then
+  exit 0
+fi
 
 hermes_root="${HERMES_HOME:-${HOME}/.hermes}"
 profile_dir="${hermes_root}/profiles/${profile}"
@@ -191,7 +153,7 @@ fi
 # CLI delivery paths still restore their persisted route even when the session
 # explicitly follows profile configuration, so reconcile that metadata before
 # scheduler delivery without deleting messages.
-python3 "${SCRIPT_DIR}/migrate-follow-profile-sessions.py" \
+python3 "${SOURCE_DIR}/migrate-profile-sessions.py" \
   --state-db "${profile_dir}/state.db" \
   --title 'Bot Chat' \
   --model "${model}" \
@@ -203,10 +165,6 @@ cleanup() { [[ -z "${soul_tmp:-}" ]] || rm -f -- "${soul_tmp}"; }
 trap cleanup EXIT INT TERM
 printf '# Hermes Profile: %s\n\n' "${profile}" >"${soul_tmp}"
 if [[ "${scope}" == 'system' ]]; then
-  [[ -f "${system_role_path}" && -f "${system_schedule_path}" ]] || {
-    echo 'System role and schedule contracts must be readable files.' >&2
-    exit 2
-  }
   printf '%s\n' \
     "You are the globally scoped Hermes System agent for AI work profile \`${work_profile}\`." \
     'You exist outside every workflow group. Never join a group and never expose your direct profile ID to workflow agents.' \
@@ -255,44 +213,20 @@ else
   printf '%s\n' "Your primary and only recorded project is \`${project:-not-recorded}\` at \`${workspace}\`." >>"${soul_tmp}"
 fi
 if [[ "${scope}" != 'system' && -n "${role_instructions_path}" ]]; then
-  [[ "${role_instructions_path}" == /* && -f "${role_instructions_path}" ]] || {
-    echo "Role instructions path is not an existing absolute file: ${role_instructions_path}" >&2
-    exit 2
-  }
   printf '\n## Portable role contract\n\n' >>"${soul_tmp}"
   cat "${role_instructions_path}" >>"${soul_tmp}"
 fi
 if [[ "${scope}" != 'system' && -n "${flow_instructions_path}" ]]; then
-  [[ "${flow_instructions_path}" == /* && -f "${flow_instructions_path}" ]] || {
-    echo "Flow instructions path is not an existing absolute file: ${flow_instructions_path}" >&2
-    exit 2
-  }
   printf '\n## Assigned workflow flow\n\n' >>"${soul_tmp}"
   cat "${flow_instructions_path}" >>"${soul_tmp}"
 fi
 fi
 if [[ "${scope}" != 'system' && -n "${agent_instructions_path}" ]]; then
-  [[ "${agent_instructions_path}" == /* && -f "${agent_instructions_path}" ]] || {
-    echo "Agent instructions path is not an existing absolute file: ${agent_instructions_path}" >&2
-    exit 2
-  }
   printf '%s\n' "Your AI configuration instructions are \`${agent_instructions_path}\`; read them completely before work and follow the rules that apply to the task." >>"${soul_tmp}"
 elif [[ "${scope}" != 'system' ]]; then
   printf '%s\n' 'No separate AI configuration instructions file was assigned to this Hermes profile.' >>"${soul_tmp}"
 fi
 if [[ "${scope}" != 'system' && ( -n "${ai_commands_root}" || -n "${workflow_instructions_path}" || -n "${workflow_command_ids}" ) ]]; then
-  [[ "${ai_commands_root}" == /* && -d "${ai_commands_root}" ]] || {
-    echo "AI commands root is not an existing absolute directory: ${ai_commands_root}" >&2
-    exit 2
-  }
-  [[ "${workflow_instructions_path}" == /* && -f "${workflow_instructions_path}" ]] || {
-    echo "Workflow instructions path is not an existing absolute file: ${workflow_instructions_path}" >&2
-    exit 2
-  }
-  [[ "${workflow_command_ids}" =~ ^[a-z0-9][a-z0-9_-]*(,[a-z0-9][a-z0-9_-]*)*$ ]] || {
-    echo "Workflow command IDs are missing or unsafe: ${workflow_command_ids}" >&2
-    exit 2
-  }
   printf '%s\n' \
     "Your active workflow contract is \`${workflow_instructions_path}\`; read it before substantive work." \
     "Your selected AI command catalog root is \`${ai_commands_root}\`. The commands allowed by this workflow are: \`${workflow_command_ids}\`." \
@@ -334,15 +268,6 @@ actual_workspace="$("${hermes_bin}" -p "${profile}" config get terminal.cwd)"
 [[ "${actual_workspace}" == "${workspace}" ]]
 
 if [[ -n "${group}" ]]; then
-  [[ -f "${GROUP_CONFIGURATOR}" ]] || {
-    echo "Hermes group configurator was not found: ${GROUP_CONFIGURATOR}" >&2
-    exit 1
-  }
-  hermes_python="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
-  [[ -x "${hermes_python}" ]] || {
-    echo "Hermes Python runtime is not executable: ${hermes_python}" >&2
-    exit 1
-  }
   "${hermes_python}" "${GROUP_CONFIGURATOR}" \
     --hermes-home "${hermes_root}" \
     --group "${group}" \

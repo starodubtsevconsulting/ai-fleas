@@ -6,6 +6,16 @@ import { parseDocument } from 'yaml';
 
 const [profileRoot, workProfileId, workflowSelector = '', projectSelector = ''] = process.argv.slice(2);
 function fail(message) { console.error(`HERMES_PROFILE_SCOPE_INVALID: ${message}`); process.exit(1); }
+function configurationError(summary, reason, source, available, nextStep) {
+  console.error(`HERMES_CONFIGURATION_ERROR: ${summary}`);
+  console.error(`Reason: ${reason}`);
+  console.error(`Configuration file: ${source}`);
+  console.error(`Currently configured: ${available}`);
+  console.error(`How to fix: ${nextStep}`);
+  console.error('Model availability was not checked because the configuration could not be resolved.');
+  console.error('Safety: initialization stopped before Hermes was changed; no profiles or groups were created or updated.');
+  process.exit(1);
+}
 function safeId(value, label) { if (!/^[a-z0-9][a-z0-9_-]*$/.test(value)) fail(`${label} is unsafe or missing.`); return value; }
 function readYaml(file) {
   let text;
@@ -53,11 +63,22 @@ const localAi = workflow.local_ai;
 if (!localAi || typeof localAi !== 'object' || Array.isArray(localAi)) fail('workflow local_ai mapping is required.');
 const providersConfig = String(localAi.providers_config || '');
 if (!providersConfig || path.isAbsolute(providersConfig)) fail('local_ai.providers_config must be a relative path.');
-const catalog = readYaml(inside(selectedProfileRoot, path.join(selectedProfileRoot, providersConfig), 'provider catalog'));
+const catalogFile = inside(selectedProfileRoot, path.join(selectedProfileRoot, providersConfig), 'provider catalog');
+const catalog = readYaml(catalogFile);
 const providers = Array.isArray(catalog.providers) ? catalog.providers : [];
 function resolveProvider(alias) {
   const matches = providers.filter((item) => item && typeof item === 'object' && item.id === alias);
-  if (matches.length !== 1) fail(`provider '${alias}' did not resolve exactly once.`);
+  if (matches.length === 0) {
+    const available = providers.map((item) => String(item?.id || '')).filter(Boolean).sort().join(',') || 'none';
+    configurationError(
+      `Cannot initialize Hermes workflow '${workflowId}' for work profile '${workProfileId}'.`,
+      `The workflow requests AI provider '${alias}', but that provider is not defined in this profile's provider catalog.`,
+      catalogFile,
+      `providers: ${available}`,
+      `Add exactly one provider with id '${alias}', including its real endpoint and model definitions, then run initialization again.`,
+    );
+  }
+  if (matches.length > 1) fail(`work_profile=${workProfileId} workflow=${workflowId} provider=${alias}; provider is declared ${matches.length} times in ${catalogFile}; exactly one declaration is required; no profile changes were made.`);
   const provider = matches[0];
   if (provider.protocol !== 'openai-compatible') fail(`provider '${alias}' is not OpenAI-compatible.`);
   const endpointEnv = String(provider.endpoint?.environment_variable || '');
@@ -73,7 +94,17 @@ const modelMatches = (Array.isArray(defaultProvider.provider.models) ? defaultPr
 if (modelMatches.length !== 1) fail(`model '${modelAlias}' did not resolve exactly once.`);
 function resolveModel(provider, alias) {
   const matches = (Array.isArray(provider.models) ? provider.models : []).filter((item) => item && typeof item === 'object' && item.id === alias);
-  if (matches.length !== 1) fail(`model '${alias}' did not resolve exactly once for provider '${provider.id}'.`);
+  if (matches.length === 0) {
+    const available = (Array.isArray(provider.models) ? provider.models : []).map((item) => String(item?.id || '')).filter(Boolean).sort().join(',') || 'none';
+    configurationError(
+      `Cannot initialize Hermes workflow '${workflowId}' for work profile '${workProfileId}'.`,
+      `The workflow requests model alias '${alias}' from provider '${provider.id}', but that alias is not defined for the provider.`,
+      catalogFile,
+      `model aliases for '${provider.id}': ${available}`,
+      `Add exactly one model with id '${alias}' under provider '${provider.id}', then run initialization again.`,
+    );
+  }
+  if (matches.length > 1) fail(`work_profile=${workProfileId} workflow=${workflowId} provider=${provider.id} model=${alias}; model alias is declared ${matches.length} times in ${catalogFile}; exactly one declaration is required; no profile changes were made.`);
   const selected = matches[0];
   const providerModel = String(selected.provider_model || '');
   if (!/^[A-Za-z0-9._:/+-]+$/.test(providerModel)) fail(`model '${alias}' has an unsafe provider model ID.`);
