@@ -1,2 +1,6 @@
+id: plan
+version: 0.0.1-SNAPSHOT
+category: utility
+type: executable
 ai:
   powered: false

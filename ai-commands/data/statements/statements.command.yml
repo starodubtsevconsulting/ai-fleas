@@ -1,2 +1,6 @@
+id: statements
+version: 0.0.1-SNAPSHOT
+category: data
+type: executable
 ai:
   powered: false

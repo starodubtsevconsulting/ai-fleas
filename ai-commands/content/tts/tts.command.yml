@@ -1,2 +1,6 @@
+id: tts
+version: 0.0.1-SNAPSHOT
+category: content
+type: executable
 ai:
   powered: false
