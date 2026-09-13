@@ -1,6 +1,6 @@
-id: jira
+id: activity-data-android
 version: 0.0.1-SNAPSHOT
-category: connect
+category: data
 type: provider
 ai:
   powered: false

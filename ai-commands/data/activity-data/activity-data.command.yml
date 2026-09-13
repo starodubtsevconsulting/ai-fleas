@@ -1,6 +1,6 @@
-id: ticket-tracker
+id: activity-data
 version: 0.0.1-SNAPSHOT
-category: connect
+category: data
 type: adapter
 ai:
   powered: false
