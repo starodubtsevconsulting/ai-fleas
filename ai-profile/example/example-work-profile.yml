@@ -176,6 +176,10 @@ workflows:
   - path: youtube.workflow.md
     harness: hermes
     agent_providers_config: workflows-config/youtube/agent-providers.example.yml
+    local_ai:
+      providers_config: local-ai-providers.yml
+      provider: openai-service
+      model: gpt-sol
     commands:
       - writing
       - tts
