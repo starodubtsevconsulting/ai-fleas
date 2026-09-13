@@ -5,7 +5,7 @@ import { LocalConfigProvider } from './application/local-config-provider.mjs';
 import { runConnectionTest } from './subcommands/connection-test.command.mjs';
 import { runQuarterReport } from './subcommands/quarter-report.command.mjs';
 import { fileURLToPath } from 'node:url';
-import { requireCommandProfile } from '../_runtime/profile/command-profile.guard.mjs';
+import { requireCommandProfile } from '../../_runtime/profile/command-profile.guard.mjs';
 
 const USAGE = 'usage: lodgify <connection-test|quarter-report> [options]';
 
