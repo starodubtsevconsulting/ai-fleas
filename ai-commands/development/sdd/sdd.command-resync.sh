@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+CONFIG_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 REPO_ROOT="$(git -C "$CONFIG_ROOT" rev-parse --show-toplevel 2>/dev/null || true)"
 
 PROFILE_ID="${AI_WORK_PROFILE_ID:-example}"

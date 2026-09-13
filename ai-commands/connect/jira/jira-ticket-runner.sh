@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-REPO_DIR=$(cd "$SCRIPT_DIR/../.." && pwd)
+REPO_DIR=$(cd "$SCRIPT_DIR/../../.." && pwd)
 CONF_FILE="${JIRA_COMMAND_CONF:-${AI_COMMAND_CONFIG_PATH:-}}"
 source "$SCRIPT_DIR/jira-load-config.sh"
 

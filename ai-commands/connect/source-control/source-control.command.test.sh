@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)
-COMMAND="$ROOT_DIR/ai-commands/source-control/source-control.command.md"
+ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd -P)
+COMMAND="$ROOT_DIR/ai-commands/connect/source-control/source-control.command.md"
 
 grep -Fq 'Execution route: `manager`.' "$COMMAND"
 grep -Fq 'Command kind: `adapter`.' "$COMMAND"
