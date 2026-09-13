@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly COMMAND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+readonly TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+readonly SOURCE_DIR="$(cd "${TEST_DIR}/../src" && pwd -P)"
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/hermes-scope-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
@@ -78,7 +79,7 @@ label: Channel
 repo_path: ${test_root}/workspace
 YAML
 
-scope="$(node "${COMMAND_DIR}/resolve-profile-scope.mjs" "${test_root}/profiles" example youtube channel)"
+scope="$(node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/profiles" example youtube channel)"
 role_bindings="$(awk -F '\t' '{print $18}' <<<"${scope}")"
 
 ROLE_BINDINGS="${role_bindings}" TEST_ROOT="${test_root}" python3 - <<'PY'
