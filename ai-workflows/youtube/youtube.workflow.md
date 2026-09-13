@@ -13,12 +13,12 @@ start until the required artifact from the previous step exists.
 
 ## Workflow
 
-| Step | Agent | What to ask it to do | Approved output |
+| Step | Agent | Assigned flow | Approved output |
 | --- | --- | --- | --- |
-| 1. Lyrics or script | `@lyrics-script-worker` | Write or revise lyrics, a spoken script, or narration. | Approved text |
-| 2. Audio | `@audio-worker` | Turn the approved text into a song, voice recording, or other final audio. | Approved audio |
-| 3. Scene | `@scene-worker` | Create the picture, cover, video, or combination required by the format, and combine it with the approved audio when needed. | Approved scene package |
-| 4. Release | `@release-worker` | Prepare the title, description, thumbnail or cover, and final YouTube package; release only after explicit human authorization. | Ready-to-release package or YouTube reference |
+| 1. Lyrics or script | `@lyrics-script-worker` | [Lyrics or script writing](flows/lyrics-script-writing.md) | Approved text |
+| 2. Audio | `@audio-worker` | [Audio production](flows/audio-production.md) | Approved audio |
+| 3. Scene | `@scene-worker` | [Scene production](flows/scene-production.md) | Approved scene package |
+| 4. Release | `@release-worker` | [Release](flows/release.md) | Ready-to-release package or YouTube reference |
 
 Typical use:
 
@@ -29,21 +29,9 @@ Typical use:
 @release-worker Prepare the YouTube release package.
 ```
 
-Each step performs the validation required for its own output before approval. Validation is part of the step rather
-than a separate top-level flow. A step may use multiple Commands, and the selected format determines which Commands are
-applicable.
-
-## Command routing
-
-| Step | Purpose | Connected Commands |
-| --- | --- | --- |
-| Lyrics or script | Draft, revise, and preserve the intended voice | [`writing`](../../ai-commands/writing/) |
-| Audio | Create voice audio and prepare timing data where applicable | [`tts`](../../ai-commands/tts/), [`lyrics-timestamp`](../../ai-commands/lyrics-timestamp/) |
-| Scene | Create or assemble the picture, cover, and video | [`kdenlive`](../../ai-commands/kdenlive/), [`video-handwriting-effect`](../../ai-commands/video-handwriting-effect/) |
-| Release | Prepare release metadata and perform an explicitly authorized publication | `youtube-release` (planned) |
-
-The workflow composes Commands and does not embed their implementations. Missing Commands remain explicit rather than
-being replaced with inferred tools or hidden platform behavior.
+Each flow owns its purpose, ordered work, Commands, validation, and output. The Agent binding supplies only the Worker
+identity, assigned flow, and profile-owned provider binding. Missing Commands remain explicit rather than being replaced
+with inferred tools or hidden platform behavior.
 
 ## Model routing
 
