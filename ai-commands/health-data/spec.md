@@ -22,6 +22,12 @@ Health data is evidence, not a planning decision, diagnosis, or direct capacity 
 
 Normalized output should preserve source, observation time/date, units, and missing/unknown values rather than inventing measurements.
 
+## Persistence boundary
+
+`health-data` acquires and normalizes evidence; it is not the canonical longitudinal database for the human. Long-term storage, cross-source correlation, history, and derived observations belong to a separate provider-neutral human-data-store capability when implemented.
+
+Keep raw provider payloads, normalized observations, and derived Governor knowledge distinguishable so provenance is preserved.
+
 ## Scope
 
 V1 is read-only. It does not write health records or issue medical/fitness instructions.
