@@ -78,6 +78,10 @@ validate_profile() {
   }
 }
 
+decode_base64() {
+  BASE64_VALUE="$1" python3 -c 'import base64, os; print(base64.b64decode(os.environ["BASE64_VALUE"], validate=True).decode("utf-8"), end="")'
+}
+
 action="${1:-}"
 [[ -n "${action}" ]] || { usage >&2; exit 2; }
 shift
@@ -315,11 +319,15 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     realized_profiles=()
     IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
     for role_binding in "${role_bindings[@]}"; do
-      IFS=':' read -r role profile_suffix role_provider role_endpoint <<<"${role_binding}"
-      [[ -n "${role}" && -n "${profile_suffix}" && -n "${role_provider}" && -n "${role_endpoint}" ]] || {
+      IFS='|' read -r role profile_suffix role_provider role_provider_label_b64 role_endpoint_b64 role_model role_context role_threshold role_target role_protect role_path_b64 flow_path_b64 <<<"${role_binding}"
+      [[ -n "${role}" && -n "${profile_suffix}" && -n "${role_provider}" && -n "${role_endpoint_b64}" && -n "${role_model}" ]] || {
         printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: malformed Hermes role binding.' >&2
         exit 2
       }
+      role_provider_label="$(decode_base64 "${role_provider_label_b64}")"
+      role_endpoint="$(decode_base64 "${role_endpoint_b64}")"
+      role_path="$(decode_base64 "${role_path_b64}")"
+      flow_path="$(decode_base64 "${flow_path_b64}")"
       case "${role}" in
         admin) role_title='Admin' ;;
         designer-reviewer) role_title='Designer/Reviewer' ;;
@@ -334,8 +342,15 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
       export HERMES_ROLE="${role}"
       export HERMES_ROLE_TITLE="${role_title}"
       export HERMES_PROVIDER_ID="${role_provider}"
-      export HERMES_PROVIDER_LABEL="${role_provider}"
+      export HERMES_PROVIDER_LABEL="${role_provider_label}"
       export HERMES_ENDPOINT="${role_endpoint}"
+      export HERMES_MODEL="${role_model}"
+      export HERMES_CONTEXT_LENGTH="${role_context}"
+      export HERMES_COMPRESSION_THRESHOLD="${role_threshold}"
+      export HERMES_COMPRESSION_TARGET_RATIO="${role_target}"
+      export HERMES_COMPRESSION_PROTECT_LAST_N="${role_protect}"
+      export HERMES_ROLE_INSTRUCTIONS_PATH="${role_path}"
+      export HERMES_FLOW_INSTRUCTIONS_PATH="${flow_path}"
       realized_profiles+=("${HERMES_PROFILE}")
       if [[ ${#setup_args[@]} -eq 0 ]]; then
         "${SETUP_SCRIPT}"
@@ -441,8 +456,8 @@ if expected not in available:
     role_bindings=()
     IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
     for role_binding in "${role_bindings[@]}"; do
-      IFS=':' read -r role suffix role_provider role_endpoint <<<"${role_binding}"
-      [[ -n "${role}" && -n "${suffix}" && -n "${role_provider}" && -n "${role_endpoint}" ]] || {
+      IFS='|' read -r role suffix role_provider _ role_endpoint_b64 role_model _ <<<"${role_binding}"
+      [[ -n "${role}" && -n "${suffix}" && -n "${role_provider}" && -n "${role_endpoint_b64}" && -n "${role_model}" ]] || {
         printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: malformed Hermes role binding.' >&2
         exit 2
       }
