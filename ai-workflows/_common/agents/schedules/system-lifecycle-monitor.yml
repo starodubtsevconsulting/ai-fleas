@@ -10,6 +10,11 @@ instruction: |
   no agent mutation, and report a compact user-facing status on every scheduled check naming the missing exact logical
   project and stating that it will be checked again at the configured interval.
   Inspect the platform's agent list, lifecycle state, availability, and explicit context-health or exhaustion metadata.
+  Receipt readiness means configuration was realized; it is not proof of current runtime health. A Hermes Desktop backend
+  process is lazy and may be stopped while its Agent remains available, so process presence alone is neither a complete
+  health check nor a reason to call an absent process unhealthy. Reconcile every receipt-declared Agent before reporting
+  totals, distinguish configured, running-backend, unavailable, and unknown states, and never claim all Agents are healthy
+  unless explicit platform health evidence covers every declared Agent.
   Do not read product conversation payloads merely to estimate context consumption and do not expose System's identity
   or routing address to workflow agents.
   When trusted platform evidence shows that an agent is near exhaustion, exhausted, or unavailable, apply the common
