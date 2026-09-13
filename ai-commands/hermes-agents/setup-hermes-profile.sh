@@ -22,6 +22,8 @@ agent_instructions_path="${HERMES_AGENT_INSTRUCTIONS_PATH:-}"
 ai_commands_root="${HERMES_AI_COMMANDS_ROOT:-}"
 workflow_instructions_path="${HERMES_WORKFLOW_INSTRUCTIONS_PATH:-}"
 workflow_command_ids="${HERMES_WORKFLOW_COMMAND_IDS:-}"
+role_instructions_path="${HERMES_ROLE_INSTRUCTIONS_PATH:-}"
+flow_instructions_path="${HERMES_FLOW_INSTRUCTIONS_PATH:-}"
 group="${HERMES_GROUP:-}"
 role="${HERMES_ROLE:-worker}"
 role_title="${HERMES_ROLE_TITLE:-Worker}"
@@ -251,6 +253,22 @@ print("\n".join(lines))
   printf '%s\n' "${project_scope_text}" "The primary project is the default terminal working directory. Every listed project is authorized work scope for this logical group; projects outside this list are not." >>"${soul_tmp}"
 else
   printf '%s\n' "Your primary and only recorded project is \`${project:-not-recorded}\` at \`${workspace}\`." >>"${soul_tmp}"
+fi
+if [[ "${scope}" != 'system' && -n "${role_instructions_path}" ]]; then
+  [[ "${role_instructions_path}" == /* && -f "${role_instructions_path}" ]] || {
+    echo "Role instructions path is not an existing absolute file: ${role_instructions_path}" >&2
+    exit 2
+  }
+  printf '\n## Portable role contract\n\n' >>"${soul_tmp}"
+  cat "${role_instructions_path}" >>"${soul_tmp}"
+fi
+if [[ "${scope}" != 'system' && -n "${flow_instructions_path}" ]]; then
+  [[ "${flow_instructions_path}" == /* && -f "${flow_instructions_path}" ]] || {
+    echo "Flow instructions path is not an existing absolute file: ${flow_instructions_path}" >&2
+    exit 2
+  }
+  printf '\n## Assigned workflow flow\n\n' >>"${soul_tmp}"
+  cat "${flow_instructions_path}" >>"${soul_tmp}"
 fi
 fi
 if [[ "${scope}" != 'system' && -n "${agent_instructions_path}" ]]; then
