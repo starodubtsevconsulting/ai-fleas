@@ -54,6 +54,7 @@ as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must nev
 | `run-tunnel` | Run `cloudflared` in the foreground using the remotely managed tunnel token. |
 | `install-service --apply` | Install the remotely managed tunnel as an operating-system service. This is an explicit host mutation. |
 | `verify-access` | Make an unauthenticated request and require a Cloudflare Access login redirect. |
+| `ui` | Open the Electron tunnel controller for status, Access verification, logs, and app-owned start/stop actions. |
 
 ## Configuration contract
 
@@ -82,6 +83,20 @@ token scope; a Global API Key is not supported.
 - `verify-access` does not follow redirects or authenticate; it only proves that an unauthenticated request reaches the
   Access login boundary.
 - This command does not configure NAT, firewall rules, Cloudflare bypass rules, or public tunnels without Access.
+- The Electron renderer never receives or reads API or tunnel tokens. Connector execution remains in the isolated main
+  process, logs are redacted, and the Stop action can terminate only a connector started by that UI process.
+
+## Tunnel controller UI
+
+Run `cloudflare.command.sh ui` from an activated profile and workflow. The launcher follows the same
+`app.sh → Electron main/preload → launcher/panel` structure as the Lyrics Timestamp and Handwriting Effect commands.
+On first use it installs the pinned command-local Electron dependency with `npm ci` when no compatible host Electron
+runtime is supplied through `CLOUDFLARE_ELECTRON_BIN`.
+
+The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
+this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
+**Start connector** runs `run-tunnel` with the activated profile environment. **Stop connector** is enabled only for the
+child process started by the same window; an externally detected connector is intentionally read-only.
 
 ## Operator runbook
 

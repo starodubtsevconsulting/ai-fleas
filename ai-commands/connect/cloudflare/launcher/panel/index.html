@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Cloudflare Tunnel</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d1117;
+      --panel: #161b22;
+      --panel-2: #1c232d;
+      --border: #30363d;
+      --text: #f0f6fc;
+      --muted: #8b949e;
+      --orange: #f6821f;
+      --green: #3fb950;
+      --red: #f85149;
+      --blue: #58a6ff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    button { font: inherit; }
+    .shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 20px;
+      padding: 22px 26px; border-bottom: 1px solid var(--border); background: #11161d;
+    }
+    .brand { display: flex; gap: 14px; align-items: center; }
+    .mark { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--orange); color: #111; font-weight: 900; }
+    h1 { margin: 0; font-size: 21px; }
+    .subtitle { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .actions { display: flex; gap: 9px; }
+    button {
+      min-height: 38px; padding: 0 15px; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--panel-2); color: var(--text); cursor: pointer;
+    }
+    button:hover:not(:disabled) { border-color: #6e7681; }
+    button:disabled { opacity: .45; cursor: default; }
+    .primary { border-color: #b85d13; background: var(--orange); color: #17100a; font-weight: 750; }
+    .danger { color: #ffb4af; }
+    .content { padding: 24px 26px; display: grid; grid-template-rows: auto auto minmax(180px, 1fr); gap: 18px; min-height: 0; }
+    .status-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .card, .log-panel { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
+    .card { padding: 17px; }
+    .card-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+    .card-value { margin-top: 13px; display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 700; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); box-shadow: 0 0 0 4px rgba(139,148,158,.1); }
+    .ok .dot { background: var(--green); box-shadow: 0 0 0 4px rgba(63,185,80,.13); }
+    .bad .dot { background: var(--red); box-shadow: 0 0 0 4px rgba(248,81,73,.13); }
+    .detail { margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+    .url-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
+    .url { color: var(--blue); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; overflow-wrap: anywhere; }
+    .log-panel { min-height: 0; display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+    .log-header { display: flex; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+    pre { margin: 0; padding: 15px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; color: #c9d1d9; }
+    @media (max-width: 760px) { .status-grid { grid-template-columns: 1fr; } .topbar { align-items: flex-start; } .actions { flex-wrap: wrap; justify-content: flex-end; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">CF</div>
+        <div><h1>Tunnel controller</h1><p class="subtitle">Cloudflare Access protected connector</p></div>
+      </div>
+      <div class="actions">
+        <button id="refresh" type="button">Refresh</button>
+        <button id="start" class="primary" type="button">Start connector</button>
+        <button id="stop" class="danger" type="button">Stop connector</button>
+      </div>
+    </header>
+    <section class="content">
+      <div class="status-grid">
+        <article class="card" id="configurationCard"><div class="card-label">Configuration</div><div class="card-value"><span class="dot"></span><span id="configuration">Checking…</span></div><div class="detail" id="configurationDetail">Validating the selected profile.</div></article>
+        <article class="card" id="connectorCard"><div class="card-label">Connector</div><div class="card-value"><span class="dot"></span><span id="connector">Checking…</span></div><div class="detail" id="connectorDetail">Looking for cloudflared.</div></article>
+        <article class="card" id="accessCard"><div class="card-label">Access gate</div><div class="card-value"><span class="dot"></span><span id="access">Checking…</span></div><div class="detail" id="accessDetail">Testing the unauthenticated boundary.</div></article>
+      </div>
+      <div class="url-row"><div><div class="card-label">Public URL</div><div class="url" id="publicUrl">Unavailable</div></div><button id="open" type="button">Open public URL</button></div>
+      <section class="log-panel"><div class="log-header"><span>Connector log</span><span>Tokens are redacted</span></div><pre id="log">The app controls only connectors it starts. An externally managed connector is shown as detected and cannot be stopped here.</pre></section>
+    </section>
+  </main>
+  <script>
+    const ui = {
+      configurationCard: document.getElementById('configurationCard'), configuration: document.getElementById('configuration'), configurationDetail: document.getElementById('configurationDetail'),
+      connectorCard: document.getElementById('connectorCard'), connector: document.getElementById('connector'), connectorDetail: document.getElementById('connectorDetail'),
+      accessCard: document.getElementById('accessCard'), access: document.getElementById('access'), accessDetail: document.getElementById('accessDetail'),
+      publicUrl: document.getElementById('publicUrl'), log: document.getElementById('log'), start: document.getElementById('start'), stop: document.getElementById('stop'), open: document.getElementById('open')
+    };
+    const setState = (card, ok) => { card.classList.toggle('ok', ok); card.classList.toggle('bad', !ok); };
+    function render(state) {
+      setState(ui.configurationCard, state.configured); ui.configuration.textContent = state.configured ? 'Valid' : 'Needs attention'; ui.configurationDetail.textContent = state.configured ? 'Profile configuration passed validation.' : (state.message || 'Configuration did not validate.');
+      const running = state.connectorManaged || state.connectorDetected; setState(ui.connectorCard, running); ui.connector.textContent = state.connectorManaged ? 'Open · managed here' : state.connectorDetected ? 'Open · external' : 'Closed'; ui.connectorDetail.textContent = state.connectorInstalled ? (state.version || 'cloudflared installed') : 'cloudflared is not installed.';
+      setState(ui.accessCard, state.accessHealthy); ui.access.textContent = state.accessHealthy ? 'Protected' : 'Not verified'; ui.accessDetail.textContent = state.accessHealthy ? 'Unauthenticated traffic is redirected to Cloudflare Access.' : 'Access redirect was not verified.';
+      ui.publicUrl.textContent = state.publicUrl || 'Unavailable'; ui.start.disabled = running || !state.configured || !state.connectorInstalled; ui.stop.disabled = !state.connectorManaged; ui.open.disabled = !state.publicUrl;
+    }
+    async function refresh() { try { render(await window.cloudflareTunnel.status()); } catch (error) { ui.log.textContent += `\n${error.message}`; } }
+    document.getElementById('refresh').addEventListener('click', refresh);
+    ui.start.addEventListener('click', async () => render(await window.cloudflareTunnel.start()));
+    ui.stop.addEventListener('click', async () => render(await window.cloudflareTunnel.stop()));
+    ui.open.addEventListener('click', () => window.cloudflareTunnel.openPublicUrl());
+    window.cloudflareTunnel.onLog((line) => { ui.log.textContent += `\n${line}`; ui.log.scrollTop = ui.log.scrollHeight; });
+    refresh(); setInterval(refresh, 5000);
+  </script>
+</body>
+</html>
