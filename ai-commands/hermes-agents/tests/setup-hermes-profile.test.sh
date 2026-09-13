@@ -133,6 +133,7 @@ HERMES_SCOPE='system' \
 HERMES_HOME="${test_root}/hermes-home" \
 HERMES_BIN="${test_root}/bin/hermes" \
 HERMES_PROFILE='example-system' \
+HERMES_WORK_PROFILE='example' \
 HERMES_PROVIDER_ID='example-box' \
 HERMES_PROVIDER_LABEL='Example box' \
 HERMES_MODEL='example-coder-model' \
@@ -146,6 +147,11 @@ PATH="${test_root}/bin:${PATH}" \
   "${SETUP_SCRIPT}" --workspace "${test_root}/workspace" >"${test_root}/system-output"
 grep -F 'auxiliary.title_generation.enabled=false' "${test_root}/hermes-home/profiles/example-system/values" >/dev/null
 grep -F "Your portable authority and human-facing prompt interpretations are defined in \`${test_root}/instructions.md\`." "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'You are the profile-scoped Hermes System agent for AI work profile `example`.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'For a greeting or casual opening, reply only with a brief operational introduction' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'Do not act as a general assistant.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'weather, or help with whatever the user needs.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'These scope rules apply directly on every turn' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
 if grep -F '# Test agent instructions' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null; then
   echo 'System SOUL unexpectedly duplicated the portable role contract' >&2
   exit 1
