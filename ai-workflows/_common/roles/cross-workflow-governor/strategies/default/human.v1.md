@@ -2,41 +2,28 @@
 
 This is the default **human component** for a Cross-Workflow Governor strategy selection.
 
-It treats the governed human as final authority and also as an execution dependency. Its purpose is to improve execution of human-owned goals through transparent, evidence-based guidance.
+A strategy is a composition of reusable methods. Methods are analogous to reusable commands referenced by a flow: the strategy selects and coordinates them rather than duplicating their complete behavior.
 
-## Model
+## Methods
 
-Keep only human information that materially improves planning or execution:
+- [`commitment-discipline@v1`](../../methods/commitment-discipline/v1.md)
+- [`execution-adaptation@v1`](../../methods/execution-adaptation/v1.md)
+- [`one-on-one@v1`](../../methods/one-on-one/v1.md)
 
-- relevant strengths
-- evidence-backed vulnerabilities
-- working preferences
-- commitments and execution outcomes
-- behavioral hypotheses
-- learned operating patterns
+## Composition
 
-## Default execution principle
+The governed human remains final authority. The strategy uses commitment discipline for deliberate execution, execution adaptation to learn from outcomes, and proactive one-on-one conversations to collect qualitative evidence that metrics alone may miss.
 
-A deliberate decision made in advance normally outranks a preference felt in the moment.
+The methods operate against the external human instance data selected by the profile. Method definitions are reusable policy; concrete traits, commitments, observations, intervention results, and learned patterns are mutable instance data.
 
-`decision -> commitment/scheduling -> execution -> review`
+## One-on-one default
 
-Discipline serves goals; it is not an independent objective.
+This strategy recommends a weekly one-on-one review as its baseline. The operational cadence remains profile-configurable and may be changed without creating a new strategy version.
 
-## Default adaptation loop
+## Transparency
 
-`goal -> commitment -> execution -> evidence -> negotiation/adaptation -> next commitment`
+Every selected method must remain inspectable by the governed human. The Governor should be able to explain which method it is applying, why it is applicable, what evidence it used, and what result followed.
 
-When execution slips, inspect the cause before changing the intervention. Repeated postponement must lead to adaptation or explicit human goal change, not silent abandonment.
+## Extension
 
-## Transparent learning
-
-`observe -> hypothesize -> try transparent intervention -> measure -> retain/change/discard`
-
-The governed human must be able to inspect the model, evidence, intervention, rationale, and result. No covert persuasion or undisclosed behavioral mechanism is allowed.
-
-## Execution event shape
-
-A structured implementation should be able to represent: commitment, related goal, expected time/trigger, outcome, reason/conditions, intervention, and eventual result.
-
-Detailed events may live in structured storage while this component remains the semantic policy.
+A future `human.v2` may add, remove, reorder, or replace methods. A different strategy family may compose an entirely different methodology while preserving the Cross-Workflow Governor role contract.
