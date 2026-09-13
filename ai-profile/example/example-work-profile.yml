@@ -81,6 +81,10 @@ commands:
     config: commands-config/install/config.yml
   - id: lodgify
     config: commands-config/lodgify/config.example.env
+  - id: cloudflare
+    config: commands-config/cloudflare/config.example.env
+  - id: cloudflare-connector
+    config: commands-config/cloudflare-connector/config.example.env
 workflows:
   - path: dev.workflow.md
     harness: pi
@@ -101,6 +105,8 @@ workflows:
       - install
       - machine-profile
       - lodgify
+      - cloudflare
+      - cloudflare-connector
       - logs
       - datadog
       - doc
