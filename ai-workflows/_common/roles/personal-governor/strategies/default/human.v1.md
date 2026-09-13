@@ -1,6 +1,6 @@
-# Default Governor human guidance — v1
+# Default Personal Governor human guidance — v1
 
-This is the default **human component** for a Cross-Workflow Governor strategy selection.
+This is the default **human component** for a Personal Governor strategy selection.
 
 A strategy is a composition of reusable methods. Methods are analogous to reusable commands referenced by a flow: the strategy selects and coordinates them rather than duplicating their complete behavior.
 
@@ -22,8 +22,8 @@ This strategy recommends a weekly one-on-one review as its baseline. The operati
 
 ## Transparency
 
-Every selected method must remain inspectable by the governed human. The Governor should be able to explain which method it is applying, why it is applicable, what evidence it used, and what result followed.
+Every selected method must remain inspectable by the governed human. The Personal Governor should be able to explain which method it is applying, why it is applicable, what evidence it used, and what result followed.
 
 ## Extension
 
-A future `human.v2` may add, remove, reorder, or replace methods. A different strategy family may compose an entirely different methodology while preserving the Cross-Workflow Governor role contract.
+A future `human.v2` may add, remove, reorder, or replace methods. A different strategy family may compose an entirely different methodology while preserving the Personal Governor role contract.
