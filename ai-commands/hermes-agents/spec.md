@@ -26,7 +26,7 @@ requires a verified profile, scheduler, running gateway, and durable System rece
 - `initialize` realizes exactly the roles declared by the selected workflow and creates an idempotent profile-workflow group containing the resulting Hermes profiles.
 - Workflow initialization preflights the complete resolved roster before mutation, writes no ready receipt after a partial failure, and emits `HERMES_WORKFLOW_READY` with the exact Agent count, ordered profile IDs, and `all_agents_ready=true` only after every Agent and the receipt writer succeed.
 - `initialize-system` realizes exactly one globally pinned profile with no workflow-group membership and exactly one profile-scoped scheduler. By default, its ordered watch set contains every Hermes workflow declared by the selected work profile. Explicit `--watch-group` arguments may select a narrower subset of that derived set but cannot cross the work-profile boundary. It writes or replaces the System receipt only after the profile, scheduler, gateway, and ticker are verified ready.
-- A System profile's runtime ID and visible title are the same lowercase, profile-qualified ID (for example, `sc-system`); a generic or capitalized `System` title must not obscure profile ownership or diverge from the naming convention.
+- A System profile's runtime ID and visible title are `<profile-id>-system` (for example, `example-system`).
 - `reinitialize-system` requires `--confirm-reinitialize`, validates the complete replacement before deletion, deletes and verifies the exact profile-owned System instance, and only then initializes a fresh profile, scheduler, gateway, and receipt.
 - System and workflow initialization preserve one profile-owned Hermes binding registry. System resolves groups and profiles only from exact receipts; a missing group receipt remains pending.
 - `reinitialize` requires `--confirm-reinitialize` and preflights the complete replacement generation before deleting anything. Only after successful preflight may it delete the exact resolved group and role profiles, verify their removal, observe a bounded desktop synchronization barrier, clear only that group's deletion tombstone, and create the fresh generation.
@@ -34,8 +34,9 @@ requires a verified profile, scheduler, running gateway, and durable System rece
 - Role-profile IDs contain profile, workflow, and role suffix only; project/repository IDs remain runtime configuration.
 - Every role profile receives the complete ordered workflow project set. The first entry is the primary/default working
   directory and later entries remain authorized associated projects; a project selector never collapses that scope.
-- Generated `SOUL.md` content is a platform delivery artifact derived from profile, workflow, role, command, and project
-  contracts. It must not redefine or omit those portable contracts.
+- Generated `SOUL.md` is a thin platform delivery artifact containing resolved identity/runtime bindings and authoritative
+  file references. It must not copy, redefine, or omit the applicable profile, workflow, role, flow, command, and project
+  contracts; the initialized Agent reads the referenced contracts from AI Fleas when required.
 - `reconcile` uses the same resolved identity and preserves conversations and memory by default.
 - Destructive replacement or deletion requires explicit human authorization, executable confirmation, and an exact resolved workflow identity.
 - Workflow profile servers are started and supervised by Hermes Desktop, not by the AI Fleas initializer. The persistent System gateway is the only background service whose installation is requested by this command.
@@ -74,9 +75,9 @@ For each workflow Agent, Hermes resolves its profile-owned binding when configur
 the workflow default. Provider and model aliases must resolve exactly once through the active profile provider catalog.
 The resulting provider, concrete model, context, and compression settings apply only to that Hermes profile.
 
-When an Agent declares `flow`, Hermes resolves the file within the workflow catalog and includes that exact flow with
-the reusable Role contract in the Agent's generated `SOUL.md`. Unknown bindings, models, flows, or escaping paths fail
-before profile mutation.
+When an Agent declares `flow`, Hermes resolves the file within the workflow catalog and references that exact flow and
+the reusable Role contract from the Agent's generated `SOUL.md`. It does not duplicate their contents. Unknown bindings,
+models, flows, or escaping paths fail before profile mutation.
 
 Hermes-specific code owns only the mechanics of realizing a workflow role as a Hermes profile/group member. The role set and portable role properties remain workflow-owned.
 

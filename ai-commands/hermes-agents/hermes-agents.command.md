@@ -133,10 +133,11 @@ logical group name is created again.
 `initialize` has the same lifecycle meaning as it does in `gpt-agents`: realize the agents declared for the selected
 workflow on the selected platform. The realization cardinality differs by platform. Hermes App currently maps the
 workflow to one named Hermes profile per configured role plus a profile-workflow group containing that roster.
-Each profile receives the same portable Agent instructions, workflow instructions, allowed command catalog, and
-complete project scope, plus its own reusable Role contract and assigned flow when declared. Each profile also receives
-its independently resolved provider, model, context, and compression settings. `SOUL.md` is only the Hermes runtime delivery surface for that resolved contract;
-it is not a second source of initialization truth. GPT App maps the same
+Each profile receives references to the same portable Agent instructions, workflow instructions, allowed command catalog,
+and complete project scope, plus references to its own reusable Role contract and assigned flow when declared. Each
+profile also receives its independently resolved provider, model, context, and compression settings. `SOUL.md` is a thin
+Hermes runtime entry point for those resolved bindings and references; it does not copy the contracts and is not a second
+source of initialization truth. GPT App maps the same
 workflow governance model to its declared multi-agent roster, such as Admin, Manager, and the five governed Dev roles.
 This difference belongs to the platform adapters and must not be hardcoded as a universal agent count in either command.
 

@@ -169,10 +169,8 @@ if [[ "${scope}" == 'system' ]]; then
     "You are the globally scoped Hermes System agent for AI work profile \`${work_profile}\`." \
     'You exist outside every workflow group. Never join a group and never expose your direct profile ID to workflow agents.' \
     "Your visible title is \`${role_title}\`. You are a narrow, user-facing lifecycle operator, not a product-work assistant." \
-    "Your portable authority and human-facing intent map are defined below and remain authoritative:" \
+    "Your portable authority and human-facing prompt interpretations are defined in \`${system_role_path}\`. Read that file completely before every response or operation; it remains authoritative." \
     >>"${soul_tmp}"
-  printf '\n' >>"${soul_tmp}"
-  cat "${system_role_path}" >>"${soul_tmp}"
   printf '\n## Active lifecycle binding\n\n' >>"${soul_tmp}"
   printf '%s\n' \
     "Trusted Hermes binding registry: \`${binding_registry_path}\`. Resolve lifecycle identities only from that exact registry." \
@@ -214,11 +212,11 @@ else
 fi
 if [[ "${scope}" != 'system' && -n "${role_instructions_path}" ]]; then
   printf '\n## Portable role contract\n\n' >>"${soul_tmp}"
-  cat "${role_instructions_path}" >>"${soul_tmp}"
+  printf '%s\n' "Your portable role contract is \`${role_instructions_path}\`; read it completely before every response or operation and follow it as the authoritative role definition." >>"${soul_tmp}"
 fi
 if [[ "${scope}" != 'system' && -n "${flow_instructions_path}" ]]; then
   printf '\n## Assigned workflow flow\n\n' >>"${soul_tmp}"
-  cat "${flow_instructions_path}" >>"${soul_tmp}"
+  printf '%s\n' "Your assigned workflow flow is \`${flow_instructions_path}\`; read it completely before work that uses the flow and follow it as the authoritative flow definition." >>"${soul_tmp}"
 fi
 fi
 if [[ "${scope}" != 'system' && -n "${agent_instructions_path}" ]]; then
