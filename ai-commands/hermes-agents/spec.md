@@ -14,8 +14,9 @@ Verified Hermes profile state or a precise, non-secret failure.
 
 - Public files contain no organization, client, machine, endpoint, credential, or private-platform defaults.
 - The workflow owns the team/role roster in its [`agents.yml`](../../ai-workflows/dev/agents.yml). Hermes does not define a second roster.
-- Hermes honors the workflow role properties it supports, including `aiProvider`, when realizing those roles as Hermes profiles.
+- Hermes honors the workflow Agent properties it supports, including `aiProvider` and `flow`, when realizing those Agents as Hermes profiles.
 - The profile-owned provider catalog maps provider aliases to endpoint, protocol, authentication and available model details.
+- An optional profile-owned workflow Agent binding maps a workflow Agent or its declared `aiProvider` binding name to one provider alias and model alias.
 - Unknown provider aliases or provider configurations Hermes cannot realize fail closed before the affected role is mutated.
 - Provider endpoint and authentication details remain profile-owned and are never embedded in reusable role definitions.
 - Workflow and command contracts are resolved exactly and injected as references, not duplicated into this command.
@@ -35,10 +36,17 @@ Verified Hermes profile state or a precise, non-secret failure.
 
 ## Provider realization
 
-For each workflow role, Hermes resolves `aiProvider` through the active profile configuration and applies the resulting provider configuration when creating or reconciling that Hermes profile.
+For each workflow Agent, Hermes resolves its profile-owned binding when configured, otherwise its declared provider or
+the workflow default. Provider and model aliases must resolve exactly once through the active profile provider catalog.
+The resulting provider, concrete model, context, and compression settings apply only to that Hermes profile.
+
+When an Agent declares `flow`, Hermes resolves the file within the workflow catalog and includes that exact flow with
+the reusable Role contract in the Agent's generated `SOUL.md`. Unknown bindings, models, flows, or escaping paths fail
+before profile mutation.
 
 Hermes-specific code owns only the mechanics of realizing a workflow role as a Hermes profile/group member. The role set and portable role properties remain workflow-owned.
 
 ## Completion criteria
 
-Hermes initialization verifies that every role declared by the workflow is realized exactly once and that each resulting profile uses the resolved AI provider requested by that role without exposing provider credentials.
+Hermes initialization verifies that every Agent declared by the workflow is realized exactly once, uses its resolved
+provider and model, and receives its assigned Role and flow without exposing provider credentials.
