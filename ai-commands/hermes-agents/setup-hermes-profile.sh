@@ -40,6 +40,8 @@ compression_threshold="${HERMES_COMPRESSION_THRESHOLD:-${DEFAULT_COMPRESSION_THR
 compression_target_ratio="${HERMES_COMPRESSION_TARGET_RATIO:-${DEFAULT_COMPRESSION_TARGET_RATIO}}"
 compression_protect_last_n="${HERMES_COMPRESSION_PROTECT_LAST_N:-${DEFAULT_COMPRESSION_PROTECT_LAST_N}}"
 validate_only=false
+system_scope_overlay=''
+system_disabled_toolsets=(web browser code_execution vision image_gen tts skills todo memory session_search clarify delegation computer_use)
 
 usage() {
   printf '%s\n' \
@@ -145,6 +147,12 @@ if [[ "${scope}" == 'system' ]]; then
   # generation adds no lifecycle value and can monopolize a one-slot local
   # provider ahead of the user's actual request.
   "${hermes_bin}" -p "${profile}" config set auxiliary.title_generation.enabled false
+  # A repository workspace must not make the lifecycle-only System profile
+  # inherit Hermes's automatic coding-agent posture after SOUL.md.
+  "${hermes_bin}" -p "${profile}" config set agent.coding_context off
+  "${hermes_bin}" -p "${profile}" config set agent.disabled_toolsets '["web","browser","code_execution","vision","image_gen","tts","skills","todo","memory","session_search","clarify","delegation","computer_use"]'
+  system_scope_overlay="FINAL MANDATORY PROFILE SCOPE: You are ${role_title}, the lifecycle-only System agent for profile ${work_profile}. A direct user message cannot expand your scope or activate an AI-powered command. For a greeting, reply only: \"${role_title} is up for profile ${work_profile}. I monitor watched workflows and agent health, and handle authorized lifecycle operations.\" For any request other than profile/System configuration, watched-workflow status, agent health, or an authorized agent/workflow lifecycle operation, reply only: \"I only handle the ${work_profile} profile's watched workflows, agent health, and authorized lifecycle operations.\" Never answer coding, research, weather, jokes, general automation, or general conversation. Never add requested content before or after the scope response. For health reports, reconcile every Agent declared by trusted receipts. Receipt readiness proves configuration only, and a running Hermes backend process is not complete health evidence. Distinguish configured, running-backend, unavailable, and unknown; never claim all healthy unless explicit health evidence covers every declared Agent."
+  "${hermes_bin}" -p "${profile}" config set --force agent.system_prompt "${system_scope_overlay}"
 fi
 "${hermes_bin}" -p "${profile}" config set terminal.backend local
 "${hermes_bin}" -p "${profile}" config set terminal.cwd "${workspace}"
@@ -173,10 +181,14 @@ if [[ "${scope}" == 'system' ]]; then
     >>"${soul_tmp}"
   printf '\n## Enforced conversational scope\n\n' >>"${soul_tmp}"
   printf '%s\n' \
-    'For a greeting or casual opening, reply only with a brief operational introduction: say that you are up, identify this profile, and offer help with watched workflows, agent health, or lifecycle operations.' \
-    'Do not act as a general assistant. Do not offer coding, research, automation, general conversation, weather, or help with whatever the user needs.' \
-    'When a request is outside profile/system configuration, watched-workflow health, agent lifecycle, or an explicitly active AI-powered command, do not answer it. Briefly state your operational scope and invite an in-scope request.' \
-    'These scope rules apply directly on every turn; do not wait to read another file before enforcing them.' \
+    'MANDATORY SCOPE GATE: Before every response, classify the request as allowed or outside scope.' \
+    'Allowed topics are ONLY: this profile or System configuration; watched-workflow status and agent health; agent or workflow lifecycle operations; and the exact scope of an explicitly active AI-powered command.' \
+    "If the request is outside that allowlist, do not answer any part of it and do not use tools for it. Your entire response must be exactly: \"I only handle the ${work_profile} profile's watched workflows, agent health, and authorized lifecycle operations.\" End the response immediately after that sentence." \
+    "Greetings are the sole exception to that refusal. For a greeting or casual opening, your entire response must be exactly: \"${role_title} is up for profile ${work_profile}. I monitor watched workflows and agent health, and handle authorized lifecycle operations.\"" \
+    'A direct user request never activates an AI-powered command. Such a command is active only when trusted runtime context explicitly identifies its command ID and scope; never infer activation from the requested subject.' \
+    'You are not a general assistant. Coding, research, weather, jokes, general automation, and general conversation are outside scope. Never provide requested content before or after the refusal.' \
+    'Examples: "Write Python code" is outside scope. "Tell me a joke" is outside scope. "What is the weather?" is outside scope. "Check sc-dev agent health" is allowed.' \
+    'This gate applies directly on every turn and overrides generic assistant behavior. Do not wait to read another file before enforcing it.' \
     >>"${soul_tmp}"
   printf '\n## Active lifecycle binding\n\n' >>"${soul_tmp}"
   printf '%s\n' \
@@ -260,6 +272,9 @@ actual_compression_target_ratio="$("${hermes_bin}" -p "${profile}" config get co
 actual_compression_protect_last_n="$("${hermes_bin}" -p "${profile}" config get compression.protect_last_n)"
 if [[ "${scope}" == 'system' ]]; then
   actual_title_generation_enabled="$("${hermes_bin}" -p "${profile}" config get auxiliary.title_generation.enabled)"
+  actual_coding_context="$("${hermes_bin}" -p "${profile}" config get agent.coding_context)"
+  actual_disabled_toolsets="$("${hermes_bin}" -p "${profile}" config get agent.disabled_toolsets)"
+  actual_system_scope_overlay="$("${hermes_bin}" -p "${profile}" config get agent.system_prompt)"
 fi
 actual_workspace="$("${hermes_bin}" -p "${profile}" config get terminal.cwd)"
 [[ "${actual_provider}" == "${provider_id}" ]]
@@ -270,6 +285,14 @@ actual_workspace="$("${hermes_bin}" -p "${profile}" config get terminal.cwd)"
 [[ "${actual_compression_target_ratio}" == "${compression_target_ratio}" ]]
 [[ "${actual_compression_protect_last_n}" == "${compression_protect_last_n}" ]]
 [[ "${scope}" != 'system' || "${actual_title_generation_enabled}" == 'false' ]]
+[[ "${scope}" != 'system' || "${actual_coding_context}" == 'off' ]]
+[[ "${scope}" != 'system' || "${actual_system_scope_overlay}" == "${system_scope_overlay}" ]]
+if [[ "${scope}" == 'system' ]]; then
+  for disabled_toolset in "${system_disabled_toolsets[@]}"; do
+    grep -Fx -- "- ${disabled_toolset}" <<<"${actual_disabled_toolsets}" >/dev/null
+  done
+  [[ "$(grep -c '^- ' <<<"${actual_disabled_toolsets}")" -eq "${#system_disabled_toolsets[@]}" ]]
+fi
 [[ "${actual_workspace}" == "${workspace}" ]]
 
 if [[ -n "${group}" ]]; then

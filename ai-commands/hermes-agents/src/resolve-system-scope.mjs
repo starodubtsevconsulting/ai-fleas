@@ -58,8 +58,12 @@ const workflow = workflows.find((item) => item?.harness === 'hermes');
 const projectRef = workflow?.projects?.[0]?.ref;
 if (!projectRef || path.isAbsolute(projectRef)) fail('System requires the profile primary project.');
 const project = readYaml(inside(selectedProfileRoot, path.join(selectedProfileRoot, projectRef), 'primary project'));
-const workspace = String(project.repo_path || '');
-if (!path.isAbsolute(workspace) || !fs.statSync(workspace, { throwIfNoEntry: false })?.isDirectory()) fail('primary project path is unavailable.');
+const primaryProjectPath = String(project.repo_path || '');
+if (!path.isAbsolute(primaryProjectPath) || !fs.statSync(primaryProjectPath, { throwIfNoEntry: false })?.isDirectory()) fail('primary project path is unavailable.');
+// System needs the profile's receipts and bindings, not a workflow's coding
+// posture or project-level AGENTS.md. Use the selected profile directory as
+// its isolated runtime cwd while retaining the verified project prerequisite.
+const workspace = selectedProfileRoot;
 const workflowsRoot = path.resolve(selectedProfileRoot, String(profile.ai_workflows_root || ''));
 const rolePath = path.join(workflowsRoot, '_common/roles/system.md');
 const schedulePath = path.join(workflowsRoot, String(system.schedule?.instruction || ''));
