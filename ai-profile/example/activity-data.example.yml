@@ -1,0 +1,21 @@
+schemaVersion: profile-activity-data.v0-draft
+status: example
+
+activityData:
+  personal:
+    command: activity-data
+    provider: activity-data-android
+    access: read-only
+    enabled: false
+
+consumers:
+  personalGovernor:
+    activityDataRef: personal
+    authorized: false
+
+rules:
+  - activity-data-is-evidence-not-judgment
+  - access-requires-explicit-profile-authorization
+  - prefer-aggregates-over-detailed-timelines
+  - do-not-collect-content-to-measure-screen-time
+  - social-media-time-alone-does-not-establish-procrastination
