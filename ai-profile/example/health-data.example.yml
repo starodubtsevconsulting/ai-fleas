@@ -1,0 +1,22 @@
+# Optional evidence capability. Disabled unless explicitly enabled by a concrete profile.
+schemaVersion: profile-health-data.v0-draft
+status: example
+
+healthData:
+  personal:
+    command: health-data
+    provider: health-data-garmin
+    access: read-only
+    enabled: false
+    providerConfig: commands-config/health-data-garmin/health-data-garmin.command.config
+
+consumers:
+  personalGovernor:
+    healthDataRef: personal
+    authorized: false
+
+rules:
+  - health-data-is-evidence-not-a-governor-decision
+  - access-requires-explicit-profile-authorization
+  - retrieve-minimum-data-needed-for-active-governance-question
+  - missing-data-remains-unknown
