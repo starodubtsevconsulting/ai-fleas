@@ -10,7 +10,7 @@ CURRENT_BACKLOG_POINTER="$ROOT_DIR/session-root/.current-backlog-path"
 TERMINAL_SESSION_NAME="${AI_TERMINAL_SESSION_NAME:-ai-shell}"
 REFLOW_LAYOUT="$ROOT_DIR/ai-terminal/reflow-layout.sh"
 PROJECT_FILE="${AI_PROFILE_PROJECT_FILE:-}"
-BROWSER_COMMAND_SH="$ROOT_DIR/ai-commands/connect/browser/browser.command.sh"
+BROWSER_COMMAND_SH="$ROOT_DIR/ai-commands/browser/browser.command.sh"
 
 ACTION="${1:-list}"
 BACKLOG_ARG=""
@@ -63,7 +63,8 @@ unquote() {
   local value
   value=$(trim <<<"$1")
   value=$(printf '%s' "$value" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
-  printf '%s\n' "$value"
+  printf '%s
+' "$value"
 }
 
 normalize_repo_full_name() {
@@ -80,7 +81,8 @@ normalize_repo_full_name() {
       value="${value#git@github.com:}"
       ;;
   esac
-  printf '%s\n' "$value"
+  printf '%s
+' "$value"
 }
 
 extract_backlog_field() {
@@ -121,11 +123,13 @@ canonical_backlog_file() {
   if backlog_belongs_to_session "$backlog_file"; then
     candidate="$root/$(basename "$backlog_file")"
     if [ -f "$candidate" ]; then
-      printf '%s\n' "$candidate"
+      printf '%s
+' "$candidate"
       return 0
     fi
   fi
-  printf '%s\n' "$backlog_file"
+  printf '%s
+' "$backlog_file"
 }
 
 sync_backlog_copy_if_needed() {
@@ -144,7 +148,8 @@ open_github_issue_in_browser() {
     "$BROWSER_COMMAND_SH" "$issue_url" || true
     return 0
   fi
-  printf '%s\n' "$issue_url"
+  printf '%s
+' "$issue_url"
 }
 
 build_github_issue_body() {
@@ -156,11 +161,18 @@ build_github_issue_body() {
   profile="$(extract_backlog_field "$backlog_file" "Profile")"
   workflow="$(extract_backlog_field "$backlog_file" "Workflow")"
 
-  printf 'Synced from AI backlog story `%s`.\n\n' "$relative_path"
-  printf -- '- Profile: %s\n' "$profile"
-  printf -- '- Workflow: %s\n' "$workflow"
-  printf -- '- Project: %s\n' "$project"
-  printf -- '- Project Name: %s\n\n' "$project_name"
+  printf 'Synced from AI backlog story `%s`.
+
+' "$relative_path"
+  printf -- '- Profile: %s
+' "$profile"
+  printf -- '- Workflow: %s
+' "$workflow"
+  printf -- '- Project: %s
+' "$project"
+  printf -- '- Project Name: %s
+
+' "$project_name"
   awk 'BEGIN { emit=0 } /^##[[:space:]]+/ { emit=1 } emit { print }' "$backlog_file"
 }
 
@@ -215,9 +227,12 @@ sync_backlog_to_github_issue() {
   fi
 
   if [ "$DRY_RUN" -eq 1 ]; then
-    printf 'Backlog: %s\n' "$backlog_file"
-    printf 'Repo: %s\n' "$repo_full_name"
-    printf 'Title: %s\n' "$title"
+    printf 'Backlog: %s
+' "$backlog_file"
+    printf 'Repo: %s
+' "$repo_full_name"
+    printf 'Title: %s
+' "$title"
     return 0
   fi
 
@@ -235,7 +250,8 @@ sync_backlog_to_github_issue() {
   write_github_sync_metadata "$backlog_file" "$repo_full_name" "$issue_number" "$issue_url" "$synced_at"
   sync_backlog_copy_if_needed "$backlog_file" "$requested_file"
   open_github_issue_in_browser "$issue_url"
-  printf 'Created GitHub issue: %s\n' "$issue_url"
+  printf 'Created GitHub issue: %s
+' "$issue_url"
 }
 
 is_session_closed() {
