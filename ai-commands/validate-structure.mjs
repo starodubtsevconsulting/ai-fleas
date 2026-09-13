@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const commandsRoot = path.dirname(fileURLToPath(import.meta.url));
 const categories = new Set(['install', 'data', 'connect', 'development', 'content', 'system', 'utility']);
 const internalDirectories = new Set(['.venv', '_runtime', 'assets', 'tooling']);
-const rootCompatibilityDirectories = new Set(['.codex', 'browser', 'show-context']);
+const rootCompatibilityDirectories = new Set(['.codex', 'browser']);
 const allowedTypes = new Set(['contract', 'executable', 'adapter', 'provider', 'flow', 'visual']);
 const errors = [];
 const commandIds = new Set();
@@ -39,7 +39,6 @@ async function commandBundles() {
     const category = categoryEntry.name;
     const categoryDir = path.join(commandsRoot, category);
 
-    // Optional category command: <category>/<category>.command.md
     if (await existsFile(path.join(categoryDir, `${category}.command.md`))) {
       bundles.push({ id: category, category, directory: categoryDir });
     }
