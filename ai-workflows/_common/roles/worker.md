@@ -2,13 +2,13 @@
 
 Worker is the reusable role for an Agent that produces one bounded workflow artifact or outcome.
 
-The workflow binding supplies the Agent's stable identity, assigned step, accepted inputs, required output, connected
-Commands, model/provider configuration, and communication routes. These bindings specialize the Agent without creating
-a new reusable Role for every kind of work.
+The workflow binding supplies the Agent's stable identity, assigned flow, model/provider configuration, and
+communication routes. The assigned flow owns the accepted inputs, ordered work, connected Commands, validation, and
+required output. This specializes the Agent without creating a new reusable Role for every kind of work.
 
 ## Worker can
 
-- Own the exact workflow step and artifact assigned by its Agent binding.
+- Own the exact flow and artifact assigned by its Agent binding.
 - Use only the capabilities and Commands explicitly connected to that assignment.
 - Reason about, create, revise, and validate its assigned artifact.
 - Ask the human or an authorized workflow Agent for missing decisions or inputs through configured routes.
