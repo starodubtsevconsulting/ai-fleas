@@ -87,6 +87,9 @@ token scope; a Global API Key is not supported.
 - This command does not configure NAT, firewall rules, Cloudflare bypass rules, or public tunnels without Access.
 - The Electron renderer never receives or reads API or tunnel tokens. Connector execution remains in the isolated main
   process, logs are redacted, and the Stop action can terminate only a connector started by that UI process.
+- `run-tunnel` uses an atomic per-tunnel runtime lock and refuses to start while another `cloudflared` process is active.
+  Stale locks are recovered only when their recorded process no longer exists. Signals are forwarded to the connector and
+  the lock is removed on exit, preventing accidental duplicate connectors from concurrent terminals or UI windows.
 
 ## Tunnel controller UI
 
@@ -99,6 +102,8 @@ The controller displays configuration validity, installed connector version, whe
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
 **Start connector** runs `run-tunnel` with the activated profile environment. **Stop connector** is enabled only for the
 child process started by the same window; an externally detected connector is intentionally read-only.
+If more than one connector process is detected despite the command lock, the UI displays a red **Conflict** state and
+disables both lifecycle buttons until the duplicate processes are resolved outside the app.
 
 To acceptance-test the controller, first stop any externally managed test connector. Select **Refresh** and require
 **Connector → Closed** with Start enabled and Stop disabled. Select **Start connector**, require **Open · managed here**

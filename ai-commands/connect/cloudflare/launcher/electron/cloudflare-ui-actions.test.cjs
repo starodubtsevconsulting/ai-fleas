@@ -13,3 +13,8 @@ test('redacts connector tokens from logs', () => {
   assert.equal(actions.safeLog('cloudflared run --token secret-value'), 'cloudflared run --token [REDACTED]');
   assert.equal(actions.safeLog('Authorization: Bearer secret-value'), 'Authorization: Bearer [REDACTED]');
 });
+
+test('counts connector processes and exposes duplicate conflicts', () => {
+  assert.equal(actions.countPids('101\n202\n'), 2);
+  assert.equal(actions.countPids('', false), 0);
+});

@@ -24,6 +24,10 @@ function safeLog(raw) {
     .slice(-12000);
 }
 
+function countPids(raw, ok = true) {
+  return ok ? String(raw || '').trim().split(/\s+/).filter(Boolean).length : 0;
+}
+
 async function status(context) {
   const validate = await run(context.commandPath, ['validate'], context.spawnOptions());
   const access = validate.ok
@@ -31,11 +35,14 @@ async function status(context) {
     : { ok: false, stdout: '', stderr: 'Configuration validation failed.' };
   const installed = await run('cloudflared', ['--version'], context.spawnOptions());
   const processes = await run('pgrep', ['-x', 'cloudflared'], context.spawnOptions());
+  const connectorCount = countPids(processes.stdout, processes.ok);
   return {
     configured: validate.ok,
     connectorInstalled: installed.ok,
     connectorManaged: Boolean(context.connector && context.connector.exitCode === null),
-    connectorDetected: processes.ok && processes.stdout.trim().length > 0,
+    connectorDetected: connectorCount > 0,
+    connectorCount,
+    connectorConflict: connectorCount > 1,
     accessHealthy: access.ok,
     publicUrl: publicUrlFromValidation(validate.stdout),
     version: installed.ok ? installed.stdout.trim() : '',
@@ -43,4 +50,4 @@ async function status(context) {
   };
 }
 
-module.exports = { publicUrlFromValidation, run, safeLog, status };
+module.exports = { countPids, publicUrlFromValidation, run, safeLog, status };
