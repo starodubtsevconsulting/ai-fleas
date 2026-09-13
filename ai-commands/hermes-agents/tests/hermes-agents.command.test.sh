@@ -189,6 +189,11 @@ system_scope="$(node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_root}/ai-p
 [[ "${system_scope}" == *$'\t10m\texample-dev' ]]
 [[ "${system_scope}" != *'example-external'* ]]
 unset AI_FLOW_WORKFLOW
+if "${COMMAND}" reinitialize-system --work-profile example >"${test_root}/system-reinitialize-without-confirm" 2>&1; then
+  printf '%s\n' 'reinitialize-system unexpectedly succeeded without confirmation' >&2
+  exit 1
+fi
+grep -F 'HERMES_SYSTEM_REINITIALIZE_CONFIRMATION_REQUIRED' "${test_root}/system-reinitialize-without-confirm" >/dev/null
 if "${COMMAND}" initialize-system --work-profile example --watch-group other-dev >"${test_root}/cross-profile-watch-output" 2>&1; then
   printf '%s\n' 'initialize-system unexpectedly accepted a cross-profile watch group' >&2
   exit 1
