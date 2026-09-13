@@ -32,6 +32,7 @@ if [[ "${1:-}" == '--serve-check' ]]; then
   node --check "$script_dir/launcher/electron/main.cjs"
   node --check "$script_dir/launcher/electron/preload.cjs"
   node --test "$script_dir/launcher/electron/cloudflare-ui-actions.test.cjs"
+  grep -F "['-x', 'cloudflared']" "$script_dir/launcher/electron/cloudflare-ui-actions.cjs" >/dev/null
   node - "$script_dir/launcher/panel/index.html" <<'NODE'
 const fs = require('node:fs');
 const html = fs.readFileSync(process.argv[2], 'utf8');

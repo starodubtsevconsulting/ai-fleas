@@ -34,6 +34,7 @@ public_url="${CLOUDFLARE_PUBLIC_URL:-}"
 origin_url="${CLOUDFLARE_ORIGIN_URL:-}"
 tunnel_name="${CLOUDFLARE_TUNNEL_NAME:-}"
 tunnel_token_env="${CLOUDFLARE_TUNNEL_TOKEN_ENV:-}"
+tunnel_token_file="${CLOUDFLARE_TUNNEL_TOKEN_FILE:-}"
 api_token_env="${CLOUDFLARE_API_TOKEN_ENV:-}"
 account_id="${CLOUDFLARE_ACCOUNT_ID:-}"
 zone_id="${CLOUDFLARE_ZONE_ID:-}"
@@ -72,6 +73,8 @@ validate_config() {
   [[ "$tunnel_name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] ||
     fail 'CLOUDFLARE_TUNNEL_NAME is missing or invalid'
   validate_env_name "$tunnel_token_env" 'CLOUDFLARE_TUNNEL_TOKEN_ENV'
+  [[ -z "$tunnel_token_file" || "$tunnel_token_file" == /* ]] ||
+    fail 'CLOUDFLARE_TUNNEL_TOKEN_FILE must be empty or an absolute path'
   validate_env_name "$api_token_env" 'CLOUDFLARE_API_TOKEN_ENV'
   [[ "$account_id" =~ ^[A-Fa-f0-9]{32}$ ]] || fail 'CLOUDFLARE_ACCOUNT_ID must be a 32-character hexadecimal ID'
   [[ "$zone_id" =~ ^[A-Fa-f0-9]{32}$ ]] || fail 'CLOUDFLARE_ZONE_ID must be a 32-character hexadecimal ID'
@@ -94,6 +97,22 @@ read_secret() {
   local variable_name="$1"
   local value="${!variable_name:-}"
   [[ -n "$value" ]] || fail "required secret environment variable $variable_name is not set"
+  printf '%s' "$value"
+}
+
+read_tunnel_secret() {
+  local value="${!tunnel_token_env:-}"
+  if [[ -n "$value" ]]; then
+    printf '%s' "$value"
+    return
+  fi
+  [[ -n "$tunnel_token_file" && -f "$tunnel_token_file" ]] ||
+    fail "required secret environment variable $tunnel_token_env is not set and no tunnel token file is available"
+  local mode
+  mode="$(stat -f '%Lp' "$tunnel_token_file" 2>/dev/null || stat -c '%a' "$tunnel_token_file" 2>/dev/null || true)"
+  [[ "$mode" == '600' ]] || fail 'CLOUDFLARE_TUNNEL_TOKEN_FILE must have mode 0600'
+  value="$(<"$tunnel_token_file")"
+  [[ -n "$value" ]] || fail 'CLOUDFLARE_TUNNEL_TOKEN_FILE is empty'
   printf '%s' "$value"
 }
 
@@ -205,7 +224,7 @@ case "$operation" in
     validate_config
     command -v cloudflared >/dev/null 2>&1 ||
       fail 'cloudflared is required; run install-connector --apply'
-    tunnel_token="$(read_secret "$tunnel_token_env")"
+    tunnel_token="$(read_tunnel_secret)"
     exec cloudflared tunnel --no-autoupdate run --token "$tunnel_token"
     ;;
   install-connector)
@@ -218,7 +237,7 @@ case "$operation" in
     validate_config
     command -v cloudflared >/dev/null 2>&1 ||
       fail 'cloudflared is required; run install-connector --apply'
-    tunnel_token="$(read_secret "$tunnel_token_env")"
+    tunnel_token="$(read_tunnel_secret)"
     if [[ "$(id -u)" -eq 0 ]]; then
       exec cloudflared service install "$tunnel_token"
     fi
