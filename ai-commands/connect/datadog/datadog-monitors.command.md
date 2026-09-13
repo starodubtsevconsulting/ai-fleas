@@ -70,4 +70,4 @@ Use when you need a repeatable monitor validation flow after deployment.
 
 - This command is for monitor verification; `datadog.sh` remains for log/livetail.
 - If Datadog API network access is blocked, use the printed monitor URLs manually in browser.
-- Browser opens should go through `ai-commands/browser/browser.command.sh`.
+- Browser opens should go through `ai-commands/connect/browser/browser.command.sh`.

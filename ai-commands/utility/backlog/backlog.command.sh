@@ -10,7 +10,7 @@ CURRENT_BACKLOG_POINTER="$ROOT_DIR/session-root/.current-backlog-path"
 TERMINAL_SESSION_NAME="${AI_TERMINAL_SESSION_NAME:-ai-shell}"
 REFLOW_LAYOUT="$ROOT_DIR/ai-terminal/reflow-layout.sh"
 PROJECT_FILE="${AI_PROFILE_PROJECT_FILE:-}"
-BROWSER_COMMAND_SH="$ROOT_DIR/ai-commands/browser/browser.command.sh"
+BROWSER_COMMAND_SH="$ROOT_DIR/ai-commands/connect/browser/browser.command.sh"
 
 ACTION="${1:-list}"
 BACKLOG_ARG=""

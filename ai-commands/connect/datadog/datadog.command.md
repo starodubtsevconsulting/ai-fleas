@@ -73,4 +73,4 @@ Datadog page`, or `check monitors/SLOs after deploy` should map to this command 
 - Monitor checks should use `datadog-monitors.sh`, which prints a verification checklist and monitor URLs.
 - Runtime AWS-side checks should use `monitoring.command.sh`, which prints current ECS state, scaling policies, alarm
 states, recent scaling activities, and AWS/Datadog URLs together.
-- Browser opens should go through `ai-commands/browser/browser.command.sh`, not raw `xdg-open`.
+- Browser opens should go through `ai-commands/connect/browser/browser.command.sh`, not raw `xdg-open`.
