@@ -136,12 +136,14 @@ Model choice must follow writing intent, quality target, and speed/cost constrai
 ## Linked Commands
 
 - Optional narration/audio generation:
-  - `ai-commands/tts/tts.command.md`
+  - `ai-commands/content/tts/tts.command.md`
 - Optional browser-visible presentation:
-  - `ai-commands/show-context/show-context.command.md`
+  - `ai-commands/utility/show-context/show-context.command.md`
 - Session/progress tracking:
-  - `ai-commands/session/session.command.md`
-  - `ai-commands/plan/plan.command.md`
+  - `ai-commands/system/session/session.command.md`
+  - `ai-commands/utility/plan/plan.command.md`
+
+These are physical catalog paths for documentation only. Workflows and profiles should reference the logical command IDs (`tts`, `show-context`, `session`, `plan`).
 
 ## Usage (workflow mapping)
 
