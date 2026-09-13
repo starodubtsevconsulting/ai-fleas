@@ -18,15 +18,23 @@ Example: a deliberate prior commitment normally outranks a temporary preference 
 
 ### Method
 
-A method is a reusable operational approach that applies one or more principles while respecting applicable policies.
+A method is a reusable operational/governance approach that applies one or more principles while respecting applicable policies.
 
-Examples include commitment discipline, execution adaptation, one-on-one, and external feedback loop. Methods are independently versioned and reusable across strategy components.
+A method may be reasoning-oriented or may contain an ordered **procedure** when the activity is naturally repeatable. A procedure inside a Governor method is not a workflow `flow`.
+
+Examples include commitment discipline, execution adaptation, one-on-one, and external feedback loop.
 
 ### Strategy
 
 A strategy is a selected composition of versioned methods plus the principles needed to coordinate them, constrained by Governor policies.
 
-A strategy describes **how to govern**. It does not contain the concrete human's changing goals, progress, evidence, or execution history.
+A strategy is adaptive rather than a deterministic pipeline. At runtime the Governor observes current state, reasons about what matters, selects applicable methods, executes their procedures/reasoning, observes results, and adapts.
+
+### Flow
+
+`Flow` retains its existing AI Fleas meaning inside a **workflow**: ordered operational execution coordinating workflow agents/commands.
+
+Do not introduce Governor flows merely because a Governor method contains an ordered procedure. If a Governor method requires substantial operational work, it delegates to the appropriate workflow, whose own flow governs that execution.
 
 ## Grammar
 
@@ -35,14 +43,16 @@ POLICY     constrains everything below
    ↓
 PRINCIPLE  guides reasoning
    ↓
-METHOD     operationalizes principles
+METHOD     operationalizes principles; may contain a procedure
    ↓
-STRATEGY   composes/selects methods
+STRATEGY   adaptively composes/selects methods
    ↓
 PROFILE    selects strategy coordinates + external instance data
+
+WORKFLOW   owns operational FLOWS separately
 ```
 
-This is a semantic relationship, not strict file inheritance. A method may reference principles it operationalizes; a strategy composes methods. Policies remain authoritative boundaries rather than being copied into every method.
+This is a semantic relationship, not strict file inheritance.
 
 ## Template structure
 
@@ -67,7 +77,27 @@ strategies/
 - `human.<version>.md` defines governed-human guidance methodology.
 - `strategy.yml` is the machine-readable manifest listing versions and composed methods.
 
-Reusable methods live under `../methods/<method-id>/<version>.md`. Strategy manifests reference them by stable id/version, analogous to flows composing reusable commands.
+Reusable Governor methods live under `../methods/<method-id>/<version>.md`.
+
+## Runtime model
+
+```text
+selected strategy
+      ↓
+observe state/evidence
+      ↓
+reason about what matters now
+      ↓
+select applicable method(s)
+      ↓
+apply method reasoning/procedure
+      ↓
+observe result + persist durable evidence
+      ↓
+adapt and repeat
+```
+
+The strategy therefore creates the Governor's ongoing pattern of activity without becoming a deterministic workflow flow.
 
 ## Profile selection
 
@@ -96,6 +126,12 @@ The component versions are intentionally independent. Unknown strategy/version c
 Templates describe **how to govern**. External instance data describes **what is actually happening**.
 
 Concrete goals, progress, decisions, reports, graphs, metrics, execution events, traits, evidence, and learned patterns belong in profile-bound external data. That data may be Google Docs today and structured memory/database/files later without changing strategy versions.
+
+## Memory methods
+
+Memory organization is a reusable common concern rather than a storage-specific Governor implementation detail. Common memory methods may define semantics such as fleeting capture, references, permanent concepts, outputs, metadata/index separation, and review lifecycle.
+
+A Governor strategy/method may use those semantics, while the governed human may also use the same memory method independently.
 
 ## Versioning
 
