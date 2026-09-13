@@ -254,7 +254,9 @@ if "${COMMAND}" reinitialize --work-profile example --workflow dev --project ser
 fi
 grep -F 'HERMES_REINITIALIZE_CONFIRMATION_REQUIRED' "${test_root}/reinitialize-without-confirm" >/dev/null
 "${COMMAND}" re-init --work-profile example --workflow dev --project service --confirm-reinitialize >"${test_root}/reinitialize-output"
+grep -F 'HERMES_WORKFLOW_PREFLIGHT_READY: group=example-dev agents=2 no_profiles_changed=true' "${test_root}/reinitialize-output" >/dev/null
 grep -F 'HERMES_WORKFLOW_DELETED: example-dev (service)' "${test_root}/reinitialize-output" >/dev/null
+[[ "$(grep -nE 'HERMES_WORKFLOW_PREFLIGHT_READY|HERMES_WORKFLOW_DELETED' "${test_root}/reinitialize-output" | head -n 1)" == *HERMES_WORKFLOW_PREFLIGHT_READY* ]]
 grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/reinitialize-output" >/dev/null
 grep -F 'Hermes bot ready: example-dev-coder' "${test_root}/reinitialize-output" >/dev/null
 [[ "$(grep -Ec '^example-dev-(admin|coder)$' "${HERMES_TEST_STATE}")" -eq 2 ]]
