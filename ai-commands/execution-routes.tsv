@@ -2,6 +2,7 @@
 # path	execution_route	reasoning	implementation	execution	ui_acceptance
 backlog/backlog.command.md	command-runner	-	-	-	-
 browser/browser.command.md	command-runner	-	-	-	-
+cloudflare/cloudflare.command.md	command-runner	-	-	-	-
 bug-fix/bug-fix.command.md	mixed	designer-reviewer	coder	command-runner	ui-acceptance-tester
 code-style/code-style.command.md	mixed	designer-reviewer	coder	command-runner	-
 coding/coding.command.md	coder	-	-	-	-
@@ -25,6 +26,7 @@ init-prompt/init-prompt.command.md	command-runner	-	-	-	-
 install/install.command.md	command-runner	-	-	-	-
 install/grapheneos/install-grapheneos.command.md	command-runner	-	-	-	-
 install/chatgpt/chatgpt.command.md	command-runner	-	-	-	-
+install/cloudflare/cloudflare-connector.command.md	command-runner	-	-	-	-
 install/hermes/hermes.command.md	command-runner	-	-	-	-
 install/java/java.command.md	command-runner	-	-	-	-
 install/node/node.command.md	command-runner	-	-	-	-
