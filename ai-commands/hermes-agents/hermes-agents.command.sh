@@ -25,7 +25,10 @@ if [[ "${1:-}" == initialize || "${1:-}" == initialize-system || "${1:-}" == sta
   done
 fi
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)/_runtime/profile/command-profile.guard.sh"
-ai_command_require_profile "hermes-agents" || exit $?
+case "${1:-}" in
+  initialize-system|status-system) ai_command_require_profile_only "hermes-agents" || exit $? ;;
+  *) ai_command_require_profile "hermes-agents" || exit $? ;;
+esac
 
 readonly COMMAND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPOSITORY_ROOT="$(cd "${COMMAND_DIR}/../.." && pwd)"
@@ -104,9 +107,24 @@ case "${action}" in
     [[ -n "${work_profile}" ]] || { printf '%s\n' 'HERMES_SYSTEM_SCOPE_INVALID: use --work-profile or activate a profile.' >&2; exit 2; }
     validate_profile "${work_profile}"
     system_scope="$(node "${SYSTEM_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}")"
-    IFS=$'\t' read -r resolved_profile system_profile system_title system_provider system_provider_label system_endpoint system_model system_context system_threshold system_target system_protect system_workspace system_role_path system_schedule_path configured_every <<<"${system_scope}"
+    IFS=$'\t' read -r resolved_profile system_profile system_title system_provider system_provider_label system_endpoint system_model system_context system_threshold system_target system_protect system_workspace system_role_path system_schedule_path configured_every configured_watch_csv <<<"${system_scope}"
     [[ -n "${every}" ]] || every="${configured_every}"
     [[ "${every}" =~ ^[1-9][0-9]*[mhd]$ ]] || { printf '%s\n' 'HERMES_SYSTEM_SCOPE_INVALID: --every must use a positive m, h, or d duration.' >&2; exit 2; }
+    IFS=',' read -r -a configured_watch_groups <<<"${configured_watch_csv}"
+    if ((${#watch_groups[@]} == 0)); then
+      watch_groups=("${configured_watch_groups[@]}")
+    else
+      for requested_group in "${watch_groups[@]}"; do
+        allowed=false
+        for configured_group in "${configured_watch_groups[@]}"; do
+          [[ "${requested_group}" == "${configured_group}" ]] && { allowed=true; break; }
+        done
+        if [[ "${allowed}" != true ]]; then
+          printf "HERMES_SYSTEM_WATCH_SCOPE_INVALID: System for work profile '%s' cannot watch '%s'; allowed Hermes workflow groups: %s. No System changes were made.\n" "${resolved_profile}" "${requested_group}" "${configured_watch_csv}" >&2
+          exit 2
+        fi
+      done
+    fi
     watch_csv=''
     if ((${#watch_groups[@]})); then watch_csv="$(IFS=,; printf '%s' "${watch_groups[*]}")"; fi
     binding_registry="${PROFILE_ROOT}/${resolved_profile}/.local/hermes-agents/bindings.yml"

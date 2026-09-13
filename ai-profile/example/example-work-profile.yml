@@ -36,17 +36,17 @@ system_agent:
     instruction: _common/agents/schedules/system-lifecycle-monitor.yml
   platform_bindings:
     gpt-agents:
-      title: "⚙️ System"
+      title: "example-system"
       model: gpt-5.6-luna
       reasoning: low
       readiness_token: SYSTEM_READY
     hermes:
-      title: "⚙️ System"
+      title: "example-system"
       lifecycle_command: hermes-agents
       provider: ai-lab-service
       model: qwen-coder
     sc:
-      title: "⚙️ System"
+      title: "example-system"
       model: platform-default
 # Profile agents are logical, portable agents owned directly by this profile.
 # Platform-specific model/reasoning/runtime tuning belongs in platform role overlays.

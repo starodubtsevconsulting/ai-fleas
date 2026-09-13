@@ -9,7 +9,7 @@ bash "${TEST_DIR}/resolve-workflow-scope.test.sh" >/dev/null
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/hermes-command-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
-mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/ai-profile/example/projects/dev/web" "${test_root}/commands/coding" "${test_root}/commands/hermes-agents" "${test_root}/workflows/dev" "${test_root}/workspace" "${test_root}/web-workspace" "${test_root}/platforms/hermes"
+mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/ai-profile/example/projects/dev/web" "${test_root}/commands/coding" "${test_root}/commands/hermes-agents" "${test_root}/workflows/dev" "${test_root}/workflows/_common/roles" "${test_root}/workflows/_common/agents/schedules" "${test_root}/workspace" "${test_root}/web-workspace" "${test_root}/platforms/hermes"
 touch "${test_root}/AGENTS.md" "${test_root}/README.md" "${test_root}/why.md"
 cat >"${test_root}/platforms/registry.yml" <<'YAML'
 platforms:
@@ -30,6 +30,8 @@ YAML
 printf '# Coding\n' >"${test_root}/commands/coding/coding.command.md"
 printf '# Hermes\n' >"${test_root}/commands/hermes-agents/hermes-agents.command.md"
 printf '# Dev\n' >"${test_root}/workflows/dev/dev.workflow.md"
+printf '# System\n' >"${test_root}/workflows/_common/roles/system.md"
+printf 'instruction: monitor\n' >"${test_root}/workflows/_common/agents/schedules/system-lifecycle-monitor.yml"
 printf '# Instructions\n' >"${test_root}/ai-profile/example/AGENTS.md"
 cat >"${test_root}/ai-profile/example/example-work-profile.yml" <<YAML
 version: 3
@@ -52,9 +54,22 @@ ai_platforms_root: ../../platforms
 commands:
   - id: hermes-agents
     config: local-ai-providers.yml
+system_agent:
+  scope: system
+  cardinality: one-per-platform
+  providers_config: local-ai-providers.yml
+  schedule:
+    enabled: true
+    every: 10m
+    instruction: _common/agents/schedules/system-lifecycle-monitor.yml
+  platform_bindings:
+    hermes:
+      title: System
+      provider: example-box
+      model: example-coder
 workflows:
   - path: dev.workflow.md
-    harness: pi
+    harness: hermes
     local_ai: { providers_config: local-ai-providers.yml, provider: example-box, model: example-coder }
     commands:
       - coding
@@ -62,6 +77,10 @@ workflows:
     projects:
       - ref: projects/dev/service/project.yml
       - ref: projects/dev/web/project.yml
+  - path: external.workflow.md
+    harness: gpt-agents
+    projects:
+      - ref: projects/dev/service/project.yml
 YAML
 cat >"${test_root}/ai-profile/example/local-ai-providers.yml" <<'YAML'
 schema_version: local-ai-providers.v1
@@ -166,6 +185,16 @@ export TEST_WORKSPACE="${test_root}/workspace" PATH="${test_root}/bin:${PATH}" A
 export WORK_PROFILE_ID=example AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=dev.workflow.md
 scope="$(node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/ai-profile" example dev service)"
 [[ "${scope}" == *$'example-box\tExample box\thttp://192.0.2.10:1234/v1\texample-coder-model\t65536\t0.25\t0.15\t8'* ]]
+system_scope="$(node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_root}/ai-profile" example)"
+[[ "${system_scope}" == *$'\t10m\texample-dev' ]]
+[[ "${system_scope}" != *'example-external'* ]]
+unset AI_FLOW_WORKFLOW
+if "${COMMAND}" initialize-system --work-profile example --watch-group other-dev >"${test_root}/cross-profile-watch-output" 2>&1; then
+  printf '%s\n' 'initialize-system unexpectedly accepted a cross-profile watch group' >&2
+  exit 1
+fi
+grep -F "HERMES_SYSTEM_WATCH_SCOPE_INVALID: System for work profile 'example' cannot watch 'other-dev'; allowed Hermes workflow groups: example-dev. No System changes were made." "${test_root}/cross-profile-watch-output" >/dev/null
+export AI_FLOW_WORKFLOW=dev.workflow.md
 export HERMES_TEST_ADVERTISED_MODEL=different-model
 profiles_before="$(cat "${HERMES_TEST_STATE}")"
 if "${COMMAND}" initialize --work-profile example --workflow dev --project service >"${test_root}/missing-model-output" 2>"${test_root}/missing-model-error"; then
@@ -178,6 +207,17 @@ grep -F 'profile=example-dev-coder provider=example-box model=example-coder-mode
 grep -F 'HERMES_WORKFLOW_PREFLIGHT_FAILED: group=example-dev agents=2 failed_agents=2 failed_profiles=example-dev-admin,example-dev-coder; all provider/model errors are listed above; no workflow profiles were changed.' "${test_root}/missing-model-error" >/dev/null
 [[ "$(cat "${HERMES_TEST_STATE}")" == "${profiles_before}" ]]
 unset HERMES_TEST_ADVERTISED_MODEL
+unset AI_FLOW_WORKFLOW
+if "${COMMAND}" status-system --work-profile example >"${test_root}/system-status-output" 2>&1; then
+  printf '%s\n' 'status-system unexpectedly succeeded without a System receipt' >&2
+  exit 1
+fi
+grep -F 'HERMES_SYSTEM_NOT_INITIALIZED: example' "${test_root}/system-status-output" >/dev/null
+if grep -F 'select a workflow' "${test_root}/system-status-output" >/dev/null; then
+  printf '%s\n' 'profile-scoped System command incorrectly required a workflow' >&2
+  exit 1
+fi
+export AI_FLOW_WORKFLOW=dev.workflow.md
 "${COMMAND}" check-update >"${test_root}/check-update-output"
 grep -F 'Installed: v2026.8.19' "${test_root}/check-update-output" >/dev/null
 grep -F 'Latest stable: v2026.8.31' "${test_root}/check-update-output" >/dev/null
