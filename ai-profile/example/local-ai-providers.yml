@@ -17,3 +17,29 @@ providers:
           compression_threshold: 0.25
           compression_target: 0.15
           protect_last_messages: 8
+  - id: gx10-local
+    label: Local GX10 writing service
+    protocol: openai-compatible
+    endpoint:
+      url: http://192.0.2.31:8080/v1
+    models:
+      - id: gemma-writing-q8
+        provider_model: TrevorJS/gemma-4-31B-it-uncensored-GGUF:Q8_0
+        hermes:
+          context_window_tokens: 32768
+          compression_threshold: 0.25
+          compression_target: 0.15
+          protect_last_messages: 8
+  - id: openai-service
+    label: OpenAI-compatible service
+    protocol: openai-compatible
+    endpoint:
+      url: https://api.example.invalid/v1
+    models:
+      - id: gpt-sol
+        provider_model: gpt-5.6-sol
+        hermes:
+          context_window_tokens: 65536
+          compression_threshold: 0.25
+          compression_target: 0.15
+          protect_last_messages: 8
