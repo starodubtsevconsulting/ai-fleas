@@ -13,7 +13,7 @@ flowchart TD
   Finish -->|No or interrupted| Restore["Restore checkout and wrappers"]
 ```
 
-`install-hermes.sh` is the developer-only, one-command clean installer for Hermes on macOS Apple Silicon. Run it through the public command with:
+`install-agents.sh` is the developer-only, one-command clean installer for Hermes on macOS Apple Silicon. Run it through the public command with:
 
 ```sh
 hermes-agents/hermes-agents.command.sh install
@@ -43,7 +43,7 @@ AI_CONFIG_PROJECT=/path/to/profile-repository \
   --work-profile PROFILE --workflow WORKFLOW --project PROJECT
 ```
 
-The public `hermes` command delegates setup to its colocated `setup-hermes-profile.sh`. It resolves and validates the
+The public `hermes` command delegates setup to the root launcher `setup-hermes-profile.sh`. It resolves and validates the
 profile-selected OpenAI-compatible target, concrete model, context settings, and project workspace before creating or
 changing the Hermes profile. Existing profile memory and conversations are preserved on repeat runs. Use the same
 command's `list`, `show`, and `status` actions for read-only inspection; its guarded `delete` action

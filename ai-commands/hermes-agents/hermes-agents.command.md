@@ -110,9 +110,9 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 | `install` | Compatibility delegate to the `install/hermes` command; new callers should invoke that install command directly. |
 | `check-update` | Read-only comparison of the installed release, newest stable upstream date tag, and reviewed public installer pin; recommends an explicit upgrade when appropriate. |
 | `initialize` | Resolve the selected profile/workflow and complete ordered project set, idempotently create every platform-bound role profile, and realize their profile-workflow Hermes group. |
-| `initialize-system [--watch-group ID]... [--every DURATION]` | Create or reconcile one globally visible pinned System profile outside all workflow groups, record its exact binding, and create or reconcile its profile-scoped scheduler. |
+| `initialize-system [--watch-group ID]... [--every DURATION]` | Create or reconcile one globally visible pinned System profile outside all workflow groups, create or reconcile its profile-scoped scheduler and gateway, verify readiness, then record its exact binding. |
 | `status-system --work-profile ID` | Verify the exact profile-owned Hermes System receipt. |
-| `reinitialize` / `re-init` | After `--confirm-reinitialize`, delete the exact active workflow group and all its role profiles, then create a fresh complete generation from current contracts. Existing conversations and memory for those profiles are removed. |
+| `reinitialize` / `re-init` | After `--confirm-reinitialize`, preflight the complete replacement, delete the exact active workflow group and role profiles only when that preflight succeeds, then create a fresh complete generation. Existing conversations and memory for those profiles are removed. |
 | `reconcile` | Reapply the resolved role-profile and group configuration while preserving conversations and memory. |
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
 | `list` | List existing Hermes profiles. |
@@ -123,8 +123,9 @@ The profile-owned provider catalog is the target map. Each `providers[]` entry d
 
 Human wording such as “re-init” or “reinitialize” routes to `reinitialize`, not `initialize` or `reconcile`. The explicit
 request supplies replacement intent; the executable still requires `--confirm-reinitialize` before deleting runtime data.
-The operation holds a short synchronization barrier between deletion and recreation so a running Hermes Desktop can
-retire the old room identity and its conversation log before the same logical group name is created again.
+Replacement preflight happens before deletion. The operation then holds a short synchronization barrier between deletion
+and recreation so a running Hermes Desktop can retire the old room identity and its conversation log before the same
+logical group name is created again.
 
 ## Agent realization
 
@@ -137,6 +138,55 @@ its independently resolved provider, model, context, and compression settings. `
 it is not a second source of initialization truth. GPT App maps the same
 workflow governance model to its declared multi-agent roster, such as Admin, Manager, and the five governed Dev roles.
 This difference belongs to the platform adapters and must not be hardcoded as a universal agent count in either command.
+
+### Implementation structure
+
+The Hermes adapter separates resolution, validation, orchestration, and mutation so each layer has one responsibility:
+
+| Component | Responsibility |
+|---|---|
+| `src/resolve-workflow-scope.mjs` | Resolve profile-owned workflow, projects, Agents, providers, models, and flows into a portable roster. |
+| `src/realize-workflow.py` | Parse the complete roster, preflight every Agent, track progress, write the binding receipt, and report the aggregate outcome. |
+| `src/validate-profile.py` | Validate one Agent's static contracts, runtime dependencies, endpoint response, and advertised model without mutation. |
+| `setup-hermes-profile.sh` | Apply one already-validated Hermes profile and group membership. |
+| `src/configure-group.py` | Reconcile Hermes Desktop group metadata and navigation state. |
+| `src/write-workflow-receipt.py` | Persist the durable ready receipt only after every declared Agent succeeds. |
+
+The command package keeps human-facing launchers (`*.sh`), contracts, manifests, examples, and documentation at its
+root. Implementation modules live under `src/`, and executable verification lives under `tests/`. Root launchers are
+stable integration entrypoints; callers do not invoke files in `src/` directly.
+
+Workflow realization is two-phase. Preflight must succeed for the complete roster before mutation begins. A later mutation
+failure reports the failed profile and every profile completed in that attempt, and it never writes a ready receipt.
+
+Successful initialization ends with one aggregate record:
+
+```text
+HERMES_WORKFLOW_READY: group=<profile-workflow> agents=<count> all_agents_ready=true profiles=<ordered-profile-ids> binding=<receipt-path>
+```
+
+This record, plus the durable binding receipt, is the authoritative indication that all workflow Agents were realized.
+Individual `Hermes bot ready` messages are progress records and do not by themselves mean the workflow completed.
+
+### Result and failure records
+
+Lifecycle output uses stable prefixes so humans, launchers, and monitors can distinguish progress from completion:
+
+| Prefix | Interpretation |
+|---|---|
+| `HERMES_CONFIGURATION_ERROR` | A requested provider or model alias is missing; output explains what failed, where to fix it, what was not checked, and confirms that Hermes was unchanged. |
+| `HERMES_WORKFLOW_PREFLIGHT` | Validation has started for the stated roster size. |
+| `HERMES_MODEL_TARGET_READY` | One resolved provider/model target passed validation. |
+| `HERMES_WORKFLOW_READY` | Every Agent succeeded and the durable workflow receipt was written. |
+| `HERMES_WORKFLOW_PREFLIGHT_FAILED` | The complete roster was checked, all failed profiles are named, and no workflow profiles were changed. |
+| `HERMES_WORKFLOW_PARTIAL_FAILURE` | The message identifies the failed profile and profiles completed before failure; no ready receipt was written. |
+| `HERMES_WORKFLOW_RECEIPT_FAILED` | Profiles were configured, but aggregate readiness was not recorded. |
+| `SYSTEM_READY` | System profile, scheduler, gateway/ticker, and receipt are verified ready. |
+
+Endpoint failures distinguish DNS resolution, connection, timeout, HTTP response, invalid JSON model-list, and configured
+model-not-advertised errors. Configuration errors identify the provider catalog, requested alias, and available aliases.
+Target messages include the affected profile, provider, model, and model-list URL but never provider
+credentials.
 
 The integration boundary is:
 
@@ -153,9 +203,10 @@ UI, profiles, sessions, backend process lifecycle, and model-provider communicat
 Fleas runtime inside Hermes and does not directly run the long-lived profile backends.
 
 Workflow initialization writes an exact profile-owned group receipt containing the logical group ID, ordered projects,
-realized profile IDs, and readiness. System initialization preserves that receipt, records its own profile and scheduler
-identity beside it, and supplies the same registry path to `SOUL.md` and the cron prompt. System remains globally pinned
-with `groups: []`; its profile gateway runs as a user login service so scheduling does not depend on an open desktop window.
+realized profile IDs, and readiness only after the complete roster succeeds. System initialization preserves that receipt,
+verifies its profile, scheduler, gateway, and ticker, then records its own identity beside it. The same registry path is
+supplied to `SOUL.md` and the cron prompt. System remains globally pinned with `groups: []`; its profile gateway runs as a
+user login service so scheduling does not depend on an open desktop window.
 
 ### Local background processes
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-readonly SETUP_SCRIPT="${SCRIPT_DIR}/setup-hermes-profile.sh"
+readonly TEST_DIR="$(cd "$(dirname "$0")" && pwd)"
+readonly COMMAND_DIR="$(cd "${TEST_DIR}/.." && pwd)"
+readonly SETUP_SCRIPT="${COMMAND_DIR}/setup-hermes-profile.sh"
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/setup-hermes-profile-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
@@ -60,6 +61,14 @@ chmod +x "${test_root}/bin/hermes"
 
 cat >"${test_root}/bin/curl" <<'FAKE_CURL'
 #!/usr/bin/env bash
+if [[ "${CURL_TEST_MODE:-}" == unreachable ]]; then
+  printf '%s\n' 'curl: (7) Failed to connect to test target' >&2
+  exit 7
+fi
+if [[ "${CURL_TEST_MODE:-}" == missing-model ]]; then
+  printf '%s\n' '{"data":[{"id":"different-model"}]}'
+  exit 0
+fi
 printf '%s\n' '{"data":[{"id":"example-coder-model"}]}'
 FAKE_CURL
 chmod +x "${test_root}/bin/curl"
@@ -95,6 +104,28 @@ grep -F "Your active workflow contract is \`${test_root}/workflows/financial-ins
 grep -F "Your selected AI command catalog root is \`${test_root}/commands\`. The commands allowed by this workflow are: \`statements\`." "${profile_dir}/SOUL.md" >/dev/null
 grep -F 'For every user request, first match the intent against those selected commands.' "${profile_dir}/SOUL.md" >/dev/null
 grep -F 'Hermes bot ready: example-dev-service' "${test_root}/output" >/dev/null
+
+# Target failures are precise and happen before profile mutation.
+failure_home="${test_root}/failure-home"
+if CURL_TEST_MODE=unreachable HERMES_HOME="${failure_home}" HERMES_BIN="${test_root}/bin/hermes" \
+  HERMES_PROFILE='unreachable-worker' HERMES_PROVIDER_ID='example-box' HERMES_PROVIDER_LABEL='Example box' \
+  HERMES_MODEL='example-coder-model' HERMES_ENDPOINT='http://192.0.2.10:1234/v1' \
+  HERMES_WORKSPACE="${test_root}/workspace" TEST_WORKSPACE="${test_root}/workspace" PATH="${test_root}/bin:${PATH}" \
+  "${SETUP_SCRIPT}" --validate-only >"${test_root}/unreachable.out" 2>"${test_root}/unreachable.err"; then
+  echo 'unreachable target unexpectedly passed validation' >&2; exit 1
+fi
+grep -F 'HERMES_MODEL_TARGET_UNREACHABLE: profile=unreachable-worker provider=example-box model=example-coder-model' "${test_root}/unreachable.err" >/dev/null
+[[ ! -e "${failure_home}/profiles/unreachable-worker" ]]
+
+if CURL_TEST_MODE=missing-model HERMES_HOME="${failure_home}" HERMES_BIN="${test_root}/bin/hermes" \
+  HERMES_PROFILE='missing-model-worker' HERMES_PROVIDER_ID='example-box' HERMES_PROVIDER_LABEL='Example box' \
+  HERMES_MODEL='example-coder-model' HERMES_ENDPOINT='http://192.0.2.10:1234/v1' \
+  HERMES_WORKSPACE="${test_root}/workspace" TEST_WORKSPACE="${test_root}/workspace" PATH="${test_root}/bin:${PATH}" \
+  "${SETUP_SCRIPT}" --validate-only >"${test_root}/missing.out" 2>"${test_root}/missing.err"; then
+  echo 'missing model unexpectedly passed validation' >&2; exit 1
+fi
+grep -F 'HERMES_MODEL_NOT_ADVERTISED: profile=missing-model-worker provider=example-box model=example-coder-model; advertised=different-model' "${test_root}/missing.err" >/dev/null
+[[ ! -e "${failure_home}/profiles/missing-model-worker" ]]
 
 # System profiles disable automatic title generation so it cannot block a
 # single-slot local model ahead of the actual lifecycle request.

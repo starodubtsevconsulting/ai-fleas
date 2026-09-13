@@ -32,11 +32,13 @@ readonly REPOSITORY_ROOT="$(cd "${COMMAND_DIR}/../.." && pwd)"
 readonly SETUP_SCRIPT="${COMMAND_DIR}/setup-hermes-profile.sh"
 readonly INSTALL_SCRIPT="${COMMAND_DIR}/install-agents.sh"
 readonly PROFILE_ROOT="${AI_PROFILE_ROOT:-$(dirname "$(dirname "${AI_PROFILE_FILE}")")}"
-readonly PROFILE_RESOLVER="${COMMAND_DIR}/resolve-profile-scope.mjs"
-readonly SYSTEM_RESOLVER="${COMMAND_DIR}/resolve-system-scope.mjs"
-readonly SYSTEM_BINDING_WRITER="${HERMES_SYSTEM_BINDING_WRITER:-${COMMAND_DIR}/write-system-binding.py}"
-readonly WORKFLOW_BINDING_WRITER="${HERMES_WORKFLOW_BINDING_WRITER:-${COMMAND_DIR}/write-workflow-binding.py}"
-readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${COMMAND_DIR}/configure-hermes-group.py}"
+readonly SOURCE_DIR="${COMMAND_DIR}/src"
+readonly PROFILE_RESOLVER="${SOURCE_DIR}/resolve-workflow-scope.mjs"
+readonly SYSTEM_RESOLVER="${SOURCE_DIR}/resolve-system-scope.mjs"
+readonly SYSTEM_BINDING_WRITER="${HERMES_SYSTEM_BINDING_WRITER:-${SOURCE_DIR}/write-system-receipt.py}"
+readonly WORKFLOW_BINDING_WRITER="${HERMES_WORKFLOW_BINDING_WRITER:-${SOURCE_DIR}/write-workflow-receipt.py}"
+readonly WORKFLOW_REALIZER="${HERMES_WORKFLOW_REALIZER:-${SOURCE_DIR}/realize-workflow.py}"
+readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${SOURCE_DIR}/configure-group.py}"
 readonly PYTHON_BIN="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
 readonly HERMES_UPSTREAM_REPOSITORY="${HERMES_UPSTREAM_REPOSITORY:-https://github.com/NousResearch/hermes-agent.git}"
 
@@ -315,56 +317,16 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     export HERMES_AI_COMMANDS_ROOT="${resolved_commands_root}"
     export HERMES_WORKFLOW_INSTRUCTIONS_PATH="${resolved_workflow_instructions}"
     export HERMES_WORKFLOW_COMMAND_IDS="${resolved_command_ids}"
-    role_bindings=()
-    realized_profiles=()
-    IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
-    for role_binding in "${role_bindings[@]}"; do
-      IFS='|' read -r role profile_suffix role_provider role_provider_label_b64 role_endpoint_b64 role_model role_context role_threshold role_target role_protect role_path_b64 flow_path_b64 <<<"${role_binding}"
-      [[ -n "${role}" && -n "${profile_suffix}" && -n "${role_provider}" && -n "${role_endpoint_b64}" && -n "${role_model}" ]] || {
-        printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: malformed Hermes role binding.' >&2
-        exit 2
-      }
-      role_provider_label="$(decode_base64 "${role_provider_label_b64}")"
-      role_endpoint="$(decode_base64 "${role_endpoint_b64}")"
-      role_path="$(decode_base64 "${role_path_b64}")"
-      flow_path="$(decode_base64 "${flow_path_b64}")"
-      case "${role}" in
-        admin) role_title='Admin' ;;
-        designer-reviewer) role_title='Designer/Reviewer' ;;
-        judge) role_title='Judge' ;;
-        manager) role_title='Manager' ;;
-        coder) role_title='Coder' ;;
-        command-runner) role_title='Command Runner' ;;
-        ui-acceptance-tester) role_title='UI Acceptance Tester' ;;
-        *) role_title="${role}" ;;
-      esac
-      export HERMES_PROFILE="${derived_group}-${profile_suffix}"
-      export HERMES_ROLE="${role}"
-      export HERMES_ROLE_TITLE="${role_title}"
-      export HERMES_PROVIDER_ID="${role_provider}"
-      export HERMES_PROVIDER_LABEL="${role_provider_label}"
-      export HERMES_ENDPOINT="${role_endpoint}"
-      export HERMES_MODEL="${role_model}"
-      export HERMES_CONTEXT_LENGTH="${role_context}"
-      export HERMES_COMPRESSION_THRESHOLD="${role_threshold}"
-      export HERMES_COMPRESSION_TARGET_RATIO="${role_target}"
-      export HERMES_COMPRESSION_PROTECT_LAST_N="${role_protect}"
-      export HERMES_ROLE_INSTRUCTIONS_PATH="${role_path}"
-      export HERMES_FLOW_INSTRUCTIONS_PATH="${flow_path}"
-      realized_profiles+=("${HERMES_PROFILE}")
-      if [[ ${#setup_args[@]} -eq 0 ]]; then
-        "${SETUP_SCRIPT}"
-      else
-        "${SETUP_SCRIPT}" "${setup_args[@]}"
-      fi
-    done
     binding_registry="${PROFILE_ROOT}/${resolved_profile}/.local/hermes-agents/bindings.yml"
-    binding_args=(--path "${binding_registry}" --group "${derived_group}" --project-scope "${resolved_project_scope}")
-    for realized_profile in "${realized_profiles[@]}"; do binding_args+=(--profile "${realized_profile}"); done
-    "${HERMES_BINDING_PYTHON_BIN:-${PYTHON_BIN}}" "${WORKFLOW_BINDING_WRITER}" "${binding_args[@]}"
-    printf 'HERMES_WORKFLOW_READY: %s; profiles=%s; binding=%s\n' "${derived_group}" "${#realized_profiles[@]}" "${binding_registry}"
-    printf '%s\n' \
-      'HERMES_RUNTIME_NOTE: while Hermes Desktop is open, it may run one local Python backend per active profile; identify it by the --profile argument.'
+    "${HERMES_WORKFLOW_REALIZER_PYTHON_BIN:-python3}" "${WORKFLOW_REALIZER}" \
+      --group "${derived_group}" \
+      --role-bindings "${resolved_role_bindings}" \
+      --setup-script "${SETUP_SCRIPT}" \
+      --binding-writer "${WORKFLOW_BINDING_WRITER}" \
+      --binding-python "${HERMES_BINDING_PYTHON_BIN:-${PYTHON_BIN}}" \
+      --binding-registry "${binding_registry}" \
+      --project-scope "${resolved_project_scope}" \
+      -- ${setup_args[@]+"${setup_args[@]}"}
     ;;
   list)
     [[ $# -eq 0 ]] || { usage >&2; exit 2; }
@@ -387,29 +349,12 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     endpoint="$("${hermes_bin}" -p "${profile}" config get model.base_url)"
     workspace="$("${hermes_bin}" -p "${profile}" config get terminal.cwd)"
     [[ "${endpoint}" =~ ^https?://[^[:space:]]+$ ]] || {
-      printf '%s\n' 'HERMES_MODEL_UNAVAILABLE: profile has no valid HTTP(S) model endpoint.' >&2
+      printf 'HERMES_INVALID_INPUT: profile=%s; configured model endpoint is not a valid HTTP(S) URL.\n' "${profile}" >&2
       exit 1
     }
-    models_json="$(curl --fail --silent --show-error --max-time 10 "${endpoint%/}/models")" || {
-      printf '%s\n' 'HERMES_MODEL_UNAVAILABLE: configured model endpoint is unreachable.' >&2
-      exit 1
-    }
-    MODEL_ID="${model}" python3 -c '
-import json
-import os
-import sys
-
-payload = json.load(sys.stdin)
-expected = os.environ["MODEL_ID"]
-items = [*payload.get("data", []), *payload.get("models", [])]
-available = {
-    str(item.get("id") or item.get("model") or item.get("name") or "")
-    for item in items
-    if isinstance(item, dict)
-}
-if expected not in available:
-    raise SystemExit(f"HERMES_MODEL_UNAVAILABLE: endpoint does not advertise {expected}")
-' <<<"${models_json}"
+    HERMES_PROFILE="${profile}" HERMES_PROVIDER_ID="${provider}" HERMES_PROVIDER_LABEL="${provider}" \
+      HERMES_MODEL="${model}" HERMES_ENDPOINT="${endpoint}" HERMES_WORKSPACE="${workspace}" HERMES_GROUP='' \
+      "${SETUP_SCRIPT}" --validate-only >/dev/null
     printf 'HERMES_READY\nProfile: %s\nProvider: %s\nModel: %s\nEndpoint: %s\nWorkspace: %s\n' \
       "${profile}" "${provider}" "${model}" "${endpoint%/}" "${workspace}"
     ;;
