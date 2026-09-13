@@ -1,0 +1,30 @@
+schemaVersion: governor-strategy.v1
+id: default
+
+components:
+  strategy:
+    defaultVersion: v1
+    versions:
+      v1: strategy.v1.md
+  human:
+    defaultVersion: v1
+    versions:
+      v1:
+        ref: human.v1.md
+        methods:
+          - id: commitment-discipline
+            version: v1
+            ref: ../../methods/commitment-discipline/v1.md
+          - id: execution-adaptation
+            version: v1
+            ref: ../../methods/execution-adaptation/v1.md
+          - id: one-on-one
+            version: v1
+            ref: ../../methods/one-on-one/v1.md
+            defaults:
+              cadence: 1w
+
+selection:
+  componentsIndependent: true
+  methodsComposable: true
+  description: A concrete Governor binding selects the strategy family and component versions. Each component may compose reusable versioned methods; operational method settings may be overridden only where the method/strategy declares them configurable.
