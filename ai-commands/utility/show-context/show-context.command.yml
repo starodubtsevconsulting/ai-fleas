@@ -1,0 +1,6 @@
+id: show-context
+version: 0.0.1-SNAPSHOT
+category: utility
+type: visual
+ai:
+  powered: false

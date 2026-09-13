@@ -1,6 +1,6 @@
-id: install
+id: writing
 version: 0.0.1-SNAPSHOT
-category: install
-type: flow
+category: content
+type: contract
 ai:
   powered: false
