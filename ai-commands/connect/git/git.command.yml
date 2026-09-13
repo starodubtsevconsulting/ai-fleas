@@ -1,6 +1,6 @@
-id: install
+id: git
 version: 0.0.1-SNAPSHOT
-category: install
-type: flow
+category: connect
+type: provider
 ai:
   powered: false

@@ -1,0 +1,6 @@
+id: voice-report
+version: 0.0.1-SNAPSHOT
+category: content
+type: visual
+ai:
+  powered: false

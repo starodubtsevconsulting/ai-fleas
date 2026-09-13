@@ -1,0 +1,6 @@
+id: sdd
+version: 0.0.1-SNAPSHOT
+category: development
+type: executable
+ai:
+  powered: false

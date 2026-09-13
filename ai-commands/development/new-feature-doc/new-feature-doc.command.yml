@@ -1,6 +1,6 @@
-id: install
+id: new-feature-doc
 version: 0.0.1-SNAPSHOT
-category: install
+category: development
 type: flow
 ai:
   powered: false
