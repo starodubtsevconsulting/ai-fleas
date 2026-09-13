@@ -1,1 +1,6 @@
+id: permanent-memory
 version: 0.0.1-SNAPSHOT
+category: data
+type: adapter
+ai:
+  powered: false

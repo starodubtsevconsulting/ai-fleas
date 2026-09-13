@@ -1,2 +1,6 @@
+id: install
+version: 0.0.1-SNAPSHOT
+category: install
+type: flow
 ai:
   powered: false

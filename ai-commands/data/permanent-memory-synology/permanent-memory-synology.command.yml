@@ -1,1 +1,6 @@
+id: permanent-memory-synology
 version: 0.0.1-SNAPSHOT
+category: data
+type: provider
+ai:
+  powered: false
