@@ -116,6 +116,53 @@ read_tunnel_secret() {
   printf '%s' "$value"
 }
 
+run_tunnel_exclusive() {
+  command -v pgrep >/dev/null 2>&1 || fail 'pgrep is required for duplicate connector prevention'
+  local lock_root="${TMPDIR:-/tmp}"
+  local lock_name="${tunnel_name//[^A-Za-z0-9._-]/_}"
+  local lock_dir="${lock_root%/}/ai-fleas-cloudflare-${lock_name}.lock"
+  local lock_pid_file="$lock_dir/pid"
+  local existing_pid=''
+
+  if ! mkdir "$lock_dir" 2>/dev/null; then
+    [[ -f "$lock_pid_file" ]] && existing_pid="$(<"$lock_pid_file")"
+    if [[ "$existing_pid" =~ ^[0-9]+$ ]] && kill -0 "$existing_pid" 2>/dev/null; then
+      fail "connector launch blocked: tunnel $tunnel_name is already managed by process $existing_pid"
+    fi
+    rm -f "$lock_pid_file"
+    rmdir "$lock_dir" 2>/dev/null || fail 'connector launch blocked: runtime lock is busy'
+    mkdir "$lock_dir" 2>/dev/null || fail 'connector launch blocked: another process acquired the runtime lock'
+  fi
+  printf '%s\n' "$$" >"$lock_pid_file"
+
+  cleanup_tunnel_lock() {
+    rm -f "$lock_pid_file"
+    rmdir "$lock_dir" 2>/dev/null || true
+  }
+  local cloudflared_pid=''
+  stop_cloudflared_child() {
+    [[ -n "$cloudflared_pid" ]] && kill -TERM "$cloudflared_pid" 2>/dev/null || true
+  }
+  trap stop_cloudflared_child INT TERM
+  trap cleanup_tunnel_lock EXIT
+
+  if pgrep -x cloudflared >/dev/null 2>&1; then
+    fail 'connector launch blocked: a cloudflared process is already running; reuse or stop it before starting another'
+  fi
+
+  local tunnel_token
+  tunnel_token="$(read_tunnel_secret)"
+  cloudflared tunnel --no-autoupdate run --token "$tunnel_token" &
+  cloudflared_pid=$!
+  set +e
+  wait "$cloudflared_pid"
+  local result=$?
+  set -e
+  trap - INT TERM EXIT
+  cleanup_tunnel_lock
+  return "$result"
+}
+
 json_value() {
   local field="$1"
   python3 -c 'import json,sys; value=json.load(sys.stdin); print(value["result"][sys.argv[1]])' "$field"
@@ -224,8 +271,7 @@ case "$operation" in
     validate_config
     command -v cloudflared >/dev/null 2>&1 ||
       fail 'cloudflared is required; run install-connector --apply'
-    tunnel_token="$(read_tunnel_secret)"
-    exec cloudflared tunnel --no-autoupdate run --token "$tunnel_token"
+    run_tunnel_exclusive
     ;;
   install-connector)
     [[ "${1:-}" == '--apply' && $# -eq 1 ]] ||
