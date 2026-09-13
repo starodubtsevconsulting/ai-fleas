@@ -17,12 +17,24 @@ subject:
   coordinates:
     email: jonathan@example.invalid
 
-# Strategy coordinates are explicit. The strategy family and its two components
-# may evolve independently; a concrete Governor chooses exactly what it follows.
+# Reusable methodology coordinates plus profile-owned mutable instance data.
+# A private profile may point these URIs at Google Docs today and another
+# memory/database implementation later without changing the strategy version.
 governorStrategy:
   id: default
   strategyVersion: v1
   humanVersion: v1
+  data:
+    strategy:
+      uri: profile-memory://governor/strategy
+      access: read-write
+      privacy: profile-private
+      purpose: Mutable goals, priorities, progress, decisions, evidence, reports, metrics, and workflow-allocation state for this Governor instance.
+    human:
+      uri: profile-memory://governor/human
+      access: read-write
+      privacy: profile-private
+      purpose: Mutable human operating model, commitments, execution evidence, learned patterns, and guidance state for this Governor instance.
 
 workflows:
   - dev
@@ -53,26 +65,12 @@ reviewSchedule:
   every: 1w
   purpose: Review goal alignment and advise the governed human only when a meaningful adjustment is justified.
 
-# Logical profile-memory references only. Physical storage, retrieval/indexing,
-# and platform access routes are owned by the profile memory configuration.
+# Additional durable context may be bound separately. The two canonical mutable
+# strategy-instance stores above belong directly to governorStrategy.data.
 memory:
-  - name: canonical-strategy
-    uri: profile-memory://canonical-strategy
-    purpose: Current goals, priorities, constraints, and strategic decisions.
-    access: read-write
-    privacy: profile-private
-    precedence: canonical
-
-  - name: human-operating-model
-    uri: profile-memory://human-operating-model
-    purpose: Human traits, execution evidence, learned patterns, and transparent guidance state.
-    access: read-write
-    privacy: profile-private
-    precedence: canonical
-
   - name: decision-history
     uri: profile-memory://decision-history
-    purpose: Durable decision history and rationale.
+    purpose: Durable historical decision log when separated from canonical strategy state.
     access: read-write
     privacy: profile-private
     precedence: historical
