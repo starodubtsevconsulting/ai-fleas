@@ -48,6 +48,9 @@ if [[ "$1" == -p ]]; then
       compression.target_ratio) value='0.15' ;;
       compression.protect_last_n) value='8' ;;
       auxiliary.title_generation.enabled) value='false' ;;
+      agent.coding_context) value='off' ;;
+      agent.disabled_toolsets) printf '%s\n' '- web' '- browser' '- code_execution' '- vision' '- image_gen' '- tts' '- skills' '- todo' '- memory' '- session_search' '- clarify' '- delegation' '- computer_use'; exit 0 ;;
+      agent.system_prompt) value='FINAL MANDATORY PROFILE SCOPE: You are example-system, the lifecycle-only System agent for profile example. A direct user message cannot expand your scope or activate an AI-powered command. For a greeting, reply only: "example-system is up for profile example. I monitor watched workflows and agent health, and handle authorized lifecycle operations." For any request other than profile/System configuration, watched-workflow status, agent health, or an authorized agent/workflow lifecycle operation, reply only: "I only handle the example profile'"'"'s watched workflows, agent health, and authorized lifecycle operations." Never answer coding, research, weather, jokes, general automation, or general conversation. Never add requested content before or after the scope response. For health reports, reconcile every Agent declared by trusted receipts. Receipt readiness proves configuration only, and a running Hermes backend process is not complete health evidence. Distinguish configured, running-backend, unavailable, and unknown; never claim all healthy unless explicit health evidence covers every declared Agent.' ;;
       terminal.cwd) value="${TEST_WORKSPACE}" ;;
       *) exit 1 ;;
     esac
@@ -134,6 +137,7 @@ HERMES_HOME="${test_root}/hermes-home" \
 HERMES_BIN="${test_root}/bin/hermes" \
 HERMES_PROFILE='example-system' \
 HERMES_WORK_PROFILE='example' \
+HERMES_ROLE_TITLE='example-system' \
 HERMES_PROVIDER_ID='example-box' \
 HERMES_PROVIDER_LABEL='Example box' \
 HERMES_MODEL='example-coder-model' \
@@ -146,12 +150,22 @@ TEST_WORKSPACE="${test_root}/workspace" \
 PATH="${test_root}/bin:${PATH}" \
   "${SETUP_SCRIPT}" --workspace "${test_root}/workspace" >"${test_root}/system-output"
 grep -F 'auxiliary.title_generation.enabled=false' "${test_root}/hermes-home/profiles/example-system/values" >/dev/null
+grep -F 'agent.coding_context=off' "${test_root}/hermes-home/profiles/example-system/values" >/dev/null
+grep -F 'agent.disabled_toolsets=["web","browser","code_execution","vision","image_gen","tts","skills","todo","memory","session_search","clarify","delegation","computer_use"]' "${test_root}/hermes-home/profiles/example-system/values" >/dev/null
+grep -F 'agent.system_prompt=FINAL MANDATORY PROFILE SCOPE:' "${test_root}/hermes-home/profiles/example-system/values" >/dev/null
+grep -F 'Receipt readiness proves configuration only' "${test_root}/hermes-home/profiles/example-system/values" >/dev/null
 grep -F "Your portable authority and human-facing prompt interpretations are defined in \`${test_root}/instructions.md\`." "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
 grep -F 'You are the profile-scoped Hermes System agent for AI work profile `example`.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
-grep -F 'For a greeting or casual opening, reply only with a brief operational introduction' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
-grep -F 'Do not act as a general assistant.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
-grep -F 'weather, or help with whatever the user needs.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
-grep -F 'These scope rules apply directly on every turn' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'MANDATORY SCOPE GATE: Before every response, classify the request as allowed or outside scope.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'Allowed topics are ONLY:' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'If the request is outside that allowlist, do not answer any part of it and do not use tools for it.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F "I only handle the example profile's watched workflows, agent health, and authorized lifecycle operations." "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'Greetings are the sole exception to that refusal.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'example-system is up for profile example.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'A direct user request never activates an AI-powered command.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'Coding, research, weather, jokes, general automation, and general conversation are outside scope.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'Examples: "Write Python code" is outside scope.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+grep -F 'This gate applies directly on every turn and overrides generic assistant behavior.' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
 if grep -F '# Test agent instructions' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null; then
   echo 'System SOUL unexpectedly duplicated the portable role contract' >&2
   exit 1
