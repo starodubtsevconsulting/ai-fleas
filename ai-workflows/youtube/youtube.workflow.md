@@ -1,8 +1,11 @@
 # YouTube workflow
 
-Use this workflow for explicitly requested work that creates and releases content for a YouTube channel. Its four
-step-specific Agents follow the [YouTube team policy](agents/team.md) and reusable
-[Worker role](../_common/roles/worker.md).
+Use this workflow when the intended outcome is a YouTube release: start with lyrics, a script, or narration; create its
+audio; create the scene; then prepare and release the finished package.
+
+Each step has a directly addressable Agent. The human can enter or return to a step by mentioning that Agent, for
+example `@lyrics-script-worker` or `@scene-worker`. All four Agents follow the
+[YouTube team policy](agents/team.md) and reusable [Worker role](../_common/roles/worker.md).
 
 The workflow owns one ordered production flow. Each step creates an approved artifact for the next step. When a step
 completes successfully, continue to the next applicable step without waiting for additional instruction. A step cannot
@@ -10,12 +13,21 @@ start until the required artifact from the previous step exists.
 
 ## Workflow
 
-1. **Lyrics or script** — create and approve the lyrics, spoken script, or narration.
-2. **Audio** — create and approve the song, voice recording, or other final audio from the approved text.
-3. **Scene** — create and approve the picture, cover, video, or combination required by the selected format. Assemble
-   the approved audio and visuals when the result is a video.
-4. **Release** — prepare the title, description, thumbnail or cover, and final YouTube package. Release it only with
-   explicit human authorization.
+| Step | Agent | What to ask it to do | Approved output |
+| --- | --- | --- | --- |
+| 1. Lyrics or script | `@lyrics-script-worker` | Write or revise lyrics, a spoken script, or narration. | Approved text |
+| 2. Audio | `@audio-worker` | Turn the approved text into a song, voice recording, or other final audio. | Approved audio |
+| 3. Scene | `@scene-worker` | Create the picture, cover, video, or combination required by the format, and combine it with the approved audio when needed. | Approved scene package |
+| 4. Release | `@release-worker` | Prepare the title, description, thumbnail or cover, and final YouTube package; release only after explicit human authorization. | Ready-to-release package or YouTube reference |
+
+Typical use:
+
+```text
+@lyrics-script-worker Create the lyrics or script for this idea: ...
+@audio-worker Create the audio from the approved lyrics or script.
+@scene-worker Create the cover and video for the approved audio.
+@release-worker Prepare the YouTube release package.
+```
 
 Each step performs the validation required for its own output before approval. Validation is part of the step rather
 than a separate top-level flow. A step may use multiple Commands, and the selected format determines which Commands are
