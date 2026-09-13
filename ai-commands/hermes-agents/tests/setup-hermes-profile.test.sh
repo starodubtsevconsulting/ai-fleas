@@ -145,5 +145,10 @@ TEST_WORKSPACE="${test_root}/workspace" \
 PATH="${test_root}/bin:${PATH}" \
   "${SETUP_SCRIPT}" --workspace "${test_root}/workspace" >"${test_root}/system-output"
 grep -F 'auxiliary.title_generation.enabled=false' "${test_root}/hermes-home/profiles/example-system/values" >/dev/null
+grep -F "Your portable authority and human-facing prompt interpretations are defined in \`${test_root}/instructions.md\`." "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null
+if grep -F '# Test agent instructions' "${test_root}/hermes-home/profiles/example-system/SOUL.md" >/dev/null; then
+  echo 'System SOUL unexpectedly duplicated the portable role contract' >&2
+  exit 1
+fi
 
 echo 'setup-hermes-profile test passed'
