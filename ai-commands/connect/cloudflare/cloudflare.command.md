@@ -98,6 +98,12 @@ Run `cloudflare.command.sh ui` from an activated profile and workflow. The launc
 On first use it installs the pinned command-local Electron dependency with `npm ci` when no compatible host Electron
 runtime is supplied through `CLOUDFLARE_ELECTRON_BIN`.
 
+The **Profile and workflow** selector discovers local profiles whose manifest both binds the `cloudflare` command and
+explicitly allows it in the listed workflow. Choose a pair and click **Use profile**. The controller clears stale direct
+configuration overrides and re-runs the standard command guard for the selected profile and workflow on every
+operation; the selector itself does not grant authority. Profile switching is disabled while this window owns a running
+connector. Stop that connector before switching so it cannot be accidentally carried across profiles.
+
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
 **Start connector** runs `run-tunnel` with the activated profile environment. **Stop connector** is enabled only for the
