@@ -120,6 +120,8 @@ provider row filters the log stream to that tunnel. Vertically centered tabs sho
 the current provider; this remains usable when the workflow contains many providers without creating a long tab strip.
 Connector output uses dependency-free semantic highlighting for provider tags, timestamps, severity levels, and IP
 addresses. Log text is HTML-escaped before highlighting, and existing secret redaction remains in force.
+The search field filters the retained in-memory output inside the current provider scope. Pressing Escape clears the
+query. The controller retains at most 2,000 log chunks and does not write connector logs to disk by default.
 
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
