@@ -41,7 +41,7 @@ system_grdctl() {
   local output
   output="$(sudo -n grdctl --system "$@" 2>&1)"
   printf '%s\n' "$output"
-  if grep -Eq '(^|[[:space:]])Failed to |\[ERROR\]' <<<"$output"; then
+  if grep -Eq '^Failed to (write|create|set|enable|disable)|\[ERROR\]' <<<"$output"; then
     printf 'REMOTE_DESKTOP_CONFIGURATION_FAILED: grdctl --system %s\n' "$*" >&2
     return 1
   fi
