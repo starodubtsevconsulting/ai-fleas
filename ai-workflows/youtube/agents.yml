@@ -11,7 +11,7 @@ agents:
     lifecycle: persistent-worker
     humanFacing: true
     readinessToken: LYRICS_SCRIPT_WORKER_READY
-    aiProvider: youtube-lyrics-script
+    aiBinding: youtube-script-writing
 
   - agentId: audio-worker
     roleDefinition: ../_common/roles/worker.md
@@ -20,7 +20,7 @@ agents:
     lifecycle: persistent-worker
     humanFacing: true
     readinessToken: AUDIO_WORKER_READY
-    aiProvider: youtube-default-worker
+    aiBinding: youtube-general-production
 
   - agentId: scene-worker
     roleDefinition: ../_common/roles/worker.md
@@ -29,7 +29,7 @@ agents:
     lifecycle: persistent-worker
     humanFacing: true
     readinessToken: SCENE_WORKER_READY
-    aiProvider: youtube-default-worker
+    aiBinding: youtube-general-production
 
   - agentId: release-worker
     roleDefinition: ../_common/roles/worker.md
@@ -38,7 +38,7 @@ agents:
     lifecycle: persistent-worker
     humanFacing: true
     readinessToken: RELEASE_WORKER_READY
-    aiProvider: youtube-default-worker
+    aiBinding: youtube-general-production
 
 dependencies:
   - { consumerAgentId: audio-worker, providerAgentId: lyrics-script-worker, kind: upstream-artifact }

@@ -22,10 +22,10 @@ schemaVersion: workflow-logical-agents.v1
 workflowId: dev
 initializer:
   agentId: admin
-  aiProvider: profile-default
+  aiBinding: profile-default
 agents:
   - agentId: coder
-    aiProvider: profile-default
+    aiBinding: profile-default
 YAML
 printf '# Coding\n' >"${test_root}/commands/coding/coding.command.md"
 printf '# Hermes\n' >"${test_root}/commands/hermes-agents/hermes-agents.command.md"

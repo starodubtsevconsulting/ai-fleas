@@ -17,11 +17,11 @@ The Agent binding stays minimal: stable identity, Worker role, assigned flow, li
 
 The workflow requests two profile-owned provider bindings:
 
-- `youtube-lyrics-script` for Lyrics or script;
-- `youtube-default-worker` for Audio, Scene, and Release.
+- `youtube-script-writing` for Lyrics or script;
+- `youtube-general-production` for Audio, Scene, and Release.
 
-The intended initial operational configuration binds `youtube-lyrics-script` to the local Gemma 4 31B Q8 model and
-`youtube-default-worker` to GPT-5.6 Sol. Concrete endpoints, credentials, and later model changes remain in the selected
+The intended initial operational configuration binds `youtube-script-writing` to the local Gemma 4 31B Q8 model and
+`youtube-general-production` to GPT-5.6 Sol. Concrete endpoints, credentials, and later model changes remain in the selected
 profile.
 
 ## Routing
