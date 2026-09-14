@@ -44,7 +44,7 @@
     .context-row { display: flex; align-items: end; gap: 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
     .context-field { min-width: 0; flex: 1; }
     select { width: 100%; margin-top: 7px; min-height: 38px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-2); color: var(--text); }
-    .status-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .status-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
     .card, .log-panel { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
     .card { padding: 17px; }
     .card-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
@@ -80,6 +80,7 @@
         <button id="useContext" type="button">Use profile</button>
       </div>
       <div class="status-grid">
+        <article class="card ok" id="providerCard"><div class="card-label">Model provider</div><div class="card-value"><span class="dot"></span><span id="provider">Resolving…</span></div><div class="detail" id="providerDetail">Selected by the workflow.</div></article>
         <article class="card" id="configurationCard"><div class="card-label">Configuration</div><div class="card-value"><span class="dot"></span><span id="configuration">Checking…</span></div><div class="detail" id="configurationDetail">Validating the selected profile.</div></article>
         <article class="card" id="connectorCard"><div class="card-label">Connector</div><div class="card-value"><span class="dot"></span><span id="connector">Checking…</span></div><div class="detail" id="connectorDetail">Looking for cloudflared.</div></article>
         <article class="card" id="accessCard"><div class="card-label">Access gate</div><div class="card-value"><span class="dot"></span><span id="access">Checking…</span></div><div class="detail" id="accessDetail">Testing the unauthenticated boundary.</div></article>
@@ -93,7 +94,7 @@
       configurationCard: document.getElementById('configurationCard'), configuration: document.getElementById('configuration'), configurationDetail: document.getElementById('configurationDetail'),
       connectorCard: document.getElementById('connectorCard'), connector: document.getElementById('connector'), connectorDetail: document.getElementById('connectorDetail'),
       accessCard: document.getElementById('accessCard'), access: document.getElementById('access'), accessDetail: document.getElementById('accessDetail'),
-      publicUrl: document.getElementById('publicUrl'), log: document.getElementById('log'), start: document.getElementById('start'), stop: document.getElementById('stop'), open: document.getElementById('open'), context: document.getElementById('context'), useContext: document.getElementById('useContext')
+      publicUrl: document.getElementById('publicUrl'), log: document.getElementById('log'), start: document.getElementById('start'), stop: document.getElementById('stop'), open: document.getElementById('open'), context: document.getElementById('context'), useContext: document.getElementById('useContext'), provider: document.getElementById('provider'), providerDetail: document.getElementById('providerDetail')
     };
     const setState = (card, ok) => { card.classList.toggle('ok', ok); card.classList.toggle('bad', !ok); };
     function render(state) {
@@ -103,10 +104,10 @@
       ui.publicUrl.textContent = state.publicUrl || 'Unavailable'; ui.start.disabled = running || state.connectorConflict || !state.configured || !state.connectorInstalled; ui.stop.disabled = !state.connectorManaged || state.connectorConflict; ui.open.disabled = !state.publicUrl;
       ui.context.disabled = state.connectorManaged; ui.useContext.disabled = state.connectorManaged;
     }
-    async function loadContexts() { const result = await window.cloudflareTunnel.contexts(); ui.context.replaceChildren(...result.contexts.map((item) => { const option = document.createElement('option'); option.value = JSON.stringify(item); option.textContent = `${item.profileId} — ${item.workflow}`; option.selected = item.profileId === result.selected?.profileId && item.workflow === result.selected?.workflow; return option; })); ui.useContext.disabled = !result.contexts.length; }
+    async function loadContexts() { const result = await window.cloudflareTunnel.contexts(); ui.context.replaceChildren(...result.contexts.map((item) => { const option = document.createElement('option'); option.value = JSON.stringify(item); option.textContent = `${item.profileId} — ${item.workflow} — ${item.providerId || 'no model provider'}`; option.selected = item.profileId === result.selected?.profileId && item.workflow === result.selected?.workflow; return option; })); const selected = result.selected; ui.provider.textContent = selected?.providerId || 'Not configured'; ui.providerDetail.textContent = selected?.providerId ? `Resolved from ${selected.workflow}.` : 'This workflow has no local model provider.'; ui.useContext.disabled = !result.contexts.length; }
     async function refresh() { try { render(await window.cloudflareTunnel.status()); } catch (error) { ui.log.textContent += `\n${error.message}`; } }
     document.getElementById('refresh').addEventListener('click', refresh);
-    ui.useContext.addEventListener('click', async () => { try { const result = await window.cloudflareTunnel.selectContext(JSON.parse(ui.context.value)); render(result.status); } catch (error) { ui.log.textContent += `\n${error.message}`; } });
+    ui.useContext.addEventListener('click', async () => { try { const selection = JSON.parse(ui.context.value); const result = await window.cloudflareTunnel.selectContext(selection); ui.provider.textContent = result.selected.providerId || 'Not configured'; ui.providerDetail.textContent = result.selected.providerId ? `Resolved from ${result.selected.workflow}.` : 'This workflow has no local model provider.'; render(result.status); } catch (error) { ui.log.textContent += `\n${error.message}`; } });
     ui.start.addEventListener('click', async () => render(await window.cloudflareTunnel.start()));
     ui.stop.addEventListener('click', async () => render(await window.cloudflareTunnel.stop()));
     ui.open.addEventListener('click', () => window.cloudflareTunnel.openPublicUrl());
