@@ -8,8 +8,20 @@ providers:
     label: NVIDIA GeForce RTX 3080 Ti model provider
     protocol: openai-compatible
     endpoint:
-      # 192.0.2.0/24 is reserved for documentation and cannot identify a real host.
-      url: http://192.0.2.27:8080/v1
+      default: local
+      connections:
+        # 192.0.2.0/24 is reserved for documentation and cannot identify a real host.
+        local:
+          url: http://192.0.2.27:8080/v1
+        remote:
+          url: https://rtx-model-box.example.com/v1
+          # A machine-to-machine route resolves secrets only from the runtime
+          # environment; never commit the service-token values here.
+          headers:
+            CF-Access-Client-Id:
+              environment_variable: EXAMPLE_HERMES_RTX_CF_ACCESS_CLIENT_ID
+            CF-Access-Client-Secret:
+              environment_variable: EXAMPLE_HERMES_RTX_CF_ACCESS_CLIENT_SECRET
     models:
       - id: qwen-hermes
         provider_model: qwen3.5-9b-q4_k_m
