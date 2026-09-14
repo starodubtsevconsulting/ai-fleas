@@ -82,6 +82,9 @@ token scope; a Global API Key is not supported.
   retains the token for recovery if a later ingress or DNS step fails.
 - The Access policy must allow exact approved identities and deny unauthenticated traffic. OTP must never be enabled with
   an unrestricted email rule.
+- Programmatic clients must use a separately scoped Access service token. Its Client ID and Client Secret are consumer
+  credentials; they are not the provisioning API token, tunnel connector token, or model API key. Store their values
+  only in the consuming runtime's secret environment and commit only the environment-variable names.
 - `verify-access` does not follow redirects or authenticate; it only proves that an unauthenticated request reaches the
   Access login boundary.
 - This command does not configure NAT, firewall rules, Cloudflare bypass rules, or public tunnels without Access.
@@ -277,7 +280,93 @@ In Cloudflare Zero Trust:
 Do not start the connector before this policy exists. DNS and an active connector without Access would publish the origin
 to unauthenticated Internet users.
 
-### 6. Run, verify, and install
+### 6. Add machine-to-machine access for Hermes
+
+Browser users authenticate through an approved identity provider or One-time PIN. Hermes cannot complete that
+interactive email/browser flow, so give it a Cloudflare Access service token when it must use the protected remote
+hostname.
+
+Keep the resource model machine-oriented:
+
+```text
+AI provider machine
+  -> one profile-owned provider ID
+  -> one Cloudflare tunnel target and public hostname
+  -> one Access application protecting that hostname
+  -> one or more explicitly authorized client service tokens
+  -> any models advertised by that provider endpoint
+```
+
+Do not create a tunnel or service token per model. Models can change while the serving computer, endpoint, and access
+boundary remain stable. Prefer one tunnel target per independently operated provider computer so it can be started,
+stopped, diagnosed, and authorized without affecting another provider.
+
+Use descriptive names derived from the profile, calling client, and destination provider machine:
+
+| Object | Recommended pattern | Example |
+|---|---|---|
+| Provider ID | `<machine>-model-provider` | `asus-gx10-model-provider` |
+| Tunnel | `<profile>-<machine>-model-provider` | `example-asus-gx10-model-provider` |
+| Access application | `<profile>-<machine>-model-access` | `example-asus-gx10-model-access` |
+| Service token | `<profile>-<client>-to-<machine>` | `example-hermes-laptop-to-gx10` |
+
+Avoid names such as `model-1`, `model-2`, or `remote-model-access-2`; they do not identify the credential owner or
+destination. A second client gets its own token. An unused or superseded token should be clearly marked and then revoked
+after confirming it has no consumers.
+
+In Cloudflare Zero Trust:
+
+1. Open **Access controls → Service credentials → Service Tokens** and select **Create Service Token**.
+2. Enter a descriptive client-to-provider name and choose the shortest practical expiration. Creation produces a
+   persistent credential, so obtain explicit human confirmation immediately before the final create action.
+3. Store the displayed Client ID and Client Secret immediately in an approved local secret store. Cloudflare displays
+   the secret only at creation; never paste either value into chat, tickets, logs, or committed files.
+4. Open **Access controls → Applications**, select the exact provider application, and add a separate policy for the
+   service token. Use the service-authentication action and include only the exact named service token. Do not replace or
+   broaden the existing human email policy.
+5. Review the application destination and policy summary, then obtain explicit confirmation before saving the access
+   change.
+
+Expose the two values to the Hermes initialization process through profile-specific environment variables. The public
+profile shows the committed shape:
+
+```yaml
+endpoint:
+  default: local
+  connections:
+    local:
+      url: http://192.0.2.32:8000/v1
+    remote:
+      url: https://model-box.example.com/v1
+      headers:
+        CF-Access-Client-Id:
+          environment_variable: EXAMPLE_CF_ACCESS_CLIENT_ID
+        CF-Access-Client-Secret:
+          environment_variable: EXAMPLE_CF_ACCESS_CLIENT_SECRET
+```
+
+The YAML contains only secret references. The actual values belong in the selected profile's ignored local environment.
+Initialize the remote Hermes instance with the named connection, for example:
+
+```sh
+hermes-agents.command.sh initialize \
+  --work-profile example \
+  --workflow dev \
+  --instance 2 \
+  --connection remote
+```
+
+Require three pieces of evidence before declaring this route ready:
+
+1. preflight successfully retrieves `/v1/models` through the protected hostname;
+2. the generated Hermes profile records the HTTPS remote base URL and only the expected header names;
+3. a harmless chat completion succeeds and its redacted Hermes log names the same remote base URL and concrete model.
+
+A successful chat by itself proves only that some endpoint answered. A Cloudflare login redirect or HTML `302` from an
+auxiliary request means that request did not authenticate consistently; verify service-token header propagation for
+every request path, including title generation, model listing, and chat completion.
+
+### 7. Run, verify, and install
 
 Run `cloudflare.command.sh install-connector --apply`. The connection command delegates physical package installation to
 the separately registered `install/cloudflare` command and then returns without starting a connector. The operation is
@@ -301,10 +390,10 @@ persistently only with an explicit authorized invocation:
 cloudflare.command.sh install-service --apply
 ```
 
-For programmatic `/v1` clients, use a separately scoped Cloudflare Access service token and the
-`CF-Access-Client-Id`/`CF-Access-Client-Secret` headers. Do not share the tunnel connector token with API consumers.
+Do not share the tunnel connector token with API consumers. Use the service-token procedure above for programmatic
+`/v1` clients.
 
-### 7. Diagnose the first public request
+### 8. Diagnose the first public request
 
 Before the connector starts, requesting the public hostname can return Cloudflare **Error 1033** or HTTP `530`. This is
 expected when DNS points at the tunnel but no healthy `cloudflared` connector is attached; it does not prove that the

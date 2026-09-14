@@ -3,11 +3,11 @@ schema_version: workflow-agent-providers.v1
 workflow_id: youtube
 
 bindings:
-  youtube-lyrics-script:
+  youtube-script-writing:
     provider: asus-gx10-model-provider
     model: gemma-writing-q8
 
-  youtube-default-worker:
+  youtube-general-production:
     # Intended cloud assignment when that provider and model are configured:
     # provider: openai-service
     # model: gpt-sol
