@@ -39,7 +39,7 @@ After a clean Hermes installation, recreate the profile-backed Desktop bot with:
 
 ```sh
 AI_CONFIG_PROJECT=/path/to/profile-repository \
-  /path/to/ai-fleas/ai-commands/hermes-agents/hermes-agents.command.sh initialize \
+  /path/to/ai-fleas/ai-commands/system/hermes-agents/hermes-agents.command.sh initialize \
   --work-profile PROFILE --workflow WORKFLOW --project PROJECT
 ```
 

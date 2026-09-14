@@ -15,6 +15,7 @@ provider_id="${HERMES_PROVIDER_ID:-}"
 provider_label="${HERMES_PROVIDER_LABEL:-${provider_id}}"
 model="${HERMES_MODEL:-}"
 endpoint="${HERMES_ENDPOINT:-}"
+extra_headers_b64="${HERMES_EXTRA_HEADERS_B64:-e30=}"
 workspace="${HERMES_WORKSPACE:-}"
 work_profile="${HERMES_WORK_PROFILE:-}"
 workflow="${HERMES_WORKFLOW:-}"
@@ -121,17 +122,22 @@ if ! grep -Fx -- "${profile}" <<<"${registered_profiles}" >/dev/null; then
     --description "Assistant for ${workspace}, backed by ${model} on ${provider_label}."
 fi
 
-provider_json="$(PROVIDER_LABEL="${provider_label}" ENDPOINT="${endpoint%/}" MODEL_ID="${model}" python3 -c '
+provider_json="$(PROVIDER_LABEL="${provider_label}" ENDPOINT="${endpoint%/}" MODEL_ID="${model}" EXTRA_HEADERS_B64="${extra_headers_b64}" python3 -c '
+import base64
 import json
 import os
 
-print(json.dumps({
+headers = json.loads(base64.b64decode(os.environ["EXTRA_HEADERS_B64"], validate=True))
+provider = {
     "name": os.environ["PROVIDER_LABEL"],
     "base_url": os.environ["ENDPOINT"],
     "model": os.environ["MODEL_ID"],
     "discover_models": False,
     "models": {os.environ["MODEL_ID"]: {}},
-}))
+}
+if headers:
+    provider["extra_headers"] = headers
+print(json.dumps(provider))
 ')"
 "${hermes_bin}" -p "${profile}" config set --force "providers.${provider_id}" "${provider_json}"
 "${hermes_bin}" -p "${profile}" config set model.provider "${provider_id}"
@@ -247,7 +253,7 @@ if [[ "${scope}" != 'system' && ( -n "${ai_commands_root}" || -n "${workflow_ins
   printf '%s\n' \
     "Your active workflow contract is \`${workflow_instructions_path}\`; read it before substantive work." \
     "Your selected AI command catalog root is \`${ai_commands_root}\`. The commands allowed by this workflow are: \`${workflow_command_ids}\`." \
-    'For every user request, first match the intent against those selected commands. When one matches, read `<AI commands root>/<command>/<command>.command.md` completely and use its documented scripts, adapters, drivers, configuration, and verification steps instead of improvising an equivalent workflow.' \
+    'For every user request, first match the intent against those selected commands. When one matches, locate its unique `<command>.command.md` contract beneath the categorized AI commands root, read it completely, and use its documented scripts, adapters, drivers, configuration, and verification steps instead of improvising an equivalent workflow.' \
     'Load only the matching command contracts; do not treat unselected catalog commands as authorized merely because they exist.' \
     >>"${soul_tmp}"
 fi

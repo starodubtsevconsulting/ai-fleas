@@ -84,7 +84,7 @@ Committed configuration template: `hermes-agents/hermes-agents.command.example.c
 Hermes must be installed and pass its smoke test before profile, bot, or workflow-group initialization.
 
 The selected portable workflow manifest at `ai-workflows/<workflow>/agents.yml` is authoritative for Agent names and
-portable properties such as `aiProvider` and `flow`. The Hermes adapter realizes that roster as Hermes profiles and a
+portable properties such as `aiBinding` and `flow`. The Hermes adapter realizes that roster as Hermes profiles and a
 group chat; it does not maintain a second platform-specific roster or invent generic workers. A workflow entry may
 reference a profile-owned `agent_providers_config` file that binds individual Agents or their stable binding names to a
 provider alias and model alias from the profile provider catalog.
@@ -102,6 +102,27 @@ workflow groups become the primary navigation; opening a group exposes its named
 surface a hidden profile temporarily while it is active or has attention-worthy recent activity.
 
 The profile-owned provider catalog is the target map. Each `providers[]` entry describes one model box or service and its endpoint; each nested `models[]` entry maps a stable model alias to the concrete provider model and optional `hermes` context settings. Adding or replacing a computer therefore changes profile configuration, not this reusable command or its workflows.
+
+A provider may expose named connection routes without becoming two logical providers. Keep the LAN route as the default and select a protected public route only for a remote Hermes instance:
+
+```yaml
+endpoint:
+  default: local
+  connections:
+    local:
+      url: http://192.0.2.32:8000/v1
+    remote:
+      url: https://model-box.example.com/v1
+      headers:
+        CF-Access-Client-Id:
+          environment_variable: EXAMPLE_CF_ACCESS_CLIENT_ID
+        CF-Access-Client-Secret:
+          environment_variable: EXAMPLE_CF_ACCESS_CLIENT_SECRET
+```
+
+Run `initialize --work-profile example --workflow dev --instance 2 --connection remote` after exporting the referenced secrets. Header values are resolved at runtime and must never be committed to the provider catalog.
+See the [Cloudflare operator runbook](../../connect/cloudflare/cloudflare.command.md#6-add-machine-to-machine-access-for-hermes)
+for tunnel/application ownership, service-token creation, naming, policy attachment, and end-to-end evidence.
 
 ## Subcommands
 
