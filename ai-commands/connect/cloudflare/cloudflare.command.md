@@ -96,6 +96,8 @@ token scope; a Global API Key is not supported.
 
 ## Tunnel controller UI
 
+![Multi-provider Cloudflare Tunnel controller](assets/tunnel-controller.png)
+
 Run `cloudflare.command.sh ui` from an activated profile and workflow. The launcher follows the same
 `app.sh → Electron main/preload → launcher/panel` structure as the Lyrics Timestamp and Handwriting Effect commands.
 On first use it installs the pinned command-local Electron dependency with `npm ci` when no compatible host Electron
@@ -123,12 +125,27 @@ provider row filters the log stream to that tunnel. Vertically centered tabs sho
 the current provider; this remains usable when the workflow contains many providers without creating a long tab strip.
 Connector output uses dependency-free semantic highlighting for provider tags, timestamps, severity levels, and IP
 addresses. Log text is HTML-escaped before highlighting, and existing secret redaction remains in force.
-The search field filters the retained in-memory output inside the current provider scope. Pressing Escape clears the
+The search field filters the retained output inside the current provider scope. Pressing Escape clears the
 query. The controller retains at most 10,000 log chunks by default. Set `CLOUDFLARE_UI_LOG_LIMIT` to a positive integer
 to change the limit (capped at 1,000,000). Retention duration depends on log volume, so 10,000 chunks does not guarantee
-exactly one day. The header reports displayed and total retained line counts. **Clear** empties only the in-memory buffer;
-it does not stop connectors or delete files. The controller does not write connector logs to disk, and closing it clears
-the retained history.
+exactly one day. The header reports displayed and total retained line counts. Connector output and lifecycle events are
+also persisted to `~/Library/Logs/AI Fleas/cloudflare-tunnels.log` on macOS (or `CLOUDFLARE_UI_LOG_DIR` when explicitly
+configured), with secret redaction and line-based rotation at the same configured limit. Historical lines are restored
+when the UI starts. **Clear** empties only the visible buffer; it does not stop connectors or delete the audit log.
+
+If a UI-managed connector exits unexpectedly, the controller records the exit reason and reconnects automatically with
+exponential backoff from one second up to 30 seconds. An intentional **Stop** or application quit cancels reconnection.
+This protects against transient network and `cloudflared` failures; keeping the controller itself alive across terminal
+session loss or crashes requires an operating-system supervisor such as a macOS LaunchAgent. A supervised launch may set
+`CLOUDFLARE_UI_AUTOSTART=all` or a comma-separated provider-ID list; only targets configured in the selected authorized
+profile/workflow are started.
+
+For an always-on macOS controller, supervise the UI with a LaunchAgent using `RunAtLoad=true` and `KeepAlive=true`.
+This restarts the controller after crashes, signals, terminal-session loss, and clean accidental exits. Under this mode,
+the tray **Quit** action is effectively a restart; intentionally taking the controller offline requires unloading or
+disabling its LaunchAgent. Renderer-process failures are recorded and the UI reloads while connector children continue.
+Set `CLOUDFLARE_UI_START_HIDDEN=true` for login launches that should remain in the menu bar without opening a window.
+Manual launches omit this setting and open the controller normally.
 
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
