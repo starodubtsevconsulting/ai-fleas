@@ -37,6 +37,16 @@ smoke_test() {
   printf '%s\n' 'REMOTE_DESKTOP_SMOKE_PASS: boot-persistent GNOME RDP, TLS, and LAN firewall rule verified.'
 }
 
+system_grdctl() {
+  local output
+  output="$(sudo -n grdctl --system "$@" 2>&1)"
+  printf '%s\n' "$output"
+  if grep -Eq '(^|[[:space:]])Failed to |\[ERROR\]' <<<"$output"; then
+    printf 'REMOTE_DESKTOP_CONFIGURATION_FAILED: grdctl --system %s\n' "$*" >&2
+    return 1
+  fi
+}
+
 case "$action" in
   status) require_ubuntu; status ;;
   smoke-test) require_ubuntu; smoke_test ;;
@@ -48,25 +58,33 @@ case "$action" in
     }
     sudo -n apt-get update
     sudo -n env DEBIAN_FRONTEND=noninteractive apt-get install -y gnome-remote-desktop openssl
-    sudo -n install -o root -g gnome-remote-desktop -m 0750 -d "$cert_dir"
+    sudo -n install -o gnome-remote-desktop -g gnome-remote-desktop -m 0700 -d "$cert_dir"
     if ! sudo -n test -s "$cert_file" || ! sudo -n test -s "$key_file"; then
       temp_dir="$(mktemp -d)"
       trap 'rm -rf -- "$temp_dir"' EXIT
       openssl req -new -newkey rsa:3072 -days 825 -nodes -x509 \
         -subj "/CN=$(hostname)" -keyout "$temp_dir/rdp-tls.key" -out "$temp_dir/rdp-tls.crt" >/dev/null 2>&1
-      sudo -n install -o root -g gnome-remote-desktop -m 0640 "$temp_dir/rdp-tls.key" "$key_file"
-      sudo -n install -o root -g gnome-remote-desktop -m 0644 "$temp_dir/rdp-tls.crt" "$cert_file"
+      sudo -n install -o gnome-remote-desktop -g gnome-remote-desktop -m 0600 "$temp_dir/rdp-tls.key" "$key_file"
+      sudo -n install -o gnome-remote-desktop -g gnome-remote-desktop -m 0644 "$temp_dir/rdp-tls.crt" "$cert_file"
     fi
-    sudo -n grdctl --system rdp set-tls-cert "$cert_file"
-    sudo -n grdctl --system rdp set-tls-key "$key_file"
-    sudo -n grdctl --system rdp set-auth-methods credentials
-    sudo -n grdctl --system rdp disable-view-only
-    sudo -n grdctl --system rdp disable-port-negotiation
-    sudo -n grdctl --system rdp enable
+    sudo -n chown gnome-remote-desktop:gnome-remote-desktop "$cert_dir" "$cert_file" "$key_file"
+    sudo -n chmod 0700 "$cert_dir"
+    sudo -n chmod 0644 "$cert_file"
+    sudo -n chmod 0600 "$key_file"
+    system_grdctl rdp set-tls-cert "$cert_file"
+    system_grdctl rdp set-tls-key "$key_file"
+    system_grdctl rdp set-auth-methods credentials
+    system_grdctl rdp disable-view-only
+    system_grdctl rdp disable-port-negotiation
+    system_grdctl rdp enable
     sudo -n ufw allow 22/tcp
     sudo -n ufw allow from "$allowed_cidr" to any port 3389 proto tcp
     sudo -n ufw --force enable
     sudo -n systemctl enable --now gnome-remote-desktop.service
+    sudo -n grdctl --system status | grep -q 'Status: enabled' || {
+      printf '%s\n' 'REMOTE_DESKTOP_CONFIGURATION_FAILED: RDP did not remain enabled.' >&2
+      exit 1
+    }
     printf '%s\n' 'REMOTE_DESKTOP_CREDENTIALS_REQUIRED: run sudo grdctl --system rdp set-credentials, then run smoke-test.'
     ;;
   check-update|update|upgrade|uninstall)
