@@ -17,8 +17,8 @@ policy:
   scheduling: ../_common/agents/scheduling.md
 
 # Logical agent properties act like a portable interface. A platform adapter
-# realizes the properties it supports. `aiProvider` is independent from model;
-# `profile-default` means resolve the concrete provider from the active profile.
+# realizes the properties it supports. `aiBinding` selects a profile-owned
+# provider/model binding; `profile-default` selects the workflow default.
 # Scope declares where the agent belongs, independently from what it may access.
 # Matrix columns bind each declared agent to workflow-local capability and route policy.
 # Continuity follows the common default unless an agent overrides it, for example:
@@ -35,7 +35,7 @@ initializer:
   communicationMode: direct-human-administration-only
   readinessToken: ADMIN_READY
   governedRosterOwner: manager
-  aiProvider: profile-default
+  aiBinding: profile-default
   schedule: { enabled: false }
 
 agents:
@@ -49,7 +49,7 @@ agents:
     communicationMode: human-dialogue-and-canonical-packets
     readinessToken: DESIGNER_REVIEWER_READY
     requiresTicket: false
-    aiProvider: profile-default
+    aiBinding: profile-default
     continuity: { maxDuration: 24h }
     schedule: { enabled: false }
   - agentId: judge
@@ -62,7 +62,7 @@ agents:
     communicationMode: direct-human-governance-only
     readinessToken: WORKFLOW_GOVERNANCE_JUDGE_READY
     requiresTicket: false
-    aiProvider: profile-default
+    aiBinding: profile-default
     continuity: { maxDuration: 24h }
     schedule: { enabled: true, every: 10m, instruction: agents/schedules/judge-governance-audit.yml }
   - agentId: manager
@@ -75,7 +75,7 @@ agents:
     communicationMode: internal-canonical-packets-only
     readinessToken: MANAGER_READY
     requiresTicket: false
-    aiProvider: profile-default
+    aiBinding: profile-default
     continuity: { maxDuration: 24h }
     schedule: { enabled: true, every: 10m, instruction: agents/schedules/manager-continuity.yml }
   - agentId: coder
@@ -88,7 +88,7 @@ agents:
     communicationMode: internal-canonical-packets-only
     readinessToken: CODER_READY
     requiresTicket: true
-    aiProvider: profile-default
+    aiBinding: profile-default
     continuity: { maxDuration: 24h }
     schedule: { enabled: false }
     elasticPool: { enabled: true, minReady: 0, maxActive: 3 }
@@ -102,7 +102,7 @@ agents:
     communicationMode: internal-canonical-packets-only
     readinessToken: COMMAND_RUNNER_READY
     requiresTicket: true
-    aiProvider: profile-default
+    aiBinding: profile-default
     continuity: { maxDuration: 24h }
     schedule: { enabled: false }
     elasticPool: { enabled: true, minReady: 1, maxActive: 4 }
@@ -116,7 +116,7 @@ agents:
     communicationMode: internal-canonical-packets-only
     readinessToken: UI_ACCEPTANCE_TESTER_READY
     requiresTicket: true
-    aiProvider: profile-default
+    aiBinding: profile-default
     continuity: { maxDuration: 24h }
     schedule: { enabled: false }
 

@@ -21,7 +21,7 @@ configurable:
     type: path
     ownership: workflow
     required: true
-  aiProvider:
-    type: provider-binding
+  aiBinding:
+    type: provider-model-binding
     ownership: profile
     required: true
