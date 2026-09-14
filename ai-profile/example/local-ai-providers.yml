@@ -24,7 +24,18 @@ providers:
     label: ASUS GX10 model provider
     protocol: openai-compatible
     endpoint:
-      url: http://192.0.2.32:8000/v1
+      default: local
+      connections:
+        local:
+          url: http://192.0.2.32:8000/v1
+        remote:
+          url: https://model-box.example.com/v1
+          # Secret values are resolved only from the runtime environment.
+          headers:
+            CF-Access-Client-Id:
+              environment_variable: EXAMPLE_CF_ACCESS_CLIENT_ID
+            CF-Access-Client-Secret:
+              environment_variable: EXAMPLE_CF_ACCESS_CLIENT_SECRET
     models:
       - id: qwen-coder
         provider_model: qwen3-coder-next-q5km
