@@ -103,6 +103,9 @@ explicitly allows it in the listed workflow. Choose a pair and click **Use profi
 configuration overrides and re-runs the standard command guard for the selected profile and workflow on every
 operation; the selector itself does not grant authority. Profile switching is disabled while this window owns a running
 connector. Stop that connector before switching so it cannot be accidentally carried across profiles.
+The selector and **Model provider** status card also show the workflow's `local_ai.provider` binding, making the provider
+resolved by the workflow explicit. Displaying a provider does not invent a tunnel for it: each additional provider still
+requires its own profile-owned Cloudflare target before its connector can be managed.
 
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.

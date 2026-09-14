@@ -15,7 +15,7 @@ function contextsFromProfile(profileId, document) {
   if (!commandBound || !Array.isArray(document.workflows)) return [];
   return document.workflows
     .filter((workflow) => workflow && isSafeWorkflow(workflow.path) && Array.isArray(workflow.commands) && workflow.commands.includes('cloudflare'))
-    .map((workflow) => ({ profileId, workflow: workflow.path }));
+    .map((workflow) => ({ profileId, workflow: workflow.path, providerId: workflow.local_ai?.provider || '' }));
 }
 
 function discoverContexts(profileRoot) {
@@ -42,6 +42,8 @@ function contextEnv(baseEnv, selected) {
   env.AI_WORK_PROFILE_ID = selected.profileId;
   env.WORK_PROFILE_ID = selected.profileId;
   env.AI_FLOW_WORKFLOW = selected.workflow;
+  if (selected.providerId) env.AI_MODEL_PROVIDER_ID = selected.providerId;
+  else delete env.AI_MODEL_PROVIDER_ID;
   return env;
 }
 

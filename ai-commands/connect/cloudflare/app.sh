@@ -38,7 +38,7 @@ const fs = require('node:fs');
 const html = fs.readFileSync(process.argv[2], 'utf8');
 const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
 for (const script of scripts) new Function(script);
-for (const expected of ['Tunnel controller', 'Profile and workflow', 'Use profile', 'Start connector', 'Stop connector', 'Access gate', 'Open public URL']) {
+for (const expected of ['Tunnel controller', 'Profile and workflow', 'Model provider', 'Use profile', 'Start connector', 'Stop connector', 'Access gate', 'Open public URL']) {
   if (!html.includes(expected)) throw new Error(`Cloudflare panel missing: ${expected}`);
 }
 NODE
