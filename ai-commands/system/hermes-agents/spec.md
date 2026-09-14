@@ -16,9 +16,9 @@ requires a verified profile, scheduler, running gateway, and durable System rece
 
 - Public files contain no organization, client, machine, endpoint, credential, or private-platform defaults.
 - The selected workflow owns the team/role roster in `ai-workflows/<workflow>/agents.yml`. Hermes does not define a second roster.
-- Hermes honors the workflow Agent properties it supports, including `aiProvider` and `flow`, when realizing those Agents as Hermes profiles.
+- Hermes honors the workflow Agent properties it supports, including `aiBinding` and `flow`, when realizing those Agents as Hermes profiles.
 - The profile-owned provider catalog maps provider aliases to endpoint, protocol, authentication and available model details.
-- An optional profile-owned workflow Agent binding maps a workflow Agent or its declared `aiProvider` binding name to one provider alias and model alias.
+- An optional profile-owned workflow Agent binding maps a workflow Agent or its declared `aiBinding` name to one provider alias and model alias.
 - Unknown providers, models, flows, contracts, workspaces, or runtime dependencies fail closed during complete-roster preflight before any workflow profile is mutated.
 - Provider endpoint and authentication details remain profile-owned and are never embedded in reusable role definitions.
 - Workflow and command contracts are resolved exactly and injected as references, not duplicated into this command.

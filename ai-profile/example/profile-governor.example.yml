@@ -6,7 +6,7 @@ scope: profile
 lifecycle: persistent
 humanFacing: true
 readinessToken: PERSONAL_GOVERNOR_READY
-aiProvider: profile-default
+aiBinding: profile-default
 
 profile:
   id: example
