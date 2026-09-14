@@ -6,6 +6,10 @@ root_dir="$(cd "$script_dir/.." && pwd)"
 # shellcheck disable=SC1091
 source "$root_dir/scripts/report-log.sh"
 report_log_init "docker/install.sh" "$root_dir"
+if [[ "$(uname -s)" != Linux ]] || [[ ! -r /etc/os-release ]] || ! grep -q '^ID=ubuntu$' /etc/os-release; then
+  printf '%s\n' 'DOCKER_INSTALL_UNAVAILABLE: reviewed installer supports Ubuntu only.' >&2
+  exit 3
+fi
 if ! "$script_dir/../scripts/confirm-reinstall.sh" "Docker" "command -v docker"; then
   exit 0
 fi
