@@ -258,7 +258,7 @@ projects:
 
 # projects/dev/example-service/project.yml
 id: organization/example-service
-repo_path: /configured/path/example-service
+repo_path: ~/projects/example-workspace/example-service
 remote_url: https://example.invalid/organization/example-service.git
 knowledge:
   - id: local-development
@@ -266,6 +266,10 @@ knowledge:
     ref: knowledge/local-development.md
     applies_to: [build, validation]
 ```
+
+Project paths may be absolute or home-relative with `~/`. Consumers must expand `~/` against the active host user's home
+directory before validation or execution. Prefer home-relative paths when the same profile is used on macOS and Linux;
+keep task IDs, host IDs, scheduler IDs, credentials, and other runtime state in platform-owned local bindings.
 
 Each project is a directory whose `project.yml` is its entry point. Optional `commands/` and `knowledge/` directories sit
 beside it, keeping every project-specific resource inside one ownership boundary. Knowledge references resolve relative

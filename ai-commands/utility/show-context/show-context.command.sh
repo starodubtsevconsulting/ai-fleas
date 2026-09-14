@@ -327,7 +327,7 @@ if selected_label not in {selected.get("id"), selected.get("label")}:
 def resolve(path_value):
     if not path_value or path_value == "N/A":
         return None
-    path = Path(path_value)
+    path = Path(path_value).expanduser()
     if not path.is_absolute():
         path = workspace_root / path_value
     return path

@@ -76,10 +76,10 @@ YAML
 cat >"${test_root}/profiles/example/projects/youtube/channel/project.yml" <<YAML
 id: channel
 label: Channel
-repo_path: ${test_root}/workspace
+repo_path: ~/workspace
 YAML
 
-scope="$(node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/profiles" example youtube channel)"
+scope="$(HOME="${test_root}" node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/profiles" example youtube channel)"
 role_bindings="$(awk -F '\t' '{print $19}' <<<"${scope}")"
 
 ROLE_BINDINGS="${role_bindings}" TEST_ROOT="${test_root}" python3 - <<'PY'
@@ -99,7 +99,7 @@ PY
 
 cp "${test_root}/workflows/youtube/agents.yml" "${test_root}/workflows/youtube/agents.valid.yml"
 sed 's/aiBinding:/aiProvider:/' "${test_root}/workflows/youtube/agents.valid.yml" >"${test_root}/workflows/youtube/agents.yml"
-if node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/profiles" example youtube channel >"${test_root}/retired.out" 2>"${test_root}/retired.err"; then
+if HOME="${test_root}" node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/profiles" example youtube channel >"${test_root}/retired.out" 2>"${test_root}/retired.err"; then
   printf '%s\n' 'expected retired aiProvider property to fail' >&2
   exit 1
 fi
