@@ -7,12 +7,12 @@ test('lists only workflows that bind and allow cloudflare', () => {
     name: 'demo',
     commands: [{ id: 'cloudflare', config: 'commands/cloudflare.env' }],
     workflows: [
-      { path: 'dev.workflow.md', commands: ['cloudflare'] },
+      { path: 'dev.workflow.md', local_ai: { provider: 'example-model-provider' }, commands: ['cloudflare'] },
       { path: 'docs.workflow.md', commands: ['doc'] },
       { path: '../escape.workflow.md', commands: ['cloudflare'] }
     ]
   };
-  assert.deepEqual(profiles.contextsFromProfile('demo', document), [{ profileId: 'demo', workflow: 'dev.workflow.md' }]);
+  assert.deepEqual(profiles.contextsFromProfile('demo', document), [{ profileId: 'demo', workflow: 'dev.workflow.md', providerId: 'example-model-provider' }]);
   assert.deepEqual(profiles.contextsFromProfile('other', document), []);
 });
 
@@ -21,6 +21,7 @@ test('selected context replaces identity and clears stale config overrides', () 
   assert.equal(env.AI_WORK_PROFILE_ID, 'demo');
   assert.equal(env.WORK_PROFILE_ID, 'demo');
   assert.equal(env.AI_FLOW_WORKFLOW, 'dev.workflow.md');
+  assert.equal(env.AI_MODEL_PROVIDER_ID, undefined);
   assert.equal(env.KEEP_ME, 'yes');
   assert.equal(env.AI_PROFILE_FILE, undefined);
   assert.equal(env.AI_COMMAND_CONFIG_PATH, undefined);
