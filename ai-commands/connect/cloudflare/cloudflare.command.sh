@@ -12,7 +12,7 @@ fail() {
 
 usage() {
   printf '%s\n' \
-    'Usage: cloudflare.command.sh validate|token-check|run-tunnel|verify-access' \
+    'Usage: cloudflare.command.sh validate|token-check|run-tunnel|verify-access|ui' \
     '       cloudflare.command.sh install-connector --apply' \
     '       cloudflare.command.sh create-tunnel --apply --token-output ABSOLUTE_PATH' \
     '       cloudflare.command.sh install-service --apply'
@@ -34,6 +34,7 @@ public_url="${CLOUDFLARE_PUBLIC_URL:-}"
 origin_url="${CLOUDFLARE_ORIGIN_URL:-}"
 tunnel_name="${CLOUDFLARE_TUNNEL_NAME:-}"
 tunnel_token_env="${CLOUDFLARE_TUNNEL_TOKEN_ENV:-}"
+tunnel_token_file="${CLOUDFLARE_TUNNEL_TOKEN_FILE:-}"
 api_token_env="${CLOUDFLARE_API_TOKEN_ENV:-}"
 account_id="${CLOUDFLARE_ACCOUNT_ID:-}"
 zone_id="${CLOUDFLARE_ZONE_ID:-}"
@@ -72,6 +73,8 @@ validate_config() {
   [[ "$tunnel_name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] ||
     fail 'CLOUDFLARE_TUNNEL_NAME is missing or invalid'
   validate_env_name "$tunnel_token_env" 'CLOUDFLARE_TUNNEL_TOKEN_ENV'
+  [[ -z "$tunnel_token_file" || "$tunnel_token_file" == /* ]] ||
+    fail 'CLOUDFLARE_TUNNEL_TOKEN_FILE must be empty or an absolute path'
   validate_env_name "$api_token_env" 'CLOUDFLARE_API_TOKEN_ENV'
   [[ "$account_id" =~ ^[A-Fa-f0-9]{32}$ ]] || fail 'CLOUDFLARE_ACCOUNT_ID must be a 32-character hexadecimal ID'
   [[ "$zone_id" =~ ^[A-Fa-f0-9]{32}$ ]] || fail 'CLOUDFLARE_ZONE_ID must be a 32-character hexadecimal ID'
@@ -97,6 +100,69 @@ read_secret() {
   printf '%s' "$value"
 }
 
+read_tunnel_secret() {
+  local value="${!tunnel_token_env:-}"
+  if [[ -n "$value" ]]; then
+    printf '%s' "$value"
+    return
+  fi
+  [[ -n "$tunnel_token_file" && -f "$tunnel_token_file" ]] ||
+    fail "required secret environment variable $tunnel_token_env is not set and no tunnel token file is available"
+  local mode
+  mode="$(stat -f '%Lp' "$tunnel_token_file" 2>/dev/null || stat -c '%a' "$tunnel_token_file" 2>/dev/null || true)"
+  [[ "$mode" == '600' ]] || fail 'CLOUDFLARE_TUNNEL_TOKEN_FILE must have mode 0600'
+  value="$(<"$tunnel_token_file")"
+  [[ -n "$value" ]] || fail 'CLOUDFLARE_TUNNEL_TOKEN_FILE is empty'
+  printf '%s' "$value"
+}
+
+run_tunnel_exclusive() {
+  command -v pgrep >/dev/null 2>&1 || fail 'pgrep is required for duplicate connector prevention'
+  local lock_root="${TMPDIR:-/tmp}"
+  local lock_name="${tunnel_name//[^A-Za-z0-9._-]/_}"
+  local lock_dir="${lock_root%/}/ai-fleas-cloudflare-${lock_name}.lock"
+  local lock_pid_file="$lock_dir/pid"
+  local existing_pid=''
+
+  if ! mkdir "$lock_dir" 2>/dev/null; then
+    [[ -f "$lock_pid_file" ]] && existing_pid="$(<"$lock_pid_file")"
+    if [[ "$existing_pid" =~ ^[0-9]+$ ]] && kill -0 "$existing_pid" 2>/dev/null; then
+      fail "connector launch blocked: tunnel $tunnel_name is already managed by process $existing_pid"
+    fi
+    rm -f "$lock_pid_file"
+    rmdir "$lock_dir" 2>/dev/null || fail 'connector launch blocked: runtime lock is busy'
+    mkdir "$lock_dir" 2>/dev/null || fail 'connector launch blocked: another process acquired the runtime lock'
+  fi
+  printf '%s\n' "$$" >"$lock_pid_file"
+
+  cleanup_tunnel_lock() {
+    rm -f "$lock_pid_file"
+    rmdir "$lock_dir" 2>/dev/null || true
+  }
+  local cloudflared_pid=''
+  stop_cloudflared_child() {
+    [[ -n "$cloudflared_pid" ]] && kill -TERM "$cloudflared_pid" 2>/dev/null || true
+  }
+  trap stop_cloudflared_child INT TERM
+  trap cleanup_tunnel_lock EXIT
+
+  if pgrep -x cloudflared >/dev/null 2>&1; then
+    fail 'connector launch blocked: a cloudflared process is already running; reuse or stop it before starting another'
+  fi
+
+  local tunnel_token
+  tunnel_token="$(read_tunnel_secret)"
+  cloudflared tunnel --no-autoupdate run --token "$tunnel_token" &
+  cloudflared_pid=$!
+  set +e
+  wait "$cloudflared_pid"
+  local result=$?
+  set -e
+  trap - INT TERM EXIT
+  cleanup_tunnel_lock
+  return "$result"
+}
+
 json_value() {
   local field="$1"
   python3 -c 'import json,sys; value=json.load(sys.stdin); print(value["result"][sys.argv[1]])' "$field"
@@ -120,6 +186,11 @@ operation="${1:-}"
 shift || true
 
 case "$operation" in
+  ui)
+    [[ $# -eq 0 ]] || fail 'ui accepts no additional arguments'
+    validate_config
+    exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/app.sh"
+    ;;
   validate)
     [[ $# -eq 0 ]] || fail 'validate accepts no additional arguments'
     validate_config
@@ -200,8 +271,7 @@ case "$operation" in
     validate_config
     command -v cloudflared >/dev/null 2>&1 ||
       fail 'cloudflared is required; run install-connector --apply'
-    tunnel_token="$(read_secret "$tunnel_token_env")"
-    exec cloudflared tunnel --no-autoupdate run --token "$tunnel_token"
+    run_tunnel_exclusive
     ;;
   install-connector)
     [[ "${1:-}" == '--apply' && $# -eq 1 ]] ||
@@ -213,7 +283,7 @@ case "$operation" in
     validate_config
     command -v cloudflared >/dev/null 2>&1 ||
       fail 'cloudflared is required; run install-connector --apply'
-    tunnel_token="$(read_secret "$tunnel_token_env")"
+    tunnel_token="$(read_tunnel_secret)"
     if [[ "$(id -u)" -eq 0 ]]; then
       exec cloudflared service install "$tunnel_token"
     fi

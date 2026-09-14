@@ -54,6 +54,7 @@ as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must nev
 | `run-tunnel` | Run `cloudflared` in the foreground using the remotely managed tunnel token. |
 | `install-service --apply` | Install the remotely managed tunnel as an operating-system service. This is an explicit host mutation. |
 | `verify-access` | Make an unauthenticated request and require a Cloudflare Access login redirect. |
+| `ui` | Open the Electron tunnel controller for status, Access verification, logs, and app-owned start/stop actions. |
 
 ## Configuration contract
 
@@ -74,7 +75,9 @@ token scope; a Global API Key is not supported.
 - The origin must use `http` or `https` and resolve to a loopback, RFC1918 IPv4, `.internal`, `.local`, or `.localhost`
   host. Public origins fail closed.
 - The public URL must be HTTPS and must not contain credentials, query parameters, or fragments.
-- Tunnel and API tokens are loaded only through the configured environment-variable names and are never printed.
+- Tunnel and API tokens are loaded through configured environment-variable names and are never printed. The tunnel token
+  may alternatively use a profile-owned absolute `CLOUDFLARE_TUNNEL_TOKEN_FILE` with mode `0600`, allowing UI and service
+  launches without placing the token in a desktop process environment. API tokens remain environment-only.
 - `create-tunnel` requires an explicit absolute, nonexistent token-output path. It never overwrites a credential file and
   retains the token for recovery if a later ingress or DNS step fails.
 - The Access policy must allow exact approved identities and deny unauthenticated traffic. OTP must never be enabled with
@@ -82,6 +85,40 @@ token scope; a Global API Key is not supported.
 - `verify-access` does not follow redirects or authenticate; it only proves that an unauthenticated request reaches the
   Access login boundary.
 - This command does not configure NAT, firewall rules, Cloudflare bypass rules, or public tunnels without Access.
+- The Electron renderer never receives or reads API or tunnel tokens. Connector execution remains in the isolated main
+  process, logs are redacted, and the Stop action can terminate only a connector started by that UI process.
+- `run-tunnel` uses an atomic per-tunnel runtime lock and refuses to start while another `cloudflared` process is active.
+  Stale locks are recovered only when their recorded process no longer exists. Signals are forwarded to the connector and
+  the lock is removed on exit, preventing accidental duplicate connectors from concurrent terminals or UI windows.
+
+## Tunnel controller UI
+
+Run `cloudflare.command.sh ui` from an activated profile and workflow. The launcher follows the same
+`app.sh → Electron main/preload → launcher/panel` structure as the Lyrics Timestamp and Handwriting Effect commands.
+On first use it installs the pinned command-local Electron dependency with `npm ci` when no compatible host Electron
+runtime is supplied through `CLOUDFLARE_ELECTRON_BIN`.
+
+The **Profile and workflow** selector discovers local profiles whose manifest both binds the `cloudflare` command and
+explicitly allows it in the listed workflow. Choose a pair and click **Use profile**. The controller clears stale direct
+configuration overrides and re-runs the standard command guard for the selected profile and workflow on every
+operation; the selector itself does not grant authority. Profile switching is disabled while this window owns a running
+connector. Stop that connector before switching so it cannot be accidentally carried across profiles.
+The selector and **Model provider** status card also show the workflow's `local_ai.provider` binding, making the provider
+resolved by the workflow explicit. Displaying a provider does not invent a tunnel for it: each additional provider still
+requires its own profile-owned Cloudflare target before its connector can be managed.
+
+The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
+this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
+**Start connector** runs `run-tunnel` with the activated profile environment. **Stop connector** is enabled only for the
+child process started by the same window; an externally detected connector is intentionally read-only.
+If more than one connector process is detected despite the command lock, the UI displays a red **Conflict** state and
+disables both lifecycle buttons until the duplicate processes are resolved outside the app.
+
+To acceptance-test the controller, first stop any externally managed test connector. Select **Refresh** and require
+**Connector → Closed** with Start enabled and Stop disabled. Select **Start connector**, require **Open · managed here**
+with Stop enabled, and verify both `/` and `/v1/models` redirect to Cloudflare Access. Select **Stop connector**, require
+**Closed** and no `cloudflared` process, then select **Start connector** once more and repeat the public-boundary check so
+the test finishes with the service online.
 
 ## Operator runbook
 
@@ -223,7 +260,8 @@ idempotent when `cloudflared` is already on `PATH`. On Homebrew-based macOS host
 `brew install cloudflared`. Do not use a generic `brew services start cloudflared` invocation for a remotely managed
 tunnel because the connector must run with this tunnel's saved token.
 
-Load the saved connector token into the environment variable named by `CLOUDFLARE_TUNNEL_TOKEN_ENV`, then run
+Load the saved connector token into the environment variable named by `CLOUDFLARE_TUNNEL_TOKEN_ENV`, or configure the
+profile-owned absolute mode-`0600` token path as `CLOUDFLARE_TUNNEL_TOKEN_FILE`. Then run
 `cloudflare.command.sh run-tunnel` in the foreground for the first test. In another activated terminal, run
 `cloudflare.command.sh verify-access`. It must observe a Cloudflare Access login redirect while unauthenticated.
 
