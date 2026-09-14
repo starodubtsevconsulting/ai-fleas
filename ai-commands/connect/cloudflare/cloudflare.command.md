@@ -94,7 +94,69 @@ token scope; a Global API Key is not supported.
   Stale locks are recovered only when their recorded process no longer exists. Signals are forwarded to the connector and
   the lock is removed on exit, preventing accidental duplicate connectors from concurrent terminals or UI windows.
 
+## Deployment architecture
+
+The controller is portable between macOS and Ubuntu. It may run on a workstation or on a dedicated gateway; it does not
+need to run on either model-provider host. Every tunnel has an independent public hostname and forwards only to its
+configured private origin.
+
+```mermaid
+flowchart LR
+  Client[Authorized browser or API client]
+  Edge[Cloudflare Access and Tunnel edge]
+
+  subgraph Gateway[Choose one controller host]
+    Mac[macOS workstation<br/>Electron UI plus launchd]
+    Ubuntu[Ubuntu gateway<br/>headless runner plus systemd]
+  end
+
+  subgraph PrivateNetwork[Private network]
+    ProviderOne[Model provider one<br/>private origin]
+    ProviderTwo[Model provider two<br/>private origin]
+    ProviderMore[Additional providers<br/>optional]
+  end
+
+  Client -->|authenticate| Edge
+  Mac -. alternative .- Ubuntu
+  Mac <-->|outbound tunnel connections| Edge
+  Ubuntu <-->|outbound tunnel connections| Edge
+  Mac -->|private origin routes| ProviderOne
+  Mac -->|private origin routes| ProviderTwo
+  Mac -->|private origin routes| ProviderMore
+  Ubuntu -->|private origin routes| ProviderOne
+  Ubuntu -->|private origin routes| ProviderTwo
+  Ubuntu -->|private origin routes| ProviderMore
+```
+
+The OS-specific supervisor owns controller availability; the shared profile and workflow own which provider tunnels
+exist and which ones start automatically.
+
+```mermaid
+flowchart TD
+  Start[Install controller service from an activated profile and workflow]
+  Detect{Operating system}
+  Launchd[macOS: install LaunchAgent]
+  Systemd[Ubuntu: install systemd service]
+  Select[Read all or allowlisted provider targets]
+  Run[Start one connector per selected tunnel]
+  Watch{Connector still healthy?}
+  Backoff[Record failure and retry with bounded backoff]
+
+  Start --> Detect
+  Detect -->|macOS| Launchd
+  Detect -->|Ubuntu| Systemd
+  Launchd --> Select
+  Systemd --> Select
+  Select --> Run
+  Run --> Watch
+  Watch -->|yes| Watch
+  Watch -->|no| Backoff
+  Backoff --> Run
+```
+
 ## Tunnel controller UI
+
+![Multi-provider Cloudflare Tunnel controller](assets/tunnel-controller.png)
 
 Run `cloudflare.command.sh ui` from an activated profile and workflow. The launcher follows the same
 `app.sh → Electron main/preload → launcher/panel` structure as the Lyrics Timestamp and Handwriting Effect commands.
@@ -123,12 +185,40 @@ provider row filters the log stream to that tunnel. Vertically centered tabs sho
 the current provider; this remains usable when the workflow contains many providers without creating a long tab strip.
 Connector output uses dependency-free semantic highlighting for provider tags, timestamps, severity levels, and IP
 addresses. Log text is HTML-escaped before highlighting, and existing secret redaction remains in force.
-The search field filters the retained in-memory output inside the current provider scope. Pressing Escape clears the
+The search field filters the retained output inside the current provider scope. Pressing Escape clears the
 query. The controller retains at most 10,000 log chunks by default. Set `CLOUDFLARE_UI_LOG_LIMIT` to a positive integer
 to change the limit (capped at 1,000,000). Retention duration depends on log volume, so 10,000 chunks does not guarantee
-exactly one day. The header reports displayed and total retained line counts. **Clear** empties only the in-memory buffer;
-it does not stop connectors or delete files. The controller does not write connector logs to disk, and closing it clears
-the retained history.
+exactly one day. The header reports displayed and total retained line counts. Connector output and lifecycle events are
+also persisted to `~/Library/Logs/AI Fleas/cloudflare-tunnels.log` on macOS (or `CLOUDFLARE_UI_LOG_DIR` when explicitly
+configured), with secret redaction and line-based rotation at the same configured limit. Historical lines are restored
+when the UI starts. **Clear** empties only the visible buffer; it does not stop connectors or delete the audit log.
+
+If a UI-managed connector exits unexpectedly, the controller records the exit reason and reconnects automatically with
+exponential backoff from one second up to 30 seconds. An intentional **Stop** or application quit cancels reconnection.
+This protects against transient network and `cloudflared` failures; keeping the controller itself alive across terminal
+session loss or crashes requires an operating-system supervisor such as a macOS LaunchAgent. A supervised launch may set
+`CLOUDFLARE_UI_AUTOSTART=all` or a comma-separated provider-ID list; only targets configured in the selected authorized
+profile/workflow are started.
+
+Run `cloudflare.command.sh install-controller-service --apply` from the activated profile and workflow to install the
+native always-on controller. The installer detects the operating system:
+
+- On macOS it installs a per-user LaunchAgent with `RunAtLoad=true` and `KeepAlive=true`. The Electron controller starts
+  hidden in the menu bar at login, auto-starts the selected provider tunnels, and reopens when its menu-bar icon is used.
+  Under supervision, **Quit** causes a restart; intentionally taking it offline requires unloading the LaunchAgent.
+- On Ubuntu it installs a system-level `systemd` unit, starts at boot after networking is ready, and runs the connector
+  manager headlessly with `Restart=always`. No graphical session or Electron runtime is required. The optional UI may be
+  launched separately and reports these connectors as externally managed.
+
+Both variants pin the currently activated profile and workflow and default to all configured provider targets. Set
+`CLOUDFLARE_UI_AUTOSTART` to `all` or a comma-separated provider-ID allowlist before installation. Re-run the install
+command after moving the repository/profile or changing that selection. Tokens are never copied into the supervisor
+definition: use profile-owned `CLOUDFLARE_TUNNEL_TOKEN_FILE` paths with mode `0600` for unattended startup.
+
+An Ubuntu gateway can host every tunnel while the model providers remain on other private-network machines. Configure
+each provider target's `CLOUDFLARE_ORIGIN_URL` with that provider's reachable private IP and port. The gateway must be
+able to reach each origin, and firewall rules should permit the model port only from the gateway. A tunnel does not need
+to run on the model host itself.
 
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
@@ -263,8 +353,9 @@ In Cloudflare Zero Trust:
     Add further exact approved addresses as additional email values or explicitly reviewed include rules.
 13. Leave optional JIT, RDP clipboard, and unrelated connection settings at their defaults unless the deployment requires
     them. Do not broaden access while configuring unrelated options.
-14. Enable an approved identity provider or Cloudflare One-time PIN. With One-time PIN, access is still restricted by the
-    policy's exact-email rule; possession of an arbitrary email address must not be sufficient.
+14. Enable an approved identity provider or Cloudflare One-time PIN. Use the human-access procedure below to choose and
+    configure the login method. With One-time PIN, access is still restricted by the policy's exact-email rule;
+    possession of an arbitrary email address must not be sufficient.
 15. Review the preview before saving. It must show the intended exact hostname, an **Allow** policy, and only approved
     identity sources.
 16. Immediately before selecting **Save policy**, obtain human confirmation because this changes who can reach the
@@ -280,7 +371,54 @@ In Cloudflare Zero Trust:
 Do not start the connector before this policy exists. DNS and an active connector without Access would publish the origin
 to unauthenticated Internet users.
 
-### 6. Add machine-to-machine access for Hermes
+### 6. Configure human browser access
+
+Cloudflare Access supports two useful human login methods for this deployment. Both identify the user; the application's
+exact-email Allow policy still decides whether that identity may reach the protected Web UI.
+
+| Method | User experience | Cloud configuration |
+|---|---|---|
+| One-time PIN | Enter an approved email address, then enter the emailed code. | Enable Cloudflare One-time PIN. No external OAuth credential is required. |
+| Google | Select a Google account and approve the basic profile/email request. | Create a Google OAuth web client and add Google as a Cloudflare identity provider. A Google Workspace subscription is not required. |
+
+Prefer Google for regular users who already use Google accounts. Keep One-time PIN as a simple fallback when appropriate.
+Neither method replaces the Access Allow policy, and neither is suitable for Hermes or another unattended client.
+
+To add Google login:
+
+1. In Google Cloud, create or select a dedicated project for the Cloudflare Access integration.
+2. Configure **Google Auth Platform** with a descriptive app name, support/contact email, and **External** audience when
+   approved users may have ordinary Google accounts outside one Google Workspace organization.
+3. Create an OAuth client of type **Web application**.
+4. Set **Authorized JavaScript origins** to the Cloudflare Access team domain:
+
+   ```text
+   https://<team-name>.cloudflareaccess.com
+   ```
+
+5. Set **Authorized redirect URIs** to the Access callback:
+
+   ```text
+   https://<team-name>.cloudflareaccess.com/cdn-cgi/access/callback
+   ```
+
+6. Immediately store the generated Client ID and Client Secret in an approved secret store. The Client Secret is a
+   persistent credential: do not place it in the AI Profile, repository, chat, ticket, screenshot, or shell history.
+7. In Cloudflare Zero Trust, open **Integrations -> Identity providers**, add **Google**, and enter the OAuth Client ID and
+   Client Secret. Obtain human confirmation immediately before creating the OAuth client and before saving the secret in
+   Cloudflare when those actions were not already approved as one explicit setup operation.
+8. Select **Test** beside Google and complete a login. Require Cloudflare to report that the connection works and show the
+   expected email identity.
+9. Confirm the protected Access application accepts the Google identity provider. When the application is configured to
+   accept all available identity providers, Google is included automatically; otherwise add it explicitly.
+10. Test an approved email and an unapproved email in separate private browser sessions. Google authentication succeeding
+    does not prove authorization—the unapproved identity must still be denied by the application's exact-email policy.
+
+The AI Profile does not store Google OAuth credentials. Its human-access contract is the exact allowlist in
+`CLOUDFLARE_ALLOWED_EMAILS`, plus the hostname/tunnel configuration described below. Identity-provider credentials live
+only in Cloudflare and the provider's credential store.
+
+### 7. Add machine-to-machine access for Hermes
 
 Browser users authenticate through an approved identity provider or One-time PIN. Hermes cannot complete that
 interactive email/browser flow, so give it a Cloudflare Access service token when it must use the protected remote
@@ -366,7 +504,7 @@ A successful chat by itself proves only that some endpoint answered. A Cloudflar
 auxiliary request means that request did not authenticate consistently; verify service-token header propagation for
 every request path, including title generation, model listing, and chat completion.
 
-### 7. Run, verify, and install
+### 8. Run, verify, and install
 
 Run `cloudflare.command.sh install-connector --apply`. The connection command delegates physical package installation to
 the separately registered `install/cloudflare` command and then returns without starting a connector. The operation is
@@ -393,7 +531,7 @@ cloudflare.command.sh install-service --apply
 Do not share the tunnel connector token with API consumers. Use the service-token procedure above for programmatic
 `/v1` clients.
 
-### 8. Diagnose the first public request
+### 9. Diagnose the first public request
 
 Before the connector starts, requesting the public hostname can return Cloudflare **Error 1033** or HTTP `530`. This is
 expected when DNS points at the tunnel but no healthy `cloudflared` connector is attached; it does not prove that the

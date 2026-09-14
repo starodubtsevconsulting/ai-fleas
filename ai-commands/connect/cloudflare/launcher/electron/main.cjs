@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage } = require('electron');
 const { spawn } = require('node:child_process');
 const path = require('node:path');
+const fs = require('node:fs');
+const os = require('node:os');
 const actions = require('./cloudflare-ui-actions.cjs');
 const profiles = require('./profile-contexts.cjs');
 
@@ -13,15 +15,53 @@ let isQuitting = false;
 let availableContexts = profiles.discoverContexts(profileRoot);
 let selectedContext = availableContexts.find((item) => item.profileId === (process.env.AI_WORK_PROFILE_ID || process.env.WORK_PROFILE_ID) && item.workflow === process.env.AI_FLOW_WORKFLOW) || availableContexts[0];
 const connectors = new Map();
+const restartBaseMs = 1000;
+const restartMaxMs = 30000;
+const persistentLogLimit = Math.min(Math.max(Number.parseInt(process.env.CLOUDFLARE_UI_LOG_LIMIT || '10000', 10) || 10000, 1), 1000000);
+const startHidden = /^(1|true|yes)$/i.test(process.env.CLOUDFLARE_UI_START_HIDDEN || '');
+const logDir = process.env.CLOUDFLARE_UI_LOG_DIR || path.join(os.homedir(), 'Library', 'Logs', 'AI Fleas');
+const logPath = path.join(logDir, 'cloudflare-tunnels.log');
+let writtenSinceTrim = 0;
+
+function persistLog(line) {
+  try {
+    fs.mkdirSync(logDir, { recursive: true, mode: 0o700 });
+    fs.appendFileSync(logPath, `${line.replace(/\n+$/, '')}\n`, { mode: 0o600 });
+    writtenSinceTrim += 1;
+    if (writtenSinceTrim >= 250) {
+      const lines = fs.readFileSync(logPath, 'utf8').split('\n').filter(Boolean);
+      if (lines.length > persistentLogLimit) fs.writeFileSync(logPath, `${lines.slice(-persistentLogLimit).join('\n')}\n`, { mode: 0o600 });
+      writtenSinceTrim = 0;
+    }
+  } catch (error) {
+    process.stderr.write(`Cloudflare log persistence failed: ${error.message}\n`);
+  }
+}
 
 function spawnOptions(providerId) {
   const env = profiles.contextEnv(process.env, selectedContext);
   if (providerId) env.CLOUDFLARE_PROVIDER_ID = providerId; else delete env.CLOUDFLARE_PROVIDER_ID;
   return { cwd: commandDir, env };
 }
-function connectorFor(providerId) { return connectors.get(providerId); }
+function connectorFor(providerId) { return connectors.get(providerId)?.child; }
 function emitLog(providerId, chunk) {
-  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('cloudflare:log', `[${providerId}] ${actions.safeLog(chunk)}`);
+  const line = `[${providerId}] ${actions.safeLog(chunk)}`;
+  persistLog(`${new Date().toISOString()} ${line}`);
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('cloudflare:log', line);
+}
+function historicalLogs() {
+  try { return fs.readFileSync(logPath, 'utf8').split('\n').filter(Boolean).slice(-persistentLogLimit); } catch { return []; }
+}
+function controllerLog(message) { persistLog(`${new Date().toISOString()} [controller] ${actions.safeLog(message)}`); }
+async function autostartConnectors() {
+  const configured = String(process.env.CLOUDFLARE_UI_AUTOSTART || '').trim();
+  if (!configured) return;
+  const available = await targetIds();
+  const requested = configured === 'all' ? available : configured.split(',').map((item) => item.trim()).filter(Boolean);
+  for (const providerId of requested) {
+    if (!available.includes(providerId)) { emitLog(providerId, 'Autostart skipped: provider is not configured.\n'); continue; }
+    try { await startConnector(providerId); } catch (error) { emitLog(providerId, `Autostart failed: ${error.message}\n`); }
+  }
 }
 async function targetIds() {
   if (!selectedContext) return [];
@@ -37,27 +77,45 @@ async function requireTarget(providerId) { if (!(await targetIds()).includes(pro
 
 ipcMain.handle('cloudflare:contexts', () => ({ contexts: availableContexts, selected: selectedContext }));
 ipcMain.handle('cloudflare:targets', allStatuses);
+ipcMain.handle('cloudflare:logs', historicalLogs);
 ipcMain.handle('cloudflare:select-context', async (_event, requested) => {
-  if ([...connectors.values()].some((child) => child.exitCode === null)) throw new Error('Stop UI-managed connectors before switching profile.');
+  if ([...connectors.values()].some((state) => state.child.exitCode === null)) throw new Error('Stop UI-managed connectors before switching profile.');
   availableContexts = profiles.discoverContexts(profileRoot);
   const match = availableContexts.find((item) => item.profileId === requested?.profileId && item.workflow === requested?.workflow);
   if (!match) throw new Error('That profile and workflow do not allow the Cloudflare command.');
   selectedContext = match;
   return { selected: selectedContext, targets: await allStatuses() };
 });
-ipcMain.handle('cloudflare:start', async (_event, providerId) => {
+async function startConnector(providerId, attempt = 0) {
   await requireTarget(providerId);
-  const existing = connectorFor(providerId);
+  const state = connectors.get(providerId);
+  const existing = state?.child;
   if (existing && existing.exitCode === null) return targetStatus(providerId);
   const child = spawn(commandPath, ['run-tunnel'], { ...spawnOptions(providerId), stdio: ['ignore', 'pipe', 'pipe'] });
-  connectors.set(providerId, child);
+  const nextState = { child, stopping: false, restartTimer: null, attempt };
+  connectors.set(providerId, nextState);
+  emitLog(providerId, attempt ? `Restart attempt ${attempt} started.\n` : 'Connector start requested.\n');
   child.stdout.on('data', (chunk) => emitLog(providerId, chunk)); child.stderr.on('data', (chunk) => emitLog(providerId, chunk));
-  child.once('error', (error) => emitLog(providerId, error.message)); child.once('exit', (code, signal) => emitLog(providerId, `Connector stopped (${signal || code}).\n`));
+  child.once('error', (error) => emitLog(providerId, `Connector error: ${error.message}\n`));
+  child.once('exit', (code, signal) => {
+    emitLog(providerId, `Connector stopped (${signal || code}).\n`);
+    const current = connectors.get(providerId);
+    if (!current || current.child !== child || current.stopping || isQuitting) return;
+    const nextAttempt = current.attempt + 1;
+    const delay = Math.min(restartBaseMs * (2 ** Math.min(nextAttempt - 1, 5)), restartMaxMs);
+    emitLog(providerId, `Unexpected disconnect; reconnecting in ${delay / 1000}s.\n`);
+    current.restartTimer = setTimeout(() => startConnector(providerId, nextAttempt).catch((error) => emitLog(providerId, `Restart failed: ${error.message}\n`)), delay);
+  });
   await new Promise((resolve) => setTimeout(resolve, 900));
   return targetStatus(providerId);
+}
+ipcMain.handle('cloudflare:start', async (_event, providerId) => {
+  return startConnector(providerId);
 });
 ipcMain.handle('cloudflare:stop', async (_event, providerId) => {
-  const child = connectorFor(providerId);
+  const state = connectors.get(providerId);
+  const child = state?.child;
+  if (state) { state.stopping = true; if (state.restartTimer) clearTimeout(state.restartTimer); }
   if (child && child.exitCode === null) { child.kill('SIGTERM'); await new Promise((resolve) => child.once('exit', resolve)); }
   connectors.delete(providerId); return targetStatus(providerId);
 });
@@ -67,14 +125,21 @@ ipcMain.handle('cloudflare:open-public-url', async (_event, providerId) => {
 });
 
 function createWindow() {
-  mainWindow = new BrowserWindow({ width: 1080, height: 760, minWidth: 820, minHeight: 600, title: 'Cloudflare Tunnels', backgroundColor: '#0d1117', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+  mainWindow = new BrowserWindow({ show: !startHidden, width: 1080, height: 760, minWidth: 820, minHeight: 600, title: 'Cloudflare Tunnels', backgroundColor: '#0d1117', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
   mainWindow.setMenuBarVisibility(false); mainWindow.setAutoHideMenuBar(true); mainWindow.loadFile(path.join(__dirname, '../panel/index.html'));
+  if (startHidden && app.dock) app.dock.hide();
   mainWindow.on('close', (event) => {
     if (isQuitting) return;
     event.preventDefault();
     mainWindow.hide();
     if (app.dock) app.dock.hide();
   });
+  mainWindow.webContents.on('render-process-gone', (_event, details) => {
+    controllerLog(`Renderer stopped (${details.reason}, exit ${details.exitCode}); reloading UI.\n`);
+    if (!isQuitting && mainWindow && !mainWindow.isDestroyed()) mainWindow.reload();
+  });
+  mainWindow.on('unresponsive', () => controllerLog('Controller window became unresponsive.\n'));
+  mainWindow.on('responsive', () => controllerLog('Controller window recovered.\n'));
 }
 function showWindow() {
   if (!mainWindow || mainWindow.isDestroyed()) createWindow();
@@ -99,7 +164,14 @@ function createTray() {
   ]));
   tray.on('click', showWindow);
 }
-app.whenReady().then(() => { createWindow(); createTray(); });
-app.on('before-quit', () => { isQuitting = true; for (const child of connectors.values()) if (child.exitCode === null) child.kill('SIGTERM'); });
+process.on('uncaughtException', (error) => controllerLog(`Uncaught controller error: ${error.stack || error.message}\n`));
+process.on('unhandledRejection', (error) => controllerLog(`Unhandled controller rejection: ${error?.stack || error}\n`));
+app.on('child-process-gone', (_event, details) => controllerLog(`Electron child process stopped (${details.type}: ${details.reason}, exit ${details.exitCode}).\n`));
+app.whenReady().then(async () => {
+  createWindow();
+  createTray();
+  try { await autostartConnectors(); } catch (error) { controllerLog(`Autostart initialization failed: ${error.message}\n`); }
+});
+app.on('before-quit', () => { isQuitting = true; for (const state of connectors.values()) { state.stopping = true; if (state.restartTimer) clearTimeout(state.restartTimer); if (state.child.exitCode === null) state.child.kill('SIGTERM'); } });
 app.on('window-all-closed', () => {});
 app.on('activate', showWindow);

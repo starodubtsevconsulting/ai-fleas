@@ -29,6 +29,9 @@ if [[ "${1:-}" != '--serve-check' && -z "$electron_bin" && -f "$launcher_root/pa
 fi
 
 if [[ "${1:-}" == '--serve-check' ]]; then
+  bash -n "$script_dir/controller-service.sh" "$script_dir/service-runner.sh"
+  "$script_dir/cloudflare.command.test.sh"
+  "$script_dir/controller-service.test.sh"
   node --check "$script_dir/launcher/electron/main.cjs"
   node --check "$script_dir/launcher/electron/preload.cjs"
   node --test "$script_dir/launcher/electron/"*.test.cjs
