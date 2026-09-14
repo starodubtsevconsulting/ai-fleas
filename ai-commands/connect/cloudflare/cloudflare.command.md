@@ -123,7 +123,9 @@ addresses. Log text is HTML-escaped before highlighting, and existing secret red
 The search field filters the retained in-memory output inside the current provider scope. Pressing Escape clears the
 query. The controller retains at most 10,000 log chunks by default. Set `CLOUDFLARE_UI_LOG_LIMIT` to a positive integer
 to change the limit (capped at 1,000,000). Retention duration depends on log volume, so 10,000 chunks does not guarantee
-exactly one day. The controller does not write connector logs to disk, and closing it clears the retained history.
+exactly one day. The header reports displayed and total retained line counts. **Clear** empties only the in-memory buffer;
+it does not stop connectors or delete files. The controller does not write connector logs to disk, and closing it clears
+the retained history.
 
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
