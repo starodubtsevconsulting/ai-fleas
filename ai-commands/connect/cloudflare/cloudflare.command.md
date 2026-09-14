@@ -116,9 +116,8 @@ runtime lock still refuses a second connector for the same tunnel. Closing the c
 by that window.
 The connector log is a bottom split panel. It can collapse to a compact footer, expands to roughly half the window by
 default, and has a draggable horizontal divider so the provider list and logs can be resized independently. Selecting a
-provider row filters the log stream to that tunnel. The centered tab shows only the current selection; clicking a
-selected provider tab returns to **All logs**. This remains usable when the workflow contains many providers without
-creating a long strip of tabs.
+provider row filters the log stream to that tunnel. Vertically centered tabs show **All logs** and, when selected, only
+the current provider; this remains usable when the workflow contains many providers without creating a long tab strip.
 
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
