@@ -2,7 +2,7 @@ id: example-channel
 label: Example YouTube channel
 description: TODO placeholder YouTube channel project; replace or remove when copying this profile.
 project_type: folder
-repo_path: /absolute/path/to/example-workspace/example-youtube-channel
+repo_path: ~/projects/example-workspace/example-youtube-channel
 storage_type: folder
-storage_path: /absolute/path/to/example-workspace/example-youtube-channel
+storage_path: ~/projects/example-workspace/example-youtube-channel
 storage_label: Folder

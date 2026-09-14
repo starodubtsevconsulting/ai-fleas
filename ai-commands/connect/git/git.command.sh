@@ -106,6 +106,11 @@ resolve_project_path_from_registry() {
   if [ -z "$raw_path" ]; then
     return 1
   fi
+  if [[ "$raw_path" = '~' ]]; then
+    raw_path="$HOME"
+  elif [[ "$raw_path" = '~/'* ]]; then
+    raw_path="$HOME/${raw_path:2}"
+  fi
   if [[ "$raw_path" = /* ]]; then
     printf '%s\n' "$raw_path"
     return 0
