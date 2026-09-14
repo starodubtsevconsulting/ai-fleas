@@ -17,6 +17,7 @@ function readYaml(file) {
   return value;
 }
 function inside(root, target, label) { const rr = path.resolve(root), rt = path.resolve(target); if (rt !== rr && !rt.startsWith(`${rr}${path.sep}`)) fail(`${label} escapes its boundary.`); return rt; }
+function expandHome(value) { return value === '~' ? process.env.HOME : value.startsWith('~/') ? path.join(process.env.HOME || '', value.slice(2)) : value; }
 
 safeId(workProfileId, 'work-profile ID');
 const selectedProfileRoot = inside(profileRoot, path.join(profileRoot, workProfileId), 'work profile');
@@ -86,7 +87,7 @@ const workflow = workflows.find((item) => item?.harness === 'hermes');
 const projectRef = workflow?.projects?.[0]?.ref;
 if (!projectRef || path.isAbsolute(projectRef)) fail('System requires the profile primary project.');
 const project = readYaml(inside(selectedProfileRoot, path.join(selectedProfileRoot, projectRef), 'primary project'));
-const primaryProjectPath = String(project.repo_path || '');
+const primaryProjectPath = expandHome(String(project.repo_path || ''));
 if (!path.isAbsolute(primaryProjectPath) || !fs.statSync(primaryProjectPath, { throwIfNoEntry: false })?.isDirectory()) fail('primary project path is unavailable.');
 // System needs the profile's receipts and bindings, not a workflow's coding
 // posture or project-level AGENTS.md. Use the selected profile directory as
