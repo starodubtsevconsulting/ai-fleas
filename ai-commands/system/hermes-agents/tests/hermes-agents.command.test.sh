@@ -209,8 +209,14 @@ remote_system_scope="$(node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_roo
 [[ "${remote_system_scope}" == *$'\thttps://example-model.invalid/v1\t'* ]]
 remote_headers_b64="$(cut -f7 <<<"${remote_system_scope}")"
 [[ "$(printf '%s' "${remote_headers_b64}" | base64 --decode)" == '{"CF-Access-Client-Id":"test-client-id","CF-Access-Client-Secret":"test-client-secret"}' ]]
-"${COMMAND}" initialize-system --work-profile example --connection remote --validate-only >"${test_root}/system-remote-preflight-output"
-grep -F 'HERMES_SYSTEM_REINITIALIZE_PREFLIGHT_READY: profile=example-system watch=example-dev; no System changes were made.' "${test_root}/system-remote-preflight-output" >/dev/null
+"${COMMAND}" initialize-system --work-profile example --instance 2 --connection remote --validate-only >"${test_root}/system-remote-preflight-output"
+grep -F 'HERMES_SYSTEM_REINITIALIZE_PREFLIGHT_READY: profile=example-system-2 watch=example-dev; no System changes were made.' "${test_root}/system-remote-preflight-output" >/dev/null
+receipt_test_path="${test_root}/system-receipts.yml"
+receipt_python="${HERMES_RECEIPT_TEST_PYTHON:-${HOME}/.hermes/hermes-agent/venv/bin/python}"
+[[ -x "${receipt_python}" ]] || receipt_python=python3
+"${receipt_python}" "${SOURCE_DIR}/write-system-receipt.py" --path "${receipt_test_path}" --profile example-system --title example-system --provider example-box --model example-model --every 10m --scheduler-id canonical-job --watch-group example-dev
+"${receipt_python}" "${SOURCE_DIR}/write-system-receipt.py" --path "${receipt_test_path}" --profile example-system-2 --instance 2 --title example-system-2 --provider example-box --model example-model --every 10m --scheduler-id test-job --watch-group example-dev
+RECEIPT_PATH="${receipt_test_path}" "${receipt_python}" -c 'import os,yaml; d=yaml.safe_load(open(os.environ["RECEIPT_PATH"])); assert d["system"]["profile_id"] == "example-system"; assert d["system_instances"]["example-system-2"]["profile_id"] == "example-system-2"'
 unset AI_FLOW_WORKFLOW
 if "${COMMAND}" reinitialize-system --work-profile example >"${test_root}/system-reinitialize-without-confirm" 2>&1; then
   printf '%s\n' 'reinitialize-system unexpectedly succeeded without confirmation' >&2
