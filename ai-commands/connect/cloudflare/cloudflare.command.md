@@ -94,6 +94,66 @@ token scope; a Global API Key is not supported.
   Stale locks are recovered only when their recorded process no longer exists. Signals are forwarded to the connector and
   the lock is removed on exit, preventing accidental duplicate connectors from concurrent terminals or UI windows.
 
+## Deployment architecture
+
+The controller is portable between macOS and Ubuntu. It may run on a workstation or on a dedicated gateway; it does not
+need to run on either model-provider host. Every tunnel has an independent public hostname and forwards only to its
+configured private origin.
+
+```mermaid
+flowchart LR
+  Client[Authorized browser or API client]
+  Edge[Cloudflare Access and Tunnel edge]
+
+  subgraph Gateway[Choose one controller host]
+    Mac[macOS workstation<br/>Electron UI plus launchd]
+    Ubuntu[Ubuntu gateway<br/>headless runner plus systemd]
+  end
+
+  subgraph PrivateNetwork[Private network]
+    ProviderOne[Model provider one<br/>private origin]
+    ProviderTwo[Model provider two<br/>private origin]
+    ProviderMore[Additional providers<br/>optional]
+  end
+
+  Client -->|authenticate| Edge
+  Mac -. alternative .- Ubuntu
+  Mac <-->|outbound tunnel connections| Edge
+  Ubuntu <-->|outbound tunnel connections| Edge
+  Mac -->|private origin routes| ProviderOne
+  Mac -->|private origin routes| ProviderTwo
+  Mac -->|private origin routes| ProviderMore
+  Ubuntu -->|private origin routes| ProviderOne
+  Ubuntu -->|private origin routes| ProviderTwo
+  Ubuntu -->|private origin routes| ProviderMore
+```
+
+The OS-specific supervisor owns controller availability; the shared profile and workflow own which provider tunnels
+exist and which ones start automatically.
+
+```mermaid
+flowchart TD
+  Start[Install controller service from an activated profile and workflow]
+  Detect{Operating system}
+  Launchd[macOS: install LaunchAgent]
+  Systemd[Ubuntu: install systemd service]
+  Select[Read all or allowlisted provider targets]
+  Run[Start one connector per selected tunnel]
+  Watch{Connector still healthy?}
+  Backoff[Record failure and retry with bounded backoff]
+
+  Start --> Detect
+  Detect -->|macOS| Launchd
+  Detect -->|Ubuntu| Systemd
+  Launchd --> Select
+  Systemd --> Select
+  Select --> Run
+  Run --> Watch
+  Watch -->|yes| Watch
+  Watch -->|no| Backoff
+  Backoff --> Run
+```
+
 ## Tunnel controller UI
 
 ![Multi-provider Cloudflare Tunnel controller](assets/tunnel-controller.png)
