@@ -118,6 +118,8 @@ The connector log is a bottom split panel. It can collapse to a compact footer, 
 default, and has a draggable horizontal divider so the provider list and logs can be resized independently. Selecting a
 provider row filters the log stream to that tunnel. Vertically centered tabs show **All logs** and, when selected, only
 the current provider; this remains usable when the workflow contains many providers without creating a long tab strip.
+Connector output uses dependency-free semantic highlighting for provider tags, timestamps, severity levels, and IP
+addresses. Log text is HTML-escaped before highlighting, and existing secret redaction remains in force.
 
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
