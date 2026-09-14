@@ -24,11 +24,11 @@ agents:
   - agentId: lyrics-script-worker
     roleDefinition: ../_common/roles/worker.md
     flow: flows/lyrics.md
-    aiProvider: youtube-lyrics-script
+    aiBinding: youtube-script-writing
   - agentId: audio-worker
     roleDefinition: ../_common/roles/worker.md
     flow: flows/audio.md
-    aiProvider: youtube-default-worker
+    aiBinding: youtube-general-production
 YAML
 
 cat >"${test_root}/profiles/example/example-work-profile.yml" <<YAML
@@ -69,8 +69,8 @@ cat >"${test_root}/profiles/example/workflows-config/youtube/agents.yml" <<'YAML
 schema_version: workflow-agent-providers.v1
 workflow_id: youtube
 bindings:
-  youtube-lyrics-script: { provider: gx10-local, model: gemma-q8 }
-  youtube-default-worker: { provider: openai-service, model: gpt-sol }
+  youtube-script-writing: { provider: gx10-local, model: gemma-q8 }
+  youtube-general-production: { provider: openai-service, model: gpt-sol }
 YAML
 
 cat >"${test_root}/profiles/example/projects/youtube/channel/project.yml" <<YAML
@@ -80,7 +80,7 @@ repo_path: ${test_root}/workspace
 YAML
 
 scope="$(node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/profiles" example youtube channel)"
-role_bindings="$(awk -F '\t' '{print $18}' <<<"${scope}")"
+role_bindings="$(awk -F '\t' '{print $19}' <<<"${scope}")"
 
 ROLE_BINDINGS="${role_bindings}" TEST_ROOT="${test_root}" python3 - <<'PY'
 import base64
@@ -91,10 +91,18 @@ assert len(records) == 2
 by_role = {record[0]: record for record in records}
 lyrics = by_role["lyrics-script-worker"]
 audio = by_role["audio-worker"]
-assert lyrics[2] == "gx10-local" and lyrics[5] == "gemma-4-31b-q8" and lyrics[6] == "32768"
-assert audio[2] == "openai-service" and audio[5] == "gpt-5.6-sol" and audio[6] == "65536"
-assert base64.b64decode(lyrics[11]).decode().endswith("/workflows/youtube/flows/lyrics.md")
-assert base64.b64decode(audio[11]).decode().endswith("/workflows/youtube/flows/audio.md")
+assert lyrics[2] == "gx10-local" and lyrics[6] == "gemma-4-31b-q8" and lyrics[7] == "32768"
+assert audio[2] == "openai-service" and audio[6] == "gpt-5.6-sol" and audio[7] == "65536"
+assert base64.b64decode(lyrics[12]).decode().endswith("/workflows/youtube/flows/lyrics.md")
+assert base64.b64decode(audio[12]).decode().endswith("/workflows/youtube/flows/audio.md")
 PY
+
+cp "${test_root}/workflows/youtube/agents.yml" "${test_root}/workflows/youtube/agents.valid.yml"
+sed 's/aiBinding:/aiProvider:/' "${test_root}/workflows/youtube/agents.valid.yml" >"${test_root}/workflows/youtube/agents.yml"
+if node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/profiles" example youtube channel >"${test_root}/retired.out" 2>"${test_root}/retired.err"; then
+  printf '%s\n' 'expected retired aiProvider property to fail' >&2
+  exit 1
+fi
+grep -Fq "uses retired property 'aiProvider'; rename it to 'aiBinding'" "${test_root}/retired.err"
 
 printf '%s\n' 'Hermes per-agent provider/model and flow resolution: PASS'
