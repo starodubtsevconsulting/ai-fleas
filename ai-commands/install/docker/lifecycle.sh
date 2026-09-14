@@ -37,7 +37,14 @@ case "$action" in
       exit 3
     fi
     bash "$script_dir/install.sh"
-    docker_smoke_test
+    if id -nG | grep -qw docker; then
+      docker_smoke_test
+    elif command -v sg >/dev/null 2>&1 && id -nG "$USER" | grep -qw docker; then
+      sg docker -c "'$script_dir/lifecycle.sh' smoke-test"
+    else
+      printf '%s\n' 'DOCKER_SMOKE_FAILED: user was not added to the Docker group.' >&2
+      exit 1
+    fi
     ;;
   check-update|update)
     printf '%s\n' 'DOCKER_UPDATE_CHECK_UNAVAILABLE: no reviewed stable-channel comparison is available.'
