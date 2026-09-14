@@ -110,7 +110,8 @@ requires its own profile-owned Cloudflare target before its connector can be man
 For multiple providers, set `CLOUDFLARE_PROVIDER_TARGETS` in the profile-owned command configuration to comma-separated
 `provider-id=safe/relative-target.env` entries. Each target file contains that provider's public URL, private origin,
 tunnel name, token reference, account/zone IDs, and approved identities. The controller renders every configured target
-as an independent card with Start, Stop, and Open URL controls. Different tunnel names may run concurrently; the atomic
+as a compact row in a scrollable list with independent Start and Stop controls and a directly clickable public URL.
+Different tunnel names may run concurrently; the atomic
 runtime lock still refuses a second connector for the same tunnel. Closing the controller stops only connectors started
 by that window.
 
