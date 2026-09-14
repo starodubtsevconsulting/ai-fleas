@@ -4,6 +4,7 @@ const configuredLogLimit = Number.parseInt(process.env.CLOUDFLARE_UI_LOG_LIMIT |
 contextBridge.exposeInMainWorld('cloudflareTunnel', {
   logLimit: Number.isFinite(configuredLogLimit) && configuredLogLimit > 0 ? Math.min(configuredLogLimit, 1000000) : 10000,
   targets: () => ipcRenderer.invoke('cloudflare:targets'),
+  logs: () => ipcRenderer.invoke('cloudflare:logs'),
   contexts: () => ipcRenderer.invoke('cloudflare:contexts'),
   selectContext: (selection) => ipcRenderer.invoke('cloudflare:select-context', selection),
   start: (providerId) => ipcRenderer.invoke('cloudflare:start', providerId),
