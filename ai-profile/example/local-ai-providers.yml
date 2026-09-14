@@ -14,7 +14,8 @@ providers:
         local:
           url: http://192.0.2.27:8080/v1
         remote:
-          url: https://rtx-model-box.example.com/v1
+          # Must match the corresponding Cloudflare target's public hostname.
+          url: https://rtx3080ti-model.example.invalid/v1
           # A machine-to-machine route resolves secrets only from the runtime
           # environment; never commit the service-token values here.
           headers:
@@ -41,7 +42,8 @@ providers:
         local:
           url: http://192.0.2.32:8000/v1
         remote:
-          url: https://model-box.example.com/v1
+          # Must match the corresponding Cloudflare target's public hostname.
+          url: https://gx10-model.example.invalid/v1
           # Secret values are resolved only from the runtime environment.
           headers:
             CF-Access-Client-Id:
