@@ -88,6 +88,7 @@ function createTray() {
   const trayIcon = icon.resize({ width: 18, height: 18 });
   if (process.platform === 'darwin') trayIcon.setTemplateImage(true);
   tray = new Tray(trayIcon);
+  if (process.platform === 'darwin') tray.setTitle('CF');
   tray.setToolTip('Cloudflare Tunnels');
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: 'Show Cloudflare Tunnels', click: showWindow },
