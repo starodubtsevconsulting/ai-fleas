@@ -4,7 +4,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { parseDocument } from 'yaml';
 
-const [profileRoot, workProfileId] = process.argv.slice(2);
+const [profileRoot, workProfileId, connectionSelector = ''] = process.argv.slice(2);
 function fail(message) { console.error(`HERMES_SYSTEM_SCOPE_INVALID: ${message}`); process.exit(1); }
 function safeId(value, label) { if (!/^[a-z0-9][a-z0-9_-]*$/.test(value)) fail(`${label} is unsafe or missing.`); return value; }
 function readYaml(file) {
@@ -45,9 +45,37 @@ const providerMatches = (Array.isArray(catalog.providers) ? catalog.providers : 
 if (providerMatches.length !== 1) fail(`provider '${providerAlias}' did not resolve exactly once.`);
 const provider = providerMatches[0];
 if (provider.protocol !== 'openai-compatible') fail(`provider '${providerAlias}' is not OpenAI-compatible.`);
-const endpointEnv = String(provider.endpoint?.environment_variable || '');
-const endpoint = ((endpointEnv && process.env[endpointEnv]) || String(provider.endpoint?.url || '')).replace(/\/$/, '');
+const endpointConfig = provider.endpoint || {};
+const connections = endpointConfig.connections;
+let selectedEndpoint = endpointConfig;
+if (connections !== undefined) {
+  if (!connections || typeof connections !== 'object' || Array.isArray(connections)) fail(`provider '${providerAlias}' endpoint.connections must be a mapping.`);
+  const connection = connectionSelector || String(endpointConfig.default || 'local');
+  safeId(connection, 'provider connection');
+  selectedEndpoint = connections[connection];
+  if (!selectedEndpoint || typeof selectedEndpoint !== 'object' || Array.isArray(selectedEndpoint)) {
+    const available = Object.keys(connections).sort().join(',') || 'none';
+    fail(`provider '${providerAlias}' has no connection '${connection}' (available: ${available}).`);
+  }
+} else if (connectionSelector && connectionSelector !== 'default' && connectionSelector !== 'local') {
+  fail(`provider '${providerAlias}' does not define named connections; cannot select '${connectionSelector}'.`);
+}
+const endpointEnv = String(selectedEndpoint.environment_variable || '');
+const endpoint = ((endpointEnv && process.env[endpointEnv]) || String(selectedEndpoint.url || '')).replace(/\/$/, '');
 if (!/^https?:\/\/[^\s]+$/.test(endpoint)) fail(`provider '${providerAlias}' has no usable endpoint.`);
+const configuredHeaders = selectedEndpoint.headers || {};
+if (!configuredHeaders || typeof configuredHeaders !== 'object' || Array.isArray(configuredHeaders)) fail(`provider '${providerAlias}' endpoint headers must be a mapping.`);
+const headers = {};
+for (const [name, source] of Object.entries(configuredHeaders)) {
+  if (!/^[A-Za-z0-9-]+$/.test(name)) fail(`provider '${providerAlias}' has an unsafe HTTP header name.`);
+  if (!source || typeof source !== 'object' || Array.isArray(source)) fail(`provider '${providerAlias}' header '${name}' must use a secret environment_variable mapping.`);
+  const environmentVariable = String(source.environment_variable || '');
+  if (!/^[A-Z][A-Z0-9_]*$/.test(environmentVariable)) fail(`provider '${providerAlias}' header '${name}' has an invalid secret environment variable.`);
+  const value = process.env[environmentVariable];
+  if (!value) fail(`provider '${providerAlias}' connection requires secret environment variable ${environmentVariable}.`);
+  if (/[\r\n]/.test(value)) fail(`provider '${providerAlias}' header '${name}' contains unsupported control characters.`);
+  headers[name] = value;
+}
 const modelMatches = (Array.isArray(provider.models) ? provider.models : []).filter((item) => item?.id === modelAlias);
 if (modelMatches.length !== 1) fail(`model '${modelAlias}' did not resolve exactly once.`);
 const model = modelMatches[0], hermes = model.hermes;
@@ -72,6 +100,7 @@ const every = String(system.schedule?.every || '');
 if (system.schedule?.enabled !== true || !/^[1-9][0-9]*[mhd]$/.test(every)) fail('enabled System schedule has an invalid interval.');
 const title = String(binding.title || '⚙️ System');
 if (!title || /[\t\r\n]/.test(title)) fail('System title is invalid.');
-const values = [workProfileId, `${workProfileId}-system`, title, providerAlias, String(provider.label || providerAlias), endpoint, providerModel, String(hermes.context_window_tokens), String(hermes.compression_threshold), String(hermes.compression_target), String(hermes.protect_last_messages), workspace, rolePath, schedulePath, every, watchedWorkflowGroups.join(',')];
+const headersB64 = Buffer.from(JSON.stringify(headers), 'utf8').toString('base64');
+const values = [workProfileId, `${workProfileId}-system`, title, providerAlias, String(provider.label || providerAlias), endpoint, headersB64, providerModel, String(hermes.context_window_tokens), String(hermes.compression_threshold), String(hermes.compression_target), String(hermes.protect_last_messages), workspace, rolePath, schedulePath, every, watchedWorkflowGroups.join(',')];
 if (values.some((value) => !value || /[\t\r\n]/.test(value))) fail('resolved System values are empty or contain control characters.');
 process.stdout.write(`${values.join('\t')}\n`);

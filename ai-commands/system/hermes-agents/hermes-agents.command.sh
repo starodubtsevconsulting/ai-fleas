@@ -59,8 +59,8 @@ usage() {
     '       hermes-agents.command.sh show PROFILE' \
     '       hermes-agents.command.sh status PROFILE' \
     '       hermes-agents.command.sh delete PROFILE --confirm-delete' \
-    '       hermes-agents.command.sh initialize-system --work-profile ID [--watch-group ID]... [--every DURATION]' \
-    '       hermes-agents.command.sh reinitialize-system --work-profile ID --confirm-reinitialize [--watch-group ID]... [--every DURATION]' \
+    '       hermes-agents.command.sh initialize-system --work-profile ID [--connection NAME] [--watch-group ID]... [--every DURATION]' \
+    '       hermes-agents.command.sh reinitialize-system --work-profile ID --confirm-reinitialize [--connection NAME] [--watch-group ID]... [--every DURATION]' \
     '       hermes-agents.command.sh status-system --work-profile ID'
 }
 
@@ -98,7 +98,7 @@ case "${action}" in
     initialize_args=()
     while (($#)); do
       case "$1" in
-        --work-profile|--watch-group|--every)
+        --work-profile|--connection|--watch-group|--every)
           [[ $# -ge 2 ]] || { usage >&2; exit 2; }
           initialize_args+=("$1" "$2"); shift 2
           ;;
@@ -133,12 +133,14 @@ case "${action}" in
     ;;
   initialize-system)
     work_profile="${WORK_PROFILE_ID:-}"
+    connection=''
     every=''
     watch_groups=()
     validate_only=false
     while (($#)); do
       case "$1" in
         --work-profile) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; work_profile="$2"; shift 2 ;;
+        --connection) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; connection="$2"; shift 2 ;;
         --watch-group) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; validate_profile "$2"; watch_groups+=("$2"); shift 2 ;;
         --every) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; every="$2"; shift 2 ;;
         --validate-only) validate_only=true; shift ;;
@@ -147,8 +149,8 @@ case "${action}" in
     done
     [[ -n "${work_profile}" ]] || { printf '%s\n' 'HERMES_SYSTEM_SCOPE_INVALID: use --work-profile or activate a profile.' >&2; exit 2; }
     validate_profile "${work_profile}"
-    system_scope="$(node "${SYSTEM_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}")"
-    IFS=$'\t' read -r resolved_profile system_profile system_title system_provider system_provider_label system_endpoint system_model system_context system_threshold system_target system_protect system_workspace system_role_path system_schedule_path configured_every configured_watch_csv <<<"${system_scope}"
+    system_scope="$(node "${SYSTEM_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${connection}")"
+    IFS=$'\t' read -r resolved_profile system_profile system_title system_provider system_provider_label system_endpoint system_headers_b64 system_model system_context system_threshold system_target system_protect system_workspace system_role_path system_schedule_path configured_every configured_watch_csv <<<"${system_scope}"
     [[ -n "${every}" ]] || every="${configured_every}"
     [[ "${every}" =~ ^[1-9][0-9]*[mhd]$ ]] || { printf '%s\n' 'HERMES_SYSTEM_SCOPE_INVALID: --every must use a positive m, h, or d duration.' >&2; exit 2; }
     IFS=',' read -r -a configured_watch_groups <<<"${configured_watch_csv}"
@@ -171,7 +173,7 @@ case "${action}" in
     binding_registry="${PROFILE_ROOT}/${resolved_profile}/.local/hermes-agents/bindings.yml"
     export HERMES_SCOPE=system HERMES_PROFILE="${system_profile}" HERMES_ROLE=system HERMES_ROLE_TITLE="${system_title}"
     export HERMES_WORK_PROFILE="${resolved_profile}" HERMES_PROVIDER_ID="${system_provider}" HERMES_PROVIDER_LABEL="${system_provider_label}"
-    export HERMES_ENDPOINT="${system_endpoint}" HERMES_MODEL="${system_model}" HERMES_CONTEXT_LENGTH="${system_context}"
+    export HERMES_ENDPOINT="${system_endpoint}" HERMES_EXTRA_HEADERS_B64="${system_headers_b64}" HERMES_MODEL="${system_model}" HERMES_CONTEXT_LENGTH="${system_context}"
     export HERMES_COMPRESSION_THRESHOLD="${system_threshold}" HERMES_COMPRESSION_TARGET_RATIO="${system_target}" HERMES_COMPRESSION_PROTECT_LAST_N="${system_protect}"
     export HERMES_WORKSPACE="${system_workspace}" HERMES_SYSTEM_ROLE_PATH="${system_role_path}" HERMES_SYSTEM_SCHEDULE_PATH="${system_schedule_path}"
     export HERMES_SYSTEM_WATCH_GROUPS="${watch_csv}" HERMES_BINDING_REGISTRY_PATH="${binding_registry}" HERMES_GROUP=''
