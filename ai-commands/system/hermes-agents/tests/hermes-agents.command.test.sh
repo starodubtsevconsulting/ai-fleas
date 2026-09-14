@@ -259,6 +259,7 @@ grep -F 'HERMES_UPDATE_AVAILABLE' "${test_root}/check-update-output" >/dev/null
 "${COMMAND}" initialize --work-profile example --workflow dev --project service >"${test_root}/output"
 grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/output" >/dev/null
 grep -F 'Hermes bot ready: example-dev-coder' "${test_root}/output" >/dev/null
+grep -F 'Hermes provider configured: profile=example-dev-admin provider=example-box endpoint=http://192.0.2.10:1234/v1 headers=none' "${test_root}/output" >/dev/null
 grep -F 'Hermes group member ready: example-dev (example-dev-admin as Admin)' "${test_root}/output" >/dev/null
 grep -F 'HERMES_WORKFLOW_PREFLIGHT: group=example-dev agents=2' "${test_root}/output" >/dev/null
 grep -F 'HERMES_WORKFLOW_READY: group=example-dev agents=2 all_agents_ready=true profiles=example-dev-admin,example-dev-coder' "${test_root}/output" >/dev/null
@@ -268,6 +269,12 @@ grep -F "${test_root}/workspace" "${HERMES_HOME}/profiles/example-dev-admin/SOUL
 grep -F "${test_root}/web-workspace" "${HERMES_HOME}/profiles/example-dev-admin/SOUL.md" >/dev/null
 grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-admin/profile.yaml" >/dev/null
 grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-coder/profile.yaml" >/dev/null
+"${COMMAND}" initialize --work-profile example --workflow dev --project service --instance remote-log --connection remote >"${test_root}/protected-output"
+grep -F 'Hermes provider configured: profile=example-dev-remote-log-admin provider=example-box endpoint=https://example-model.invalid/v1 headers=protected' "${test_root}/protected-output" >/dev/null
+if grep -F 'test-client-secret' "${test_root}/protected-output" >/dev/null; then
+  printf '%s\n' 'protected provider secret leaked into initialization output' >&2
+  exit 1
+fi
 export HERMES_TEST_FAIL_PROFILE=example-dev-coder
 if "${COMMAND}" reconcile --work-profile example --workflow dev --project service >"${test_root}/partial-output" 2>"${test_root}/partial-error"; then
   printf '%s\n' 'reconcile unexpectedly succeeded after injected profile failure' >&2
