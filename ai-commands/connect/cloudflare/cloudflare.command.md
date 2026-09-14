@@ -263,8 +263,9 @@ In Cloudflare Zero Trust:
     Add further exact approved addresses as additional email values or explicitly reviewed include rules.
 13. Leave optional JIT, RDP clipboard, and unrelated connection settings at their defaults unless the deployment requires
     them. Do not broaden access while configuring unrelated options.
-14. Enable an approved identity provider or Cloudflare One-time PIN. With One-time PIN, access is still restricted by the
-    policy's exact-email rule; possession of an arbitrary email address must not be sufficient.
+14. Enable an approved identity provider or Cloudflare One-time PIN. Use the human-access procedure below to choose and
+    configure the login method. With One-time PIN, access is still restricted by the policy's exact-email rule;
+    possession of an arbitrary email address must not be sufficient.
 15. Review the preview before saving. It must show the intended exact hostname, an **Allow** policy, and only approved
     identity sources.
 16. Immediately before selecting **Save policy**, obtain human confirmation because this changes who can reach the
@@ -280,7 +281,54 @@ In Cloudflare Zero Trust:
 Do not start the connector before this policy exists. DNS and an active connector without Access would publish the origin
 to unauthenticated Internet users.
 
-### 6. Add machine-to-machine access for Hermes
+### 6. Configure human browser access
+
+Cloudflare Access supports two useful human login methods for this deployment. Both identify the user; the application's
+exact-email Allow policy still decides whether that identity may reach the protected Web UI.
+
+| Method | User experience | Cloud configuration |
+|---|---|---|
+| One-time PIN | Enter an approved email address, then enter the emailed code. | Enable Cloudflare One-time PIN. No external OAuth credential is required. |
+| Google | Select a Google account and approve the basic profile/email request. | Create a Google OAuth web client and add Google as a Cloudflare identity provider. A Google Workspace subscription is not required. |
+
+Prefer Google for regular users who already use Google accounts. Keep One-time PIN as a simple fallback when appropriate.
+Neither method replaces the Access Allow policy, and neither is suitable for Hermes or another unattended client.
+
+To add Google login:
+
+1. In Google Cloud, create or select a dedicated project for the Cloudflare Access integration.
+2. Configure **Google Auth Platform** with a descriptive app name, support/contact email, and **External** audience when
+   approved users may have ordinary Google accounts outside one Google Workspace organization.
+3. Create an OAuth client of type **Web application**.
+4. Set **Authorized JavaScript origins** to the Cloudflare Access team domain:
+
+   ```text
+   https://<team-name>.cloudflareaccess.com
+   ```
+
+5. Set **Authorized redirect URIs** to the Access callback:
+
+   ```text
+   https://<team-name>.cloudflareaccess.com/cdn-cgi/access/callback
+   ```
+
+6. Immediately store the generated Client ID and Client Secret in an approved secret store. The Client Secret is a
+   persistent credential: do not place it in the AI Profile, repository, chat, ticket, screenshot, or shell history.
+7. In Cloudflare Zero Trust, open **Integrations -> Identity providers**, add **Google**, and enter the OAuth Client ID and
+   Client Secret. Obtain human confirmation immediately before creating the OAuth client and before saving the secret in
+   Cloudflare when those actions were not already approved as one explicit setup operation.
+8. Select **Test** beside Google and complete a login. Require Cloudflare to report that the connection works and show the
+   expected email identity.
+9. Confirm the protected Access application accepts the Google identity provider. When the application is configured to
+   accept all available identity providers, Google is included automatically; otherwise add it explicitly.
+10. Test an approved email and an unapproved email in separate private browser sessions. Google authentication succeeding
+    does not prove authorization—the unapproved identity must still be denied by the application's exact-email policy.
+
+The AI Profile does not store Google OAuth credentials. Its human-access contract is the exact allowlist in
+`CLOUDFLARE_ALLOWED_EMAILS`, plus the hostname/tunnel configuration described below. Identity-provider credentials live
+only in Cloudflare and the provider's credential store.
+
+### 7. Add machine-to-machine access for Hermes
 
 Browser users authenticate through an approved identity provider or One-time PIN. Hermes cannot complete that
 interactive email/browser flow, so give it a Cloudflare Access service token when it must use the protected remote
@@ -366,7 +414,7 @@ A successful chat by itself proves only that some endpoint answered. A Cloudflar
 auxiliary request means that request did not authenticate consistently; verify service-token header propagation for
 every request path, including title generation, model listing, and chat completion.
 
-### 7. Run, verify, and install
+### 8. Run, verify, and install
 
 Run `cloudflare.command.sh install-connector --apply`. The connection command delegates physical package installation to
 the separately registered `install/cloudflare` command and then returns without starting a connector. The operation is
@@ -393,7 +441,7 @@ cloudflare.command.sh install-service --apply
 Do not share the tunnel connector token with API consumers. Use the service-token procedure above for programmatic
 `/v1` clients.
 
-### 8. Diagnose the first public request
+### 9. Diagnose the first public request
 
 Before the connector starts, requesting the public hostname can return Cloudflare **Error 1033** or HTTP `530`. This is
 expected when DNS points at the tunnel but no healthy `cloudflared` connector is attached; it does not prove that the
