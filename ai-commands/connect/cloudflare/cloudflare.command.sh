@@ -32,7 +32,7 @@ source "$config_path"
 
 operation="${1:-}"
 shift || true
-provider_id="${CLOUDFLARE_PROVIDER_ID:-}"
+provider_id="${CLOUDFLARE_PROVIDER_ID:-${AI_MODEL_PROVIDER_ID:-}}"
 provider_targets="${CLOUDFLARE_PROVIDER_TARGETS:-}"
 
 load_provider_target() {
