@@ -129,6 +129,11 @@ the retained history.
 
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
+
+Closing the controller window hides it to the system tray or macOS menu bar and leaves UI-managed connectors running.
+Click the tray icon or choose **Show Cloudflare Tunnels** to restore the window. Choose **Quit Cloudflare Tunnels** from
+the tray menu to stop connectors managed by the app and exit completely. On macOS the menu-bar item is labeled **CF**
+so it remains visible even when template-icon rendering differs between OS versions.
 **Start connector** runs `run-tunnel` with the activated profile environment. **Stop connector** is enabled only for the
 child process started by the same window; an externally detected connector is intentionally read-only.
 If more than one connector process is detected despite the command lock, the UI displays a red **Conflict** state and
