@@ -15,7 +15,8 @@ usage() {
     'Usage: cloudflare.command.sh list-targets|validate|token-check|run-tunnel|verify-access|ui' \
     '       cloudflare.command.sh install-connector --apply' \
     '       cloudflare.command.sh create-tunnel --apply --token-output ABSOLUTE_PATH' \
-    '       cloudflare.command.sh install-service --apply'
+    '       cloudflare.command.sh install-service --apply' \
+    '       cloudflare.command.sh install-controller-service --apply'
 }
 
 install_connector() {
@@ -321,6 +322,10 @@ case "$operation" in
     fi
     command -v sudo >/dev/null 2>&1 || fail 'sudo is required to install the service'
     exec sudo cloudflared service install "$tunnel_token"
+    ;;
+  install-controller-service)
+    [[ "${1:-}" == '--apply' && $# -eq 1 ]] || fail 'install-controller-service requires the exact --apply flag'
+    exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/controller-service.sh" install --apply
     ;;
   verify-access)
     [[ $# -eq 0 ]] || fail 'verify-access accepts no additional arguments'

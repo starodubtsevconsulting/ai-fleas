@@ -140,12 +140,25 @@ session loss or crashes requires an operating-system supervisor such as a macOS 
 `CLOUDFLARE_UI_AUTOSTART=all` or a comma-separated provider-ID list; only targets configured in the selected authorized
 profile/workflow are started.
 
-For an always-on macOS controller, supervise the UI with a LaunchAgent using `RunAtLoad=true` and `KeepAlive=true`.
-This restarts the controller after crashes, signals, terminal-session loss, and clean accidental exits. Under this mode,
-the tray **Quit** action is effectively a restart; intentionally taking the controller offline requires unloading or
-disabling its LaunchAgent. Renderer-process failures are recorded and the UI reloads while connector children continue.
-Set `CLOUDFLARE_UI_START_HIDDEN=true` for login launches that should remain in the menu bar without opening a window.
-Manual launches omit this setting and open the controller normally.
+Run `cloudflare.command.sh install-controller-service --apply` from the activated profile and workflow to install the
+native always-on controller. The installer detects the operating system:
+
+- On macOS it installs a per-user LaunchAgent with `RunAtLoad=true` and `KeepAlive=true`. The Electron controller starts
+  hidden in the menu bar at login, auto-starts the selected provider tunnels, and reopens when its menu-bar icon is used.
+  Under supervision, **Quit** causes a restart; intentionally taking it offline requires unloading the LaunchAgent.
+- On Ubuntu it installs a system-level `systemd` unit, starts at boot after networking is ready, and runs the connector
+  manager headlessly with `Restart=always`. No graphical session or Electron runtime is required. The optional UI may be
+  launched separately and reports these connectors as externally managed.
+
+Both variants pin the currently activated profile and workflow and default to all configured provider targets. Set
+`CLOUDFLARE_UI_AUTOSTART` to `all` or a comma-separated provider-ID allowlist before installation. Re-run the install
+command after moving the repository/profile or changing that selection. Tokens are never copied into the supervisor
+definition: use profile-owned `CLOUDFLARE_TUNNEL_TOKEN_FILE` paths with mode `0600` for unattended startup.
+
+An Ubuntu gateway can host every tunnel while the model providers remain on other private-network machines. Configure
+each provider target's `CLOUDFLARE_ORIGIN_URL` with that provider's reachable private IP and port. The gateway must be
+able to reach each origin, and firewall rules should permit the model port only from the gateway. A tunnel does not need
+to run on the model host itself.
 
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
