@@ -9,10 +9,10 @@ What it gives you:
 - docker compose plugin
 - docker group access for the current user
 
-Run:
+Run through the profile-aware parent command:
 
 ```bash
-./install.sh
+../install.sh docker install
 ```
 
 After install, log out/in (or run `newgrp docker`) to use Docker without sudo.
