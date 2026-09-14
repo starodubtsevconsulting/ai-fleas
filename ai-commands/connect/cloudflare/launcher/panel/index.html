@@ -1,118 +1,24 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Cloudflare Tunnel</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #0d1117;
-      --panel: #161b22;
-      --panel-2: #1c232d;
-      --border: #30363d;
-      --text: #f0f6fc;
-      --muted: #8b949e;
-      --orange: #f6821f;
-      --green: #3fb950;
-      --red: #f85149;
-      --blue: #58a6ff;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); }
-    button, select { font: inherit; }
-    .shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between; gap: 20px;
-      padding: 22px 26px; border-bottom: 1px solid var(--border); background: #11161d;
-    }
-    .brand { display: flex; gap: 14px; align-items: center; }
-    .mark { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--orange); color: #111; font-weight: 900; }
-    h1 { margin: 0; font-size: 21px; }
-    .subtitle { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
-    .actions { display: flex; gap: 9px; }
-    button {
-      min-height: 38px; padding: 0 15px; border: 1px solid var(--border); border-radius: 8px;
-      background: var(--panel-2); color: var(--text); cursor: pointer;
-    }
-    button:hover:not(:disabled) { border-color: #6e7681; }
-    button:disabled { opacity: .45; cursor: default; }
-    .primary { border-color: #b85d13; background: var(--orange); color: #17100a; font-weight: 750; }
-    .danger { color: #ffb4af; }
-    .content { padding: 24px 26px; display: grid; grid-template-rows: auto auto minmax(180px, 1fr); gap: 18px; min-height: 0; }
-    .context-row { display: flex; align-items: end; gap: 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
-    .context-field { min-width: 0; flex: 1; }
-    select { width: 100%; margin-top: 7px; min-height: 38px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-2); color: var(--text); }
-    .status-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-    .card, .log-panel { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
-    .card { padding: 17px; }
-    .card-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
-    .card-value { margin-top: 13px; display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 700; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); box-shadow: 0 0 0 4px rgba(139,148,158,.1); }
-    .ok .dot { background: var(--green); box-shadow: 0 0 0 4px rgba(63,185,80,.13); }
-    .bad .dot { background: var(--red); box-shadow: 0 0 0 4px rgba(248,81,73,.13); }
-    .detail { margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
-    .url-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
-    .url { color: var(--blue); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; overflow-wrap: anywhere; }
-    .log-panel { min-height: 0; display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
-    .log-header { display: flex; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 12px; }
-    pre { margin: 0; padding: 15px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; color: #c9d1d9; }
-    @media (max-width: 760px) { .status-grid { grid-template-columns: 1fr; } .topbar { align-items: flex-start; } .actions { flex-wrap: wrap; justify-content: flex-end; } }
-  </style>
-</head>
-<body>
-  <main class="shell">
-    <header class="topbar">
-      <div class="brand">
-        <div class="mark">CF</div>
-        <div><h1>Tunnel controller</h1><p class="subtitle">Cloudflare Access protected connector</p></div>
-      </div>
-      <div class="actions">
-        <button id="refresh" type="button">Refresh</button>
-        <button id="start" class="primary" type="button">Start connector</button>
-        <button id="stop" class="danger" type="button">Stop connector</button>
-      </div>
-    </header>
-    <section class="content" style="grid-template-rows:auto auto auto minmax(180px,1fr)">
-      <div class="context-row">
-        <label class="context-field"><span class="card-label">Profile and workflow</span><select id="context" aria-label="Profile and workflow"></select></label>
-        <button id="useContext" type="button">Use profile</button>
-      </div>
-      <div class="status-grid">
-        <article class="card ok" id="providerCard"><div class="card-label">Model provider</div><div class="card-value"><span class="dot"></span><span id="provider">Resolving…</span></div><div class="detail" id="providerDetail">Selected by the workflow.</div></article>
-        <article class="card" id="configurationCard"><div class="card-label">Configuration</div><div class="card-value"><span class="dot"></span><span id="configuration">Checking…</span></div><div class="detail" id="configurationDetail">Validating the selected profile.</div></article>
-        <article class="card" id="connectorCard"><div class="card-label">Connector</div><div class="card-value"><span class="dot"></span><span id="connector">Checking…</span></div><div class="detail" id="connectorDetail">Looking for cloudflared.</div></article>
-        <article class="card" id="accessCard"><div class="card-label">Access gate</div><div class="card-value"><span class="dot"></span><span id="access">Checking…</span></div><div class="detail" id="accessDetail">Testing the unauthenticated boundary.</div></article>
-      </div>
-      <div class="url-row"><div><div class="card-label">Public URL</div><div class="url" id="publicUrl">Unavailable</div></div><button id="open" type="button">Open public URL</button></div>
-      <section class="log-panel"><div class="log-header"><span>Connector log</span><span>Tokens are redacted</span></div><pre id="log">The app controls only connectors it starts. An externally managed connector is shown as detected and cannot be stopped here.</pre></section>
-    </section>
-  </main>
-  <script>
-    const ui = {
-      configurationCard: document.getElementById('configurationCard'), configuration: document.getElementById('configuration'), configurationDetail: document.getElementById('configurationDetail'),
-      connectorCard: document.getElementById('connectorCard'), connector: document.getElementById('connector'), connectorDetail: document.getElementById('connectorDetail'),
-      accessCard: document.getElementById('accessCard'), access: document.getElementById('access'), accessDetail: document.getElementById('accessDetail'),
-      publicUrl: document.getElementById('publicUrl'), log: document.getElementById('log'), start: document.getElementById('start'), stop: document.getElementById('stop'), open: document.getElementById('open'), context: document.getElementById('context'), useContext: document.getElementById('useContext'), provider: document.getElementById('provider'), providerDetail: document.getElementById('providerDetail')
-    };
-    const setState = (card, ok) => { card.classList.toggle('ok', ok); card.classList.toggle('bad', !ok); };
-    function render(state) {
-      setState(ui.configurationCard, state.configured); ui.configuration.textContent = state.configured ? 'Valid' : 'Needs attention'; ui.configurationDetail.textContent = state.configured ? 'Profile configuration passed validation.' : (state.message || 'Configuration did not validate.');
-      const running = state.connectorManaged || state.connectorDetected; setState(ui.connectorCard, running && !state.connectorConflict); ui.connector.textContent = state.connectorConflict ? `Conflict · ${state.connectorCount} open` : state.connectorManaged ? 'Open · managed here' : state.connectorDetected ? 'Open · external' : 'Closed'; ui.connectorDetail.textContent = state.connectorConflict ? 'Stop duplicate cloudflared processes before continuing.' : state.connectorInstalled ? (state.version || 'cloudflared installed') : 'cloudflared is not installed.';
-      setState(ui.accessCard, state.accessHealthy); ui.access.textContent = state.accessHealthy ? 'Protected' : 'Not verified'; ui.accessDetail.textContent = state.accessHealthy ? 'Unauthenticated traffic is redirected to Cloudflare Access.' : 'Access redirect was not verified.';
-      ui.publicUrl.textContent = state.publicUrl || 'Unavailable'; ui.start.disabled = running || state.connectorConflict || !state.configured || !state.connectorInstalled; ui.stop.disabled = !state.connectorManaged || state.connectorConflict; ui.open.disabled = !state.publicUrl;
-      ui.context.disabled = state.connectorManaged; ui.useContext.disabled = state.connectorManaged;
-    }
-    async function loadContexts() { const result = await window.cloudflareTunnel.contexts(); ui.context.replaceChildren(...result.contexts.map((item) => { const option = document.createElement('option'); option.value = JSON.stringify(item); option.textContent = `${item.profileId} — ${item.workflow} — ${item.providerId || 'no model provider'}`; option.selected = item.profileId === result.selected?.profileId && item.workflow === result.selected?.workflow; return option; })); const selected = result.selected; ui.provider.textContent = selected?.providerId || 'Not configured'; ui.providerDetail.textContent = selected?.providerId ? `Resolved from ${selected.workflow}.` : 'This workflow has no local model provider.'; ui.useContext.disabled = !result.contexts.length; }
-    async function refresh() { try { render(await window.cloudflareTunnel.status()); } catch (error) { ui.log.textContent += `\n${error.message}`; } }
-    document.getElementById('refresh').addEventListener('click', refresh);
-    ui.useContext.addEventListener('click', async () => { try { const selection = JSON.parse(ui.context.value); const result = await window.cloudflareTunnel.selectContext(selection); ui.provider.textContent = result.selected.providerId || 'Not configured'; ui.providerDetail.textContent = result.selected.providerId ? `Resolved from ${result.selected.workflow}.` : 'This workflow has no local model provider.'; render(result.status); } catch (error) { ui.log.textContent += `\n${error.message}`; } });
-    ui.start.addEventListener('click', async () => render(await window.cloudflareTunnel.start()));
-    ui.stop.addEventListener('click', async () => render(await window.cloudflareTunnel.stop()));
-    ui.open.addEventListener('click', () => window.cloudflareTunnel.openPublicUrl());
-    window.cloudflareTunnel.onLog((line) => { ui.log.textContent += `\n${line}`; ui.log.scrollTop = ui.log.scrollHeight; });
-    loadContexts().then(refresh); setInterval(refresh, 5000);
-  </script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cloudflare Tunnels</title><style>
+:root{color-scheme:dark;--bg:#0d1117;--panel:#161b22;--border:#30363d;--text:#f0f6fc;--muted:#8b949e;--orange:#f6821f;--green:#3fb950;--red:#f85149;--blue:#58a6ff;font-family:Inter,system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);overflow:hidden}header{height:78px;display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border)}h1,h2,p{margin:0}.brand{display:flex;gap:12px;align-items:center}.mark{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--orange);color:#111;font-weight:900}.muted{color:var(--muted);font-size:12px;margin-top:3px}.content{height:calc(100vh - 78px);padding:14px 24px;display:flex;flex-direction:column;gap:10px;min-height:0}.context,.targets,.logs{border:1px solid var(--border);border-radius:11px;background:var(--panel)}.context{display:flex;gap:10px;align-items:end;padding:11px;flex:none}.field{flex:1}.label{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}select,button,input{font:inherit;min-height:32px;border:1px solid var(--border);border-radius:7px;background:#1c232d;color:var(--text);padding:0 11px}select{width:100%}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}.primary{background:var(--orange);color:#17100a;font-weight:750}.danger{color:#ffb4af}.targets{flex:1;min-height:110px;overflow-y:auto}.target{display:grid;grid-template-columns:minmax(210px,1.35fr) repeat(3,minmax(90px,.65fr)) minmax(190px,1fr) auto;gap:14px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;box-shadow:inset 3px 0 transparent}.target:hover{background:#1b2129}.target.selected{background:#211c18;box-shadow:inset 3px 0 var(--orange)}.target:last-child{border-bottom:0}.target h2{font-size:14px;overflow-wrap:anywhere}.value{font-size:13px;font-weight:700}.ok{color:var(--green)}.bad{color:var(--red)}.url{min-height:auto;padding:0;border:0;background:transparent;color:var(--blue);font:12px ui-monospace,monospace;text-align:left;overflow-wrap:anywhere}.url:hover{text-decoration:underline}.buttons{display:flex;gap:7px}.splitter{height:8px;flex:none;cursor:row-resize;position:relative}.splitter:after{content:"";position:absolute;left:calc(50% - 32px);top:3px;width:64px;height:2px;border-radius:2px;background:#484f58}.logs{height:45%;min-height:42px;display:grid;grid-template-rows:40px minmax(0,1fr);overflow:hidden;flex:none}.log-head{display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid var(--border);min-width:0}.log-head .label{margin:0;flex:none}.log-filters{display:flex;align-items:center;gap:5px;min-width:0;flex:1}.filter{min-height:27px;max-width:300px;padding:0 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}.filter.active{border-color:var(--orange);color:var(--orange);background:#2b2119}.log-search{width:190px;min-height:27px;font-size:11px}.log-search:focus{outline:1px solid var(--blue);border-color:var(--blue)}.log-actions{display:flex;align-items:center;gap:7px;flex:none}.log-count{white-space:nowrap}.small-action{min-height:27px;padding:0 9px;font-size:11px}.toggle{min-height:27px;padding:0 9px}.logs pre{margin:0;padding:10px 12px;overflow:auto;white-space:pre-wrap;font:11px/1.45 ui-monospace,monospace;color:#c9d1d9}.log-provider{color:#d2a8ff;font-weight:700}.log-time{color:#8b949e}.log-info{color:#58a6ff;font-weight:700}.log-warn{color:#d29922;font-weight:700}.log-error{color:#ff7b72;font-weight:800}.log-debug{color:#8b949e}.log-ip{color:#7ee787}.logs.collapsed{height:42px!important}.logs.collapsed pre{display:none}@media(max-width:900px){.target{grid-template-columns:1fr 1fr 1fr}.provider,.target .url,.buttons{grid-column:span 3}.log-actions .muted{display:none}.log-search{width:130px}}
+</style></head><body><header><div class="brand"><div class="mark">CF</div><div><h1>Multi-provider tunnel controller</h1><p class="muted">Independent Cloudflare Access protected connectors</p></div></div><button id="refresh">Refresh all</button></header><main id="content" class="content"><section class="context"><label class="field"><span class="label">Profile and workflow</span><select id="context"></select></label><button id="useContext">Use profile</button></section><section id="targets" class="targets"></section><div id="splitter" class="splitter" role="separator" aria-label="Resize connector logs"></div><section id="logs" class="logs"><div class="log-head"><span class="label">Connector logs</span><div id="logFilters" class="log-filters"></div><input id="logSearch" class="log-search" type="search" placeholder="Search logs…" aria-label="Search connector logs"><span class="log-actions"><span id="logCount" class="muted log-count">0 lines</span><button id="clearLogs" class="small-action">Clear</button><span class="muted">Tokens are redacted</span><button id="toggleLogs" class="toggle">Collapse</button></span></div><pre id="log"></pre></section></main><script>
+const ui={content:document.getElementById('content'),context:document.getElementById('context'),useContext:document.getElementById('useContext'),targets:document.getElementById('targets'),logs:document.getElementById('logs'),splitter:document.getElementById('splitter'),toggleLogs:document.getElementById('toggleLogs'),clearLogs:document.getElementById('clearLogs'),logCount:document.getElementById('logCount'),logFilters:document.getElementById('logFilters'),logSearch:document.getElementById('logSearch'),log:document.getElementById('log')};
+const logLimit=window.cloudflareTunnel.logLimit||10000;
+let states=[],stateSignature='',providerSignature='',logLines=[{providerId:'',line:`Each provider target has independent lifecycle controls. Retaining up to ${logLimit.toLocaleString()} log chunks in memory.`}],logFilter='all',logQuery='';
+function esc(v){const e=document.createElement('span');e.textContent=String(v||'');return e.innerHTML}
+function card(s){const running=s.connectorManaged;return `<article class="target" data-provider="${esc(s.providerId)}"><div class="provider"><span class="label">Model provider</span><h2>${esc(s.providerId)}</h2></div><div><span class="label">State</span><div class="value ${running?'ok':'bad'}">${running?'● Open':'● Closed'}</div></div><div><span class="label">Configuration</span><div class="value ${s.configured?'ok':'bad'}">${s.configured?'Valid':'Needs attention'}</div></div><div><span class="label">Access</span><div class="value ${s.accessHealthy?'ok':'bad'}">${s.accessHealthy?'Protected':'Not verified'}</div></div><button class="url open" ${!s.publicUrl?'disabled':''}>${esc(s.publicUrl||s.message||'Unavailable')}</button><div class="buttons"><button class="primary start" ${running||!s.configured?'disabled':''}>Start</button><button class="danger stop" ${!running?'disabled':''}>Stop</button></div></article>`}
+function renderFilters(){const ids=states.map(s=>s.providerId);if(logFilter!=='all'&&!ids.includes(logFilter))logFilter='all';ui.logFilters.innerHTML=`<button class="filter ${logFilter==='all'?'active':''}" data-filter="all">All logs</button>${logFilter==='all'?'':`<button class="filter active" data-filter="${esc(logFilter)}" title="${esc(logFilter)}">${esc(logFilter)}</button>`}`;updateSelection()}
+function updateSelection(){ui.targets.querySelectorAll('[data-provider]').forEach(row=>row.classList.toggle('selected',logFilter!=='all'&&row.dataset.provider===logFilter))}
+function highlightLogLine(line){const pattern=/(\[[^\]\n]+\])|(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)|(\b(?:INF|WRN|ERR|DBG)\b)|(\b(?:\d{1,3}\.){3}\d{1,3}\b)/g;let html='',last=0,match;while((match=pattern.exec(line))){html+=esc(line.slice(last,match.index));let kind='ip';if(match[1]&&match.index===0)kind='provider';else if(match[2])kind='time';else if(match[3])kind={INF:'info',WRN:'warn',ERR:'error',DBG:'debug'}[match[3]];html+=`<span class="log-${kind}">${esc(match[0])}</span>`;last=pattern.lastIndex}return html+esc(line.slice(last))}
+function lineCount(items){return items.reduce((count,item)=>count+String(item.line).split('\n').length,0)}
+function lineLabel(count){return `${count.toLocaleString()} ${count===1?'line':'lines'}`}
+function renderLogs(){let lines=logFilter==='all'?logLines:logLines.filter(x=>x.providerId===logFilter);if(logQuery)lines=lines.filter(x=>x.line.toLowerCase().includes(logQuery));const shown=lineCount(lines),total=lineCount(logLines);ui.logCount.textContent=(logFilter!=='all'||logQuery)?`${shown.toLocaleString()} / ${lineLabel(total)}`:lineLabel(total);ui.clearLogs.disabled=!logLines.length;ui.log.innerHTML=lines.length?lines.map(x=>x.line.split('\n').map(highlightLogLine).join('\n')).join('\n'):'<span class="muted">No matching logs.</span>';ui.log.scrollTop=ui.log.scrollHeight}
+function addLog(line,providerId=''){logLines.push({providerId,line:String(line)});if(logLines.length>logLimit)logLines=logLines.slice(-logLimit);renderLogs()}
+function render(items){const nextState=JSON.stringify(items),nextProviders=items.map(s=>s.providerId).join('\n');states=items;if(nextState!==stateSignature){stateSignature=nextState;ui.targets.innerHTML=items.length?items.map(card).join(''):'<article class="target">No provider tunnel targets configured.</article>';ui.context.disabled=items.some(x=>x.connectorManaged);ui.useContext.disabled=ui.context.disabled}if(nextProviders!==providerSignature){providerSignature=nextProviders;renderFilters()}updateSelection();renderLogs()}
+async function refresh(){try{render(await window.cloudflareTunnel.targets())}catch(e){addLog(e.message)}}
+ui.targets.addEventListener('click',async e=>{const card=e.target.closest('[data-provider]');if(!card)return;const id=card.dataset.provider,action=e.target.closest('button');if(!action){logFilter=id;renderFilters();renderLogs();return}try{if(action.classList.contains('start'))await window.cloudflareTunnel.start(id);if(action.classList.contains('stop'))await window.cloudflareTunnel.stop(id);if(action.classList.contains('open'))await window.cloudflareTunnel.openPublicUrl(id);await refresh()}catch(error){addLog(`[${id}] ${error.message}`,id)}});
+ui.logFilters.onclick=e=>{const button=e.target.closest('[data-filter]');if(!button)return;logFilter=button.dataset.filter;renderFilters();renderLogs()};
+ui.logSearch.oninput=()=>{logQuery=ui.logSearch.value.trim().toLowerCase();renderLogs()};ui.logSearch.onkeydown=e=>{if(e.key==='Escape'){ui.logSearch.value='';logQuery='';renderLogs()}};
+ui.clearLogs.onclick=()=>{logLines=[];renderLogs()};
+async function contexts(){const r=await window.cloudflareTunnel.contexts();ui.context.replaceChildren(...r.contexts.map(x=>{const o=document.createElement('option');o.value=JSON.stringify(x);o.textContent=`${x.profileId} — ${x.workflow}`;o.selected=x.profileId===r.selected?.profileId&&x.workflow===r.selected?.workflow;return o}))}
+document.getElementById('refresh').onclick=refresh;ui.useContext.onclick=async()=>{const r=await window.cloudflareTunnel.selectContext(JSON.parse(ui.context.value));render(r.targets)};ui.toggleLogs.onclick=()=>{const collapsed=ui.logs.classList.toggle('collapsed');ui.splitter.hidden=collapsed;ui.toggleLogs.textContent=collapsed?'Expand':'Collapse'};ui.splitter.onpointerdown=e=>{e.preventDefault();ui.splitter.setPointerCapture(e.pointerId);const move=event=>{const box=ui.content.getBoundingClientRect();const height=Math.max(90,Math.min(box.height-150,box.bottom-event.clientY));ui.logs.style.height=`${height}px`};ui.splitter.onpointermove=move;ui.splitter.onpointerup=()=>{ui.splitter.onpointermove=null;ui.splitter.onpointerup=null}};window.cloudflareTunnel.onLog(line=>{const match=String(line).match(/^\[([^\]]+)\]/);addLog(line,match?match[1]:'')});contexts().then(refresh);setInterval(refresh,5000);
+</script></body></html>
