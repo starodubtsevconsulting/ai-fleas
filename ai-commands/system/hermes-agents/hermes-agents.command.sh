@@ -49,7 +49,7 @@ usage() {
   printf '%s\n' \
     'Usage: hermes-agents.command.sh install [--dry-run]' \
     '       hermes-agents.command.sh check-update' \
-    '       hermes-agents.command.sh initialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
+    '       hermes-agents.command.sh initialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] [--connection NAME]' \
     '                               [--agent-instructions FILE] [setup overrides]' \
     '       hermes-agents.command.sh reinitialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
     '                               --confirm-reinitialize [--agent-instructions FILE] [setup overrides]' \
@@ -277,6 +277,11 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
           initialize_args+=("$1" "$2")
           shift 2
           ;;
+        --connection)
+          [[ $# -ge 2 ]] || { usage >&2; exit 2; }
+          initialize_args+=("$1" "$2")
+          shift 2
+          ;;
         --agent-instructions)
           [[ $# -ge 2 ]] || { usage >&2; exit 2; }
           initialize_args+=("$1" "$2")
@@ -315,6 +320,7 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     workflow=''
     project=''
     instance=''
+    connection=''
     agent_instructions=''
     preflight_only=false
     setup_args=()
@@ -336,6 +342,10 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
           [[ $# -ge 2 ]] || { usage >&2; exit 2; }
           instance="$2"; shift 2
           ;;
+        --connection)
+          [[ $# -ge 2 ]] || { usage >&2; exit 2; }
+          connection="$2"; shift 2
+          ;;
         --agent-instructions)
           [[ $# -ge 2 ]] || { usage >&2; exit 2; }
           agent_instructions="$2"; shift 2
@@ -356,8 +366,8 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
       printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: use --work-profile or set WORK_PROFILE_ID.' >&2
       exit 2
     }
-    scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}")"
-    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project resolved_provider resolved_provider_label resolved_endpoint resolved_model resolved_context_window resolved_compression_threshold resolved_compression_target resolved_protect_last_messages resolved_workspace resolved_project_scope resolved_agent_instructions resolved_commands_root resolved_workflow_instructions resolved_command_ids resolved_role_bindings <<<"${scope}"
+    scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}" "${connection}")"
+    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project resolved_provider resolved_provider_label resolved_endpoint resolved_headers_b64 resolved_model resolved_context_window resolved_compression_threshold resolved_compression_target resolved_protect_last_messages resolved_workspace resolved_project_scope resolved_agent_instructions resolved_commands_root resolved_workflow_instructions resolved_command_ids resolved_role_bindings <<<"${scope}"
     [[ "${resolved_agent_instructions}" == '-' ]] && resolved_agent_instructions=''
     if [[ -n "${agent_instructions}" ]]; then
       [[ "${agent_instructions}" == /* && -f "${agent_instructions}" ]] || {
@@ -374,6 +384,7 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     export HERMES_PROVIDER_ID="${resolved_provider}"
     export HERMES_PROVIDER_LABEL="${resolved_provider_label}"
     export HERMES_ENDPOINT="${resolved_endpoint}"
+    export HERMES_EXTRA_HEADERS_B64="${resolved_headers_b64}"
     export HERMES_MODEL="${resolved_model}"
     export HERMES_CONTEXT_LENGTH="${resolved_context_window}"
     export HERMES_COMPRESSION_THRESHOLD="${resolved_compression_threshold}"
@@ -466,7 +477,7 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     [[ "${confirmed}" == true ]] || { printf '%s\n' 'HERMES_DELETE_CONFIRMATION_REQUIRED: use delete-workflow ... --confirm-delete.' >&2; exit 2; }
     [[ -n "${work_profile}" ]] || { printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: use --work-profile or set WORK_PROFILE_ID.' >&2; exit 2; }
     scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}")"
-    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project _ _ _ _ _ _ _ _ _ _ _ _ _ _ resolved_role_bindings <<<"${scope}"
+    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ resolved_role_bindings <<<"${scope}"
     if [[ -n "${instance}" ]]; then validate_profile "${instance}"; fi
     group="${resolved_profile}-${resolved_workflow}${instance:+-${instance}}"
     validate_profile "${group}"
@@ -474,7 +485,7 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     role_bindings=()
     IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
     for role_binding in "${role_bindings[@]}"; do
-      IFS='|' read -r role suffix role_provider _ role_endpoint_b64 role_model _ <<<"${role_binding}"
+      IFS='|' read -r role suffix role_provider _ role_endpoint_b64 _ role_model _ <<<"${role_binding}"
       [[ -n "${role}" && -n "${suffix}" && -n "${role_provider}" && -n "${role_endpoint_b64}" && -n "${role_model}" ]] || {
         printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: malformed Hermes role binding.' >&2
         exit 2

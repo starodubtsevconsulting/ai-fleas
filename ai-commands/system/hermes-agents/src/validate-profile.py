@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 from pathlib import Path
@@ -87,8 +88,15 @@ def validate_static(environment: dict[str, str]) -> tuple[str, str, str, str, st
 
 def validate_model(profile: str, provider: str, model: str, endpoint: str) -> None:
     models_url = f"{endpoint.rstrip('/')}/models"
+    try:
+        headers = json.loads(base64.b64decode(os.environ.get("HERMES_EXTRA_HEADERS_B64", "e30="), validate=True))
+    except Exception as error:
+        fail("HERMES_INVALID_INPUT", f"profile={profile}; invalid encoded endpoint headers: {error}")
+    if not isinstance(headers, dict) or not all(isinstance(key, str) and isinstance(value, str) for key, value in headers.items()):
+        fail("HERMES_INVALID_INPUT", f"profile={profile}; endpoint headers must be a string mapping")
+    curl_headers = [part for key, value in headers.items() for part in ("--header", f"{key}: {value}")]
     result = subprocess.run(
-        ["curl", "--fail", "--silent", "--show-error", "--connect-timeout", "3", "--max-time", "10", models_url],
+        ["curl", "--fail", "--silent", "--show-error", "--connect-timeout", "3", "--max-time", "10", *curl_headers, models_url],
         text=True,
         capture_output=True,
         check=False,
