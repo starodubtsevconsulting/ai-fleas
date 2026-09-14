@@ -26,6 +26,8 @@ For each useful signal:
 
 For each meaningful activity:
 
+### Event data
+
 - time/window:
 - category:
 - activity:
@@ -38,6 +40,36 @@ For each meaningful activity:
 - evidence class: `observed | self-reported | external | derived`
 - confidence:
 - privacy:
+
+### Governor evaluation
+
+The Personal Governor may fill this immediately, during a daily review, in a one-on-one, or later on demand.
+
+- evaluation status: `pending | evaluated | superseded`
+- evaluated at:
+- alignment: `aligned | partially aligned | misaligned | unclear`
+- strategic judgment:
+- action: `continue | stop | defer | constrain | unclear`
+- opportunity cost:
+- capacity/recovery impact if relevant:
+- evidence that could change the judgment:
+- next decision point:
+
+### Follow-up cycle
+
+When an event creates future work, link the scheduled action and the later review.
+
+- calendar event(s):
+- preparation required:
+- expected evidence/result:
+- post-event review:
+- later check/revisit:
+
+Lifecycle:
+
+`event -> Governor evaluation -> decision -> scheduled action -> result/evidence -> updated evaluation`
+
+Preserve the original event. If later evidence changes the judgment, update or supersede the evaluation rather than rewriting history.
 
 ## Evidence references
 
