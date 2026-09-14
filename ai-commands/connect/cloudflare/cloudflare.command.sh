@@ -12,7 +12,7 @@ fail() {
 
 usage() {
   printf '%s\n' \
-    'Usage: cloudflare.command.sh validate|token-check|run-tunnel|verify-access|ui' \
+    'Usage: cloudflare.command.sh list-targets|validate|token-check|run-tunnel|verify-access|ui' \
     '       cloudflare.command.sh install-connector --apply' \
     '       cloudflare.command.sh create-tunnel --apply --token-output ABSOLUTE_PATH' \
     '       cloudflare.command.sh install-service --apply'
@@ -29,6 +29,46 @@ install_connector() {
 
 # shellcheck disable=SC1090
 source "$config_path"
+
+operation="${1:-}"
+shift || true
+provider_id="${CLOUDFLARE_PROVIDER_ID:-}"
+provider_targets="${CLOUDFLARE_PROVIDER_TARGETS:-}"
+
+load_provider_target() {
+  [[ -n "$provider_targets" ]] || return 0
+  [[ "$provider_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail 'CLOUDFLARE_PROVIDER_ID is required and must be safe'
+  local pair target_ref='' target_path config_dir
+  IFS=',' read -r -a pairs <<<"$provider_targets"
+  for pair in "${pairs[@]}"; do
+    [[ "${pair%%=*}" == "$provider_id" ]] && { target_ref="${pair#*=}"; break; }
+  done
+  [[ -n "$target_ref" ]] || fail "no Cloudflare target is configured for provider $provider_id"
+  [[ "$target_ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ && "$target_ref" != *'..'* && "$target_ref" != /* ]] || fail 'provider target path must be safe and relative'
+  config_dir="$(cd "$(dirname "$config_path")" && pwd -P)"
+  target_path="$config_dir/$target_ref"
+  [[ -f "$target_path" ]] || fail "provider target file is missing for $provider_id"
+  # shellcheck disable=SC1090
+  source "$target_path"
+}
+
+list_targets() {
+  if [[ -z "$provider_targets" ]]; then printf '%s\n' "${AI_MODEL_PROVIDER_ID:-default}"; return; fi
+  local pair id
+  IFS=',' read -r -a pairs <<<"$provider_targets"
+  for pair in "${pairs[@]}"; do
+    id="${pair%%=*}"
+    [[ "$id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ && "${pair#*=}" != "$pair" ]] || fail 'CLOUDFLARE_PROVIDER_TARGETS is invalid'
+    printf '%s\n' "$id"
+  done
+}
+
+if [[ "$operation" == 'list-targets' ]]; then
+  [[ $# -eq 0 ]] || fail 'list-targets accepts no arguments'
+  list_targets
+  exit 0
+fi
+load_provider_target
 
 public_url="${CLOUDFLARE_PUBLIC_URL:-}"
 origin_url="${CLOUDFLARE_ORIGIN_URL:-}"
@@ -146,10 +186,6 @@ run_tunnel_exclusive() {
   trap stop_cloudflared_child INT TERM
   trap cleanup_tunnel_lock EXIT
 
-  if pgrep -x cloudflared >/dev/null 2>&1; then
-    fail 'connector launch blocked: a cloudflared process is already running; reuse or stop it before starting another'
-  fi
-
   local tunnel_token
   tunnel_token="$(read_tunnel_secret)"
   cloudflared tunnel --no-autoupdate run --token "$tunnel_token" &
@@ -181,9 +217,6 @@ api_request() {
     --data "$payload" \
     "${api_base%/}$path"
 }
-
-operation="${1:-}"
-shift || true
 
 case "$operation" in
   ui)
