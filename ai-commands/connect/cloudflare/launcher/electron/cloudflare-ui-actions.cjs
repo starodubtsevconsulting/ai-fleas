@@ -34,15 +34,14 @@ async function status(context) {
     ? await run(context.commandPath, ['verify-access'], context.spawnOptions())
     : { ok: false, stdout: '', stderr: 'Configuration validation failed.' };
   const installed = await run('cloudflared', ['--version'], context.spawnOptions());
-  const processes = await run('pgrep', ['-x', 'cloudflared'], context.spawnOptions());
-  const connectorCount = countPids(processes.stdout, processes.ok);
+  const managed = Boolean(context.connector && context.connector.exitCode === null);
   return {
     configured: validate.ok,
     connectorInstalled: installed.ok,
-    connectorManaged: Boolean(context.connector && context.connector.exitCode === null),
-    connectorDetected: connectorCount > 0,
-    connectorCount,
-    connectorConflict: connectorCount > 1,
+    connectorManaged: managed,
+    connectorDetected: managed,
+    connectorCount: managed ? 1 : 0,
+    connectorConflict: false,
     accessHealthy: access.ok,
     publicUrl: publicUrlFromValidation(validate.stdout),
     version: installed.ok ? installed.stdout.trim() : '',
