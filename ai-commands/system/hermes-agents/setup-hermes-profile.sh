@@ -139,7 +139,11 @@ if headers:
     provider["extra_headers"] = headers
 print(json.dumps(provider))
 ')"
-"${hermes_bin}" -p "${profile}" config set --force "providers.${provider_id}" "${provider_json}"
+# Hermes echoes the full assigned JSON value, including protected connection
+# headers. Suppress that upstream output and emit only non-secret identifiers.
+"${hermes_bin}" -p "${profile}" config set --force "providers.${provider_id}" "${provider_json}" >/dev/null
+printf 'Hermes provider configured: profile=%s provider=%s endpoint=%s headers=%s\n' \
+  "${profile}" "${provider_id}" "${endpoint%/}" "$([[ "${extra_headers_b64}" == 'e30=' ]] && printf none || printf protected)"
 "${hermes_bin}" -p "${profile}" config set model.provider "${provider_id}"
 "${hermes_bin}" -p "${profile}" config set model.default "${model}"
 "${hermes_bin}" -p "${profile}" config set model.base_url "${endpoint%/}"

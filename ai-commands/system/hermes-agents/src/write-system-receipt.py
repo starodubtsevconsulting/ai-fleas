@@ -15,6 +15,7 @@ parser.add_argument("--provider", required=True)
 parser.add_argument("--model", required=True)
 parser.add_argument("--every", required=True)
 parser.add_argument("--scheduler-id", required=True)
+parser.add_argument("--instance", default="")
 parser.add_argument("--watch-group", action="append", default=[])
 args = parser.parse_args()
 args.path.parent.mkdir(parents=True, exist_ok=True)
@@ -26,7 +27,7 @@ if args.path.is_file():
 else:
     document = {}
 document["schema_version"] = "hermes-agents-binding-state.v1"
-document["system"] = {
+receipt = {
         "profile_id": args.profile,
         "title": args.title,
         "provider": args.provider,
@@ -43,6 +44,13 @@ document["system"] = {
             "enabled": True,
         },
 }
+if args.instance:
+    instances = document.setdefault("system_instances", {})
+    if not isinstance(instances, dict):
+        raise SystemExit("Existing Hermes System instance registry is invalid")
+    instances[args.profile] = receipt
+else:
+    document["system"] = receipt
 fd, temporary = tempfile.mkstemp(prefix=".bindings.yml.", dir=args.path.parent)
 try:
     with os.fdopen(fd, "w", encoding="utf-8") as stream:
