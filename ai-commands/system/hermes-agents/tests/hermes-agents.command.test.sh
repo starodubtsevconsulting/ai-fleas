@@ -88,7 +88,16 @@ providers:
   - id: example-box
     label: Example box
     protocol: openai-compatible
-    endpoint: { url: 'http://192.0.2.10:1234/v1' }
+    endpoint:
+      default: local
+      connections:
+        local:
+          url: 'http://192.0.2.10:1234/v1'
+        remote:
+          url: 'https://example-model.invalid/v1'
+          headers:
+            CF-Access-Client-Id: { environment_variable: TEST_CF_ACCESS_CLIENT_ID }
+            CF-Access-Client-Secret: { environment_variable: TEST_CF_ACCESS_CLIENT_SECRET }
     models:
       - id: example-coder
         provider_model: example-coder-model
@@ -188,6 +197,20 @@ scope="$(node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/ai-profil
 system_scope="$(node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_root}/ai-profile" example)"
 [[ "${system_scope}" == *$'\t10m\texample-dev' ]]
 [[ "${system_scope}" != *'example-external'* ]]
+"${COMMAND}" initialize-system --work-profile example --validate-only >"${test_root}/system-local-preflight-output"
+grep -F 'HERMES_SYSTEM_REINITIALIZE_PREFLIGHT_READY: profile=example-system watch=example-dev; no System changes were made.' "${test_root}/system-local-preflight-output" >/dev/null
+if node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_root}/ai-profile" example remote >"${test_root}/system-remote-missing-secret-output" 2>&1; then
+  printf '%s\n' 'System resolver unexpectedly accepted a protected remote connection without credentials' >&2
+  exit 1
+fi
+grep -F 'connection requires secret environment variable TEST_CF_ACCESS_CLIENT_ID' "${test_root}/system-remote-missing-secret-output" >/dev/null
+export TEST_CF_ACCESS_CLIENT_ID=test-client-id TEST_CF_ACCESS_CLIENT_SECRET=test-client-secret
+remote_system_scope="$(node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_root}/ai-profile" example remote)"
+[[ "${remote_system_scope}" == *$'\thttps://example-model.invalid/v1\t'* ]]
+remote_headers_b64="$(cut -f7 <<<"${remote_system_scope}")"
+[[ "$(printf '%s' "${remote_headers_b64}" | base64 --decode)" == '{"CF-Access-Client-Id":"test-client-id","CF-Access-Client-Secret":"test-client-secret"}' ]]
+"${COMMAND}" initialize-system --work-profile example --connection remote --validate-only >"${test_root}/system-remote-preflight-output"
+grep -F 'HERMES_SYSTEM_REINITIALIZE_PREFLIGHT_READY: profile=example-system watch=example-dev; no System changes were made.' "${test_root}/system-remote-preflight-output" >/dev/null
 unset AI_FLOW_WORKFLOW
 if "${COMMAND}" reinitialize-system --work-profile example >"${test_root}/system-reinitialize-without-confirm" 2>&1; then
   printf '%s\n' 'reinitialize-system unexpectedly succeeded without confirmation' >&2
