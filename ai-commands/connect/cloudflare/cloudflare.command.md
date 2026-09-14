@@ -115,8 +115,9 @@ Different tunnel names may run concurrently; the atomic
 runtime lock still refuses a second connector for the same tunnel. Closing the controller stops only connectors started
 by that window.
 The connector log is a bottom split panel. It can collapse to a compact footer, expands to roughly half the window by
-default, and has a draggable horizontal divider so the provider list and logs can be resized independently. Filter
-buttons show all connector output or only the log stream for one model-provider tunnel.
+default, and has a draggable horizontal divider so the provider list and logs can be resized independently. Selecting a
+provider row filters the log stream to that tunnel; the compact **All logs** control clears the selection. This remains
+usable when the workflow contains many providers without creating a long strip of tabs.
 
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
