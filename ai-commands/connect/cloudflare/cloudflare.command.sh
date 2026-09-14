@@ -68,7 +68,7 @@ if [[ "$operation" == 'list-targets' ]]; then
   list_targets
   exit 0
 fi
-load_provider_target
+[[ "$operation" == 'ui' ]] || load_provider_target
 
 public_url="${CLOUDFLARE_PUBLIC_URL:-}"
 origin_url="${CLOUDFLARE_ORIGIN_URL:-}"
@@ -221,7 +221,6 @@ api_request() {
 case "$operation" in
   ui)
     [[ $# -eq 0 ]] || fail 'ui accepts no additional arguments'
-    validate_config
     exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/app.sh"
     ;;
   validate)
