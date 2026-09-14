@@ -59,9 +59,9 @@ usage() {
     '       hermes-agents.command.sh show PROFILE' \
     '       hermes-agents.command.sh status PROFILE' \
     '       hermes-agents.command.sh delete PROFILE --confirm-delete' \
-    '       hermes-agents.command.sh initialize-system --work-profile ID [--watch-group ID]... [--every DURATION]' \
-    '       hermes-agents.command.sh reinitialize-system --work-profile ID --confirm-reinitialize [--watch-group ID]... [--every DURATION]' \
-    '       hermes-agents.command.sh status-system --work-profile ID'
+    '       hermes-agents.command.sh initialize-system --work-profile ID [--instance SLUG] [--connection NAME] [--watch-group ID]... [--every DURATION]' \
+    '       hermes-agents.command.sh reinitialize-system --work-profile ID [--instance SLUG] --confirm-reinitialize [--connection NAME] [--watch-group ID]... [--every DURATION]' \
+    '       hermes-agents.command.sh status-system --work-profile ID [--instance SLUG]'
 }
 
 resolve_hermes() {
@@ -98,7 +98,7 @@ case "${action}" in
     initialize_args=()
     while (($#)); do
       case "$1" in
-        --work-profile|--watch-group|--every)
+        --work-profile|--instance|--connection|--watch-group|--every)
           [[ $# -ge 2 ]] || { usage >&2; exit 2; }
           initialize_args+=("$1" "$2"); shift 2
           ;;
@@ -112,13 +112,14 @@ case "${action}" in
     }
     "$0" initialize-system "${initialize_args[@]}" --validate-only
     work_profile="${WORK_PROFILE_ID:-}"
+    instance=''
     for ((argument_index=0; argument_index<${#initialize_args[@]}; argument_index++)); do
-      if [[ "${initialize_args[argument_index]}" == '--work-profile' ]]; then
-        work_profile="${initialize_args[argument_index + 1]}"
-        break
-      fi
+      case "${initialize_args[argument_index]}" in
+        --work-profile) work_profile="${initialize_args[argument_index + 1]}" ;;
+        --instance) instance="${initialize_args[argument_index + 1]}" ;;
+      esac
     done
-    system_profile="${work_profile}-system"
+    system_profile="${work_profile}-system${instance:+-${instance}}"
     validate_profile "${system_profile}"
     hermes_bin="$(resolve_hermes)"
     if "${hermes_bin}" profile list | awk 'NR > 1 { print $1 }' | grep -Fx -- "${system_profile}" >/dev/null; then
@@ -133,12 +134,16 @@ case "${action}" in
     ;;
   initialize-system)
     work_profile="${WORK_PROFILE_ID:-}"
+    instance=''
+    connection=''
     every=''
     watch_groups=()
     validate_only=false
     while (($#)); do
       case "$1" in
         --work-profile) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; work_profile="$2"; shift 2 ;;
+        --instance) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; instance="$2"; shift 2 ;;
+        --connection) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; connection="$2"; shift 2 ;;
         --watch-group) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; validate_profile "$2"; watch_groups+=("$2"); shift 2 ;;
         --every) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; every="$2"; shift 2 ;;
         --validate-only) validate_only=true; shift ;;
@@ -147,8 +152,13 @@ case "${action}" in
     done
     [[ -n "${work_profile}" ]] || { printf '%s\n' 'HERMES_SYSTEM_SCOPE_INVALID: use --work-profile or activate a profile.' >&2; exit 2; }
     validate_profile "${work_profile}"
-    system_scope="$(node "${SYSTEM_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}")"
-    IFS=$'\t' read -r resolved_profile system_profile system_title system_provider system_provider_label system_endpoint system_model system_context system_threshold system_target system_protect system_workspace system_role_path system_schedule_path configured_every configured_watch_csv <<<"${system_scope}"
+    if [[ -n "${instance}" ]]; then validate_profile "${instance}"; fi
+    system_scope="$(node "${SYSTEM_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${connection}")"
+    IFS=$'\t' read -r resolved_profile system_profile system_title system_provider system_provider_label system_endpoint system_headers_b64 system_model system_context system_threshold system_target system_protect system_workspace system_role_path system_schedule_path configured_every configured_watch_csv <<<"${system_scope}"
+    if [[ -n "${instance}" ]]; then
+      system_profile="${resolved_profile}-system-${instance}"
+      system_title="${system_profile}"
+    fi
     [[ -n "${every}" ]] || every="${configured_every}"
     [[ "${every}" =~ ^[1-9][0-9]*[mhd]$ ]] || { printf '%s\n' 'HERMES_SYSTEM_SCOPE_INVALID: --every must use a positive m, h, or d duration.' >&2; exit 2; }
     IFS=',' read -r -a configured_watch_groups <<<"${configured_watch_csv}"
@@ -171,7 +181,7 @@ case "${action}" in
     binding_registry="${PROFILE_ROOT}/${resolved_profile}/.local/hermes-agents/bindings.yml"
     export HERMES_SCOPE=system HERMES_PROFILE="${system_profile}" HERMES_ROLE=system HERMES_ROLE_TITLE="${system_title}"
     export HERMES_WORK_PROFILE="${resolved_profile}" HERMES_PROVIDER_ID="${system_provider}" HERMES_PROVIDER_LABEL="${system_provider_label}"
-    export HERMES_ENDPOINT="${system_endpoint}" HERMES_MODEL="${system_model}" HERMES_CONTEXT_LENGTH="${system_context}"
+    export HERMES_ENDPOINT="${system_endpoint}" HERMES_EXTRA_HEADERS_B64="${system_headers_b64}" HERMES_MODEL="${system_model}" HERMES_CONTEXT_LENGTH="${system_context}"
     export HERMES_COMPRESSION_THRESHOLD="${system_threshold}" HERMES_COMPRESSION_TARGET_RATIO="${system_target}" HERMES_COMPRESSION_PROTECT_LAST_N="${system_protect}"
     export HERMES_WORKSPACE="${system_workspace}" HERMES_SYSTEM_ROLE_PATH="${system_role_path}" HERMES_SYSTEM_SCHEDULE_PATH="${system_schedule_path}"
     export HERMES_SYSTEM_WATCH_GROUPS="${watch_csv}" HERMES_BINDING_REGISTRY_PATH="${binding_registry}" HERMES_GROUP=''
@@ -205,6 +215,7 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     fi
     [[ -n "${scheduler_id}" ]] || { printf '%s\n' 'HERMES_SYSTEM_SCHEDULER_INVALID: exact scheduler receipt was not found.' >&2; exit 1; }
     binding_args=(--path "${binding_registry}" --profile "${system_profile}" --title "${system_title}" --provider "${system_provider}" --model "${system_model}" --every "${every}" --scheduler-id "${scheduler_id}")
+    if [[ -n "${instance}" ]]; then binding_args+=(--instance "${instance}"); fi
     if ((${#watch_groups[@]})); then
       for group in "${watch_groups[@]}"; do binding_args+=(--watch-group "${group}"); done
     fi
@@ -226,11 +237,14 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     ;;
   status-system)
     work_profile="${WORK_PROFILE_ID:-}"
-    while (($#)); do case "$1" in --work-profile) work_profile="${2:-}"; shift 2 ;; *) usage >&2; exit 2 ;; esac; done
+    instance=''
+    while (($#)); do case "$1" in --work-profile) work_profile="${2:-}"; shift 2 ;; --instance) instance="${2:-}"; shift 2 ;; *) usage >&2; exit 2 ;; esac; done
     validate_profile "${work_profile}"
+    if [[ -n "${instance}" ]]; then validate_profile "${instance}"; fi
     binding_registry="${PROFILE_ROOT}/${work_profile}/.local/hermes-agents/bindings.yml"
     [[ -f "${binding_registry}" ]] || { printf 'HERMES_SYSTEM_NOT_INITIALIZED: %s\n' "${work_profile}" >&2; exit 1; }
-    "${PYTHON_BIN}" -c 'import sys,yaml; d=yaml.safe_load(open(sys.argv[1])); s=d["system"]; assert s["scope"]=="system" and s["pinned"] is True and s["groups"]==[]; print("HERMES_SYSTEM_READY: {} scheduler={} watch={}".format(s["profile_id"],s["scheduler"]["id"],",".join(s["watch_groups"])))' "${binding_registry}"
+    system_profile="${work_profile}-system${instance:+-${instance}}"
+    "${PYTHON_BIN}" -c 'import sys,yaml; d=yaml.safe_load(open(sys.argv[1])); p=sys.argv[2]; s=d.get("system") if p==sys.argv[3] else d.get("system_instances",{}).get(p); assert s and s["scope"]=="system" and s["pinned"] is True and s["groups"]==[]; print("HERMES_SYSTEM_READY: {} scheduler={} watch={}".format(s["profile_id"],s["scheduler"]["id"],",".join(s["watch_groups"])))' "${binding_registry}" "${system_profile}" "${work_profile}-system"
     ;;
   check-update)
     [[ $# -eq 0 ]] || { usage >&2; exit 2; }

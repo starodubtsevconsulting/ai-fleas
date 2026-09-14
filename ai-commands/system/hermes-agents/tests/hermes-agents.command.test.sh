@@ -88,7 +88,16 @@ providers:
   - id: example-box
     label: Example box
     protocol: openai-compatible
-    endpoint: { url: 'http://192.0.2.10:1234/v1' }
+    endpoint:
+      default: local
+      connections:
+        local:
+          url: 'http://192.0.2.10:1234/v1'
+        remote:
+          url: 'https://example-model.invalid/v1'
+          headers:
+            CF-Access-Client-Id: { environment_variable: TEST_CF_ACCESS_CLIENT_ID }
+            CF-Access-Client-Secret: { environment_variable: TEST_CF_ACCESS_CLIENT_SECRET }
     models:
       - id: example-coder
         provider_model: example-coder-model
@@ -188,6 +197,26 @@ scope="$(node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/ai-profil
 system_scope="$(node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_root}/ai-profile" example)"
 [[ "${system_scope}" == *$'\t10m\texample-dev' ]]
 [[ "${system_scope}" != *'example-external'* ]]
+"${COMMAND}" initialize-system --work-profile example --validate-only >"${test_root}/system-local-preflight-output"
+grep -F 'HERMES_SYSTEM_REINITIALIZE_PREFLIGHT_READY: profile=example-system watch=example-dev; no System changes were made.' "${test_root}/system-local-preflight-output" >/dev/null
+if node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_root}/ai-profile" example remote >"${test_root}/system-remote-missing-secret-output" 2>&1; then
+  printf '%s\n' 'System resolver unexpectedly accepted a protected remote connection without credentials' >&2
+  exit 1
+fi
+grep -F 'connection requires secret environment variable TEST_CF_ACCESS_CLIENT_ID' "${test_root}/system-remote-missing-secret-output" >/dev/null
+export TEST_CF_ACCESS_CLIENT_ID=test-client-id TEST_CF_ACCESS_CLIENT_SECRET=test-client-secret
+remote_system_scope="$(node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_root}/ai-profile" example remote)"
+[[ "${remote_system_scope}" == *$'\thttps://example-model.invalid/v1\t'* ]]
+remote_headers_b64="$(cut -f7 <<<"${remote_system_scope}")"
+[[ "$(printf '%s' "${remote_headers_b64}" | base64 --decode)" == '{"CF-Access-Client-Id":"test-client-id","CF-Access-Client-Secret":"test-client-secret"}' ]]
+"${COMMAND}" initialize-system --work-profile example --instance 2 --connection remote --validate-only >"${test_root}/system-remote-preflight-output"
+grep -F 'HERMES_SYSTEM_REINITIALIZE_PREFLIGHT_READY: profile=example-system-2 watch=example-dev; no System changes were made.' "${test_root}/system-remote-preflight-output" >/dev/null
+receipt_test_path="${test_root}/system-receipts.yml"
+receipt_python="${HERMES_RECEIPT_TEST_PYTHON:-${HOME}/.hermes/hermes-agent/venv/bin/python}"
+[[ -x "${receipt_python}" ]] || receipt_python=python3
+"${receipt_python}" "${SOURCE_DIR}/write-system-receipt.py" --path "${receipt_test_path}" --profile example-system --title example-system --provider example-box --model example-model --every 10m --scheduler-id canonical-job --watch-group example-dev
+"${receipt_python}" "${SOURCE_DIR}/write-system-receipt.py" --path "${receipt_test_path}" --profile example-system-2 --instance 2 --title example-system-2 --provider example-box --model example-model --every 10m --scheduler-id test-job --watch-group example-dev
+RECEIPT_PATH="${receipt_test_path}" "${receipt_python}" -c 'import os,yaml; d=yaml.safe_load(open(os.environ["RECEIPT_PATH"])); assert d["system"]["profile_id"] == "example-system"; assert d["system_instances"]["example-system-2"]["profile_id"] == "example-system-2"'
 unset AI_FLOW_WORKFLOW
 if "${COMMAND}" reinitialize-system --work-profile example >"${test_root}/system-reinitialize-without-confirm" 2>&1; then
   printf '%s\n' 'reinitialize-system unexpectedly succeeded without confirmation' >&2
@@ -230,6 +259,7 @@ grep -F 'HERMES_UPDATE_AVAILABLE' "${test_root}/check-update-output" >/dev/null
 "${COMMAND}" initialize --work-profile example --workflow dev --project service >"${test_root}/output"
 grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/output" >/dev/null
 grep -F 'Hermes bot ready: example-dev-coder' "${test_root}/output" >/dev/null
+grep -F 'Hermes provider configured: profile=example-dev-admin provider=example-box endpoint=http://192.0.2.10:1234/v1 headers=none' "${test_root}/output" >/dev/null
 grep -F 'Hermes group member ready: example-dev (example-dev-admin as Admin)' "${test_root}/output" >/dev/null
 grep -F 'HERMES_WORKFLOW_PREFLIGHT: group=example-dev agents=2' "${test_root}/output" >/dev/null
 grep -F 'HERMES_WORKFLOW_READY: group=example-dev agents=2 all_agents_ready=true profiles=example-dev-admin,example-dev-coder' "${test_root}/output" >/dev/null
@@ -239,6 +269,12 @@ grep -F "${test_root}/workspace" "${HERMES_HOME}/profiles/example-dev-admin/SOUL
 grep -F "${test_root}/web-workspace" "${HERMES_HOME}/profiles/example-dev-admin/SOUL.md" >/dev/null
 grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-admin/profile.yaml" >/dev/null
 grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-coder/profile.yaml" >/dev/null
+"${COMMAND}" initialize --work-profile example --workflow dev --project service --instance remote-log --connection remote >"${test_root}/protected-output"
+grep -F 'Hermes provider configured: profile=example-dev-remote-log-admin provider=example-box endpoint=https://example-model.invalid/v1 headers=protected' "${test_root}/protected-output" >/dev/null
+if grep -F 'test-client-secret' "${test_root}/protected-output" >/dev/null; then
+  printf '%s\n' 'protected provider secret leaked into initialization output' >&2
+  exit 1
+fi
 export HERMES_TEST_FAIL_PROFILE=example-dev-coder
 if "${COMMAND}" reconcile --work-profile example --workflow dev --project service >"${test_root}/partial-output" 2>"${test_root}/partial-error"; then
   printf '%s\n' 'reconcile unexpectedly succeeded after injected profile failure' >&2

@@ -131,9 +131,9 @@ for tunnel/application ownership, service-token creation, naming, policy attachm
 | `install` | Compatibility delegate to the `install/hermes` command; new callers should invoke that install command directly. |
 | `check-update` | Read-only comparison of the installed release, newest stable upstream date tag, and reviewed public installer pin; recommends an explicit upgrade when appropriate. |
 | `initialize` | Resolve the selected profile/workflow and complete ordered project set, idempotently create every platform-bound role profile, and realize their profile-workflow Hermes group. |
-| `initialize-system [--watch-group ID]... [--every DURATION]` | Create or reconcile one globally visible pinned System profile outside all workflow groups. Without `--watch-group`, its scheduler watches every Hermes workflow declared by the selected work profile; explicit watch groups may select only a narrower subset and cannot name another profile's groups. It then verifies the scheduler and gateway and records the exact binding. |
-| `reinitialize-system --confirm-reinitialize [options]` | Preflight the complete System replacement, delete and verify the exact profile-owned System instance, then sequentially create its fresh profile, scheduler, gateway, and receipt. |
-| `status-system --work-profile ID` | Verify the exact profile-owned Hermes System receipt. |
+| `initialize-system [--instance SLUG] [--connection NAME] [--watch-group ID]... [--every DURATION]` | Create or reconcile the canonical globally visible pinned System profile, or an explicitly suffixed test instance such as `example-system-2`. Test instances have independent schedulers and receipts and never overwrite the canonical receipt. `--connection` selects a named local or remote route from the System provider and resolves protected headers from environment variables. Without `--watch-group`, its scheduler watches every Hermes workflow declared by the selected work profile. |
+| `reinitialize-system --confirm-reinitialize [--instance SLUG] [--connection NAME] [options]` | Preflight the complete canonical or test System replacement, including the selected local or remote provider route, delete and verify that exact instance, then sequentially create its fresh profile, scheduler, gateway, and receipt. |
+| `status-system --work-profile ID [--instance SLUG]` | Verify the exact canonical or test-instance System receipt. |
 | `reinitialize` / `re-init` | After `--confirm-reinitialize`, preflight the complete replacement, delete the exact active workflow group and role profiles only when that preflight succeeds, then create a fresh complete generation. Existing conversations and memory for those profiles are removed. |
 | `reconcile` | Reapply the resolved role-profile and group configuration while preserving conversations and memory. |
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
@@ -157,6 +157,12 @@ profile: that can leave its scheduler, gateway service, receipt, or cached conve
 ```sh
 # Create the profile-scoped System agent and watch every workflow declared by this profile.
 hermes-agents.command.sh initialize-system --work-profile example
+
+# Use the same System identity through a protected named remote connection.
+hermes-agents.command.sh initialize-system --work-profile example --connection remote
+
+# Create an isolated, suffixed System test instance without replacing the canonical receipt.
+hermes-agents.command.sh initialize-system --work-profile example --instance 2 --connection remote
 
 # Inspect the profile, scheduler, gateway, ticker, and receipt as one unit.
 hermes-agents.command.sh status-system --work-profile example
