@@ -107,6 +107,13 @@ The selector and **Model provider** status card also show the workflow's `local_
 resolved by the workflow explicit. Displaying a provider does not invent a tunnel for it: each additional provider still
 requires its own profile-owned Cloudflare target before its connector can be managed.
 
+For multiple providers, set `CLOUDFLARE_PROVIDER_TARGETS` in the profile-owned command configuration to comma-separated
+`provider-id=safe/relative-target.env` entries. Each target file contains that provider's public URL, private origin,
+tunnel name, token reference, account/zone IDs, and approved identities. The controller renders every configured target
+as an independent card with Start, Stop, and Open URL controls. Different tunnel names may run concurrently; the atomic
+runtime lock still refuses a second connector for the same tunnel. Closing the controller stops only connectors started
+by that window.
+
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
 **Start connector** runs `run-tunnel` with the activated profile environment. **Stop connector** is enabled only for the
