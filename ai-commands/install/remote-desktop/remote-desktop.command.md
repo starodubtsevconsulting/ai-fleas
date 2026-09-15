@@ -10,7 +10,7 @@ RDP credentials must be entered interactively and are never stored in the profil
 
 ```bash
 install/install.sh remote-desktop install --allowed-cidr 192.0.2.0/24
-grdctl rdp set-credentials
+grdctl rdp set-credentials <desktop-username>
 install/install.sh remote-desktop smoke-test
 ```
 
