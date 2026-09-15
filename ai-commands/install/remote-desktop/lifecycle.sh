@@ -41,7 +41,7 @@ user_grdctl() {
   local output
   output="$(grdctl "$@" 2>&1)"
   printf '%s\n' "$output"
-  if grep -Eq '^Failed to (write|create|set|enable|disable)|\[ERROR\]' <<<"$output"; then
+  if grep -Eq '^Failed to (write|create|set|enable|disable)' <<<"$output"; then
     printf 'REMOTE_DESKTOP_CONFIGURATION_FAILED: grdctl %s\n' "$*" >&2
     return 1
   fi
@@ -72,9 +72,9 @@ case "$action" in
     chmod 0600 "$key_file"
     sudo -n grdctl --system rdp disable || true
     sudo -n systemctl disable --now gnome-remote-desktop.service
-    user_grdctl rdp set-port 3389
     user_grdctl rdp set-tls-cert "$cert_file"
     user_grdctl rdp set-tls-key "$key_file"
+    user_grdctl rdp set-port 3389
     user_grdctl rdp set-auth-methods credentials
     user_grdctl rdp disable-view-only
     user_grdctl rdp disable-port-negotiation
