@@ -36,7 +36,7 @@ case "$action" in
     sudo -n grdctl --system status | grep -q 'Status: enabled'
     sudo -n test -s "$cert_file"
     sudo -n test -s "$key_file"
-    sudo -n ufw status | grep -Fq '3389/tcp'
+    sudo -n ufw status | grep -Fq '3389:3398/tcp'
     printf '%s\n' 'REMOTE_DESKTOP_SMOKE_PASS: boot-level GNOME remote login, TLS, and LAN firewall rule verified.'
     ;;
   install)
@@ -67,10 +67,12 @@ case "$action" in
     sudo -n grdctl --system rdp set-tls-cert "$cert_file"
     sudo -n grdctl --system rdp set-tls-key "$key_file"
     sudo -n grdctl --system rdp set-auth-methods credentials
-    sudo -n grdctl --system rdp disable-port-negotiation
+    # Remote-login handover starts a per-session RDP server. GNOME negotiates
+    # within ten ports beginning at 3389, while the system listener keeps 3389.
+    sudo -n grdctl --system rdp enable-port-negotiation
     sudo -n grdctl --system rdp enable
     sudo -n ufw allow 22/tcp
-    sudo -n ufw allow from "$allowed_cidr" to any port 3389 proto tcp
+    sudo -n ufw allow from "$allowed_cidr" to any port 3389:3398 proto tcp
     sudo -n ufw --force enable
     sudo -n cp -n /etc/gdm3/custom.conf /etc/gdm3/custom.conf.before-rdp-remote-login
     sudo -n sed -i -E 's/^AutomaticLoginEnable=.*/AutomaticLoginEnable=false/; s/^AutomaticLogin=.*/# AutomaticLogin disabled for system RDP/' /etc/gdm3/custom.conf

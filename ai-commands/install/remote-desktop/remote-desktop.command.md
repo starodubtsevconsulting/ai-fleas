@@ -24,4 +24,5 @@ install/install.sh remote-desktop smoke-test --mode remote-login
 
 The service starts whenever the desktop user logs in; on an auto-login workstation this also makes it available after
 reboot. Connect from macOS with Windows App or another RDP client using the server's private IPv4 address. The adapter enables
-UFW, preserves SSH on TCP 22, and permits TCP 3389 only from the explicitly supplied private CIDR. Do not expose TCP 3389 publicly.
+UFW, preserves SSH on TCP 22, and permits GNOME's negotiated TCP range 3389-3398 only from the explicitly supplied private CIDR.
+System remote login listens on 3389 and redirects the authenticated connection to a per-session server in that range. Do not expose the RDP range publicly.

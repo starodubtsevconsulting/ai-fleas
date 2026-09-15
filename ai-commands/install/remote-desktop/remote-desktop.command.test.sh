@@ -3,6 +3,8 @@ set -euo pipefail
 
 install_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 bash -n "$install_dir/remote-desktop/remote-desktop.command.sh" "$install_dir/remote-desktop/lifecycle.sh" "$install_dir/remote-desktop/remote-login.sh"
+grep -Fq 'rdp enable-port-negotiation' "$install_dir/remote-desktop/remote-login.sh"
+grep -Fq 'port 3389:3398 proto tcp' "$install_dir/remote-desktop/remote-login.sh"
 
 set +e
 guard_output="$("$install_dir/install.sh" remote-desktop status 2>&1)"
