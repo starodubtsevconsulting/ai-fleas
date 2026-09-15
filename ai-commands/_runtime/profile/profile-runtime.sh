@@ -140,6 +140,15 @@ ai_profile_resolve_path() {
   printf '%s/%s\n' "$parent" "$(basename "$relative")"
 }
 
+ai_profile_expand_home_path() {
+  local value="$1"
+  case "$value" in
+    '~') printf '%s\n' "$HOME" ;;
+    '~/'*) printf '%s/%s\n' "$HOME" "${value:2}" ;;
+    *) printf '%s\n' "$value" ;;
+  esac
+}
+
 ai_profile_activate() {
   local requested_profile="${1:-${WORK_PROFILE_ID:-${AI_WORK_PROFILE_ID:-example}}}"
   local requested_workflow="${2:-${AI_FLOW_WORKFLOW:-${WORKFLOW_NAME:-}}}"
@@ -196,9 +205,10 @@ ai_profile_activate() {
     if [[ "$runtime_project_root" == \'*\' || "$runtime_project_root" == \"*\" ]]; then
       runtime_project_root="${runtime_project_root:1:${#runtime_project_root}-2}"
     fi
+    runtime_project_root="$(ai_profile_expand_home_path "$runtime_project_root")"
     [[ -n "$runtime_project_id" ]] || { ai_profile_error 'primary project ID is missing'; return 1; }
     [[ -n "$runtime_project_root" ]] || { ai_profile_error 'primary project root is missing'; return 1; }
-    [[ "$runtime_project_root" == /* ]] || { ai_profile_error 'workflow agent runtime project root must be absolute'; return 1; }
+    [[ "$runtime_project_root" == /* ]] || { ai_profile_error 'workflow agent runtime project root must resolve to absolute'; return 1; }
   fi
   [[ -z "$requested_instance" ]] || ai_profile_safe_id "$requested_instance" || { ai_profile_error "unsafe workflow instance ID: $requested_instance"; return 1; }
   WORK_PROFILE_ID="$requested_profile"; AI_WORK_PROFILE_ID="$requested_profile"; AI_PROFILE_FILE="$profile_file"

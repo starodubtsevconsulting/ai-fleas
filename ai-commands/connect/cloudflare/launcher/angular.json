@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "projects": {
+    "panel": {
+      "projectType": "application",
+      "root": "panel-angular",
+      "sourceRoot": "panel-angular/src",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "panel-angular/src/main.ts",
+            "index": "panel-angular/src/index.html",
+            "outputPath": "panel-dist",
+            "styles": ["panel-angular/src/styles.css"],
+            "tsConfig": "panel-angular/tsconfig.app.json"
+          }
+        }
+      }
+    }
+  }
+}

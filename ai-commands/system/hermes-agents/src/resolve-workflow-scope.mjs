@@ -28,6 +28,7 @@ function readYaml(file) {
   return value;
 }
 function inside(root, target, label) { const rr = path.resolve(root), rt = path.resolve(target); if (rt !== rr && !rt.startsWith(`${rr}${path.sep}`)) fail(`${label} escapes its profile boundary.`); return rt; }
+function expandHome(value) { return value === '~' ? process.env.HOME : value.startsWith('~/') ? path.join(process.env.HOME || '', value.slice(2)) : value; }
 function resolveCatalogRoot(configured, label) { if (!configured) fail(`${label} is missing.`); const r = path.isAbsolute(configured) ? path.resolve(configured) : path.resolve(selectedProfileRoot, configured); if (!fs.statSync(r, { throwIfNoEntry: false })?.isDirectory()) fail(`${label} is not a readable directory: ${r}`); return r; }
 
 safeId(workProfileId, 'work-profile ID');
@@ -213,8 +214,8 @@ const candidates = (Array.isArray(workflow.projects) ? workflow.projects : []).m
 if (candidates.length === 0) fail(`workflow '${workflowId}' has no projects.`);
 const projects = candidates.map(({ project }) => {
   const projectId = safeId(String(project.id || ''), 'project ID');
-  const workspace = String(project.repo_path || '');
-  if (!path.isAbsolute(workspace) || !fs.statSync(workspace, { throwIfNoEntry: false })?.isDirectory()) fail(`project '${projectId}' repo_path is not an existing absolute directory.`);
+  const workspace = expandHome(String(project.repo_path || ''));
+  if (!path.isAbsolute(workspace) || !fs.statSync(workspace, { throwIfNoEntry: false })?.isDirectory()) fail(`project '${projectId}' repo_path does not resolve to an existing absolute directory.`);
   return { id: projectId, label: String(project.label || projectId), repo_path: workspace };
 });
 if (new Set(projects.map(({ id }) => id)).size !== projects.length) fail(`workflow '${workflowId}' contains duplicate project IDs.`);

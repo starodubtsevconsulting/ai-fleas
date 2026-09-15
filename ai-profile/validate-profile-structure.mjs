@@ -62,7 +62,9 @@ for (const workflow of profile.workflows) {
   const primary = path.resolve(profileDir, workflow.projects[0].ref);
   assert.ok(fs.existsSync(primary), `${profile.name}/${workflow.path}: primary project record does not exist`);
   const primaryRecord = parse(fs.readFileSync(primary, 'utf8'));
-  assert.ok(primaryRecord.id && path.isAbsolute(primaryRecord.repo_path), `${profile.name}/${workflow.path}: invalid primary project`);
+  const repoPath = String(primaryRecord.repo_path || '');
+  const portableHomePath = repoPath === '~' || (repoPath.startsWith('~/') && !repoPath.split('/').includes('..'));
+  assert.ok(primaryRecord.id && (path.isAbsolute(repoPath) || portableHomePath), `${profile.name}/${workflow.path}: invalid primary project`);
 }
 
 console.log(`${profile.name} profile structure: PASS`);

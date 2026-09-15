@@ -18,3 +18,8 @@ test('counts connector processes and exposes duplicate conflicts', () => {
   assert.equal(actions.countPids('101\n202\n'), 2);
   assert.equal(actions.countPids('', false), 0);
 });
+
+test('detects a connector owned by another controller from command status', () => {
+  assert.equal(actions.connectorIsOpen({ ok: true, stdout: 'connector open: tunnel=example pid=123\n' }), true);
+  assert.equal(actions.connectorIsOpen({ ok: true, stdout: 'connector closed: tunnel=example\n' }), false);
+});

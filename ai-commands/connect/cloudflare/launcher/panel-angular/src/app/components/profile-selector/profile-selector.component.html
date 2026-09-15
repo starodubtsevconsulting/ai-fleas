@@ -1,0 +1,16 @@
+<section class="context">
+  <label
+    >PROFILE AND WORKFLOW<select
+      [value]="selectedContext"
+      (change)="contextSelected.emit($any($event.target).value)"
+    >
+      <option
+        *ngFor="let c of contexts"
+        [value]="key(c)"
+        [selected]="key(c) === selectedContext"
+      >
+        {{ c.profileId }} — {{ c.workflow }}
+      </option>
+    </select></label
+  >
+</section>

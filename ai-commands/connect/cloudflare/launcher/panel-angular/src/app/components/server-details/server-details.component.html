@@ -1,0 +1,36 @@
+<aside class="details" [style.width.px]="width">
+  <button class="arrow" (click)="collapsed.emit()">›</button>
+  <p class="empty-state" *ngIf="!target">Select a server to view its details here.</p>
+  <ng-container *ngIf="target as s"
+    ><small>SERVER DETAILS</small>
+    <h2>{{ s.providerId }}</h2>
+    <dl>
+      <dt>Machine</dt>
+      <dd [class.ok]="s.serverOnline" [class.bad]="!s.serverOnline">
+        {{ s.serverOnline ? "Online" : "Offline" }}
+      </dd>
+      <dt>Model service</dt>
+      <dd [class.ok]="s.originHealthy" [class.bad]="!s.originHealthy">
+        {{ s.originHealthy ? "Available" : "Unavailable" }}
+      </dd>
+      <dt>Tunnel</dt>
+      <dd [class.ok]="s.connectorDetected" [class.bad]="!s.connectorDetected">
+        {{ s.connectorDetected ? "Open" : "Closed" }}
+      </dd>
+      <dt>Observed open for</dt>
+      <dd>{{ uptime(s) }}</dd>
+      <dt>Access</dt>
+      <dd [class.ok]="s.accessHealthy" [class.bad]="!s.accessHealthy">
+        {{ s.accessHealthy ? "Protected" : "Not verified" }}
+      </dd>
+      <dt>Public URL</dt>
+      <dd>
+        <button class="link" (click)="urlRequested.emit(s)">
+          {{ s.publicUrl }}
+        </button>
+      </dd>
+      <dt>Connector version</dt>
+      <dd>{{ s.version }}</dd>
+    </dl></ng-container
+  >
+</aside>

@@ -1,0 +1,60 @@
+:root {
+  color-scheme: dark;
+  font: 14px system-ui;
+  --bg: #0d1117;
+  --panel: #161b22;
+  --line: #30363d;
+  --text: #f0f6fc;
+  --muted: #8b949e;
+  --orange: #f6821f;
+  --green: #3fb950;
+  --red: #f85149;
+  --blue: #58a6ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+p,
+small,
+dt {
+  color: var(--muted);
+}
+
+button,
+select {
+  font: inherit;
+  color: inherit;
+  background: #1c232d;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px 12px;
+}
+
+.ok {
+  color: var(--green);
+}
+
+.bad {
+  color: var(--red);
+}
+
+.arrow {
+  float: right;
+  padding: 3px 9px;
+  font-size: 20px;
+}

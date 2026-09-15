@@ -1,0 +1,16 @@
+<header>
+  <div class="brand">
+    <b>CF</b>
+    <div>
+      <h1>Multi-server tunnel controller</h1>
+      <p>Independent Cloudflare Access protected server connectors</p>
+    </div>
+  </div>
+  <button
+    class="refresh"
+    (click)="refreshRequested.emit()"
+    [disabled]="refreshing"
+  >
+    {{ refreshing ? "Refreshing…" : "Refresh all" }}
+  </button>
+</header>
