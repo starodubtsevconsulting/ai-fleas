@@ -1,0 +1,48 @@
+:host {
+  display: contents;
+}
+
+header {
+  height: 78px;
+  padding: 15px 24px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.brand > b {
+  background: var(--orange);
+  color: #111;
+  padding: 13px;
+  border-radius: 11px;
+}
+
+.refresh {
+  min-width: 108px;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    transform 80ms ease;
+}
+
+.refresh:hover:not(:disabled) {
+  background: #263140;
+  border-color: #58a6ff;
+}
+
+.refresh:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.refresh:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}

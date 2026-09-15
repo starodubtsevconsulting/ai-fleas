@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build:panel": "ng build panel"
+    "build:panel": "ng build panel",
+    "test:panel": "node --test panel-angular/tests/*.test.cjs",
+    "test:panel:smoke": "electron panel-angular/tests/renderer-smoke.cjs"
   },
   "dependencies": {
     "@angular/common": "22.1.6",

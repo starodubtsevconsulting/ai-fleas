@@ -48,6 +48,7 @@ if [[ "${1:-}" == '--serve-check' ]]; then
   }
   node --check "$script_dir/launcher/electron/preload.cjs"
   node --test "$script_dir/launcher/electron/"*.test.cjs
+  (cd "$launcher_root" && npm run test:panel)
   node - "$script_dir/launcher/panel-dist/browser/index.html" <<'NODE'
 const fs = require('node:fs');
 const html = fs.readFileSync(process.argv[2], 'utf8');

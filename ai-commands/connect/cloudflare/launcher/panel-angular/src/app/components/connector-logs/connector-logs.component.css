@@ -1,0 +1,139 @@
+:host {
+  display: contents;
+}
+
+.context,
+.targets,
+.details,
+.logs {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+}
+
+.logs {
+  flex: none;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.logs > .log-header {
+  height: 44px;
+  padding-bottom: 8px;
+}
+
+.logs pre {
+  height: calc(100% - 44px);
+  overflow: auto;
+  white-space: pre-wrap;
+  font: 11px monospace;
+}
+
+.logs > .log-output {
+  height: calc(100% - 44px);
+  overflow: auto;
+  padding-right: 10px;
+  white-space: pre-wrap;
+  font:
+    11px ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  color: #c9d1d9;
+}
+
+.logs {
+  padding-right: 0;
+}
+
+.log-header {
+  padding-right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.log-header > small {
+  flex: 0 0 auto;
+}
+
+.all-tab {
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.all-tab.active {
+  color: var(--orange);
+  border-color: var(--orange);
+}
+
+.log-controls {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.log-controls select,
+.log-controls input {
+  height: 28px;
+  padding: 3px 8px;
+}
+
+.log-controls input {
+  width: min(240px, 24vw);
+  appearance: none;
+  font: inherit;
+  color: var(--text);
+  background: #1c232d;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.log-controls input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.log-controls input:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+.log-header .arrow {
+  flex: 0 0 auto;
+  float: none;
+  margin: 0;
+}
+
+.log-output .timestamp {
+  color: #8b949e;
+}
+
+.log-output .server {
+  color: #d2a8ff;
+  font-weight: 600;
+}
+
+.log-output .info {
+  color: #58a6ff;
+  font-weight: 600;
+}
+
+.log-output .warning {
+  color: #d29922;
+  font-weight: 600;
+}
+
+.log-output .error {
+  color: #ff7b72;
+  font-weight: 700;
+}
+
+.log-output .success {
+  color: #56d364;
+  font-weight: 600;
+}
+
+.log-output .address {
+  color: #79c0ff;
+}

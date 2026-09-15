@@ -1,0 +1,25 @@
+<section class="logs" [style.height.px]="height">
+  <div class="log-header">
+    <small>CONNECTOR LOGS</small>
+    <button class="all-tab" [class.active]="!selectedServer()" [attr.aria-pressed]="!selectedServer()" (click)="allRequested.emit()">All</button>
+    <div class="log-controls">
+      <input
+        aria-label="Search logs"
+        type="search"
+        placeholder="Search logs…"
+        [value]="logQuery()"
+        (input)="logQuery.set($any($event.target).value)"
+      />
+    </div>
+    <button class="arrow" (click)="collapseRequested.emit()">
+      {{ height === 42 ? "⌃" : "⌄" }}
+    </button>
+  </div>
+  <div class="log-output">
+    <div *ngFor="let line of filteredLines()">
+      <span *ngFor="let token of line" [class]="token.kind">{{
+        token.text
+      }}</span>
+    </div>
+  </div>
+</section>
