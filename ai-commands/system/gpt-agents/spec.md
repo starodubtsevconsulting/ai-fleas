@@ -4,8 +4,8 @@
 
 ## Input
 
-An explicit lifecycle intent plus an activated profile, workflow, complete logical project, complete registered project
-set, exact primary project, and any
+An explicit lifecycle intent plus an activated profile, workflow, complete logical project, non-empty selected project
+subset drawn from the registered workflow projects, exact primary project, and any
 existing instance receipts required by the operation.
 
 ## Output
@@ -42,13 +42,14 @@ Verified exact task receipts or a precise no-mutation failure.
 - `initialize` realizes the complete GPT-specific workflow roster; it does not inherit Hermes App's profile/group
   realization or impose its own task count on other platform adapters.
 - One logical agent maps to one exact app-returned task ID and launches in the logical group's primary saved Codex project.
-- One logical project may cover multiple profile-registered folders or repositories. The first workflow project is the
-  primary project: it hosts rules, commands, workflow definitions, and the Codex agents. Later entries are associated
-  work projects, and the primary binding never narrows the complete registered project set.
+- One logical project may cover one or more profile-registered folders or repositories. The first selected project is the
+  primary project: it hosts rules, commands, workflow definitions, and the Codex agents. Later selected entries are
+  associated work projects. Workflow registration makes a project available; it does not require that project in every
+  logical project's saved-project scope.
 - Logical project and group are synonyms. On GPT they map to one exact folder-backed saved project. A profile project is
   one scoped folder inside it; the first folder is primary and later folders extend its scope.
 - Workflow initialization requires, resolves, and verifies one pre-existing logical saved-project ID plus its complete
-  ordered scoped-folder binding set from exact profile project records before creating tasks. Saved-project creation and
+  ordered selected scoped-folder binding set from exact profile-authorized project records before creating tasks. Saved-project creation and
   editing are outside the command. It never infers from labels or nearby folders.
 - Human-facing `group`, `workflow group`, and `logical project` may select the same lifecycle scope, but the command must
   not conflate that scope with a custom sidebar section or with one individual scoped folder.

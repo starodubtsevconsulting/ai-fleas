@@ -61,7 +61,7 @@ therefore changes profile configuration rather than the portable workflow roster
 | Input | Required | Source | Description |
 |---|---|---|---|
 | Active AI Profile | Yes | Host activation | Must list `gpt-agents` as available. The invocation may explicitly select it; otherwise the profile default is used. |
-| Ordered workflow project set and complete logical project | Yes | User and profile | Select the portable roster and every registered project/work target in scope. The first project is primary and hosts the rules, commands, workflow definitions, and Codex agents; the remaining projects are associated work projects. |
+| Ordered selected project subset and complete logical project | Yes | User and profile | Select one or more project/work targets from those registered to the workflow. Registration authorizes availability but does not make every project mandatory. The first selected project is primary and hosts the rules, commands, workflow definitions, and Codex agents; remaining selected projects are associated work projects. |
 | GPT role overrides | No | Profile-owned `commands[].config` | Override supported model, reasoning, title, or elastic-pool realization values without changing role authority. |
 | Grouping policy | No | Profile-owned `commands[].config` | Defines the saved-project name template and deterministic collision suffix policy. |
 | Lifecycle subcommand | Yes | User request | One of `check-update`, `initialize-system`, `status-system`, `watch-system-group`, `unwatch-system-group`, `reinitialize-system`, `initialize`, `list`, `status`, `message`, `reconcile`, `replace`, `archive`, or `delete-workflow`. Human wording such as “delete group” routes to `delete-workflow`. |
@@ -81,10 +81,10 @@ therefore changes profile configuration rather than the portable workflow roster
 || `gpt-agents/gpt-agents.command.md` | AI-readable contract | The invoking host controller loads this contract and invokes the selected app adapter's exact task lifecycle capabilities. |
 
 Every invocation is profile-aware: the host must activate the selected AI Profile and workflow, verify that `gpt-agents` is
-available, resolve its platform contract, load the workflow's complete registered project set, and resolve one
+available, resolve its platform contract, load the workflow's registered project choices and the non-empty selected subset, and resolve one
 pre-existing exact folder-backed saved Codex project named for the logical project/group before workflow-task mutation. Verify its
-ordered scoped folders from the profile project list. The first folder is primary. The primary project
-hosts the control plane and agent launch context; its position does not narrow the logical group's multi-project work scope. An explicit
+ordered scoped folders from the selected profile-authorized project records. The first selected folder is primary. Registered but
+unselected projects are not required roots. The primary project hosts the control plane and agent launch context. An explicit
 command-level `--agent-platform gpt-agents` selection takes precedence over the profile default but must still be listed by
 the profile. System lifecycle resolves the profile/platform binding without belonging to a workflow logical project.
 
@@ -207,18 +207,18 @@ This does not turn System creation into a side effect of ordinary workflow initi
 
 ### Workflow initialization
 
-1. Require an exact profile, workflow, complete logical-project ID, and the complete ordered workflow project set. The
-   first entry is the primary project and must contain or resolve the group's rules, commands, and workflow definitions;
-   later entries are associated work projects. The set may contain multiple folders/repositories; never collapse it to
-   the primary project.
+1. Require an exact profile, workflow, complete logical-project ID, and a non-empty ordered selected project subset. Every
+   selected entry must resolve to a project registered by that workflow. The first selected entry is the primary project
+   and must contain or resolve the group's rules, commands, and workflow definitions; later selected entries are associated
+   work projects. Registered but unselected projects are available choices, not required scoped folders.
 2. Resolve the invocation-selected platform, or otherwise the profile default, through `platforms/registry.yml`; require
    that it is listed in `agent_platforms.available` and equals `gpt-agents` for this command.
 3. Load the portable workflow agent manifest and the GPT workflow role bindings completely.
-4. Resolve every project record in profile order to one canonical folder root. Require one pre-existing folder-backed
+4. Resolve every selected project record in selected order to one canonical folder root. Require one pre-existing folder-backed
    Codex project named `<profile>-<workflow>[-<suffix>]`; this is the GPT-platform prerequisite implied by an initialize
-   request. Verify its immutable ID, logical-project name, primary root, and complete ordered scoped-folder list, then
+   request. Verify its immutable ID, logical-project name, primary root, and complete ordered selected scoped-folder list, then
    record that binding before any agent creation. This command does not create or edit the saved Codex project. A missing
-   project, name-only match, missing/extra folder, or ambiguous result fails with zero agent mutation.
+   project, name-only match, unauthorized or mismatched selected folder, or ambiguous result fails with zero agent mutation.
 5. Do not create a custom sidebar section for the logical project. The folder-backed saved project is the logical
    project/group's GPT container; all verified roster tasks appear beneath it.
 6. Join `initializer.agentId` and every portable `agents[].agentId` to exactly one GPT `agents[].role` binding. Reject
@@ -237,7 +237,7 @@ This does not turn System creation into a side effect of ordinary workflow initi
 11. Verify every roster task, including the project-bound Admin but excluding an external bootstrap controller, is bound
     to the exact logical saved project. Do not move it into a custom section.
 12. Build each initialization message from the portable role definition, team policy, routing and permission policies,
-    complete ordered workflow project set, primary-project binding, logical-project scope, and readiness token. Supply exact peer task-ID bindings only when that role's declared
+    complete ordered selected project subset, primary-project binding, logical-project scope, and readiness token. Supply exact peer task-ID bindings only when that role's declared
     communication topology permits peer routing. A direct-human-only role such as Judge receives its own binding and
     governance scope, never a participant-routing roster. Never include System's task ID, routing address, or runtime
     location in any workflow-agent initialization message. Do not replace contracts with a hand-written role summary.
@@ -255,8 +255,8 @@ System. If System exists, the trusted host lifecycle registry makes the new grou
 ## Safety
 
 - Never create a saved project, worktree, clone, projectless task, or task in a merely similar project. The exact saved
-  project is a GPT-platform prerequisite. Do not mistake its primary binding for the workflow's complete multi-project
-  work scope.
+  project is a GPT-platform prerequisite. Every scoped folder must be selected and profile-authorized, but registered
+  projects that were not selected are not required roots.
 - Never use a title as identity or create a duplicate while a candidate may still resolve.
 - Never emulate a logical saved project with a custom sidebar section.
 - Never interpret `delete-workflow` as deletion of a saved Codex project, checkout, repository, or work target.

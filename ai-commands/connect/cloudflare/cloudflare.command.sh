@@ -12,7 +12,7 @@ fail() {
 
 usage() {
   printf '%s\n' \
-    'Usage: cloudflare.command.sh list-targets|validate|token-check|connector-status|run-tunnel|verify-access|ui' \
+    'Usage: cloudflare.command.sh list-targets|validate|token-check|server-status|origin-status|connector-status|run-tunnel|verify-access|ui' \
     '       cloudflare.command.sh install-connector --apply' \
     '       cloudflare.command.sh create-tunnel --apply --token-output ABSOLUTE_PATH' \
     '       cloudflare.command.sh install-service --apply' \
@@ -73,6 +73,9 @@ fi
 
 public_url="${CLOUDFLARE_PUBLIC_URL:-}"
 origin_url="${CLOUDFLARE_ORIGIN_URL:-}"
+origin_health_path="${CLOUDFLARE_ORIGIN_HEALTH_PATH:-/}"
+server_probe_host="${CLOUDFLARE_SERVER_PROBE_HOST:-}"
+server_probe_port="${CLOUDFLARE_SERVER_PROBE_PORT:-22}"
 tunnel_name="${CLOUDFLARE_TUNNEL_NAME:-}"
 tunnel_token_env="${CLOUDFLARE_TUNNEL_TOKEN_ENV:-}"
 tunnel_token_file="${CLOUDFLARE_TUNNEL_TOKEN_FILE:-}"
@@ -111,6 +114,13 @@ validate_config() {
     *) fail 'CLOUDFLARE_ORIGIN_URL must use a private or loopback host' ;;
   esac
 
+  [[ "$origin_health_path" =~ ^/[A-Za-z0-9._~:/@%+-]*$ ]] ||
+    fail 'CLOUDFLARE_ORIGIN_HEALTH_PATH must be an absolute path without a query or fragment'
+  [[ -z "$server_probe_host" || "$server_probe_host" =~ ^[A-Za-z0-9.-]+$ ]] ||
+    fail 'CLOUDFLARE_SERVER_PROBE_HOST is invalid'
+  [[ "$server_probe_port" =~ ^[0-9]+$ ]] && (( server_probe_port >= 1 && server_probe_port <= 65535 )) ||
+    fail 'CLOUDFLARE_SERVER_PROBE_PORT must be between 1 and 65535'
+
   [[ "$tunnel_name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] ||
     fail 'CLOUDFLARE_TUNNEL_NAME is missing or invalid'
   validate_env_name "$tunnel_token_env" 'CLOUDFLARE_TUNNEL_TOKEN_ENV'
@@ -132,6 +142,30 @@ validate_config() {
       fail 'CLOUDFLARE_ALLOWED_EMAILS must contain only exact email addresses'
   done < <(tr ',' '\n' <<<"$allowed_emails")
   [[ "$access_login_suffix" =~ ^\.[A-Za-z0-9.-]+$ ]] || fail 'CLOUDFLARE_ACCESS_LOGIN_SUFFIX is invalid'
+}
+
+server_status() {
+  [[ -n "$server_probe_host" ]] || fail 'CLOUDFLARE_SERVER_PROBE_HOST is required for server-status'
+  command -v nc >/dev/null 2>&1 || fail 'nc is required for server-status'
+  if nc -z -w 2 "$server_probe_host" "$server_probe_port" >/dev/null 2>&1; then
+    printf 'server online: host=%s port=%s\n' "$server_probe_host" "$server_probe_port"
+    return
+  fi
+  printf 'server offline: host=%s port=%s\n' "$server_probe_host" "$server_probe_port"
+  return 1
+}
+
+origin_status() {
+  command -v curl >/dev/null 2>&1 || fail 'curl is required for origin-status'
+  local status
+  status="$(curl --silent --show-error --connect-timeout 2 --max-time 4 --output /dev/null \
+    --write-out '%{http_code}' "${origin_url%/}${origin_health_path}")" || status='000'
+  if [[ "$status" =~ ^[23][0-9][0-9]$ ]]; then
+    printf 'origin healthy: url=%s status=%s\n' "${origin_url%/}${origin_health_path}" "$status"
+    return
+  fi
+  printf 'origin unavailable: url=%s status=%s\n' "${origin_url%/}${origin_health_path}" "$status"
+  return 1
 }
 
 read_secret() {
@@ -323,6 +357,16 @@ case "$operation" in
     [[ $# -eq 0 ]] || fail 'connector-status accepts no additional arguments'
     validate_config
     connector_status
+    ;;
+  server-status)
+    [[ $# -eq 0 ]] || fail 'server-status accepts no additional arguments'
+    validate_config
+    server_status
+    ;;
+  origin-status)
+    [[ $# -eq 0 ]] || fail 'origin-status accepts no additional arguments'
+    validate_config
+    origin_status
     ;;
   install-connector)
     [[ "${1:-}" == '--apply' && $# -eq 1 ]] ||

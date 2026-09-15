@@ -6,6 +6,9 @@ const os = require('node:os');
 const actions = require('./cloudflare-ui-actions.cjs');
 const profiles = require('./profile-contexts.cjs');
 
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+if (!hasSingleInstanceLock) app.quit();
+
 const commandDir = process.env.CLOUDFLARE_COMMAND_DIR || path.resolve(__dirname, '../..');
 const commandPath = path.join(commandDir, 'cloudflare.command.sh');
 const profileRoot = path.resolve(commandDir, '../../../ai-profile');
@@ -174,11 +177,14 @@ function createTray() {
 process.on('uncaughtException', (error) => controllerLog(`Uncaught controller error: ${error.stack || error.message}\n`));
 process.on('unhandledRejection', (error) => controllerLog(`Unhandled controller rejection: ${error?.stack || error}\n`));
 app.on('child-process-gone', (_event, details) => controllerLog(`Electron child process stopped (${details.type}: ${details.reason}, exit ${details.exitCode}).\n`));
-app.whenReady().then(async () => {
-  createWindow();
-  createTray();
-  try { await autostartConnectors(); } catch (error) { controllerLog(`Autostart initialization failed: ${error.message}\n`); }
-});
+if (hasSingleInstanceLock) {
+  app.on('second-instance', showWindow);
+  app.whenReady().then(async () => {
+    createWindow();
+    createTray();
+    try { await autostartConnectors(); } catch (error) { controllerLog(`Autostart initialization failed: ${error.message}\n`); }
+  });
+}
 app.on('before-quit', () => { isQuitting = true; for (const state of connectors.values()) { state.stopping = true; if (state.restartTimer) clearTimeout(state.restartTimer); if (state.child.exitCode === null) state.child.kill('SIGTERM'); } });
 app.on('window-all-closed', () => {});
 app.on('activate', showWindow);
