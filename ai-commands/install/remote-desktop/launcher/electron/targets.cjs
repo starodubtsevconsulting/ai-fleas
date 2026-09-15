@@ -9,6 +9,10 @@ function isSafeUsername(value) {
   return typeof value === 'string' && SAFE_USERNAME.test(value);
 }
 
+function isSafeHost(value) {
+  return typeof value === 'string' && SAFE_HOST.test(value);
+}
+
 function targetsFromConfig(configPath) {
   const document = YAML.parse(fs.readFileSync(configPath, 'utf8')) || {};
   const output = [];
@@ -16,7 +20,7 @@ function targetsFromConfig(configPath) {
     const rdp = box?.remote_desktop;
     const host = rdp?.host || box?.ssh_alias;
     const username = rdp?.username;
-    if (!rdp || !SAFE_ID.test(id) || !SAFE_HOST.test(String(host || '')) || !isSafeUsername(String(username || ''))) continue;
+    if (!rdp || !SAFE_ID.test(id) || !isSafeHost(String(host || '')) || !isSafeUsername(String(username || ''))) continue;
     output.push({
       id,
       label: String(rdp.label || id),
@@ -30,4 +34,4 @@ function targetsFromConfig(configPath) {
   return output;
 }
 
-module.exports = { isSafeUsername, targetsFromConfig };
+module.exports = { isSafeHost, isSafeUsername, targetsFromConfig };
