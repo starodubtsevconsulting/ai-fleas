@@ -20,7 +20,7 @@ On macOS, install the profile-driven Electron launcher as a normal clickable app
 install/install.sh remote-desktop install-launcher
 ```
 
-The application is created at `~/Applications/AI Fleas Remote Desktop.app`. It lists only targets explicitly configured under `boxes.<id>.remote_desktop` in the selected profile. Passwords are requested for each connection and are not stored.
+The application is created at `~/Applications/AI Fleas Remote Desktop.app`. It lists only targets explicitly configured under `boxes.<id>.remote_desktop` in the selected profile. The configured username is an editable default, so another valid Linux user can be selected for an individual connection without changing the profile. Passwords are requested for each connection and are not stored.
 
 For unattended server access before local login, select system remote-login mode and explicitly disable automatic login:
 
