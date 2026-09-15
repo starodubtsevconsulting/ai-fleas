@@ -135,7 +135,7 @@ ipcMain.handle('cloudflare:open-public-url', async (_event, providerId) => {
 });
 
 function createWindow() {
-  mainWindow = new BrowserWindow({ show: !startHidden, width: 1080, height: 760, minWidth: 820, minHeight: 600, title: 'Cloudflare Tunnels', backgroundColor: '#0d1117', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+  mainWindow = new BrowserWindow({ show: !startHidden, width: 1080, height: 760, minWidth: 820, minHeight: 600, title: 'Cloudflare Tunnels', backgroundColor: '#0d1117', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false } });
   mainWindow.setMenuBarVisibility(false); mainWindow.setAutoHideMenuBar(true); mainWindow.loadFile(path.join(__dirname, '../panel/index.html'));
   if (startHidden && app.dock) app.dock.hide();
   mainWindow.on('close', (event) => {
