@@ -1,0 +1,31 @@
+.target {
+  grid-template-columns: minmax(170px, 1.3fr) repeat(3, minmax(80px, .65fr)) auto;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.actions button {
+  min-width: 68px;
+}
+
+@container (max-width: 720px) {
+  .target {
+    padding: 18px;
+    gap: 18px 24px;
+  }
+
+  .target .actions {
+    grid-column: 1 / -1;
+    gap: 12px;
+    padding-top: 2px;
+  }
+
+  .target .actions button {
+    flex: 1 1 0;
+    min-height: 42px;
+  }
+}
