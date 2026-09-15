@@ -56,6 +56,34 @@ main {
 
 .log-header {
   padding-right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.log-header > small {
+  margin-right: auto;
+}
+
+.log-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.log-controls select,
+.log-controls input {
+  height: 28px;
+  padding: 3px 8px;
+}
+
+.log-controls input {
+  width: min(240px, 24vw);
+}
+
+.log-header .arrow {
+  flex: 0 0 auto;
+  float: none;
+  margin: 0;
 }
 
 .log-output .timestamp { color: #8b949e; }
