@@ -58,8 +58,8 @@ ${AI_COMMANDS_ROOT}/worklog/worklog.command.sh \
   --title "New SQS contract" \
   --role "dev" \
   --want "emit one event per locale" \
-  --so-that "localization-service processes per-locale entries" \
-  --project "libs/nest-shared"
+  --so-that "example-service processes per-locale entries" \
+  --project "example-service"
 ```
 
 Explicit profile override:

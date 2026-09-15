@@ -57,8 +57,8 @@ comment, always link the `/documentation/*.md` file that is related to the featu
   - `test: add Java Maven JUnit fallback runner`
   - `[ticket-number]:title-without-body`
 - valid example:
-  - subject: `[CORESVCS-7834] : "Prefix LMS S3 object keys with lms"`
-  - body: `Add tests covering lms-prefixed dictionary event path generation.\n\nInitiated-By-Role: coder\nExecuted-By-Role: command-runner`
+  - subject: `[EXAMPLE-1234] : "Add event key validation"`
+  - body: `Add tests covering event key validation.\n\nInitiated-By-Role: coder\nExecuted-By-Role: command-runner`
 - before commit make sure documentation is picked and in sync (based on git stats)
   see: [doc.command.md](../doc/doc.command.md)
 - before committing any file covered by a `public-mirror` entry in the root

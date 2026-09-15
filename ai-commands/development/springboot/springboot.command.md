@@ -106,4 +106,4 @@ choosing the module, and writing project logs.
 ## Example
 
 - `${AI_COMMANDS_ROOT}/springboot/springboot-run.command.sh --project-dir /path/to/repo`
-- `${AI_COMMANDS_ROOT}/springboot/springboot-run.command.sh --project-dir /path/to/repo --force-maven --app localization-mgmt-service-api`
+- `${AI_COMMANDS_ROOT}/springboot/springboot-run.command.sh --project-dir /path/to/repo --force-maven --app example-service-api`

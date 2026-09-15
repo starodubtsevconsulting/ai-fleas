@@ -25,9 +25,10 @@ Every agent-enabled workflow declares exactly one persistent human-facing `Admin
 persistent human-facing `Judge` oversight role. Canonical identities remain `admin` and `judge`; presentation labels are
 owned by the selected platform binding.
 
-Admin owns only workflow information and exact agent lifecycle administration. It remains outside the governed team and
-every governed Team capability policy, is never an operational relay or product worker, and is preserved during
-governed-roster reinitialization.
+In ordinary administration, Admin owns workflow information and exact agent lifecycle administration, is not an
+operational relay or product worker, and is preserved during governed-roster reinitialization. Its human-requested
+[Admin can](../roles/admin.md#admin-can) follows the selected repository’s Admin authority without
+changing governed role ownership or peer communication policy.
 
 Judge belongs to the governed roster, owns that workflow's protected rules and compliance oversight, and remains subject
 to the workflow's human-approval, communication-firewall, validation, and publication gates. A workflow may narrow these

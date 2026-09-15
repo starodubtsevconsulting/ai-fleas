@@ -37,6 +37,10 @@ initializer:
   governedRosterOwner: manager
   aiBinding: profile-default
   schedule: { enabled: false }
+  utilitySubagents:
+    enabled: true
+    maxConcurrent: 3
+    contract: ../_common/agents/utility-subagents.md
 
 agents:
   - agentId: designer-reviewer
