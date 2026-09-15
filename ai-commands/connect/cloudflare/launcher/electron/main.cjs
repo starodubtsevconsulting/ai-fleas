@@ -76,7 +76,12 @@ async function targetIds() {
 async function targetStatus(providerId) {
   return { providerId, ...(await actions.status({ commandPath, connector: connectorFor(providerId), spawnOptions: () => spawnOptions(providerId) })) };
 }
-async function allStatuses() { return Promise.all((await targetIds()).map(targetStatus)); }
+async function allStatuses() {
+  return Promise.all((await targetIds()).map(async (providerId) => {
+    try { return await targetStatus(providerId); }
+    catch (error) { return { providerId, message: actions.safeLog(error.message) }; }
+  }));
+}
 async function requireTarget(providerId) { if (!(await targetIds()).includes(providerId)) throw new Error('Server target is not configured in the selected profile.'); }
 
 ipcMain.handle('cloudflare:contexts', () => ({ contexts: availableContexts, selected: selectedContext }));
@@ -136,7 +141,7 @@ ipcMain.handle('cloudflare:open-public-url', async (_event, providerId) => {
 
 function createWindow() {
   mainWindow = new BrowserWindow({ show: !startHidden, width: 1080, height: 760, minWidth: 820, minHeight: 600, title: 'Cloudflare Tunnels', backgroundColor: '#0d1117', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false } });
-  mainWindow.setMenuBarVisibility(false); mainWindow.setAutoHideMenuBar(true); mainWindow.loadFile(path.join(__dirname, '../panel/index.html'));
+  mainWindow.setMenuBarVisibility(false); mainWindow.setAutoHideMenuBar(true); mainWindow.loadFile(path.join(__dirname, '../panel-dist/browser/index.html'));
   if (startHidden && app.dock) app.dock.hide();
   mainWindow.on('close', (event) => {
     if (isQuitting) return;
@@ -180,6 +185,7 @@ app.on('child-process-gone', (_event, details) => controllerLog(`Electron child 
 if (hasSingleInstanceLock) {
   app.on('second-instance', showWindow);
   app.whenReady().then(async () => {
+    controllerLog(`Selected profile context: ${selectedContext ? `${selectedContext.profileId} — ${selectedContext.workflow}` : 'none'}\n`);
     createWindow();
     createTray();
     try { await autostartConnectors(); } catch (error) { controllerLog(`Autostart initialization failed: ${error.message}\n`); }
