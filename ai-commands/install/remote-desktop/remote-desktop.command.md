@@ -71,10 +71,12 @@ Cause: the redirect reached the GNOME handover server, but the RDP client failed
 Solution: confirm with a current FreeRDP client:
 
 ```bash
-sdl-freerdp /v:<private-ip> /u:<rdp-username> /cert:tofu
+sdl-freerdp /v:<private-ip> /u:<rdp-username> /cert:tofu /from-stdin:force
 ```
 
-If FreeRDP reaches the GNOME login screen, keep the server configuration and use a compatible client while tracking the Windows App/GNOME issue. Do not disable NLA or expose extra ports as a workaround.
+`/from-stdin:force` avoids an SDL credential-dialog cancellation observed on macOS and requests the RDP password securely in Terminal. Run this command on the client Mac, not inside the SSH session. For a larger display, add `/f /dynamic-resolution` for fullscreen or `/size:1600x1000 /dynamic-resolution` for a resizable window.
+
+If FreeRDP reaches the GNOME login screen, the server configuration and GNOME handover are working. Keep the server configuration and use a compatible client while tracking the Windows App/GNOME issue. Do not disable NLA or expose extra ports as a workaround.
 
 ### A local session exists or automatic login is enabled
 
