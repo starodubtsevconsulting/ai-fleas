@@ -29,7 +29,16 @@
 }
 
 main {
-  gap: 14px;
+  gap: 0;
+}
+
+.context {
+  margin-bottom: 14px;
+}
+
+.hsplit {
+  height: 14px;
+  flex: 0 0 14px;
 }
 
 .logs > .log-output {
