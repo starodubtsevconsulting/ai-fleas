@@ -12,7 +12,7 @@ fail() {
 
 usage() {
   printf '%s\n' \
-    'Usage: cloudflare.command.sh list-targets|validate|token-check|run-tunnel|verify-access|ui' \
+    'Usage: cloudflare.command.sh list-targets|validate|token-check|connector-status|run-tunnel|verify-access|ui' \
     '       cloudflare.command.sh install-connector --apply' \
     '       cloudflare.command.sh create-tunnel --apply --token-output ABSOLUTE_PATH' \
     '       cloudflare.command.sh install-service --apply' \
@@ -155,6 +155,19 @@ read_tunnel_secret() {
   value="$(<"$tunnel_token_file")"
   [[ -n "$value" ]] || fail 'CLOUDFLARE_TUNNEL_TOKEN_FILE is empty'
   printf '%s' "$value"
+}
+
+connector_status() {
+  local lock_root="${TMPDIR:-/tmp}"
+  local lock_name="${tunnel_name//[^A-Za-z0-9._-]/_}"
+  local lock_pid_file="${lock_root%/}/ai-fleas-cloudflare-${lock_name}.lock/pid"
+  local existing_pid=''
+  [[ -f "$lock_pid_file" ]] && existing_pid="$(<"$lock_pid_file")"
+  if [[ "$existing_pid" =~ ^[0-9]+$ ]] && kill -0 "$existing_pid" 2>/dev/null; then
+    printf 'connector open: tunnel=%s pid=%s\n' "$tunnel_name" "$existing_pid"
+    return
+  fi
+  printf 'connector closed: tunnel=%s\n' "$tunnel_name"
 }
 
 run_tunnel_exclusive() {
@@ -305,6 +318,11 @@ case "$operation" in
     command -v cloudflared >/dev/null 2>&1 ||
       fail 'cloudflared is required; run install-connector --apply'
     run_tunnel_exclusive
+    ;;
+  connector-status)
+    [[ $# -eq 0 ]] || fail 'connector-status accepts no additional arguments'
+    validate_config
+    connector_status
     ;;
   install-connector)
     [[ "${1:-}" == '--apply' && $# -eq 1 ]] ||
