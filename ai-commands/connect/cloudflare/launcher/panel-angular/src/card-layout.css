@@ -12,7 +12,7 @@ main {
   gap: 14px;
 }
 
-.log-output {
+.logs > .log-output {
   height: calc(100% - 30px);
   overflow: auto;
   white-space: pre-wrap;
