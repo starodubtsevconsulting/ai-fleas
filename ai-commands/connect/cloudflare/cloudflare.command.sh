@@ -146,8 +146,17 @@ validate_config() {
 
 server_status() {
   [[ -n "$server_probe_host" ]] || fail 'CLOUDFLARE_SERVER_PROBE_HOST is required for server-status'
-  command -v nc >/dev/null 2>&1 || fail 'nc is required for server-status'
-  if nc -z -w 2 "$server_probe_host" "$server_probe_port" >/dev/null 2>&1; then
+  command -v python3 >/dev/null 2>&1 || fail 'python3 is required for server-status'
+  if python3 - "$server_probe_host" "$server_probe_port" <<'PY'
+import socket
+import sys
+try:
+    with socket.create_connection((sys.argv[1], int(sys.argv[2])), timeout=2):
+        pass
+except (OSError, ValueError):
+    raise SystemExit(1)
+PY
+  then
     printf 'server online: host=%s port=%s\n' "$server_probe_host" "$server_probe_port"
     return
   fi
