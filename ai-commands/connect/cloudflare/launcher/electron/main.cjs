@@ -98,10 +98,16 @@ async function startConnector(providerId, attempt = 0) {
   emitLog(providerId, attempt ? `Restart attempt ${attempt} started.\n` : 'Connector start requested.\n');
   child.stdout.on('data', (chunk) => emitLog(providerId, chunk)); child.stderr.on('data', (chunk) => emitLog(providerId, chunk));
   child.once('error', (error) => emitLog(providerId, `Connector error: ${error.message}\n`));
-  child.once('exit', (code, signal) => {
+  child.once('exit', async (code, signal) => {
     emitLog(providerId, `Connector stopped (${signal || code}).\n`);
     const current = connectors.get(providerId);
     if (!current || current.child !== child || current.stopping || isQuitting) return;
+    const observed = await actions.run(commandPath, ['connector-status'], spawnOptions(providerId));
+    if (actions.connectorIsOpen(observed)) {
+      emitLog(providerId, 'Connector is already open under another controller; retry stopped.\n');
+      connectors.delete(providerId);
+      return;
+    }
     const nextAttempt = current.attempt + 1;
     const delay = Math.min(restartBaseMs * (2 ** Math.min(nextAttempt - 1, 5)), restartMaxMs);
     emitLog(providerId, `Unexpected disconnect; reconnecting in ${delay / 1000}s.\n`);
