@@ -108,6 +108,12 @@ main {
   min-width: 68px;
 }
 
+.actions button:disabled {
+  cursor: not-allowed;
+  opacity: .38;
+  filter: saturate(.35);
+}
+
 @container (max-width: 720px) {
   .target {
     padding: 18px;
