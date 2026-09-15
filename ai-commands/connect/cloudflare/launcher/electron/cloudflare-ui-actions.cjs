@@ -34,19 +34,16 @@ function connectorIsOpen(result) {
 
 async function status(context) {
   const validate = await run(context.commandPath, ['validate'], context.spawnOptions());
-  const access = validate.ok
-    ? await run(context.commandPath, ['verify-access'], context.spawnOptions())
-    : { ok: false, stdout: '', stderr: 'Configuration validation failed.' };
-  const installed = await run('cloudflared', ['--version'], context.spawnOptions());
-  const observed = validate.ok
-    ? await run(context.commandPath, ['connector-status'], context.spawnOptions())
-    : { ok: false, stdout: '', stderr: '' };
-  const [server, origin] = validate.ok
-    ? await Promise.all([
+  const unavailable = { ok: false, stdout: '', stderr: 'Configuration validation failed.' };
+  const [access, installed, observed, server, origin] = await Promise.all([
+    validate.ok ? run(context.commandPath, ['verify-access'], context.spawnOptions()) : unavailable,
+    run('cloudflared', ['--version'], context.spawnOptions()),
+    validate.ok ? run(context.commandPath, ['connector-status'], context.spawnOptions()) : unavailable,
+    ...(validate.ok ? [
       run(context.commandPath, ['server-status'], context.spawnOptions()),
       run(context.commandPath, ['origin-status'], context.spawnOptions())
-    ])
-    : [{ ok: false }, { ok: false }];
+    ] : [unavailable, unavailable])
+  ]);
   const managed = Boolean(context.connector && context.connector.exitCode === null);
   const detected = managed || connectorIsOpen(observed);
   return {
