@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { spawn } = require('node:child_process');
 const path = require('node:path');
-const { targetsFromConfig } = require('./targets.cjs');
+const { isSafeUsername, targetsFromConfig } = require('./targets.cjs');
 
 const configPath = process.env.AI_COMMAND_CONFIG_PATH;
 const targets = configPath ? targetsFromConfig(configPath) : [];
@@ -29,9 +29,11 @@ ipcMain.handle('rdp:connect', async (_event, request) => {
     return true;
   }
   const password = String(request?.password || '');
+  const username = String(request?.username || target.username);
+  if (!isSafeUsername(username)) throw new Error('Enter a valid Linux username.');
   if (!password) throw new Error('RDP password is required.');
   const executable = '/opt/homebrew/opt/freerdp/bin/sdl-freerdp';
-  const args = [`/v:${target.host}`, `/u:${target.username}`, '/cert:tofu', '/from-stdin:force', '/dynamic-resolution'];
+  const args = [`/v:${target.host}`, `/u:${username}`, '/cert:tofu', '/from-stdin:force', '/dynamic-resolution'];
   if (request?.display === 'fullscreen') args.push('/f');
   else args.push(`/size:${request?.size === 'large' ? '1920x1200' : '1440x900'}`);
   const child = spawn(executable, args, { detached: true, stdio: ['pipe', 'ignore', 'ignore'] });

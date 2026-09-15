@@ -3,7 +3,13 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
-const { targetsFromConfig } = require('./targets.cjs');
+const { isSafeUsername, targetsFromConfig } = require('./targets.cjs');
+
+test('accepts Linux usernames and rejects command-like input', () => {
+  assert.equal(isSafeUsername('sergii'), true);
+  assert.equal(isSafeUsername('site_admin-2'), true);
+  assert.equal(isSafeUsername('bad;command'), false);
+});
 
 test('loads only explicit safe remote desktop targets', () => {
   const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'rdp-targets-')), 'config.yml');
