@@ -40,7 +40,7 @@ const fs = require('node:fs');
 const html = fs.readFileSync(process.argv[2], 'utf8');
 const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
 for (const script of scripts) new Function(script);
-for (const expected of ['Multi-provider tunnel controller', 'Profile and workflow', 'Model provider', 'Use profile', 'Start', 'Stop', 'Access']) {
+for (const expected of ['Multi-server tunnel controller', 'Profile and workflow', 'Server', 'Use profile', 'Start', 'Stop', 'Access']) {
   if (!html.includes(expected)) throw new Error(`Cloudflare panel missing: ${expected}`);
 }
 NODE

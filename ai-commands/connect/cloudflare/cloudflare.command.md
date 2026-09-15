@@ -172,8 +172,8 @@ The selector and **Model provider** status card also show the workflow's `local_
 resolved by the workflow explicit. Displaying a provider does not invent a tunnel for it: each additional provider still
 requires its own profile-owned Cloudflare target before its connector can be managed.
 
-For multiple providers, set `CLOUDFLARE_PROVIDER_TARGETS` in the profile-owned command configuration to comma-separated
-`provider-id=safe/relative-target.env` entries. Each target file contains that provider's public URL, private origin,
+For multiple servers, set `CLOUDFLARE_SERVER_TARGETS` in the profile-owned command configuration to comma-separated
+`provider-id=safe/relative-target.env` entries. Each target file contains that server's public URL, private origin,
 tunnel name, token reference, account/zone IDs, and approved identities. The controller renders every configured target
 as a compact row in a scrollable list with independent Start and Stop controls and a directly clickable public URL.
 Different tunnel names may run concurrently; the atomic
@@ -181,7 +181,7 @@ runtime lock still refuses a second connector for the same tunnel. Closing the c
 by that window.
 The connector log is a bottom split panel. It can collapse to a compact footer, expands to roughly half the window by
 default, and has a draggable horizontal divider so the provider list and logs can be resized independently. Selecting a
-provider row filters the log stream to that tunnel. Vertically centered tabs show **All logs** and, when selected, only
+server row filters the log stream to that tunnel. Vertically centered tabs show **All logs** and, when selected, only
 the current provider; this remains usable when the workflow contains many providers without creating a long tab strip.
 Connector output uses dependency-free semantic highlighting for provider tags, timestamps, severity levels, and IP
 addresses. Log text is HTML-escaped before highlighting, and existing secret redaction remains in force.
@@ -210,13 +210,13 @@ native always-on controller. The installer detects the operating system:
   manager headlessly with `Restart=always`. No graphical session or Electron runtime is required. The optional UI may be
   launched separately and reports these connectors as externally managed.
 
-Both variants pin the currently activated profile and workflow and default to all configured provider targets. Set
+Both variants pin the currently activated profile and workflow and default to all configured server targets. Set
 `CLOUDFLARE_UI_AUTOSTART` to `all` or a comma-separated provider-ID allowlist before installation. Re-run the install
 command after moving the repository/profile or changing that selection. Tokens are never copied into the supervisor
 definition: use profile-owned `CLOUDFLARE_TUNNEL_TOKEN_FILE` paths with mode `0600` for unattended startup.
 
 An Ubuntu gateway can host every tunnel while the model providers remain on other private-network machines. Configure
-each provider target's `CLOUDFLARE_ORIGIN_URL` with that provider's reachable private IP and port. The gateway must be
+each server target's `CLOUDFLARE_ORIGIN_URL` with that server's reachable private IP and port. The gateway must be
 able to reach each origin, and firewall rules should permit the model port only from the gateway. A tunnel does not need
 to run on the model host itself.
 
