@@ -5,12 +5,25 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 action="${1:-status}"
 shift || true
 allowed_cidr="${REMOTE_DESKTOP_ALLOWED_CIDR:-}"
+mode="desktop-share"
+disable_auto_login=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --allowed-cidr) [[ $# -ge 2 ]] || { printf '%s\n' 'REMOTE_DESKTOP_ALLOWED_CIDR_REQUIRED' >&2; exit 2; }; allowed_cidr="$2"; shift 2 ;;
+    --mode) [[ $# -ge 2 ]] || { printf '%s\n' 'REMOTE_DESKTOP_MODE_REQUIRED' >&2; exit 2; }; mode="$2"; shift 2 ;;
+    --disable-auto-login) disable_auto_login=true; shift ;;
     *) printf 'Unknown remote-desktop option: %s\n' "$1" >&2; exit 2 ;;
   esac
 done
+if [[ "$mode" == remote-login ]]; then
+  if [[ "$disable_auto_login" == true ]]; then
+    exec "$script_dir/remote-login.sh" "$action" --allowed-cidr "$allowed_cidr" --disable-auto-login
+  fi
+  exec "$script_dir/remote-login.sh" "$action" --allowed-cidr "$allowed_cidr"
+elif [[ "$mode" != desktop-share ]]; then
+  printf 'REMOTE_DESKTOP_MODE_UNSUPPORTED: %s\n' "$mode" >&2
+  exit 2
+fi
 cert_dir="${REMOTE_DESKTOP_CERT_DIR:-$HOME/.local/share/gnome-remote-desktop}"
 cert_file="$cert_dir/rdp-tls.crt"
 key_file="$cert_dir/rdp-tls.key"
