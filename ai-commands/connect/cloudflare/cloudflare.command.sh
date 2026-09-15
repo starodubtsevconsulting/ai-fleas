@@ -12,7 +12,7 @@ fail() {
 
 usage() {
   printf '%s\n' \
-    'Usage: cloudflare.command.sh list-targets|validate|token-check|server-status|origin-status|connector-status|run-tunnel|verify-access|ui' \
+    'Usage: cloudflare.command.sh list-targets|validate|token-check|server-status|origin-status|connector-status|run-tunnel|stop-tunnel|verify-access|ui' \
     '       cloudflare.command.sh install-connector --apply' \
     '       cloudflare.command.sh create-tunnel --apply --token-output ABSOLUTE_PATH' \
     '       cloudflare.command.sh install-service --apply' \
@@ -213,6 +213,22 @@ connector_status() {
   printf 'connector closed: tunnel=%s\n' "$tunnel_name"
 }
 
+stop_tunnel() {
+  local lock_root="${TMPDIR:-/tmp}"
+  local lock_name="${tunnel_name//[^A-Za-z0-9._-]/_}"
+  local lock_pid_file="${lock_root%/}/ai-fleas-cloudflare-${lock_name}.lock/pid"
+  local existing_pid=''
+  [[ -f "$lock_pid_file" ]] && existing_pid="$(<"$lock_pid_file")"
+  [[ "$existing_pid" =~ ^[0-9]+$ ]] || fail "connector is not running for tunnel $tunnel_name"
+  kill -0 "$existing_pid" 2>/dev/null || fail "connector is not running for tunnel $tunnel_name"
+  local command_line
+  command_line="$(ps -p "$existing_pid" -o command= 2>/dev/null || true)"
+  [[ "$command_line" == *cloudflare.command.sh*run-tunnel* ]] ||
+    fail 'connector lock PID does not belong to an AI Fleas tunnel process'
+  kill -TERM "$existing_pid"
+  printf 'connector stop requested: tunnel=%s pid=%s\n' "$tunnel_name" "$existing_pid"
+}
+
 run_tunnel_exclusive() {
   command -v pgrep >/dev/null 2>&1 || fail 'pgrep is required for duplicate connector prevention'
   local lock_root="${TMPDIR:-/tmp}"
@@ -361,6 +377,11 @@ case "$operation" in
     command -v cloudflared >/dev/null 2>&1 ||
       fail 'cloudflared is required; run install-connector --apply'
     run_tunnel_exclusive
+    ;;
+  stop-tunnel)
+    [[ $# -eq 0 ]] || fail 'stop-tunnel accepts no additional arguments'
+    validate_config
+    stop_tunnel
     ;;
   connector-status)
     [[ $# -eq 0 ]] || fail 'connector-status accepts no additional arguments'
