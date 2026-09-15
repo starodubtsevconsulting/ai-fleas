@@ -1,0 +1,27 @@
+:host {
+  display: contents;
+}
+
+.context {
+  padding: 11px;
+}
+
+.context label,
+.context select {
+  display: block;
+  width: 100%;
+}
+
+.context {
+  padding: 16px;
+}
+
+.context label {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.context {
+  margin-bottom: 14px;
+}

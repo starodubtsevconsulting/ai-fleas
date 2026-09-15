@@ -1,0 +1,43 @@
+main {
+  height: calc(100vh - 78px);
+  padding: 14px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workspace {
+  display: flex;
+  flex: 1;
+  min-height: 100px;
+  position: relative;
+}
+
+.vsplit {
+  width: 8px;
+  cursor: col-resize;
+}
+
+.reopen {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
+
+.hsplit {
+  height: 8px;
+  cursor: row-resize;
+}
+
+main {
+  gap: 0;
+}
+
+.hsplit {
+  height: 14px;
+  flex: 0 0 14px;
+}
+
+.closed .vsplit {
+  display: none;
+}

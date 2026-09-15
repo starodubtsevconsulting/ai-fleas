@@ -12,7 +12,7 @@ fail() {
 
 usage() {
   printf '%s\n' \
-    'Usage: cloudflare.command.sh list-targets|validate|token-check|run-tunnel|verify-access|ui' \
+    'Usage: cloudflare.command.sh list-targets|validate|token-check|server-status|origin-status|connector-status|run-tunnel|stop-tunnel|verify-access|ui' \
     '       cloudflare.command.sh install-connector --apply' \
     '       cloudflare.command.sh create-tunnel --apply --token-output ABSOLUTE_PATH' \
     '       cloudflare.command.sh install-service --apply' \
@@ -33,33 +33,33 @@ source "$config_path"
 
 operation="${1:-}"
 shift || true
-provider_id="${CLOUDFLARE_PROVIDER_ID:-${AI_MODEL_PROVIDER_ID:-}}"
-provider_targets="${CLOUDFLARE_PROVIDER_TARGETS:-}"
+server_id="${CLOUDFLARE_SERVER_ID:-${CLOUDFLARE_PROVIDER_ID:-${AI_MODEL_PROVIDER_ID:-}}}"
+server_targets="${CLOUDFLARE_SERVER_TARGETS:-${CLOUDFLARE_PROVIDER_TARGETS:-}}"
 
-load_provider_target() {
-  [[ -n "$provider_targets" ]] || return 0
-  [[ "$provider_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail 'CLOUDFLARE_PROVIDER_ID is required and must be safe'
+load_server_target() {
+  [[ -n "$server_targets" ]] || return 0
+  [[ "$server_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail 'CLOUDFLARE_SERVER_ID is required and must be safe'
   local pair target_ref='' target_path config_dir
-  IFS=',' read -r -a pairs <<<"$provider_targets"
+  IFS=',' read -r -a pairs <<<"$server_targets"
   for pair in "${pairs[@]}"; do
-    [[ "${pair%%=*}" == "$provider_id" ]] && { target_ref="${pair#*=}"; break; }
+    [[ "${pair%%=*}" == "$server_id" ]] && { target_ref="${pair#*=}"; break; }
   done
-  [[ -n "$target_ref" ]] || fail "no Cloudflare target is configured for provider $provider_id"
-  [[ "$target_ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ && "$target_ref" != *'..'* && "$target_ref" != /* ]] || fail 'provider target path must be safe and relative'
+  [[ -n "$target_ref" ]] || fail "no Cloudflare target is configured for server $server_id"
+  [[ "$target_ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ && "$target_ref" != *'..'* && "$target_ref" != /* ]] || fail 'server target path must be safe and relative'
   config_dir="$(cd "$(dirname "$config_path")" && pwd -P)"
   target_path="$config_dir/$target_ref"
-  [[ -f "$target_path" ]] || fail "provider target file is missing for $provider_id"
+  [[ -f "$target_path" ]] || fail "server target file is missing for $server_id"
   # shellcheck disable=SC1090
   source "$target_path"
 }
 
 list_targets() {
-  if [[ -z "$provider_targets" ]]; then printf '%s\n' "${AI_MODEL_PROVIDER_ID:-default}"; return; fi
+  if [[ -z "$server_targets" ]]; then printf '%s\n' "${AI_MODEL_PROVIDER_ID:-default}"; return; fi
   local pair id
-  IFS=',' read -r -a pairs <<<"$provider_targets"
+  IFS=',' read -r -a pairs <<<"$server_targets"
   for pair in "${pairs[@]}"; do
     id="${pair%%=*}"
-    [[ "$id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ && "${pair#*=}" != "$pair" ]] || fail 'CLOUDFLARE_PROVIDER_TARGETS is invalid'
+    [[ "$id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ && "${pair#*=}" != "$pair" ]] || fail 'CLOUDFLARE_SERVER_TARGETS is invalid'
     printf '%s\n' "$id"
   done
 }
@@ -69,10 +69,13 @@ if [[ "$operation" == 'list-targets' ]]; then
   list_targets
   exit 0
 fi
-[[ "$operation" == 'ui' ]] || load_provider_target
+[[ "$operation" == 'ui' ]] || load_server_target
 
 public_url="${CLOUDFLARE_PUBLIC_URL:-}"
 origin_url="${CLOUDFLARE_ORIGIN_URL:-}"
+origin_health_path="${CLOUDFLARE_ORIGIN_HEALTH_PATH:-/}"
+server_probe_host="${CLOUDFLARE_SERVER_PROBE_HOST:-}"
+server_probe_port="${CLOUDFLARE_SERVER_PROBE_PORT:-22}"
 tunnel_name="${CLOUDFLARE_TUNNEL_NAME:-}"
 tunnel_token_env="${CLOUDFLARE_TUNNEL_TOKEN_ENV:-}"
 tunnel_token_file="${CLOUDFLARE_TUNNEL_TOKEN_FILE:-}"
@@ -111,6 +114,13 @@ validate_config() {
     *) fail 'CLOUDFLARE_ORIGIN_URL must use a private or loopback host' ;;
   esac
 
+  [[ "$origin_health_path" =~ ^/[A-Za-z0-9._~:/@%+-]*$ ]] ||
+    fail 'CLOUDFLARE_ORIGIN_HEALTH_PATH must be an absolute path without a query or fragment'
+  [[ -z "$server_probe_host" || "$server_probe_host" =~ ^[A-Za-z0-9.-]+$ ]] ||
+    fail 'CLOUDFLARE_SERVER_PROBE_HOST is invalid'
+  [[ "$server_probe_port" =~ ^[0-9]+$ ]] && (( server_probe_port >= 1 && server_probe_port <= 65535 )) ||
+    fail 'CLOUDFLARE_SERVER_PROBE_PORT must be between 1 and 65535'
+
   [[ "$tunnel_name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] ||
     fail 'CLOUDFLARE_TUNNEL_NAME is missing or invalid'
   validate_env_name "$tunnel_token_env" 'CLOUDFLARE_TUNNEL_TOKEN_ENV'
@@ -134,6 +144,39 @@ validate_config() {
   [[ "$access_login_suffix" =~ ^\.[A-Za-z0-9.-]+$ ]] || fail 'CLOUDFLARE_ACCESS_LOGIN_SUFFIX is invalid'
 }
 
+server_status() {
+  [[ -n "$server_probe_host" ]] || fail 'CLOUDFLARE_SERVER_PROBE_HOST is required for server-status'
+  command -v python3 >/dev/null 2>&1 || fail 'python3 is required for server-status'
+  if python3 - "$server_probe_host" "$server_probe_port" <<'PY'
+import socket
+import sys
+try:
+    with socket.create_connection((sys.argv[1], int(sys.argv[2])), timeout=2):
+        pass
+except (OSError, ValueError):
+    raise SystemExit(1)
+PY
+  then
+    printf 'server online: host=%s port=%s\n' "$server_probe_host" "$server_probe_port"
+    return
+  fi
+  printf 'server offline: host=%s port=%s\n' "$server_probe_host" "$server_probe_port"
+  return 1
+}
+
+origin_status() {
+  command -v curl >/dev/null 2>&1 || fail 'curl is required for origin-status'
+  local status
+  status="$(curl --silent --show-error --connect-timeout 2 --max-time 4 --output /dev/null \
+    --write-out '%{http_code}' "${origin_url%/}${origin_health_path}")" || status='000'
+  if [[ "$status" =~ ^[23][0-9][0-9]$ ]]; then
+    printf 'origin healthy: url=%s status=%s\n' "${origin_url%/}${origin_health_path}" "$status"
+    return
+  fi
+  printf 'origin unavailable: url=%s status=%s\n' "${origin_url%/}${origin_health_path}" "$status"
+  return 1
+}
+
 read_secret() {
   local variable_name="$1"
   local value="${!variable_name:-}"
@@ -155,6 +198,35 @@ read_tunnel_secret() {
   value="$(<"$tunnel_token_file")"
   [[ -n "$value" ]] || fail 'CLOUDFLARE_TUNNEL_TOKEN_FILE is empty'
   printf '%s' "$value"
+}
+
+connector_status() {
+  local lock_root="${TMPDIR:-/tmp}"
+  local lock_name="${tunnel_name//[^A-Za-z0-9._-]/_}"
+  local lock_pid_file="${lock_root%/}/ai-fleas-cloudflare-${lock_name}.lock/pid"
+  local existing_pid=''
+  [[ -f "$lock_pid_file" ]] && existing_pid="$(<"$lock_pid_file")"
+  if [[ "$existing_pid" =~ ^[0-9]+$ ]] && kill -0 "$existing_pid" 2>/dev/null; then
+    printf 'connector open: tunnel=%s pid=%s\n' "$tunnel_name" "$existing_pid"
+    return
+  fi
+  printf 'connector closed: tunnel=%s\n' "$tunnel_name"
+}
+
+stop_tunnel() {
+  local lock_root="${TMPDIR:-/tmp}"
+  local lock_name="${tunnel_name//[^A-Za-z0-9._-]/_}"
+  local lock_pid_file="${lock_root%/}/ai-fleas-cloudflare-${lock_name}.lock/pid"
+  local existing_pid=''
+  [[ -f "$lock_pid_file" ]] && existing_pid="$(<"$lock_pid_file")"
+  [[ "$existing_pid" =~ ^[0-9]+$ ]] || fail "connector is not running for tunnel $tunnel_name"
+  kill -0 "$existing_pid" 2>/dev/null || fail "connector is not running for tunnel $tunnel_name"
+  local command_line
+  command_line="$(ps -p "$existing_pid" -o command= 2>/dev/null || true)"
+  [[ "$command_line" == *cloudflare.command.sh*run-tunnel* ]] ||
+    fail 'connector lock PID does not belong to an AI Fleas tunnel process'
+  kill -TERM "$existing_pid"
+  printf 'connector stop requested: tunnel=%s pid=%s\n' "$tunnel_name" "$existing_pid"
 }
 
 run_tunnel_exclusive() {
@@ -305,6 +377,26 @@ case "$operation" in
     command -v cloudflared >/dev/null 2>&1 ||
       fail 'cloudflared is required; run install-connector --apply'
     run_tunnel_exclusive
+    ;;
+  stop-tunnel)
+    [[ $# -eq 0 ]] || fail 'stop-tunnel accepts no additional arguments'
+    validate_config
+    stop_tunnel
+    ;;
+  connector-status)
+    [[ $# -eq 0 ]] || fail 'connector-status accepts no additional arguments'
+    validate_config
+    connector_status
+    ;;
+  server-status)
+    [[ $# -eq 0 ]] || fail 'server-status accepts no additional arguments'
+    validate_config
+    server_status
+    ;;
+  origin-status)
+    [[ $# -eq 0 ]] || fail 'origin-status accepts no additional arguments'
+    validate_config
+    origin_status
     ;;
   install-connector)
     [[ "${1:-}" == '--apply' && $# -eq 1 ]] ||

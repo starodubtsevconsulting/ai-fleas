@@ -2,10 +2,24 @@
   "name": "ai-fleas-cloudflare-tunnel-ui",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "build:panel": "ng build panel",
+    "test:panel": "node --test panel-angular/tests/*.test.cjs",
+    "test:panel:smoke": "electron panel-angular/tests/renderer-smoke.cjs"
+  },
   "dependencies": {
+    "@angular/common": "22.1.6",
+    "@angular/compiler": "22.1.6",
+    "@angular/core": "22.1.6",
+    "@angular/platform-browser": "22.1.6",
+    "rxjs": "7.8.2",
+    "tslib": "2.8.1",
     "yaml": "2.9.0"
   },
   "devDependencies": {
+    "@angular/build": "22.1.6",
+    "@angular/cli": "22.1.6",
+    "typescript": "6.0.2",
     "electron": "44.3.0"
   }
 }
