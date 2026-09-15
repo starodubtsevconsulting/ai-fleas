@@ -20,7 +20,9 @@ On macOS, install the profile-driven Electron launcher as a normal clickable app
 install/install.sh remote-desktop install-launcher
 ```
 
-The application is created at `~/Applications/AI Fleas Remote Desktop.app`. It lists only targets explicitly configured under `boxes.<id>.remote_desktop` in the selected profile. The configured username is an editable default, so another valid Linux user can be selected for an individual connection without changing the profile. Passwords are requested for each connection and are not stored.
+The application is created at `~/Applications/AI Fleas Remote Desktop.app`. It lists targets explicitly configured under `boxes.<id>.remote_desktop` in the selected profile and also offers a Direct server card for an ad-hoc hostname or IP. Host and username are editable per connection without changing the profile. Passwords are requested for each connection and are not stored.
+
+Future controller integration: provider/tunnel tables may add a Remote Desktop action per machine row. The controller should pass an explicit target object (host, username, client, and display mode) to this launcher rather than duplicating RDP process logic. Tunnel state and Remote Desktop capability are separate columns: a machine can be reachable on its private network whether its application tunnel is open or closed.
 
 For unattended server access before local login, select system remote-login mode and explicitly disable automatic login:
 
