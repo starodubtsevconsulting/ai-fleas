@@ -33,33 +33,33 @@ source "$config_path"
 
 operation="${1:-}"
 shift || true
-provider_id="${CLOUDFLARE_PROVIDER_ID:-${AI_MODEL_PROVIDER_ID:-}}"
-provider_targets="${CLOUDFLARE_PROVIDER_TARGETS:-}"
+server_id="${CLOUDFLARE_SERVER_ID:-${CLOUDFLARE_PROVIDER_ID:-${AI_MODEL_PROVIDER_ID:-}}}"
+server_targets="${CLOUDFLARE_SERVER_TARGETS:-${CLOUDFLARE_PROVIDER_TARGETS:-}}"
 
-load_provider_target() {
-  [[ -n "$provider_targets" ]] || return 0
-  [[ "$provider_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail 'CLOUDFLARE_PROVIDER_ID is required and must be safe'
+load_server_target() {
+  [[ -n "$server_targets" ]] || return 0
+  [[ "$server_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail 'CLOUDFLARE_SERVER_ID is required and must be safe'
   local pair target_ref='' target_path config_dir
-  IFS=',' read -r -a pairs <<<"$provider_targets"
+  IFS=',' read -r -a pairs <<<"$server_targets"
   for pair in "${pairs[@]}"; do
-    [[ "${pair%%=*}" == "$provider_id" ]] && { target_ref="${pair#*=}"; break; }
+    [[ "${pair%%=*}" == "$server_id" ]] && { target_ref="${pair#*=}"; break; }
   done
-  [[ -n "$target_ref" ]] || fail "no Cloudflare target is configured for provider $provider_id"
-  [[ "$target_ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ && "$target_ref" != *'..'* && "$target_ref" != /* ]] || fail 'provider target path must be safe and relative'
+  [[ -n "$target_ref" ]] || fail "no Cloudflare target is configured for server $server_id"
+  [[ "$target_ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ && "$target_ref" != *'..'* && "$target_ref" != /* ]] || fail 'server target path must be safe and relative'
   config_dir="$(cd "$(dirname "$config_path")" && pwd -P)"
   target_path="$config_dir/$target_ref"
-  [[ -f "$target_path" ]] || fail "provider target file is missing for $provider_id"
+  [[ -f "$target_path" ]] || fail "server target file is missing for $server_id"
   # shellcheck disable=SC1090
   source "$target_path"
 }
 
 list_targets() {
-  if [[ -z "$provider_targets" ]]; then printf '%s\n' "${AI_MODEL_PROVIDER_ID:-default}"; return; fi
+  if [[ -z "$server_targets" ]]; then printf '%s\n' "${AI_MODEL_PROVIDER_ID:-default}"; return; fi
   local pair id
-  IFS=',' read -r -a pairs <<<"$provider_targets"
+  IFS=',' read -r -a pairs <<<"$server_targets"
   for pair in "${pairs[@]}"; do
     id="${pair%%=*}"
-    [[ "$id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ && "${pair#*=}" != "$pair" ]] || fail 'CLOUDFLARE_PROVIDER_TARGETS is invalid'
+    [[ "$id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ && "${pair#*=}" != "$pair" ]] || fail 'CLOUDFLARE_SERVER_TARGETS is invalid'
     printf '%s\n' "$id"
   done
 }
@@ -69,7 +69,7 @@ if [[ "$operation" == 'list-targets' ]]; then
   list_targets
   exit 0
 fi
-[[ "$operation" == 'ui' ]] || load_provider_target
+[[ "$operation" == 'ui' ]] || load_server_target
 
 public_url="${CLOUDFLARE_PUBLIC_URL:-}"
 origin_url="${CLOUDFLARE_ORIGIN_URL:-}"

@@ -40,7 +40,8 @@ function persistLog(line) {
 
 function spawnOptions(providerId) {
   const env = profiles.contextEnv(process.env, selectedContext);
-  if (providerId) env.CLOUDFLARE_PROVIDER_ID = providerId; else delete env.CLOUDFLARE_PROVIDER_ID;
+  if (providerId) env.CLOUDFLARE_SERVER_ID = providerId; else delete env.CLOUDFLARE_SERVER_ID;
+  delete env.CLOUDFLARE_PROVIDER_ID;
   return { cwd: commandDir, env };
 }
 function connectorFor(providerId) { return connectors.get(providerId)?.child; }
@@ -59,7 +60,7 @@ async function autostartConnectors() {
   const available = await targetIds();
   const requested = configured === 'all' ? available : configured.split(',').map((item) => item.trim()).filter(Boolean);
   for (const providerId of requested) {
-    if (!available.includes(providerId)) { emitLog(providerId, 'Autostart skipped: provider is not configured.\n'); continue; }
+    if (!available.includes(providerId)) { emitLog(providerId, 'Autostart skipped: server is not configured.\n'); continue; }
     try { await startConnector(providerId); } catch (error) { emitLog(providerId, `Autostart failed: ${error.message}\n`); }
   }
 }
@@ -73,7 +74,7 @@ async function targetStatus(providerId) {
   return { providerId, ...(await actions.status({ commandPath, connector: connectorFor(providerId), spawnOptions: () => spawnOptions(providerId) })) };
 }
 async function allStatuses() { return Promise.all((await targetIds()).map(targetStatus)); }
-async function requireTarget(providerId) { if (!(await targetIds()).includes(providerId)) throw new Error('Provider target is not configured in the selected profile.'); }
+async function requireTarget(providerId) { if (!(await targetIds()).includes(providerId)) throw new Error('Server target is not configured in the selected profile.'); }
 
 ipcMain.handle('cloudflare:contexts', () => ({ contexts: availableContexts, selected: selectedContext }));
 ipcMain.handle('cloudflare:targets', allStatuses);
