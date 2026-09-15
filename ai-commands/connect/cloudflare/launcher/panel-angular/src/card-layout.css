@@ -12,6 +12,22 @@ main {
   gap: 14px;
 }
 
+.log-output {
+  height: calc(100% - 30px);
+  overflow: auto;
+  white-space: pre-wrap;
+  font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #c9d1d9;
+}
+
+.log-output .timestamp { color: #8b949e; }
+.log-output .server { color: #d2a8ff; font-weight: 600; }
+.log-output .info { color: #58a6ff; font-weight: 600; }
+.log-output .warning { color: #d29922; font-weight: 600; }
+.log-output .error { color: #ff7b72; font-weight: 700; }
+.log-output .success { color: #56d364; font-weight: 600; }
+.log-output .address { color: #79c0ff; }
+
 .target {
   grid-template-columns: minmax(170px, 1.3fr) repeat(3, minmax(80px, .65fr)) auto;
 }
