@@ -1,0 +1,49 @@
+<section class="targets">
+  <article
+    *ngFor="let s of targets"
+    class="target"
+    [class.selected]="s.providerId === selectedId"
+    (click)="serverSelected.emit(s)"
+  >
+    <div>
+      <small>SERVER</small>
+      <h2>{{ s.providerId }}</h2>
+      <strong [class.ok]="s.serverOnline" [class.bad]="!s.serverOnline">{{
+        s.loading ? "Checking…" : s.serverOnline ? "● Online" : "● Offline"
+      }}</strong>
+    </div>
+    <ng-container *ngIf="!s.loading"
+      ><div>
+        <small>ORIGIN</small
+        ><strong [class.ok]="s.originHealthy" [class.bad]="!s.originHealthy">{{
+          s.originHealthy ? "● Healthy" : "● Unavailable"
+        }}</strong>
+      </div>
+      <div>
+        <small>TUNNEL</small
+        ><strong
+          [class.ok]="s.connectorDetected"
+          [class.bad]="!s.connectorDetected"
+          >{{ s.connectorDetected ? "● Open" : "● Closed" }}</strong
+        >
+      </div>
+      <div>
+        <small>ACCESS</small
+        ><strong [class.ok]="s.accessHealthy" [class.bad]="!s.accessHealthy">{{
+          s.accessHealthy ? "Protected" : "Not verified"
+        }}</strong>
+      </div>
+      <div class="actions">
+        <button
+          class="primary"
+          (click)="start(s, $event)"
+          [disabled]="s.connectorDetected"
+        >
+          Start</button
+        ><button (click)="stop(s, $event)" [disabled]="!s.connectorDetected">
+          Stop
+        </button>
+      </div></ng-container
+    >
+  </article>
+</section>
