@@ -5,10 +5,21 @@ function run(executable, args, options = {}) {
     const child = spawn(executable, args, { ...options, stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve(result);
+    };
+    const timeout = setTimeout(() => {
+      child.kill('SIGTERM');
+      finish({ ok: false, code: null, stdout, stderr: `${stderr}\nCommand timed out.`.trim() });
+    }, 8000);
     child.stdout.on('data', (chunk) => { stdout += String(chunk); });
     child.stderr.on('data', (chunk) => { stderr += String(chunk); });
-    child.once('error', (error) => resolve({ ok: false, code: null, stdout, stderr: error.message }));
-    child.once('exit', (code) => resolve({ ok: code === 0, code, stdout, stderr }));
+    child.once('error', (error) => finish({ ok: false, code: null, stdout, stderr: error.message }));
+    child.once('exit', (code) => finish({ ok: code === 0, code, stdout, stderr }));
   });
 }
 
