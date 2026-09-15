@@ -1,0 +1,15 @@
+{
+  "name": "ai-fleas-remote-desktop-launcher",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "electron electron/main.cjs",
+    "test": "node --test electron/*.test.cjs"
+  },
+  "dependencies": {
+    "yaml": "2.9.0"
+  },
+  "devDependencies": {
+    "electron": "44.3.0"
+  }
+}

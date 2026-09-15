@@ -14,6 +14,14 @@ grdctl rdp set-credentials <desktop-username>
 install/install.sh remote-desktop smoke-test
 ```
 
+On macOS, install the profile-driven Electron launcher as a normal clickable application:
+
+```bash
+install/install.sh remote-desktop install-launcher
+```
+
+The application is created at `~/Applications/AI Fleas Remote Desktop.app`. It lists only targets explicitly configured under `boxes.<id>.remote_desktop` in the selected profile. Passwords are requested for each connection and are not stored.
+
 For unattended server access before local login, select system remote-login mode and explicitly disable automatic login:
 
 ```bash

@@ -11,3 +11,10 @@ boxes:
     ssh_alias: ai-lab-test
     preset: qwen3.5-9b-hermes
     inventory: inventory/ai-lab-test.json
+    remote_desktop:
+      label: Example Linux Desktop
+      host: 192.0.2.25
+      username: example-user
+      preferred_client: freerdp
+      windows_app_compatible: false
+      note: Example only; configure a private target in an operational profile.

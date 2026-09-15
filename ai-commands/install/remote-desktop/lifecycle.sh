@@ -15,6 +15,13 @@ while [[ $# -gt 0 ]]; do
     *) printf 'Unknown remote-desktop option: %s\n' "$1" >&2; exit 2 ;;
   esac
 done
+if [[ "$action" == launcher ]]; then
+  [[ "$(uname -s)" == Darwin ]] || { printf '%s\n' 'REMOTE_DESKTOP_LAUNCHER_PLATFORM_UNSUPPORTED: macOS only.' >&2; exit 3; }
+  exec npm --prefix "$script_dir/launcher" start
+fi
+if [[ "$action" == install-launcher ]]; then
+  exec "$script_dir/launcher/install-macos-app.sh"
+fi
 if [[ "$mode" == remote-login ]]; then
   if [[ "$disable_auto_login" == true ]]; then
     exec "$script_dir/remote-login.sh" "$action" --allowed-cidr "$allowed_cidr" --disable-auto-login
