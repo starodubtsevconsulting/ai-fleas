@@ -44,9 +44,18 @@ main {
 .logs > .log-output {
   height: calc(100% - 30px);
   overflow: auto;
+  padding-right: 10px;
   white-space: pre-wrap;
   font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
   color: #c9d1d9;
+}
+
+.logs {
+  padding-right: 0;
+}
+
+.log-header {
+  padding-right: 10px;
 }
 
 .log-output .timestamp { color: #8b949e; }
