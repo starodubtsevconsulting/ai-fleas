@@ -1,0 +1,45 @@
+:host {
+  display: contents;
+}
+
+.empty-state {
+  color: var(--muted);
+  line-height: 1.5;
+  padding-top: 40px;
+}
+
+.details {
+  flex: none;
+  padding: 15px;
+  overflow: auto;
+}
+
+dl {
+  margin: 12px 0;
+}
+
+dt {
+  margin-top: 12px;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+dd {
+  margin: 3px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.link {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--blue);
+  text-align: left;
+}
+
+:host(.collapsed) {
+  display: none;
+}
