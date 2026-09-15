@@ -29,6 +29,23 @@ case "$action" in
     require_ubuntu
     sudo -n grdctl --system status
     ;;
+  diagnose)
+    require_ubuntu
+    printf '%s\n' '== GNOME Remote Desktop system status =='
+    sudo -n grdctl --system status
+    printf '%s\n' '== Service boot/active state =='
+    sudo -n systemctl is-enabled gnome-remote-desktop.service
+    sudo -n systemctl is-active gnome-remote-desktop.service
+    printf '%s\n' '== RDP listeners =='
+    sudo -n ss -ltnp '( sport >= :3389 and sport <= :3398 )'
+    printf '%s\n' '== Firewall =='
+    sudo -n ufw status verbose
+    printf '%s\n' '== Login sessions =='
+    loginctl list-sessions
+    printf '%s\n' '== Remote Desktop logs from the last 10 minutes =='
+    sudo -n journalctl -b --since '10 minutes ago' --no-pager \
+      -u gnome-remote-desktop.service -t gnome-remote-desktop-daemon
+    ;;
   smoke-test)
     require_ubuntu
     systemctl is-enabled --quiet gnome-remote-desktop.service
