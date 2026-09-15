@@ -1,10 +1,11 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { spawn } = require('node:child_process');
 const path = require('node:path');
-const { isSafeUsername, targetsFromConfig } = require('./targets.cjs');
+const { isSafeHost, isSafeUsername, targetsFromConfig } = require('./targets.cjs');
 
 const configPath = process.env.AI_COMMAND_CONFIG_PATH;
-const targets = configPath ? targetsFromConfig(configPath) : [];
+const configuredTargets = configPath ? targetsFromConfig(configPath) : [];
+const targets = [...configuredTargets, { id: 'direct', label: 'Direct server', host: '', username: process.env.USER || '', preferredClient: 'freerdp', windowsAppCompatible: true, note: 'Enter any reachable RDP server.' }];
 let mainWindow;
 
 function findTarget(id) {
@@ -29,11 +30,13 @@ ipcMain.handle('rdp:connect', async (_event, request) => {
     return true;
   }
   const password = String(request?.password || '');
+  const host = String(request?.host || target.host);
   const username = String(request?.username || target.username);
+  if (!isSafeHost(host)) throw new Error('Enter a valid hostname or IP address.');
   if (!isSafeUsername(username)) throw new Error('Enter a valid Linux username.');
   if (!password) throw new Error('RDP password is required.');
   const executable = '/opt/homebrew/opt/freerdp/bin/sdl-freerdp';
-  const args = [`/v:${target.host}`, `/u:${username}`, '/cert:tofu', '/from-stdin:force', '/dynamic-resolution'];
+  const args = [`/v:${host}`, `/u:${username}`, '/cert:tofu', '/from-stdin:force', '/dynamic-resolution'];
   if (request?.display === 'fullscreen') args.push('/f');
   else args.push(`/size:${request?.size === 'large' ? '1920x1200' : '1440x900'}`);
   const child = spawn(executable, args, { detached: true, stdio: ['pipe', 'ignore', 'ignore'] });

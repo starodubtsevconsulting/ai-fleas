@@ -3,12 +3,18 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
-const { isSafeUsername, targetsFromConfig } = require('./targets.cjs');
+const { isSafeHost, isSafeUsername, targetsFromConfig } = require('./targets.cjs');
 
 test('accepts Linux usernames and rejects command-like input', () => {
   assert.equal(isSafeUsername('sergii'), true);
   assert.equal(isSafeUsername('site_admin-2'), true);
   assert.equal(isSafeUsername('bad;command'), false);
+});
+
+test('accepts hostnames and IP addresses but rejects shell input', () => {
+  assert.equal(isSafeHost('server-01.local'), true);
+  assert.equal(isSafeHost('10.0.0.26'), true);
+  assert.equal(isSafeHost('host;open bad'), false);
 });
 
 test('loads only explicit safe remote desktop targets', () => {
