@@ -87,7 +87,7 @@ case "$action" in
       printf '%s\n' 'REMOTE_DESKTOP_CONFIGURATION_FAILED: RDP did not remain enabled.' >&2
       exit 1
     }
-    printf '%s\n' 'REMOTE_DESKTOP_CREDENTIALS_REQUIRED: run grdctl rdp set-credentials as the desktop user, then run smoke-test.'
+    printf 'REMOTE_DESKTOP_CREDENTIALS_REQUIRED: run grdctl rdp set-credentials %s as the desktop user, then run smoke-test.\n' "$USER"
     ;;
   check-update|update|upgrade|uninstall)
     printf 'REMOTE_DESKTOP_%s_UNAVAILABLE: no reviewed lifecycle adapter is available.\n' "${action^^}" >&2
