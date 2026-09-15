@@ -14,6 +14,14 @@ grdctl rdp set-credentials <desktop-username>
 install/install.sh remote-desktop smoke-test
 ```
 
+For unattended server access before local login, select system remote-login mode and explicitly disable automatic login:
+
+```bash
+install/install.sh remote-desktop install --mode remote-login --disable-auto-login --allowed-cidr 192.0.2.0/24
+sudo grdctl --system rdp set-credentials <username>
+install/install.sh remote-desktop smoke-test --mode remote-login
+```
+
 The service starts whenever the desktop user logs in; on an auto-login workstation this also makes it available after
 reboot. Connect from macOS with Windows App or another RDP client using the server's private IPv4 address. The adapter enables
 UFW, preserves SSH on TCP 22, and permits TCP 3389 only from the explicitly supplied private CIDR. Do not expose TCP 3389 publicly.
