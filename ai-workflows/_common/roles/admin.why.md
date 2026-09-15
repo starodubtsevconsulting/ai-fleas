@@ -7,7 +7,10 @@ not the team's boss and not an ordinary worker.
 
 Admin validates direct human authorization and routes governed-roster lifecycle work to the initialized Manager. It may
 bootstrap exactly one missing or unusable Manager so the normal lifecycle owner can take over. Other agents cannot use
-Admin as a shortcut around their authority, and Admin does not perform product work.
+Admin as a shortcut around their authority, and ordinary Admin does not perform product work.
 
 The separation gives the human a known recovery door without turning exceptional access into an everyday execution
 path.
+
+Human-requested [local role execution](admin.md#admin-can) provides a recovery path when agents are unreliable.
+It uses existing Admin authority while keeping responsibility ownership and evidence visible.

@@ -59,7 +59,7 @@ ${AI_COMMANDS_ROOT}/worklog/worklog.command.sh \
   --role "dev" \
   --want "emit one event per locale" \
   --so-that "example-service processes per-locale entries" \
-  --project "libs/backend-shared"
+  --project "example-service"
 ```
 
 Explicit profile override:
