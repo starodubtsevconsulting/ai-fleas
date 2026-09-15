@@ -41,6 +41,12 @@ async function status(context) {
   const observed = validate.ok
     ? await run(context.commandPath, ['connector-status'], context.spawnOptions())
     : { ok: false, stdout: '', stderr: '' };
+  const [server, origin] = validate.ok
+    ? await Promise.all([
+      run(context.commandPath, ['server-status'], context.spawnOptions()),
+      run(context.commandPath, ['origin-status'], context.spawnOptions())
+    ])
+    : [{ ok: false }, { ok: false }];
   const managed = Boolean(context.connector && context.connector.exitCode === null);
   const detected = managed || connectorIsOpen(observed);
   return {
@@ -50,6 +56,8 @@ async function status(context) {
     connectorDetected: detected,
     connectorCount: detected ? 1 : 0,
     connectorConflict: detected && !managed,
+    serverOnline: server.ok,
+    originHealthy: origin.ok,
     accessHealthy: access.ok,
     publicUrl: publicUrlFromValidation(validate.stdout),
     version: installed.ok ? installed.stdout.trim() : '',

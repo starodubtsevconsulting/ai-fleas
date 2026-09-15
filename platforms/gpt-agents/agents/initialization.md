@@ -44,12 +44,12 @@ Repeated watch-group inputs create one deduplicated watch-scope set on that sche
 exact scope once and retains independent receipt cursors, task bindings, health evidence, and pending/active state per
 group. A missing or failed group must not suppress safe checks or reports for other groups.
 
-Before workflow mutation, validate the exact profile, workflow, complete logical-project ID including any suffix, complete
-ordered registered workflow project set, and its first/primary work target,
+Before workflow mutation, validate the exact profile, workflow, complete logical-project ID including any suffix, non-empty
+ordered selected project subset drawn only from registered workflow projects, and its first/primary work target,
 portable roster, communication topology, role contracts, and host capabilities. Resolve the exact profile project record
 and canonical primary target. Resolve the pre-existing saved Codex Project by exact logical-project name, verify its
-immutable ID and complete ordered roots against the profile, and record it before creating tasks. If it does not exist or
-its roots differ, stop with zero task mutation. Never infer a project from its label alone, a nearby folder, or repository
+immutable ID and complete ordered selected roots against the profile-authorized subset, and record it before creating tasks. Unselected
+registered projects are not missing roots. If the saved project does not exist or its selected roots differ, stop with zero task mutation. Never infer a project from its label alone, a nearby folder, or repository
 similarity, and never create or edit the saved Project, repository, clone, worktree, or replacement checkout.
 
 Create every workflow agent directly in that one folder-backed saved project's configured primary checkout by selecting the Codex `local` environment.

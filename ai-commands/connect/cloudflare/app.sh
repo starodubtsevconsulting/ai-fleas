@@ -33,6 +33,10 @@ if [[ "${1:-}" == '--serve-check' ]]; then
   "$script_dir/cloudflare.command.test.sh"
   "$script_dir/controller-service.test.sh"
   node --check "$script_dir/launcher/electron/main.cjs"
+  grep -q 'requestSingleInstanceLock' "$script_dir/launcher/electron/main.cjs" || {
+    printf 'Cloudflare controller must enforce a single application instance.\n' >&2
+    exit 1
+  }
   node --check "$script_dir/launcher/electron/preload.cjs"
   node --test "$script_dir/launcher/electron/"*.test.cjs
   node - "$script_dir/launcher/panel/index.html" <<'NODE'
