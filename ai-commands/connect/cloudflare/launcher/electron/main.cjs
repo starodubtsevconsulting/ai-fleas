@@ -132,6 +132,10 @@ ipcMain.handle('cloudflare:stop', async (_event, providerId) => {
   const child = state?.child;
   if (state) { state.stopping = true; if (state.restartTimer) clearTimeout(state.restartTimer); }
   if (child && child.exitCode === null) { child.kill('SIGTERM'); await new Promise((resolve) => child.once('exit', resolve)); }
+  else {
+    const result = await actions.run(commandPath, ['stop-tunnel'], spawnOptions(providerId));
+    if (!result.ok) throw new Error(actions.safeLog(result.stderr));
+  }
   connectors.delete(providerId); return targetStatus(providerId);
 });
 ipcMain.handle('cloudflare:open-public-url', async (_event, providerId) => {
