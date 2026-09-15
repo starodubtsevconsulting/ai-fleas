@@ -1,3 +1,17 @@
+.context {
+  padding: 16px;
+}
+
+.context label {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+main {
+  gap: 14px;
+}
+
 .target {
   grid-template-columns: minmax(170px, 1.3fr) repeat(3, minmax(80px, .65fr)) auto;
 }
