@@ -28,20 +28,28 @@ function countPids(raw, ok = true) {
   return ok ? String(raw || '').trim().split(/\s+/).filter(Boolean).length : 0;
 }
 
+function connectorIsOpen(result) {
+  return Boolean(result?.ok && /^connector open:/m.test(String(result.stdout || '')));
+}
+
 async function status(context) {
   const validate = await run(context.commandPath, ['validate'], context.spawnOptions());
   const access = validate.ok
     ? await run(context.commandPath, ['verify-access'], context.spawnOptions())
     : { ok: false, stdout: '', stderr: 'Configuration validation failed.' };
   const installed = await run('cloudflared', ['--version'], context.spawnOptions());
+  const observed = validate.ok
+    ? await run(context.commandPath, ['connector-status'], context.spawnOptions())
+    : { ok: false, stdout: '', stderr: '' };
   const managed = Boolean(context.connector && context.connector.exitCode === null);
+  const detected = managed || connectorIsOpen(observed);
   return {
     configured: validate.ok,
     connectorInstalled: installed.ok,
     connectorManaged: managed,
-    connectorDetected: managed,
-    connectorCount: managed ? 1 : 0,
-    connectorConflict: false,
+    connectorDetected: detected,
+    connectorCount: detected ? 1 : 0,
+    connectorConflict: detected && !managed,
     accessHealthy: access.ok,
     publicUrl: publicUrlFromValidation(validate.stdout),
     version: installed.ok ? installed.stdout.trim() : '',
@@ -49,4 +57,4 @@ async function status(context) {
   };
 }
 
-module.exports = { countPids, publicUrlFromValidation, run, safeLog, status };
+module.exports = { connectorIsOpen, countPids, publicUrlFromValidation, run, safeLog, status };
