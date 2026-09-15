@@ -51,4 +51,10 @@ else
   warn "docker service is not active"
 fi
 
-groups "$USER" | grep -q "\bdocker\b" && ok "user '$USER' is in docker group" || warn "user '$USER' is NOT in docker group (log out/in after install to use docker without sudo)"
+if id -nG | grep -qw docker; then
+  ok "current session has docker group access"
+elif id -nG "$USER" | grep -qw docker; then
+  warn "user '$USER' is configured in docker group; reconnect to refresh this session"
+else
+  warn "user '$USER' is NOT in docker group"
+fi

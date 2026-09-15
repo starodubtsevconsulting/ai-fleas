@@ -6,6 +6,15 @@ repo_root="$(cd "$script_dir/../../.." && pwd -P)"
 electron_bin="${CLOUDFLARE_ELECTRON_BIN:-}"
 launcher_root="$script_dir/launcher"
 
+if [[ ! -x "$launcher_root/node_modules/.bin/ng" ]]; then
+  command -v npm >/dev/null 2>&1 || {
+    printf 'npm is required to build the Cloudflare tunnel UI.\n' >&2
+    exit 1
+  }
+  (cd "$launcher_root" && npm ci)
+fi
+(cd "$launcher_root" && npm run build:panel >/dev/null)
+
 if [[ -z "$electron_bin" ]]; then
   for candidate in \
     "$launcher_root/node_modules/.bin/electron" \
@@ -33,16 +42,17 @@ if [[ "${1:-}" == '--serve-check' ]]; then
   "$script_dir/cloudflare.command.test.sh"
   "$script_dir/controller-service.test.sh"
   node --check "$script_dir/launcher/electron/main.cjs"
+  grep -q 'requestSingleInstanceLock' "$script_dir/launcher/electron/main.cjs" || {
+    printf 'Cloudflare controller must enforce a single application instance.\n' >&2
+    exit 1
+  }
   node --check "$script_dir/launcher/electron/preload.cjs"
   node --test "$script_dir/launcher/electron/"*.test.cjs
-  node - "$script_dir/launcher/panel/index.html" <<'NODE'
+  (cd "$launcher_root" && npm run test:panel)
+  node - "$script_dir/launcher/panel-dist/browser/index.html" <<'NODE'
 const fs = require('node:fs');
 const html = fs.readFileSync(process.argv[2], 'utf8');
-const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
-for (const script of scripts) new Function(script);
-for (const expected of ['Multi-provider tunnel controller', 'Profile and workflow', 'Model provider', 'Use profile', 'Start', 'Stop', 'Access']) {
-  if (!html.includes(expected)) throw new Error(`Cloudflare panel missing: ${expected}`);
-}
+if (!html.includes('app-root')) throw new Error('Angular panel root is missing.');
 NODE
   printf 'Cloudflare tunnel UI checks passed.\n'
   exit 0

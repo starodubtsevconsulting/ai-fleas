@@ -211,7 +211,7 @@ app_mode:
   workflow_layouts:
     dev.workflow.md: terminal
     youtube.workflow.md: chat
-projects_root_path: /absolute/path/to/example-workspace
+projects_root_path: ~/projects/example-workspace
 sessions_root: ~/.ai-work-sessions/example
 org_domain: example.com
 envs: [dev, prod]

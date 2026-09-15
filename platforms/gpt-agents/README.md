@@ -15,9 +15,9 @@ The portable vocabulary maps as follows:
 | logical agent | configured workflow role binding |
 | agent instance | user-visible Codex task |
 | instance ID | app-returned task/thread ID |
-| logical work scope | complete set of project records registered by the selected profile workflow |
-| primary project | first workflow project; hosts rules, commands, workflow definitions, and the Codex saved-project agents |
-| associated projects | all later workflow project entries; remain in the group's logical work scope |
+| logical work scope | non-empty selected subset of project records registered by the selected profile workflow |
+| primary project | first selected workflow project; hosts rules, commands, workflow definitions, and the Codex saved-project agents |
+| associated projects | later selected workflow project entries; unselected registered projects are not required scoped folders |
 | missing saved Codex Project | stop before task mutation; the exact folder-backed Project is a GPT-platform prerequisite |
 | logical project / group | one exact folder-backed Codex saved project containing its agent tasks |
 | project | one profile-registered folder in that saved project's ordered scope |

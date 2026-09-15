@@ -95,5 +95,6 @@ assert.match(contract, /first folder is primary/);
 assert.match(contract, /Logical project.*group.*synonyms/);
 assert.match(contract, /Project.*one profile-registered folder inside/);
 assert.match(contract, /pre-existing exact folder-backed saved Codex project named for the logical project/);
-assert.match(contract, /complete ordered scoped-folder list, then\s+record that binding before any agent creation/);
+assert.match(contract, /complete ordered selected scoped-folder list, then\s+record that binding before any agent creation/);
+assert.match(contract, /Registered but unselected projects are available choices, not required scoped folders/);
 console.log('gpt-agents command mapping: PASS');

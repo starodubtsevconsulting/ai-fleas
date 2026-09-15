@@ -30,7 +30,7 @@ run_provider() {
 }
 
 targets_output="$($command_path list-targets)"
-[[ -n "$targets_output" ]] || { printf 'No Cloudflare provider targets are configured.\n' >&2; exit 2; }
+[[ -n "$targets_output" ]] || { printf 'No Cloudflare server targets are configured.\n' >&2; exit 2; }
 autostart="${CLOUDFLARE_UI_AUTOSTART:-all}"
 while IFS= read -r provider_id; do
   [[ -n "$provider_id" ]] || continue

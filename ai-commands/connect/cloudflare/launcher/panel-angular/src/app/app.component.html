@@ -1,0 +1,46 @@
+<app-controller-header
+  [refreshing]="refreshing()"
+  (refreshRequested)="refresh()"
+/>
+<main>
+  <app-profile-selector
+    [contexts]="contexts()"
+    [selectedContext]="selectedContext()"
+    (contextSelected)="selectContext($event)"
+  />
+  <p class="error" *ngIf="error()">
+    {{ error() }} <button (click)="refresh()">Retry</button>
+  </p>
+  <div class="workspace" [class.closed]="detailsClosed()">
+    <app-server-list
+      [targets]="targets()"
+      [selectedId]="selectedId()"
+      (serverSelected)="select($event)"
+      (startRequested)="start($event.target, $event.event)"
+      (stopRequested)="stop($event.target, $event.event)"
+    />
+    <div class="vsplit" (pointerdown)="resizeRight($event)"></div>
+    <app-server-details
+      [class.collapsed]="detailsClosed()"
+      [target]="selected()"
+      [width]="detailsWidth()"
+      (collapsed)="detailsClosed.set(true)"
+      (urlRequested)="open($event)"
+    />
+    <button
+      class="reopen"
+      *ngIf="detailsClosed()"
+      (click)="detailsClosed.set(false)"
+    >
+      ‹
+    </button>
+  </div>
+  <div class="hsplit" (pointerdown)="resizeLogs($event)"></div>
+  <app-connector-logs
+    [selectedServer]="selectedId()"
+    [lines]="coloredLogs()"
+    [height]="logHeight()"
+    (allRequested)="selectedId.set('')"
+    (collapseRequested)="logHeight.set(logHeight() === 42 ? 260 : 42)"
+  />
+</main>
