@@ -56,6 +56,7 @@ assignment authority. An absent relationship or communication kind is `PROHIBITE
 | Supervising Worker | Assigned Worker | PERMITTED_IF_WORKFLOW_BOUND | Bounded assignment or same-scope correction packet. |
 | Assigned Worker | Supervising Worker | RETURN_ONLY | Evidence, clarification question, blocker, or terminal disposition. |
 | Assigned Worker | Execution Worker | PERMITTED_IF_WORKFLOW_BOUND | Bounded implementation-mechanics packet. |
+| Tracker operation owner | Execution Worker | PERMITTED_IF_WORKFLOW_BOUND | Bounded configured tracker-adapter mechanics only; no generic command assignment or transfer of ticket semantics. |
 | Execution Worker | Packet return coordinator | RETURN_ONLY | Mechanical evidence, blocker, or terminal disposition. |
 | Worker | Manager | PERMITTED_IF_WORKFLOW_BOUND | Ticket, capability, staffing, or lifecycle request allowed by the selected workflow. |
 | Manager | Exact requesting Worker | RETURN_ONLY | Requested ticket, capability, staffing, or lifecycle result. |

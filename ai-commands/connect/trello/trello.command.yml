@@ -1,0 +1,6 @@
+id: trello
+version: 0.0.1-SNAPSHOT
+category: connect
+type: provider
+ai:
+  powered: false
