@@ -99,6 +99,30 @@ test('Access redirects and missing secrets fail closed', async () => {
   }), /UNKNOWN_CONSUMER/);
 });
 
+test('missing Access bootstrap blocks before or during secret resolution', async () => {
+  const missing = path.join(folder, 'missing-access.env');
+  const config = validateConfig(sample.replace('  bootstrap_file: ' + bootstrap,
+    '  bootstrap_file: ' + bootstrap + '\n  access_bootstrap_file: ' + missing));
+  let calls = 0;
+  await assert.rejects(verifyConnection(config, async () => {
+    calls++;
+    throw Error('fetch must not happen');
+  }), /BOOTSTRAP_UNAVAILABLE/);
+  assert.equal(calls, 0);
+
+  const removed = path.join(folder, 'removed-access.env');
+  fs.writeFileSync(removed, 'CF_ACCESS_CLIENT_ID=synthetic-id\nCF_ACCESS_CLIENT_SECRET=synthetic-secret\n',
+    {mode: 0o600});
+  const second = validateConfig(sample.replace('  bootstrap_file: ' + bootstrap,
+    '  bootstrap_file: ' + bootstrap + '\n  access_bootstrap_file: ' + removed));
+  await assert.rejects(resolveForConsumer(second, 'cloudflare', async () => {
+    calls++;
+    fs.unlinkSync(removed);
+    return {status: 200, json: async () => ({accessToken: 'synthetic-access-token'})};
+  }), /BOOTSTRAP_UNAVAILABLE/);
+  assert.equal(calls, 1);
+});
+
 test('sends the separate Access bootstrap only to the configured provider endpoint', async () => {
   const config = validateConfig(sample.replace('  bootstrap_file: ' + bootstrap,
     '  bootstrap_file: ' + bootstrap + '\n  access_bootstrap_file: ' + accessBootstrap));

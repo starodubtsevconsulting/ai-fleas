@@ -143,7 +143,10 @@ async function postLogin(config, fetcher = fetch) {
         clientSecret: auth.INFISICAL_CLIENT_SECRET}),
       signal: AbortSignal.timeout(10000),
     });
-  } catch { blocked('PROVIDER_UNREACHABLE'); }
+  } catch (error) {
+    if (error instanceof SecretsBlocked) throw error;
+    blocked('PROVIDER_UNREACHABLE');
+  }
   if (response.status !== 200) blocked(response.status >= 300 && response.status < 400 ?
     'ACCESS_GATE_REQUIRED' : 'PROVIDER_AUTH_FAILED');
   let body;
@@ -174,7 +177,10 @@ export async function resolveForConsumer(config, consumer, fetcher = fetch) {
       response = await fetcher(url, {redirect: 'manual',
         headers: {Authorization: 'Bearer ' + token, ...accessHeaders(config)},
         signal: AbortSignal.timeout(10000)});
-    } catch { blocked('PROVIDER_UNREACHABLE'); }
+    } catch (error) {
+      if (error instanceof SecretsBlocked) throw error;
+      blocked('PROVIDER_UNREACHABLE');
+    }
     if (response.status !== 200) blocked(response.status === 404 ? 'SECRET_NOT_FOUND' :
       response.status >= 300 && response.status < 400 ? 'ACCESS_GATE_REQUIRED' : 'SECRET_READ_FAILED');
     let body;
