@@ -210,4 +210,105 @@ assert origin_request == {
 }
 PY
 
+command -v openssl >/dev/null 2>&1 || { echo 'openssl is required for origin TLS tests' >&2; exit 1; }
+mkdir -p "$fixture_dir/certs"
+openssl req -x509 -newkey rsa:2048 -nodes -days 1 \
+  -keyout "$fixture_dir/certs/trusted-ca.key" -out "$fixture_dir/certs/trusted-ca.pem" \
+  -subj '/CN=Synthetic trusted CA' >/dev/null 2>&1
+openssl req -x509 -newkey rsa:2048 -nodes -days 1 \
+  -keyout "$fixture_dir/certs/untrusted-ca.key" -out "$fixture_dir/certs/untrusted-ca.pem" \
+  -subj '/CN=Synthetic untrusted CA' >/dev/null 2>&1
+
+issue_certificate() {
+  local name="$1" ca_prefix="$2" output_prefix="$3"
+  openssl req -newkey rsa:2048 -nodes -keyout "$output_prefix.key" -out "$output_prefix.csr" \
+    -subj "/CN=$name" >/dev/null 2>&1
+  printf 'subjectAltName=DNS:%s\n' "$name" >"$output_prefix.ext"
+  openssl x509 -req -days 1 -in "$output_prefix.csr" -CA "$ca_prefix.pem" -CAkey "$ca_prefix.key" \
+    -CAcreateserial -out "$output_prefix.pem" -extfile "$output_prefix.ext" >/dev/null 2>&1
+}
+
+cat >"$fixture_dir/tls-server.py" <<'PY'
+import http.server
+import pathlib
+import ssl
+import sys
+
+port_file, certificate, key = map(pathlib.Path, sys.argv[1:4])
+expected_name = sys.argv[4]
+
+class Handler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.headers.get("Host") != f"{expected_name}:{self.server.server_port}":
+            self.send_response(421)
+            self.end_headers()
+            return
+        self.send_response(204)
+        self.end_headers()
+    def log_message(self, *_):
+        pass
+
+server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.load_cert_chain(certificate, key)
+server.socket = context.wrap_socket(server.socket, server_side=True)
+port_file.write_text(str(server.server_port))
+server.handle_request()
+PY
+
+start_tls_server() {
+  local name="$1" certificate="$2" key="$3" port_file
+  port_file="$fixture_dir/$name.port"
+  python3 "$fixture_dir/tls-server.py" "$port_file" "$certificate" "$key" 'origin.example.invalid' &
+  tls_server_pid=$!
+  for _ in $(seq 1 50); do
+    [[ -s "$port_file" ]] && break
+    sleep 0.05
+  done
+  [[ -s "$port_file" ]]
+  tls_server_port="$(cat "$port_file")"
+}
+
+issue_certificate 'origin.example.invalid' "$fixture_dir/certs/trusted-ca" "$fixture_dir/certs/valid-origin"
+start_tls_server valid "$fixture_dir/certs/valid-origin.pem" "$fixture_dir/certs/valid-origin.key"
+origin_port="$tls_server_port"
+write_config "https://127.0.0.1:$origin_port"
+cat >>"$fixture_dir/config.env" <<EOF
+CLOUDFLARE_ORIGIN_SERVER_NAME="origin.example.invalid"
+CLOUDFLARE_ORIGIN_CA_POOL="$fixture_dir/certs/trusted-ca.pem"
+EOF
+origin_output="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" origin-status)"
+[[ "$origin_output" == *"origin healthy: url=https://origin.example.invalid:$origin_port/ status=204"* ]]
+wait "$tls_server_pid"
+
+issue_certificate 'wrong.example.invalid' "$fixture_dir/certs/trusted-ca" "$fixture_dir/certs/wrong-origin"
+start_tls_server wrong-name "$fixture_dir/certs/wrong-origin.pem" "$fixture_dir/certs/wrong-origin.key"
+origin_port="$tls_server_port"
+write_config "https://127.0.0.1:$origin_port"
+cat >>"$fixture_dir/config.env" <<EOF
+CLOUDFLARE_ORIGIN_SERVER_NAME="origin.example.invalid"
+CLOUDFLARE_ORIGIN_CA_POOL="$fixture_dir/certs/trusted-ca.pem"
+EOF
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" origin-status >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected mismatched origin certificate hostname to fail' >&2
+  exit 1
+fi
+grep -F 'origin unavailable: url=https://origin.example.invalid:' "$fixture_dir/out" >/dev/null
+wait "$tls_server_pid" || true
+
+issue_certificate 'origin.example.invalid' "$fixture_dir/certs/untrusted-ca" "$fixture_dir/certs/untrusted-origin"
+start_tls_server untrusted-ca "$fixture_dir/certs/untrusted-origin.pem" "$fixture_dir/certs/untrusted-origin.key"
+origin_port="$tls_server_port"
+write_config "https://127.0.0.1:$origin_port"
+cat >>"$fixture_dir/config.env" <<EOF
+CLOUDFLARE_ORIGIN_SERVER_NAME="origin.example.invalid"
+CLOUDFLARE_ORIGIN_CA_POOL="$fixture_dir/certs/trusted-ca.pem"
+EOF
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" origin-status >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected origin certificate signed by an untrusted CA to fail' >&2
+  exit 1
+fi
+grep -F 'origin unavailable: url=https://origin.example.invalid:' "$fixture_dir/out" >/dev/null
+wait "$tls_server_pid" || true
+
 echo 'cloudflare.command tests passed'
