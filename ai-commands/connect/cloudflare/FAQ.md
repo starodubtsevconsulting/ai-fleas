@@ -12,6 +12,28 @@ It does not always need it. A LAN-only secret service is preferable when all con
 
 Remote access becomes useful when an authorized MacBook, server, application, or unattended agent needs to retrieve a secret while outside that network. The purpose is to make the authenticated secret-service API reachable to those authorized clients, not to publish secret values.
 
+## Where does an agent get the public URL?
+
+Use only the activated profile/workflow and the exact selected Cloudflare target. Read `CLOUDFLARE_PUBLIC_URL` from that
+target's private command configuration. In multi-server mode, first resolve the explicitly selected
+`CLOUDFLARE_SERVER_ID` through `CLOUDFLARE_SERVER_TARGETS`; do not use the first target, a nearby file, or the public
+example configuration.
+
+`CLOUDFLARE_PUBLIC_URL` is the human-facing HTTPS link. `CLOUDFLARE_ORIGIN_URL` is the private upstream used by the
+connector and must not be presented as the outside browser URL. For Infisical, the selected public URL should agree with
+the service's configured `SITE_URL`; see the [Infisical access guidance](../../install/infisical/FAQ.md#where-does-an-agent-get-the-infisical-web-url).
+
+## How does access differ locally and from outside?
+
+- From outside, open `CLOUDFLARE_PUBLIC_URL`. The expected first response may be a Cloudflare Access sign-in, followed by
+  the application's own authentication.
+- From the service host or trusted operator network, use the service's documented private endpoint or an authorized SSH
+  forward. Cloudflare configuration does not create a direct LAN listener.
+- `CLOUDFLARE_ORIGIN_URL` is for connector health and routing. If it uses HTTPS, retain its configured server name and CA
+  verification. Never make local access work by disabling TLS verification.
+- If the Cloudflare target is not configured and active, there is no outside URL supplied by this capability. Return the
+  precise missing configuration or readiness evidence instead of guessing a hostname.
+
 ## Are we exposing our secrets to the Internet?
 
 No secret values are intentionally published as public content. What becomes reachable is an authenticated service endpoint behind Cloudflare Access/Tunnel and the secret service's own authentication and authorization.
