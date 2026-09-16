@@ -381,7 +381,10 @@ method requires its own explicit integration and acceptance checks.
 
 Cloudflare account configuration must use the exact selected private override and credential references defined by the
 separate [Cloudflare command](../../connect/cloudflare/cloudflare.command.md). Origin certificate validation must remain
-enabled, and the account-side ingress must target the `proxy` service using `origin_server_name`. The installer must not
+enabled. Because cloudflared and Nginx are sibling containers, the selected Cloudflare target must set
+`CLOUDFLARE_ORIGIN_SCOPE=container` and `CLOUDFLARE_ORIGIN_URL=https://proxy:8443`, with `origin_server_name` used for
+TLS hostname verification. Connector loopback is the cloudflared container itself and must never be used to address the
+`proxy` service. The installer must not
 hardcode a deployment subnet, certificate, hostname, allowed identity, API token, or connector token in reusable files.
 End-to-end acceptance must verify TLS trust, hostname matching, authorized-client success, unauthenticated-client denial,
 and unauthorized-identity denial. The account-side ingress `caPool` path must exactly equal `origin_ca_file`, and the
@@ -426,7 +429,7 @@ independently tested migration procedure.
 | INF-11 | An empty SMTP reference must create no email configuration. Valid protected SMTP input must be accepted. Unsafe input, an invalid port, injected backend keys, or a TLS bypass must fail before copying or deployment. |
 | INF-12 | The public package must pass scoped structure, metadata, route, local-link, and private-content checks. The example configuration must remain fictional and non-runnable. |
 | INF-13 | Production acceptance must use an explicitly authorized disposable Linux host and approved immutable image pins. It must verify application startup, initial setup, key and data retention across restart and reboot, and truthful failure recovery. |
-| INF-14 | Cloudflare mode must own five digest-pinned services in one Compose project while keeping the control plane external. The account-side `caPool`, container CA destination, and read-only owned CA mount must agree exactly. HTTPS and access acceptance must verify an authorized `/api/status` response from the origin plus unauthenticated and unauthorized denial; an Access redirect alone is insufficient. Email acceptance must verify invitation or reset delivery. Recovery acceptance must verify isolated restoration with the original keys. |
+| INF-14 | Cloudflare mode must own five digest-pinned services in one Compose project while keeping the control plane external. The account-side origin must use container scope and `https://proxy:8443`; connector loopback is invalid for the sibling proxy. The account-side `caPool`, container CA destination, and read-only owned CA mount must agree exactly. HTTPS and access acceptance must verify an authorized `/api/status` response from the origin plus unauthenticated and unauthorized denial; an Access redirect alone is insufficient. Email acceptance must verify invitation or reset delivery. Recovery acceptance must verify isolated restoration with the original keys. |
 
 ## Reconstruction requirements
 

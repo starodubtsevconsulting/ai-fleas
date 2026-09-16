@@ -94,8 +94,8 @@ described as externally accessible:
 | Step | Required evidence |
 |---|---|
 | 1 | `status` verifies the actual connector has the owned token and CA files mounted read-only at their exact configured destinations. |
-| 2 | The selected Cloudflare target identifies the same public hostname as `SITE_URL`, targets the expected private HTTPS origin, and configures `caPool` to exactly `origin_ca_file`. |
-| 3 | A direct private-origin probe validates the configured CA and `origin_server_name` and receives HTTP 200 from `/api/status`; TLS verification remains enabled. |
+| 2 | The selected Cloudflare target identifies the same public hostname as `SITE_URL`, sets origin scope to `container`, targets `https://proxy:8443`, and configures `caPool` to exactly `origin_ca_file`. A loopback target fails because it addresses cloudflared itself. |
+| 3 | From the connector network, `proxy` resolves to the Nginx container and a direct private-origin probe validates the configured CA and `origin_server_name` and receives HTTP 200 from `/api/status`; TLS verification remains enabled. |
 | 4 | An unauthenticated public request is denied or redirected by the expected Access policy. This step alone is not origin evidence. |
 | 5 | An authorized browser or machine client traverses Access and receives HTTP 200 from `SITE_URL/api/status`. Any 5xx response fails acceptance even when the Access login page and all containers appear healthy. |
 | 6 | An unauthorized identity is denied, and the authorized client can complete the required Infisical authentication without exposing credentials in evidence. |
