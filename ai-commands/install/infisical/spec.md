@@ -111,9 +111,9 @@ flowchart TB
 
     subgraph Project[One Docker Compose project]
       direction TB
-      Backend[backend container<br/>Infisical backend image<br/>health: GET /api/status]
-      Postgres[db container<br/>PostgreSQL image<br/>health: pg_isready]
-      Redis[redis container<br/>Redis image<br/>health: authenticated PONG]
+      Backend[backend container<br/>Web UI and API<br/>stateless application tier]
+      Postgres[db container<br/>Authoritative persistent state<br/>secrets, identities, policies, audit data]
+      Redis[redis container<br/>Sessions, cache, job queues<br/>background and scheduled tasks]
       Private((private internal network))
       Outbound((outbound network))
       PgVolume[(pg_data volume)]
@@ -153,16 +153,21 @@ flowchart TB
   Outbound -->|TLS SMTP| SMTP
 ```
 
-| Component | Packaging | Command responsibility |
-|---|---|---|
-| Infisical backend | Separate `backend` container and pinned image | Create, configure, start, stop, and verify. |
-| PostgreSQL | Separate `db` container and pinned image | Create, configure, start, stop, verify, and retain `pg_data`. |
-| Redis | Separate `redis` container and pinned image | Create, authenticate, start, stop, verify, and retain `redis_data`. |
-| Compose networks | Internal `private` network and normal `outbound` network | Create and verify exact container attachments. |
-| Protected deployment files | Host files under `remote_root` | Create, permission-check, lock, and verify without exposing secrets. |
-| Docker Engine and Compose v2 | Preexisting host prerequisites | Qualify and use; never install automatically. |
-| TLS proxy, access gateway, and tunnel connector | Separate capabilities outside this command | Record integration requirements and verify separately. |
-| SMTP relay | Optional external service outside this command | Consume protected connection settings; never install the relay. |
+| Component | Why the installation needs it | Packaging | Command responsibility |
+|---|---|---|---|
+| Infisical backend | Serves the web UI and API and applies Infisical's authentication, authorization, and secret-management logic. It is stateless and depends on PostgreSQL and Redis. | Separate `backend` container and pinned image. | Create, configure, start, stop, and verify. |
+| PostgreSQL | Stores the authoritative durable dataset: encrypted secrets and version history, authentication records, identities, projects, access policies, audit trails, and integration settings. | Separate `db` container and pinned image. | Create, configure, start, stop, verify, and retain `pg_data`. |
+| Redis | Supports session management, frequently used-data caching, asynchronous job queues, background work, and scheduled tasks. | Separate `redis` container and pinned image. | Create, authenticate, start, stop, verify, and retain `redis_data`. |
+| Compose networks | Keeps datastore traffic private while allowing only the backend to make approved outbound connections. | Internal `private` network and normal `outbound` network. | Create and verify exact container attachments. |
+| Protected deployment files | Hold the ownership record, Compose definition, generated credentials, service connection settings, and operation lock. | Host files under `remote_root`. | Create, permission-check, lock, and verify without exposing secrets. |
+| Docker Engine and Compose v2 | Runs and coordinates the three containers, networks, and volumes as one installation. | Preexisting host prerequisites. | Qualify and use; never install automatically. |
+| TLS proxy, access gateway, and tunnel connector | Provide authenticated HTTPS access without publishing the backend directly. | Separate capabilities outside this command. | Record integration requirements and verify separately. |
+| SMTP relay | Delivers optional invitation and password-reset email. Core secret operations do not require it. | Optional external service outside this command. | Consume protected connection settings; never install the relay. |
+
+PostgreSQL and Redis are both mandatory for this command, but they are not interchangeable. PostgreSQL is the durable
+source of truth. Redis supplies the operational session, cache, queue, and scheduled-work layer. The backend image contains
+the application code rather than an embedded durable database and therefore requires both `DB_CONNECTION_URI` and
+`REDIS_URL`.
 
 Local and remote execution must have Python 3 with standard-library support. SSH must use batch authentication, strict
 existing host-key checking, and a 10-second connection timeout. The dispatcher must pass the validated host as an argument,
