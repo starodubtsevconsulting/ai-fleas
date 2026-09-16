@@ -11,9 +11,11 @@ permitted behavior respectively.
 
 ## Scope
 
-The managed stack consists of one persistent Infisical backend, one PostgreSQL database, and one authenticated Redis
-service. The command owns installation, qualification, lifecycle control, and deployment-state verification for that
-stack. Runtime secret retrieval belongs to the separate `secrets` capability and is outside this command's scope.
+The managed stack always contains one persistent Infisical backend, one PostgreSQL database, and one authenticated Redis
+service. In `cloudflare` access mode, the same Compose project also contains an Nginx TLS proxy and a Cloudflare tunnel
+connector. The command owns installation, qualification, lifecycle control, and deployment-state verification for every
+selected service. Runtime secret retrieval and Cloudflare account-side DNS, tunnel, and Access policy configuration remain
+outside this command's scope.
 
 Deployment-specific image pins, identities, hostnames, credential references, paths and operational records belong to the
 selected private profile. Those values must not appear in the reusable package and must not be inferred from task names,
@@ -56,7 +58,9 @@ keys at every object level, enforce strict types, and reject booleans where inte
 
 The parser must normalize the config.env names into the fields below: `VERSION`/`COMMAND`;
 `SSH_TARGET`/`REMOTE_ROOT`/`PROJECT_NAME`/`SITE_URL`; `BACKEND_IMAGE`/`POSTGRES_IMAGE`/`REDIS_IMAGE` into
-`images.backend`/`images.db`/`images.redis`; `BACKEND_PORT`;
+`images.backend`/`images.db`/`images.redis`; `ACCESS_MODE`; `BACKEND_PORT`/`PROXY_PORT`;
+`PROXY_IMAGE`/`CLOUDFLARED_IMAGE` into `images.proxy`/`images.cloudflared`;
+`ORIGIN_SERVER_NAME`/`ORIGIN_CERT_FILE`/`ORIGIN_KEY_FILE`/`CLOUDFLARED_TOKEN_FILE`;
 `MINIMUM_CPUS`/`MINIMUM_MEMORY_GIB`/`MINIMUM_FREE_DISK_GIB`; `HEALTH_TIMEOUT_SECONDS`/`SSH_TIMEOUT_SECONDS`; `SMTP_ENV_FILE`.
 It must reject missing, unknown, or incorrectly typed normalized fields. Defaults must apply identically to both input
 formats.
@@ -69,9 +73,15 @@ formats.
 | `remote_root` | Absolute child directory; allowed characters letters, digits, `.`, `_`, `/`, `-`; at least two path components; no empty, `.` or `..` components. | Required |
 | `project_name` | Compose identity matching `[a-z][a-z0-9_-]{2,40}`. | Required |
 | `site_url` | HTTPS URL with a hostname made of letters, digits, dots and hyphens; no credentials, query, fragment or non-root path. HTTP only for `localhost` or `127.0.0.1`. Validate any numeric port; reject line breaks. | Required |
-| `images` | Exactly `backend`, `db`, `redis`, each a nonempty repository reference ending in `@sha256:` plus 64 lowercase hex digits. No floating-only tags. | Required |
+| `access_mode` | Exactly `core` or `cloudflare`. `cloudflare` makes the proxy and connector part of the same owned Compose project. | `core` |
+| `images` | Exactly `backend`, `db`, `redis`, plus `proxy` and `cloudflared` in `cloudflare` mode. Every reference ends in `@sha256:` plus 64 lowercase hex digits. | Required |
 | `images.db` | PostgreSQL 14–17 version tag plus digest, optionally with minor version/distribution suffix and registry prefix; supports `/var/lib/postgresql/data`. | Required |
-| `backend_port` | Integer 1024–65535. Bind only to host loopback. | `8080` |
+| `backend_port` | Integer 1024–65535. Core mode binds it on host loopback to backend port 8080. | `8080` |
+| `proxy_port` | Integer 1024–65535. Cloudflare mode binds it on host loopback to proxy port 8443. | `8443` |
+| `origin_server_name` | Explicit TLS hostname used in the generated Nginx server configuration. Required only in `cloudflare` mode. | None |
+| `origin_cert_file` | Explicit protected remote origin-certificate file copied into the owned deployment. Required only in `cloudflare` mode. | None |
+| `origin_key_file` | Explicit protected remote origin-key file copied into the owned deployment. Required only in `cloudflare` mode. | None |
+| `cloudflared_token_file` | Explicit protected remote token file copied into the owned deployment. Required only in `cloudflare` mode. | None |
 | `minimum_cpus` | Integer 2–256. | `2` |
 | `minimum_memory_gib` | Integer 4–4096, interpreted as GiB of host RAM. | `4` |
 | `minimum_free_disk_gib` | Integer 20–65536, interpreted as GiB of available storage. | `20` |
@@ -85,10 +95,10 @@ explicit migration procedure; an ordinary install rerun must reject it as a conf
 
 ## System boundary and architecture
 
-The command performs one installation and manages one Docker Compose project. That project contains three separate
-containers built from three independently pinned images. PostgreSQL and Redis are runtime dependencies of the Infisical
-backend; neither service is embedded in the backend image. Only the backend publishes a host port, and that port is bound
-to host loopback.
+The command performs one installation and manages one Docker Compose project. Core mode contains three separate containers.
+Cloudflare mode adds the Nginx proxy and tunnel connector to the same project, for five independently pinned containers.
+PostgreSQL and Redis are runtime dependencies of the Infisical backend; neither service is embedded in the backend image.
+Only the backend in core mode or the proxy in Cloudflare mode publishes a host port, always on host loopback.
 
 ```mermaid
 flowchart TB
@@ -104,9 +114,10 @@ flowchart TB
       BackendEnv[backend.env<br/>optional smtp.env]
       DbEnv[db.env]
       RedisEnv[redis.env]
+      AccessFiles[nginx.conf<br/>origin certificate and key<br/>tunnel-token]
     end
 
-    Loopback[Host loopback<br/>127.0.0.1:backend_port]
+    Loopback[Host loopback<br/>backend_port or proxy_port]
     Compose[Docker Engine<br/>Compose v2]
 
     subgraph Project[One Docker Compose project]
@@ -114,43 +125,56 @@ flowchart TB
       Backend[backend container<br/>Web UI and API<br/>stateless application tier]
       Postgres[db container<br/>Authoritative persistent state<br/>secrets, identities, policies, audit data]
       Redis[redis container<br/>Sessions, cache, job queues<br/>background and scheduled tasks]
-      Private((private internal network))
-      Outbound((outbound network))
+      Proxy[proxy container<br/>Nginx TLS origin]
+      Tunnel[cloudflared container<br/>Tunnel connector]
+      Data((data network<br/>internal))
+      Application((application network<br/>internal))
+      TunnelNet((tunnel network<br/>internal))
+      BackendEgress((backend egress))
+      TunnelEgress((tunnel egress))
       PgVolume[(pg_data volume)]
       RedisVolume[(redis_data volume)]
 
-      Backend -->|SQL| Private
-      Private --> Postgres
-      Backend -->|Redis protocol| Private
-      Private --> Redis
-      Backend --- Outbound
+      Backend -->|SQL| Data
+      Data --> Postgres
+      Backend -->|Redis protocol| Data
+      Data --> Redis
+      Proxy --- Application
+      Application --- Backend
+      Tunnel --- TunnelNet
+      TunnelNet --- Proxy
+      Backend --- BackendEgress
+      Tunnel --- TunnelEgress
       Postgres --- PgVolume
       Redis --- RedisVolume
     end
 
-    Loopback -->|container port 8080| Backend
+    Loopback -->|core mode: container 8080| Backend
+    Loopback -->|cloudflare mode: container 8443| Proxy
     Control -. compose definition .-> Compose
     Compose -->|manages| Backend
     Compose -->|manages| Postgres
     Compose -->|manages| Redis
+    Compose -->|cloudflare mode| Proxy
+    Compose -->|cloudflare mode| Tunnel
     BackendEnv -. supplies environment .-> Backend
     DbEnv -. supplies environment .-> Postgres
     RedisEnv -. supplies environment .-> Redis
+    AccessFiles -. cloudflare mode .-> Proxy
+    AccessFiles -. cloudflare mode .-> Tunnel
   end
 
   SSH -->|writes protected files| Control
   SSH -->|runs lifecycle operations| Compose
 
-  subgraph Optional[Optional capabilities outside this installer]
+  subgraph External[Capabilities outside this installer]
     direction LR
     Client[Authorized client] --> Gateway[Access gateway]
-    Gateway --> Connector[Tunnel connector]
-    Connector -->|verified TLS hostname and CA| Proxy[Private TLS reverse proxy]
     SMTP[Approved SMTP relay]
   end
 
-  Proxy -->|loopback HTTP| Loopback
-  Outbound -->|TLS SMTP| SMTP
+  Gateway --> Tunnel
+  BackendEgress -->|TLS SMTP| SMTP
 ```
 
 | Component | Why the installation needs it | Packaging | Command responsibility |
@@ -158,10 +182,12 @@ flowchart TB
 | Infisical backend | Serves the web UI and API and applies Infisical's authentication, authorization, and secret-management logic. It is stateless and depends on PostgreSQL and Redis. | Separate `backend` container and pinned image. | Create, configure, start, stop, and verify. |
 | PostgreSQL | Stores the authoritative durable dataset: encrypted secrets and version history, authentication records, identities, projects, access policies, audit trails, and integration settings. | Separate `db` container and pinned image. | Create, configure, start, stop, verify, and retain `pg_data`. |
 | Redis | Supports session management, frequently used-data caching, asynchronous job queues, background work, and scheduled tasks. | Separate `redis` container and pinned image. | Create, authenticate, start, stop, verify, and retain `redis_data`. |
-| Compose networks | Keeps datastore traffic private while allowing only the backend to make approved outbound connections. | Internal `private` network and normal `outbound` network. | Create and verify exact container attachments. |
+| Compose networks | Prevent the connector and proxy from reaching datastores while providing only the required service-to-service and outbound paths. | Core mode uses `private` and `outbound`; Cloudflare mode uses `data`, `application`, `tunnel`, `backend_egress`, and `tunnel_egress`. | Create and verify exact container attachments. |
 | Protected deployment files | Hold the ownership record, Compose definition, generated credentials, service connection settings, and operation lock. | Host files under `remote_root`. | Create, permission-check, lock, and verify without exposing secrets. |
-| Docker Engine and Compose v2 | Runs and coordinates the three containers, networks, and volumes as one installation. | Preexisting host prerequisites. | Qualify and use; never install automatically. |
-| TLS proxy, access gateway, and tunnel connector | Provide authenticated HTTPS access without publishing the backend directly. | Separate capabilities outside this command. | Record integration requirements and verify separately. |
+| Docker Engine and Compose v2 | Runs and coordinates the selected three or five containers, networks, and volumes as one installation. | Preexisting host prerequisites. | Qualify and use; never install automatically. |
+| Nginx TLS proxy | Terminates the private origin TLS connection and forwards requests to the backend without exposing backend or datastore ports. | Separate `proxy` container and pinned image in `cloudflare` mode. | Generate configuration, copy approved certificate/key inputs, start, stop, and verify. |
+| Cloudflare tunnel connector | Connects the private TLS proxy to a separately configured Cloudflare tunnel and Access policy. | Separate `cloudflared` container and pinned image in `cloudflare` mode. | Copy the protected token reference, start, stop, and verify running state. |
+| Cloudflare account configuration | Supplies DNS, tunnel ingress, origin hostname/CA policy, and exact authorized identities. | External control-plane configuration. | Verify separately; never infer or create it from the host configuration. |
 | SMTP relay | Delivers optional invitation and password-reset email. Core secret operations do not require it. | Optional external service outside this command. | Consume protected connection settings; never install the relay. |
 
 PostgreSQL and Redis are both mandatory for this command, but they are not interchangeable. PostgreSQL is the durable
@@ -184,18 +210,23 @@ deployment files. The deployment parent directory must already exist and be writ
 
 | Service | Required configuration |
 |---|---|
-| `backend` | Configured immutable image; `NODE_ENV=production`; `backend.env` plus optional `smtp.env`; only `127.0.0.1:<backend_port>:8080`; joins `private` and `outbound`; waits for healthy database and Redis. |
-| `db` | Configured PostgreSQL image; only `db.env`; volume `pg_data:/var/lib/postgresql/data`; joins only `private`; no published ports. |
-| `redis` | Configured Redis image; only `redis.env`; authenticated server with append-only persistence; volume `redis_data:/data`; joins only `private`; no published ports. |
+| `backend` | Configured immutable image; `NODE_ENV=production`; `backend.env` plus optional `smtp.env`; waits for healthy database and Redis. Core mode publishes only `127.0.0.1:<backend_port>:8080` and joins `private`/`outbound`. Cloudflare mode publishes no port and joins `data`/`application`/`backend_egress`. |
+| `db` | Configured PostgreSQL image; only `db.env`; volume `pg_data:/var/lib/postgresql/data`; joins only the internal datastore network; no published ports. |
+| `redis` | Configured Redis image; only `redis.env`; authenticated server with append-only persistence; volume `redis_data:/data`; joins only the internal datastore network; no published ports. |
+| `proxy` | Cloudflare mode only; configured immutable Nginx image; generated `nginx.conf`; separately mounted origin certificate/key; only `127.0.0.1:<proxy_port>:8443`; joins only `application` and `tunnel`; waits for healthy backend. |
+| `cloudflared` | Cloudflare mode only; configured immutable connector image; protected token file; joins only `tunnel` and `tunnel_egress`; waits for healthy proxy; no published port. |
 
-All three services must use `restart: unless-stopped`. The Compose definition must declare named `pg_data` and `redis_data`
-volumes, `private` as an internal network, and `outbound` as a separate normal network. The effective network names must be
-`<project_name>_private` and `<project_name>_outbound`.
+Every selected service must use `restart: unless-stopped`. The Compose definition must declare named `pg_data` and
+`redis_data` volumes. Core mode must use internal `private` and normal `outbound` networks. Cloudflare mode must use internal
+`data`, `application`, and `tunnel` networks plus separate normal `backend_egress` and `tunnel_egress` networks. Every
+container's actual network set must exactly match the selected topology.
 
-Each service must define a Docker health check with a 5-second interval, 5-second timeout, 24 retries, and 30-second start
-period:
-backend HTTP `GET /api/status` on container loopback port 8080 must return 200; database uses
-`pg_isready -U infisical -d infisical`; Redis uses an authenticated `redis-cli ping` and requires exactly `PONG`.
+Backend, database, Redis, and proxy must define Docker health checks. The common interval is 5 seconds, timeout 5 seconds,
+24 retries, and 30-second start period, except proxy may use a 10-second start period. Backend HTTP `GET /api/status` on
+container loopback port 8080 must return 200; database uses `pg_isready -U infisical -d infisical`; Redis uses an
+unauthenticated `redis-cli ping` that must return `NOAUTH Authentication required.` followed by an authenticated ping that
+must return exactly `PONG`; proxy requests `/api/status` through its local TLS listener.
+Cloudflared must remain running, while end-to-end tunnel and Access health require separate client acceptance checks.
 Compose interpolation must preserve remote environment-variable expansion for Redis rather than resolving passwords
 locally. Redis and PostgreSQL must not receive application encryption or authentication keys.
 
@@ -218,6 +249,10 @@ ownership.
 | `db.env` | Exactly `POSTGRES_USER=infisical`, `POSTGRES_DB=infisical`, `POSTGRES_PASSWORD`. |
 | `redis.env` | Exactly `REDIS_PASSWORD`. |
 | `smtp.env` | Optional remotely copied, validated SMTP settings. |
+| `nginx.conf` | Cloudflare mode only; generated TLS proxy configuration for the exact `origin_server_name` and backend service. |
+| `origin.pem` | Cloudflare mode only; exact protected origin certificate copied from `origin_cert_file`. |
+| `origin.key` | Cloudflare mode only; exact protected origin private key copied from `origin_key_file`. |
+| `tunnel-token` | Cloudflare mode only; exact protected tunnel token copied from `cloudflared_token_file`. |
 | `operation.lock` | Protected file for nonblocking exclusive mutation locks and shared read-only status locks. |
 
 The command must generate bootstrap credentials only during fresh creation and directly on the selected host with a
@@ -231,7 +266,7 @@ Backend connection strings must match the protected datastore files exactly:
 missing, unsupported, empty, or inconsistent material. Ordinary reruns must never generate replacement keys or passwords.
 
 Existing `owner.json` must match the activated scope and normalized configuration exactly. The command must reject any
-mismatch in profile, workflow, logical project, image pins, URL, paths, limits, or SMTP reference.
+mismatch in profile, workflow, logical project, access mode, image pins, URL, paths, limits, or external file reference.
 
 ## Operation contract and state transitions
 
@@ -263,9 +298,9 @@ verification, a retry must reuse the existing ownership receipt and credentials.
 | `validate` | Guard, validate context/configuration, return local validated receipt. No SSH or network. |
 | `qualify` | Guard and validate; reject deployment-path symlinks; verify remote prerequisites and fresh-install capacity/port when the root is absent; return qualified receipt. No deployment created. |
 | `install --apply` | Guard and validate; reject unowned roots; qualify; reject resource/name collisions on fresh install; validate optional remote SMTP file; exclusively create fresh owned files. Verify ownership, acquire mutation lock, verify protected files and quiet Compose validation. On rerun inspect existing containers before replacement. Pull pinned images, start with detached Compose, then require all services healthy within the deadline. |
-| `start --apply` | Require existing owned root; qualify tools, verify files, take mutation lock and quietly validate Compose. Inspect existing containers and permit declared services to be absent. Start detached and verify all three healthy. Never generate credentials. |
+| `start --apply` | Require existing owned root; qualify tools, verify files, take mutation lock and quietly validate Compose. Inspect existing containers and permit declared services to be absent. Start detached and verify every selected service. Never generate credentials. |
 | `stop --apply` | Require owned root and tools; take mutation lock, verify files and actual container ownership/images/isolation. Stop only the declared services with a 30-second grace period; verify each is present and no longer running. Preserve volumes and keys. |
-| `status` | Require owned root and tools; verify files under shared lock opened read-only; quietly validate Compose; inspect all three services. Require healthy services, correct pins, ownership and isolation; make no remote file or service changes. |
+| `status` | Require owned root and tools; verify files under shared lock opened read-only; quietly validate Compose; inspect every selected service. Require healthy core/proxy services, a running connector, correct pins, ownership and isolation; make no remote file or service changes. |
 
 Fresh directory creation must prevent concurrent claims. An active deployment lock must cause an immediate sanitized
 blocker rather than waiting indefinitely or performing parallel changes. The command must never delete volumes, purge
@@ -275,25 +310,29 @@ the next mutating operation must inspect the retained deployment state before re
 
 ### Actual-state verification
 
-Verification must find exactly one container per expected service under the selected Compose project. It must inspect
+Verification must find exactly one container per selected service under the selected Compose project. It must inspect
 Docker project and service labels, image references, published bindings, and network attachments instead of relying only
-on file contents. The backend binding must be exactly container port `8080/tcp` mapped to
-`127.0.0.1:<backend_port>`. PostgreSQL and Redis must have no nonempty published bindings. Datastores must attach only to
-the expected private network; the backend must attach only to the private and outbound networks. These checks must run
-before mutating existing containers and before returning a success receipt.
+on file contents. It must also compare the actual backend, database, Redis, and proxy health-check definitions to the
+declared checks. Core mode requires only backend container port `8080/tcp` mapped to
+`127.0.0.1:<backend_port>`. Cloudflare mode requires only proxy container port `8443/tcp` mapped to
+`127.0.0.1:<proxy_port>`; backend, PostgreSQL, Redis, and cloudflared have no host bindings. Every container must attach to
+exactly the networks defined for the selected mode. These checks must run before mutating existing containers and before
+returning a success receipt.
 
-A service is healthy only when running and Docker health is `healthy`. Startup may poll transient unhealthy states until
-the deadline; ownership, image, missing or duplicate container, and isolation mismatches must fail immediately. Stopped,
-absent, or unhealthy services must not produce a healthy status receipt. Files and resources must remain available after
-any failure.
+A core or proxy service is healthy only when running and Docker health is `healthy`. Cloudflared is locally acceptable only
+when running; this does not replace end-to-end tunnel acceptance. Startup may poll transient unhealthy states until the
+deadline; ownership, image, missing or duplicate container, and isolation mismatches must fail immediately. Stopped,
+absent, or unhealthy required services must not produce a healthy status receipt. Files and resources must remain
+available after any failure.
 
 ## Receipts, logging and secret boundary
 
 Local `validate` must return `{"status":"VALIDATED","networkAccess":false,"secretValues":false}`.
 Remote success statuses must be `QUALIFIED`, `HEALTHY`, or `STOPPED`; each must include `dataPreserved: true`. A healthy
-result must include `services` with exactly the three service keys and value `healthy`, and `images` equal to the configured
-pins. It must also include `initialAccountSetupRequired` as a boolean. The value must be `true` for a successful fresh
-install and `false` for subsequent operations; the command does not inspect or assert owner-account state.
+result must include `services` and `images` equal to the selected topology and configured pins. Core mode returns
+`backend`, `db`, and `redis` as `healthy`. Cloudflare mode additionally returns `proxy: healthy` and
+`cloudflared: running`. It must also include `initialAccountSetupRequired` as a boolean. The value must be `true` for a
+successful fresh install and `false` for subsequent operations; the command does not inspect or assert owner-account state.
 
 Remote failures must return `status: BLOCKED`, a fixed allowlisted code, and `dataPreserved: true`. Successful execution
 must exit 0; command execution failure must exit 2. The common guard may return its own failure code. Local validation and
@@ -321,21 +360,19 @@ flowchart LR
   User[Approved client] -->|HTTPS and exact access policy| Gateway[Selected access gateway]
   Gateway --> Tunnel[Explicitly configured connector]
   Tunnel -->|Verified TLS hostname and CA| Proxy[Private reverse proxy]
-  Proxy -->|Loopback HTTP| Backend[Infisical backend]
+  Proxy -->|Application network HTTP| Backend[Infisical backend]
 ```
 
-The installer provisions the three-service stack. TLS proxy, certificates, DNS, gateway/access policy and connector are
-separate explicitly configured capabilities. `site_url` does not create them. A reproducible private HTTPS deployment must
-record the exact public URL, private origin address, certificate hostname, trusted CA path, certificate/key custody,
-connector network/mount settings, token-file reference and exact allowed identities in private configuration. The
-integration must preserve unrelated controller routes and verify TLS trust, hostname matching, authorized-client success,
-unauthenticated-client denial, and unauthorized-identity denial. Container health alone does not satisfy these criteria.
+Core mode provisions only the application and datastores. Cloudflare mode includes the host-side TLS proxy and connector in
+the same owned Compose project and copies only the exact protected certificate, key, and token files selected by private
+configuration. `site_url` does not create Cloudflare account-side DNS, tunnel ingress, CA policy, or Access policy.
 
-Cloudflare integration must use the exact selected private override and credential references defined by the separate
-[Cloudflare command](../../connect/cloudflare/cloudflare.command.md). Origin certificate validation must remain enabled.
-The installer must not hardcode a deployment network subnet, origin certificate, hostname, allowed email, API token, or
-connector token. Proxy, CORS, and trusted-subnet settings require an integration-specific configuration. This command does
-not provide an arbitrary backend environment override or automatic proxy configuration.
+Cloudflare account configuration must use the exact selected private override and credential references defined by the
+separate [Cloudflare command](../../connect/cloudflare/cloudflare.command.md). Origin certificate validation must remain
+enabled, and the account-side ingress must target the `proxy` service using `origin_server_name`. The installer must not
+hardcode a deployment subnet, certificate, hostname, allowed identity, API token, or connector token in reusable files.
+End-to-end acceptance must verify TLS trust, hostname matching, authorized-client success, unauthenticated-client denial,
+and unauthorized-identity denial. Container health alone does not satisfy these criteria.
 
 Optional SMTP configuration must use a preexisting remote regular file owned by the SSH user, with mode `0600` and a
 maximum size of 8,192 bytes. The parser must accept simple unquoted `KEY=value` lines and full-line `#` comments. It must
@@ -362,17 +399,17 @@ independently tested migration procedure.
 | INF-01 | Missing profile or workflow activation, denied workflow permission, and missing private configuration must fail before SSH or installation logging. A valid fictional binding must activate exactly its configured file. |
 | INF-02 | Duplicate or unknown keys, wrong types, unsafe targets or paths, unsupported URLs, and unpinned images must fail locally before SSH. `validate` must not use the network. |
 | INF-03 | Unsupported operating systems or architectures, missing tools, inadequate fresh-install capacity, and an occupied port must fail before deployment creation. `qualify` must create no files. |
-| INF-04 | A fresh install must create protected owned files and only the selected Compose project. Datastore ports must remain unpublished, and datastore credentials must remain separate from backend credentials. |
+| INF-04 | A fresh install must create protected owned files and only the selected Compose project. Datastore ports must remain unpublished, Redis must reject unauthenticated access, and datastore credentials must remain separate from backend credentials. |
 | INF-05 | An unowned root or a colliding labelled resource, volume, or network must be refused without modifying foreign content. Symlink ancestors must never redirect creation. |
 | INF-06 | A repeated install and a stop/start cycle must preserve credential bytes and persistent-volume identity. Missing or inconsistent credentials must block reruns and must never be regenerated. |
 | INF-07 | Scope, configuration, Compose, mode, or owner drift must block the operation. A held deployment lock must prevent concurrent mutation and status inspection. |
-| INF-08 | `status` must not alter remote file timestamps or services. Stopped, missing, or unhealthy containers must fail truthfully. Image, ownership, port, or network drift must block before mutation. |
+| INF-08 | `status` must not alter remote file timestamps or services. Stopped, missing, or unhealthy containers must fail truthfully. Image, ownership, health-check, port, or network drift must block before mutation. In Cloudflare mode, connector and proxy must have no datastore-network path. |
 | INF-09 | `stop` must affect only the owned declared services and must verify termination. No operation may remove data volumes or orphans, purge data, or perform automatic cleanup. |
 | INF-10 | The offline conformance harness must exercise local validation, the apply gate, remote install/status/stop/start behavior, and exit propagation through fake SSH and Docker. Synthetic credentials must never reach caller output or logs. |
 | INF-11 | An empty SMTP reference must create no email configuration. Valid protected SMTP input must be accepted. Unsafe input, an invalid port, injected backend keys, or a TLS bypass must fail before copying or deployment. |
 | INF-12 | The public package must pass scoped structure, metadata, route, local-link, and private-content checks. The example configuration must remain fictional and non-runnable. |
 | INF-13 | Production acceptance must use an explicitly authorized disposable Linux host and approved immutable image pins. It must verify application startup, initial setup, key and data retention across restart and reboot, and truthful failure recovery. |
-| INF-14 | HTTPS and access acceptance must verify origin certificate trust, hostname matching, and allowed and denied clients. Email acceptance must verify invitation or reset delivery. Recovery acceptance must verify isolated restoration with the original keys. |
+| INF-14 | Cloudflare mode must own five digest-pinned services in one Compose project while keeping the control plane external. HTTPS and access acceptance must verify origin certificate trust, hostname matching, and allowed and denied clients. Email acceptance must verify invitation or reset delivery. Recovery acceptance must verify isolated restoration with the original keys. |
 
 ## Reconstruction requirements
 

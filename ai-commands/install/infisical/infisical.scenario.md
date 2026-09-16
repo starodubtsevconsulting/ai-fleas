@@ -16,8 +16,10 @@ private `config.env`. The SSH user has a trusted host key, batch authentication,
 Docker access, and Compose 2 or later. Fresh capacity and port checks must pass.
 
 Choose approved real image digests and a separate root/project. The harness requires both root basename and project name
-to end in `-test`, a loopback HTTP `SITE_URL`, and no SMTP reference. Those are test-target constraints, not restrictions on
-ordinary installer configurations. An unchanged catalog template cannot execute.
+to end in `-test`, `ACCESS_MODE=core`, a loopback HTTP `SITE_URL`, and no SMTP reference. This scenario deliberately tests
+the three-service core topology; Cloudflare mode needs the separate end-to-end TLS and Access checks in the specification.
+Those are test-target constraints, not restrictions on ordinary installer configurations. An unchanged catalog template
+cannot execute.
 
 Illustrative non-secret values, to put in the selected private config with its other required settings:
 
@@ -26,6 +28,7 @@ SSH_TARGET="example-server"
 REMOTE_ROOT="/opt/example-secret-service-test"
 PROJECT_NAME="example-secrets-test"
 SITE_URL="http://127.0.0.1:18080"
+ACCESS_MODE="core"
 BACKEND_PORT=18080
 SMTP_ENV_FILE=""
 ```
@@ -51,7 +54,7 @@ replacement provisioning script.
 |---|---|
 | 1 | `validate` returns validated with no network. |
 | 2 | `qualify` returns qualified for the selected Linux host. |
-| 3 | `install --apply` provisions or reconciles only the package-owned test stack and reports all three services healthy. For initial-install evidence, start with a fresh unused test root/project. |
+| 3 | `install --apply` provisions or reconciles only the package-owned core test stack and reports all three services healthy. For initial-install evidence, start with a fresh unused test root/project. |
 | 4 | `status` reports healthy with actual image, ownership, network and listener checks. |
 | 5 | Capture private SHA-256 fingerprints of the three credential files and persistent-volume names/creation times. Store them in protected remote `smoke-test-baseline.json`; never print them. |
 | 6 | Insert `persistent-marker` into the test database's dedicated `ai_fleas_installer_acceptance.marker` table. No real secret is enrolled. |

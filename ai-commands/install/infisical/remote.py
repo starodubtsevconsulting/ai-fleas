@@ -41,26 +41,112 @@ def private_write(path, content):
         stream.write(content)
 
 
+def private_copy(source, destination, maximum_size):
+    protected_file(source)
+    if source.stat().st_size > maximum_size:
+        raise RemoteBlocked('PROTECTED_INPUT_TOO_LARGE')
+    descriptor = os.open(str(destination), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with source.open('rb') as incoming, os.fdopen(descriptor, 'wb') as outgoing:
+        shutil.copyfileobj(incoming, outgoing)
+
+
+def service_names(cfg):
+    names = ('backend', 'db', 'redis')
+    return names + (('proxy', 'cloudflared') if cfg['access_mode'] == 'cloudflare' else ())
+
+
+def expected_networks(cfg, service):
+    project = cfg['project_name'] + '_'
+    if cfg['access_mode'] == 'core':
+        return {project + 'private'} | ({project + 'outbound'} if service == 'backend' else set())
+    return {
+        'db': {project + 'data'},
+        'redis': {project + 'data'},
+        'backend': {project + 'data', project + 'application', project + 'backend_egress'},
+        'proxy': {project + 'application', project + 'tunnel'},
+        'cloudflared': {project + 'tunnel', project + 'tunnel_egress'},
+    }[service]
+
+
+def nginx_content(cfg):
+    return '''server {
+    listen 8443 ssl;
+    server_name %s;
+    ssl_certificate /etc/nginx/tls/origin.pem;
+    ssl_certificate_key /etc/nginx/tls/origin.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    location / {
+        proxy_pass http://backend:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+''' % cfg['origin_server_name']
+
+
 def compose_document(cfg):
     health = {'interval': '5s', 'timeout': '5s', 'retries': 24, 'start_period': '30s'}
     backend_health = dict(health, test=['CMD', 'node', '-e',
         "require('http').get('http://127.0.0.1:8080/api/status',r=>{r.resume();process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"])
     env_files = ['backend.env'] + (['smtp.env'] if cfg['smtp_env_file'] else [])
-    return {'services': {
+    services = {
         'backend': {'image': cfg['images']['backend'], 'restart': 'unless-stopped',
                     'env_file': env_files, 'environment': {'NODE_ENV': 'production'},
-                    'ports': ['127.0.0.1:' + str(cfg['backend_port']) + ':8080'],
                     'depends_on': {'db': {'condition': 'service_healthy'}, 'redis': {'condition': 'service_healthy'}},
-                    'networks': ['private', 'outbound'], 'healthcheck': backend_health},
+                    'healthcheck': backend_health},
         'db': {'image': cfg['images']['db'], 'restart': 'unless-stopped', 'env_file': ['db.env'],
-               'volumes': ['pg_data:/var/lib/postgresql/data'], 'networks': ['private'],
+               'volumes': ['pg_data:/var/lib/postgresql/data'],
                'healthcheck': dict(health, test=['CMD', 'pg_isready', '-U', 'infisical', '-d', 'infisical'])},
         'redis': {'image': cfg['images']['redis'], 'restart': 'unless-stopped', 'env_file': ['redis.env'],
                   'command': ['sh', '-c', 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"'],
-                  'volumes': ['redis_data:/data'], 'networks': ['private'],
-                  'healthcheck': dict(health, test=['CMD-SHELL', 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -qx PONG'])}},
-        'volumes': {'pg_data': {}, 'redis_data': {}},
-        'networks': {'private': {'internal': True}, 'outbound': {}}}
+                  'volumes': ['redis_data:/data'],
+                  'healthcheck': dict(health, test=['CMD-SHELL',
+                      'unauth="$$(redis-cli --raw ping 2>/dev/null || true)"; '
+                      '[ "$$unauth" = "NOAUTH Authentication required." ] && '
+                      '[ "$$(redis-cli --no-auth-warning -a "$$REDIS_PASSWORD" --raw ping 2>/dev/null)" = "PONG" ]'])}}
+    if cfg['access_mode'] == 'core':
+        services['backend'].update(ports=['127.0.0.1:' + str(cfg['backend_port']) + ':8080'],
+                                   networks=['private', 'outbound'])
+        services['db']['networks'] = ['private']
+        services['redis']['networks'] = ['private']
+        networks = {'private': {'internal': True}, 'outbound': {}}
+    else:
+        services['backend']['networks'] = ['data', 'application', 'backend_egress']
+        services['db']['networks'] = ['data']
+        services['redis']['networks'] = ['data']
+        services['proxy'] = {
+            'image': cfg['images']['proxy'], 'restart': 'unless-stopped',
+            'depends_on': {'backend': {'condition': 'service_healthy'}},
+            'ports': ['127.0.0.1:' + str(cfg['proxy_port']) + ':8443'],
+            'volumes': ['./nginx.conf:/etc/nginx/conf.d/default.conf:ro',
+                        './origin.pem:/etc/nginx/tls/origin.pem:ro',
+                        './origin.key:/etc/nginx/tls/origin.key:ro'],
+            'networks': ['application', 'tunnel'],
+            'healthcheck': dict(health, start_period='10s',
+                                test=['CMD-SHELL', 'wget --no-check-certificate -q -O /dev/null https://127.0.0.1:8443/api/status'])}
+        services['cloudflared'] = {
+            'image': cfg['images']['cloudflared'], 'restart': 'unless-stopped',
+            'command': ['tunnel', '--no-autoupdate', 'run', '--token-file', '/etc/cloudflared/tunnel-token'],
+            'depends_on': {'proxy': {'condition': 'service_healthy'}},
+            'volumes': ['./tunnel-token:/etc/cloudflared/tunnel-token:ro'],
+            'networks': ['tunnel', 'tunnel_egress']}
+        networks = {'data': {'internal': True}, 'application': {'internal': True},
+                    'tunnel': {'internal': True}, 'backend_egress': {}, 'tunnel_egress': {}}
+    return {'services': services, 'volumes': {'pg_data': {}, 'redis_data': {}}, 'networks': networks}
+
+
+def expected_healthcheck(cfg, service):
+    declared = compose_document(cfg)['services'][service].get('healthcheck')
+    if declared is None:
+        return None
+    duration = {'5s': 5_000_000_000, '10s': 10_000_000_000, '30s': 30_000_000_000}
+    return {'Test': declared['test'], 'Interval': duration[declared['interval']],
+            'Timeout': duration[declared['timeout']], 'Retries': declared['retries'],
+            'StartPeriod': duration[declared['start_period']]}
 
 
 def smtp_content(path):
@@ -98,6 +184,13 @@ def qualify(cfg, fresh):
     if not version or not version.split('.')[0].isdigit() or int(version.split('.')[0]) < 2:
         raise RemoteBlocked('DOCKER_COMPOSE_V2_REQUIRED')
     if fresh:
+        if cfg['access_mode'] == 'cloudflare':
+            for key, maximum_size in [('origin_cert_file', 65536), ('origin_key_file', 65536),
+                                      ('cloudflared_token_file', 8192)]:
+                source = Path(cfg[key])
+                protected_file(source)
+                if source.stat().st_size > maximum_size:
+                    raise RemoteBlocked('PROTECTED_INPUT_TOO_LARGE')
         if (os.cpu_count() or 0) < cfg['minimum_cpus']:
             raise RemoteBlocked('INSUFFICIENT_CPU')
         memory = next(int(line.split()[1]) * 1024 for line in Path('/proc/meminfo').read_text().splitlines() if line.startswith('MemTotal:'))
@@ -110,7 +203,8 @@ def qualify(cfg, fresh):
             raise RemoteBlocked('INSUFFICIENT_DISK')
         try:
             with socket.socket() as probe:
-                probe.bind(('127.0.0.1', cfg['backend_port']))
+                probe.bind(('127.0.0.1', cfg['proxy_port'] if cfg['access_mode'] == 'cloudflare'
+                            else cfg['backend_port']))
         except OSError:
             raise RemoteBlocked('BACKEND_PORT_OCCUPIED')
 
@@ -132,7 +226,12 @@ def ensure_owner(root, cfg, scope):
 
 
 def verify_files(root, cfg):
-    for name in ['compose.json', 'backend.env', 'db.env', 'redis.env'] + (['smtp.env'] if cfg['smtp_env_file'] else []):
+    names = ['compose.json', 'backend.env', 'db.env', 'redis.env']
+    if cfg['smtp_env_file']:
+        names.append('smtp.env')
+    if cfg['access_mode'] == 'cloudflare':
+        names.extend(['nginx.conf', 'origin.pem', 'origin.key', 'tunnel-token'])
+    for name in names:
         protected_file(root / name)
     if json.loads((root / 'compose.json').read_text()) != compose_document(cfg):
         raise RemoteBlocked('COMPOSE_DOCUMENT_MODIFIED')
@@ -159,6 +258,8 @@ def verify_files(root, cfg):
             or backend['REDIS_URL'] != 'redis://:' + redis['REDIS_PASSWORD'] + '@redis:6379'
             or backend['SITE_URL'] != cfg['site_url']):
         raise RemoteBlocked('EXISTING_CREDENTIAL_MATERIAL_INCOMPLETE')
+    if cfg['access_mode'] == 'cloudflare' and (root / 'nginx.conf').read_text() != nginx_content(cfg):
+        raise RemoteBlocked('PROXY_CONFIGURATION_MODIFIED')
 
 
 def create_files(root, cfg, scope, smtp):
@@ -175,13 +276,18 @@ def create_files(root, cfg, scope, smtp):
     private_write(root / 'redis.env', 'REDIS_PASSWORD=' + redis_password + '\n')
     if smtp is not None:
         private_write(root / 'smtp.env', smtp)
+    if cfg['access_mode'] == 'cloudflare':
+        private_write(root / 'nginx.conf', nginx_content(cfg))
+        private_copy(Path(cfg['origin_cert_file']), root / 'origin.pem', 65536)
+        private_copy(Path(cfg['origin_key_file']), root / 'origin.key', 65536)
+        private_copy(Path(cfg['cloudflared_token_file']), root / 'tunnel-token', 8192)
     private_write(root / 'compose.json', json.dumps(compose_document(cfg)))
 
 
 def inspect_services(compose, cfg, require_healthy, allow_missing=False):
     services = {}
     images = {}
-    for name in ('backend', 'db', 'redis'):
+    for name in service_names(cfg):
         identifier = run(compose + ['ps', '--all', '--quiet', name]).strip()
         if not identifier and allow_missing:
             continue
@@ -192,20 +298,33 @@ def inspect_services(compose, cfg, require_healthy, allow_missing=False):
             raise RemoteBlocked('CONTAINER_OWNERSHIP_MISMATCH')
         if data['Config']['Image'] != cfg['images'][name]:
             raise RemoteBlocked('CONTAINER_IMAGE_MISMATCH')
+        expected_check = expected_healthcheck(cfg, name)
+        actual_check = data['Config'].get('Healthcheck')
+        if expected_check is not None and (not isinstance(actual_check, dict)
+                or any(actual_check.get(key) != value for key, value in expected_check.items())):
+            raise RemoteBlocked('CONTAINER_HEALTHCHECK_MISMATCH')
         ports = data['HostConfig'].get('PortBindings', {}) or {}
-        if name == 'backend':
-            if ports != {'8080/tcp': [{'HostIp': '127.0.0.1', 'HostPort': str(cfg['backend_port'])}]}:
-                raise RemoteBlocked('BACKEND_LISTENER_ISOLATION_FAILED')
-        elif any(ports.values()):
+        if cfg['access_mode'] == 'core' and name == 'backend':
+            expected_ports = {'8080/tcp': [{'HostIp': '127.0.0.1', 'HostPort': str(cfg['backend_port'])}]}
+        elif cfg['access_mode'] == 'cloudflare' and name == 'proxy':
+            expected_ports = {'8443/tcp': [{'HostIp': '127.0.0.1', 'HostPort': str(cfg['proxy_port'])}]}
+        else:
+            expected_ports = {}
+        if ports != expected_ports:
+            if name in ('db', 'redis'):
+                raise RemoteBlocked('DATABASE_OR_REDIS_PUBLICATION_FORBIDDEN')
+            raise RemoteBlocked('SERVICE_LISTENER_ISOLATION_FAILED')
+        if name in ('db', 'redis') and any(ports.values()):
             raise RemoteBlocked('DATABASE_OR_REDIS_PUBLICATION_FORBIDDEN')
-        expected_networks = {cfg['project_name'] + '_private'}
-        if name == 'backend':
-            expected_networks.add(cfg['project_name'] + '_outbound')
-        if set(data.get('NetworkSettings', {}).get('Networks', {})) != expected_networks:
+        if set(data.get('NetworkSettings', {}).get('Networks', {})) != expected_networks(cfg, name):
             raise RemoteBlocked('CONTAINER_NETWORK_ISOLATION_FAILED')
         state = data['State']
-        services[name] = 'healthy' if state.get('Running') and state.get('Health', {}).get('Status') == 'healthy' else 'not-healthy'
-        if require_healthy and services[name] != 'healthy':
+        if name == 'cloudflared':
+            services[name] = 'running' if state.get('Running') else 'not-running'
+        else:
+            services[name] = 'healthy' if state.get('Running') and state.get('Health', {}).get('Status') == 'healthy' else 'not-healthy'
+        expected_state = 'running' if name == 'cloudflared' else 'healthy'
+        if require_healthy and services[name] != expected_state:
             raise RemoteBlocked('SERVICES_NOT_HEALTHY')
         images[name] = cfg['images'][name]
     return services, images
@@ -230,7 +349,9 @@ def perform(cfg, scope, operation):
         for kind in ('container', 'volume', 'network'):
             if run(['docker', kind, 'ls', '--quiet', '--filter', 'label=com.docker.compose.project=' + cfg['project_name']]).strip():
                 raise RemoteBlocked('UNKNOWN_EXISTING_PROJECT_RESOURCES')
-        for kind, suffix in [('volume', '(pg_data|redis_data)'), ('network', '(private|outbound)')]:
+        network_suffix = '(private|outbound)' if cfg['access_mode'] == 'core' else \
+            '(data|application|tunnel|backend_egress|tunnel_egress)'
+        for kind, suffix in [('volume', '(pg_data|redis_data)'), ('network', network_suffix)]:
             if run(['docker', kind, 'ls', '--quiet', '--filter', 'name=^' + cfg['project_name'] + '_' + suffix + '$']).strip():
                 raise RemoteBlocked('UNKNOWN_EXISTING_NAMED_RESOURCES')
         if not root.parent.is_dir():
@@ -260,7 +381,7 @@ def perform(cfg, scope, operation):
             inspect_services(compose, cfg, False, allow_missing=operation in ('install', 'start'))
         if operation == 'stop':
             run(compose + ['stop', '--timeout', '30'])
-            for name in ('backend', 'db', 'redis'):
+            for name in service_names(cfg):
                 identifier = run(compose + ['ps', '--all', '--quiet', name]).strip()
                 if not identifier or json.loads(run(['docker', 'inspect', identifier]))[0]['State'].get('Running'):
                     raise RemoteBlocked('STOP_VERIFICATION_FAILED')

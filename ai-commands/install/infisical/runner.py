@@ -16,11 +16,16 @@ class Blocked(Exception):
 CONFIG_ENV_FIELDS = {
     'VERSION': 'version', 'COMMAND': 'command', 'SSH_TARGET': 'ssh_target',
     'REMOTE_ROOT': 'remote_root', 'PROJECT_NAME': 'project_name', 'SITE_URL': 'site_url',
-    'BACKEND_PORT': 'backend_port', 'MINIMUM_CPUS': 'minimum_cpus',
+    'ACCESS_MODE': 'access_mode', 'BACKEND_PORT': 'backend_port', 'PROXY_PORT': 'proxy_port',
+    'ORIGIN_SERVER_NAME': 'origin_server_name', 'ORIGIN_CERT_FILE': 'origin_cert_file',
+    'ORIGIN_KEY_FILE': 'origin_key_file', 'CLOUDFLARED_TOKEN_FILE': 'cloudflared_token_file',
+    'MINIMUM_CPUS': 'minimum_cpus',
     'MINIMUM_MEMORY_GIB': 'minimum_memory_gib', 'MINIMUM_FREE_DISK_GIB': 'minimum_free_disk_gib',
     'HEALTH_TIMEOUT_SECONDS': 'health_timeout_seconds', 'SSH_TIMEOUT_SECONDS': 'ssh_timeout_seconds',
-    'SMTP_ENV_FILE': 'smtp_env_file', 'BACKEND_IMAGE': 'backend', 'POSTGRES_IMAGE': 'db', 'REDIS_IMAGE': 'redis'}
-INTEGER_FIELDS = {'version', 'backend_port', 'minimum_cpus', 'minimum_memory_gib',
+    'SMTP_ENV_FILE': 'smtp_env_file', 'BACKEND_IMAGE': 'backend', 'POSTGRES_IMAGE': 'db',
+    'REDIS_IMAGE': 'redis', 'PROXY_IMAGE': 'proxy', 'CLOUDFLARED_IMAGE': 'cloudflared'}
+IMAGE_ENV_FIELDS = {'BACKEND_IMAGE', 'POSTGRES_IMAGE', 'REDIS_IMAGE', 'PROXY_IMAGE', 'CLOUDFLARED_IMAGE'}
+INTEGER_FIELDS = {'version', 'backend_port', 'proxy_port', 'minimum_cpus', 'minimum_memory_gib',
                   'minimum_free_disk_gib', 'health_timeout_seconds', 'ssh_timeout_seconds'}
 
 
@@ -48,7 +53,7 @@ def parse_configuration(text):
             if not re.fullmatch('[0-9]+', value):
                 raise Blocked('config.env integer field required')
             value = int(value)
-        if key in ('BACKEND_IMAGE', 'POSTGRES_IMAGE', 'REDIS_IMAGE'):
+        if key in IMAGE_ENV_FIELDS:
             cfg['images'][field] = value
         else:
             cfg[field] = value
@@ -75,8 +80,9 @@ def load_config(config_path, profile_path):
     except (ValueError, OSError, UnicodeError):
         raise Blocked('configuration must be valid config.env or legacy JSON; values are not included in diagnostics')
     required = {'version', 'command', 'ssh_target', 'remote_root', 'project_name', 'site_url', 'images'}
-    optional = {'backend_port', 'minimum_cpus', 'minimum_memory_gib', 'minimum_free_disk_gib',
-                'health_timeout_seconds', 'ssh_timeout_seconds', 'smtp_env_file'}
+    optional = {'access_mode', 'backend_port', 'proxy_port', 'origin_server_name', 'origin_cert_file',
+                'origin_key_file', 'cloudflared_token_file', 'minimum_cpus', 'minimum_memory_gib',
+                'minimum_free_disk_gib', 'health_timeout_seconds', 'ssh_timeout_seconds', 'smtp_env_file'}
     if not isinstance(cfg, dict) or not required <= cfg.keys() or cfg.keys() - required - optional:
         raise Blocked('missing or unsupported configuration keys')
     if type(cfg['version']) is not int or cfg['version'] != 1 or cfg['command'] != 'infisical':
@@ -104,9 +110,13 @@ def load_config(config_path, profile_path):
             or '\r' in site or not re.fullmatch(r'[A-Za-z0-9.-]+', url.hostname)
             or (url.scheme == 'http' and url.hostname not in ('localhost', '127.0.0.1'))):
         raise Blocked('site URL requires HTTPS, or HTTP on an explicit loopback host')
+    access_mode = cfg.setdefault('access_mode', 'core')
+    if access_mode not in ('core', 'cloudflare'):
+        raise Blocked('access mode must be core or cloudflare')
     images = cfg['images']
-    if not isinstance(images, dict) or set(images) != {'backend', 'db', 'redis'}:
-        raise Blocked('three explicit image references required')
+    required_images = {'backend', 'db', 'redis'} | ({'proxy', 'cloudflared'} if access_mode == 'cloudflare' else set())
+    if not isinstance(images, dict) or set(images) != required_images:
+        raise Blocked('exact image references required for the selected access mode')
     if any(not isinstance(image, str) or not re.fullmatch(
             r'[A-Za-z0-9][A-Za-z0-9._/:-]*@sha256:[a-f0-9]{64}', image)
            for image in images.values()):
@@ -114,7 +124,8 @@ def load_config(config_path, profile_path):
     if not re.fullmatch(r'(?:[A-Za-z0-9._/:-]+/)?postgres:(?:14|15|16|17)(?:\.[0-9]+)*(?:-[A-Za-z0-9.-]+)?@sha256:[a-f0-9]{64}', images['db']):
         raise Blocked('PostgreSQL 14-17 tagged digest required for the supported data-directory layout')
     for key, default, lower, upper in [
-            ('backend_port', 8080, 1024, 65535), ('minimum_cpus', 2, 2, 256),
+            ('backend_port', 8080, 1024, 65535), ('proxy_port', 8443, 1024, 65535),
+            ('minimum_cpus', 2, 2, 256),
             ('minimum_memory_gib', 4, 4, 4096), ('minimum_free_disk_gib', 20, 20, 65536),
             ('health_timeout_seconds', 120, 10, 600), ('ssh_timeout_seconds', 900, 30, 3600)]:
         value = cfg.setdefault(key, default)
@@ -124,6 +135,20 @@ def load_config(config_path, profile_path):
     if (not isinstance(smtp, str) or (smtp and (not re.fullmatch(r'/[A-Za-z0-9._/-]+', smtp)
                                                or any(x in ('', '.', '..') for x in smtp.split('/')[1:])))):
         raise Blocked('SMTP must reference an explicit protected remote file')
+    access_fields = ('origin_cert_file', 'origin_key_file', 'cloudflared_token_file')
+    if access_mode == 'cloudflare':
+        name = cfg.get('origin_server_name')
+        hostname_label = r'(?!-)[A-Za-z0-9-]{1,63}(?<!-)'
+        if (not isinstance(name, str) or len(name) > 253
+                or not re.fullmatch(hostname_label + r'(?:\.' + hostname_label + r')*', name)):
+            raise Blocked('cloudflare access requires an explicit origin server name')
+        for key in access_fields:
+            value = cfg.get(key)
+            if (not isinstance(value, str) or not re.fullmatch(r'/[A-Za-z0-9._/-]+', value)
+                    or any(part in ('', '.', '..') for part in value.split('/')[1:])):
+                raise Blocked('cloudflare access requires explicit protected remote file references')
+    elif any(key in cfg for key in ('origin_server_name',) + access_fields) or {'proxy', 'cloudflared'} & set(images):
+        raise Blocked('cloudflare-only configuration is not allowed in core access mode')
     return cfg
 
 
@@ -138,7 +163,10 @@ def validate_receipt(receipt, cfg, source, returncode):
             or ('code' in receipt and (not isinstance(receipt['code'], str) or receipt['code'] not in codes))
             or ('initialAccountSetupRequired' in receipt and type(receipt['initialAccountSetupRequired']) is not bool)
             or ('images' in receipt and receipt['images'] != cfg['images'])
-            or ('services' in receipt and receipt['services'] != dict.fromkeys(('backend', 'db', 'redis'), 'healthy'))
+            or ('services' in receipt and receipt['services'] != (
+                {'backend': 'healthy', 'db': 'healthy', 'redis': 'healthy', 'proxy': 'healthy', 'cloudflared': 'running'}
+                if cfg['access_mode'] == 'cloudflare' else
+                {'backend': 'healthy', 'db': 'healthy', 'redis': 'healthy'}))
             or (receipt.get('status') == 'HEALTHY' and not {'services', 'images'} <= receipt.keys())):
         raise Blocked('remote receipt values rejected')
 

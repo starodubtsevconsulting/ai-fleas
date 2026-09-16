@@ -77,7 +77,8 @@ def main():
     try:
         cfg = runner.load_config(os.environ['AI_COMMAND_CONFIG_PATH'], os.environ['AI_PROFILE_FILE'])
         url = urlsplit(cfg['site_url'])
-        if (not cfg['project_name'].endswith('-test') or not Path(cfg['remote_root']).name.endswith('-test')
+        if (cfg['access_mode'] != 'core' or not cfg['project_name'].endswith('-test')
+                or not Path(cfg['remote_root']).name.endswith('-test')
                 or url.scheme != 'http' or url.hostname not in ('localhost', '127.0.0.1') or cfg['smtp_env_file']):
             raise RuntimeError('separate loopback test configuration required')
         for stage, arguments, expected in (
