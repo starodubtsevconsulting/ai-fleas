@@ -120,7 +120,7 @@ endpoint:
           environment_variable: EXAMPLE_CF_ACCESS_CLIENT_SECRET
 ```
 
-Run `initialize --work-profile example --workflow dev --instance 2 --connection remote` after exporting the referenced secrets. Header values are resolved at runtime and must never be committed to the provider catalog.
+Run `initialize --work-profile example --workflow dev --instance 2 --connection remote` with the referenced variables supplied by the selected profile's secret runner. Preflight uses the resolved values to check the endpoint. Hermes profile configuration stores only `${env:VARIABLE}` header references, and setup must reject a protected header without a matching environment reference. The ordinary Hermes launch must supply the same variables at execution time; initialization alone does not establish that launch path. Header values must not be committed to the provider catalog or written into Hermes profile configuration.
 See the [Cloudflare operator runbook](../../connect/cloudflare/cloudflare.command.md#6-add-machine-to-machine-access-for-hermes)
 for tunnel/application ownership, service-token creation, naming, policy attachment, and end-to-end evidence.
 

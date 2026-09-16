@@ -16,6 +16,7 @@ provider_label="${HERMES_PROVIDER_LABEL:-${provider_id}}"
 model="${HERMES_MODEL:-}"
 endpoint="${HERMES_ENDPOINT:-}"
 extra_headers_b64="${HERMES_EXTRA_HEADERS_B64:-e30=}"
+stored_headers_b64="${HERMES_STORED_HEADERS_B64:-e30=}"
 workspace="${HERMES_WORKSPACE:-}"
 work_profile="${HERMES_WORK_PROFILE:-}"
 workflow="${HERMES_WORKFLOW:-}"
@@ -111,6 +112,31 @@ if [[ "${validate_only}" == true ]]; then
   exit 0
 fi
 
+provider_json="$(PROVIDER_LABEL="${provider_label}" ENDPOINT="${endpoint%/}" MODEL_ID="${model}" EXTRA_HEADERS_B64="${extra_headers_b64}" STORED_HEADERS_B64="${stored_headers_b64}" python3 -c '
+import base64
+import json
+import os
+import re
+
+headers = json.loads(base64.b64decode(os.environ["EXTRA_HEADERS_B64"], validate=True))
+stored_headers = json.loads(base64.b64decode(os.environ["STORED_HEADERS_B64"], validate=True))
+if not isinstance(headers, dict) or not isinstance(stored_headers, dict) or headers.keys() != stored_headers.keys():
+    raise SystemExit("HERMES_HEADER_REFERENCE_REQUIRED: each protected header needs an environment reference")
+for name, reference in stored_headers.items():
+    match = re.fullmatch(r"\$\{env:([A-Z][A-Z0-9_]*)\}", reference) if isinstance(reference, str) else None
+    if not match or os.environ.get(match.group(1)) != headers[name]:
+        raise SystemExit("HERMES_HEADER_REFERENCE_INVALID: protected header reference is unavailable or mismatched")
+provider = {
+    "name": os.environ["PROVIDER_LABEL"],
+    "base_url": os.environ["ENDPOINT"],
+    "model": os.environ["MODEL_ID"],
+    "discover_models": False,
+    "models": {os.environ["MODEL_ID"]: {}},
+}
+if stored_headers:
+    provider["extra_headers"] = stored_headers
+print(json.dumps(provider))
+')"
 hermes_root="${HERMES_HOME:-${HOME}/.hermes}"
 profile_dir="${hermes_root}/profiles/${profile}"
 # Hermes Desktop can briefly recreate an incomplete directory for a profile
@@ -121,24 +147,6 @@ if ! grep -Fx -- "${profile}" <<<"${registered_profiles}" >/dev/null; then
   "${hermes_bin}" profile create "${profile}" \
     --description "Assistant for ${workspace}, backed by ${model} on ${provider_label}."
 fi
-
-provider_json="$(PROVIDER_LABEL="${provider_label}" ENDPOINT="${endpoint%/}" MODEL_ID="${model}" EXTRA_HEADERS_B64="${extra_headers_b64}" python3 -c '
-import base64
-import json
-import os
-
-headers = json.loads(base64.b64decode(os.environ["EXTRA_HEADERS_B64"], validate=True))
-provider = {
-    "name": os.environ["PROVIDER_LABEL"],
-    "base_url": os.environ["ENDPOINT"],
-    "model": os.environ["MODEL_ID"],
-    "discover_models": False,
-    "models": {os.environ["MODEL_ID"]: {}},
-}
-if headers:
-    provider["extra_headers"] = headers
-print(json.dumps(provider))
-')"
 # Hermes echoes the full assigned JSON value, including protected connection
 # headers. Suppress that upstream output and emit only non-secret identifiers.
 "${hermes_bin}" -p "${profile}" config set --force "providers.${provider_id}" "${provider_json}" >/dev/null

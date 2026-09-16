@@ -154,7 +154,7 @@ case "${action}" in
     validate_profile "${work_profile}"
     if [[ -n "${instance}" ]]; then validate_profile "${instance}"; fi
     system_scope="$(node "${SYSTEM_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${connection}")"
-    IFS=$'\t' read -r resolved_profile system_profile system_title system_provider system_provider_label system_endpoint system_headers_b64 system_model system_context system_threshold system_target system_protect system_workspace system_role_path system_schedule_path configured_every configured_watch_csv <<<"${system_scope}"
+    IFS=$'\t' read -r resolved_profile system_profile system_title system_provider system_provider_label system_endpoint system_headers_b64 system_stored_headers_b64 system_model system_context system_threshold system_target system_protect system_workspace system_role_path system_schedule_path configured_every configured_watch_csv <<<"${system_scope}"
     if [[ -n "${instance}" ]]; then
       system_profile="${resolved_profile}-system-${instance}"
       system_title="${system_profile}"
@@ -181,7 +181,7 @@ case "${action}" in
     binding_registry="${PROFILE_ROOT}/${resolved_profile}/.local/hermes-agents/bindings.yml"
     export HERMES_SCOPE=system HERMES_PROFILE="${system_profile}" HERMES_ROLE=system HERMES_ROLE_TITLE="${system_title}"
     export HERMES_WORK_PROFILE="${resolved_profile}" HERMES_PROVIDER_ID="${system_provider}" HERMES_PROVIDER_LABEL="${system_provider_label}"
-    export HERMES_ENDPOINT="${system_endpoint}" HERMES_EXTRA_HEADERS_B64="${system_headers_b64}" HERMES_MODEL="${system_model}" HERMES_CONTEXT_LENGTH="${system_context}"
+    export HERMES_ENDPOINT="${system_endpoint}" HERMES_EXTRA_HEADERS_B64="${system_headers_b64}" HERMES_STORED_HEADERS_B64="${system_stored_headers_b64}" HERMES_MODEL="${system_model}" HERMES_CONTEXT_LENGTH="${system_context}"
     export HERMES_COMPRESSION_THRESHOLD="${system_threshold}" HERMES_COMPRESSION_TARGET_RATIO="${system_target}" HERMES_COMPRESSION_PROTECT_LAST_N="${system_protect}"
     export HERMES_WORKSPACE="${system_workspace}" HERMES_SYSTEM_ROLE_PATH="${system_role_path}" HERMES_SYSTEM_SCHEDULE_PATH="${system_schedule_path}"
     export HERMES_SYSTEM_WATCH_GROUPS="${watch_csv}" HERMES_BINDING_REGISTRY_PATH="${binding_registry}" HERMES_GROUP=''
@@ -381,7 +381,7 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
       exit 2
     }
     scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}" "${connection}")"
-    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project resolved_provider resolved_provider_label resolved_endpoint resolved_headers_b64 resolved_model resolved_context_window resolved_compression_threshold resolved_compression_target resolved_protect_last_messages resolved_workspace resolved_project_scope resolved_agent_instructions resolved_commands_root resolved_workflow_instructions resolved_command_ids resolved_role_bindings <<<"${scope}"
+    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project resolved_provider resolved_provider_label resolved_endpoint resolved_headers_b64 resolved_stored_headers_b64 resolved_model resolved_context_window resolved_compression_threshold resolved_compression_target resolved_protect_last_messages resolved_workspace resolved_project_scope resolved_agent_instructions resolved_commands_root resolved_workflow_instructions resolved_command_ids resolved_role_bindings <<<"${scope}"
     [[ "${resolved_agent_instructions}" == '-' ]] && resolved_agent_instructions=''
     if [[ -n "${agent_instructions}" ]]; then
       [[ "${agent_instructions}" == /* && -f "${agent_instructions}" ]] || {
@@ -399,6 +399,7 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     export HERMES_PROVIDER_LABEL="${resolved_provider_label}"
     export HERMES_ENDPOINT="${resolved_endpoint}"
     export HERMES_EXTRA_HEADERS_B64="${resolved_headers_b64}"
+    export HERMES_STORED_HEADERS_B64="${resolved_stored_headers_b64}"
     export HERMES_MODEL="${resolved_model}"
     export HERMES_CONTEXT_LENGTH="${resolved_context_window}"
     export HERMES_COMPRESSION_THRESHOLD="${resolved_compression_threshold}"
@@ -491,7 +492,7 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     [[ "${confirmed}" == true ]] || { printf '%s\n' 'HERMES_DELETE_CONFIRMATION_REQUIRED: use delete-workflow ... --confirm-delete.' >&2; exit 2; }
     [[ -n "${work_profile}" ]] || { printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: use --work-profile or set WORK_PROFILE_ID.' >&2; exit 2; }
     scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}")"
-    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ resolved_role_bindings <<<"${scope}"
+    IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ resolved_role_bindings <<<"${scope}"
     if [[ -n "${instance}" ]]; then validate_profile "${instance}"; fi
     group="${resolved_profile}-${resolved_workflow}${instance:+-${instance}}"
     validate_profile "${group}"
@@ -499,7 +500,7 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     role_bindings=()
     IFS=',' read -r -a role_bindings <<<"${resolved_role_bindings}"
     for role_binding in "${role_bindings[@]}"; do
-      IFS='|' read -r role suffix role_provider _ role_endpoint_b64 _ role_model _ <<<"${role_binding}"
+      IFS='|' read -r role suffix role_provider _ role_endpoint_b64 _ _ role_model _ <<<"${role_binding}"
       [[ -n "${role}" && -n "${suffix}" && -n "${role_provider}" && -n "${role_endpoint_b64}" && -n "${role_model}" ]] || {
         printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: malformed Hermes role binding.' >&2
         exit 2
