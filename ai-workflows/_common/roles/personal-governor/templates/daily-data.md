@@ -22,6 +22,26 @@ For each useful signal:
 - privacy:
 - notes:
 
+## Planned commitments / calendar events
+
+For each Governor-relevant scheduled commitment:
+
+- scheduled time/window:
+- purpose/summary:
+- strategy path ref(s):
+- goal/sub-goal ref(s):
+- workflow/project:
+- preparation/prerequisite:
+- source calendar/event reference:
+- status: `planned | completed | missed | late | cancelled | rescheduled | unknown`
+- outcome/evidence:
+- follow-up/rescheduled reference:
+- source:
+- confidence:
+- privacy:
+
+Preserve this record after the scheduled time passes. Calendar access may provide current scheduling, but historical Governor reasoning should not depend on searching the calendar provider.
+
 ## Activity events
 
 For each meaningful activity:
