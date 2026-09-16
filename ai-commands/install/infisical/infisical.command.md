@@ -3,8 +3,10 @@
 ## Purpose
 
 Provision and verify one persistent Infisical Compose project on an explicitly selected Linux Docker host. Core mode owns
-the backend, PostgreSQL, and authenticated Redis. Cloudflare mode adds the Nginx TLS proxy and tunnel connector to the same
-owned project while keeping account-side DNS, tunnel ingress, and Access policy configuration external.
+the backend, PostgreSQL, and authenticated Redis and makes no remote-access choice. Optional Cloudflare mode is one
+supported access pattern: it adds the Nginx TLS proxy and tunnel connector to the same owned project while keeping
+account-side DNS, tunnel ingress, and Access policy configuration external. Other access methods require separate
+integrations.
 Infisical follows its [upstream Docker Compose deployment model](https://infisical.com/docs/self-hosting/deployment-options/docker-compose).
 The command owns installation mechanics; secret-reference resolution and application-secret enrollment belong to a
 separate runtime/provider capability.
@@ -166,9 +168,10 @@ the configured image reference and exact port/network boundary before installati
 failed pull, startup or verification retains resources for investigation. A first successful install reports that initial
 account setup is required. Complete that setup through the protected UI before enrolling real secrets.
 
-## HTTPS integration
+## Optional Cloudflare access integration
 
-In Cloudflare mode, this command runs the TLS reverse proxy and connector in the same Compose project as the core stack.
+Cloudflare mode is optional. When selected, this command runs the TLS reverse proxy and connector in the same Compose
+project as the core stack.
 The generated proxy configuration uses the exact selected origin hostname and protected certificate/key. The separate
 [cloudflare command](../../connect/cloudflare/cloudflare.command.md) owns account-side DNS, tunnel ingress, origin trust,
 and Access policy configuration.

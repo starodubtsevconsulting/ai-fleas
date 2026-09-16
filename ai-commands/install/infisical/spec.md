@@ -11,10 +11,14 @@ permitted behavior respectively.
 
 ## Scope
 
-The managed stack always contains one persistent Infisical backend, one PostgreSQL database, and one authenticated Redis
-service. In `cloudflare` access mode, the same Compose project also contains an Nginx TLS proxy and a Cloudflare tunnel
-connector. The command owns installation, qualification, lifecycle control, and deployment-state verification for every
-selected service. Runtime secret retrieval and Cloudflare account-side DNS, tunnel, and Access policy configuration remain
+The command supports two installation modes. The default `core` mode contains one persistent Infisical backend, one
+PostgreSQL database, and one authenticated Redis service, with the backend available only on host loopback. It does not
+select or manage remote access. Optional `cloudflare` mode is one supported access pattern: the same Compose project also
+contains an Nginx TLS proxy and a Cloudflare tunnel connector. Other gateways, private networks, or ingress methods may be
+integrated separately but are not managed by this version of the command.
+
+The command owns installation, qualification, lifecycle control, and deployment-state verification for every selected
+service. Runtime secret retrieval and Cloudflare account-side DNS, tunnel ingress, and Access policy configuration remain
 outside this command's scope.
 
 Deployment-specific image pins, identities, hostnames, credential references, paths and operational records belong to the
@@ -353,7 +357,7 @@ busy lock; invalid SMTP/TLS; missing/duplicate/foreign container; image/isolatio
 verification failure; remote tool failure; timeout; and invalid remote receipt. Messages must describe the blocker without
 including offending input values or secrets.
 
-## HTTPS, SMTP and recovery integration
+## Optional access integration, SMTP and recovery
 
 ```mermaid
 flowchart LR
@@ -363,9 +367,11 @@ flowchart LR
   Proxy -->|Application network HTTP| Backend[Infisical backend]
 ```
 
-Core mode provisions only the application and datastores. Cloudflare mode includes the host-side TLS proxy and connector in
-the same owned Compose project and copies only the exact protected certificate, key, and token files selected by private
-configuration. `site_url` does not create Cloudflare account-side DNS, tunnel ingress, CA policy, or Access policy.
+Core mode provisions only the application and datastores and makes no remote-access choice. Cloudflare mode is the optional
+remote-access integration implemented by this command. It includes the host-side TLS proxy and connector in the same owned
+Compose project and copies only the exact protected certificate, key, and token files selected by private configuration.
+`site_url` does not create Cloudflare account-side DNS, tunnel ingress, CA policy, or Access policy. A different access
+method requires its own explicit integration and acceptance checks.
 
 Cloudflare account configuration must use the exact selected private override and credential references defined by the
 separate [Cloudflare command](../../connect/cloudflare/cloudflare.command.md). Origin certificate validation must remain
