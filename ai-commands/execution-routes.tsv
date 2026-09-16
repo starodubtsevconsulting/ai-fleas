@@ -28,7 +28,6 @@ install/grapheneos/install-grapheneos.command.md	command-runner	-	-	-	-
 install/chatgpt/chatgpt.command.md	command-runner	-	-	-	-
 install/cloudflare/cloudflare-connector.command.md	command-runner	-	-	-	-
 install/hermes/hermes.command.md	command-runner	-	-	-	-
-install/infisical/infisical.command.md	command-runner	-	-	-	-
 install/java/java.command.md	command-runner	-	-	-	-
 install/node/node.command.md	command-runner	-	-	-	-
 install/python/python.command.md	command-runner	-	-	-	-
