@@ -316,11 +316,16 @@ require_api_success() {
   python3 -c 'import json,sys; value=json.load(sys.stdin); sys.exit(0 if value.get("success") is True else 1)'
 }
 
+bearer_config() {
+  local token="$1"
+  [[ "$token" =~ ^[A-Za-z0-9._~+/=-]+$ ]] || fail 'API token contains unsupported characters'
+  printf 'header = "Authorization: Bearer %s"\n' "$token"
+}
+
 api_request() {
   local method="$1" path="$2" payload="$3" token="$4"
-  curl --silent --show-error --fail-with-body --max-time 20 \
+  bearer_config "$token" | curl --config - --silent --show-error --fail-with-body --max-time 20 \
     --request "$method" \
-    --header "Authorization: Bearer $token" \
     --header 'Content-Type: application/json' \
     --data "$payload" \
     "${api_base%/}$path"
@@ -342,8 +347,7 @@ case "$operation" in
     validate_config
     command -v curl >/dev/null 2>&1 || fail 'curl is required'
     api_token="$(read_secret "$api_token_env")"
-    response="$(curl --silent --show-error --fail-with-body --max-time 15 \
-      -H "Authorization: Bearer $api_token" \
+    response="$(bearer_config "$api_token" | curl --config - --silent --show-error --fail-with-body --max-time 15 \
       https://api.cloudflare.com/client/v4/user/tokens/verify)" || {
         printf 'cloudflare API token verification failed\n' >&2
         exit 1

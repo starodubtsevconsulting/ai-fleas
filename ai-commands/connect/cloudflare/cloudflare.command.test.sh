@@ -347,4 +347,24 @@ fi
 grep -F 'origin unavailable: url=https://origin.example.invalid:' "$fixture_dir/out" >/dev/null
 wait "$tls_server_pid" || true
 
+write_config
+cat >"$fixture_dir/fake-bin/curl" <<'SH'
+#!/usr/bin/env bash
+printf '%s\n' "$@" >"$CLOUDFLARE_FAKE_ARGS"
+config="$(cat)"
+[[ "$config" == 'header = "Authorization: Bearer synthetic-api-token"' ]] || exit 1
+printf '{"success":true}\n'
+SH
+chmod +x "$fixture_dir/fake-bin/curl"
+export TEST_API_TOKEN='synthetic-api-token'
+token_output="$(PATH="$fixture_dir/fake-bin:$PATH" \
+  CLOUDFLARE_FAKE_ARGS="$fixture_dir/token-check-args" \
+  CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
+  "$command_path" token-check)"
+[[ "$token_output" == 'cloudflare API token active' ]]
+if grep -F "$TEST_API_TOKEN" "$fixture_dir/token-check-args" >/dev/null; then
+  echo 'API token must not appear in curl process arguments' >&2
+  exit 1
+fi
+
 echo 'cloudflare.command tests passed'
