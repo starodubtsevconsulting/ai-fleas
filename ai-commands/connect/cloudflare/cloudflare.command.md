@@ -1,5 +1,8 @@
 # Cloudflare
 
+See the [Cloudflare FAQ](FAQ.md) for the private-service access model, machine authentication, and the boundary between
+Cloudflare transport and service authorization.
+
 ## Purpose
 
 `cloudflare` publishes an explicitly configured private HTTP service through a remotely managed Cloudflare Tunnel and
@@ -70,11 +73,21 @@ before the URL is handed to another person.
 zone. The account and zone IDs are non-secret but remain profile-owned operational identifiers. Use the least-privilege
 token scope; a Global API Key is not supported.
 
+For an HTTPS origin reached through a loopback or private service URL, set `CLOUDFLARE_ORIGIN_SERVER_NAME` to the DNS
+name on the origin certificate. If the certificate uses a private CA, also set `CLOUDFLARE_ORIGIN_CA_POOL` to the
+absolute path to that CA bundle on the connector host. These settings are rejected for an HTTP origin. The generated
+route always keeps Cloudflare origin certificate verification enabled; it never sets `noTLSVerify`.
+
+`origin-status` uses the configured certificate hostname for its request Host and SNI while connecting directly to the
+configured private origin. It uses `CLOUDFLARE_ORIGIN_CA_POOL` when set and never disables certificate verification.
+
 ## Security boundary
 
 - The origin must use `http` or `https` and resolve to a loopback, RFC1918 IPv4, `.internal`, `.local`, or `.localhost`
   host. Public origins fail closed.
 - The public URL must be HTTPS and must not contain credentials, query parameters, or fragments.
+- An HTTPS origin may supply an exact certificate hostname and, when required, a private-CA bundle path. The connector
+  verifies the certificate; disabling verification is not a supported configuration.
 - Tunnel and API tokens are loaded through configured environment-variable names and are never printed. The tunnel token
   may alternatively use a profile-owned absolute `CLOUDFLARE_TUNNEL_TOKEN_FILE` with mode `0600`, allowing UI and service
   launches without placing the token in a desktop process environment. API tokens remain environment-only.

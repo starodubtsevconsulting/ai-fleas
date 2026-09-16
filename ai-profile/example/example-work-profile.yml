@@ -77,6 +77,10 @@ commands:
     config: commands-config/gpt-agents/config.yml
   - id: install
     config: commands-config/install/config.yml
+  - id: infisical
+    config: commands-config/infisical/config.example.env
+  - id: secrets
+    config: commands-config/secrets/config.example.yml
   - id: machine-profile
     config: commands-config/install/config.yml
   - id: lodgify
@@ -103,6 +107,8 @@ workflows:
       - gpt-agents
       - source-control
       - install
+      - infisical
+      - secrets
       - machine-profile
       - lodgify
       - cloudflare

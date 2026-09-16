@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)/_runtime/profile/command-profile.guard.sh"
 ai_command_require_profile "cloudflare" || exit $?
 set -euo pipefail
 
@@ -74,6 +74,8 @@ fi
 public_url="${CLOUDFLARE_PUBLIC_URL:-}"
 origin_url="${CLOUDFLARE_ORIGIN_URL:-}"
 origin_health_path="${CLOUDFLARE_ORIGIN_HEALTH_PATH:-/}"
+origin_server_name="${CLOUDFLARE_ORIGIN_SERVER_NAME:-}"
+origin_ca_pool="${CLOUDFLARE_ORIGIN_CA_POOL:-}"
 server_probe_host="${CLOUDFLARE_SERVER_PROBE_HOST:-}"
 server_probe_port="${CLOUDFLARE_SERVER_PROBE_PORT:-22}"
 tunnel_name="${CLOUDFLARE_TUNNEL_NAME:-}"
@@ -102,7 +104,7 @@ validate_config() {
   [[ "$origin_url" =~ ^https?://([^/:]+)(:[0-9]+)?/?$ ]] ||
     fail 'CLOUDFLARE_ORIGIN_URL must be an HTTP(S) origin without path, query, or fragment'
 
-  local origin_host="${BASH_REMATCH[1]}"
+  local origin_host="${BASH_REMATCH[1]}" origin_scheme="${origin_url%%://*}"
   case "$origin_host" in
     localhost|127.*|10.*|192.168.*|*.internal|*.local|*.localhost) ;;
     172.*)
@@ -113,6 +115,14 @@ validate_config() {
       ;;
     *) fail 'CLOUDFLARE_ORIGIN_URL must use a private or loopback host' ;;
   esac
+  [[ -z "$origin_server_name" || "$origin_server_name" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] ||
+    fail 'CLOUDFLARE_ORIGIN_SERVER_NAME must be an origin certificate hostname'
+  [[ -z "$origin_ca_pool" || ( "$origin_ca_pool" == /* && "$origin_ca_pool" != *$'\n'* && "$origin_ca_pool" != *'..'* ) ]] ||
+    fail 'CLOUDFLARE_ORIGIN_CA_POOL must be empty or an absolute CA bundle path without parent traversal'
+  if [[ "$origin_scheme" == 'http' ]]; then
+    [[ -z "$origin_server_name" && -z "$origin_ca_pool" ]] ||
+      fail 'CLOUDFLARE_ORIGIN_SERVER_NAME and CLOUDFLARE_ORIGIN_CA_POOL require an HTTPS origin'
+  fi
 
   [[ "$origin_health_path" =~ ^/[A-Za-z0-9._~:/@%+-]*$ ]] ||
     fail 'CLOUDFLARE_ORIGIN_HEALTH_PATH must be an absolute path without a query or fragment'
@@ -166,14 +176,24 @@ PY
 
 origin_status() {
   command -v curl >/dev/null 2>&1 || fail 'curl is required for origin-status'
-  local status
-  status="$(curl --silent --show-error --connect-timeout 2 --max-time 4 --output /dev/null \
-    --write-out '%{http_code}' "${origin_url%/}${origin_health_path}")" || status='000'
+  local probe_url="${origin_url%/}${origin_health_path}" status
+  local -a curl_args=(--silent --show-error --connect-timeout 2 --max-time 4 --output /dev/null --write-out '%{http_code}')
+
+  if [[ "$origin_url" == https://* && -n "$origin_server_name" ]]; then
+    [[ "$origin_url" =~ ^https://([^/:]+)(:([0-9]+))?/?$ ]] ||
+      fail 'CLOUDFLARE_ORIGIN_URL must be an HTTPS origin without path, query, or fragment'
+    local origin_host="${BASH_REMATCH[1]}" origin_port="${BASH_REMATCH[3]:-443}"
+    probe_url="https://${origin_server_name}:${origin_port}${origin_health_path}"
+    curl_args+=(--connect-to "${origin_server_name}:${origin_port}:${origin_host}:${origin_port}")
+  fi
+  [[ -z "$origin_ca_pool" ]] || curl_args+=(--cacert "$origin_ca_pool")
+
+  status="$(curl "${curl_args[@]}" "$probe_url")" || status='000'
   if [[ "$status" =~ ^[23][0-9][0-9]$ ]]; then
-    printf 'origin healthy: url=%s status=%s\n' "${origin_url%/}${origin_health_path}" "$status"
+    printf 'origin healthy: url=%s status=%s\n' "$probe_url" "$status"
     return
   fi
-  printf 'origin unavailable: url=%s status=%s\n' "${origin_url%/}${origin_health_path}" "$status"
+  printf 'origin unavailable: url=%s status=%s\n' "$probe_url" "$status"
   return 1
 }
 
@@ -348,7 +368,20 @@ case "$operation" in
     umask 077
     printf '%s' "$tunnel_token" >"$token_output"
 
-    ingress_payload="$(python3 -c 'import json,sys; print(json.dumps({"config":{"ingress":[{"hostname":sys.argv[1],"service":sys.argv[2],"originRequest":{}},{"service":"http_status:404"}]}},separators=(",",":")))' "$public_host" "$origin_url")"
+    ingress_payload="$(python3 -c '
+import json
+import sys
+
+origin_request = {"noTLSVerify": False}
+if sys.argv[3]:
+    origin_request["originServerName"] = sys.argv[3]
+if sys.argv[4]:
+    origin_request["caPool"] = sys.argv[4]
+print(json.dumps({"config": {"ingress": [
+    {"hostname": sys.argv[1], "service": sys.argv[2], "originRequest": origin_request},
+    {"service": "http_status:404"},
+]}}, separators=(",", ":")))
+' "$public_host" "$origin_url" "$origin_server_name" "$origin_ca_pool")"
     ingress_response="$(api_request PUT "/accounts/$account_id/cfd_tunnel/$tunnel_id/configurations" "$ingress_payload" "$api_token")" || {
       printf 'tunnel created but ingress configuration failed; token retained at the requested output path\n' >&2
       exit 1
