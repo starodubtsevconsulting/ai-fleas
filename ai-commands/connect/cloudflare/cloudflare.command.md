@@ -1,5 +1,8 @@
 # Cloudflare
 
+See the [Cloudflare FAQ](FAQ.md) for the private-service access model, machine authentication, and the boundary between
+Cloudflare transport and service authorization.
+
 ## Purpose
 
 `cloudflare` publishes an explicitly configured private HTTP service through a remotely managed Cloudflare Tunnel and
