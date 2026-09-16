@@ -53,6 +53,27 @@ Suggested portable categories:
 
 Categories are descriptive, not exclusive.
 
+### Planned commitment / calendar event
+
+Calendar is an operational scheduling surface, not the Governor's only durable memory of commitments.
+
+Persist a normalized daily record for calendar events or planned commitments when they can materially affect goals, allocation, preparation, deadlines, recovery, or later execution review. The memory record should be usable without requiring the Governor to search historical calendars.
+
+Keep, when known:
+
+- scheduled start/end or bounded time/window;
+- summary/purpose;
+- goal/strategy/workflow references;
+- preparation or prerequisite;
+- source calendar/event reference when available;
+- execution status such as planned, completed, missed, late, cancelled, or rescheduled;
+- resulting evidence/outcome and follow-up when known;
+- provenance/confidence/privacy.
+
+The calendar remains authoritative for exact current scheduling when available, and may be accessed through MCP or another adapter. Memory preserves the event's durable planning/execution meaning. Do not delete the historical memory record merely because the calendar event is past, moved, cancelled, or later unavailable. Record corrections/rescheduling explicitly.
+
+Do not mirror every low-value calendar entry. Persist commitments that are useful to Governor reasoning or execution history.
+
 ### Human signal
 
 - `observed_at`
