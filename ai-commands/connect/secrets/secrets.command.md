@@ -229,6 +229,19 @@ provision those separately and bind their non-secret IDs and paths in the privat
 
 ## FAQ
 
+### How do I move an existing or new secret into the provider?
+
+The `secrets` runner reads and injects values; it does not create or import them. A provider administrator enters the value through the provider's approved UI, CLI, or API. For the current Infisical adapter, open **Secrets Management → project → environment → folder → Add Secret**. Set the secret's key to the private mapping's `backend.key`, enter its value in the provider, and use the folder named by `backend.path`. Then:
+
+1. For an existing local credential, make an encrypted, access-controlled backup and verify that it can be recovered. Keep the current source in place during cutover. For a new credential, create it directly in the provider.
+2. Give the runtime's machine identity read access only to the required project and secret. Keep its Universal Auth bootstrap and any Cloudflare Access bootstrap in separate owner-only files outside Git.
+3. In the private profile's `secrets` command config, map a stable `${secret:<logical-name>}` to the provider path and key. Map that logical name to the environment variable expected by one declared consumer. Bind both `secrets` and that consumer in the selected workflow. Put no credential value in these files.
+4. With that profile and workflow activated, run `secrets validate` to check the mapping, `secrets inspect` to review names and routes, and `secrets status` to check provider authentication. These checks do not prove the consumer can use the value.
+5. Run a bounded, read-only consumer operation through `secrets run <consumer> -- <operation>`; for example, `secrets run lodgify -- connection-test`. This fetches the mapped value at execution time and injects it only into the authorized child process. Confirm the operation succeeds and its output and logs contain no value.
+6. Once the everyday command path uses the provider successfully, remove the old local value assignment. Keep the encrypted backup according to the owner's recovery policy. Record any planned rotation as a separate follow-up; importing a value does not rotate it.
+
+If the profile selects `provider: none`, `status` and `run` are disabled. Select and configure a supported provider before a secret-dependent consumer can run through this capability.
+
 ### Why not use environment-variable names as the logical secret names?
 
 Environment variables are an injection mechanism, not a durable identity for a credential. Different consumers may need

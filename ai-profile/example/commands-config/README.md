@@ -27,6 +27,8 @@ The same file maps `example.dev.lodgify.api-key` to the Lodgify child's `LODGIFY
 
 To reproduce this with a private profile, create an Infisical project and `dev` environment, put the actual API token at the configured path and key, grant a machine identity only the reads it needs, and replace the fictional endpoint, project ID, and paths in the private config. Keep Universal Auth credentials in the owner-only `bootstrap_file` (`INFISICAL_CLIENT_ID` and `INFISICAL_CLIENT_SECRET`). If Cloudflare Access protects the endpoint, keep its service-token pair in a separate owner-only `access_bootstrap_file`. Neither file belongs in Git. Back up existing local credentials to an encrypted, access-controlled location and verify recovery before migration. Remove a local credential assignment only after the secret-backed consumer check succeeds; retain the backup until the normal command path has been verified.
 
+The [migration FAQ](../../../ai-commands/connect/secrets/secrets.command.md#how-do-i-move-an-existing-or-new-secret-into-the-provider) gives the full sequence for adding a new value or moving an existing one.
+
 For a profile with no secret service, point its `secrets` binding to [`secrets/config.none.example.yml`](secrets/config.none.example.yml), which contains only `provider: none`. Validation succeeds, while provider status and secret-backed runs stop with `PROVIDER_DISABLED`; no plaintext fallback occurs. If no workflow needs the secrets command, remove its binding and workflow permission instead. Keep consumer commands out of the workflow until they have another authorized credential route.
 
 The `hermes-agents/config.yml` file demonstrates a realistic but non-operational Hermes Agents binding. The provider
