@@ -239,6 +239,38 @@ Cloudflared must remain running, while end-to-end tunnel and Access health requi
 Compose interpolation must preserve remote environment-variable expansion for Redis rather than resolving passwords
 locally. Redis and PostgreSQL must not receive application encryption or authentication keys.
 
+### Expected observable runtime state
+
+`docker ps` must show the selected services running with the publication shape below. Container IDs, creation times,
+uptimes, project names, and displayed image tags are variable and are not part of the contract. A port written only as
+`PORT/tcp` is exposed inside the container and is not published on the host. A host publication contains an arrow, such
+as `127.0.0.1:<backend_port>->8080/tcp`.
+
+Core mode must have this normalized shape:
+
+```text
+NAME                    STATUS         PORTS
+<project>-backend-1     Up (healthy)   443/tcp, 127.0.0.1:<backend_port>->8080/tcp
+<project>-db-1          Up (healthy)   5432/tcp
+<project>-redis-1       Up (healthy)   6379/tcp
+```
+
+Cloudflare mode must have this normalized shape:
+
+```text
+NAME                         STATUS         PORTS
+<project>-cloudflared-1      Up             -
+<project>-proxy-1            Up (healthy)   80/tcp, 127.0.0.1:<proxy_port>->8443/tcp
+<project>-backend-1          Up (healthy)   443/tcp, 8080/tcp
+<project>-db-1               Up (healthy)   5432/tcp
+<project>-redis-1            Up (healthy)   6379/tcp
+```
+
+This display is a diagnostic view rather than sufficient acceptance evidence. Verification must use `docker inspect` to
+compare each configured digest reference, Docker health-check definition, restart policy, exact network set, requested
+binding in `HostConfig.PortBindings`, and active binding in `NetworkSettings.Ports`. Cloudflare mode must additionally
+verify that Cloudflared remains running and that separate client acceptance proves tunnel, TLS, and Access behavior.
+
 ## Ownership and persistent file format
 
 The selected root must have no symlink in itself or any ancestor. Fresh creation must be exclusive: the command must never
