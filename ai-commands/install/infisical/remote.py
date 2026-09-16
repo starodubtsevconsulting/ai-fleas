@@ -134,7 +134,8 @@ def compose_document(cfg):
             'user': str(os.getuid()) + ':' + str(os.getgid()),
             'command': ['tunnel', '--no-autoupdate', 'run', '--token-file', '/etc/cloudflared/tunnel-token'],
             'depends_on': {'proxy': {'condition': 'service_healthy'}},
-            'volumes': ['./tunnel-token:/etc/cloudflared/tunnel-token:ro'],
+            'volumes': ['./tunnel-token:/etc/cloudflared/tunnel-token:ro',
+                        './origin-ca.pem:' + cfg['origin_ca_file'] + ':ro'],
             'networks': {'tunnel': {}, 'tunnel_egress': {'gw_priority': 1}}}
         networks = {'data': {'internal': True}, 'application': {'internal': True},
                     'tunnel': {'internal': True}, 'backend_egress': {}, 'tunnel_egress': {}}
@@ -188,6 +189,7 @@ def qualify(cfg, fresh):
     if fresh:
         if cfg['access_mode'] == 'cloudflare':
             for key, maximum_size in [('origin_cert_file', 65536), ('origin_key_file', 65536),
+                                      ('origin_ca_file', 65536),
                                       ('cloudflared_token_file', 8192)]:
                 source = Path(cfg[key])
                 protected_file(source)
@@ -232,7 +234,7 @@ def verify_files(root, cfg):
     if cfg['smtp_env_file']:
         names.append('smtp.env')
     if cfg['access_mode'] == 'cloudflare':
-        names.extend(['nginx.conf', 'origin.pem', 'origin.key', 'tunnel-token'])
+        names.extend(['nginx.conf', 'origin.pem', 'origin.key', 'origin-ca.pem', 'tunnel-token'])
     for name in names:
         protected_file(root / name)
     if json.loads((root / 'compose.json').read_text()) != compose_document(cfg):
@@ -282,6 +284,7 @@ def create_files(root, cfg, scope, smtp):
         private_write(root / 'nginx.conf', nginx_content(cfg))
         private_copy(Path(cfg['origin_cert_file']), root / 'origin.pem', 65536)
         private_copy(Path(cfg['origin_key_file']), root / 'origin.key', 65536)
+        private_copy(Path(cfg['origin_ca_file']), root / 'origin-ca.pem', 65536)
         private_copy(Path(cfg['cloudflared_token_file']), root / 'tunnel-token', 8192)
     private_write(root / 'compose.json', json.dumps(compose_document(cfg)))
 
