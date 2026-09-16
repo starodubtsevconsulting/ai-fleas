@@ -49,6 +49,12 @@ An agent can request work from another agent only through a route authorized by 
 
 Judge is isolated from the workflow agents and communicates only with the human.
 
+## Utility helpers
+
+Dev selects Admin's bounded utility helpers through `initializer.utilitySubagents` in [agents.yml](../agents.yml).
+The [utility contract](../../_common/agents/utility-subagents.md) owns their input, effect, model, waiting, and evidence
+boundaries. Helpers are not workflow Agents or matrix columns and do not acquire peer routes or role ownership.
+
 ## Lifecycle
 
 Manager owns workflow-agent lifecycle and applies the common [agent continuity](../../_common/agents/continuity.md) policy when an agent needs to continue across runtime instances.

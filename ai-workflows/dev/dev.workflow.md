@@ -8,15 +8,21 @@ The workflow proceeds through the steps below in order. When one step completes 
 
 ## Workflow
 
-1. Manager resolves the ticket and required agents.
-2. Designer / Reviewer defines requirements, acceptance criteria, and implementation design.
+1. Manager resolves the work target, ticket when applicable, and required agents.
+2. Designer / Reviewer defines requirements, acceptance criteria, and implementation design through the
+   [planning flow](flows/planning.flow.md).
 3. Coder implements the product and test changes. Use the:
    - [coding.md](guides/coding.md)
    - [domain-driven-design.md](guides/strategies/domain-driven-design.md)
    - [test-driven-development.md](guides/strategies/test-driven-development.md)
-4. Command Runner runs the required automated validation.
-5. Designer / Reviewer independently reviews the implementation.
-6. UI Acceptance Tester performs independent visible acceptance when UI behavior is affected.
-7. Designer / Reviewer accepts the completed assignment when all required checks pass.
-8. Command Runner performs delivery or deployment only when explicitly requested and authorized. Use [delivery.md](guides/delivery.md).
-9. Manager closes the ticket after all required evidence exists.
+   Update affected durable documentation through the [documentation flow](flows/documentation.flow.md).
+4. Designer / Reviewer coordinates required verification through the [testing flow](flows/testing.flow.md);
+   Command Runner runs automated checks. Failed gates enter the [debugging flow](flows/debugging.flow.md).
+5. Designer / Reviewer independently reviews the implementation and applicable documentation.
+6. UI Acceptance Tester performs independent visible acceptance when UI behavior is affected, coordinated through
+   the [testing flow](flows/testing.flow.md).
+7. Designer / Reviewer accepts the completed assignment when all required checks pass, including the
+   [demo flow](flows/demo.flow.md) when human demonstration/confirmation applies.
+8. Command Runner performs delivery or deployment only when explicitly requested and authorized. Use
+   [delivery.md](guides/delivery.md) and the [deployment flow](flows/deployment.flow.md) when applicable.
+9. Manager closes the ticket when applicable after all required evidence exists.

@@ -33,6 +33,8 @@ of restating it.
 - `agents/team.md` owns the workflow roster, responsibility ownership, communication, and lifecycle policy.
 - `_common/roles/` owns reusable role behavior and intrinsic role boundaries.
 - `guides/` owns task-specific procedures and strategies that are loaded only when relevant.
+- `flows/` owns bounded orchestration paths using the [explicit flow contract](_common/flows/contract.md), with entry,
+  completion, and recovery evidence. Flows reuse roles and commands without granting authority.
 - `agents.md` owns rules shared by every agent-enabled workflow.
 
 A workflow entry point should therefore describe orchestration, not copy role permissions, team policy, or guide content.
@@ -52,6 +54,7 @@ ai-workflows/
     ├── workflow.yml
     ├── agents.yml
     ├── agents/
+    ├── flows/             # Optional bounded paths inside the workflow
     └── guides/
 ```
 
