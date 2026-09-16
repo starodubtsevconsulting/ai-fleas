@@ -16,6 +16,7 @@ export class LocalConfigProvider extends ConfigProviderPort {
     }
     return config(fs.readFileSync(this.configPath, 'utf8'), {
       testOrigin: this.allowTestOrigin,
+      injectedApiKey: process.env.LODGIFY_API_KEY || '',
     });
   }
 }

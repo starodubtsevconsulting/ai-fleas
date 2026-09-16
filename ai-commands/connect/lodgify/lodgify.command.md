@@ -34,8 +34,7 @@ Operational configuration must live under the selected profile, never beside thi
 resolved profile override through `LODGIFY_CONFIG_PATH` (or the generic `AI_COMMAND_CONFIG_PATH`). The command refuses to
 run without that explicit path. `USER_ID` is never sent. P4 remains blocked.
 
-Live acceptance is prohibited until the user rotates the previously exposed API
-key. Synthetic tests exercise all request paths without contacting Lodgify.
+The profile may omit `API_KEY` from the config file when an authorized secrets runner injects `LODGIFY_API_KEY` into this command's child process. The injected value takes precedence over a local `API_KEY` assignment during migration. If neither is present, the command fails closed. Rotate any migrated key according to the profile owner's schedule.
 
 Uses `GET /v2/reservations/bookings?HouseId=<property>` with `X-ApiKey`, per the
 verified Augmenta capability map/source adapter. The v1 offline endpoint is not
@@ -71,6 +70,7 @@ before any live read. P4 Accounting handoff remains blocked.
 | Entry point | Type | Profile-aware invocation |
 |---|---|---|
 | `lodgify/lodgify.command.mjs` | Node executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+| `lodgify/lodgify.command.sh` | Shell wrapper | Used by `secrets run lodgify -- ...` to launch the same profile-aware Node command. |
 
 Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
 
