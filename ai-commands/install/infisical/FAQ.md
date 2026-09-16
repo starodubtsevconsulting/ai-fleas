@@ -80,3 +80,35 @@ New secret retrievals should fail closed. AI Fleas must not silently fall back t
 ## Does installing Infisical expose it to the Internet?
 
 No. The installation capability is responsible for the secret-service stack and its private/local endpoint. Remote publication is a separate connection concern. A deployment can remain LAN/loopback-only when no remote client needs it.
+
+## Where does an agent get the Infisical web URL?
+
+Use only the activated profile and workflow. Find the `commands` entry whose `id` is `infisical`, resolve its private
+`config` path, and read `SITE_URL`. That is the canonical browser URL the agent may return to the human. Do not copy the
+URL from this public package's example configuration, infer it from a machine name, or reuse a URL remembered from another
+profile.
+
+Read `ACCESS_MODE`, `SSH_TARGET`, `BACKEND_PORT`, `PROXY_PORT`, and `ORIGIN_SERVER_NAME` from the same configuration when
+explaining how the endpoint is reached. `SITE_URL` configures Infisical links; it does not by itself create DNS, a tunnel,
+an Access policy, or a firewall route. Before presenting it as usable, status or acceptance evidence must show that the
+corresponding access path exists.
+
+If a separately configured `connect/cloudflare` target publishes this service, its selected private configuration supplies
+`CLOUDFLARE_PUBLIC_URL`. That value and Infisical's `SITE_URL` should identify the same intended public service. A mismatch
+is a configuration blocker, not permission to choose one arbitrarily.
+
+## How is the web UI accessed locally or from outside?
+
+The installer publishes only host-loopback ports. It never exposes PostgreSQL or Redis, and it does not create a direct
+LAN listener.
+
+| Configuration | Browser access |
+| --- | --- |
+| `ACCESS_MODE=core`, on the Docker host | The backend listens at `http://127.0.0.1:<BACKEND_PORT>`. Use the configured `SITE_URL` as the canonical application URL. |
+| `ACCESS_MODE=core`, from an operator workstation | Create an authorized SSH forward with `ssh -N -L <local-port>:127.0.0.1:<BACKEND_PORT> <SSH_TARGET>`, then open `http://127.0.0.1:<local-port>`. This is a private maintenance path; it does not create outside access. |
+| `ACCESS_MODE=cloudflare`, from outside | Open the configured `SITE_URL`. Cloudflare Access may authenticate the user first; Infisical then performs its own authentication and authorization. |
+| `ACCESS_MODE=cloudflare`, origin-local diagnostics | The private origin listens at `https://127.0.0.1:<PROXY_PORT>`. A client must use `ORIGIN_SERVER_NAME` for TLS hostname verification and trust the configured private CA. Do not disable certificate verification. |
+
+For a local browser test of the Cloudflare-mode origin, an operator may forward `PROXY_PORT` over SSH, but the browser
+must still connect with the configured origin hostname and trust its private CA. The public `SITE_URL` remains the normal
+human-facing link. If `ACCESS_MODE=core` and no separate access provider is configured, there is no outside URL.
