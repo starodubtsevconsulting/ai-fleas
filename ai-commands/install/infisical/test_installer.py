@@ -228,7 +228,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_cloudflare_mode_owns_five_services_and_separates_every_network_boundary(self):
         digest = '@sha256:' + '1' * 64
-        for name in ('origin.pem', 'origin.key', 'tunnel-token'):
+        for name in ('origin.pem', 'origin.key', 'origin-ca.pem', 'tunnel-token'):
             path = self.folder / name
             path.write_text('fictional-' + name + '\n')
             path.chmod(0o600)
@@ -238,11 +238,13 @@ class InstallerTests(unittest.TestCase):
             'origin_server_name': 'origin.example.invalid',
             'origin_cert_file': str(self.folder / 'origin.pem'),
             'origin_key_file': str(self.folder / 'origin.key'),
+            'origin_ca_file': str(self.folder / 'origin-ca.pem'),
             'cloudflared_token_file': str(self.folder / 'tunnel-token'),
         })
         self.cfg['images'].update({'proxy': 'nginx:alpine' + digest,
                                    'cloudflared': 'cloudflare/cloudflared:latest' + digest})
         self.save_config()
+        self.cfg = runner.load_config(self.config_path, self.profile_file)
         receipt = self.perform('install')
         self.assertEqual(receipt['services'], {
             'backend': 'healthy', 'db': 'healthy', 'redis': 'healthy',
@@ -262,6 +264,8 @@ class InstallerTests(unittest.TestCase):
                          {'tunnel': {}, 'tunnel_egress': {'gw_priority': 1}})
         self.assertEqual(document['services']['cloudflared']['user'],
                          str(os.getuid()) + ':' + str(os.getgid()))
+        self.assertIn('./origin-ca.pem:' + self.cfg['origin_ca_file'] + ':ro',
+                      document['services']['cloudflared']['volumes'])
         self.assertIn('--requirepass', document['services']['redis']['command'][-1])
         self.assertIn('NOAUTH Authentication required.',
                       document['services']['redis']['healthcheck']['test'][-1])
@@ -269,7 +273,7 @@ class InstallerTests(unittest.TestCase):
             self.assertIn('healthcheck', document['services'][service])
         self.assertNotIn('ports', document['services']['backend'])
         self.assertEqual(document['services']['proxy']['ports'], ['127.0.0.1:8443:8443'])
-        for name in ('nginx.conf', 'origin.pem', 'origin.key', 'tunnel-token'):
+        for name in ('nginx.conf', 'origin.pem', 'origin.key', 'origin-ca.pem', 'tunnel-token'):
             self.assertEqual((root / name).stat().st_mode & 0o777, 0o600)
 
     def test_symlink_ancestor_refused_before_mutation(self):
