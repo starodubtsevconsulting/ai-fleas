@@ -260,6 +260,8 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(document['services']['backend']['networks']['backend_egress'], {'gw_priority': 1})
         self.assertEqual(document['services']['cloudflared']['networks'],
                          {'tunnel': {}, 'tunnel_egress': {'gw_priority': 1}})
+        self.assertEqual(document['services']['cloudflared']['user'],
+                         str(os.getuid()) + ':' + str(os.getgid()))
         self.assertIn('--requirepass', document['services']['redis']['command'][-1])
         self.assertIn('NOAUTH Authentication required.',
                       document['services']['redis']['healthcheck']['test'][-1])

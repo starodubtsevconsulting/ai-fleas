@@ -131,6 +131,7 @@ def compose_document(cfg):
                                 test=['CMD-SHELL', 'wget --no-check-certificate -q -O /dev/null https://127.0.0.1:8443/api/status'])}
         services['cloudflared'] = {
             'image': cfg['images']['cloudflared'], 'restart': 'unless-stopped',
+            'user': str(os.getuid()) + ':' + str(os.getgid()),
             'command': ['tunnel', '--no-autoupdate', 'run', '--token-file', '/etc/cloudflared/tunnel-token'],
             'depends_on': {'proxy': {'condition': 'service_healthy'}},
             'volumes': ['./tunnel-token:/etc/cloudflared/tunnel-token:ro'],
