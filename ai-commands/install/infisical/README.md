@@ -5,7 +5,7 @@ owns the backend, PostgreSQL, and authenticated Redis without selecting a remote
 is one supported access pattern; it also owns the Nginx TLS proxy and tunnel connector, with exact network separation
 between tunnel, proxy, backend, and datastores.
 
-See [requirements and reconstruction specification](spec.md) and
+See the [FAQ](FAQ.md), [requirements and reconstruction specification](spec.md), and
 [usage, configuration, HTTPS, SMTP and recovery](infisical.command.md). Run the
 [offline mechanics tests](infisical.command.test.sh) before releasing changes. The installer neither adopts nor
 reinstalls an existing manual deployment.
