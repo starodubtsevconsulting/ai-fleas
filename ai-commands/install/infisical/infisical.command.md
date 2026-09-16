@@ -108,7 +108,7 @@ The names below describe normalized fields. Their config.env names are:
 | `images.proxy`, `images.cloudflared` | `PROXY_IMAGE`, `CLOUDFLARED_IMAGE` |
 | `backend_port`, `proxy_port` | `BACKEND_PORT`, `PROXY_PORT` |
 | `origin_server_name` | `ORIGIN_SERVER_NAME` |
-| `origin_cert_file`, `origin_key_file`, `cloudflared_token_file` | `ORIGIN_CERT_FILE`, `ORIGIN_KEY_FILE`, `CLOUDFLARED_TOKEN_FILE` |
+| `origin_cert_file`, `origin_key_file`, `origin_ca_file`, `cloudflared_token_file` | `ORIGIN_CERT_FILE`, `ORIGIN_KEY_FILE`, `ORIGIN_CA_FILE`, `CLOUDFLARED_TOKEN_FILE` |
 | `minimum_cpus`, `minimum_memory_gib`, `minimum_free_disk_gib` | `MINIMUM_CPUS`, `MINIMUM_MEMORY_GIB`, `MINIMUM_FREE_DISK_GIB` |
 | `health_timeout_seconds`, `ssh_timeout_seconds`, `smtp_env_file` | `HEALTH_TIMEOUT_SECONDS`, `SSH_TIMEOUT_SECONDS`, `SMTP_ENV_FILE` |
 
@@ -122,7 +122,7 @@ The names below describe normalized fields. Their config.env names are:
 | `access_mode` | `core` owns three services. `cloudflare` owns five services and requires the proxy/connector pins and protected origin inputs. |
 | `images` | Approved immutable `@sha256:` references for every selected service. PostgreSQL requires a 14–17 version tag plus digest for the supported data directory. |
 | `backend_port`, `proxy_port` | Loopback-only ports, defaults `8080` and `8443`, range `1024`–`65535`. Core mode publishes backend; Cloudflare mode publishes proxy. Datastores are never published. |
-| Cloudflare origin inputs | Exact hostname and protected remote certificate, key, and tunnel-token files. The command copies them on the remote host; values never cross SSH. |
+| Cloudflare origin inputs | Exact hostname and protected remote certificate, key, CA certificate, and tunnel-token files. The command copies them on the remote host; values never cross SSH. The CA copy is mounted read-only into cloudflared at the exact `origin_ca_file` path used by the remotely managed ingress configuration. |
 | Capacity | Fresh installs require at least 2 CPUs, 4 GiB RAM and 20 GiB free disk; profile minimums may increase these. Supported remote architectures: Linux `x86_64` and `aarch64`. |
 | Timeouts | Health verification: 10–600 seconds, default 120. SSH operation: 30–3600 seconds, default 900. A timeout is reported without automatic retransmission or cleanup; inspect state before retrying. |
 | `smtp_env_file` | Empty by default; otherwise an exact protected remote credential/config file, described below. |

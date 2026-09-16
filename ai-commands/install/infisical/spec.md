@@ -64,7 +64,7 @@ The parser must normalize the config.env names into the fields below: `VERSION`/
 `SSH_TARGET`/`REMOTE_ROOT`/`PROJECT_NAME`/`SITE_URL`; `BACKEND_IMAGE`/`POSTGRES_IMAGE`/`REDIS_IMAGE` into
 `images.backend`/`images.db`/`images.redis`; `ACCESS_MODE`; `BACKEND_PORT`/`PROXY_PORT`;
 `PROXY_IMAGE`/`CLOUDFLARED_IMAGE` into `images.proxy`/`images.cloudflared`;
-`ORIGIN_SERVER_NAME`/`ORIGIN_CERT_FILE`/`ORIGIN_KEY_FILE`/`CLOUDFLARED_TOKEN_FILE`;
+`ORIGIN_SERVER_NAME`/`ORIGIN_CERT_FILE`/`ORIGIN_KEY_FILE`/`ORIGIN_CA_FILE`/`CLOUDFLARED_TOKEN_FILE`;
 `MINIMUM_CPUS`/`MINIMUM_MEMORY_GIB`/`MINIMUM_FREE_DISK_GIB`; `HEALTH_TIMEOUT_SECONDS`/`SSH_TIMEOUT_SECONDS`; `SMTP_ENV_FILE`.
 It must reject missing, unknown, or incorrectly typed normalized fields. Defaults must apply identically to both input
 formats.
@@ -85,6 +85,7 @@ formats.
 | `origin_server_name` | Explicit TLS hostname used in the generated Nginx server configuration. Required only in `cloudflare` mode. | None |
 | `origin_cert_file` | Explicit protected remote origin-certificate file copied into the owned deployment. Required only in `cloudflare` mode. | None |
 | `origin_key_file` | Explicit protected remote origin-key file copied into the owned deployment. Required only in `cloudflare` mode. | None |
+| `origin_ca_file` | Explicit protected remote CA certificate copied into the owned deployment and mounted read-only into cloudflared at this same absolute path. The remotely managed ingress `caPool` must use this exact path. Required only in `cloudflare` mode. | None |
 | `cloudflared_token_file` | Explicit protected remote token file copied into the owned deployment. Required only in `cloudflare` mode. | None |
 | `minimum_cpus` | Integer 2–256. | `2` |
 | `minimum_memory_gib` | Integer 4–4096, interpreted as GiB of host RAM. | `4` |
@@ -218,7 +219,7 @@ deployment files. The deployment parent directory must already exist and be writ
 | `db` | Configured PostgreSQL image; only `db.env`; volume `pg_data:/var/lib/postgresql/data`; joins only the internal datastore network; no published ports. |
 | `redis` | Configured Redis image; only `redis.env`; authenticated server with append-only persistence; volume `redis_data:/data`; joins only the internal datastore network; no published ports. |
 | `proxy` | Cloudflare mode only; configured immutable Nginx image; generated `nginx.conf`; separately mounted origin certificate/key; only `127.0.0.1:<proxy_port>:8443`; joins only `application` and `tunnel`; waits for healthy backend. |
-| `cloudflared` | Cloudflare mode only; configured immutable connector image; protected token file; runs with the executing remote user's numeric UID/GID so the `0600` token remains readable without broader permissions; joins only `tunnel` and `tunnel_egress`; waits for healthy proxy; no published port. |
+| `cloudflared` | Cloudflare mode only; configured immutable connector image; protected token and CA files; mounts the owned CA copy read-only at `origin_ca_file` so remotely managed ingress TLS validation can load it; runs with the executing remote user's numeric UID/GID so the `0600` inputs remain readable without broader permissions; joins only `tunnel` and `tunnel_egress`; waits for healthy proxy; no published port. |
 
 Every selected service must use `restart: unless-stopped`. The Compose definition must declare named `pg_data` and
 `redis_data` volumes. Core mode must use internal `private` and normal `outbound` networks. Cloudflare mode must use internal
@@ -258,6 +259,7 @@ ownership.
 | `nginx.conf` | Cloudflare mode only; generated TLS proxy configuration for the exact `origin_server_name` and backend service. |
 | `origin.pem` | Cloudflare mode only; exact protected origin certificate copied from `origin_cert_file`. |
 | `origin.key` | Cloudflare mode only; exact protected origin private key copied from `origin_key_file`. |
+| `origin-ca.pem` | Cloudflare mode only; exact protected CA certificate copied from `origin_ca_file` and mounted read-only into cloudflared at that configured absolute path. |
 | `tunnel-token` | Cloudflare mode only; exact protected tunnel token copied from `cloudflared_token_file`. |
 | `operation.lock` | Protected file for nonblocking exclusive mutation locks and shared read-only status locks. |
 
