@@ -28,6 +28,7 @@ install/grapheneos/install-grapheneos.command.md	command-runner	-	-	-	-
 install/chatgpt/chatgpt.command.md	command-runner	-	-	-	-
 install/cloudflare/cloudflare-connector.command.md	command-runner	-	-	-	-
 install/hermes/hermes.command.md	command-runner	-	-	-	-
+install/infisical/infisical.command.md	command-runner	-	-	-	-
 install/java/java.command.md	command-runner	-	-	-	-
 install/node/node.command.md	command-runner	-	-	-	-
 install/python/python.command.md	command-runner	-	-	-	-
@@ -62,6 +63,7 @@ taxes/taxes.command.md	mixed	designer-reviewer	-	command-runner	-
 test/smoke-tests/smoke-tests.command.md	mixed	-	coder	command-runner	ui-acceptance-tester
 test/test.command.md	command-runner	-	-	-	-
 ticket-tracker/ticket-tracker.command.md	manager	-	-	-	-
+trello/trello.command.md	manager	-	-	-	-
 tts/tts.command.md	command-runner	-	-	-	-
 video-handwriting-effect/video-handwriting-effect.command.md	command-runner	-	-	-	-
 voice-report/voice-report.command.md	command-runner	-	-	-	-
