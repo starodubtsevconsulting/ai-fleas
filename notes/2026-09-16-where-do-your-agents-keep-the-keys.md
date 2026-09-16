@@ -1,5 +1,9 @@
 # Where Do Your Agents Keep the Keys?
 
+> “Some things are up to us and some are not.”
+>
+> — Epictetus, *Enchiridion*
+
 A few years ago, the answer to “where should I keep my secrets?” was often simple: use AWS Secrets Manager, Azure Key Vault, Google Secret Manager, or whatever your cloud already provides.
 
 That still makes perfect sense when the cloud is where your system lives.
