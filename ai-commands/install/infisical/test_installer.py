@@ -40,7 +40,8 @@ elif a[0]=='exec':
 elif a[0]=='compose':
  action=a[a.index('-f')+2:]
  if action[:2]==['config','--quiet']:
-  assert set(json.loads((root/'compose.json').read_text())['services'])=={'backend','db','redis'}
+  expected={'backend','db','redis'}|({'proxy','cloudflared'} if cfg['access_mode']=='cloudflare' else set())
+  assert set(json.loads((root/'compose.json').read_text())['services'])==expected
   print('SYNTHETIC_CREDENTIAL_MUST_NOT_LEAK')
  elif action[0]=='pull': pass
  elif action[0]=='up': state.write_text(json.dumps({'running':True}))
@@ -50,16 +51,30 @@ elif a[0]=='compose':
  else: sys.exit(9)
 elif a[0]=='inspect':
  name=a[1]; running=json.loads(state.read_text())['running']
- ports={'8080/tcp':[{'HostIp':'127.0.0.1','HostPort':str(cfg['backend_port'])}]} if name=='backend' else {}
+ healthchecks={
+  'backend':{'Test':['CMD','node','-e',"require('http').get('http://127.0.0.1:8080/api/status',r=>{r.resume();process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"]},
+  'db':{'Test':['CMD','pg_isready','-U','infisical','-d','infisical']},
+  'redis':{'Test':['CMD-SHELL','unauth="$$(redis-cli --raw ping 2>/dev/null || true)"; [ "$$unauth" = "NOAUTH Authentication required." ] && [ "$$(redis-cli --no-auth-warning -a "$$REDIS_PASSWORD" --raw ping 2>/dev/null)" = "PONG" ]']},
+  'proxy':{'Test':['CMD-SHELL','wget --no-check-certificate -q -O /dev/null https://127.0.0.1:8443/api/status']}}
+ for check in healthchecks.values(): check.update(Interval=5000000000,Timeout=5000000000,Retries=24,StartPeriod=30000000000)
+ healthchecks['proxy']['StartPeriod']=10000000000
+ if os.environ.get('HEALTHCHECK_DRIFT')=='1' and name=='redis': healthchecks[name]['Retries']=1
+ if cfg['access_mode']=='core':
+  ports={'8080/tcp':[{'HostIp':'127.0.0.1','HostPort':str(cfg['backend_port'])}]} if name=='backend' else {}
+  expected_networks={'backend':{'private','outbound'},'db':{'private'},'redis':{'private'}}
+ else:
+  ports={'8443/tcp':[{'HostIp':'127.0.0.1','HostPort':str(cfg['proxy_port'])}]} if name=='proxy' else {}
+  expected_networks={'backend':{'data','application','backend_egress'},'db':{'data'},'redis':{'data'},
+   'proxy':{'application','tunnel'},'cloudflared':{'tunnel','tunnel_egress'}}
  if os.environ.get('PUBLIC_DB')=='1' and name=='db': ports={'5432/tcp':[{'HostIp':'0.0.0.0','HostPort':'5432'}]}
  health='unhealthy' if os.environ.get('UNHEALTHY')=='1' else 'healthy'
- networks={cfg['project_name']+'_private':{}}
- if name=='backend': networks[cfg['project_name']+'_outbound']={}
+ networks={cfg['project_name']+'_'+network:{} for network in expected_networks[name]}
  if os.environ.get('PUBLIC_NETWORK')=='1' and name=='db': networks['foreign_network']={}
  print(json.dumps([{'Config':{'Image':cfg['images'][name],'Env':['SYNTHETIC_CREDENTIAL_MUST_NOT_LEAK'],
+ 'Healthcheck':healthchecks.get(name),
  'Labels':{'com.docker.compose.project':cfg['project_name'],'com.docker.compose.service':name}},
  'HostConfig':{'PortBindings':ports},'NetworkSettings':{'Networks':networks},
- 'State':{'Running':running,'Health':{'Status':health}}}]))
+ 'State':{'Running':running,'Health':None if name=='cloudflared' else {'Status':health}}}]))
 else: sys.exit(9)
 '''
 
@@ -170,6 +185,8 @@ class InstallerTests(unittest.TestCase):
             with self.assertRaisesRegex(remote.RemoteBlocked, 'NOT_HEALTHY'): self.perform('status')
         with patch.dict(os.environ, {'PUBLIC_NETWORK': '1'}):
             with self.assertRaisesRegex(remote.RemoteBlocked, 'NETWORK_ISOLATION'): self.perform('stop')
+        with patch.dict(os.environ, {'HEALTHCHECK_DRIFT': '1'}):
+            with self.assertRaisesRegex(remote.RemoteBlocked, 'HEALTHCHECK_MISMATCH'): self.perform('status')
         self.assertTrue(json.loads((self.folder / 'state.json').read_text())['running'])
 
     def test_remote_receipts_cannot_relay_arbitrary_values(self):
@@ -192,7 +209,14 @@ class InstallerTests(unittest.TestCase):
     def test_env_configuration_matches_legacy_json_and_never_executes_expressions(self):
         lines = ['# Fictional profile configuration']
         for key, field in runner.CONFIG_ENV_FIELDS.items():
-            value = self.cfg['images'][field] if key.endswith('_IMAGE') else self.cfg[field]
+            if key in runner.IMAGE_ENV_FIELDS:
+                if field not in self.cfg['images']:
+                    continue
+                value = self.cfg['images'][field]
+            elif field not in self.cfg:
+                continue
+            else:
+                value = self.cfg[field]
             lines.append(key + '=' + json.dumps(str(value)))
         text = '\n'.join(lines) + '\n'
         self.config_path.write_text(text)
@@ -201,6 +225,48 @@ class InstallerTests(unittest.TestCase):
             self.config_path.write_text(text + extra)
             with self.assertRaises(runner.Blocked): runner.load_config(self.config_path, self.profile_file)
         self.assertFalse((self.folder / 'calls.jsonl').exists())
+
+    def test_cloudflare_mode_owns_five_services_and_separates_every_network_boundary(self):
+        digest = '@sha256:' + '1' * 64
+        for name in ('origin.pem', 'origin.key', 'tunnel-token'):
+            path = self.folder / name
+            path.write_text('fictional-' + name + '\n')
+            path.chmod(0o600)
+        self.cfg.update({
+            'access_mode': 'cloudflare',
+            'proxy_port': 8443,
+            'origin_server_name': 'origin.example.invalid',
+            'origin_cert_file': str(self.folder / 'origin.pem'),
+            'origin_key_file': str(self.folder / 'origin.key'),
+            'cloudflared_token_file': str(self.folder / 'tunnel-token'),
+        })
+        self.cfg['images'].update({'proxy': 'nginx:alpine' + digest,
+                                   'cloudflared': 'cloudflare/cloudflared:latest' + digest})
+        self.save_config()
+        receipt = self.perform('install')
+        self.assertEqual(receipt['services'], {
+            'backend': 'healthy', 'db': 'healthy', 'redis': 'healthy',
+            'proxy': 'healthy', 'cloudflared': 'running'})
+        root = Path(self.cfg['remote_root'])
+        document = json.loads((root / 'compose.json').read_text())
+        self.assertEqual(set(document['services']), {'backend', 'db', 'redis', 'proxy', 'cloudflared'})
+        self.assertEqual(set(document['networks']),
+                         {'data', 'application', 'tunnel', 'backend_egress', 'tunnel_egress'})
+        self.assertTrue(all(document['networks'][name]['internal']
+                            for name in ('data', 'application', 'tunnel')))
+        self.assertEqual(document['services']['db']['networks'], ['data'])
+        self.assertEqual(document['services']['redis']['networks'], ['data'])
+        self.assertEqual(document['services']['proxy']['networks'], ['application', 'tunnel'])
+        self.assertEqual(document['services']['cloudflared']['networks'], ['tunnel', 'tunnel_egress'])
+        self.assertIn('--requirepass', document['services']['redis']['command'][-1])
+        self.assertIn('NOAUTH Authentication required.',
+                      document['services']['redis']['healthcheck']['test'][-1])
+        for service in ('backend', 'db', 'redis', 'proxy'):
+            self.assertIn('healthcheck', document['services'][service])
+        self.assertNotIn('ports', document['services']['backend'])
+        self.assertEqual(document['services']['proxy']['ports'], ['127.0.0.1:8443:8443'])
+        for name in ('nginx.conf', 'origin.pem', 'origin.key', 'tunnel-token'):
+            self.assertEqual((root / name).stat().st_mode & 0o777, 0o600)
 
     def test_symlink_ancestor_refused_before_mutation(self):
         actual = self.folder / 'actual'; actual.mkdir()
