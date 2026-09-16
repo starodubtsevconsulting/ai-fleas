@@ -8,9 +8,9 @@ The command defines a thin adapter over a configured secret-management backend. 
 
 Execution route: `command-runner`.
 
-This package is an AI-readable adapter contract. It does not yet implement an executable provider resolver or credential
-injection. Runtime retrieval must fail closed until a separately implemented and reviewed provider is selected; the
-installer provisions the service and does not supply that missing resolver.
+The command implements the first provider adapter for Infisical. The profile owns all deployment-specific mapping and
+bootstrap paths. The command validates that mapping, authenticates a machine identity, and injects declared values into
+an authorized child command. It does not return secret values to the caller.
 
 ## Inputs
 
@@ -24,24 +24,51 @@ installer provisions the service and does not supply that missing resolver.
 
 | Output | Destination | Description |
 |---|---|---|
-| Capability/configuration disposition | Caller | Sanitized readiness or blocker; no resolved credentials. |
-| Future resolved environment | Authorized child process only | Requires an implemented provider resolver; never returned to agent context or stdout. |
+| Capability/configuration disposition | Caller | Sanitized validation or connection status; no resolved credentials. |
+| Resolved environment | Authorized child process only | Explicitly mapped values for one profile-authorized command. |
 
 ## Entry Point
 
 | Entry point | Type | Profile-aware invocation |
 |---|---|---|
-| `secrets/secrets.command.md` | AI-readable contract | Activate the selected profile/workflow, confirm permission, and evaluate the bounded capability request. |
+| `secrets/secrets.command.sh` | Shell executable | `validate` checks the activated profile configuration, `status` authenticates, and `run <consumer> -- <arguments>` injects declared values into an authorized child command. |
 
 Every invocation is profile-aware: verify the active workflow permits `secrets`, resolve `AI_COMMANDS_ROOT`, and load only
 its private `AI_COMMAND_CONFIG_PATH`. Committed configuration template: `secrets/secrets.command.example.config`.
 Copy that fictional template into the selected profile and bind it through `commands[].config`.
 
-The template maps each logical secret to an explicit backend path/key and maps only declared values to a consuming
-command's child-process environment. Universal Auth bootstrap credentials come directly from named environment variables,
+The template maps each logical secret to one Infisical project, environment, path, and key. It maps only declared values
+to a consuming command's child-process environment. Universal Auth bootstrap credentials come from a protected local file,
 not secret-adapter references, preventing recursive resolution. A logical `ref` is a selector, not a backend lookup by
-itself. Missing mappings, provider implementations, credentials or authorization are blockers, never permission to print
-a value or guess another provider.
+itself. Missing mappings, credentials, access or authorization block execution.
+
+The profile activation guard must select a profile and workflow that permit `secrets`. `run` additionally requires the
+consumer to be bound by that profile and permitted by the same workflow. Its executable must match the declared command
+ID and remain inside the activated `AI_COMMANDS_ROOT`. The consumer receives its own profile-owned command configuration
+through `AI_COMMAND_CONFIG_PATH`.
+
+The protected Universal Auth file contains `INFISICAL_CLIENT_ID` and `INFISICAL_CLIENT_SECRET`. When Cloudflare Access
+protects the endpoint, a second protected file contains `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`. Each file
+must be a regular, owner-owned, owner-only file, not a symlink. The Access service token must be allowed by a Service Auth
+policy restricted to the Infisical application. These bootstrap credentials remain outside the secret store because the
+store cannot retrieve the credentials needed to reach itself. Infisical issues the short-lived API access token after
+Universal Auth login. See [Infisical Universal Auth](https://infisical.com/docs/documentation/platform/identities/universal-auth)
+and [Cloudflare Service Auth](https://developers.cloudflare.com/cloudflare-one/access-controls/policies/common-policies/).
+
+```mermaid
+flowchart LR
+  A[Activated profile and workflow] --> B[secrets command]
+  B --> C[Private mapping and owner-only bootstrap files]
+  C --> D[Cloudflare Access, when enabled]
+  D --> E[Infisical Universal Auth]
+  E --> F[Named secret in project/environment/path]
+  F --> G[Authorized child command environment]
+```
+
+The private mapping names the Infisical project and environment; it does not contain secret values. For each consumer,
+`command_injection` names an allowed command executable and the environment variables it receives. A runtime on another
+machine needs its own bootstrap identity and Access credential; copying a profile mapping alone does not give it access.
+The Infisical server's own encryption, database and tunnel bootstrap credentials stay outside this resolver.
 
 ## Secret references and naming
 
@@ -65,9 +92,10 @@ ${secret:infrastructure.prod.cloudflare.api-token}
 ${secret:multimedia.prod.voice-provider.api-key}
 ```
 
-`scope` identifies the bounded project/product/infrastructure area, `environment` distinguishes such contexts as `dev`,
-`test`, `staging`, and `prod`, `service` identifies the consuming or external service, and `credential` identifies the
-credential's role. Do not use generic logical names such as `api-token`, `password`, `database.password`, or `prod.key`.
+`scope` identifies the bounded project/product/infrastructure area. `environment` distinguishes contexts such as `dev`
+and `prod` as defined by the selected profile. `service` identifies the consuming or external service, and `credential`
+identifies the credential's role. Do not use generic logical names such as `api-token`, `password`, `database.password`,
+or `prod.key`.
 Do not encode the provider name, Infisical project ID, physical host, backend path, current secret value, username/email,
 or other deployment detail into the logical name unless that concept is genuinely part of the credential's stable
 business identity.
@@ -106,9 +134,7 @@ provider mappings for the same logical name, malformed references, unknown logic
 validation. Resolution must never select the first match, search neighboring scopes, infer an environment, or fall back to
 a similarly named environment variable.
 
-Aliases, when needed for migration, must be explicit one-to-one mappings maintained in private configuration. Alias
-chains, cycles, wildcard aliases, prefix matching, and implicit aliases are not permitted. A rename should normally update
-the logical reference deliberately; an alias is a temporary compatibility mechanism, not a second namespace.
+This implementation does not support aliases. A rename updates the logical reference and private mapping deliberately.
 
 Logical-name uniqueness is required within the activated profile. Different profiles may intentionally use the same
 logical name because profile activation establishes a separate configuration boundary. Within one profile, environment
@@ -123,7 +149,7 @@ is part of the name specifically so that `dev` and `prod` credentials cannot col
 - Never include resolved values in stdout, receipts, prompts, Governor memory, durable agent context, screenshots, test fixtures, telemetry, or ordinary logs.
 - Do not cache resolved values on disk merely to improve convenience. Provider-supported short-lived runtime caching may be used only when explicitly designed and bounded.
 - Keep bootstrap credentials separate from ordinary logical secret references so resolving the secret store does not recursively require the secret store.
-- Give each machine/runtime identity only the mappings it needs. Sharing one universal machine identity defeats the purpose of central secret management.
+- Give each machine/runtime identity only the backend secrets it needs. Sharing one universal machine identity defeats the purpose of central secret management.
 - Prefer rotation/revocation at the backend while preserving the logical reference, so consumers do not change when a credential value changes.
 
 ## Profile boundary
@@ -134,7 +160,7 @@ Actual credential values belong only in the configured secret backend. They must
 
 ## Initial provider
 
-The first intended provider is self-hosted Infisical. This is an implementation choice, not part of the portable command contract.
+The first implemented provider is self-hosted Infisical. This is an implementation choice, not part of the portable command contract.
 
 Conceptually:
 
@@ -155,9 +181,9 @@ workflow / command / agent
 
 A deployment may host Infisical on an always-on private infrastructure machine and expose it to authorized remote clients through a secure private/tunnel path. Public documentation must use fictional/non-routable names and domains; deployment-specific topology belongs to the private profile.
 
-## Intended operations
+## Operations
 
-The portable surface should remain small:
+The portable surface remains small:
 
 - inject a named secret into an authorized consuming command's child process;
 - validate provider connectivity/authentication without printing secret values;
@@ -165,9 +191,14 @@ The portable surface should remain small:
 
 Provider administration, installation, backup, recovery, identity provisioning, and rotation are infrastructure/provider concerns rather than reasons for workflows to depend directly on a vendor.
 
-There is no stdout `get` operation. Connectivity/health checks must use an implemented provider and return status only;
-configuration review alone cannot establish live provider health. These operations remain unavailable in this contract
-package until the executable provider and scoped injection path exist.
+There is no stdout `get` operation. `validate` checks configuration only; `status` verifies machine authentication;
+`run` also verifies that the requested secret exists and the identity may read it. A successful `status` does not prove
+that every mapped secret exists. A child command can itself print its environment, so only trusted, profile-authorized
+consumers should receive values.
+
+The command needs Node.js with the repository's pinned dependencies installed (`npm ci`). A missing dependency blocks
+execution. The command does not create an Infisical project, machine identity, Access policy, or secret. Administrators
+provision those separately and bind their non-secret IDs and paths in the private profile.
 
 ## Runtime policy
 
