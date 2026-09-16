@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "command": "infisical",
+  "ssh_target": "example-server",
+  "remote_root": "/opt/example-secret-service",
+  "project_name": "example-secret-service",
+  "site_url": "https://secrets.example.invalid",
+  "backend_port": 8080,
+  "images": {
+    "backend": "infisical/infisical@sha256:REPLACE_WITH_APPROVED_DIGEST",
+    "db": "postgres:16-alpine@sha256:REPLACE_WITH_APPROVED_DIGEST",
+    "redis": "redis@sha256:REPLACE_WITH_APPROVED_DIGEST"
+  },
+  "minimum_cpus": 2,
+  "minimum_memory_gib": 4,
+  "minimum_free_disk_gib": 20,
+  "health_timeout_seconds": 120,
+  "ssh_timeout_seconds": 900,
+  "smtp_env_file": ""
+}

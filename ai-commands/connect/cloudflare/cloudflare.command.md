@@ -75,6 +75,9 @@ name on the origin certificate. If the certificate uses a private CA, also set `
 absolute path to that CA bundle on the connector host. These settings are rejected for an HTTP origin. The generated
 route always keeps Cloudflare origin certificate verification enabled; it never sets `noTLSVerify`.
 
+`origin-status` uses the configured certificate hostname for its request Host and SNI while connecting directly to the
+configured private origin. It uses `CLOUDFLARE_ORIGIN_CA_POOL` when set and never disables certificate verification.
+
 ## Security boundary
 
 - The origin must use `http` or `https` and resolve to a loopback, RFC1918 IPv4, `.internal`, `.local`, or `.localhost`
