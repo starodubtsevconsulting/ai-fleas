@@ -85,19 +85,84 @@ explicit migration procedure; an ordinary install rerun must reject it as a conf
 
 ## System boundary and architecture
 
+The command performs one installation and manages one Docker Compose project. That project contains three separate
+containers built from three independently pinned images. PostgreSQL and Redis are runtime dependencies of the Infisical
+backend; neither service is embedded in the backend image. Only the backend publishes a host port, and that port is bound
+to host loopback.
+
 ```mermaid
-flowchart LR
+flowchart TB
   Request[Authorized operation] --> Guard[Profile and workflow guard]
-  Guard --> Config[Private configuration validation]
-  Config --> SSH[Batch SSH with trusted host key]
-  SSH --> Host[Selected Linux Docker host]
-  Host --> Backend[Loopback backend port]
-  Backend --> Private[Internal Compose network]
-  Private --> DB[PostgreSQL persistent volume]
-  Private --> Redis[Authenticated Redis persistent volume]
-  Backend --> Outbound[Separate outbound network]
-  Outbound --> SMTP[Optional approved SMTP relay]
+  Guard --> Config[Private command configuration]
+  Config --> SSH[Batch SSH dispatcher]
+
+  subgraph Host[Selected Linux Docker host]
+    direction LR
+
+    subgraph Files[Protected deployment root]
+      Control[owner.json<br/>compose.json<br/>operation.lock]
+      BackendEnv[backend.env<br/>optional smtp.env]
+      DbEnv[db.env]
+      RedisEnv[redis.env]
+    end
+
+    Loopback[Host loopback<br/>127.0.0.1:backend_port]
+    Compose[Docker Engine<br/>Compose v2]
+
+    subgraph Project[One Docker Compose project]
+      direction TB
+      Backend[backend container<br/>Infisical backend image<br/>health: GET /api/status]
+      Postgres[db container<br/>PostgreSQL image<br/>health: pg_isready]
+      Redis[redis container<br/>Redis image<br/>health: authenticated PONG]
+      Private((private internal network))
+      Outbound((outbound network))
+      PgVolume[(pg_data volume)]
+      RedisVolume[(redis_data volume)]
+
+      Backend -->|SQL| Private
+      Private --> Postgres
+      Backend -->|Redis protocol| Private
+      Private --> Redis
+      Backend --- Outbound
+      Postgres --- PgVolume
+      Redis --- RedisVolume
+    end
+
+    Loopback -->|container port 8080| Backend
+    Control -. compose definition .-> Compose
+    Compose -->|manages| Backend
+    Compose -->|manages| Postgres
+    Compose -->|manages| Redis
+    BackendEnv -. supplies environment .-> Backend
+    DbEnv -. supplies environment .-> Postgres
+    RedisEnv -. supplies environment .-> Redis
+  end
+
+  SSH -->|writes protected files| Control
+  SSH -->|runs lifecycle operations| Compose
+
+  subgraph Optional[Optional capabilities outside this installer]
+    direction LR
+    Client[Authorized client] --> Gateway[Access gateway]
+    Gateway --> Connector[Tunnel connector]
+    Connector -->|verified TLS hostname and CA| Proxy[Private TLS reverse proxy]
+    SMTP[Approved SMTP relay]
+  end
+
+  Proxy -->|loopback HTTP| Loopback
+  Outbound -->|TLS SMTP| SMTP
 ```
+
+| Component | Packaging | Command responsibility |
+|---|---|---|
+| Infisical backend | Separate `backend` container and pinned image | Create, configure, start, stop, and verify. |
+| PostgreSQL | Separate `db` container and pinned image | Create, configure, start, stop, verify, and retain `pg_data`. |
+| Redis | Separate `redis` container and pinned image | Create, authenticate, start, stop, verify, and retain `redis_data`. |
+| Compose networks | Internal `private` network and normal `outbound` network | Create and verify exact container attachments. |
+| Protected deployment files | Host files under `remote_root` | Create, permission-check, lock, and verify without exposing secrets. |
+| Docker Engine and Compose v2 | Preexisting host prerequisites | Qualify and use; never install automatically. |
+| TLS proxy, access gateway, and tunnel connector | Separate capabilities outside this command | Record integration requirements and verify separately. |
+| SMTP relay | Optional external service outside this command | Consume protected connection settings; never install the relay. |
 
 Local and remote execution must have Python 3 with standard-library support. SSH must use batch authentication, strict
 existing host-key checking, and a 10-second connection timeout. The dispatcher must pass the validated host as an argument,
