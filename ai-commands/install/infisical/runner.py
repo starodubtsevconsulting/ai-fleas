@@ -18,7 +18,8 @@ CONFIG_ENV_FIELDS = {
     'REMOTE_ROOT': 'remote_root', 'PROJECT_NAME': 'project_name', 'SITE_URL': 'site_url',
     'ACCESS_MODE': 'access_mode', 'BACKEND_PORT': 'backend_port', 'PROXY_PORT': 'proxy_port',
     'ORIGIN_SERVER_NAME': 'origin_server_name', 'ORIGIN_CERT_FILE': 'origin_cert_file',
-    'ORIGIN_KEY_FILE': 'origin_key_file', 'CLOUDFLARED_TOKEN_FILE': 'cloudflared_token_file',
+    'ORIGIN_KEY_FILE': 'origin_key_file', 'ORIGIN_CA_FILE': 'origin_ca_file',
+    'CLOUDFLARED_TOKEN_FILE': 'cloudflared_token_file',
     'MINIMUM_CPUS': 'minimum_cpus',
     'MINIMUM_MEMORY_GIB': 'minimum_memory_gib', 'MINIMUM_FREE_DISK_GIB': 'minimum_free_disk_gib',
     'HEALTH_TIMEOUT_SECONDS': 'health_timeout_seconds', 'SSH_TIMEOUT_SECONDS': 'ssh_timeout_seconds',
@@ -81,7 +82,7 @@ def load_config(config_path, profile_path):
         raise Blocked('configuration must be valid config.env or legacy JSON; values are not included in diagnostics')
     required = {'version', 'command', 'ssh_target', 'remote_root', 'project_name', 'site_url', 'images'}
     optional = {'access_mode', 'backend_port', 'proxy_port', 'origin_server_name', 'origin_cert_file',
-                'origin_key_file', 'cloudflared_token_file', 'minimum_cpus', 'minimum_memory_gib',
+                'origin_key_file', 'origin_ca_file', 'cloudflared_token_file', 'minimum_cpus', 'minimum_memory_gib',
                 'minimum_free_disk_gib', 'health_timeout_seconds', 'ssh_timeout_seconds', 'smtp_env_file'}
     if not isinstance(cfg, dict) or not required <= cfg.keys() or cfg.keys() - required - optional:
         raise Blocked('missing or unsupported configuration keys')
@@ -135,7 +136,7 @@ def load_config(config_path, profile_path):
     if (not isinstance(smtp, str) or (smtp and (not re.fullmatch(r'/[A-Za-z0-9._/-]+', smtp)
                                                or any(x in ('', '.', '..') for x in smtp.split('/')[1:])))):
         raise Blocked('SMTP must reference an explicit protected remote file')
-    access_fields = ('origin_cert_file', 'origin_key_file', 'cloudflared_token_file')
+    access_fields = ('origin_cert_file', 'origin_key_file', 'origin_ca_file', 'cloudflared_token_file')
     if access_mode == 'cloudflare':
         name = cfg.get('origin_server_name')
         hostname_label = r'(?!-)[A-Za-z0-9-]{1,63}(?<!-)'
