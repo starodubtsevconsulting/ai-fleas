@@ -154,7 +154,7 @@ is part of the name specifically so that `dev` and `prod` credentials cannot col
 - Resolve only after profile/workflow authorization and immediately before the authorized execution needs the value.
 - Inject a resolved value only into the bounded child process or equivalent provider-supported runtime channel.
 - Never substitute a resolved value back into a profile/configuration file.
-- Never include resolved values in stdout, receipts, prompts, Governor memory, durable agent context, screenshots, test fixtures, telemetry, or ordinary logs.
+- Never include resolved values in human-facing stdout, receipts, prompts, Governor memory, durable agent context, screenshots, test fixtures, telemetry, or ordinary logs. Hermes's internal command source is a narrow exception: it requires `KEY=VALUE` data on a captured process pipe during a profile backend start; that pipe is not a user-facing output stream.
 - Do not cache resolved values on disk merely to improve convenience. Provider-supported short-lived runtime caching may be used only when explicitly designed and bounded.
 - Keep bootstrap credentials separate from ordinary logical secret references so resolving the secret store does not recursively require the secret store.
 - Give each machine/runtime identity only the backend secrets it needs. Sharing one universal machine identity defeats the purpose of central secret management.
@@ -213,6 +213,7 @@ There is no stdout `get` operation. `validate` checks configuration only; `statu
 `run` also verifies that the requested secret exists and the identity may read it. A successful `status` does not prove
 that every mapped secret exists. A child command can itself print its environment, so only trusted, profile-authorized
 consumers should receive values.
+The internal `hermes-env hermes-agents <profile-id>` operation exists solely for Hermes's native command secret source. It requires the exact profile, workflow, and consumer binding, emits only that consumer's mapped environment assignments to Hermes's captured startup pipe, and must not be run as an interactive credential lookup.
 
 The command needs Node.js with the repository's pinned dependencies installed (`npm ci`). A missing dependency blocks
 execution. The command does not create an Infisical project, machine identity, Access policy, or secret. Administrators

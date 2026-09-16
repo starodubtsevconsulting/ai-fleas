@@ -214,6 +214,17 @@ export async function resolveForConsumer(config, consumer, fetcher = fetch) {
   return result;
 }
 
+export function formatHermesEnv(values) {
+  const lines = [];
+  for (const [name, value] of Object.entries(values)) {
+    if (!envPattern.test(name) || typeof value !== 'string' || !value || /[\r\n]/.test(value)) {
+      blocked('INVALID_SECRET_VALUE');
+    }
+    lines.push(`${name}=${value}\n`);
+  }
+  return lines.join('');
+}
+
 function authorizedConsumer(profileFile, workflow, consumer) {
   const profile = parseYaml(fs.readFileSync(profileFile, 'utf8'));
   if (!Array.isArray(profile?.commands) || !profile.commands.some(item => item.id === consumer && item.config)) {
@@ -233,7 +244,7 @@ function authorizedConsumer(profileFile, workflow, consumer) {
 
 async function main(argv) {
   const [operation, consumer, separator, ...args] = argv;
-  if (!['validate', 'inspect', 'status', 'run'].includes(operation)) blocked('USAGE');
+  if (!['validate', 'inspect', 'status', 'run', 'hermes-env'].includes(operation)) blocked('USAGE');
   const configPath = process.env.AI_COMMAND_CONFIG_PATH;
   if (!configPath || !process.env.AI_PROFILE_FILE || !process.env.AI_FLOW_WORKFLOW ||
       !process.env.AI_COMMANDS_ROOT) blocked('PROFILE_REQUIRED');
@@ -255,6 +266,17 @@ async function main(argv) {
     process.stdout.write('secrets provider authenticated\n');
     return;
   }
+  if (operation === 'hermes-env') {
+    // Hermes reads this process's stdout through its private command-source
+    // pipe at profile startup. Never use this operation in an interactive shell.
+    if (consumer !== 'hermes-agents' || argv.length !== 3 ||
+        !/^[a-z0-9][a-z0-9_-]*$/.test(separator) || process.env.HERMES_SECRET_KEY ||
+        path.basename(process.env.HERMES_HOME || '') !== separator) blocked('HERMES_RUNTIME_SCOPE_INVALID');
+    authorizedConsumer(process.env.AI_PROFILE_FILE, process.env.AI_FLOW_WORKFLOW, consumer);
+    const values = await resolveForConsumer(config, consumer);
+    process.stdout.write(formatHermesEnv(values));
+    return;
+  }
   if (!consumer || separator !== '--') blocked('USAGE');
   const targetConfig = authorizedConsumer(process.env.AI_PROFILE_FILE, process.env.AI_FLOW_WORKFLOW, consumer);
   const commandsRoot = fs.realpathSync(process.env.AI_COMMANDS_ROOT);
@@ -262,7 +284,8 @@ async function main(argv) {
   if (!executable.startsWith(commandsRoot + path.sep) ||
       !fs.statSync(executable).isFile()) blocked('INVALID_EXECUTABLE');
   const injected = await resolveForConsumer(config, consumer);
-  const childEnv = {...process.env, ...injected, AI_COMMAND_CONFIG_PATH: targetConfig};
+  const childEnv = {...process.env, ...injected, AI_COMMAND_CONFIG_PATH: targetConfig,
+    AI_SECRETS_CONFIG_PATH: fs.realpathSync(configPath)};
   for (const name of ['INFISICAL_CLIENT_ID','INFISICAL_CLIENT_SECRET','CF_ACCESS_CLIENT_ID','CF_ACCESS_CLIENT_SECRET']) {
     delete childEnv[name];
   }

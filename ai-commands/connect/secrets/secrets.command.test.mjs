@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {inspectConfig, readBootstrap, resolveForConsumer, validateConfig, verifyConnection}
+import {formatHermesEnv, inspectConfig, readBootstrap, resolveForConsumer, validateConfig, verifyConnection}
   from './secrets.command.mjs';
 
 const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-fleas-secrets-test-'));
@@ -43,6 +43,12 @@ test('validates a bounded profile mapping without network access', () => {
   assert.equal(config.provider_config.environment, 'dev');
   assert.equal(config.command_injection.cloudflare.environment.EXAMPLE_API_TOKEN.logical_secret,
     'example.dev.integration.api-token');
+});
+
+test('Hermes startup pipe emits only dotenv assignments and rejects line injection', () => {
+  assert.equal(formatHermesEnv({SC_HERMES_SECRET: 'synthetic=value'}), 'SC_HERMES_SECRET=synthetic=value\n');
+  assert.throws(() => formatHermesEnv({SC_HERMES_SECRET: 'safe\nOTHER=stolen'}), /INVALID_SECRET_VALUE/);
+  assert.throws(() => formatHermesEnv({'BAD-KEY': 'value'}), /INVALID_SECRET_VALUE/);
 });
 
 test('an explicit none provider has no mappings and blocks resolution', async () => {

@@ -120,7 +120,9 @@ endpoint:
           environment_variable: EXAMPLE_CF_ACCESS_CLIENT_SECRET
 ```
 
-Run `initialize --work-profile example --workflow dev --instance 2 --connection remote` with the referenced variables supplied by the selected profile's secret runner. Preflight uses the resolved values to check the endpoint. Hermes profile configuration stores only `${env:VARIABLE}` header references, and setup must reject a protected header without a matching environment reference. The ordinary Hermes launch must supply the same variables at execution time; initialization alone does not establish that launch path. Header values must not be committed to the provider catalog or written into Hermes profile configuration.
+Run `secrets run hermes-agents -- initialize --work-profile example --workflow dev --instance 2 --connection remote` with both referenced variables mapped in the selected profile's `secrets` configuration. Preflight uses the resolved values to check the endpoint. Hermes profile configuration stores only `${env:VARIABLE}` header references. Setup also binds each protected bot to Hermes's native command secret source, which retrieves those same mapped variables at backend startup when the user opens the bot in the Mac app. A bot that already has a different command secret source fails preflight. Header values must not be committed to the provider catalog or written into Hermes profile configuration.
+
+The `hermes` install command and `hermes-agents` lifecycle command operate on the same physical Hermes installation. The former installs the Mac app and CLI; the latter configures bots in that app. There is no second everyday Hermes installation or separate app launcher for secrets. The protected bot's runtime source is active only after its backend restarts and the provider-backed model request succeeds. Keep any old local assignment until that app-level check passes.
 See the [Cloudflare operator runbook](../../connect/cloudflare/cloudflare.command.md#6-add-machine-to-machine-access-for-hermes)
 for tunnel/application ownership, service-token creation, naming, policy attachment, and end-to-end evidence.
 

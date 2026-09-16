@@ -21,6 +21,9 @@ requires a verified profile, scheduler, running gateway, and durable System rece
 - An optional profile-owned workflow Agent binding maps a workflow Agent or its declared `aiBinding` name to one provider alias and model alias.
 - Unknown providers, models, flows, contracts, workspaces, or runtime dependencies fail closed during complete-roster preflight before any workflow profile is mutated.
 - Provider endpoint and authentication details remain profile-owned and are never embedded in reusable role definitions.
+- The `hermes` installation command and `hermes-agents` lifecycle command use the same Hermes installation. `hermes-agents` configures profile bots inside that installation; Hermes Desktop starts their backends when the user opens them.
+- A protected provider header is stored in a Hermes bot configuration as an `${env:NAME}` reference. When the profile runs `secrets run hermes-agents`, initialization also configures that bot's native command secret source with the same profile-owned secret binding. The command source retrieves only the secrets authorized for `hermes-agents` when the bot backend starts, including launches from Hermes Desktop. Credential values are neither written to the bot configuration nor printed by the lifecycle command.
+- A profile that already has a different command secret source fails preflight instead of having that source replaced. A missing or failed runtime secret retrieval must leave the protected model request unusable rather than fall back to an embedded credential.
 - Workflow and command contracts are resolved exactly and injected as references, not duplicated into this command.
 - Profile setup validates its static contracts, runtime dependencies, endpoint response, and advertised model before mutation.
 - `initialize` realizes exactly the roles declared by the selected workflow and creates an idempotent profile-workflow group containing the resulting Hermes profiles.
@@ -52,6 +55,23 @@ requires a verified profile, scheduler, running gateway, and durable System rece
 - `reconcile` uses the same resolved identity and preserves conversations and memory by default.
 - Destructive replacement or deletion requires explicit human authorization, executable confirmation, and an exact resolved workflow identity.
 - Workflow profile servers are started and supervised by Hermes Desktop, not by the AI Fleas initializer. The persistent System gateway is the only background service whose installation is requested by this command.
+
+## Protected-provider runtime path
+
+```mermaid
+flowchart LR
+  A[AI profile: provider and secret references] --> B[secrets run hermes-agents]
+  B --> C[Hermes bot config: env reference and command-source binding]
+  D[Hermes Desktop] --> E[Bot backend in the same Hermes installation]
+  C --> E
+  E --> F[Profile-scoped secret command]
+  F --> G[Selected secret provider]
+  G --> F
+  F -->|captured process pipe| E
+  E --> H[Protected model endpoint]
+```
+
+The secret command's configuration holds only paths and identifiers needed to reopen the selected profile's secret binding. Hermes captures the helper's output in a process pipe during backend startup and applies it to that profile's environment. A desktop launch must use the configured bot backend; it does not require launching the whole Mac app through `secrets run`.
 
 ## Lifecycle result contract
 
