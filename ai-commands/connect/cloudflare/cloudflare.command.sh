@@ -176,14 +176,24 @@ PY
 
 origin_status() {
   command -v curl >/dev/null 2>&1 || fail 'curl is required for origin-status'
-  local status
-  status="$(curl --silent --show-error --connect-timeout 2 --max-time 4 --output /dev/null \
-    --write-out '%{http_code}' "${origin_url%/}${origin_health_path}")" || status='000'
+  local probe_url="${origin_url%/}${origin_health_path}" status
+  local -a curl_args=(--silent --show-error --connect-timeout 2 --max-time 4 --output /dev/null --write-out '%{http_code}')
+
+  if [[ "$origin_url" == https://* && -n "$origin_server_name" ]]; then
+    [[ "$origin_url" =~ ^https://([^/:]+)(:([0-9]+))?/?$ ]] ||
+      fail 'CLOUDFLARE_ORIGIN_URL must be an HTTPS origin without path, query, or fragment'
+    local origin_host="${BASH_REMATCH[1]}" origin_port="${BASH_REMATCH[3]:-443}"
+    probe_url="https://${origin_server_name}:${origin_port}${origin_health_path}"
+    curl_args+=(--connect-to "${origin_server_name}:${origin_port}:${origin_host}:${origin_port}")
+  fi
+  [[ -z "$origin_ca_pool" ]] || curl_args+=(--cacert "$origin_ca_pool")
+
+  status="$(curl "${curl_args[@]}" "$probe_url")" || status='000'
   if [[ "$status" =~ ^[23][0-9][0-9]$ ]]; then
-    printf 'origin healthy: url=%s status=%s\n' "${origin_url%/}${origin_health_path}" "$status"
+    printf 'origin healthy: url=%s status=%s\n' "$probe_url" "$status"
     return
   fi
-  printf 'origin unavailable: url=%s status=%s\n' "${origin_url%/}${origin_health_path}" "$status"
+  printf 'origin unavailable: url=%s status=%s\n' "$probe_url" "$status"
   return 1
 }
 
