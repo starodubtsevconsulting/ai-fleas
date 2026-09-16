@@ -51,7 +51,7 @@ as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must nev
 | Operation | Effect |
 |---|---|
 | `validate` | Validate configuration and secret references without network access or mutation. |
-| `token-check` | Verify the configured Cloudflare API token using Cloudflare's read-only token endpoint. |
+| `token-check` | Verify the configured Cloudflare API token using Cloudflare's read-only token endpoint. This account-level check does not require selecting a server target. |
 | `create-tunnel --apply --token-output ABSOLUTE_PATH` | Create a remotely managed tunnel, attach ingress, create its proxied DNS CNAME, and save the returned connector token mode `0600`. |
 | `install-connector --apply` | Delegate idempotent `cloudflared` package installation to `install/cloudflare` without reading tunnel credentials or starting a connector. |
 | `run-tunnel` | Run `cloudflared` in the foreground using the remotely managed tunnel token. |

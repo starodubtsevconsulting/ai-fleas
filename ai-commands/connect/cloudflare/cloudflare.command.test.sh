@@ -348,6 +348,9 @@ grep -F 'origin unavailable: url=https://origin.example.invalid:' "$fixture_dir/
 wait "$tls_server_pid" || true
 
 write_config
+cat >>"$fixture_dir/config.env" <<'SH'
+CLOUDFLARE_SERVER_TARGETS="example=targets/example.env"
+SH
 cat >"$fixture_dir/fake-bin/curl" <<'SH'
 #!/usr/bin/env bash
 printf '%s\n' "$@" >"$CLOUDFLARE_FAKE_ARGS"

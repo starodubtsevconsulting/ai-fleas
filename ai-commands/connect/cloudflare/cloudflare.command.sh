@@ -69,7 +69,7 @@ if [[ "$operation" == 'list-targets' ]]; then
   list_targets
   exit 0
 fi
-[[ "$operation" == 'ui' ]] || load_server_target
+[[ "$operation" == 'ui' || "$operation" == 'token-check' ]] || load_server_target
 
 public_url="${CLOUDFLARE_PUBLIC_URL:-}"
 origin_url="${CLOUDFLARE_ORIGIN_URL:-}"

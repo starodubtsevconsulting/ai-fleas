@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {spawnSync} from 'node:child_process';
 import {consumerEnvironment, formatHermesEnv, inspectConfig, readBootstrap, resolveForConsumer, validateConfig, verifyConnection}
   from './secrets.command.mjs';
 
@@ -62,6 +63,18 @@ test('consumer child does not inherit a different consumer credential or provide
     INFISICAL_CLIENT_SECRET: 'bootstrap-value', CF_ACCESS_CLIENT_SECRET: 'access-value',
   });
   assert.deepEqual(child, {PATH: '/usr/bin', EXAMPLE_API_TOKEN: 'fetched-value'});
+  const probe = spawnSync(process.execPath, ['-e', `
+    process.stdout.write(JSON.stringify({
+      selected: process.env.EXAMPLE_API_TOKEN === 'fetched-value',
+      other: 'MODEL_ACCESS_SECRET' in process.env,
+      provider: 'INFISICAL_CLIENT_SECRET' in process.env,
+      access: 'CF_ACCESS_CLIENT_SECRET' in process.env,
+    }));
+  `], {env: child, encoding: 'utf8'});
+  assert.equal(probe.status, 0, probe.stderr);
+  assert.deepEqual(JSON.parse(probe.stdout), {
+    selected: true, other: false, provider: false, access: false,
+  });
 });
 
 test('an explicit none provider has no mappings and blocks resolution', async () => {
