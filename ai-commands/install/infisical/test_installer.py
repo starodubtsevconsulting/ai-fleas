@@ -65,7 +65,7 @@ elif a[0]=='inspect':
  else:
   ports={'8443/tcp':[{'HostIp':'127.0.0.1','HostPort':str(cfg['proxy_port'])}]} if name=='proxy' else {}
   expected_networks={'backend':{'data','application','backend_egress'},'db':{'data'},'redis':{'data'},
-   'proxy':{'application','tunnel'},'cloudflared':{'tunnel','tunnel_egress'}}
+   'proxy':{'application','tunnel','host_access'},'cloudflared':{'tunnel','tunnel_egress'}}
  if os.environ.get('PUBLIC_DB')=='1' and name=='db': ports={'5432/tcp':[{'HostIp':'0.0.0.0','HostPort':'5432'}]}
  health='unhealthy' if os.environ.get('UNHEALTHY')=='1' else 'healthy'
  networks={cfg['project_name']+'_'+network:{} for network in expected_networks[name]}
@@ -73,7 +73,8 @@ elif a[0]=='inspect':
  print(json.dumps([{'Config':{'Image':cfg['images'][name],'Env':['SYNTHETIC_CREDENTIAL_MUST_NOT_LEAK'],
  'Healthcheck':healthchecks.get(name),
  'Labels':{'com.docker.compose.project':cfg['project_name'],'com.docker.compose.service':name}},
- 'HostConfig':{'PortBindings':ports},'NetworkSettings':{'Networks':networks},
+ 'HostConfig':{'PortBindings':ports},'NetworkSettings':{
+ 'Ports':{} if os.environ.get('INACTIVE_BINDING')=='1' else ports,'Networks':networks},
  'State':{'Running':running,'Health':None if name=='cloudflared' else {'Status':health}}}]))
 else: sys.exit(9)
 '''
@@ -251,12 +252,14 @@ class InstallerTests(unittest.TestCase):
         document = json.loads((root / 'compose.json').read_text())
         self.assertEqual(set(document['services']), {'backend', 'db', 'redis', 'proxy', 'cloudflared'})
         self.assertEqual(set(document['networks']),
-                         {'data', 'application', 'tunnel', 'backend_egress', 'tunnel_egress'})
+                         {'data', 'application', 'tunnel', 'backend_egress', 'tunnel_egress',
+                          'host_access'})
         self.assertTrue(all(document['networks'][name]['internal']
                             for name in ('data', 'application', 'tunnel')))
         self.assertEqual(document['services']['db']['networks'], ['data'])
         self.assertEqual(document['services']['redis']['networks'], ['data'])
-        self.assertEqual(document['services']['proxy']['networks'], ['application', 'tunnel'])
+        self.assertEqual(document['services']['proxy']['networks'],
+                         {'application': {}, 'tunnel': {}, 'host_access': {'gw_priority': 1}})
         self.assertEqual(document['services']['backend']['networks']['backend_egress'], {'gw_priority': 1})
         self.assertEqual(document['services']['cloudflared']['networks'],
                          {'tunnel': {}, 'tunnel_egress': {'gw_priority': 1}})
@@ -271,6 +274,12 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(document['services']['proxy']['ports'], ['127.0.0.1:8443:8443'])
         for name in ('nginx.conf', 'origin.pem', 'origin.key', 'tunnel-token'):
             self.assertEqual((root / name).stat().st_mode & 0o777, 0o600)
+
+    def test_requested_but_inactive_loopback_binding_is_rejected(self):
+        self.perform('install')
+        with patch.dict(os.environ, {'INACTIVE_BINDING': '1'}):
+            with self.assertRaisesRegex(remote.RemoteBlocked, 'SERVICE_LISTENER_ISOLATION_FAILED'):
+                self.perform('status')
 
     def test_symlink_ancestor_refused_before_mutation(self):
         actual = self.folder / 'actual'; actual.mkdir()

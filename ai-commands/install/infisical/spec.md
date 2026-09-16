@@ -134,6 +134,7 @@ flowchart TB
       Data((data network<br/>internal))
       Application((application network<br/>internal))
       TunnelNet((tunnel network<br/>internal))
+      HostAccess((proxy host-access network<br/>loopback publication path))
       BackendEgress((backend egress))
       TunnelEgress((tunnel egress))
       PgVolume[(pg_data volume)]
@@ -144,6 +145,7 @@ flowchart TB
       Backend -->|Redis protocol| Data
       Data --> Redis
       Proxy --- Application
+      Proxy --- HostAccess
       Application --- Backend
       Tunnel --- TunnelNet
       TunnelNet --- Proxy
@@ -186,7 +188,7 @@ flowchart TB
 | Infisical backend | Serves the web UI and API and applies Infisical's authentication, authorization, and secret-management logic. It is stateless and depends on PostgreSQL and Redis. | Separate `backend` container and pinned image. | Create, configure, start, stop, and verify. |
 | PostgreSQL | Stores the authoritative durable dataset: encrypted secrets and version history, authentication records, identities, projects, access policies, audit trails, and integration settings. | Separate `db` container and pinned image. | Create, configure, start, stop, verify, and retain `pg_data`. |
 | Redis | Supports session management, frequently used-data caching, asynchronous job queues, background work, and scheduled tasks. | Separate `redis` container and pinned image. | Create, authenticate, start, stop, verify, and retain `redis_data`. |
-| Compose networks | Prevent the connector and proxy from reaching datastores while providing only the required service-to-service and outbound paths. | Core mode uses `private` and `outbound`; Cloudflare mode uses `data`, `application`, `tunnel`, `backend_egress`, and `tunnel_egress`. | Create and verify exact container attachments. |
+| Compose networks | Prevent the connector and proxy from reaching datastores while providing only the required service-to-service, loopback-publication and outbound paths. | Core mode uses `private` and `outbound`; Cloudflare mode uses `data`, `application`, `tunnel`, `host_access`, `backend_egress`, and `tunnel_egress`. | Create and verify exact container attachments. |
 | Protected deployment files | Hold the ownership record, Compose definition, generated credentials, service connection settings, and operation lock. | Host files under `remote_root`. | Create, permission-check, lock, and verify without exposing secrets. |
 | Docker Engine and Compose v2 | Runs and coordinates the selected three or five containers, networks, and volumes as one installation. | Preexisting host prerequisites. | Qualify and use; never install automatically. |
 | Nginx TLS proxy | Terminates the private origin TLS connection and forwards requests to the backend without exposing backend or datastore ports. | Separate `proxy` container and pinned image in `cloudflare` mode. | Generate configuration, copy approved certificate/key inputs, start, stop, and verify. |
@@ -217,15 +219,16 @@ deployment files. The deployment parent directory must already exist and be writ
 | `backend` | Configured immutable image; `NODE_ENV=production`; `backend.env` plus optional `smtp.env`; waits for healthy database and Redis. Core mode publishes only `127.0.0.1:<backend_port>:8080` and joins `private`/`outbound`. Cloudflare mode publishes no port and joins `data`/`application`/`backend_egress`. |
 | `db` | Configured PostgreSQL image; only `db.env`; volume `pg_data:/var/lib/postgresql/data`; joins only the internal datastore network; no published ports. |
 | `redis` | Configured Redis image; only `redis.env`; authenticated server with append-only persistence; volume `redis_data:/data`; joins only the internal datastore network; no published ports. |
-| `proxy` | Cloudflare mode only; configured immutable Nginx image; generated `nginx.conf`; separately mounted origin certificate/key; only `127.0.0.1:<proxy_port>:8443`; joins only `application` and `tunnel`; waits for healthy backend. |
+| `proxy` | Cloudflare mode only; configured immutable Nginx image; generated `nginx.conf`; separately mounted origin certificate/key; only `127.0.0.1:<proxy_port>:8443`; joins only `application`, `tunnel`, and proxy-only `host_access`; waits for healthy backend. |
 | `cloudflared` | Cloudflare mode only; configured immutable connector image; protected token file; runs with the executing remote user's numeric UID/GID so the `0600` token remains readable without broader permissions; joins only `tunnel` and `tunnel_egress`; waits for healthy proxy; no published port. |
 
 Every selected service must use `restart: unless-stopped`. The Compose definition must declare named `pg_data` and
 `redis_data` volumes. Core mode must use internal `private` and normal `outbound` networks. Cloudflare mode must use internal
-`data`, `application`, and `tunnel` networks plus separate normal `backend_egress` and `tunnel_egress` networks. Every
-container's actual network set must exactly match the selected topology. Backend and Cloudflared must select their
-respective egress network as the default gateway using Compose `gw_priority`, so an internal network cannot capture their
-outbound route.
+`data`, `application`, and `tunnel` networks plus separate normal `host_access`, `backend_egress`, and `tunnel_egress`
+networks. `host_access` attaches only to the proxy and exists so Docker activates the loopback-only published port while
+the proxy's service networks remain internal. Every container's actual network set must exactly match the selected
+topology. Backend, proxy, and Cloudflared must select their respective non-internal network as the default gateway using
+Compose `gw_priority`, so an internal network cannot capture a required host-publication or outbound route.
 
 Backend, database, Redis, and proxy must define Docker health checks. The common interval is 5 seconds, timeout 5 seconds,
 24 retries, and 30-second start period, except proxy may use a 10-second start period. Backend HTTP `GET /api/status` on
@@ -317,8 +320,9 @@ the next mutating operation must inspect the retained deployment state before re
 ### Actual-state verification
 
 Verification must find exactly one container per selected service under the selected Compose project. It must inspect
-Docker project and service labels, image references, published bindings, and network attachments instead of relying only
-on file contents. It must also compare the actual backend, database, Redis, and proxy health-check definitions to the
+Docker project and service labels, image references, requested and active published bindings, and network attachments
+instead of relying only on file contents. A binding present only in `HostConfig.PortBindings` is not active and must fail.
+It must also compare the actual backend, database, Redis, and proxy health-check definitions to the
 declared checks. Core mode requires only backend container port `8080/tcp` mapped to
 `127.0.0.1:<backend_port>`. Cloudflare mode requires only proxy container port `8443/tcp` mapped to
 `127.0.0.1:<proxy_port>`; backend, PostgreSQL, Redis, and cloudflared have no host bindings. Every container must attach to
