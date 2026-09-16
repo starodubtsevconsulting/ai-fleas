@@ -58,6 +58,40 @@ CLOUDFLARE_ORIGIN_CA_POOL="/private/ca/origin-ca.pem"
 EOF
 CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate
 
+write_config 'https://proxy:8443'
+cat >>"$fixture_dir/config.env" <<'EOF'
+CLOUDFLARE_ORIGIN_SCOPE="container"
+CLOUDFLARE_ORIGIN_SERVER_NAME="ai.example.invalid"
+CLOUDFLARE_ORIGIN_CA_POOL="/private/ca/origin-ca.pem"
+EOF
+CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" origin-status >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected host-side origin-status for a container service to fail' >&2
+  exit 1
+fi
+grep -F 'must run inside the connector network' "$fixture_dir/err" >/dev/null
+
+write_config 'https://proxy:8443'
+cat >>"$fixture_dir/config.env" <<'EOF'
+CLOUDFLARE_ORIGIN_SERVER_NAME="ai.example.invalid"
+EOF
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected a container service name without explicit container scope to fail' >&2
+  exit 1
+fi
+grep -F 'private or loopback host' "$fixture_dir/err" >/dev/null
+
+write_config 'https://127.0.0.1:8443'
+cat >>"$fixture_dir/config.env" <<'EOF'
+CLOUDFLARE_ORIGIN_SCOPE="container"
+CLOUDFLARE_ORIGIN_SERVER_NAME="ai.example.invalid"
+EOF
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected a loopback origin in container scope to fail' >&2
+  exit 1
+fi
+grep -F 'single safe service name' "$fixture_dir/err" >/dev/null
+
 write_config
 cat >>"$fixture_dir/config.env" <<'EOF'
 CLOUDFLARE_ORIGIN_SERVER_NAME="ai.example.invalid"
@@ -181,8 +215,9 @@ assert requests[2]["body"]["content"] == "12345678-1234-1234-1234-123456789abc.c
 assert requests[2]["body"]["proxied"] is True
 PY
 
-write_config 'https://127.0.0.1:8443'
+write_config 'https://proxy:8443'
 cat >>"$fixture_dir/config.env" <<'EOF'
+CLOUDFLARE_ORIGIN_SCOPE="container"
 CLOUDFLARE_ORIGIN_SERVER_NAME="ai.example.invalid"
 CLOUDFLARE_ORIGIN_CA_POOL="/private/ca/origin-ca.pem"
 EOF
@@ -202,6 +237,7 @@ wait "$server_pid"
 python3 - "$fixture_dir/https-requests.jsonl" <<'PY'
 import json, pathlib, sys
 requests = [json.loads(line) for line in pathlib.Path(sys.argv[1]).read_text().splitlines()]
+assert requests[1]["body"]["config"]["ingress"][0]["service"] == "https://proxy:8443"
 origin_request = requests[1]["body"]["config"]["ingress"][0]["originRequest"]
 assert origin_request == {
     "noTLSVerify": False,
