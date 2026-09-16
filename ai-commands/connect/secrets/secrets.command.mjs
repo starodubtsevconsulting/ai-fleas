@@ -50,6 +50,10 @@ function expandHome(value) {
 
 export function validateConfig(source) {
   const config = parseYaml(source);
+  if (config?.provider === 'none') {
+    exactKeys(config, ['provider'], 'INVALID_CONFIG');
+    return config;
+  }
   exactKeys(config, ['provider', 'endpoint', 'provider_config', 'secrets', 'command_injection', 'policy'], 'INVALID_CONFIG');
   if (config.provider !== 'infisical') blocked('UNSUPPORTED_PROVIDER');
   config.endpoint = safeEndpoint(config.endpoint);
@@ -156,10 +160,12 @@ async function postLogin(config, fetcher = fetch) {
 }
 
 export async function verifyConnection(config, fetcher = fetch) {
+  if (config.provider === 'none') blocked('PROVIDER_DISABLED');
   await postLogin(config, fetcher);
 }
 
 export async function resolveForConsumer(config, consumer, fetcher = fetch) {
+  if (config.provider === 'none') blocked('PROVIDER_DISABLED');
   const declaration = config.command_injection[consumer];
   if (!declaration) blocked('UNKNOWN_CONSUMER');
   const token = await postLogin(config, fetcher);
@@ -220,6 +226,7 @@ async function main(argv) {
     process.stdout.write('secrets configuration valid\n');
     return;
   }
+  if (config.provider === 'none') blocked('PROVIDER_DISABLED');
   if (operation === 'status') {
     if (argv.length !== 1) blocked('USAGE');
     await verifyConnection(config);

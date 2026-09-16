@@ -156,6 +156,14 @@ is part of the name specifically so that `dev` and `prod` credentials cannot col
 
 A profile selects the provider and contains only non-secret configuration and logical secret references. The public example profile uses fictional values. Real profile names, domains, hosts, machine identities, service mappings, project/environment names, and other private deployment details belong in the user's private profile/configuration repository, not in the public AI Fleas contract.
 
+The profile-owned `commands[].config` file is the single provider selection point. `provider: infisical` selects the implemented remote adapter. A profile that does not use a secret service may select `provider: none` with no other fields:
+
+```yaml
+provider: none
+```
+
+With `none`, `validate` succeeds, while `status` and `run` fail with `PROVIDER_DISABLED` before authentication or child execution. Do not declare `${secret:...}` consumers in a workflow using `none`; it never falls back to local environment variables or another store. If the profile does not need the `secrets` capability at all, it may instead omit its command binding. There is no second provider setting in the top-level profile because that could conflict with `commands[].config`.
+
 Actual credential values belong only in the configured secret backend. They must not be committed to Git, written to Governor memory, embedded in diagrams, or printed to logs.
 
 ## Initial provider
@@ -190,6 +198,8 @@ The portable surface remains small:
 - report capability/provider health without exposing credentials.
 
 Provider administration, installation, backup, recovery, identity provisioning, and rotation are infrastructure/provider concerns rather than reasons for workflows to depend directly on a vendor.
+
+Before moving a credential from a private profile into a provider, the operator must identify the current value and consumers, choose an encrypted backup destination and recovery-key custody, and verify that the backup can be read. Import the value into the selected project and environment, then test retrieval through the intended machine identity and an authorized consumer. Remove the old local value only after that consumer passes and rollback remains possible. A local profile snapshot does not replace a recoverable backup of the provider's database and encryption keys.
 
 There is no stdout `get` operation. `validate` checks configuration only; `status` verifies machine authentication;
 `run` also verifies that the requested secret exists and the identity may read it. A successful `status` does not prove
@@ -227,6 +237,10 @@ than two values selected implicitly from context.
 
 The logical `${secret:...}` references remain unchanged. Only the private provider configuration and adapter mapping change.
 This is the reason workflows should depend on `connect/secrets`, not on Infisical paths or APIs directly.
+
+### What if a profile has no secret service?
+
+Select the exact `provider: none` configuration or omit the `secrets` binding when no command needs it. `none` is an explicit disabled state, not a plaintext local-secret provider. A command that needs `${secret:...}` must remain blocked until a supported provider and its mapping are configured.
 
 ### Why does the secret store itself still need a credential?
 

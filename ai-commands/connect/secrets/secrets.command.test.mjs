@@ -45,6 +45,17 @@ test('validates a bounded profile mapping without network access', () => {
     'example.dev.integration.api-token');
 });
 
+test('an explicit none provider has no mappings and blocks resolution', async () => {
+  const config = validateConfig('provider: none\n');
+  assert.deepEqual(config, {provider: 'none'});
+  assert.throws(() => validateConfig('provider: none\nsecrets: {}\n'), /INVALID_CONFIG/);
+  let calls = 0;
+  const neverFetch = async () => { calls++; throw Error('fetch must not happen'); };
+  await assert.rejects(verifyConnection(config, neverFetch), /PROVIDER_DISABLED/);
+  await assert.rejects(resolveForConsumer(config, 'cloudflare', neverFetch), /PROVIDER_DISABLED/);
+  assert.equal(calls, 0);
+});
+
 test('rejects duplicate definitions and unsafe references', () => {
   assert.throws(() => validateConfig(sample + '\nendpoint: https://other.example.invalid\n'), /INVALID_CONFIG/);
   assert.throws(() => validateConfig(sample.replace('https://secrets.example.invalid', 'http://secrets.example.invalid')),
