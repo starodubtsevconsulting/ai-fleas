@@ -78,7 +78,7 @@ commands:
   - id: install
     config: commands-config/install/config.yml
   - id: infisical
-    config: commands-config/infisical/config.example.json
+    config: commands-config/infisical/config.example.env
   - id: secrets
     config: commands-config/secrets/config.example.yml
   - id: machine-profile
