@@ -112,3 +112,11 @@ LAN listener.
 For a local browser test of the Cloudflare-mode origin, an operator may forward `PROXY_PORT` over SSH, but the browser
 must still connect with the configured origin hostname and trust its private CA. The public `SITE_URL` remains the normal
 human-facing link. If `ACCESS_MODE=core` and no separate access provider is configured, there is no outside URL.
+
+## Why can the Access login work while Infisical returns HTTP 503?
+
+Cloudflare Access is evaluated at the edge before the tunnel reaches the private origin. A successful login page or
+unauthenticated redirect proves the edge policy is reachable, but it does not prove cloudflared can load its origin CA or
+connect to Nginx. In Cloudflare mode, verify that account-side `caPool` equals `origin_ca_file`, the owned CA copy is
+mounted read-only at that exact path inside cloudflared, the private TLS origin returns `/api/status`, and an authorized
+public request returns HTTP 200. A merely running connector is not sufficient readiness evidence.

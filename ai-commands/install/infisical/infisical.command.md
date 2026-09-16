@@ -76,7 +76,7 @@ If invoking through the category router, its selected workflow must also permit 
 | --- | --- |
 | `validate` | Local input/reference validation; no SSH or network access. |
 | `qualify` | Read-only SSH/Linux, Docker/Compose and fresh-install capacity/port checks. No deployment created. |
-| `status` | Read-only verification of package ownership, protected files, service health, image pins and listener isolation. Stopped or missing services are not reported healthy. |
+| `status` | Read-only verification of package ownership, protected files, service health, image pins, listener isolation, and exact read-only connector token/CA mounts. Stopped, missing, or stale services are not reported healthy. |
 | `install --apply` | Initial provisioning or idempotent reconciliation of the exact package-owned configuration; pulls pinned images and verifies every selected service. |
 | `start --apply` | Starts the verified owned stack and requires all services healthy. |
 | `stop --apply` | Stops only the verified stack, verifies termination, and preserves configuration, keys and data volumes. |

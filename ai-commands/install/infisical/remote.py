@@ -323,6 +323,15 @@ def inspect_services(compose, cfg, require_healthy, allow_missing=False):
             raise RemoteBlocked('DATABASE_OR_REDIS_PUBLICATION_FORBIDDEN')
         if set(data.get('NetworkSettings', {}).get('Networks', {})) != expected_networks(cfg, name):
             raise RemoteBlocked('CONTAINER_NETWORK_ISOLATION_FAILED')
+        if name == 'cloudflared':
+            expected_mounts = {
+                (str(Path(cfg['remote_root']) / 'tunnel-token'), '/etc/cloudflared/tunnel-token', False),
+                (str(Path(cfg['remote_root']) / 'origin-ca.pem'), cfg['origin_ca_file'], False)}
+            actual_mounts = {
+                (mount.get('Source'), mount.get('Destination'), mount.get('RW'))
+                for mount in data.get('Mounts', []) if mount.get('Type') == 'bind'}
+            if actual_mounts != expected_mounts:
+                raise RemoteBlocked('CONNECTOR_PROTECTED_MOUNT_MISMATCH')
         state = data['State']
         if name == 'cloudflared':
             services[name] = 'running' if state.get('Running') else 'not-running'
