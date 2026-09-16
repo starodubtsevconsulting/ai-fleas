@@ -16,6 +16,7 @@ provider_label="${HERMES_PROVIDER_LABEL:-${provider_id}}"
 model="${HERMES_MODEL:-}"
 endpoint="${HERMES_ENDPOINT:-}"
 extra_headers_b64="${HERMES_EXTRA_HEADERS_B64:-e30=}"
+stored_headers_b64="${HERMES_STORED_HEADERS_B64:-e30=}"
 workspace="${HERMES_WORKSPACE:-}"
 work_profile="${HERMES_WORK_PROFILE:-}"
 workflow="${HERMES_WORKFLOW:-}"
@@ -103,6 +104,58 @@ if [[ -z "${hermes_bin}" ]]; then
 fi
 hermes_python="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
 export HERMES_BIN="${hermes_bin}" HERMES_GROUP_CONFIGURATOR="${GROUP_CONFIGURATOR}" HERMES_EFFECTIVE_PYTHON_BIN="${hermes_python}"
+
+# A Dock-launched Hermes backend does not inherit the temporary environment
+# supplied to this initializer. Bind that exact bot to the same profile-owned
+# resolver through Hermes's native, per-profile command secret source.
+runtime_secret_command=''
+if [[ "${stored_headers_b64}" != 'e30=' && -n "${AI_SECRETS_CONFIG_PATH:-}" ]]; then
+  [[ -n "${AI_PROFILE_FILE:-}" && -n "${AI_FLOW_WORKFLOW:-}" && -n "${AI_COMMANDS_ROOT:-}" ]] || {
+    printf '%s\n' 'HERMES_RUNTIME_SECRET_SCOPE_INVALID: profile and workflow binding are required.' >&2
+    exit 2
+  }
+  runtime_secret_command="$(HERMES_RUNTIME_PROFILE="${profile}" HERMES_RUNTIME_NODE="$(command -v node)" python3 - <<'PY'
+import os
+from pathlib import Path
+import shlex
+
+root = Path(os.environ['AI_COMMANDS_ROOT']).resolve()
+helper = root / 'connect/secrets/secrets.command.mjs'
+values = {
+    'AI_FLEAS_HERMES_SOURCE': 'profile-secret-command-v1',
+    'AI_COMMAND_CONFIG_PATH': os.environ['AI_SECRETS_CONFIG_PATH'],
+    'AI_PROFILE_FILE': os.environ['AI_PROFILE_FILE'],
+    'AI_FLOW_WORKFLOW': os.environ['AI_FLOW_WORKFLOW'],
+    'AI_COMMANDS_ROOT': str(root),
+}
+node = Path(os.environ['HERMES_RUNTIME_NODE']).resolve()
+if not helper.is_file() or not all(Path(values[key]).is_file() for key in ('AI_COMMAND_CONFIG_PATH', 'AI_PROFILE_FILE')):
+    raise SystemExit('HERMES_RUNTIME_SECRET_SCOPE_INVALID: secret command binding is unavailable')
+if not node.is_file():
+    raise SystemExit('HERMES_RUNTIME_SECRET_SCOPE_INVALID: Node runtime is unavailable')
+assignments = ' '.join(f'{key}={shlex.quote(value)}' for key, value in values.items())
+print(f'{assignments} {shlex.quote(str(node))} {shlex.quote(str(helper))} hermes-env hermes-agents '
+      f'{shlex.quote(os.environ["HERMES_RUNTIME_PROFILE"])}')
+PY
+)"
+fi
+
+if [[ -n "${runtime_secret_command}" && -f "${HERMES_HOME:-${HOME}/.hermes}/profiles/${profile}/config.yaml" ]]; then
+  HERMES_RUNTIME_SECRET_COMMAND="${runtime_secret_command}" HERMES_RUNTIME_PROFILE_CONFIG="${HERMES_HOME:-${HOME}/.hermes}/profiles/${profile}/config.yaml" \
+    "${hermes_python}" - <<'PY'
+import os
+from pathlib import Path
+import yaml
+
+config = yaml.safe_load(Path(os.environ['HERMES_RUNTIME_PROFILE_CONFIG']).read_text()) or {}
+source = ((config.get('secrets') or {}).get('command') or {})
+existing = source.get('command') if isinstance(source, dict) else None
+if existing and existing != os.environ['HERMES_RUNTIME_SECRET_COMMAND'] and \
+        'AI_FLEAS_HERMES_SOURCE=profile-secret-command-v1' not in existing:
+    raise SystemExit('HERMES_RUNTIME_SECRET_SOURCE_CONFLICT: an existing helper belongs to this profile')
+PY
+fi
+
 validator_args=()
 [[ "${validate_only}" == true ]] || validator_args+=(--quiet)
 "${HERMES_PROFILE_VALIDATOR_PYTHON_BIN:-python3}" "${PROFILE_VALIDATOR}" ${validator_args[@]+"${validator_args[@]}"}
@@ -111,6 +164,31 @@ if [[ "${validate_only}" == true ]]; then
   exit 0
 fi
 
+provider_json="$(PROVIDER_LABEL="${provider_label}" ENDPOINT="${endpoint%/}" MODEL_ID="${model}" EXTRA_HEADERS_B64="${extra_headers_b64}" STORED_HEADERS_B64="${stored_headers_b64}" python3 -c '
+import base64
+import json
+import os
+import re
+
+headers = json.loads(base64.b64decode(os.environ["EXTRA_HEADERS_B64"], validate=True))
+stored_headers = json.loads(base64.b64decode(os.environ["STORED_HEADERS_B64"], validate=True))
+if not isinstance(headers, dict) or not isinstance(stored_headers, dict) or headers.keys() != stored_headers.keys():
+    raise SystemExit("HERMES_HEADER_REFERENCE_REQUIRED: each protected header needs an environment reference")
+for name, reference in stored_headers.items():
+    match = re.fullmatch(r"\$\{env:([A-Z][A-Z0-9_]*)\}", reference) if isinstance(reference, str) else None
+    if not match or os.environ.get(match.group(1)) != headers[name]:
+        raise SystemExit("HERMES_HEADER_REFERENCE_INVALID: protected header reference is unavailable or mismatched")
+provider = {
+    "name": os.environ["PROVIDER_LABEL"],
+    "base_url": os.environ["ENDPOINT"],
+    "model": os.environ["MODEL_ID"],
+    "discover_models": False,
+    "models": {os.environ["MODEL_ID"]: {}},
+}
+if stored_headers:
+    provider["extra_headers"] = stored_headers
+print(json.dumps(provider))
+')"
 hermes_root="${HERMES_HOME:-${HOME}/.hermes}"
 profile_dir="${hermes_root}/profiles/${profile}"
 # Hermes Desktop can briefly recreate an incomplete directory for a profile
@@ -121,24 +199,6 @@ if ! grep -Fx -- "${profile}" <<<"${registered_profiles}" >/dev/null; then
   "${hermes_bin}" profile create "${profile}" \
     --description "Assistant for ${workspace}, backed by ${model} on ${provider_label}."
 fi
-
-provider_json="$(PROVIDER_LABEL="${provider_label}" ENDPOINT="${endpoint%/}" MODEL_ID="${model}" EXTRA_HEADERS_B64="${extra_headers_b64}" python3 -c '
-import base64
-import json
-import os
-
-headers = json.loads(base64.b64decode(os.environ["EXTRA_HEADERS_B64"], validate=True))
-provider = {
-    "name": os.environ["PROVIDER_LABEL"],
-    "base_url": os.environ["ENDPOINT"],
-    "model": os.environ["MODEL_ID"],
-    "discover_models": False,
-    "models": {os.environ["MODEL_ID"]: {}},
-}
-if headers:
-    provider["extra_headers"] = headers
-print(json.dumps(provider))
-')"
 # Hermes echoes the full assigned JSON value, including protected connection
 # headers. Suppress that upstream output and emit only non-secret identifiers.
 "${hermes_bin}" -p "${profile}" config set --force "providers.${provider_id}" "${provider_json}" >/dev/null
@@ -318,6 +378,15 @@ if [[ -n "${group}" ]]; then
       --title Hermes \
       --hide-only
   fi
+fi
+
+# Write this last: once enabled, Hermes runs the helper when subsequent CLI
+# invocations load this profile. The command string contains paths and IDs,
+# never credential values.
+if [[ -n "${runtime_secret_command}" ]]; then
+  source_json="$(HERMES_RUNTIME_SECRET_COMMAND="${runtime_secret_command}" python3 -c 'import json, os; print(json.dumps({"enabled": True, "command": os.environ["HERMES_RUNTIME_SECRET_COMMAND"], "helper_timeout_seconds": 15, "override_existing": True}))')"
+  "${hermes_bin}" -p "${profile}" config set --force secrets.command "${source_json}" >/dev/null
+  printf 'Hermes runtime secret source configured: profile=%s source=profile-command\n' "${profile}"
 fi
 
 printf 'Hermes bot ready: %s\n' "${profile}"

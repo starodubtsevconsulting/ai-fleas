@@ -41,7 +41,7 @@ def parse_bindings(raw: str, group: str) -> list[dict[str, str]]:
     profiles: set[str] = set()
     for record in raw.split(","):
         fields = record.split("|")
-        if len(fields) != 13:
+        if len(fields) != 14:
             fail("HERMES_PROFILE_SCOPE_INVALID", f"group={group}; malformed role binding with {len(fields)} fields")
         (
             role,
@@ -50,6 +50,7 @@ def parse_bindings(raw: str, group: str) -> list[dict[str, str]]:
             provider_label_b64,
             endpoint_b64,
             headers_b64,
+            stored_headers_b64,
             model,
             context,
             threshold,
@@ -72,6 +73,7 @@ def parse_bindings(raw: str, group: str) -> list[dict[str, str]]:
                 "provider_label": decode(provider_label_b64, "provider label", role),
                 "endpoint": decode(endpoint_b64, "endpoint", role),
                 "headers_b64": headers_b64,
+                "stored_headers_b64": stored_headers_b64,
                 "model": model,
                 "context": context,
                 "threshold": threshold,
@@ -95,6 +97,7 @@ def role_environment(base: dict[str, str], binding: dict[str, str]) -> dict[str,
             "HERMES_PROVIDER_LABEL": binding["provider_label"],
             "HERMES_ENDPOINT": binding["endpoint"],
             "HERMES_EXTRA_HEADERS_B64": binding["headers_b64"],
+            "HERMES_STORED_HEADERS_B64": binding["stored_headers_b64"],
             "HERMES_MODEL": binding["model"],
             "HERMES_CONTEXT_LENGTH": binding["context"],
             "HERMES_COMPRESSION_THRESHOLD": binding["threshold"],

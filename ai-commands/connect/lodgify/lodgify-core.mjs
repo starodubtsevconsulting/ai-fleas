@@ -88,7 +88,7 @@ export function base(value = DEFAULT_BASE, allowTestOrigin = false) {
     throw Error('invalid Lodgify API origin');
   return url.origin;
 }
-export function config(source, { testOrigin = false } = {}) {
+export function config(source, { testOrigin = false, injectedApiKey = '' } = {}) {
   const values = {};
   const allowedKeys = new Set([
     'API_KEY',
@@ -109,12 +109,13 @@ export function config(source, { testOrigin = false } = {}) {
       throw Error('invalid config');
     values[match[1]] = match[2].trim().replace(/^['"]|['"]$/g, '');
   }
-  if (!values.API_KEY || /TODO|YOUR_|PLACEHOLDER/i.test(values.API_KEY))
+  const apiKey = injectedApiKey || values.API_KEY;
+  if (!apiKey || /TODO|YOUR_|PLACEHOLDER/i.test(apiKey))
     throw Error('API_KEY required');
   if (!/^\d+$/.test(values.RENTAL_ID || '') || Number(values.RENTAL_ID) < 1)
     throw Error('positive decimal RENTAL_ID required');
   return {
-    apiKey: values.API_KEY,
+    apiKey,
     propertyId: values.RENTAL_ID,
     userId: values.USER_ID || '',
     apiBase: base(values.LODGIFY_API_BASE_URL || DEFAULT_BASE, testOrigin),

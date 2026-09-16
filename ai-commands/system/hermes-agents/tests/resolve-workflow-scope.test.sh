@@ -80,7 +80,7 @@ repo_path: ~/workspace
 YAML
 
 scope="$(HOME="${test_root}" node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/profiles" example youtube channel)"
-role_bindings="$(awk -F '\t' '{print $19}' <<<"${scope}")"
+role_bindings="$(awk -F '\t' '{print $20}' <<<"${scope}")"
 
 ROLE_BINDINGS="${role_bindings}" TEST_ROOT="${test_root}" python3 - <<'PY'
 import base64
@@ -91,10 +91,10 @@ assert len(records) == 2
 by_role = {record[0]: record for record in records}
 lyrics = by_role["lyrics-script-worker"]
 audio = by_role["audio-worker"]
-assert lyrics[2] == "gx10-local" and lyrics[6] == "gemma-4-31b-q8" and lyrics[7] == "32768"
-assert audio[2] == "openai-service" and audio[6] == "gpt-5.6-sol" and audio[7] == "65536"
-assert base64.b64decode(lyrics[12]).decode().endswith("/workflows/youtube/flows/lyrics.md")
-assert base64.b64decode(audio[12]).decode().endswith("/workflows/youtube/flows/audio.md")
+assert lyrics[2] == "gx10-local" and lyrics[7] == "gemma-4-31b-q8" and lyrics[8] == "32768"
+assert audio[2] == "openai-service" and audio[7] == "gpt-5.6-sol" and audio[8] == "65536"
+assert base64.b64decode(lyrics[13]).decode().endswith("/workflows/youtube/flows/lyrics.md")
+assert base64.b64decode(audio[13]).decode().endswith("/workflows/youtube/flows/audio.md")
 PY
 
 cp "${test_root}/workflows/youtube/agents.yml" "${test_root}/workflows/youtube/agents.valid.yml"

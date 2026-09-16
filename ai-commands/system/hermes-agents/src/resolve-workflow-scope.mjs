@@ -102,7 +102,7 @@ function resolveProvider(alias) {
   if (!/^https?:\/\/[^\s]+$/.test(endpoint)) fail(`provider '${alias}' has no usable endpoint.`);
   const configuredHeaders = selectedEndpoint.headers || {};
   if (!configuredHeaders || typeof configuredHeaders !== 'object' || Array.isArray(configuredHeaders)) fail(`provider '${alias}' endpoint headers must be a mapping.`);
-  const headers = {};
+  const headers = {}, storedHeaders = {};
   for (const [name, source] of Object.entries(configuredHeaders)) {
     if (!/^[A-Za-z0-9-]+$/.test(name)) fail(`provider '${alias}' has an unsafe HTTP header name.`);
     if (!source || typeof source !== 'object' || Array.isArray(source)) fail(`provider '${alias}' header '${name}' must use a secret environment_variable mapping.`);
@@ -112,8 +112,9 @@ function resolveProvider(alias) {
     if (!value) fail(`provider '${alias}' connection requires secret environment variable ${environmentVariable}.`);
     if (/[\r\n]/.test(value)) fail(`provider '${alias}' header '${name}' contains unsupported control characters.`);
     headers[name] = value;
+    storedHeaders[name] = `\${env:${environmentVariable}}`;
   }
-  return { provider, endpoint: endpoint.replace(/\/$/, ''), headers };
+  return { provider, endpoint: endpoint.replace(/\/$/, ''), headers, storedHeaders };
 }
 
 const defaultProviderAlias = safeId(String(localAi.provider || ''), 'provider alias');
@@ -186,7 +187,7 @@ const roleBindings = roleDefinitions.map((definition) => {
   if (flowPath && !flowPath.startsWith(`${path.resolve(workflowsRoot)}${path.sep}`)) fail(`flow for '${role}' escapes the workflow catalog.`);
   if (flowPath && !fs.statSync(flowPath, { throwIfNoEntry: false })?.isFile()) fail(`flow for '${role}' is not readable.`);
   const encode = (value) => Buffer.from(value, 'utf8').toString('base64');
-  return [role, role, resolvedProvider, encode(String(resolved.provider.label || resolvedProvider)), encode(resolved.endpoint), encode(JSON.stringify(resolved.headers)), roleModel.providerModel, roleModel.contextWindow, roleModel.compressionThreshold, roleModel.compressionTarget, roleModel.protectLastMessages, encode(rolePath), encode(flowPath)].join('|');
+  return [role, role, resolvedProvider, encode(String(resolved.provider.label || resolvedProvider)), encode(resolved.endpoint), encode(JSON.stringify(resolved.headers)), encode(JSON.stringify(resolved.storedHeaders)), roleModel.providerModel, roleModel.contextWindow, roleModel.compressionThreshold, roleModel.compressionTarget, roleModel.protectLastMessages, encode(rolePath), encode(flowPath)].join('|');
 });
 for (const bindingKey of Object.keys(agentProviderBindings)) if (!usedAgentProviderBindings.has(bindingKey)) fail(`agent provider binding '${bindingKey}' is not referenced by the workflow roster.`);
 if (roleBindings.length === 0 || new Set(roleBindings).size !== roleBindings.length) fail(`workflow '${workflowId}' role roster is empty or contains duplicates.`);
@@ -228,6 +229,6 @@ const projectScope = Buffer.from(JSON.stringify(projects), 'utf8').toString('bas
 const providerLabel = String(defaultProvider.provider.label || defaultProvider.provider.id);
 // Bash treats tab as whitespace and collapses an empty field during `read`, so use
 // an explicit sentinel for the one optional positional field in this wire format.
-const fields = [workProfileId, workflowId, primaryProject.id, defaultProviderAlias, providerLabel, defaultProvider.endpoint, Buffer.from(JSON.stringify(defaultProvider.headers), 'utf8').toString('base64'), providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages, primaryProject.repo_path, projectScope, agentInstructions || '-', commandsRoot, workflowInstructions, commandIds.join(','), roleBindings.join(',')];
+const fields = [workProfileId, workflowId, primaryProject.id, defaultProviderAlias, providerLabel, defaultProvider.endpoint, Buffer.from(JSON.stringify(defaultProvider.headers), 'utf8').toString('base64'), Buffer.from(JSON.stringify(defaultProvider.storedHeaders), 'utf8').toString('base64'), providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages, primaryProject.repo_path, projectScope, agentInstructions || '-', commandsRoot, workflowInstructions, commandIds.join(','), roleBindings.join(',')];
 if (fields.some((value) => /[\t\r\n]/.test(value))) fail('resolved values contain unsupported control characters.');
 process.stdout.write(`${fields.join('\t')}\n`);

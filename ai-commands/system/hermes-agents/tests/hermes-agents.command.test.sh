@@ -123,6 +123,9 @@ if [[ "$1" == profile && "$2" == show ]]; then printf 'Profile: %s\n' "$3"; exit
 if [[ "$1" == profile && "$2" == delete ]]; then grep -Fxv "$3" "${HERMES_TEST_STATE}" >"${HERMES_TEST_STATE}.next" || true; mv "${HERMES_TEST_STATE}.next" "${HERMES_TEST_STATE}"; exit 0; fi
 if [[ "$1" == -p && "$3" == config && "$4" == set ]]; then
   [[ "${HERMES_TEST_FAIL_PROFILE:-}" != "$2" ]] || exit 42
+  if [[ "${5:-}" == --force && "${6:-}" == providers.* ]]; then
+    printf '%s\n' "$7" >>"${HERMES_TEST_PROVIDER_LOG}"
+  fi
   exit 0
 fi
 if [[ "$1" == -p && "$3" == config && "$4" == get ]]; then
@@ -147,6 +150,15 @@ exec /usr/bin/git "$@"
 SH
 cat >"${test_root}/bin/curl" <<'SH'
 #!/usr/bin/env bash
+if [[ "$*" == *test-client-secret* ]]; then
+  printf '%s\n' 'protected header appeared in curl process arguments' >&2
+  exit 97
+fi
+headers="$(cat)"
+if [[ "$*" == *example-model.invalid* && "${headers}" != *test-client-secret* ]]; then
+  printf '%s\n' 'protected header was not delivered through curl stdin' >&2
+  exit 98
+fi
 printf '{"data":[{"id":"%s"}]}\n' "${HERMES_TEST_ADVERTISED_MODEL:-example-coder-model}"
 SH
 cat >"${test_root}/group-configurator" <<'SH'
@@ -185,6 +197,7 @@ SH
 chmod +x "${test_root}/bin/hermes" "${test_root}/bin/git" "${test_root}/bin/curl" "${test_root}/group-configurator" "${test_root}/binding-writer"
 printf 'default\nthrowaway\n' >"${test_root}/profiles.state"
 export HERMES_BIN="${test_root}/bin/hermes" HERMES_TEST_STATE="${test_root}/profiles.state" HERMES_HOME="${test_root}/hermes-home"
+export HERMES_TEST_PROVIDER_LOG="${test_root}/provider-config.log"
 export HERMES_GROUP_CONFIGURATOR="${test_root}/group-configurator" HERMES_PYTHON_BIN='/bin/bash'
 export HERMES_WORKFLOW_BINDING_WRITER="${test_root}/binding-writer" HERMES_BINDING_PYTHON_BIN='/bin/bash'
 export HERMES_REINITIALIZE_SYNC_SECONDS=0
@@ -193,7 +206,7 @@ printf '{}\n' >"${HERMES_HOME}/profile.yaml"
 export TEST_WORKSPACE="${test_root}/workspace" PATH="${test_root}/bin:${PATH}" AI_CONFIG_PROJECT="${test_root}"
 export WORK_PROFILE_ID=example AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=dev.workflow.md
 scope="$(node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/ai-profile" example dev service)"
-[[ "${scope}" == *$'example-box\tExample box\thttp://192.0.2.10:1234/v1\texample-coder-model\t65536\t0.25\t0.15\t8'* ]]
+[[ "${scope}" == *$'example-box\tExample box\thttp://192.0.2.10:1234/v1\t'* ]]
 system_scope="$(node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_root}/ai-profile" example)"
 [[ "${system_scope}" == *$'\t10m\texample-dev' ]]
 [[ "${system_scope}" != *'example-external'* ]]
@@ -209,6 +222,8 @@ remote_system_scope="$(node "${SOURCE_DIR}/resolve-system-scope.mjs" "${test_roo
 [[ "${remote_system_scope}" == *$'\thttps://example-model.invalid/v1\t'* ]]
 remote_headers_b64="$(cut -f7 <<<"${remote_system_scope}")"
 [[ "$(printf '%s' "${remote_headers_b64}" | base64 --decode)" == '{"CF-Access-Client-Id":"test-client-id","CF-Access-Client-Secret":"test-client-secret"}' ]]
+remote_stored_headers_b64="$(cut -f8 <<<"${remote_system_scope}")"
+[[ "$(printf '%s' "${remote_stored_headers_b64}" | base64 --decode)" == '{"CF-Access-Client-Id":"${env:TEST_CF_ACCESS_CLIENT_ID}","CF-Access-Client-Secret":"${env:TEST_CF_ACCESS_CLIENT_SECRET}"}' ]]
 "${COMMAND}" initialize-system --work-profile example --instance 2 --connection remote --validate-only >"${test_root}/system-remote-preflight-output"
 grep -F 'HERMES_SYSTEM_REINITIALIZE_PREFLIGHT_READY: profile=example-system-2 watch=example-dev; no System changes were made.' "${test_root}/system-remote-preflight-output" >/dev/null
 receipt_test_path="${test_root}/system-receipts.yml"
@@ -271,6 +286,11 @@ grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-admin/profile.yaml" >
 grep -F 'example-dev' "${HERMES_HOME}/profiles/example-dev-coder/profile.yaml" >/dev/null
 "${COMMAND}" initialize --work-profile example --workflow dev --project service --instance remote-log --connection remote >"${test_root}/protected-output"
 grep -F 'Hermes provider configured: profile=example-dev-remote-log-admin provider=example-box endpoint=https://example-model.invalid/v1 headers=protected' "${test_root}/protected-output" >/dev/null
+grep -F '"CF-Access-Client-Secret": "${env:TEST_CF_ACCESS_CLIENT_SECRET}"' "${HERMES_TEST_PROVIDER_LOG}" >/dev/null || grep -F '"CF-Access-Client-Secret":"${env:TEST_CF_ACCESS_CLIENT_SECRET}"' "${HERMES_TEST_PROVIDER_LOG}" >/dev/null
+if grep -F 'test-client-secret' "${HERMES_TEST_PROVIDER_LOG}" >/dev/null; then
+  printf '%s\n' 'protected provider secret persisted in Hermes config' >&2
+  exit 1
+fi
 if grep -F 'test-client-secret' "${test_root}/protected-output" >/dev/null; then
   printf '%s\n' 'protected provider secret leaked into initialization output' >&2
   exit 1

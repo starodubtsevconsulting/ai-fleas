@@ -66,7 +66,7 @@ const endpoint = ((endpointEnv && process.env[endpointEnv]) || String(selectedEn
 if (!/^https?:\/\/[^\s]+$/.test(endpoint)) fail(`provider '${providerAlias}' has no usable endpoint.`);
 const configuredHeaders = selectedEndpoint.headers || {};
 if (!configuredHeaders || typeof configuredHeaders !== 'object' || Array.isArray(configuredHeaders)) fail(`provider '${providerAlias}' endpoint headers must be a mapping.`);
-const headers = {};
+const headers = {}, storedHeaders = {};
 for (const [name, source] of Object.entries(configuredHeaders)) {
   if (!/^[A-Za-z0-9-]+$/.test(name)) fail(`provider '${providerAlias}' has an unsafe HTTP header name.`);
   if (!source || typeof source !== 'object' || Array.isArray(source)) fail(`provider '${providerAlias}' header '${name}' must use a secret environment_variable mapping.`);
@@ -76,6 +76,7 @@ for (const [name, source] of Object.entries(configuredHeaders)) {
   if (!value) fail(`provider '${providerAlias}' connection requires secret environment variable ${environmentVariable}.`);
   if (/[\r\n]/.test(value)) fail(`provider '${providerAlias}' header '${name}' contains unsupported control characters.`);
   headers[name] = value;
+  storedHeaders[name] = `\${env:${environmentVariable}}`;
 }
 const modelMatches = (Array.isArray(provider.models) ? provider.models : []).filter((item) => item?.id === modelAlias);
 if (modelMatches.length !== 1) fail(`model '${modelAlias}' did not resolve exactly once.`);
@@ -102,6 +103,7 @@ if (system.schedule?.enabled !== true || !/^[1-9][0-9]*[mhd]$/.test(every)) fail
 const title = String(binding.title || '⚙️ System');
 if (!title || /[\t\r\n]/.test(title)) fail('System title is invalid.');
 const headersB64 = Buffer.from(JSON.stringify(headers), 'utf8').toString('base64');
-const values = [workProfileId, `${workProfileId}-system`, title, providerAlias, String(provider.label || providerAlias), endpoint, headersB64, providerModel, String(hermes.context_window_tokens), String(hermes.compression_threshold), String(hermes.compression_target), String(hermes.protect_last_messages), workspace, rolePath, schedulePath, every, watchedWorkflowGroups.join(',')];
+const storedHeadersB64 = Buffer.from(JSON.stringify(storedHeaders), 'utf8').toString('base64');
+const values = [workProfileId, `${workProfileId}-system`, title, providerAlias, String(provider.label || providerAlias), endpoint, headersB64, storedHeadersB64, providerModel, String(hermes.context_window_tokens), String(hermes.compression_threshold), String(hermes.compression_target), String(hermes.protect_last_messages), workspace, rolePath, schedulePath, every, watchedWorkflowGroups.join(',')];
 if (values.some((value) => !value || /[\t\r\n]/.test(value))) fail('resolved System values are empty or contain control characters.');
 process.stdout.write(`${values.join('\t')}\n`);

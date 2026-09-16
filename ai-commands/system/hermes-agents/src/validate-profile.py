@@ -92,11 +92,18 @@ def validate_model(profile: str, provider: str, model: str, endpoint: str) -> No
         headers = json.loads(base64.b64decode(os.environ.get("HERMES_EXTRA_HEADERS_B64", "e30="), validate=True))
     except Exception as error:
         fail("HERMES_INVALID_INPUT", f"profile={profile}; invalid encoded endpoint headers: {error}")
-    if not isinstance(headers, dict) or not all(isinstance(key, str) and isinstance(value, str) for key, value in headers.items()):
+    if not isinstance(headers, dict) or not all(
+        isinstance(key, str) and re.fullmatch(r"[A-Za-z0-9-]+", key)
+        and isinstance(value, str) and value and not any(ord(char) < 32 or ord(char) == 127 for char in value)
+        for key, value in headers.items()
+    ):
         fail("HERMES_INVALID_INPUT", f"profile={profile}; endpoint headers must be a string mapping")
-    curl_headers = [part for key, value in headers.items() for part in ("--header", f"{key}: {value}")]
+    # curl reads protected headers from a pipe. They must never appear in
+    # process arguments, temporary files, or an error printed to the caller.
+    header_input = "".join(f"{key}: {value}\n" for key, value in headers.items())
     result = subprocess.run(
-        ["curl", "--fail", "--silent", "--show-error", "--connect-timeout", "3", "--max-time", "10", *curl_headers, models_url],
+        ["curl", "--fail", "--silent", "--show-error", "--connect-timeout", "3", "--max-time", "10", "--header", "@-", models_url],
+        input=header_input,
         text=True,
         capture_output=True,
         check=False,
@@ -108,11 +115,9 @@ def validate_model(profile: str, provider: str, model: str, endpoint: str) -> No
             22: "model-list endpoint returned an HTTP error",
             28: "connection or response timed out",
         }.get(result.returncode, f"curl failed with exit code {result.returncode}")
-        detail = result.stderr.strip().replace("\n", " ")
-        suffix = f": {detail}" if detail else ""
         fail(
             "HERMES_MODEL_TARGET_UNREACHABLE",
-            f"profile={profile} provider={provider} model={model} url={models_url}; {failure}{suffix}; no profile changes were made.",
+            f"profile={profile} provider={provider} model={model} url={models_url}; {failure}; no profile changes were made.",
             1,
         )
     try:

@@ -21,7 +21,7 @@ import {
 } from './lodgify-core.mjs';
 const execFileAsync = promisify(execFile);
 const lodgifyCommandDirectory = path.dirname(new URL(import.meta.url).pathname);
-const commandsRoot = path.dirname(lodgifyCommandDirectory);
+const commandsRoot = path.dirname(path.dirname(lodgifyCommandDirectory));
 const repositoryRoot = path.dirname(commandsRoot);
 const profileEnvironment = {
   AI_PROFILE_FILE: path.join(repositoryRoot, 'ai-profile/example/example-work-profile.yml'),
@@ -39,6 +39,9 @@ test('validates strict config and quarter', () => {
     userId: '8',
     apiBase: 'https://api.lodgify.com',
   });
+  assert.equal(config('RENTAL_ID=7', { injectedApiKey: 'injected-key' }).apiKey, 'injected-key');
+  assert.equal(config('API_KEY=[TODO]\nRENTAL_ID=7', { injectedApiKey: 'injected-key' }).apiKey,
+    'injected-key');
   assert.equal(quarter('2026-08-16', '2026-08-16').from, '2026-07-01');
   assert.equal(quarter('2026-08-16', '2026-09-30').completed, false);
   assert.equal(quarter('2026-08-16', '2026-10-01').completed, true);
@@ -857,10 +860,10 @@ test('CLI orchestrates only against an injected local synthetic endpoint', async
       );
     fs.writeFileSync(
       path.join(dir, 'lodgify.config'),
-      `API_KEY=synthetic\nRENTAL_ID=7\nLODGIFY_API_BASE_URL=http://127.0.0.1:${port}\n`,
+      `RENTAL_ID=7\nLODGIFY_API_BASE_URL=http://127.0.0.1:${port}\n`,
       { mode: 0o600 },
     );
-    const env = { ...process.env, ...profileEnvironment, LODGIFY_TEST_ORIGIN: '1', LODGIFY_CONFIG_PATH: path.join(dir, 'lodgify.config') };
+    const env = { ...process.env, ...profileEnvironment, LODGIFY_TEST_ORIGIN: '1', LODGIFY_API_KEY: 'synthetic', LODGIFY_CONFIG_PATH: path.join(dir, 'lodgify.config') };
     const script = path.join(lodgifyCommandDirectory, 'lodgify.command.mjs');
     const connected = await execFileAsync(
       process.execPath,
