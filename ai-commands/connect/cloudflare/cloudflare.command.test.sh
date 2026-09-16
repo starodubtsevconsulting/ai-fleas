@@ -13,8 +13,15 @@ export AI_WORK_PROFILE_ID=example
 export AI_FLOW_WORKFLOW=dev.workflow.md
 export AI_COMMANDS_ROOT="$commands_root"
 
+if env -u AI_PROFILE_FILE -u AI_WORK_PROFILE_ID -u WORK_PROFILE_ID -u AI_FLOW_WORKFLOW \
+  CLOUDFLARE_COMMAND_CONF="$fixture_dir/missing.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected the profile guard to reject an unactivated command' >&2
+  exit 1
+fi
+grep -F 'PROFILE_REQUIRED: select an AI Profile before running command cloudflare' "$fixture_dir/err" >/dev/null
+
 write_config() {
-  local origin="${1:-http://192.0.2.10:8000}"
+  local origin="${1:-http://192.168.50.10:8000}"
   cat >"$fixture_dir/config.env" <<EOF
 CLOUDFLARE_PUBLIC_URL="https://ai.example.invalid"
 CLOUDFLARE_ORIGIN_URL="$origin"
@@ -43,6 +50,23 @@ if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate >"
   exit 1
 fi
 grep -F 'private or loopback host' "$fixture_dir/err" >/dev/null
+
+write_config 'https://127.0.0.1:8443'
+cat >>"$fixture_dir/config.env" <<'EOF'
+CLOUDFLARE_ORIGIN_SERVER_NAME="ai.example.invalid"
+CLOUDFLARE_ORIGIN_CA_POOL="/private/ca/origin-ca.pem"
+EOF
+CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate
+
+write_config
+cat >>"$fixture_dir/config.env" <<'EOF'
+CLOUDFLARE_ORIGIN_SERVER_NAME="ai.example.invalid"
+EOF
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected HTTP origin TLS parameters to fail' >&2
+  exit 1
+fi
+grep -F 'require an HTTPS origin' "$fixture_dir/err" >/dev/null
 
 write_config
 sed -i.bak 's/one@example.invalid,two@example.invalid/*/' "$fixture_dir/config.env"
@@ -151,8 +175,39 @@ assert [item["method"] for item in requests] == ["POST", "PUT", "POST"]
 assert requests[0]["path"].endswith("/accounts/0123456789abcdef0123456789abcdef/cfd_tunnel")
 assert requests[0]["body"] == {"name": "example-private-ai", "config_src": "cloudflare"}
 assert requests[1]["body"]["config"]["ingress"][-1] == {"service": "http_status:404"}
+origin_request = requests[1]["body"]["config"]["ingress"][0]["originRequest"]
+assert origin_request == {"noTLSVerify": False}
 assert requests[2]["body"]["content"] == "12345678-1234-1234-1234-123456789abc.cfargotunnel.com"
 assert requests[2]["body"]["proxied"] is True
+PY
+
+write_config 'https://127.0.0.1:8443'
+cat >>"$fixture_dir/config.env" <<'EOF'
+CLOUDFLARE_ORIGIN_SERVER_NAME="ai.example.invalid"
+CLOUDFLARE_ORIGIN_CA_POOL="/private/ca/origin-ca.pem"
+EOF
+python3 "$fixture_dir/server.py" "$fixture_dir/https-requests.jsonl" "$fixture_dir/https-port" &
+server_pid=$!
+for _ in $(seq 1 50); do
+  [[ -s "$fixture_dir/https-port" ]] && break
+  sleep 0.05
+done
+[[ -s "$fixture_dir/https-port" ]]
+create_output="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
+  CLOUDFLARE_TEST_ORIGIN=1 \
+  CLOUDFLARE_API_BASE_URL="http://127.0.0.1:$(cat "$fixture_dir/https-port")" \
+  "$command_path" create-tunnel --apply --token-output "$fixture_dir/https-tunnel-token")"
+wait "$server_pid"
+[[ "$create_output" == *'cloudflare tunnel created'* ]]
+python3 - "$fixture_dir/https-requests.jsonl" <<'PY'
+import json, pathlib, sys
+requests = [json.loads(line) for line in pathlib.Path(sys.argv[1]).read_text().splitlines()]
+origin_request = requests[1]["body"]["config"]["ingress"][0]["originRequest"]
+assert origin_request == {
+    "noTLSVerify": False,
+    "originServerName": "ai.example.invalid",
+    "caPool": "/private/ca/origin-ca.pem",
+}
 PY
 
 echo 'cloudflare.command tests passed'
