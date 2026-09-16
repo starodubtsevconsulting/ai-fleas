@@ -150,6 +150,15 @@ exec /usr/bin/git "$@"
 SH
 cat >"${test_root}/bin/curl" <<'SH'
 #!/usr/bin/env bash
+if [[ "$*" == *test-client-secret* ]]; then
+  printf '%s\n' 'protected header appeared in curl process arguments' >&2
+  exit 97
+fi
+headers="$(cat)"
+if [[ "$*" == *example-model.invalid* && "${headers}" != *test-client-secret* ]]; then
+  printf '%s\n' 'protected header was not delivered through curl stdin' >&2
+  exit 98
+fi
 printf '{"data":[{"id":"%s"}]}\n' "${HERMES_TEST_ADVERTISED_MODEL:-example-coder-model}"
 SH
 cat >"${test_root}/group-configurator" <<'SH'
