@@ -1,8 +1,9 @@
 # Infisical installer
 
 Install one persistent, package-owned Infisical Compose project on an explicitly selected Linux Docker host. Core mode
-owns the backend, PostgreSQL, and authenticated Redis. Cloudflare mode also owns the Nginx TLS proxy and tunnel connector,
-with exact network separation between tunnel, proxy, backend, and datastores.
+owns the backend, PostgreSQL, and authenticated Redis without selecting a remote-access method. Optional Cloudflare mode
+is one supported access pattern; it also owns the Nginx TLS proxy and tunnel connector, with exact network separation
+between tunnel, proxy, backend, and datastores.
 
 See [requirements and reconstruction specification](spec.md) and
 [usage, configuration, HTTPS, SMTP and recovery](infisical.command.md). Run the
