@@ -30,6 +30,13 @@ if a[0]=='info': print('"fixture"')
 elif a[:3]==['compose','version','--short']: print('2.32.0')
 elif a[0] in ('container','volume','network') and a[1]=='ls':
  if os.environ.get('FOREIGN_RESOURCES')=='1': print('foreign-resource')
+elif a[:2]==['volume','inspect']:
+ print(json.dumps([{'Name':a[2],'CreatedAt':'fixture-created-at'}]))
+elif a[0]=='exec':
+ marker=fixture/'database-marker'
+ if 'CREATE SCHEMA' in a[-1]: marker.write_text('persistent-marker')
+ elif 'SELECT value' in a[-1]: print(marker.read_text())
+ else:sys.exit(9)
 elif a[0]=='compose':
  action=a[a.index('-f')+2:]
  if action[:2]==['config','--quiet']:
@@ -182,6 +189,19 @@ class InstallerTests(unittest.TestCase):
         with self.assertRaises(runner.Blocked): runner.load_config(self.config_path, self.profile_file)
         self.assertFalse((self.folder / 'calls.jsonl').exists())
 
+    def test_env_configuration_matches_legacy_json_and_never_executes_expressions(self):
+        lines = ['# Fictional profile configuration']
+        for key, field in runner.CONFIG_ENV_FIELDS.items():
+            value = self.cfg['images'][field] if key.endswith('_IMAGE') else self.cfg[field]
+            lines.append(key + '=' + json.dumps(str(value)))
+        text = '\n'.join(lines) + '\n'
+        self.config_path.write_text(text)
+        self.assertEqual(runner.load_config(self.config_path, self.profile_file), self.cfg)
+        for extra in ('VERSION=1\n', 'export VERSION=1\n', 'UNKNOWN=bad\n', 'SMTP_ENV_FILE=$(touch nope)\n'):
+            self.config_path.write_text(text + extra)
+            with self.assertRaises(runner.Blocked): runner.load_config(self.config_path, self.profile_file)
+        self.assertFalse((self.folder / 'calls.jsonl').exists())
+
     def test_symlink_ancestor_refused_before_mutation(self):
         actual = self.folder / 'actual'; actual.mkdir()
         link = self.folder / 'alias'; link.symlink_to(actual, target_is_directory=True)
@@ -232,7 +252,7 @@ class InstallerTests(unittest.TestCase):
         self.assertIn('PROFILE_REQUIRED', r.stderr)
         self.assertFalse((self.folder / 'calls.jsonl').exists())
 
-    def test_shell_entry_activates_exact_profile_and_rejects_disallowed_command(self):
+    def activate_fixture_profile(self):
         workflows = self.folder / 'workflows'; workflows.mkdir()
         platforms = self.folder / 'platforms'; platforms.mkdir()
         (platforms / 'registry.yml').write_text('platforms:\n  - id: example-platform\n    contract: example.md\n')
@@ -245,6 +265,10 @@ class InstallerTests(unittest.TestCase):
                    + 'workflows:\n  - path: dev.workflow.md\n    projects:\n      - ref: project.yml\n    commands:\n      - infisical\n')
         self.profile_file.write_text(profile)
         env = dict(os.environ, AI_CONFIG_PROJECT=str(self.folder), AI_AGENT_PLATFORM='example-platform', REPORT_LOG_DIR=str(self.folder / 'logs'))
+        return env, profile
+
+    def test_shell_entry_activates_exact_profile_and_rejects_disallowed_command(self):
+        env, profile = self.activate_fixture_profile()
         command = ['bash', str(PACKAGE / 'infisical.command.sh'), 'validate']
         result = subprocess.run(command, env=env, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -254,6 +278,29 @@ class InstallerTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('not allowed by workflow', result.stderr)
         self.assertFalse((self.folder / 'calls.jsonl').exists())
+
+    def test_smoke_harness_refuses_non_test_target_before_commands(self):
+        result = subprocess.run([sys.executable, str(PACKAGE/'smoke_test.py')],capture_output=True,text=True)
+        self.assertNotEqual(result.returncode,0)
+        self.assertEqual(json.loads(result.stdout)['stage'],'configuration')
+        self.assertFalse((self.folder/'calls.jsonl').exists())
+
+    def test_smoke_harness_exercises_real_entry_and_keeps_marker_while_stopping_fixture(self):
+        self.cfg['remote_root']=str(self.folder/'deployment-test')
+        self.cfg['project_name']='example-secrets-test'
+        self.cfg['site_url']='http://127.0.0.1:18080'
+        self.save_config()
+        env, _ = self.activate_fixture_profile()
+        result = subprocess.run(['bash',str(PACKAGE/'infisical.command.smoke.test.sh'),'--apply'],
+                                env=env,capture_output=True,text=True,timeout=120)
+        self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        receipt=json.loads(result.stdout)
+        self.assertEqual(receipt['status'],'PASSED')
+        self.assertIn('stopped_status',receipt['completed'])
+        self.assertTrue(receipt['keysAndDataPreserved'])
+        self.assertFalse(json.loads((self.folder/'state.json').read_text())['running'])
+        self.assertEqual((self.folder/'database-marker').read_text(),'persistent-marker')
+        self.assertNotIn('SYNTHETIC_CREDENTIAL_MUST_NOT_LEAK',result.stdout+result.stderr)
 
 
 if __name__ == '__main__':

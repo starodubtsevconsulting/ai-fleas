@@ -20,8 +20,8 @@ reconstruct this command. The specification keeps private deployment values in p
 |---|---|---|---|
 | Profile, workflow and logical project | Yes | Verified host activation | Selects the permitted command and private configuration. |
 | Operation and apply flag | Yes | Authorized request | Exact operation; mutations require `--apply`. |
-| Deployment configuration | Yes | Profile-owned JSON | SSH target, root, scope, URL, image pins and limits. |
-| Optional SMTP reference | No | Profile-owned JSON | Protected remote file; credential values stay on the host. |
+| Deployment configuration | Yes | Profile-owned config.env | SSH target, root, scope, URL, image pins and limits. |
+| Optional SMTP reference | No | Profile-owned config.env | Protected remote file; credential values stay on the host. |
 
 ## Outputs
 
@@ -37,21 +37,21 @@ reconstruct this command. The specification keeps private deployment values in p
 | `install/infisical/infisical.command.sh` | Shell executable | Activate the selected profile/workflow and invoke the operation through its authorized runner. |
 
 Every invocation is profile-aware: the host verifies selected command permission and provides its private configuration.
-Committed configuration template: `install/infisical/infisical.command.example.config`. Copy its JSON body into a private
-file, removing the template's comment header, and bind it through `commands[].config` as `AI_COMMAND_CONFIG_PATH`.
+Committed configuration template: `install/infisical/infisical.command.example.config`. Copy it into a private
+`config.env` file and bind it through `commands[].config` as `AI_COMMAND_CONFIG_PATH`.
 
 `install/infisical/infisical.command.sh` is profile-aware. The host activates the selected profile/workflow, verifies that
 the workflow permits `infisical`, resolves `AI_COMMANDS_ROOT`, and supplies its profile-owned `AI_COMMAND_CONFIG_PATH`.
 The command uses the common guard before any operation, including validation. An unbound command cannot run.
 
 Copy [infisical.command.example.config](infisical.command.example.config) into the selected profile. It is a fictional
-JSON configuration body with a documentation comment header. Replace the digest placeholders with
+literal `config.env` configuration template. Replace the digest placeholders with
 approved real image digests; the unchanged template intentionally fails validation.
 
 ```yaml
 commands:
   - id: infisical
-    config: commands-config/infisical/config.json
+    config: commands-config/infisical/config.env
 workflows:
   - path: dev.workflow.md
     commands:
@@ -89,6 +89,20 @@ Docker, publish a hostname, change a firewall, install SMTP, or start a tunnel.
 
 ## Configuration and qualification
 
+The primary format is `config.env`: literal `KEY=value` assignments with comments and optional quoting. The file is
+parsed as data; it is never sourced or evaluated. Variable expansion, command substitution, backticks, duplicate fields,
+unknown keys and multiple unquoted tokens are rejected. Legacy JSON configuration remains supported for compatibility.
+The names below describe normalized fields. Their config.env names are:
+
+| Normalized field | config.env name |
+|---|---|
+| `version`, `command` | `VERSION`, `COMMAND` |
+| `ssh_target`, `remote_root`, `project_name`, `site_url` | `SSH_TARGET`, `REMOTE_ROOT`, `PROJECT_NAME`, `SITE_URL` |
+| `images.backend`, `images.db`, `images.redis` | `BACKEND_IMAGE`, `POSTGRES_IMAGE`, `REDIS_IMAGE` |
+| `backend_port` | `BACKEND_PORT` |
+| `minimum_cpus`, `minimum_memory_gib`, `minimum_free_disk_gib` | `MINIMUM_CPUS`, `MINIMUM_MEMORY_GIB`, `MINIMUM_FREE_DISK_GIB` |
+| `health_timeout_seconds`, `ssh_timeout_seconds`, `smtp_env_file` | `HEALTH_TIMEOUT_SECONDS`, `SSH_TIMEOUT_SECONDS`, `SMTP_ENV_FILE` |
+
 | Field | Required behavior |
 | --- | --- |
 | `version`, `command` | Exactly `1` and `infisical`. Duplicate or unknown keys fail closed. |
@@ -105,7 +119,9 @@ Docker, publish a hostname, change a firewall, install SMTP, or start a tunnel.
 Only non-secret configuration/reference values cross SSH. Python 3 is required locally and on the remote host;
 Docker Engine and Compose v2 must already be available remotely. Container images are pulled by digest from their
 configured repositories. Command output and install logs contain only receipts and status codes, never env-file
-contents, expanded Compose configuration, raw Docker stderr or credential values.
+contents, expanded Compose configuration, raw Docker stderr or credential values. Execution status logs are written
+under the selected profile's private `.local/command-logs/infisical/`, unless that profile explicitly overrides
+`REPORT_LOG_DIR`; runtime logs do not belong in the reusable command package.
 
 ## Ownership, credentials and persistence
 
@@ -198,3 +214,8 @@ idempotence, key/data preservation, start/stop, scope/ownership conflicts, symli
 unhealthy services, SMTP restrictions and value-free failures. They do not prove compatibility of a selected real image
 or remote host. Before production reuse, explicitly authorize a disposable Linux-host smoke test using reviewed image
 pins and verify initial setup, restart/reboot recovery, TLS/access and isolated restore behavior.
+
+Use [infisical.scenario.md](infisical.scenario.md) and [infisical.command.smoke.test.sh](infisical.command.smoke.test.sh)
+for the repeatable real-host install/rerun/stop/start test. It uses a separately selected loopback test stack, verifies a
+database marker and private key/volume fingerprints, and stops services while retaining data. A real Linux-host run
+passed; this does not establish owner setup, reboot recovery, HTTPS/SMTP or restore acceptance.

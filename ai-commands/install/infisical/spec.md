@@ -20,7 +20,7 @@ permission to reinstall a host or infer configuration. Never copy private deploy
 |---|---|
 | `infisical.command.yml` | Globally unique ID `infisical`, version above, category `install`, type `executable`, `ai.powered: false`. |
 | `infisical.command.sh` | Executable profile-aware entry point; guard before logging, validation or SSH. |
-| `infisical.command.example.config` | Fictional configuration template with the standard profile-binding header and JSON body; digest placeholders deliberately prevent execution. |
+| `infisical.command.example.config` | Fictional configuration template with the standard profile-binding header and literal config.env assignments; digest placeholders deliberately prevent execution. |
 | `infisical.command.md` | Usage contract with canonical Purpose, Inputs, Outputs and Entry Point sections; link this specification. |
 | `spec.md` | Requirements, architecture, operation sequences, limits and acceptance criteria. |
 | `README.md` | Short package overview linking the contract, specification and tests. |
@@ -41,8 +41,15 @@ directory, adjacent file, catalog template or previous request substitutes for a
 
 The profile binds `commands[].id: infisical` to a private `commands[].config`; the workflow explicitly permits the command.
 Use only that resolved file. Its resolved path must be a file inside the resolved profile directory and at most 16,384
-bytes. Parse the JSON body with duplicate-key rejection at every object level. Reject missing, unknown or incorrectly
-typed fields; booleans are not integers. Remove the catalog template's documentation comment header when making a JSON copy.
+bytes. Parse `config.env` as literal data, never by sourcing or evaluating shell code. Allow blank/full-line comments, optional
+quoting and inline comments. Reject interpolation (`$`), backticks, duplicate/unknown assignment names, unsupported
+expressions or multiple unquoted value tokens. Integer fields require decimal digits. Legacy JSON inputs remain supported
+with duplicate-key rejection at every object level and strict types; booleans are not integers.
+
+Normalize the config.env names into the fields below: `VERSION`/`COMMAND`; `SSH_TARGET`/`REMOTE_ROOT`/`PROJECT_NAME`/
+`SITE_URL`; `BACKEND_IMAGE`/`POSTGRES_IMAGE`/`REDIS_IMAGE` into `images.backend`/`images.db`/`images.redis`; `BACKEND_PORT`;
+`MINIMUM_CPUS`/`MINIMUM_MEMORY_GIB`/`MINIMUM_FREE_DISK_GIB`; `HEALTH_TIMEOUT_SECONDS`/`SSH_TIMEOUT_SECONDS`; `SMTP_ENV_FILE`.
+Reject missing, unknown or incorrectly typed normalized fields. Defaults apply identically to both input formats.
 
 | Field | Type and requirement | Default |
 |---|---|---|
@@ -62,7 +69,7 @@ typed fields; booleans are not integers. Remove the catalog template's documenta
 | `ssh_timeout_seconds` | Integer 30–3600, bounds the complete SSH operation. | `900` |
 | `smtp_env_file` | Empty string or explicit absolute protected remote file; same safe component rules as deployment paths. A reference only, never inline SMTP values. | Empty |
 
-Example JSON values are fictional; they are not target-selection defaults. Image architecture and application/database
+Example configuration values are fictional; they are not target-selection defaults. Image architecture and application/database
 compatibility must be reviewed when private pins are selected. Pin changes are migrations, not ordinary reruns.
 
 ## System boundary and architecture
@@ -207,7 +214,8 @@ Only remote receipt keys `status`, `code`, `services`, `images`, `dataPreserved`
 Validate their types and values before relaying; reject arbitrary text hidden in allowed fields, unexpected keys,
 malformed JSON, exit/status disagreement, foreign image references or service values. Do not relay SSH banners, Docker
 stdout/stderr, tracebacks, raw environment dumps or expanded Compose configuration. A quiet Compose validation is captured
-and discarded. Install logs contain only operation label, timestamp and exit status.
+and discarded. Install logs contain only operation label, timestamp and exit status, and default to the selected profile's
+private `.local/command-logs/infisical/`; never create runtime state inside the reusable package.
 
 Failures must distinguish at least: invalid/missing activation/configuration/apply flag; unsupported remote OS/architecture;
 missing tools/Compose v2; insufficient CPU/RAM/disk; occupied loopback port; symlink or protected-file mode/owner mismatch;

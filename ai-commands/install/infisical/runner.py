@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shlex
 import subprocess
 import sys
 from urllib.parse import urlsplit
@@ -10,6 +11,49 @@ from urllib.parse import urlsplit
 
 class Blocked(Exception):
     pass
+
+
+CONFIG_ENV_FIELDS = {
+    'VERSION': 'version', 'COMMAND': 'command', 'SSH_TARGET': 'ssh_target',
+    'REMOTE_ROOT': 'remote_root', 'PROJECT_NAME': 'project_name', 'SITE_URL': 'site_url',
+    'BACKEND_PORT': 'backend_port', 'MINIMUM_CPUS': 'minimum_cpus',
+    'MINIMUM_MEMORY_GIB': 'minimum_memory_gib', 'MINIMUM_FREE_DISK_GIB': 'minimum_free_disk_gib',
+    'HEALTH_TIMEOUT_SECONDS': 'health_timeout_seconds', 'SSH_TIMEOUT_SECONDS': 'ssh_timeout_seconds',
+    'SMTP_ENV_FILE': 'smtp_env_file', 'BACKEND_IMAGE': 'backend', 'POSTGRES_IMAGE': 'db', 'REDIS_IMAGE': 'redis'}
+INTEGER_FIELDS = {'version', 'backend_port', 'minimum_cpus', 'minimum_memory_gib',
+                  'minimum_free_disk_gib', 'health_timeout_seconds', 'ssh_timeout_seconds'}
+
+
+def parse_configuration(text):
+    # Compatibility with existing JSON inputs; new configuration follows config.env conventions.
+    if text.lstrip().startswith('{'):
+        return json.loads(text, object_pairs_hook=object_without_duplicates)
+    cfg = {'images': {}}
+    seen = set()
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        key, separator, value = line.partition('=')
+        if not separator or key not in CONFIG_ENV_FIELDS or key in seen:
+            raise Blocked('unsupported or duplicate config.env field')
+        if '$' in value or '`' in value:
+            raise Blocked('config.env expressions and interpolation are unsupported')
+        values = shlex.split(value, comments=True, posix=True)
+        if len(values) > 1:
+            raise Blocked('config.env values must be single literal values')
+        value = values[0] if values else ''
+        field = CONFIG_ENV_FIELDS[key]
+        if field in INTEGER_FIELDS:
+            if not re.fullmatch('[0-9]+', value):
+                raise Blocked('config.env integer field required')
+            value = int(value)
+        if key in ('BACKEND_IMAGE', 'POSTGRES_IMAGE', 'REDIS_IMAGE'):
+            cfg['images'][field] = value
+        else:
+            cfg[field] = value
+        seen.add(key)
+    return cfg
 
 
 def object_without_duplicates(pairs):
@@ -27,9 +71,9 @@ def load_config(config_path, profile_path):
     if profile_root not in path.parents or not path.is_file() or path.stat().st_size > 16384:
         raise Blocked('configuration must be a bounded file inside the activated profile')
     try:
-        cfg = json.loads(path.read_text(), object_pairs_hook=object_without_duplicates)
+        cfg = parse_configuration(path.read_text())
     except (ValueError, OSError, UnicodeError):
-        raise Blocked('configuration must be valid JSON; values are not included in diagnostics')
+        raise Blocked('configuration must be valid config.env or legacy JSON; values are not included in diagnostics')
     required = {'version', 'command', 'ssh_target', 'remote_root', 'project_name', 'site_url', 'images'}
     optional = {'backend_port', 'minimum_cpus', 'minimum_memory_gib', 'minimum_free_disk_gib',
                 'health_timeout_seconds', 'ssh_timeout_seconds', 'smtp_env_file'}
