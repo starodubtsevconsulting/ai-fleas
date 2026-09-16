@@ -264,6 +264,9 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(document['services']['db']['networks'], ['data'])
         self.assertEqual(document['services']['redis']['networks'], ['data'])
         self.assertEqual(document['services']['proxy']['networks'], ['application', 'tunnel'])
+        self.assertEqual(
+            set(document['services']['proxy']['networks'])
+            & set(document['services']['cloudflared']['networks']), {'tunnel'})
         self.assertEqual(document['services']['backend']['networks']['backend_egress'], {'gw_priority': 1})
         self.assertEqual(document['services']['cloudflared']['networks'],
                          {'tunnel': {}, 'tunnel_egress': {'gw_priority': 1}})

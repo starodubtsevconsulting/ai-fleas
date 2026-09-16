@@ -113,10 +113,12 @@ For a local browser test of the Cloudflare-mode origin, an operator may forward 
 must still connect with the configured origin hostname and trust its private CA. The public `SITE_URL` remains the normal
 human-facing link. If `ACCESS_MODE=core` and no separate access provider is configured, there is no outside URL.
 
-## Why can the Access login work while Infisical returns HTTP 503?
+## Why can the Access login work while Infisical returns HTTP 502 or 503?
 
 Cloudflare Access is evaluated at the edge before the tunnel reaches the private origin. A successful login page or
 unauthenticated redirect proves the edge policy is reachable, but it does not prove cloudflared can load its origin CA or
 connect to Nginx. In Cloudflare mode, verify that account-side `caPool` equals `origin_ca_file`, the owned CA copy is
-mounted read-only at that exact path inside cloudflared, the private TLS origin returns `/api/status`, and an authorized
-public request returns HTTP 200. A merely running connector is not sufficient readiness evidence.
+mounted read-only at that exact path inside cloudflared, and the account-side origin is the sibling Compose service
+`https://proxy:8443` with container scope. `https://127.0.0.1:8443` is wrong in this topology because it points to the
+cloudflared container itself. The private TLS origin must return `/api/status`, and an authorized public request must
+return HTTP 200. A merely running connector is not sufficient readiness evidence.

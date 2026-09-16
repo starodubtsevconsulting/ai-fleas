@@ -78,13 +78,20 @@ name on the origin certificate. If the certificate uses a private CA, also set `
 absolute path to that CA bundle on the connector host. These settings are rejected for an HTTP origin. The generated
 route always keeps Cloudflare origin certificate verification enabled; it never sets `noTLSVerify`.
 
+`CLOUDFLARE_ORIGIN_SCOPE` defaults to `host`. Set it to `container` only when cloudflared runs in a container and the
+origin is another service on their shared private container network. In that mode, `CLOUDFLARE_ORIGIN_URL` must use
+HTTPS and a single safe service name, such as `https://proxy:8443`, and `CLOUDFLARE_ORIGIN_SERVER_NAME` is required.
+Connector loopback (`127.0.0.1`) always identifies the connector container itself and must not represent a sibling
+service. Host-side `origin-status` cannot test a container-scoped name; the owning service must probe it from the shared
+network and include that result in acceptance evidence.
+
 `origin-status` uses the configured certificate hostname for its request Host and SNI while connecting directly to the
 configured private origin. It uses `CLOUDFLARE_ORIGIN_CA_POOL` when set and never disables certificate verification.
 
 ## Security boundary
 
-- The origin must use `http` or `https` and resolve to a loopback, RFC1918 IPv4, `.internal`, `.local`, or `.localhost`
-  host. Public origins fail closed.
+- A host-scoped origin must use `http` or `https` and resolve to a loopback, RFC1918 IPv4, `.internal`, `.local`, or
+  `.localhost` host. A container-scoped origin must use HTTPS and a single safe service name. Public origins fail closed.
 - The public URL must be HTTPS and must not contain credentials, query parameters, or fragments.
 - An HTTPS origin may supply an exact certificate hostname and, when required, a private-CA bundle path. The connector
   verifies the certificate; disabling verification is not a supported configuration.

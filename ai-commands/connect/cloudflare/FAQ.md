@@ -23,6 +23,10 @@ example configuration.
 connector and must not be presented as the outside browser URL. For Infisical, the selected public URL should agree with
 the service's configured `SITE_URL`; see the [Infisical access guidance](../../install/infisical/FAQ.md#where-does-an-agent-get-the-infisical-web-url).
 
+If cloudflared and the upstream are sibling containers, set `CLOUDFLARE_ORIGIN_SCOPE="container"` and use the upstream
+service name, for example `https://proxy:8443`. Do not use `127.0.0.1` for a sibling container: from cloudflared that
+address points back to cloudflared itself. Both services must share only the intended private connector network.
+
 ## How does access differ locally and from outside?
 
 - From outside, open `CLOUDFLARE_PUBLIC_URL`. The expected first response may be a Cloudflare Access sign-in, followed by
