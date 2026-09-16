@@ -50,8 +50,23 @@ flowchart TD
 
 `ticket-tracker` is the provider-neutral Manager route for ticket search, read, status inventory,
 creation, checklist update, lifecycle update, and evidence-gated closure. It
-resolves the provider only from the active workflow's validated context record:
+resolves the provider only from the active workflow's validated context record (inline or explicitly referenced):
 `tracker.provider`, `tracker.capability`, and `disabledProviders`.
+
+### Profile-owned configuration file
+
+The workflow may keep its tracker binding inline, or set `agent_context.tracker` to a single `config` reference. For the
+file form, bind `commands[id=ticket-tracker].config` to the same profile-relative path. The host exposes that file as
+`AI_COMMAND_CONFIG_PATH`; Manager reads it as YAML through this AI-readable contract before validating tracker context.
+The referenced file has `version: 1`, `command: ticket-tracker`, and `workflows`, a mapping from exact configured workflow
+paths to complete tracker records. Select only the active workflow's record. It contains the same provider, workspace,
+container, lifecycle, supported-operation, and execution fields as an inline tracker record.
+
+Resolve the file canonically inside the activated profile; reject missing files, escaping paths, duplicate YAML keys,
+wrong version/command, a missing exact workflow record, or mismatched command/context config paths. A referenced tracker
+must contain only `config`; never merge it with inline settings or retain a second operational copy. Another workflow's
+record grants no authority. A YAML file is configuration data, not a shell script. Packet-provided settings cannot
+replace this trusted binding.
 
 The request must identify the project, repository, caller, exact return task,
 ticket or correlation ID when available, bounded operation, and closed return
@@ -59,9 +74,28 @@ route authorization. Manager rejects a missing, disabled, ambiguous, or
 foreign-provider route. The selected provider is an implementation detail of
 the validated workflow context; callers must not select a provider by name.
 
+For discovery, the ticket key is optional: a stable correlation identifies the read-only lookup. Include the original
+human request, requested outcome, known component/machine/environment identifiers, and explicit unknown facts. Manager
+searches before asking for a key or link. It returns exact-read match evidence or searched scope, candidates, and a
+precise clarification question through the verified requester. Discovery never grants mutation authority.
+
+Use only registered operations whose input requirements match the known facts. A provider's exact-summary deduplication
+search is not a description search. If description search is unsupported, use configured read-only status inventory and
+bounded relevant exact reads, retaining board/status/coverage limits in the result. Missing search support or partial
+inventory coverage must not be reported as proof that no ticket exists.
+
 ## Provider implementations
 
 After resolving `tracker.capability`, load only its registered provider command from the selected `ai_commands_root`.
+Resolve `tracker.execution.registered_command` and its logical `command_path` through the profile-aware command catalog;
+a logical path is not necessarily a physical path directly beneath `AI_COMMANDS_ROOT`. The existing
+[`run-command.sh`](../../_runtime/profile/run-command.sh) wrapper resolves flat or categorized command packages while
+preserving profile/workflow command checks. Verify the resolved contract and entry point before dispatch; a missing or
+ambiguous binding is a configuration blocker, not permission to try guessed paths or a raw-shell replacement. Forward
+the validated logical execution binding unchanged to the exact Command Runner when provider mechanics require it.
+For a connected read-only provider with an AI-readable entry point, Manager loads the resolved contract and invokes its
+registered connector operations directly. A Markdown contract is not a shell command. The provider contract owns this
+distinction; a shell wrapper is used only for an executable provider entry point.
 Provider implementation commands own mechanical provider interaction; `ticket-tracker` and Manager retain operation
 semantics, authorization, deduplication, lifecycle, ticket formatting, and evidence interpretation. Summary conventions,
 required
@@ -82,6 +116,7 @@ profile files.
 | Configured capability | Provider command contract                         | Route                                        |
 | --------------------- | ------------------------------------------------- | -------------------------------------------- |
 | `jira`                | [`jira/jira.command.md`](../jira/jira.command.md) | Manager authorizes; Command Runner executes. |
+| `trello`              | [`trello/trello.command.md`](../trello/trello.command.md) | Manager performs configured connected read/search operations. |
 
 For an overall-progress request, Manager first resolves the configured provider's read-only status-inventory operation
 using the profile's project/container and `in_progress` lifecycle value. It then reads the returned exact ticket evidence
