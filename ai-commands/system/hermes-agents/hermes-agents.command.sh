@@ -382,6 +382,20 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     }
     scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}" "${connection}")"
     IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project resolved_provider resolved_provider_label resolved_endpoint resolved_headers_b64 resolved_stored_headers_b64 resolved_model resolved_context_window resolved_compression_threshold resolved_compression_target resolved_protect_last_messages resolved_workspace resolved_project_scope resolved_agent_instructions resolved_commands_root resolved_workflow_instructions resolved_command_ids resolved_role_bindings <<<"${scope}"
+    if [[ ",${resolved_command_ids}," == *",secrets,"* ]]; then
+      secrets_command="${resolved_commands_root}/connect/secrets/secrets.command.sh"
+      [[ -x "${secrets_command}" ]] || {
+        printf '%s\n' 'HERMES_SECRETS_PREFLIGHT_FAILED: selected secrets command is not executable; no Hermes profiles were changed.' >&2
+        exit 2
+      }
+      if ! AI_CONFIG_PROJECT="$(dirname "${PROFILE_ROOT}")" AI_WORK_PROFILE_ID="${resolved_profile}" \
+          AI_FLOW_WORKFLOW="${resolved_workflow}.workflow.md" "${secrets_command}" validate; then
+        printf '%s\n' 'HERMES_SECRETS_PREFLIGHT_FAILED: selected profile secret configuration is invalid; no Hermes profiles were changed.' >&2
+        exit 2
+      fi
+      printf 'HERMES_SECRETS_CONFIG_READY: profile=%s workflow=%s; configuration only, provider and consumer access not tested.\n' \
+        "${resolved_profile}" "${resolved_workflow}"
+    fi
     [[ "${resolved_agent_instructions}" == '-' ]] && resolved_agent_instructions=''
     if [[ -n "${agent_instructions}" ]]; then
       [[ "${agent_instructions}" == /* && -f "${agent_instructions}" ]] || {

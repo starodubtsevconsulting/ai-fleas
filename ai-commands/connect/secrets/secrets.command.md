@@ -215,6 +215,39 @@ that every mapped secret exists. A child command can itself print its environmen
 consumers should receive values.
 The internal `hermes-env hermes-agents <profile-id>` operation exists solely for Hermes's native command secret source. It requires the exact profile, workflow, and consumer binding, emits only that consumer's mapped environment assignments to Hermes's captured startup pipe, and must not be run as an interactive credential lookup.
 
+## Agent use
+
+An agent knows the selected command ID and operation, not a credential value. When a selected command needs a secret,
+the agent reads that command's contract and this contract, verifies that both `secrets` and the consumer are allowed by
+its activated workflow, and invokes `secrets run <consumer> -- <operation>` through the profile-aware command runner.
+The runner fetches only the consumer's declared logical secrets and starts only its declared executable. The agent uses
+the child's sanitized result; it must not request a raw value, run `hermes-env` interactively, copy a bootstrap file, or
+place a credential in a prompt, shell argument, report, or memory. If the provider or binding is absent, the action is
+blocked rather than retried with a local credential.
+
+This is separate from Hermes's model-provider authentication. Hermes's built-in command secret source loads only the
+`hermes-agents` consumer's model connection values when that bot starts. It does not make other command credentials
+available to the agent. An extra Hermes secret-source plugin is not a prerequisite for AI Fleas command consumers;
+their prerequisite is the selected `secrets` command, a profile-authorized consumer mapping, and a working runtime
+with its own provider bootstrap. An integration that cannot run as a bounded AI Fleas consumer needs its own reviewed
+adapter before agent use, not a generic secret-reading tool.
+
+```mermaid
+flowchart LR
+  A[Hermes agent: selected command and operation] --> B[Profile-aware secrets run]
+  B --> C[Workflow and consumer authorization]
+  C --> D[Configured secret provider]
+  D --> E[Declared child command environment]
+  E --> F[Sanitized command result to agent]
+```
+
+The host and tool execution boundary matters: a Hermes agent with unrestricted local terminal or file access may be
+able to inspect its own process environment or owner-readable bootstrap files. Agent instructions alone do not prevent
+that. Strong isolation requires a constrained tool/runtime identity that cannot access those files or process variables;
+the `secrets run` contract limits normal command delivery but does not claim to sandbox a hostile agent.
+When starting a consumer, the runner removes inherited configured secret variables and provider bootstrap variables
+from that child, then injects only the selected consumer's resolved mapping.
+
 The command needs Node.js with the repository's pinned dependencies installed (`npm ci`). A missing dependency blocks
 execution. The command does not create an Infisical project, machine identity, Access policy, or secret. Administrators
 provision those separately and bind their non-secret IDs and paths in the private profile.

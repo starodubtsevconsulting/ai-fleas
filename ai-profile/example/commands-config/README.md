@@ -29,6 +29,14 @@ To reproduce this with a private profile, create an Infisical project and `dev` 
 
 The [migration FAQ](../../../ai-commands/connect/secrets/secrets.command.md#how-do-i-move-an-existing-or-new-secret-into-the-provider) gives the full sequence for adding a new value or moving an existing one.
 
+For a Hermes workflow Agent, the command catalog and generated `SOUL.md` identify the authorized command route.
+For example, an Agent asked for a Cloudflare check uses `secrets run cloudflare -- token-check` after reading both
+contracts; the agent receives the check result, not the API token. Hermes's built-in startup source is only for that
+bot's model connection. No extra Hermes plugin is needed for this command-consumer route. A new service must first have
+a bounded, authorized consumer command and a mapping in this profile-owned `secrets` config.
+The [Hermes installation FAQ](../../../ai-commands/install/hermes/hermes.command.md#if-i-install-hermes-will-my-agents-use-the-secret-service-automatically)
+explains what installation configures automatically and which profile bindings must already exist.
+
 For a profile with no secret service, point its `secrets` binding to [`secrets/config.none.example.yml`](secrets/config.none.example.yml), which contains only `provider: none`. Validation succeeds, while provider status and secret-backed runs stop with `PROVIDER_DISABLED`; no plaintext fallback occurs. If no workflow needs the secrets command, remove its binding and workflow permission instead. Keep consumer commands out of the workflow until they have another authorized credential route.
 
 The `hermes-agents/config.yml` file demonstrates a realistic but non-operational Hermes Agents binding. The provider

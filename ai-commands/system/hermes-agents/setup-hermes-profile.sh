@@ -320,6 +320,9 @@ if [[ "${scope}" != 'system' && ( -n "${ai_commands_root}" || -n "${workflow_ins
     'For every user request, first match the intent against those selected commands. When one matches, locate its unique `<command>.command.md` contract beneath the categorized AI commands root, read it completely, and use its documented scripts, adapters, drivers, configuration, and verification steps instead of improvising an equivalent workflow.' \
     'Load only the matching command contracts; do not treat unselected catalog commands as authorized merely because they exist.' \
     >>"${soul_tmp}"
+  if [[ ",${workflow_command_ids}," == *",secrets,"* ]]; then
+    printf '%s\n' 'When a selected command needs a credential, read the `secrets` command contract and use its profile-aware `secrets run <consumer> -- <operation>` route. The selected workflow must allow both commands. Use the consumer result, never request or print a raw secret, run `hermes-env` interactively, or copy bootstrap credentials. Hermes model-provider startup authentication is a separate, built-in secret source and does not authorize other consumer credentials.' >>"${soul_tmp}"
+  fi
 fi
 if [[ "${scope}" == 'system' ]]; then
   printf '%s\n' 'Never answer out-of-domain requests. Explain intended lifecycle mutations before performing them and never reveal credentials or secret values.' >>"${soul_tmp}"
