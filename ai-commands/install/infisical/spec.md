@@ -2,17 +2,17 @@
 
 ## Purpose and authority
 
-This is the reconstruction specification for command `infisical`, contract version `0.0.1-SNAPSHOT`, in the `install`
-category. It defines observable requirements independently of the current implementation. An agent should be able to
+This specification defines command `infisical`, contract version `0.0.1-SNAPSHOT`, in the `install` category. It defines
+the complete observable contract for every conforming implementation. An agent must be able to
 recreate the package from this document and its configuration template, then demonstrate the acceptance criteria below.
 
 The outcome is one persistent Infisical backend, PostgreSQL database and authenticated Redis service on an explicitly
 selected Linux Docker host. Installation mechanics belong to this command. Runtime secret retrieval belongs to the
 separate `secrets` capability; installing Infisical does not implement that resolver.
 
-The specification defines portable behavior. An actual deployment record, its approved image pins, identities, hostnames,
-credential references and paths belong to the selected private profile. A historical handoff is evidence to verify, not
-permission to reinstall a host or infer configuration. Never copy private deployment identifiers into this package.
+Deployment-specific image pins, identities, hostnames, credential references, paths and operational records belong to the
+selected private profile. They do not authorize installation or supply missing configuration. Never copy private
+deployment identifiers into this package.
 
 ## Required package
 
@@ -25,7 +25,7 @@ permission to reinstall a host or infer configuration. Never copy private deploy
 | `spec.md` | Requirements, architecture, operation sequences, limits and acceptance criteria. |
 | `README.md` | Short package overview linking the contract, specification and tests. |
 | `infisical.command.test.sh` and offline fixtures | Repeatable tests without a real server, registry, deployment or credential. |
-| Implementation helpers | Local dispatch and remote mechanics. Current packaging uses Python standard-library helpers; equivalent implementations must preserve this contract. |
+| Runtime helpers | Deterministic local dispatch and remote mechanics using Python 3 standard-library support, while preserving this contract and its wire and file formats. |
 
 Register `install/infisical/infisical.command.md` exactly once in `ai-commands/execution-routes.tsv`, with route
 `command-runner` and all four mixed-route fields `-`. Discovery must not introduce another command ID or implicit
@@ -144,7 +144,7 @@ Backend connection strings must match the protected datastore files exactly:
 `redis://:<redis-password>@redis:6379`; `SITE_URL` equals the validated configuration. Reject duplicate, missing, unsupported,
 empty or inconsistent material. Ordinary reruns must never generate replacement keys or passwords.
 
-Existing `owner.json` must match the current scope and normalized configuration exactly. Changing profile, workflow,
+Existing `owner.json` must match the activated scope and normalized configuration exactly. Changing profile, workflow,
 logical project, pins, URL, paths, limits or SMTP reference is not implicit authority to reconcile another deployment.
 
 ## Operation contract and state transitions
@@ -182,8 +182,8 @@ do not manufacture a new ownership receipt or credentials to make a retry succee
 
 Fresh directory creation must prevent concurrent claims. An active deployment lock must cause an immediate sanitized
 blocker rather than waiting indefinitely or performing parallel changes. Never use volume deletion, purge, automatic
-cleanup, orphan removal or an unrequested retry. Remote tool calls have finite timeouts; the current bound is 600 seconds
-per tool, additionally bounded by the configured SSH timeout. A lost/timed-out SSH operation leaves remote state uncertain;
+cleanup, orphan removal or an unrequested retry. Each remote tool call must use a timeout of at most 600 seconds and must
+also remain bounded by the configured SSH timeout. A lost/timed-out SSH operation leaves remote state uncertain;
 inspect it before deciding whether retry is appropriate.
 
 ### Actual-state verification
@@ -207,7 +207,7 @@ reports `initialAccountSetupRequired` as a boolean, true for a successful fresh 
 account has or has not been created on a subsequent run.
 
 Remote failures return `status: BLOCKED`, a fixed allowlisted code and `dataPreserved: true`. Exit success is 0; execution
-failure is nonzero (current dispatcher uses 2). The common guard may return its own failure code. Local validation/SSH
+failure uses exit 2. The common guard may return its own failure code. Local validation/SSH
 failure diagnostics go to stderr as a JSON blocked receipt with a fixed non-secret description.
 
 Only remote receipt keys `status`, `code`, `services`, `images`, `dataPreserved`, `initialAccountSetupRequired` are allowed.
@@ -258,12 +258,12 @@ installation and invitation/reset delivery testing are separate operations.
 
 Preserve original encryption/authentication material, database credentials, data volumes and image manifest through
 recovery. Document explicit encrypted backup custody/destination and an isolated restore test; do not infer a backup
-destination. Configuration snapshots are not database backups. This version has no backup/export/restore/adoption/
-upgrade/purge implementation and must reject those operations. A manual deployment with another layout cannot be adopted
+destination. Configuration snapshots are not database backups. The command must reject backup, export, restore, adoption,
+upgrade and purge operations. A manual deployment with another layout cannot be adopted
 merely by naming its directory. Any future adoption/reinstall needs verified backups, original key material, explicit
 ownership/layout mapping, reviewed TLS/network preservation and separately tested migration behavior.
 
-## Acceptance criteria and evidence
+## Acceptance criteria
 
 | ID | Required acceptance scenario |
 |---|---|
@@ -281,11 +281,6 @@ ownership/layout mapping, reviewed TLS/network preservation and separately teste
 | INF-12 | Public package passes scoped structure/metadata/route checks, local link checks and scans for private deployment content; template remains fictional and cannot run unchanged. |
 | INF-13 | Before production use, an explicitly authorized disposable Linux host with approved real pins proves application startup, initial setup, key/data retention through restart/reboot and truthful failure recovery. |
 | INF-14 | Separately deployed HTTPS/access integration proves origin certificate trust/hostname and approved/denied clients. Optional email proves actual invitation/reset delivery. Recovery proves isolated restoration with original keys. |
-
-Current evidence: 13 offline mechanics tests and existing Cloudflare synthetic TLS tests passed when this specification
-was added. Those tests cover a subset of the criteria and are not a real-image, reboot, backup/restore or authorized-user
-acceptance test. The remaining criteria are reconstruction/production acceptance requirements, not claims of existing
-test coverage. Repository-wide validators have existing failures outside this package; report scoped results precisely.
 
 To reconstruct: create the registered package and binding template, implement validation and SSH dispatch, implement
 exclusive remote ownership/credential creation and Compose generation, implement guarded operations and receipt filtering,

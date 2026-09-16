@@ -194,8 +194,8 @@ an existing deployment requires a separately reviewed configuration update, not 
 ## Recovery and reinstall
 
 Protect database backups together with the original encryption/authentication material and the exact image/version
-manifest. Select backup custody, an encrypted destination and retention explicitly. No destination is inferred and this
-initial package does not implement backup/export or restore operations. Secret-bearing dumps and recovery material must
+manifest. Select backup custody, an encrypted destination and retention explicitly. No destination is inferred. The
+command must reject backup, export and restore operations. Secret-bearing dumps and recovery material must
 never enter logs, Git, prompts or ordinary artifacts.
 
 After an interrupted operation, inspect `status` and preserve all files/volumes. Missing credentials, modified Compose,
@@ -217,5 +217,5 @@ pins and verify initial setup, restart/reboot recovery, TLS/access and isolated 
 
 Use [infisical.scenario.md](infisical.scenario.md) and [infisical.command.smoke.test.sh](infisical.command.smoke.test.sh)
 for the repeatable real-host install/rerun/stop/start test. It uses a separately selected loopback test stack, verifies a
-database marker and private key/volume fingerprints, and stops services while retaining data. A real Linux-host run
-passed; this does not establish owner setup, reboot recovery, HTTPS/SMTP or restore acceptance.
+database marker and private key/volume fingerprints, and stops services while retaining data. Successful harness
+execution does not establish owner setup, reboot recovery, HTTPS/SMTP or restore acceptance; verify those separately.
