@@ -115,7 +115,8 @@ def compose_document(cfg):
         services['redis']['networks'] = ['private']
         networks = {'private': {'internal': True}, 'outbound': {}}
     else:
-        services['backend']['networks'] = ['data', 'application', 'backend_egress']
+        services['backend']['networks'] = {
+            'data': {}, 'application': {}, 'backend_egress': {'gw_priority': 1}}
         services['db']['networks'] = ['data']
         services['redis']['networks'] = ['data']
         services['proxy'] = {
@@ -133,7 +134,7 @@ def compose_document(cfg):
             'command': ['tunnel', '--no-autoupdate', 'run', '--token-file', '/etc/cloudflared/tunnel-token'],
             'depends_on': {'proxy': {'condition': 'service_healthy'}},
             'volumes': ['./tunnel-token:/etc/cloudflared/tunnel-token:ro'],
-            'networks': ['tunnel', 'tunnel_egress']}
+            'networks': {'tunnel': {}, 'tunnel_egress': {'gw_priority': 1}}}
         networks = {'data': {'internal': True}, 'application': {'internal': True},
                     'tunnel': {'internal': True}, 'backend_egress': {}, 'tunnel_egress': {}}
     return {'services': services, 'volumes': {'pg_data': {}, 'redis_data': {}}, 'networks': networks}

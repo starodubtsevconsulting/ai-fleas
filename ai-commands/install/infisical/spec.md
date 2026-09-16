@@ -223,7 +223,9 @@ deployment files. The deployment parent directory must already exist and be writ
 Every selected service must use `restart: unless-stopped`. The Compose definition must declare named `pg_data` and
 `redis_data` volumes. Core mode must use internal `private` and normal `outbound` networks. Cloudflare mode must use internal
 `data`, `application`, and `tunnel` networks plus separate normal `backend_egress` and `tunnel_egress` networks. Every
-container's actual network set must exactly match the selected topology.
+container's actual network set must exactly match the selected topology. Backend and Cloudflared must select their
+respective egress network as the default gateway using Compose `gw_priority`, so an internal network cannot capture their
+outbound route.
 
 Backend, database, Redis, and proxy must define Docker health checks. The common interval is 5 seconds, timeout 5 seconds,
 24 retries, and 30-second start period, except proxy may use a 10-second start period. Backend HTTP `GET /api/status` on
