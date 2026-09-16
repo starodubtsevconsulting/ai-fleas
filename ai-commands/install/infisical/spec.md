@@ -218,7 +218,7 @@ deployment files. The deployment parent directory must already exist and be writ
 | `db` | Configured PostgreSQL image; only `db.env`; volume `pg_data:/var/lib/postgresql/data`; joins only the internal datastore network; no published ports. |
 | `redis` | Configured Redis image; only `redis.env`; authenticated server with append-only persistence; volume `redis_data:/data`; joins only the internal datastore network; no published ports. |
 | `proxy` | Cloudflare mode only; configured immutable Nginx image; generated `nginx.conf`; separately mounted origin certificate/key; only `127.0.0.1:<proxy_port>:8443`; joins only `application` and `tunnel`; waits for healthy backend. |
-| `cloudflared` | Cloudflare mode only; configured immutable connector image; protected token file; joins only `tunnel` and `tunnel_egress`; waits for healthy proxy; no published port. |
+| `cloudflared` | Cloudflare mode only; configured immutable connector image; protected token file; runs with the executing remote user's numeric UID/GID so the `0600` token remains readable without broader permissions; joins only `tunnel` and `tunnel_egress`; waits for healthy proxy; no published port. |
 
 Every selected service must use `restart: unless-stopped`. The Compose definition must declare named `pg_data` and
 `redis_data` volumes. Core mode must use internal `private` and normal `outbound` networks. Cloudflare mode must use internal
