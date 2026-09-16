@@ -63,7 +63,7 @@ def expected_networks(cfg, service):
         'db': {project + 'data'},
         'redis': {project + 'data'},
         'backend': {project + 'data', project + 'application', project + 'backend_egress'},
-        'proxy': {project + 'application', project + 'tunnel'},
+        'proxy': {project + 'application', project + 'tunnel', project + 'host_access'},
         'cloudflared': {project + 'tunnel', project + 'tunnel_egress'},
     }[service]
 
@@ -126,7 +126,8 @@ def compose_document(cfg):
             'volumes': ['./nginx.conf:/etc/nginx/conf.d/default.conf:ro',
                         './origin.pem:/etc/nginx/tls/origin.pem:ro',
                         './origin.key:/etc/nginx/tls/origin.key:ro'],
-            'networks': ['application', 'tunnel'],
+            'networks': {
+                'application': {}, 'tunnel': {}, 'host_access': {'gw_priority': 1}},
             'healthcheck': dict(health, start_period='10s',
                                 test=['CMD-SHELL', 'wget --no-check-certificate -q -O /dev/null https://127.0.0.1:8443/api/status'])}
         services['cloudflared'] = {
@@ -137,7 +138,8 @@ def compose_document(cfg):
             'volumes': ['./tunnel-token:/etc/cloudflared/tunnel-token:ro'],
             'networks': {'tunnel': {}, 'tunnel_egress': {'gw_priority': 1}}}
         networks = {'data': {'internal': True}, 'application': {'internal': True},
-                    'tunnel': {'internal': True}, 'backend_egress': {}, 'tunnel_egress': {}}
+                    'tunnel': {'internal': True}, 'backend_egress': {}, 'tunnel_egress': {},
+                    'host_access': {}}
     return {'services': services, 'volumes': {'pg_data': {}, 'redis_data': {}}, 'networks': networks}
 
 
@@ -316,6 +318,12 @@ def inspect_services(compose, cfg, require_healthy, allow_missing=False):
             if name in ('db', 'redis'):
                 raise RemoteBlocked('DATABASE_OR_REDIS_PUBLICATION_FORBIDDEN')
             raise RemoteBlocked('SERVICE_LISTENER_ISOLATION_FAILED')
+        active_ports = {port: bindings for port, bindings in
+                        (data.get('NetworkSettings', {}).get('Ports', {}) or {}).items() if bindings}
+        if active_ports != expected_ports:
+            if name in ('db', 'redis'):
+                raise RemoteBlocked('DATABASE_OR_REDIS_PUBLICATION_FORBIDDEN')
+            raise RemoteBlocked('SERVICE_LISTENER_ISOLATION_FAILED')
         if name in ('db', 'redis') and any(ports.values()):
             raise RemoteBlocked('DATABASE_OR_REDIS_PUBLICATION_FORBIDDEN')
         if set(data.get('NetworkSettings', {}).get('Networks', {})) != expected_networks(cfg, name):
@@ -352,7 +360,7 @@ def perform(cfg, scope, operation):
             if run(['docker', kind, 'ls', '--quiet', '--filter', 'label=com.docker.compose.project=' + cfg['project_name']]).strip():
                 raise RemoteBlocked('UNKNOWN_EXISTING_PROJECT_RESOURCES')
         network_suffix = '(private|outbound)' if cfg['access_mode'] == 'core' else \
-            '(data|application|tunnel|backend_egress|tunnel_egress)'
+            '(data|application|tunnel|backend_egress|tunnel_egress|host_access)'
         for kind, suffix in [('volume', '(pg_data|redis_data)'), ('network', network_suffix)]:
             if run(['docker', kind, 'ls', '--quiet', '--filter', 'name=^' + cfg['project_name'] + '_' + suffix + '$']).strip():
                 raise RemoteBlocked('UNKNOWN_EXISTING_NAMED_RESOURCES')

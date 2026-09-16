@@ -159,8 +159,9 @@ and Redis each receive only their own environment file. Credentials are never re
 or incomplete existing key material is a failure, not permission to replace it.
 
 PostgreSQL and Redis have persistent volumes and join only an internal datastore network. In Cloudflare mode, the proxy
-and connector are separated from the datastores by `application` and `tunnel` networks, and backend/connector egress is
-separate. All selected services use `unless-stopped` restart policies. The command serializes mutations with a deployment
+and connector are separated from the datastores by `application` and `tunnel` networks, proxy loopback publication uses
+a proxy-only `host_access` network, and backend/connector egress is separate. All selected services use `unless-stopped`
+restart policies. The command serializes mutations with a deployment
 lock and never removes orphan containers or data volumes.
 
 Backend, database, Redis, and proxy must be healthy, and cloudflared must remain running. Every selected service must use
