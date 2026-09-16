@@ -11,6 +11,9 @@ Execution route: `command-runner`.
 
 Command kind: `executable`.
 
+See [spec.md](spec.md) for the requirements, architecture, operation sequences and acceptance criteria needed to
+reconstruct this command. The specification keeps private deployment values in profile-owned configuration.
+
 ## Inputs
 
 | Input | Required | Source | Description |
