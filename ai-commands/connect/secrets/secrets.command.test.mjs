@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {readBootstrap, resolveForConsumer, validateConfig, verifyConnection}
+import {inspectConfig, readBootstrap, resolveForConsumer, validateConfig, verifyConnection}
   from './secrets.command.mjs';
 
 const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-fleas-secrets-test-'));
@@ -48,12 +48,27 @@ test('validates a bounded profile mapping without network access', () => {
 test('an explicit none provider has no mappings and blocks resolution', async () => {
   const config = validateConfig('provider: none\n');
   assert.deepEqual(config, {provider: 'none'});
+  assert.deepEqual(inspectConfig(config), {provider: 'none', environment: null, secrets: [], consumers: []});
   assert.throws(() => validateConfig('provider: none\nsecrets: {}\n'), /INVALID_CONFIG/);
   let calls = 0;
   const neverFetch = async () => { calls++; throw Error('fetch must not happen'); };
   await assert.rejects(verifyConnection(config, neverFetch), /PROVIDER_DISABLED/);
   await assert.rejects(resolveForConsumer(config, 'cloudflare', neverFetch), /PROVIDER_DISABLED/);
   assert.equal(calls, 0);
+});
+
+test('inspection reports only configured metadata without credentials or bootstrap details', () => {
+  const metadata = inspectConfig(validateConfig(sample));
+  assert.deepEqual(metadata, {
+    provider: 'infisical', environment: 'dev',
+    secrets: [{logical_name: 'example.dev.integration.api-token',
+      backend: {path: '/', key: 'EXAMPLE_API_TOKEN'}}],
+    consumers: [{command: 'cloudflare', environment: [{name: 'EXAMPLE_API_TOKEN',
+      logical_secret: 'example.dev.integration.api-token'}]}],
+  });
+  const output = JSON.stringify(metadata);
+  for (const forbidden of [bootstrap, 'synthetic-secret', '00000000-0000-4000-8000-000000000000',
+    'https://secrets.example.invalid', 'example-runtime']) assert.equal(output.includes(forbidden), false);
 });
 
 test('rejects duplicate definitions and unsafe references', () => {

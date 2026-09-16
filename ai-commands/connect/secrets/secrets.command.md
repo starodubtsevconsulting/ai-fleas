@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`secrets` is the provider-neutral AI Fleas capability for resolving credential values required by commands and runtimes at execution time.
+`secrets` is the provider-neutral AI Fleas capability for inspecting configured secret metadata and resolving credential values required by commands and runtimes at execution time.
 
 The command defines a thin adapter over a configured secret-management backend. Workflows and consuming commands depend on this contract rather than directly depending on Infisical, Vault/OpenBao, an OS keychain, or another implementation.
 
@@ -25,13 +25,14 @@ an authorized child command. It does not return secret values to the caller.
 | Output | Destination | Description |
 |---|---|---|
 | Capability/configuration disposition | Caller | Sanitized validation or connection status; no resolved credentials. |
+| Configured secret structure | Caller | Logical names, backend path/key, environment, and consumer-to-variable mappings; no values or bootstrap details. |
 | Resolved environment | Authorized child process only | Explicitly mapped values for one profile-authorized command. |
 
 ## Entry Point
 
 | Entry point | Type | Profile-aware invocation |
 |---|---|---|
-| `secrets/secrets.command.sh` | Shell executable | `validate` checks the activated profile configuration, `status` authenticates, and `run <consumer> -- <arguments>` injects declared values into an authorized child command. |
+| `secrets/secrets.command.sh` | Shell executable | `validate` checks the activated profile configuration, `inspect` prints metadata, `status` authenticates, and `run <consumer> -- <arguments>` injects declared values into an authorized child command. |
 
 Every invocation is profile-aware: verify the active workflow permits `secrets`, resolve `AI_COMMANDS_ROOT`, and load only
 its private `AI_COMMAND_CONFIG_PATH`. Committed configuration template: `secrets/secrets.command.example.config`.
@@ -46,6 +47,13 @@ The profile activation guard must select a profile and workflow that permit `sec
 consumer to be bound by that profile and permitted by the same workflow. Its executable must match the declared command
 ID and remain inside the activated `AI_COMMANDS_ROOT`. The consumer receives its own profile-owned command configuration
 through `AI_COMMAND_CONFIG_PATH`.
+
+`inspect` uses the same activated profile-owned configuration and prints deterministic JSON. It reads no bootstrap file,
+does not authenticate to or query the provider, and never resolves secret values. It reports the selected provider and
+environment, logical names and their configured backend path/key, and each consumer's environment-variable mapping.
+It omits the endpoint, project ID, machine identity, bootstrap paths, and executable paths. With `provider: none`, it
+returns empty secret and consumer lists. Provider-side creation, rotation, and expiry timestamps are not present in the
+profile configuration, so `inspect` does not claim to report live lifecycle state.
 
 The protected Universal Auth file contains `INFISICAL_CLIENT_ID` and `INFISICAL_CLIENT_SECRET`. When Cloudflare Access
 protects the endpoint, a second protected file contains `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`. Each file

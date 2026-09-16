@@ -105,6 +105,23 @@ export function validateConfig(source) {
   return config;
 }
 
+export function inspectConfig(config) {
+  if (config.provider === 'none') {
+    return {provider: 'none', environment: null, secrets: [], consumers: []};
+  }
+  return {
+    provider: config.provider,
+    environment: config.provider_config.environment,
+    secrets: Object.entries(config.secrets).sort(([a], [b]) => a.localeCompare(b))
+      .map(([logicalName, item]) => ({logical_name: logicalName,
+        backend: {path: item.backend.path, key: item.backend.key}})),
+    consumers: Object.entries(config.command_injection).sort(([a], [b]) => a.localeCompare(b))
+      .map(([command, item]) => ({command,
+        environment: Object.entries(item.environment).sort(([a], [b]) => a.localeCompare(b))
+          .map(([name, mapping]) => ({name, logical_secret: mapping.logical_secret}))})),
+  };
+}
+
 export function readBootstrap(filename, names) {
   let stat, source;
   try {
@@ -216,7 +233,7 @@ function authorizedConsumer(profileFile, workflow, consumer) {
 
 async function main(argv) {
   const [operation, consumer, separator, ...args] = argv;
-  if (!['validate', 'status', 'run'].includes(operation)) blocked('USAGE');
+  if (!['validate', 'inspect', 'status', 'run'].includes(operation)) blocked('USAGE');
   const configPath = process.env.AI_COMMAND_CONFIG_PATH;
   if (!configPath || !process.env.AI_PROFILE_FILE || !process.env.AI_FLOW_WORKFLOW ||
       !process.env.AI_COMMANDS_ROOT) blocked('PROFILE_REQUIRED');
@@ -224,6 +241,11 @@ async function main(argv) {
   if (operation === 'validate') {
     if (argv.length !== 1) blocked('USAGE');
     process.stdout.write('secrets configuration valid\n');
+    return;
+  }
+  if (operation === 'inspect') {
+    if (argv.length !== 1) blocked('USAGE');
+    process.stdout.write(JSON.stringify(inspectConfig(config), null, 2) + '\n');
     return;
   }
   if (config.provider === 'none') blocked('PROVIDER_DISABLED');
