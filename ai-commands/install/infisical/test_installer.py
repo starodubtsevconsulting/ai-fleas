@@ -70,10 +70,15 @@ elif a[0]=='inspect':
  health='unhealthy' if os.environ.get('UNHEALTHY')=='1' else 'healthy'
  networks={cfg['project_name']+'_'+network:{} for network in expected_networks[name]}
  if os.environ.get('PUBLIC_NETWORK')=='1' and name=='db': networks['foreign_network']={}
+ mounts=[]
+ if name=='cloudflared':
+  mounts=[{'Type':'bind','Source':str(root/'tunnel-token'),'Destination':'/etc/cloudflared/tunnel-token','RW':False},
+          {'Type':'bind','Source':str(root/'origin-ca.pem'),'Destination':cfg['origin_ca_file'],'RW':False}]
+  if os.environ.get('MISSING_CA_MOUNT')=='1': mounts=mounts[:1]
  print(json.dumps([{'Config':{'Image':cfg['images'][name],'Env':['SYNTHETIC_CREDENTIAL_MUST_NOT_LEAK'],
  'Healthcheck':healthchecks.get(name),
  'Labels':{'com.docker.compose.project':cfg['project_name'],'com.docker.compose.service':name}},
- 'HostConfig':{'PortBindings':ports},'NetworkSettings':{'Networks':networks},
+ 'HostConfig':{'PortBindings':ports},'NetworkSettings':{'Networks':networks},'Mounts':mounts,
  'State':{'Running':running,'Health':None if name=='cloudflared' else {'Status':health}}}]))
 else: sys.exit(9)
 '''
@@ -259,6 +264,9 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(document['services']['db']['networks'], ['data'])
         self.assertEqual(document['services']['redis']['networks'], ['data'])
         self.assertEqual(document['services']['proxy']['networks'], ['application', 'tunnel'])
+        self.assertEqual(
+            set(document['services']['proxy']['networks'])
+            & set(document['services']['cloudflared']['networks']), {'tunnel'})
         self.assertEqual(document['services']['backend']['networks']['backend_egress'], {'gw_priority': 1})
         self.assertEqual(document['services']['cloudflared']['networks'],
                          {'tunnel': {}, 'tunnel_egress': {'gw_priority': 1}})
@@ -266,6 +274,8 @@ class InstallerTests(unittest.TestCase):
                          str(os.getuid()) + ':' + str(os.getgid()))
         self.assertIn('./origin-ca.pem:' + self.cfg['origin_ca_file'] + ':ro',
                       document['services']['cloudflared']['volumes'])
+        with patch.dict(os.environ, {'MISSING_CA_MOUNT': '1'}):
+            with self.assertRaisesRegex(remote.RemoteBlocked, 'MOUNT_MISMATCH'): self.perform('status')
         self.assertIn('--requirepass', document['services']['redis']['command'][-1])
         self.assertIn('NOAUTH Authentication required.',
                       document['services']['redis']['healthcheck']['test'][-1])

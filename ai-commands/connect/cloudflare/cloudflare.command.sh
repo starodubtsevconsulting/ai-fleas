@@ -73,6 +73,7 @@ fi
 
 public_url="${CLOUDFLARE_PUBLIC_URL:-}"
 origin_url="${CLOUDFLARE_ORIGIN_URL:-}"
+origin_scope="${CLOUDFLARE_ORIGIN_SCOPE:-host}"
 origin_health_path="${CLOUDFLARE_ORIGIN_HEALTH_PATH:-/}"
 origin_server_name="${CLOUDFLARE_ORIGIN_SERVER_NAME:-}"
 origin_ca_pool="${CLOUDFLARE_ORIGIN_CA_POOL:-}"
@@ -105,16 +106,25 @@ validate_config() {
     fail 'CLOUDFLARE_ORIGIN_URL must be an HTTP(S) origin without path, query, or fragment'
 
   local origin_host="${BASH_REMATCH[1]}" origin_scheme="${origin_url%%://*}"
-  case "$origin_host" in
-    localhost|127.*|10.*|192.168.*|*.internal|*.local|*.localhost) ;;
-    172.*)
-      local second_octet="${origin_host#172.}"
-      second_octet="${second_octet%%.*}"
-      [[ "$second_octet" =~ ^[0-9]+$ ]] && (( second_octet >= 16 && second_octet <= 31 )) ||
-        fail 'CLOUDFLARE_ORIGIN_URL must use a private or loopback host'
-      ;;
-    *) fail 'CLOUDFLARE_ORIGIN_URL must use a private or loopback host' ;;
-  esac
+  [[ "$origin_scope" == 'host' || "$origin_scope" == 'container' ]] ||
+    fail 'CLOUDFLARE_ORIGIN_SCOPE must be host or container'
+  if [[ "$origin_scope" == 'container' ]]; then
+    [[ "$origin_host" =~ ^[a-z][a-z0-9-]{0,62}$ ]] ||
+      fail 'container-scoped CLOUDFLARE_ORIGIN_URL must use a single safe service name'
+    [[ "$origin_scheme" == 'https' ]] ||
+      fail 'container-scoped CLOUDFLARE_ORIGIN_URL must use HTTPS'
+  else
+    case "$origin_host" in
+      localhost|127.*|10.*|192.168.*|*.internal|*.local|*.localhost) ;;
+      172.*)
+        local second_octet="${origin_host#172.}"
+        second_octet="${second_octet%%.*}"
+        [[ "$second_octet" =~ ^[0-9]+$ ]] && (( second_octet >= 16 && second_octet <= 31 )) ||
+          fail 'CLOUDFLARE_ORIGIN_URL must use a private or loopback host'
+        ;;
+      *) fail 'CLOUDFLARE_ORIGIN_URL must use a private or loopback host' ;;
+    esac
+  fi
   [[ -z "$origin_server_name" || "$origin_server_name" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] ||
     fail 'CLOUDFLARE_ORIGIN_SERVER_NAME must be an origin certificate hostname'
   [[ -z "$origin_ca_pool" || ( "$origin_ca_pool" == /* && "$origin_ca_pool" != *$'\n'* && "$origin_ca_pool" != *'..'* ) ]] ||
@@ -122,6 +132,9 @@ validate_config() {
   if [[ "$origin_scheme" == 'http' ]]; then
     [[ -z "$origin_server_name" && -z "$origin_ca_pool" ]] ||
       fail 'CLOUDFLARE_ORIGIN_SERVER_NAME and CLOUDFLARE_ORIGIN_CA_POOL require an HTTPS origin'
+  fi
+  if [[ "$origin_scope" == 'container' && -z "$origin_server_name" ]]; then
+    fail 'container-scoped HTTPS origin requires CLOUDFLARE_ORIGIN_SERVER_NAME'
   fi
 
   [[ "$origin_health_path" =~ ^/[A-Za-z0-9._~:/@%+-]*$ ]] ||
@@ -176,6 +189,8 @@ PY
 
 origin_status() {
   command -v curl >/dev/null 2>&1 || fail 'curl is required for origin-status'
+  [[ "$origin_scope" != 'container' ]] ||
+    fail 'origin-status for a container-scoped origin must run inside the connector network; use the owning service status check'
   local probe_url="${origin_url%/}${origin_health_path}" status
   local -a curl_args=(--silent --show-error --connect-timeout 2 --max-time 4 --output /dev/null --write-out '%{http_code}')
 

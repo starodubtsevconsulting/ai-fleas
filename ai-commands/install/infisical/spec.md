@@ -321,7 +321,9 @@ the next mutating operation must inspect the retained deployment state before re
 Verification must find exactly one container per selected service under the selected Compose project. It must inspect
 Docker project and service labels, image references, published bindings, and network attachments instead of relying only
 on file contents. It must also compare the actual backend, database, Redis, and proxy health-check definitions to the
-declared checks. Core mode requires only backend container port `8080/tcp` mapped to
+declared checks. In Cloudflare mode it must compare the actual connector bind mounts to the owned token and CA files,
+including exact destination paths and read-only flags; a correct Compose file with a stale container is not acceptable.
+Core mode requires only backend container port `8080/tcp` mapped to
 `127.0.0.1:<backend_port>`. Cloudflare mode requires only proxy container port `8443/tcp` mapped to
 `127.0.0.1:<proxy_port>`; backend, PostgreSQL, Redis, and cloudflared have no host bindings. Every container must attach to
 exactly the networks defined for the selected mode. These checks must run before mutating existing containers and before
@@ -379,10 +381,18 @@ method requires its own explicit integration and acceptance checks.
 
 Cloudflare account configuration must use the exact selected private override and credential references defined by the
 separate [Cloudflare command](../../connect/cloudflare/cloudflare.command.md). Origin certificate validation must remain
-enabled, and the account-side ingress must target the `proxy` service using `origin_server_name`. The installer must not
+enabled. Because cloudflared and Nginx are sibling containers, the selected Cloudflare target must set
+`CLOUDFLARE_ORIGIN_SCOPE=container` and `CLOUDFLARE_ORIGIN_URL=https://proxy:8443`, with `origin_server_name` used for
+TLS hostname verification. Connector loopback is the cloudflared container itself and must never be used to address the
+`proxy` service. The installer must not
 hardcode a deployment subnet, certificate, hostname, allowed identity, API token, or connector token in reusable files.
 End-to-end acceptance must verify TLS trust, hostname matching, authorized-client success, unauthenticated-client denial,
-and unauthorized-identity denial. Container health alone does not satisfy these criteria.
+and unauthorized-identity denial. The account-side ingress `caPool` path must exactly equal `origin_ca_file`, and the
+connector container must have the owned CA copy mounted read-only at that path. An unauthenticated redirect to Access
+proves only the edge policy; it does not prove that an authenticated request can reach the origin. Acceptance therefore
+requires an authorized request to `SITE_URL/api/status` to return HTTP 200 with no TLS bypass, followed by explicit
+unauthorized and unauthenticated denial checks. Container health, a running connector, and an Access login page do not
+satisfy these criteria, and documentation must not claim outside access works until the authorized check passes.
 
 Optional SMTP configuration must use a preexisting remote regular file owned by the SSH user, with mode `0600` and a
 maximum size of 8,192 bytes. The parser must accept simple unquoted `KEY=value` lines and full-line `#` comments. It must
@@ -413,13 +423,13 @@ independently tested migration procedure.
 | INF-05 | An unowned root or a colliding labelled resource, volume, or network must be refused without modifying foreign content. Symlink ancestors must never redirect creation. |
 | INF-06 | A repeated install and a stop/start cycle must preserve credential bytes and persistent-volume identity. Missing or inconsistent credentials must block reruns and must never be regenerated. |
 | INF-07 | Scope, configuration, Compose, mode, or owner drift must block the operation. A held deployment lock must prevent concurrent mutation and status inspection. |
-| INF-08 | `status` must not alter remote file timestamps or services. Stopped, missing, or unhealthy containers must fail truthfully. Image, ownership, health-check, port, or network drift must block before mutation. In Cloudflare mode, connector and proxy must have no datastore-network path. |
+| INF-08 | `status` must not alter remote file timestamps or services. Stopped, missing, or unhealthy containers must fail truthfully. Image, ownership, health-check, port, network, or protected connector-mount drift must block before mutation. In Cloudflare mode, connector and proxy must have no datastore-network path. |
 | INF-09 | `stop` must affect only the owned declared services and must verify termination. No operation may remove data volumes or orphans, purge data, or perform automatic cleanup. |
 | INF-10 | The offline conformance harness must exercise local validation, the apply gate, remote install/status/stop/start behavior, and exit propagation through fake SSH and Docker. Synthetic credentials must never reach caller output or logs. |
 | INF-11 | An empty SMTP reference must create no email configuration. Valid protected SMTP input must be accepted. Unsafe input, an invalid port, injected backend keys, or a TLS bypass must fail before copying or deployment. |
 | INF-12 | The public package must pass scoped structure, metadata, route, local-link, and private-content checks. The example configuration must remain fictional and non-runnable. |
 | INF-13 | Production acceptance must use an explicitly authorized disposable Linux host and approved immutable image pins. It must verify application startup, initial setup, key and data retention across restart and reboot, and truthful failure recovery. |
-| INF-14 | Cloudflare mode must own five digest-pinned services in one Compose project while keeping the control plane external. HTTPS and access acceptance must verify origin certificate trust, hostname matching, and allowed and denied clients. Email acceptance must verify invitation or reset delivery. Recovery acceptance must verify isolated restoration with the original keys. |
+| INF-14 | Cloudflare mode must own five digest-pinned services in one Compose project while keeping the control plane external. The account-side origin must use container scope and `https://proxy:8443`; connector loopback is invalid for the sibling proxy. The account-side `caPool`, container CA destination, and read-only owned CA mount must agree exactly. HTTPS and access acceptance must verify an authorized `/api/status` response from the origin plus unauthenticated and unauthorized denial; an Access redirect alone is insufficient. Email acceptance must verify invitation or reset delivery. Recovery acceptance must verify isolated restoration with the original keys. |
 
 ## Reconstruction requirements
 
