@@ -2,12 +2,34 @@
 
 ## Purpose
 
-Read and discover Trello work items through the connected Trello app within the selected profile's exact workspace and
-board scope. Manager owns lookup semantics and evidence interpretation.
+Read Trello work items through the profile-selected transport within its configured board scope. The connected Trello
+app supports interactive discovery and inventories; the optional API transport supports unattended read and status
+inventory through the `secrets` command. Manager owns lookup semantics and evidence interpretation.
 
 Execution route: `manager`.
 
 Command kind: `provider`.
+
+## Routes and trust boundaries
+
+```mermaid
+flowchart LR
+  A[Agent in Codex, Hermes, or another harness] --> B[Profile and workflow authorization]
+  B --> C{Configured transport}
+  C -->|connected_app| D[Trello MCP connector]
+  D -->|Connector-owned account session| T[Trello]
+  C -->|api| E[secrets run trello]
+  E -->|Machine authentication| F[Infisical]
+  F -->|Key and token to child only| G[Bounded Trello command]
+  G -->|Authorization header, read-only| T
+  T --> G
+  G -->|Board-checked result, no credential| A
+```
+
+The profile selects one transport explicitly. A disconnected MCP session does not trigger an automatic switch to the
+API route. The public command and examples contain no real board identifiers or credentials. A private profile owns
+the exact board/list IDs and logical secret mappings. Infisical's machine bootstrap remains in owner-only local files
+because it cannot be retrieved from Infisical itself.
 
 ## Entry point and configuration
 
@@ -57,10 +79,31 @@ Trello account with read-only access to the selected board for this route. Store
 secret backend, never in the profile or Git. Token creation/revocation is an operator action; this command never creates
 or rotates credentials. See [Trello authorization](https://developer.atlassian.com/cloud/trello/guides/rest-api/authorization/).
 
+```mermaid
+sequenceDiagram
+  participant H as Authorized harness
+  participant S as secrets command
+  participant I as Infisical
+  participant C as Trello child command
+  participant T as Trello API
+  H->>S: run trello -- read card ID
+  S->>I: Authenticate machine; read declared key and token
+  I-->>S: Values in process memory
+  S->>C: Spawn with Trello credential environment
+  C->>T: GET card with Authorization header
+  T-->>C: Card data
+  C->>C: Check configured board ID
+  C-->>H: Bounded card result or generic blocked code
+```
+
+Only the child command receives the Trello key and token. No credential is passed as a URL parameter, CLI argument,
+agent prompt, or report field. Missing secrets, provider denial, an offline provider, and a foreign-board response all
+block the operation without printing the credential. The current API route has no write operation.
+
 If a connected-app binding or connector is missing, ambiguous, unauthorized, or unavailable, return a concrete blocker.
 Never substitute Jira or another tracker, infer a board from its name, or silently switch to the API route.
 
-## Registered read-only operations
+## Connected-app read-only operations
 
 | Operation | Connected tool and action | Required scoped inputs | Evidence |
 | --- | --- | --- | --- |
