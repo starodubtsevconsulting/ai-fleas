@@ -1,0 +1,3 @@
+# Example profile-wide defaults; the writing workflow supplies its own archive mapping.
+schema_version: medium-command-config.v1
+mode: draft-only

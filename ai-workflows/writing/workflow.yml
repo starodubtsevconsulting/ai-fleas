@@ -1,0 +1,9 @@
+id: writing
+label: Writing
+tags:
+  - writing
+  - editorial
+  - articles
+entry: writing.workflow.md
+required_commands:
+  - writing

@@ -44,3 +44,18 @@ roles:
     display_name: Proxy Coder
     email: proxy-coder@example.com
     github_login: example-proxy-coder
+  writer:
+    account_name: writer
+    display_name: Writer
+    email: writer@example.com
+    github_login: example-writer
+  reviewer:
+    account_name: reviewer
+    display_name: Reviewer
+    email: reviewer@example.com
+    github_login: example-reviewer
+  release-coordinator:
+    account_name: release-coordinator
+    display_name: Release Coordinator
+    email: release-coordinator@example.com
+    github_login: example-release-coordinator

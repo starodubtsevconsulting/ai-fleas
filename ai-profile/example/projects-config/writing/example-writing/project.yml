@@ -1,0 +1,8 @@
+id: example-writing
+label: Example writing control project
+description: TODO placeholder for the project that hosts workflow rules and commands.
+project_type: git
+repo_path: ~/projects/example-workspace/example-writing
+storage_type: folder
+storage_path: ~/projects/example-workspace/example-writing
+storage_label: Example repository

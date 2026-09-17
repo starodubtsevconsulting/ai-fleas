@@ -1,0 +1,4 @@
+# Replace these placeholders with one existing local folder and its registered Obsidian vault name.
+schema_version: obsidian-command-config.v1
+vault_project_ref: projects-config/writing/example-articles/project.yml
+vault_name: example-articles

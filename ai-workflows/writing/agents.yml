@@ -1,0 +1,69 @@
+schemaVersion: workflow-logical-agents.v1
+workflowId: writing
+logicalProjectIdPattern: <profile-id>-writing[-<suffix>]
+teamPolicy: agents/team.md
+
+policy:
+  authority: agents/team.md
+  capabilityOwnershipMatrix: agents/role-capability-ownership.csv
+  communicationMatrix: agents/role-communication-matrix.csv
+  accessMatrixMechanism: ../_common/policy/access-matrix.md
+  routing: agents/manual-handoff.md
+  scope: ../_common/agents/scope.md
+  continuity: ../_common/agents/continuity.md
+  knowledgeTransfer: ../_common/agents/knowledge-transfer.md
+  scheduling: ../_common/agents/scheduling.md
+
+initializer:
+  agentId: admin
+  matrixColumn: admin
+  roleDefinition: ../_common/roles/admin.md
+  scope: workflow
+  lifecycle: persistent-control
+  humanFacing: human-owned
+  communicationMode: direct-human-administration-only
+  readinessToken: ADMIN_READY
+  aiBinding: profile-default
+  schedule: { enabled: false }
+
+agents:
+  - agentId: judge
+    matrixColumn: judge
+    roleDefinition: ../_common/roles/judge.md
+    scope: workflow
+    lifecycle: persistent-control
+    humanFacing: oversight-only
+    communicationMode: direct-human-governance-only
+    readinessToken: WORKFLOW_GOVERNANCE_JUDGE_READY
+    aiBinding: profile-default
+    schedule: { enabled: false }
+  - agentId: writer
+    matrixColumn: writer
+    roleDefinition: agents/roles/writer.md
+    scope: workflow
+    lifecycle: persistent-worker
+    humanFacing: primary
+    communicationMode: direct-human-only
+    readinessToken: WRITER_READY
+    aiBinding: profile-default
+    schedule: { enabled: false }
+  - agentId: reviewer
+    matrixColumn: reviewer
+    roleDefinition: agents/roles/reviewer.md
+    scope: workflow
+    lifecycle: persistent-worker
+    humanFacing: primary
+    communicationMode: direct-human-only
+    readinessToken: REVIEWER_READY
+    aiBinding: profile-default
+    schedule: { enabled: false }
+  - agentId: release-coordinator
+    matrixColumn: release_coordinator
+    roleDefinition: agents/roles/release-coordinator.md
+    scope: workflow
+    lifecycle: persistent-worker
+    humanFacing: primary
+    communicationMode: direct-human-only
+    readinessToken: RELEASE_COORDINATOR_READY
+    aiBinding: profile-default
+    schedule: { enabled: false }

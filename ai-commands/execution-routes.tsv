@@ -38,10 +38,12 @@ kdenlive/kdenlive.command.md	command-runner	-	-	-	-
 lodgify/lodgify.command.md	mixed	designer-reviewer	coder	command-runner	ui-acceptance-tester
 logs/logs.command.md	mixed	designer-reviewer	-	command-runner	-
 lyrics-timestamp/lyrics-timestamp.command.md	command-runner	-	-	-	-
+medium/medium.command.md	command-runner	-	-	-	-
 monitoring/monitoring.command.md	command-runner	-	-	-	-
 monorepo/monorepo.command.md	designer-reviewer	-	-	-	-
 new-feature-doc/new-feature-doc.command.md	coder	-	-	-	-
 note/note.command.md	mixed	designer-reviewer	-	command-runner	-
+obsidian/obsidian.command.md	command-runner	-	-	-	-
 plan/plan.command.md	mixed	designer-reviewer	-	command-runner	-
 pr-review-threads/pr-review-threads.command.md	mixed	designer-reviewer	coder	command-runner	-
 pr/pr-update.command.md	command-runner	-	-	-	-

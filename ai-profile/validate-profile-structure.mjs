@@ -65,6 +65,61 @@ for (const workflow of profile.workflows) {
   const repoPath = String(primaryRecord.repo_path || '');
   const portableHomePath = repoPath === '~' || (repoPath.startsWith('~/') && !repoPath.split('/').includes('..'));
   assert.ok(primaryRecord.id && (path.isAbsolute(repoPath) || portableHomePath), `${profile.name}/${workflow.path}: invalid primary project`);
+
+  if (workflow.path !== 'writing.workflow.md') continue;
+
+  const scope = `${profile.name}/writing`;
+  const registeredProjects = new Set(workflow.projects.map(({ ref }) => ref));
+  const articleRef = workflow.article_store?.project_ref;
+  assert.ok(articleRef && registeredProjects.has(articleRef), `${scope}: article store must reference a registered project`);
+  assert.equal(workflow.article_store.format, 'markdown', `${scope}: article store format`);
+  const articleProject = parse(fs.readFileSync(path.resolve(profileDir, articleRef), 'utf8'));
+  assert.ok(articleProject.storage_path, `${scope}: article store local path`);
+
+  if (workflow.review_preferences) {
+    const review = workflow.review_preferences;
+    assert.ok(typeof review.default_template === 'string' && review.default_template.length > 0,
+      `${scope}: review default template is missing`);
+    assert.ok(review.method_emphasis && typeof review.method_emphasis === 'object' &&
+      !Array.isArray(review.method_emphasis) && Object.keys(review.method_emphasis).length > 0,
+      `${scope}: review method emphasis is missing`);
+    for (const [method, emphasis] of Object.entries(review.method_emphasis)) {
+      assert.ok(['high', 'normal', 'low'].includes(emphasis),
+        `${scope}: invalid review emphasis for ${method}`);
+    }
+  }
+
+  for (const binding of [...(workflow.editors ?? []), ...(workflow.destinations ?? [])]) {
+    assert.ok(workflow.commands?.includes(binding.command), `${scope}/${binding.id}: command is not enabled`);
+    const command = profile.commands.find(({ id }) => id === binding.command);
+    assert.ok(command?.config && fs.existsSync(path.resolve(profileDir, command.config)), `${scope}/${binding.id}: profile command config is missing`);
+    assert.ok(binding.config && fs.existsSync(path.resolve(profileDir, binding.config)), `${scope}/${binding.id}: workflow config is missing`);
+    const override = parse(fs.readFileSync(path.resolve(profileDir, binding.config), 'utf8'));
+    const boundArticleRef = override.vault_project_ref ?? override.archive_project_ref;
+    assert.equal(boundArticleRef, articleRef, `${scope}/${binding.id}: project does not match the article store`);
+    if (binding.release_policy) {
+      const policy = binding.release_policy;
+      assert.ok((workflow.destinations ?? []).includes(binding), `${scope}/${binding.id}: release policy belongs to a destination`);
+      assert.ok(Number.isInteger(policy.max_posts_per_local_day) && policy.max_posts_per_local_day > 0,
+        `${scope}/${binding.id}: release daily cap must be a positive integer`);
+      assert.ok(typeof policy.time_zone === 'string' && policy.time_zone.length > 0,
+        `${scope}/${binding.id}: release time zone is missing`);
+      assert.doesNotThrow(() => new Intl.DateTimeFormat('en', { timeZone: policy.time_zone }),
+        `${scope}/${binding.id}: invalid release time zone`);
+      if (policy.target_interval_days !== undefined) {
+        assert.ok(Number.isInteger(policy.target_interval_days) && policy.target_interval_days > 0,
+          `${scope}/${binding.id}: release target interval must be a positive integer`);
+      }
+    }
+    if (binding.id === 'obsidian') {
+      assert.ok(override.vault_name, `${scope}/obsidian: vault name is missing`);
+    }
+    if (binding.id === 'medium') {
+      assert.equal(binding.mode, 'draft-only', `${scope}/medium: workflow mode`);
+      assert.equal(override.mode, 'draft-only', `${scope}/medium: command mode`);
+      assert.match(override.account_profile_url ?? '', /^https:\/\/medium\.com\/@[^/]+$/, `${scope}/medium: account profile URL`);
+    }
+  }
 }
 
 console.log(`${profile.name} profile structure: PASS`);
