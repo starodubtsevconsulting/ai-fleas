@@ -64,6 +64,7 @@ Adapters expose provider-neutral capabilities. Providers own provider-specific m
 | --- | --- |
 | [`source-control`](connect/source-control/source-control.command.md) | [`git`](connect/git/git.command.md) |
 | [`ticket-tracker`](connect/ticket-tracker/ticket-tracker.command.md) | [`jira`](connect/jira/jira.command.md) |
+| [`ticket-tracker`](connect/ticket-tracker/ticket-tracker.command.md) | [`trello`](connect/trello/trello.command.md) (connected app or explicit secret-backed API transport) |
 | [`logs`](connect/logs/logs.command.md) | [`datadog`](connect/datadog/datadog.command.md) |
 | [`health-data`](data/health-data/spec.md) | [`health-data-garmin`](data/health-data-garmin/spec.md) |
 | [`activity-data`](data/activity-data/spec.md) | [`activity-data-android`](data/activity-data-android/spec.md) |

@@ -21,11 +21,39 @@ defined by [ticket-tracker](../ticket-tracker/ticket-tracker.command.md#profile-
 It supplies `tracker.provider: trello`, `tracker.capability: trello`, the workspace identifier, board
 `container.id` and `container.url`, list identifiers under `lists`, supported operations, and
 `execution.registered_command: trello` with `execution.command_path: trello/trello.command.md`. Workspace, board, list,
-and card identifiers may be canonical connector identifiers; preserve them verbatim. Credentials are owned by the
-connected app and never belong in the profile, packet, or command catalog. No environment overrides are required.
+and card identifiers may be canonical connector identifiers; preserve them verbatim. For this connected-app route,
+credentials are owned by the connected app and never belong in the profile, packet, or command catalog. No environment
+overrides are required.
 
-If a binding or connector is missing, ambiguous, unauthorized, or unavailable, return a concrete blocker. Never
-substitute Jira or another tracker, infer a board from its name, or reconstruct a REST/API/browser route.
+### Optional unattended API route
+
+An explicitly configured API transport can read Trello without a connected app or browser session. It uses the
+profile-owned JSON config shaped like `trello.command.api.example.config` and the executable
+`trello.command.sh`. The profile must bind `trello` and `secrets` in the selected workflow. The secrets command injects
+`TRELLO_API_KEY` and `TRELLO_API_TOKEN` only into the Trello child process:
+
+```text
+secrets run trello -- status
+secrets run trello -- read https://trello.com/c/AbCd1234/example
+secrets run trello -- list in_progress
+```
+
+The profile's ticket-tracker record selects `execution.transport: api` and
+`execution.command_path: trello/trello.command.sh`; the default existing transport remains `connected_app` and uses
+this AI-readable contract. Do not select the API route merely because MCP is unavailable. The API route supports
+`read` and `status_inventory` only; search and other inventory operations remain on MCP. A request for an unsupported
+operation fails rather than switching transports. The API route makes read-only calls to `api.trello.com`, sends the
+key and token in the Authorization header, and checks every returned card's board ID against the configured board.
+It does not write cards. It rejects a 1000-card list page as incomplete instead of presenting a partial inventory as
+complete. `status` reports only authentication success, never account details or credentials.
+
+Trello's user token can access the user's account within its granted scopes, not just one board. Prefer a dedicated
+Trello account with read-only access to the selected board for this route. Store the key and token in the configured
+secret backend, never in the profile or Git. Token creation/revocation is an operator action; this command never creates
+or rotates credentials. See [Trello authorization](https://developer.atlassian.com/cloud/trello/guides/rest-api/authorization/).
+
+If a connected-app binding or connector is missing, ambiguous, unauthorized, or unavailable, return a concrete blocker.
+Never substitute Jira or another tracker, infer a board from its name, or silently switch to the API route.
 
 ## Registered read-only operations
 
