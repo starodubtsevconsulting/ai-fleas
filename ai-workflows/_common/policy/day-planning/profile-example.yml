@@ -1,0 +1,14 @@
+# Example only. Real values belong to the governed person's private profile.
+dayPlanning:
+  strategy: fixed-schedule-time-blocking
+  boundaries:
+    wake: "06:30"
+    seriousWorkStop: "17:00"
+    electronicsOff: "21:30"
+    targetSleep: "22:30"
+  primaryGoal:
+    preferredDaypart: morning
+  overlays:
+    recoveryConstrained:
+      enabled: true
+      activation: evidence-based
