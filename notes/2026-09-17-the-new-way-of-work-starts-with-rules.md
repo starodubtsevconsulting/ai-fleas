@@ -46,6 +46,26 @@ You do not need to teach the AI your whole life every morning.
 
 You teach it how to find the right rules.
 
+## Why not just put the rules in Google Drive?
+
+That is a reasonable question.
+
+You can store text almost anywhere: Google Drive, OneDrive, Dropbox, a wiki, a notes application.
+
+But rules are different from documents you occasionally open and read.
+
+The AI may need them constantly.
+
+So I prefer the working copy to be **local**: ordinary small text files sitting beside the work they govern.
+
+They open immediately. They still exist when connectivity is poor. An agent does not need a cloud round trip just to discover how it is supposed to behave. And the rule system does not depend on a synchronization client continuously noticing and propagating tiny changes.
+
+Cloud storage is excellent for many things. I just don't think every read of a basic operating rule needs to be a cloud-storage problem.
+
+Local does not mean unshared or unprotected.
+
+That is where Git becomes useful.
+
 ## Rules become much more useful when they have history
 
 This is where I introduce Git, even to someone who has no intention of becoming a software developer.
@@ -68,11 +88,31 @@ That is not a random chat history anymore. It is the evolution of a working syst
 
 Git gives that evolution a very simple property: **every meaningful change can have a name and a history.**
 
-Change the rule. Commit it. Push it when it is ready.
+The working loop can stay small:
 
-If the new rule was stupid, you can see exactly what changed.
+```text
+change locally -> try it -> keep improving -> commit when meaningful -> push when ready
+```
+
+The important distinction is that **editing and publishing are not the same operation**.
+
+Your local rules can change while you work. When a change becomes established enough to keep, commit it. When it is ready to share or preserve remotely, push it.
+
+You do not need every keystroke continuously synchronized somewhere merely because synchronization exists.
+
+If the new rule was stupid, Git also tells you exactly what changed.
 
 This is version control applied not only to code, but to **how you work with AI**.
+
+And surprisingly, that idea is not particularly technical.
+
+Everyone's life already contains rules.
+
+How you prepare for a customer meeting. How you write. How you organize expenses. What the AI may do automatically. What it must ask before doing. What "prepare this" means when *you* say it.
+
+Software developers happened to build very good machinery for changing rules carefully because software is full of them.
+
+There is no reason they should be the only people who benefit from it.
 
 ## Then the folders stop looking like folders
 
