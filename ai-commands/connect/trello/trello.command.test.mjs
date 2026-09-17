@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { run } from './trello.command.mjs';
+import { run, serializeResult } from './trello.command.mjs';
 
 const board = '000000000000000000000001';
 const list = '000000000000000000000002';
@@ -22,6 +22,9 @@ test('read uses header credentials and rejects cards on other boards', async () 
   await assert.rejects(run(['read', 'AbCd1234'], config, env,
     async () => ({status: 200, json: async () => ({idBoard: '000000000000000000000009'})})),
   /CARD_OUT_OF_SCOPE/);
+  await assert.rejects(run(['read', 'AbCd1234'], config, env,
+    async () => ({status: 200, json: async () => ({idBoard: board,
+      idList: '000000000000000000000099'})})), /CARD_OUT_OF_SCOPE/);
 });
 
 test('missing credentials, malformed card, auth failure and offline access fail closed', async () => {
@@ -47,10 +50,67 @@ test('credential values never enter results or error messages', async () => {
     async () => ({status: 200, json: async () => ({id: 'card', name: 'Safe',
       desc: 'ordinary card', idBoard: board, idList: list})}));
   assert.doesNotMatch(JSON.stringify(result), /privateKey123|privateToken456/);
+  assert.equal(serializeResult({description: 'privateToken456 and privateKey123'}, secretEnv),
+    '{"description":"[REDACTED] and [REDACTED]"}\n');
   try {
     await run(['status'], config, secretEnv, async () => { throw Error('privateToken456'); });
     assert.fail('offline request must fail');
   } catch (error) {
     assert.equal(error.message, 'PROVIDER_UNREACHABLE');
   }
+});
+
+test('create checks destination list and returns only bounded card metadata', async () => {
+  const calls = [];
+  const fetcher = async (url, options) => {
+    calls.push({url, options});
+    if (options.method === 'GET') return {status: 200, json: async () => ({id: list, idBoard: board, closed: false})};
+    return {status: 200, json: async () => ({id: '000000000000000000000009', idBoard: board,
+      idList: list, name: 'Task', url: 'https://trello.com/c/AbCd1234'})};
+  };
+  const result = await run(['create', 'backlog', 'Task', 'Detail'], config, env, fetcher);
+  assert.equal(result.list_id, list);
+  assert.equal(calls[0].options.method, 'GET');
+  assert.equal(calls[1].options.method, 'POST');
+  assert.equal(new URLSearchParams(calls[1].options.body).get('idList'), list);
+  assert.equal(new URLSearchParams(calls[1].options.body).get('name'), 'Task');
+  assert.ok(!calls[1].url.includes(env.TRELLO_API_TOKEN));
+  await assert.rejects(run(['create', 'backlog', 'Task'], config, env,
+    async () => ({status: 200, json: async () => ({id: list, idBoard: '000000000000000000000099'})})),
+  /LIST_OUT_OF_SCOPE/);
+});
+
+test('updates, moves, comments and checklists require an in-scope open card', async () => {
+  const id = '000000000000000000000010';
+  const checklistId = '000000000000000000000011';
+  const itemId = '000000000000000000000012';
+  const calls = [];
+  const fetcher = async (url, options) => {
+    calls.push({url, options});
+    let data;
+    if (url.includes('/checkItem/')) data = {id: itemId, state: 'complete'};
+    else if (url.includes('/checkItems') && options.method === 'POST') data = {id: itemId};
+    else if (url.includes('/checklists') && options.method === 'POST') data = {id: checklistId, idCard: id};
+    else if (url.includes('/checklists?')) data = [{id: checklistId, idCard: id, checkItems: [{id: itemId}]}];
+    else if (url.includes('/actions/comments')) data = {id: '000000000000000000000013'};
+    else if (options.method === 'PUT' && new URLSearchParams(options.body).has('idList')) data =
+      {id, idBoard: board, idList: config.lists.done};
+    else if (options.method === 'PUT') data = {id, idBoard: board, idList: list, name: 'New'};
+    else if (url.includes('/lists/')) data = {id: config.lists.done, idBoard: board, closed: false};
+    else data = {id, idBoard: board, idList: list, closed: false};
+    return {status: 200, json: async () => data};
+  };
+  assert.equal((await run(['update', id, 'name', 'New'], config, env, fetcher)).name, 'New');
+  assert.equal((await run(['move', id, 'done'], config, env, fetcher)).state, 'done');
+  assert.equal((await run(['comment', id, 'Note'], config, env, fetcher)).card_id, id);
+  assert.equal((await run(['checklist-add', id, 'Checks'], config, env, fetcher)).checklist_id, checklistId);
+  assert.equal((await run(['checkitem-add', id, checklistId, 'Item'], config, env, fetcher)).item_id, itemId);
+  assert.equal((await run(['checkitem-set', id, checklistId, itemId, 'complete'], config, env, fetcher)).state, 'complete');
+  assert.ok(calls.filter(call => call.options.method === 'GET' && call.url.includes(`/cards/${id}?`)).length >= 6);
+  let writes = 0;
+  await assert.rejects(run(['comment', id, 'Note'], config, env, async (url, options) => {
+    if (options.method !== 'GET') writes++;
+    return {status: 200, json: async () => ({id, idBoard: '000000000000000000000099', idList: list})};
+  }), /CARD_OUT_OF_SCOPE/);
+  assert.equal(writes, 0);
 });
