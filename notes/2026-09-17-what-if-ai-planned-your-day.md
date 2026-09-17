@@ -1,42 +1,104 @@
-# What If AI Planned Your Day?
+# I Asked AI to Plan My Day. It Told Me to Go Back to Bed.
 
 > “It is not that we have a short time to live, but that we waste a lot of it.”
 >
 > — Seneca, *On the Shortness of Life*
 
-Most conversations about adopting AI start with work.
+This morning my watch said I had slept **4 hours and 20 minutes**.
 
-Can it write an email? Summarize a meeting? Prepare a presentation? Search documents? Generate code?
+Not ideal.
 
-Those are useful questions. But they still treat AI as a tool that waits for a task.
+My first instinct was still completely predictable: look at the day, find the empty spaces, and put work into them.
 
-There is another possibility that is much less dramatic and, for many people, may be more useful:
+There was professional preparation to do. There were my own projects. There was an article I wanted to write. The dog needed walking. The house was waking up. And somewhere inside all of that I was apparently supposed to recover from sleeping four hours.
 
-**What if AI helped you decide how to use the day itself?**
+So I asked AI a different question from the usual ones.
 
-This morning I had a very ordinary problem. I had slept badly. There was work to do, some professional preparation, personal projects I wanted to advance, a dog to walk, and the usual temptation to pretend that every empty hour on the calendar was available for productive work.
+Not *write this email*.
 
-So I asked my AI assistant to help plan the day.
+Not *summarize this document*.
 
-It looked at the commitments already on my calendar, the sleep information I had given it, and the goals I am trying to pursue. We protected a recovery nap, kept two preparation blocks, reserved some useful work time, and—more importantly—kept an explicit boundary at the end of the day.
+I asked:
 
-That led to a more interesting question.
+**What should I actually do today?**
 
-Why should this be an improvised conversation every morning?
+It read the commitments already on my calendar. It knew what I am trying to achieve. It had the sleep number I had just given it.
 
-## The methodology already exists
+And then it did something rather useful.
 
-The basic idea is not new and should not be presented as an AI invention.
+It put a nap on my calendar.
 
-**Time blocking** means assigning important work to explicit blocks of time instead of running the day from an endless to-do list.
+From 1:30 to 3:00.
 
-**Fixed-schedule productivity** adds another constraint: decide when serious work ends, then fit the work inside that boundary rather than allowing unfinished work to consume the evening indefinitely. Cal Newport is a well-known modern advocate of both ideas.
+It kept the important preparation blocks. It protected some time for work on my own goals. And it kept the evening boundary I have been trying to establish: stop turning an interesting problem into a midnight problem.
 
-The AI does not need to invent a new philosophy of productivity. It can help apply an established one to the messy reality of a particular day.
+Looking at the calendar, I realized that the interesting part was not the nap.
 
-That distinction matters.
+The interesting part was that I had asked AI to manage **scarcity**.
 
-A fixed calendar says:
+My scarcity.
+
+## We usually give AI the wrong-sized problem
+
+Most AI adoption starts one task at a time.
+
+Write this.
+
+Summarize that.
+
+Prepare these slides.
+
+Find something in this contract.
+
+Draft a reply to this customer.
+
+All useful. But imagine a salesperson with six customer conversations, three internal meetings, twenty-seven emails, a family waiting at home, and one genuinely important account that needs careful preparation.
+
+Making every email 30 percent faster does not answer the most important question:
+
+**What deserves the good hour?**
+
+That is a different problem.
+
+A calendar can tell you where meetings are.
+
+A to-do list can tell you what remains undone.
+
+Neither necessarily remembers *why* you said one thing mattered more than another.
+
+An AI that knows your goals potentially can.
+
+## Fortunately, AI doesn't need to invent productivity
+
+Once I started thinking about this, I realized that the scheduling method itself was not particularly futuristic.
+
+It already has names.
+
+**Time blocking** means giving important work actual blocks of time instead of trusting an infinite to-do list.
+
+**Fixed-schedule productivity**, a term associated with Cal Newport, adds a useful constraint: decide when serious work ends and make the work fit inside the day.
+
+That second part matters to me.
+
+My natural failure mode is not refusing to work.
+
+It is the opposite.
+
+An interesting problem expands. Dinner gets later. The computer stays open. Midnight arrives. Tomorrow quietly pays the bill.
+
+A fixed boundary changes the question from:
+
+> How much can I finish?
+
+into:
+
+> I have these hours. What is worth putting inside them?
+
+AI didn't invent that idea. It can simply make the idea easier to follow when Tuesday refuses to behave like the Tuesday you planned.
+
+## The calendar should be the output, not the brain
+
+A rigid calendar looks something like this:
 
 ```text
 09:00–10:00  Work
@@ -44,155 +106,153 @@ A fixed calendar says:
 12:00–13:00  Lunch
 ```
 
-A planning strategy asks something different:
+Useful, until life happens.
+
+A better planning conversation sounds more like this:
 
 ```text
-What matters today?
-What commitments are already fixed?
-When am I likely to have my best attention?
-What should receive that attention?
-When does serious work stop?
-What changed since the plan was made?
+What am I trying to achieve?
+What is already committed?
+When do I usually think clearly?
+What deserves that time?
+How much capacity do I actually have today?
+When does work stop?
 ```
 
-The calendar becomes an output of the reasoning rather than the entire system.
+Then the calendar comes afterward.
 
-## Give the AI goals, not just tasks
+That distinction became the basis for a small experiment in [AI Fleas](https://github.com/starodubtsevconsulting/ai-fleas), where I have been building a **Personal Governor**.
 
-Suppose someone works in sales.
+The name sounds grander than the job.
 
-Their calendar may already contain customer calls, internal meetings, travel, follow-ups, and administrative work. Then they start using AI and naturally ask it to make those individual activities faster.
+The Governor is not supposed to run my life. I choose the goals. I can override it whenever I want.
 
-That is useful, but it leaves a bigger optimization problem untouched.
+Its job is to remember the decisions I already made when today's distractions start negotiating against them.
 
-Perhaps the person's actual goals are:
-
-- keep existing customers healthy;
-- create new qualified opportunities;
-- improve knowledge of a market;
-- protect enough energy to be effective with people;
-- spend more time with family;
-- learn how to use AI without turning AI adoption into another full-time project.
-
-Now an assistant can reason about the day in relation to those goals.
-
-A free hour is no longer automatically "more email." It might be the best available hour for preparing an important customer conversation. Or it may be deliberately left alone because the person has three demanding meetings later.
-
-This is where AI starts moving from **task acceleration** toward **personal coordination**.
-
-## Strategy, profile, evidence, calendar
-
-In [AI Fleas](https://github.com/starodubtsevconsulting/ai-fleas), I am experimenting with a Personal Governor: an agent above individual workflows whose job is not to do all the work, but to help preserve the human's chosen goals when projects, obligations, opportunities, fatigue, and interesting distractions compete for attention.
-
-For day planning, the model is deliberately simple:
+For planning a day, the model is almost boringly simple:
 
 ```mermaid
 flowchart LR
-    G[Human goals] --> P[Personal Governor]
-    S[Day-planning strategy] --> P
-    R[Personal profile] --> P
-    E[Today's evidence] --> P
-    C[Existing commitments] --> P
+    G[My goals] --> P[Personal Governor]
+    S[Planning strategy] --> P
+    R[My preferences and constraints] --> P
+    E[What happened today] --> P
+    C[Calendar commitments] --> P
     P --> D[Today's plan]
     D --> K[Calendar]
-    D --> V[Later review]
-    V --> E
 ```
 
-The **strategy** is reusable. For example: fixed-schedule time blocking.
+The strategy can be reusable.
 
-The **profile** is personal. One person may work best early in the morning. Another may do their best work at night. One has children waking at 06:30; another works with customers across several time zones. Those details should not be baked into a universal productivity method.
+The human cannot.
 
-The **evidence** belongs to today. Poor sleep, an unexpected meeting, a sick child, an unusually demanding customer call, or simply a plan that took twice as long as expected can change the allocation without changing the person's long-term goals.
+Someone else may do their best thinking at 10 p.m. I may discover that I am much better at 7 a.m. A parent with small children has a different day from a salesperson covering Asia and North America.
 
-The **calendar** is where the resulting commitments become concrete.
+So the method stays general while the schedule stays personal.
 
-## A bad day should not rewrite your life
+## Then there are days like today
 
-This morning was a useful example because the sleep was unusually short.
+Four hours and twenty minutes of sleep should not cause a philosophical crisis.
 
-The wrong conclusion would be:
+It also should not be ignored because the calendar says "work."
 
-> I am tired, therefore my goals are wrong.
+So I added another small idea to the Governor: a temporary **recovery-constrained** mode.
 
-Another bad conclusion would be:
+Nothing medical. Nothing mystical. And certainly not "my watch says 65, therefore an algorithm knows my body."
 
-> I am tired, but the plan says eight productive hours, so I should force eight productive hours anyway.
+It means something simpler:
 
-Instead I added a temporary **recovery-constrained** mode to the Personal Governor design.
+When the evidence says today's capacity is unusually poor, stop pretending this is an ordinary day.
 
-It is not a medical diagnosis and it should not blindly trust one number from a watch. It is simply a planning rule: when the available evidence says capacity is materially lower than normal, reduce demanding allocation, protect recovery, keep essential commitments where possible, and do not "recover" lost hours by stealing them from tonight's sleep.
+Keep what matters. Reduce demanding work. Make recovery explicit. Reassess later.
 
-Tomorrow the underlying strategy can remain exactly the same.
+Most importantly, don't try to win the hours back at midnight.
 
-## The AI should negotiate with reality
+Tomorrow's goals remain the same.
 
-Time blocking is sometimes misunderstood as creating a beautiful calendar in the morning and then feeling guilty when reality destroys it by 10:17.
+Today's allocation changes.
 
-That is not very useful.
+That separation seems obvious once written down. Humans are surprisingly good at forgetting it at 11:47 p.m.
 
-A better loop is:
+## The plan is allowed to lose
+
+There is another problem with productivity systems: reality doesn't care about them.
+
+A customer calls.
+
+A meeting runs long.
+
+Your "quick" task contains a small archaeological site.
+
+Your child needs you.
+
+The two-hour job takes five hours.
+
+A useful AI planner should not spend the rest of the day pointing accusingly at the beautiful schedule it made at breakfast.
+
+It should re-plan.
 
 ```text
 plan → execute → observe → re-plan → review
 ```
 
-A customer calls unexpectedly. A meeting runs long. You discover that a task needs three hours rather than one. You are more tired than expected.
+That is where this gets more interesting over time.
 
-The assistant should re-plan the remaining day rather than pretending the original schedule still exists.
+Suppose I keep scheduling difficult work at 4 p.m. and keep avoiding it. Maybe I don't need more discipline. Maybe 4 p.m. is a stupid time for me to schedule difficult work.
 
-Over time it can also notice patterns.
+Suppose "one quick thing before bed" repeatedly becomes two hours. That phrase is now data.
 
-If you repeatedly schedule strategic work at 16:00 and repeatedly fail to do it, that is evidence. Maybe 16:00 is a poor time for that kind of work. If every "quick" administrative block becomes ninety minutes, the planning assumption is wrong. If late-night work repeatedly damages the next morning, the cost belongs in tomorrow's planning model too.
+Suppose a salesperson discovers that the hour before the first customer call consistently produces better preparation than clearing the inbox does. Protect it.
 
-The interesting part is not that AI can fill a calendar.
+The system should gradually learn the difference between the person we imagine in our plans and the person who actually shows up every day.
 
-Google Calendar has been able to hold appointments for decades.
+## You don't need my system to try this
 
-The interesting part is that an AI can maintain the connection between **why you said something matters** and **where your time is actually going**.
+This is the part I would actually send to a friend who is curious about AI but has no interest in building agents.
 
-## Start much smaller
+Don't install anything.
 
-You do not need an autonomous agent system, wearable integration, local models, or a home server to try this idea.
+Don't build a Personal Governor.
 
-You can start with an ordinary AI assistant and an ordinary calendar.
+Don't buy a server.
 
-Tell it:
+Take the AI assistant you already use and tell it something like:
 
 ```text
-These are my three current goals.
-These are the commitments already on my calendar today.
-I want serious work to stop at 17:00.
-My best concentration is usually in the morning.
-Help me time-block the day.
+These are the three things that matter most to me right now.
+Here is what is already on my calendar today.
+I want serious work to end at 17:00.
+I usually concentrate best in the morning.
+
+Help me time-block today around those constraints.
 Leave real breaks and some slack.
-If the day changes, help me re-plan the remaining blocks rather than extending the workday.
+If the day changes, help me re-plan what remains instead of extending the workday.
 ```
 
-Then come back when reality changes.
+Try it for a week.
 
-After a week, ask a more useful question than "Was I productive?"
+Then don't ask whether AI made you "more productive."
 
-Ask:
+Ask something harder:
 
-**Did my calendar increasingly reflect what I said was important?**
+**Did my time start looking more like my priorities?**
 
-That is a small AI-adoption experiment. It requires almost no infrastructure, and if it does not help, stop doing it.
+If the answer is no, throw the experiment away.
 
-If it does help, then you can gradually add memory, recurring strategies, calendar access, health/activity signals, or specialized agents.
+If the answer is yes, then perhaps add memory. Let it see the calendar. Give it recurring rules. Maybe connect activity or health information if that is useful to you.
 
-## AI adoption does not have to begin with automation
+Start with the problem, not the infrastructure.
 
-There is a tendency to make AI adoption sound like a technology transformation project.
+## My calendar now contains a nap
 
-For a company, sometimes it is.
+This article itself became part of the experiment.
 
-For an individual, it can begin with a conversation on Thursday morning:
+I was already working on the Personal Governor. The strange little morning problem—four hours of sleep, too many things I wanted to do, and a calendar pretending that empty space meant energy—turned into a reusable day-planning strategy.
 
-> Here is what I am trying to achieve. Here is what today looks like. Help me use it better.
+Then the strategy turned into this article.
 
-The AI may draft an email afterward. It may prepare a customer brief or summarize a document.
+At 1:30, however, the article loses.
 
-But perhaps the more important contribution happened before any of those tasks.
+There is already something else on the calendar.
 
-It helped decide **which task deserved the hour in the first place**.
+**Sleep.**
