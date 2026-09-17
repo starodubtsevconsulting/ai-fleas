@@ -317,6 +317,19 @@ grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/reinitialize-output"
 grep -F 'Hermes bot ready: example-dev-coder' "${test_root}/reinitialize-output" >/dev/null
 [[ "$(grep -Ec '^example-dev-(admin|coder)$' "${HERMES_TEST_STATE}")" -eq 2 ]]
 "${COMMAND}" status example-dev-admin | grep -F 'HERMES_READY' >/dev/null
+cat >"${HERMES_HOME}/profiles/example-dev-admin/config.yaml" <<'YAML'
+providers:
+  example-box:
+    extra_headers:
+      CF-Access-Client-Id: ${env:TEST_CF_ACCESS_CLIENT_ID}
+      CF-Access-Client-Secret: ${env:TEST_CF_ACCESS_CLIENT_SECRET}
+YAML
+if env -u TEST_CF_ACCESS_CLIENT_SECRET HERMES_PYTHON_BIN="${receipt_python}" "${COMMAND}" status example-dev-admin >"${test_root}/status-missing-header" 2>&1; then
+  printf '%s\n' 'Protected Hermes status unexpectedly succeeded without its secret' >&2
+  exit 1
+fi
+grep -F 'HERMES_STATUS_HEADER_UNAVAILABLE' "${test_root}/status-missing-header" >/dev/null
+HERMES_PYTHON_BIN="${receipt_python}" "${COMMAND}" status example-dev-admin | grep -F 'HERMES_READY' >/dev/null
 "${COMMAND}" delete throwaway --confirm-delete | grep -F 'HERMES_PROFILE_DELETED: throwaway' >/dev/null
 if "${COMMAND}" delete-workflow --work-profile example --workflow dev --project service >"${test_root}/delete-without-confirm" 2>&1; then
   printf '%s\n' 'delete-workflow unexpectedly succeeded without confirmation' >&2

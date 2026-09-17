@@ -465,8 +465,36 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
       printf 'HERMES_INVALID_INPUT: profile=%s; configured model endpoint is not a valid HTTP(S) URL.\n' "${profile}" >&2
       exit 1
     }
+    profile_config="${HERMES_HOME:-${HOME}/.hermes}/profiles/${profile}/config.yaml"
+    if [[ -f "${profile_config}" ]]; then
+      resolved_status_headers_b64="$(HERMES_STATUS_CONFIG="${profile_config}" HERMES_STATUS_PROVIDER="${provider}" "${PYTHON_BIN}" - <<'PY'
+import base64
+import json
+import os
+from pathlib import Path
+import re
+import sys
+import yaml
+
+config = yaml.safe_load(Path(os.environ['HERMES_STATUS_CONFIG']).read_text()) or {}
+provider = (config.get('providers') or {}).get(os.environ['HERMES_STATUS_PROVIDER']) or {}
+references = provider.get('extra_headers') or {}
+headers = {}
+for name, reference in references.items():
+    match = re.fullmatch(r'\$\{env:([A-Z][A-Z0-9_]*)\}', reference) if isinstance(reference, str) else None
+    if not match or not os.environ.get(match.group(1)):
+        print('HERMES_STATUS_HEADER_UNAVAILABLE: protected endpoint header is missing; run status through the bound secrets consumer.', file=sys.stderr)
+        raise SystemExit(2)
+    headers[name] = os.environ[match.group(1)]
+print(base64.b64encode(json.dumps(headers).encode()).decode())
+PY
+)"
+    else
+      resolved_status_headers_b64='e30='
+    fi
     HERMES_PROFILE="${profile}" HERMES_PROVIDER_ID="${provider}" HERMES_PROVIDER_LABEL="${provider}" \
       HERMES_MODEL="${model}" HERMES_ENDPOINT="${endpoint}" HERMES_WORKSPACE="${workspace}" HERMES_GROUP='' \
+      HERMES_EXTRA_HEADERS_B64="${resolved_status_headers_b64}" \
       "${SETUP_SCRIPT}" --validate-only >/dev/null
     printf 'HERMES_READY\nProfile: %s\nProvider: %s\nModel: %s\nEndpoint: %s\nWorkspace: %s\n' \
       "${profile}" "${provider}" "${model}" "${endpoint%/}" "${workspace}"

@@ -149,7 +149,7 @@ for tunnel/application ownership, service-token creation, naming, policy attachm
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
 | `list` | List existing Hermes profiles. |
 | `show PROFILE` | Inspect one exact profile. |
-| `status PROFILE` | Verify its provider, model endpoint, advertised model, and workspace. |
+| `status PROFILE` | Verify its provider, model endpoint, advertised model, and workspace. For a protected remote endpoint, run `secrets run hermes-agents -- status PROFILE` so the configured header references resolve from the selected secret binding. Missing headers fail closed. |
 | `delete PROFILE --confirm-delete` | Delete one exact non-default profile after explicit confirmation. |
 | `delete-workflow --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] --confirm-delete` | Resolve the exact workflow roster, remove every declared role profile, and tombstone its Hermes group so it cannot be reconstructed from profile metadata. |
 
