@@ -1,24 +1,18 @@
 # The New Way of Work Starts With Rules
 
-The first time I help someone move beyond casual AI chat, I usually hit the same problem.
+This morning I am sitting in a park with a coffee, watching a plane go by.
 
-They have already used AI.
+And I am changing the rules of how my AI works with me.
 
-They have asked questions. Written emails. Summarized things. Maybe generated a presentation.
+Not starting another random chat. Not trying to remember how I explained something yesterday. I am looking at rules I already have, making them a little better, and keeping the useful changes.
 
-Then, sooner or later, they say some version of:
+That, increasingly, is what AI adoption means to me.
 
-> I already told it that.
+It starts when you stop saying:
 
-That sentence is where AI adoption gets interesting.
+> I already told you that.
 
-The problem is often not that the AI cannot follow a rule.
-
-The problem is that the rule lived in yesterday's conversation.
-
-So I have started explaining a different way of working with AI. It begins with something surprisingly old-fashioned:
-
-**write the rules down.**
+and start turning the important things you repeatedly tell AI into **rules that survive the conversation**.
 
 ## Give the AI a front door
 
@@ -28,155 +22,140 @@ You probably have a few rules.
 
 Leave your shoes here. Wash your hands. Don't let the dog out. Be polite to the neighbours.
 
-You would not explain the architecture of the house first. You would give them the small set of rules they need when they walk through the door.
+You don't explain the architecture of the house first. You give them the small set of rules they need when they walk through the door.
 
 An AI workspace needs something similar.
 
-In software-agent tools this is often an `AGENTS.md` file or an equivalent instruction file. The name is less important than the job.
+There is usually one small file at the entrance. In many AI tools it is called something like `AGENTS.md`. The name doesn't matter much.
 
 I think of it as the **front door**.
 
-It tells the AI how to behave when it enters this workspace: where things are, which rules outrank others, what a phrase means here, what it may change, and what it must not assume.
+It says, in effect: when you enter this house, this is how things work. If I say this, I mean that. Here is where to find the other rules. Here is what you can do without asking. Here is where you should stop and ask me.
 
-Then the rest of the house can have rooms.
+Then the house can have rooms.
 
-A work profile can contain work-specific context and rules. A personal profile can contain different ones. A workflow folder can describe how a recurring activity is done. One workflow might be sales preparation. Another might be writing. Another might be bookkeeping.
+One place for work. One for personal life. Separate places for things you do repeatedly: writing, preparing for customers, bookkeeping, planning the day, whatever matters to you.
 
-You do not need to teach the AI your whole life every morning.
+You don't need to explain your whole life to AI every morning.
 
 You teach it how to find the right rules.
 
-## Why not just put the rules in Google Drive?
+## Why not keep everything in Google Drive?
 
-That is a reasonable question.
+You can.
 
-You can store text almost anywhere: Google Drive, OneDrive, Dropbox, a wiki, a notes application.
+But I prefer the rules the AI uses all the time to have a **local working copy** on the computer.
 
-But rules are different from documents you occasionally open and read.
+They are tiny text files. They should be boringly fast to open. They should still be there when the internet is slow. Reading a basic rule should not require reaching into the cloud every time.
 
-The AI may need them constantly.
+Then, when the rules are ready, I update a common repository so I can reach the established version from my other devices too.
 
-So I prefer the working copy to be **local**: ordinary small text files sitting beside the work they govern.
+Software developers have been doing something like this for years with tools such as Git and GitHub.
 
-They open immediately. They still exist when connectivity is poor. An agent does not need a cloud round trip just to discover how it is supposed to behave. And the rule system does not depend on a synchronization client continuously noticing and propagating tiny changes.
+The terminology can sound intimidating. The basic idea isn't.
 
-Cloud storage is excellent for many things. I just don't think every read of a basic operating rule needs to be a cloud-storage problem.
+You have your working copy.
 
-Local does not mean unshared or unprotected.
+You change it.
 
-That is where Git becomes useful.
+You try the change.
 
-## Rules become much more useful when they have history
+When it becomes useful enough to keep, you save that meaningful version to the history.
 
-This is where I introduce Git, even to someone who has no intention of becoming a software developer.
+When it is ready, you send it to the shared repository.
 
-Not because everyone needs to learn programming.
+That's basically it.
 
-Because rules change.
+The shared repository is not constantly deciding what your newest half-formed thought means. You decide when a change has become part of the system.
 
-Today you tell the AI:
+## Your life already has rules
 
-> Always summarize a customer call after the meeting.
+This is the part I think is easy to miss because Git and GitHub are associated with programmers.
 
-Next week you realize that is not enough:
+But programmers didn't invent rules.
 
-> Summarize the call, extract commitments, and put follow-ups into the task system.
+Everyone has them.
 
-Later you discover that some follow-ups should not be created automatically.
+How do you prepare before talking to an important customer?
 
-That is not a random chat history anymore. It is the evolution of a working system.
+How do you answer an email when you're angry?
 
-Git gives that evolution a very simple property: **every meaningful change can have a name and a history.**
+How do you write something other people might actually read?
 
-The working loop can stay small:
+What should AI do automatically, and what should it always ask you about?
 
-```text
-change locally -> try it -> keep improving -> commit when meaningful -> push when ready
-```
+What does "prepare this for me" mean when *you* say it?
 
-The important distinction is that **editing and publishing are not the same operation**.
+Most of these rules are currently in our heads. Some are in company procedures. Some are scattered through notes. And increasingly, some are trapped inside old AI conversations.
 
-Your local rules can change while you work. When a change becomes established enough to keep, commit it. When it is ready to share or preserve remotely, push it.
+Once you start pulling the useful ones out and making them explicit, something changes.
 
-You do not need every keystroke continuously synchronized somewhere merely because synchronization exists.
+AI stops being a clever stranger you brief from scratch.
 
-If the new rule was stupid, Git also tells you exactly what changed.
+It starts becoming part of a working system that you improve.
 
-This is version control applied not only to code, but to **how you work with AI**.
+## The rules are never finished
 
-And surprisingly, that idea is not particularly technical.
+Yesterday you might write:
 
-Everyone's life already contains rules.
+> After a customer meeting, prepare a summary.
 
-How you prepare for a customer meeting. How you write. How you organize expenses. What the AI may do automatically. What it must ask before doing. What "prepare this" means when *you* say it.
+After using it a few times, you realize what you actually want:
 
-Software developers happened to build very good machinery for changing rules carefully because software is full of them.
+> Prepare a short summary, list what we promised, and remind me about the follow-ups.
 
-There is no reason they should be the only people who benefit from it.
+Then you discover one part is annoying and change it again.
 
-## Then the folders stop looking like folders
+This is normal.
 
-At first, a structure like this can look unnecessarily technical:
+You are not writing commandments in stone. You are discovering how you want to work.
 
-```text
-AGENTS.md
-profiles/
-  work/
-  personal/
-workflows/
-  sales/
-  writing/
-  bookkeeping/
-```
+A useful rule gets hardened.
 
-But the folders are not the point.
+A bad rule gets removed.
 
-The point is separation.
+Two repetitive rules get combined.
 
-The AI should not need your bookkeeping rules when helping prepare a sales call. Your personal routines should not accidentally become instructions for a work project. A writing workflow should be reusable without copying it into twenty chats.
+A complicated rule gets simplified.
 
-Gradually, those files become an external operating system for the relationship between you and AI.
+Something that belongs only to work moves into the work area. Something personal stays personal.
 
-Not one giant prompt.
+Little by little, the system starts resembling you.
 
-Not one magical agent.
-
-A collection of small rules that improve as you discover what actually works.
-
-## This is where adoption starts for me
+## This is the new way of work
 
 I used to think AI adoption mostly meant learning what the models could do.
 
-I increasingly think that is only the first stage.
+Write an email. Summarize a document. Make a presentation. Search something faster.
 
-The bigger change happens when you stop treating every conversation as a fresh conversation.
+Those things are useful, but they are still individual tricks.
 
-You start building continuity.
+The bigger change starts when today's useful discovery survives until tomorrow.
 
-A rule survives the chat where you invented it.
+A rule survives the chat where you discovered it.
 
-A workflow improves after it fails.
+A repeated activity becomes a workflow.
 
-A profile lets the same AI behave differently in different parts of your life.
+Work and personal life can have different contexts.
 
-A commit tells you when and why the system changed.
+And every so often you look at the system and make it a little better.
 
-And eventually you stop saying:
+You can do that at a desk.
 
-> I already told you that.
+Or, apparently, with a coffee in a park while a plane flies overhead.
 
-because the important things are no longer something you merely **told** the AI.
+You don't need to build the whole system today.
 
-They are part of the system you built around it.
+Start with one irritation:
 
-That is what I mean by a **new way of work**.
+> I keep telling AI the same thing.
 
-It does not begin with autonomous agents replacing everyone.
+Write that thing down as a rule.
 
-It begins much more quietly:
+Use it again tomorrow.
 
-**one useful rule that does not disappear when you close the chat.**
+**That's the beginning.**
 
 ---
 
-If you want to see what happens when those rules start governing the day itself, the companion article is [I Asked AI to Plan My Day. It Told Me to Go Back to Bed.](2026-09-17-what-if-ai-planned-your-day.md)
+Once those rules can preserve goals and preferences, they can also help shape the day itself. That is the experiment behind [I Asked AI to Plan My Day. It Told Me to Go Back to Bed.](2026-09-17-what-if-ai-planned-your-day.md)
