@@ -35,20 +35,30 @@ limited to the intended board, a profile-owned API config, and `secrets run trel
    Check that errors and command output contain no key, token, Authorization header, or credential-bearing URL.
 5. Record the test time, profile/workflow, command result, and token expiry date without recording credential values.
 
+### Bounded write acceptance
+
+After the selected profile explicitly declares write operations and the workflow authorizes the exact effect, use a
+designated in-scope acceptance card. Run one credential-free `comment` or other approved harmless write through
+`secrets run trello`, then exact-read the card or inspect its action history to verify the effect. Check that an
+out-of-scope card and an unconfigured destination list are blocked before any write request. Record the card ID,
+operation, time, and result, never the key or token. Repeat one authorized read and write from the target harness,
+such as a local Hermes agent, before claiming harness-level acceptance. A direct command call alone does not prove
+the agent's workflow binding and execution path.
+
 ## Trello Auth token renewal
 
-Trello Auth supports `1hour`, `1day`, `30days`, and `never` expiration values; it does **not** offer 90 days. A
-30-day token needs renewal before expiry. If the operator chooses `never` to avoid monthly outages, set a separate
-90-day rotation reminder and revoke each superseded token after the replacement passes acceptance. The dedicated
-account must remain limited to the intended board: a Trello token can read every board that account can access now or
-later. The command's board check limits its output but is not a provider-side permission boundary.
+Trello Auth supports `1hour`, `1day`, `30days`, and `never` expiration values; it does **not** offer 90 days. Select
+the lifetime required by the profile. A 30-day token needs renewal before expiry; a `never` token remains valid until
+revoked. Revoke each superseded token after its replacement passes acceptance. The dedicated account must remain
+limited to the intended board: a Trello token can access every board that account can access now or later within its
+granted scopes. The command's board check is not a provider-side permission boundary.
 
 ```mermaid
 flowchart LR
   A[Dedicated Trello account] --> B[Apps Admin: app → Authorization → Trello Auth]
-  B --> C[Copy API key; create read-scope token]
+  B --> C[Copy API key; create profile-approved scope and lifetime]
   C --> D[Infisical: replace token secret]
-  D --> E[secrets run trello: status, card, list]
+  D --> E[secrets run trello: status, card, list, approved write]
   E -->|Pass| F[Revoke old token in Trello account Settings → Applications]
   E -->|Fail| G[Restore prior Infisical version; keep old token active]
 ```
@@ -60,23 +70,24 @@ flowchart LR
    Auth**. Copy its API key if needed. The API secret is for OAuth 1 and is not used by this route. Do not publish the
    app or add collaborators. Do **not** use the page's default **Token** link: it requests `read,write,account` with
    `expiration=never`.
-3. In a browser address bar, construct the authorization URL below with that app's API key. Choose `30days` for an
-   expiring token or `never` only with an explicit rotation reminder. Keep `scope=read` and confirm the consent screen
-   names the dedicated account, says it cannot create/update cards, and shows the intended lifetime. Click **Allow**.
+3. In a browser address bar, construct the authorization URL below with that app's API key. This example requests a
+   nonexpiring `read,write` token for a profile that explicitly authorizes bounded writes. Confirm the consent screen
+   names the dedicated account, says it may read and update cards, and shows access until disabled. Click **Allow**.
 
    ```text
-   https://trello.com/1/authorize?expiration=30days&scope=read&response_type=token&key=<API_KEY>
+   https://trello.com/1/authorize?expiration=never&scope=read,write&response_type=token&key=<API_KEY>
    ```
 
-4. Copy the resulting user token directly to the approved secret store, not to chat, a ticket, Git, or a log. In the
+4. Copy only the resulting user token characters directly to the approved secret store, without the page's label or
+   surrounding whitespace, not to chat, a ticket, Git, or a log. In the
    selected profile's Infisical project, environment, and configured path, update the existing mapped token key.
    Leave the old Trello token valid during verification. Never store the
    API secret in place of the user token.
 5. Repeat the API acceptance checks above. If they fail, restore the previous secret version in Infisical and retest
    before investigating. If they pass, open the dedicated account's [Trello Settings](https://trello.com/u/my/account),
    find **Applications**, and revoke only the superseded grant. Verify the replacement still passes `status`.
-6. Record the new expiry or next rotation date in the operator's reminder system and keep the credential value out of
-   task notes. If a token is exposed, revoke it immediately, then issue and validate a replacement.
+6. Record the selected lifetime and any operator-chosen review date without the credential value. If a token is
+   exposed, account access broadens, or the integration is retired, revoke it and issue a replacement if needed.
 
 See [Trello's authorization guide](https://developer.atlassian.com/cloud/trello/guides/rest-api/authorization/) and
 [token revocation guide](https://support.atlassian.com/trello/docs/revoking-a-trello-token/) for provider controls.
