@@ -20,9 +20,11 @@ Direct provider-read success does not by itself prove that running workflow agen
 
 ## Unattended API acceptance
 
-Use this path only when the profile explicitly selects `execution.transport: api`. It requires a dedicated Trello
-account whose accessible boards are limited to the intended board, a profile-owned API config, and `secrets run trello`
-with Infisical-backed `TRELLO_API_KEY` and `TRELLO_API_TOKEN` injection. The connected Trello app is not used.
+For an operational tracker route, the profile must explicitly select `execution.transport: api`. Before activation,
+the same direct command checks may run in an isolated checkout containing the proposed executable, while the live
+tracker binding stays on its existing route. This requires a dedicated Trello account whose accessible boards are
+limited to the intended board, a profile-owned API config, and `secrets run trello` with Infisical-backed
+`TRELLO_API_KEY` and `TRELLO_API_TOKEN` injection. The connected Trello app is not used by these checks.
 
 1. Run `secrets validate` and `secrets inspect` under the selected profile and workflow. Inspect names and mappings only;
    do not reveal values.
