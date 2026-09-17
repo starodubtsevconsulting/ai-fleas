@@ -329,7 +329,12 @@ if env -u TEST_CF_ACCESS_CLIENT_SECRET HERMES_PYTHON_BIN="${receipt_python}" "${
   exit 1
 fi
 grep -F 'HERMES_STATUS_HEADER_UNAVAILABLE' "${test_root}/status-missing-header" >/dev/null
-HERMES_PYTHON_BIN="${receipt_python}" "${COMMAND}" status example-dev-admin | grep -F 'HERMES_READY' >/dev/null
+HERMES_PYTHON_BIN="${receipt_python}" "${COMMAND}" status example-dev-admin >"${test_root}/status-protected-output" 2>&1
+grep -F 'HERMES_READY' "${test_root}/status-protected-output" >/dev/null
+if grep -F -e 'test-client-id' -e 'test-client-secret' "${test_root}/status-protected-output" >/dev/null; then
+  printf '%s\n' 'Protected Hermes status exposed a header value' >&2
+  exit 1
+fi
 "${COMMAND}" delete throwaway --confirm-delete | grep -F 'HERMES_PROFILE_DELETED: throwaway' >/dev/null
 if "${COMMAND}" delete-workflow --work-profile example --workflow dev --project service >"${test_root}/delete-without-confirm" 2>&1; then
   printf '%s\n' 'delete-workflow unexpectedly succeeded without confirmation' >&2
