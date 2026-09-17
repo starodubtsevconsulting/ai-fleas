@@ -62,6 +62,8 @@ commands:
     config: commands-config/source-control/config.yml
   - id: medium
     config: commands-config/medium/config.yml
+  - id: tts
+    config: commands-config/tts/config.yml
   - id: obsidian
     config: commands-config/obsidian/config.yml
   - id: show-context
@@ -200,6 +202,9 @@ workflows:
         command: tts
         voice_profile: narrator
         autoplay: true
+        online_synthesis:
+          service: speech.platform.bing.com
+          default_for_publication_intended_articles: true
     editors:
       - id: obsidian
         command: obsidian

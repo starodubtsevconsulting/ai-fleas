@@ -91,6 +91,7 @@ Workflows and profiles should continue to reference the logical command ID `tts`
 - `--allow-fallback`: allow `espeak-ng` fallback (`WHISPER_REQUIRE_NEURAL=0`)
 - `--timeout <sec>`: override `WHISPER_TTS_TIMEOUT_SEC` for this run
 - `--voice-profiles-dir <dir>`: directory containing `narrator.json`, `maria.json`, `robert.json`
+- `--voice-profile <name>`: select `narrator`, `maria`, or `robert` for unlabeled narration text (default: `narrator`)
 - `--list-voice-profiles`: print available JSON voice profiles
 - `--compiled-text-out <path>`: write the intermediate compiled speaker script
 - `--input-is-compiled`: skip AI compile and treat `--text-file` as already speaker-labeled

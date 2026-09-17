@@ -200,6 +200,11 @@ The writing workflow may set `review_preferences.default_template` (relative to 
 `high`, `normal`, and `low`; the effective article brief may mark a method `not_applicable` with a reason or change
 its emphasis for the actual article type. The Reviewer uses the selected template and methods, not a universal
 rubric or an aggregate score. These preferences do not grant an agent role or publication authority.
+The same `review_preferences` mapping may independently set `listen_through` with `enabled`, an authorized `tts`
+command, a catalog `voice_profile`, and `autoplay`. A listen-through setting does not require editorial template or
+method defaults. `listen_through.online_synthesis` may record the human author's approved external `service` and
+`default_for_publication_intended_articles: true`. That default covers articles the human intends to publish publicly,
+including unpublished review drafts; other content still needs a separate decision before its text is sent to the service.
 
 ## Credentials and sensitive configuration
 

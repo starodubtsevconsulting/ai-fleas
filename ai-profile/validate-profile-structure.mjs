@@ -78,14 +78,42 @@ for (const workflow of profile.workflows) {
 
   if (workflow.review_preferences) {
     const review = workflow.review_preferences;
-    assert.ok(typeof review.default_template === 'string' && review.default_template.length > 0,
-      `${scope}: review default template is missing`);
-    assert.ok(review.method_emphasis && typeof review.method_emphasis === 'object' &&
-      !Array.isArray(review.method_emphasis) && Object.keys(review.method_emphasis).length > 0,
-      `${scope}: review method emphasis is missing`);
-    for (const [method, emphasis] of Object.entries(review.method_emphasis)) {
+    if (review.default_template !== undefined) {
+      assert.ok(typeof review.default_template === 'string' && review.default_template.length > 0,
+        `${scope}: invalid review default template`);
+    }
+    if (review.method_emphasis !== undefined) {
+      assert.ok(review.method_emphasis && typeof review.method_emphasis === 'object' &&
+        !Array.isArray(review.method_emphasis) && Object.keys(review.method_emphasis).length > 0,
+        `${scope}: invalid review method emphasis`);
+    }
+    for (const [method, emphasis] of Object.entries(review.method_emphasis ?? {})) {
       assert.ok(['high', 'normal', 'low'].includes(emphasis),
         `${scope}: invalid review emphasis for ${method}`);
+    }
+    if (review.listen_through !== undefined) {
+      const listen = review.listen_through;
+      assert.equal(typeof listen.enabled, 'boolean', `${scope}: invalid listen-through enabled value`);
+      assert.equal(listen.command, 'tts', `${scope}: unsupported listen-through command`);
+      assert.ok(workflow.commands?.includes(listen.command), `${scope}: listen-through command is not enabled`);
+      assert.ok(profileCommandIds.has(listen.command), `${scope}: listen-through command is not profile-bound`);
+      assert.ok(typeof listen.voice_profile === 'string' && listen.voice_profile.length > 0,
+        `${scope}: invalid listen-through voice profile`);
+      assert.match(listen.voice_profile, /^[a-z][a-z0-9-]*$/,
+        `${scope}: unsafe listen-through voice profile`);
+      assert.ok(fs.existsSync(path.resolve(profileDir, profile.ai_commands_root,
+        'content/tts/voice-profiles', `${listen.voice_profile}.json`)),
+      `${scope}: listen-through voice profile is missing`);
+      assert.equal(typeof listen.autoplay, 'boolean', `${scope}: invalid listen-through autoplay value`);
+      if (listen.online_synthesis !== undefined) {
+        const online = listen.online_synthesis;
+        assert.ok(online && typeof online === 'object' && !Array.isArray(online),
+          `${scope}: invalid online synthesis preference`);
+        assert.ok(typeof online.service === 'string' && /^[a-z0-9.-]+$/.test(online.service),
+          `${scope}: invalid online synthesis service`);
+        assert.equal(typeof online.default_for_publication_intended_articles, 'boolean',
+          `${scope}: invalid online synthesis default`);
+      }
     }
   }
 

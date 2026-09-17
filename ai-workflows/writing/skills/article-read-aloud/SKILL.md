@@ -35,7 +35,8 @@ The computer narrates the article. The author listens and gives feedback; they a
 ## TTS execution note
 
 When `tts` is selected, pass the prepared narration text as already-prepared speech input rather than asking the TTS
-command to reinterpret the article. Use the active profile/workflow command runner and the session-scoped output path.
+command to reinterpret the article. Pass the configured `voice_profile` through `--voice-profile`; use the active
+profile/workflow command runner and the session-scoped output path.
 Do not add `--no-autoplay` for an enabled listen-through unless the human/profile explicitly requests silent generation.
 The Reviewer owns the human-facing review gate; mechanical synthesis may remain delegated to command-runner according
 to the command execution route.

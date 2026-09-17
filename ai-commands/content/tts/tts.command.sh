@@ -3,6 +3,21 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/com
 ai_command_require_profile "tts" || exit $?
 set -euo pipefail
 
+# Desktop launches may omit the user Python scripts directory from PATH.
+if command -v python3 >/dev/null 2>&1; then
+  tts_user_bin="$(python3 -m site --user-base 2>/dev/null)/bin"
+  if [ -d "$tts_user_bin" ]; then
+    PATH="$tts_user_bin:$PATH"
+  fi
+fi
+if [ -n "${HOME:-}" ] && [ -d "$HOME/Library/Python" ]; then
+  for tts_python_bin in "$HOME"/Library/Python/*/bin; do
+    [ -d "$tts_python_bin" ] || continue
+    PATH="$tts_python_bin:$PATH"
+  done
+fi
+export PATH
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../command-python.setup.sh"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
@@ -354,21 +369,17 @@ synthesize_espeak_multivoice() {
 
 play_audio() {
   local audio_file="$1"
+  if command -v afplay >/dev/null 2>&1; then
+    if afplay "$audio_file" >/dev/null 2>&1; then return 0; fi
+  fi
   if command -v ffplay >/dev/null 2>&1; then
-    ffplay -nodisp -autoexit "$audio_file" >/dev/null 2>&1 || true
-    return 0
+    if ffplay -nodisp -autoexit "$audio_file" >/dev/null 2>&1; then return 0; fi
   fi
   if command -v aplay >/dev/null 2>&1; then
-    aplay "$audio_file" >/dev/null 2>&1 || true
-    return 0
+    if aplay "$audio_file" >/dev/null 2>&1; then return 0; fi
   fi
   if command -v paplay >/dev/null 2>&1; then
-    paplay "$audio_file" >/dev/null 2>&1 || true
-    return 0
-  fi
-  if command -v afplay >/dev/null 2>&1; then
-    afplay "$audio_file" >/dev/null 2>&1 || true
-    return 0
+    if paplay "$audio_file" >/dev/null 2>&1; then return 0; fi
   fi
   return 1
 }
@@ -492,6 +503,10 @@ while [ $# -gt 0 ]; do
       VOICE_PROFILES_DIR="${2:-}"
       shift 2
       ;;
+    --voice-profile)
+      DEFAULT_UNLABELED_SPEAKER="${2:-}"
+      shift 2
+      ;;
     --list-voice-profiles)
       list_profiles='1'
       shift
@@ -533,6 +548,7 @@ Options:
   --allow-fallback            Allow espeak fallback when neural TTS fails
   --timeout <sec>             Timeout in seconds for each edge-tts segment (default 90)
   --voice-profiles-dir <dir>  Directory with narrator.json/maria.json/robert.json
+  --voice-profile <name>      Voice profile for unlabeled text (narrator, maria, or robert)
   --list-voice-profiles       List available JSON voice profiles
   --compiled-text-out <path>  Write compiled speaker script to this path
   --input-is-compiled         Skip AI compile step; treat --text-file as speaker-labeled script
@@ -549,6 +565,14 @@ USAGE
       ;;
   esac
 done
+
+case "$DEFAULT_UNLABELED_SPEAKER" in
+  narrator|maria|robert) ;;
+  *)
+    echo "Invalid --voice-profile: $DEFAULT_UNLABELED_SPEAKER" >&2
+    exit 2
+    ;;
+esac
 
 case "$compile_mode" in
   auto|ai) ;;
@@ -568,7 +592,7 @@ if [ "$list_profiles" = '1' ]; then
     echo "No voice-profiles directory: $VOICE_PROFILES_DIR"
     exit 0
   fi
-  find "$VOICE_PROFILES_DIR" -maxdepth 1 -type f -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort
+  find "$VOICE_PROFILES_DIR" -maxdepth 1 -type f -name '*.json' -exec basename {} .json \; | sort
   exit 0
 fi
 
