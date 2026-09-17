@@ -180,6 +180,26 @@ ownership. Credentials remain local regardless of scope.
 Directory placement describes ownership but does not activate an override by itself. The profile, workflow, or project
 configuration must explicitly reference the policy, template, or supported override values. This makes the effective
 configuration auditable and prevents an unrelated workflow or project from inheriting a nearby file accidentally.
+For destination commands, a workflow may reference a profile-relative override through its active
+`destinations[].config` entry; that override applies only to the named destination in that workflow. The command's
+profile-wide `commands[].config` remains the default. The command contract defines which values may be overridden.
+For a writing workflow, `article_store.project_ref` identifies one registered filesystem project. Each configured
+editor and destination references that same project through its workflow-owned override (`editors[].config` or
+`destinations[].config`). The project supplies the local path for the active device; an editor vault name and a
+destination account URL are separate identities, not substitutes for that path. External file synchronization may
+make the same logical archive available on another device with a different local path.
+The writing workflow may also set a `destinations[].release_policy` per platform/account. For example,
+`time_zone: Etc/UTC`, `max_posts_per_local_day: 1`, and `target_interval_days: 2` cap Medium recommendations at
+one post per local day while aiming for a post every other day in the public example. Another destination can use
+its own values. This is a workflow strategy override, separate from the
+provider command config, and never authorizes publishing or scheduling. A proposed day must be checked against
+verified publication history and any queue before handoff. A profile may also express preferred days or a time
+window. The daily cap is only a ceiling, not a requirement to publish daily.
+The writing workflow may set `review_preferences.default_template` (relative to `ai-workflows/`) and
+`review_preferences.method_emphasis` as profile-owned defaults for independent article review. Emphasis values are
+`high`, `normal`, and `low`; the effective article brief may mark a method `not_applicable` with a reason or change
+its emphasis for the actual article type. The Reviewer uses the selected template and methods, not a universal
+rubric or an aggregate score. These preferences do not grant an agent role or publication authority.
 
 ## Credentials and sensitive configuration
 

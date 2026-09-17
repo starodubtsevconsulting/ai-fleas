@@ -40,7 +40,7 @@ Rules:
 | `data` | Acquire, normalize, persist, or process structured data/evidence | health data, activity data, permanent memory, statements |
 | `connect` | Access external systems and services | source control, Jira, calendar, email, browser, logs |
 | `development` | Build, change, test, review, or validate software | coding, bug fix, tests, review, SDD |
-| `content` | Create or transform human-facing content/media | writing, docs, TTS, video, Kdenlive |
+| `content` | Create or transform human-facing content/media | writing, Medium draft preparation, Obsidian notes, docs, TTS, video, Kdenlive |
 | `system` | Operate AI/runtime/machine/session capabilities | agents, machine profile, monitoring, session |
 | `utility` | Generic reusable helpers that do not fit another capability family | planning, discussion, demo |
 

@@ -1,0 +1,51 @@
+schema_version: gpt-agents-workflow-agents.v1
+platform: gpt-agents
+workflow: writing
+logical_project_pattern: <profile-id>-writing[-<suffix>]
+initialization: ../../agents/initialization.md
+portable_contract: ../../../../ai-workflows/agents.md
+portable_manifest: ../../../../ai-workflows/writing/agents.yml
+team_policy: ../../../../ai-workflows/writing/agents/team.md
+
+# Presentation and model defaults only; the selected profile may apply supported
+# role_overrides. Portable authority remains in the Writing team and matrices.
+agents:
+  - role: admin
+    title: "🔑 Admin"
+    model: gpt-5.6-sol
+    reasoning: high
+  - role: judge
+    title: "⚖️ Judge"
+    model: gpt-5.6-terra
+    reasoning: low
+  - role: writer
+    title: "✍️ Writer"
+    model: gpt-5.6-sol
+    reasoning: low
+  - role: reviewer
+    title: "🔎 Reviewer"
+    model: gpt-5.6-sol
+    reasoning: low
+  - role: release-coordinator
+    title: "🗓️ Release Coordinator"
+    model: gpt-5.6-sol
+    reasoning: low
+
+role_contracts:
+  admin: ../../../../ai-workflows/_common/roles/admin.md
+  judge: ../../../../ai-workflows/_common/roles/judge.md
+  writer: ../../../../ai-workflows/writing/agents/roles/writer.md
+  reviewer: ../../../../ai-workflows/writing/agents/roles/reviewer.md
+  release-coordinator: ../../../../ai-workflows/writing/agents/roles/release-coordinator.md
+
+runtime_semantics:
+  agent_instance: user-visible-codex-task
+  instance_id: app-returned-task-id
+  logical_work_scope: profile-workflow-project-set
+  primary_project: first-profile-workflow-project
+  creation_environment: saved-project-local
+  activate: create-and-initialize-task
+  deactivate: recoverably-archive-exact-task-id
+  delivery: exact-task-id-message
+  binding_state_schema: gpt-agents-binding-state.v1
+  external_bootstrap: create-project-bound-admin

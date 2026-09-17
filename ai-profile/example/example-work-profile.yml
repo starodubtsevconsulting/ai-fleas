@@ -51,7 +51,7 @@ system_agent:
 # Profile agents are logical, portable agents owned directly by this profile.
 # Platform-specific model/reasoning/runtime tuning belongs in platform role overlays.
 profile_agents:
-  - id: cross-workflow-governor
+  - id: personal-governor
     scope: profile
     config: profile-governor.example.yml
 governance_rules_repository: example-governance-rules
@@ -65,6 +65,12 @@ governance_rules_surface:
 commands:
   - id: source-control
     config: commands-config/source-control/config.yml
+  - id: medium
+    config: commands-config/medium/config.yml
+  - id: obsidian
+    config: commands-config/obsidian/config.yml
+  - id: show-context
+    config: commands-config/show-context/config
   - id: calendar
     config: commands-config/calendar/config.yml
   - id: messaging
@@ -204,6 +210,43 @@ workflows:
       - video-handwriting-effect
     projects:
       - ref: projects-config/youtube/example-channel/project.yml
+  - path: writing.workflow.md
+    harness: hermes
+    local_ai:
+      providers_config: local-ai-providers.yml
+      provider: asus-gx10-model-provider
+      model: qwen-coder
+    commands:
+      - writing
+      - medium
+      - obsidian
+      - source-control
+      - show-context
+    article_store:
+      project_ref: projects-config/writing/example-articles/project.yml
+      format: markdown
+    review_preferences:
+      default_template: blogging/templates/short-experience-educational.md
+      method_emphasis:
+        on-writing-well: high
+        storyworthy: normal
+        why-nobody-reads-your-shit: high
+    editors:
+      - id: obsidian
+        command: obsidian
+        config: workflows-config/writing/commands/obsidian/config.yml
+    destinations:
+      - id: medium
+        command: medium
+        mode: draft-only
+        config: workflows-config/writing/commands/medium/config.yml
+        release_policy:
+          time_zone: Etc/UTC
+          max_posts_per_local_day: 1
+          target_interval_days: 2
+    projects:
+      - ref: projects-config/writing/example-writing/project.yml
+      - ref: projects-config/writing/example-articles/project.yml
 app_mode:
   default: dev
   ui_surface: electron
@@ -217,6 +260,7 @@ app_mode:
   workflow_layouts:
     dev.workflow.md: terminal
     youtube.workflow.md: chat
+    writing.workflow.md: chat
 projects_root_path: ~/projects/example-workspace
 sessions_root: ~/.ai-work-sessions/example
 org_domain: example.com

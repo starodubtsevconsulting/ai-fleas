@@ -31,6 +31,9 @@ Every invocation is profile-aware: the host must verify that the active workflow
 
 Committed configuration template: `writing/writing.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
+This command creates or revises prose; it does not select a publishing provider or operate a destination editor.
+Destination commands are configured separately by the active workflow and profile.
+
 ## Tags
 
 #command #ai-command #writing #blog-post #story #narrative #content

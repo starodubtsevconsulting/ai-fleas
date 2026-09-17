@@ -1,0 +1,6 @@
+id: obsidian
+version: 0.0.1-SNAPSHOT
+category: content
+type: contract
+ai:
+  powered: false

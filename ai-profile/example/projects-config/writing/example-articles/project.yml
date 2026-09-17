@@ -1,0 +1,8 @@
+id: example-articles
+label: Example existing article archive and Obsidian vault
+description: TODO replace with an existing local article folder; do not create or rename it just to match a vault label.
+project_type: folder
+repo_path: ~/projects/example-workspace/example-articles
+storage_type: folder
+storage_path: ~/projects/example-workspace/example-articles
+storage_label: Existing local folder

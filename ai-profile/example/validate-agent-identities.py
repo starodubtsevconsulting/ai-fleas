@@ -6,6 +6,7 @@ from pathlib import Path
 EXPECTED_ROLES = {
     'admin', 'designer-reviewer', 'judge', 'manager', 'coder',
     'command-runner', 'ui-acceptance-tester', 'proxy-coder',
+    'writer', 'reviewer', 'release-coordinator',
 }
 EXPECTED_FIELDS = {'account_name', 'display_name', 'email', 'github_login'}
 EXPECTED_TOP = {'version', 'enabled', 'email_domain', 'public_repository_mode', 'private_repository_mode', 'roles'}

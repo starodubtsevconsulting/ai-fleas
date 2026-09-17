@@ -19,6 +19,9 @@ grouping:
   collision_policy: increment
   reuse_requires_recorded_project_id: true
 
-# Platform defaults come from the GPT Agents role/workflow overlays.
-# Add role_overrides only when this profile intentionally differs from those defaults.
-role_overrides: {}
+# Portable workflow rules do not select a model. This example explicitly chooses
+# the same low-reasoning writing settings as the GPT overlay; profiles may tune them.
+role_overrides:
+  writer: { model: gpt-5.6-sol, reasoning: low }
+  reviewer: { model: gpt-5.6-sol, reasoning: low }
+  release-coordinator: { model: gpt-5.6-sol, reasoning: low }
