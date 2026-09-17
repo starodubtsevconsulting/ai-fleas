@@ -126,7 +126,10 @@ The `hermes` install command and `hermes-agents` lifecycle command operate on th
 Agent work credentials use a different route: when `secrets` and a consuming command are authorized in the selected
 workflow, generated bot instructions direct the Agent to `secrets run <consumer> -- <operation>`. The model startup source
 does not grant access to those consumer credentials. Initialization supplies the instructions and the protected model
-binding, but each consumer's provider mapping and a read-only end-to-end check remain required. See the
+binding, but each consumer's provider mapping and a read-only end-to-end check remain required. The Hermes desktop
+bot's terminal does not inherit the AI work profile, so the generated command includes the selected profile and
+workflow assignments and the absolute `secrets.command.sh` path. A bare script invocation fails with
+`PROFILE_REQUIRED`. See the
 [`hermes` installation FAQ](../../install/hermes/hermes.command.md#if-i-install-hermes-will-my-agents-use-the-secret-service-automatically)
 and the [`secrets` agent-use contract](../../connect/secrets/secrets.command.md#agent-use).
 When a workflow selects `secrets`, `initialize` and `reconcile` run its profile-owned `secrets validate` before changing

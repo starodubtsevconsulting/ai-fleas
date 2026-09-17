@@ -79,6 +79,8 @@ chmod +x "${test_root}/bin/curl"
 HERMES_HOME="${test_root}/hermes-home" \
 HERMES_BIN="${test_root}/bin/hermes" \
 HERMES_PROFILE='example-dev-service' \
+HERMES_WORK_PROFILE='example' \
+HERMES_WORKFLOW='financial-insights' \
 HERMES_PROVIDER_ID='example-box' \
 HERMES_PROVIDER_LABEL='Example box' \
 HERMES_MODEL='example-coder-model' \
@@ -115,6 +117,8 @@ grep -F 'Hermes bot ready: example-dev-service' "${test_root}/output" >/dev/null
 HERMES_HOME="${test_root}/hermes-home" \
 HERMES_BIN="${test_root}/bin/hermes" \
 HERMES_PROFILE='example-dev-service' \
+HERMES_WORK_PROFILE='example' \
+HERMES_WORKFLOW='financial-insights' \
 HERMES_PROVIDER_ID='example-box' \
 HERMES_PROVIDER_LABEL='Example box' \
 HERMES_MODEL='example-coder-model' \
@@ -129,6 +133,7 @@ PATH="${test_root}/bin:${PATH}" \
   "${SETUP_SCRIPT}" --workspace "${test_root}/workspace" >"${test_root}/secrets-output"
 grep -F 'When a selected command needs a credential' "${profile_dir}/SOUL.md" >/dev/null
 grep -F 'secrets run <consumer> -- <operation>' "${profile_dir}/SOUL.md" >/dev/null
+grep -F "WORK_PROFILE_ID=example AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=financial-insights.workflow.md ${test_root}/commands/connect/secrets/secrets.command.sh run <consumer> -- <operation>" "${profile_dir}/SOUL.md" >/dev/null
 
 # Target failures are precise and happen before profile mutation.
 failure_home="${test_root}/failure-home"
