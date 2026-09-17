@@ -19,9 +19,6 @@ ai_platforms_root: ../../platforms
 agent_identities:
   config: agent-identities.yml
 
-# Draft profile-owned permanent-memory configuration. Canonical storage is
-# human-readable local Markdown; retrieval/indexing and platform routes are
-# implementation choices and are not operational in this example yet.
 memory:
   config: profile-memory.example.yml
   status: draft
@@ -48,8 +45,6 @@ system_agent:
     sc:
       title: "example-system"
       model: platform-default
-# Profile agents are logical, portable agents owned directly by this profile.
-# Platform-specific model/reasoning/runtime tuning belongs in platform role overlays.
 profile_agents:
   - id: personal-governor
     scope: profile
@@ -136,18 +131,11 @@ workflows:
         provider: datadog
         capability: datadog
         disabled_providers: []
-        supported_operations:
-          - search
-          - tail
-          - errors
+        supported_operations: [search, tail, errors]
         operations:
-          search:
-            mode: logs
-          tail:
-            mode: livetail
-          errors:
-            mode: logs
-            errors_only: true
+          search: { mode: logs }
+          tail: { mode: livetail }
+          errors: { mode: logs, errors_only: true }
         execution:
           registered_command: datadog
           command_path: datadog/datadog.sh
@@ -156,27 +144,11 @@ workflows:
         provider: jira
         capability: jira
         workspace: example-team
-        container:
-          name: EXAMPLE
-          id: EXAMPLE
-          url: https://jira.example.invalid/browse
-        lifecycle:
-          backlog: Backlog
-          todo: To Do
-          in_progress: In Progress
-          done: Done
-          canceled: Canceled
+        container: { name: EXAMPLE, id: EXAMPLE, url: https://jira.example.invalid/browse }
+        lifecycle: { backlog: Backlog, todo: To Do, in_progress: In Progress, done: Done, canceled: Canceled }
         disabled_providers: []
-        policy_references:
-          - workflows-config/dev/commands/jira/ticket-policy.md
-        supported_operations:
-          - search
-          - read
-          - status_inventory
-          - create
-          - checklist_update
-          - lifecycle_update
-          - evidence_gated_closure
+        policy_references: [workflows-config/dev/commands/jira/ticket-policy.md]
+        supported_operations: [search, read, status_inventory, create, checklist_update, lifecycle_update, evidence_gated_closure]
         execution:
           registered_command: jira
           command_path: jira/jira.command.sh
@@ -196,18 +168,9 @@ workflows:
     agent_providers_config: workflows-config/youtube/agent-providers.example.yml
     local_ai:
       providers_config: local-ai-providers.yml
-      # Intended cloud assignment when that provider and model are configured:
-      # provider: openai-service
-      # model: gpt-sol
       provider: asus-gx10-model-provider
       model: qwen-coder
-    commands:
-      - hermes-agents
-      - writing
-      - tts
-      - lyrics-timestamp
-      - kdenlive
-      - video-handwriting-effect
+    commands: [hermes-agents, writing, tts, lyrics-timestamp, kdenlive, video-handwriting-effect]
     projects:
       - ref: projects-config/youtube/example-channel/project.yml
   - path: writing.workflow.md
@@ -218,6 +181,7 @@ workflows:
       model: qwen-coder
     commands:
       - writing
+      - tts
       - medium
       - obsidian
       - source-control
@@ -231,6 +195,11 @@ workflows:
         on-writing-well: high
         storyworthy: normal
         why-nobody-reads-your-shit: high
+      listen_through:
+        enabled: true
+        command: tts
+        voice_profile: narrator
+        autoplay: true
     editors:
       - id: obsidian
         command: obsidian
