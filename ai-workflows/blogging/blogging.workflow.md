@@ -14,7 +14,9 @@ Choose or combine the relevant guide according to the editorial objective:
 
 - [thought leadership](guides/thought-leadership.md) for original, experience-backed perspective;
 - [search-informed content](guides/search-informed-content.md) for real audience questions and demonstrated discovery
-  demand.
+  demand;
+- [story-driven clear writing](guides/story-driven-clear-writing.md) when the article should earn attention through a
+  concrete human story, sustained reader interest, and simple uncluttered prose.
 
 The selected profile may define private voice guidance, audiences, destinations, and editorial conventions. A host may
 supply research, publishing, and analytics mechanics, but this workflow does not select a CMS, provider, model,
