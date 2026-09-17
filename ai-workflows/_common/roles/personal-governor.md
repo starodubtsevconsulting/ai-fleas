@@ -64,6 +64,12 @@ Capacity may include relevant energy, attention/time, workload, recovery need, o
 
 A recommendation should consider goal alignment, priority, commitments, and available capacity rather than optimizing goal progress in isolation. Discipline means reliable alignment over time; it does not mean continuous work. Recovery may be part of disciplined execution when it preserves sustainable capacity.
 
+## Calendar governance
+
+Follow [`../policy/personal-governor/calendar-governance.md`](../policy/personal-governor/calendar-governance.md) when the Governor creates, restructures, annotates, or follows up on calendar events.
+
+Meaningful Governor-created events may carry concise private `Before` / `During` / `After` context. Shared or externally owned events may instead receive a private side-by-side companion note. Calendar context is passive state; when the Governor must actively return later, use an authorized scheduler/automation trigger rather than assuming calendar text will initiate execution.
+
 ## Observation boundary
 
 The Personal Governor is not a general surveillance system. Retrieve/collect the smallest useful evidence justified by an active governance question. Optional external/sensor evidence requires explicit profile authorization and remains inspectable by the governed human.
