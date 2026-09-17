@@ -209,8 +209,8 @@ an existing deployment requires a separately reviewed configuration update, not 
 
 For an existing deployment that this installer does not own, do not point `install --apply` at its directory. Inspect the
 deployment's actual Compose service and startup path first. Stage a dedicated sending-only relay credential in a
-root-owned mode-`0600` SMTP environment file on that host, with a separate recovery copy in the operator's password
-manager. Infisical must receive this bootstrap value when its backend starts; the instance cannot use its own secret
+root-owned mode-`0600` SMTP environment file on that host, with a separate recovery copy in an approved recovery
+credential store. Infisical must receive this bootstrap value when its backend starts; the instance cannot use its own secret
 API as the sole source for its SMTP credential.
 
 Back up the existing Compose file before referencing the SMTP file from the backend service only. Validate the resolved
@@ -220,6 +220,9 @@ wait for it to become healthy. Verify TLS certificate validation and relay authe
 test message to an explicitly approved recipient and confirm delivery. Keep the Compose backup until the new backend
 has passed these checks; restore it and recreate the backend if validation or health fails. A relay accepting a message
 does not itself prove inbox delivery or an Infisical-generated notification.
+
+The separate [Infisical SMTP command](../infisical-smtp/infisical-smtp.command.md) reconciles this narrowly scoped
+overlay for an explicitly configured existing deployment. The installer remains bound to its own package-owned stack.
 
 ## Recovery and reinstall
 
