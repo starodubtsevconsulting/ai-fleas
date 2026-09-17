@@ -27,7 +27,9 @@ overrides are required.
 
 ### Optional unattended API route
 
-An explicitly configured API transport can read Trello without a connected app or browser session. It uses the
+An explicitly configured API transport can read Trello from Codex, Hermes, local agents, or another harness without a
+connected app or browser session. The command is the durable integration boundary; MCP is an optional interactive
+route. The API transport uses the
 profile-owned JSON config shaped like `trello.command.api.example.config` and the executable
 `trello.command.sh`. The profile must bind `trello` and `secrets` in the selected workflow. The secrets command injects
 `TRELLO_API_KEY` and `TRELLO_API_TOKEN` only into the Trello child process:
@@ -46,6 +48,9 @@ operation fails rather than switching transports. The API route makes read-only 
 key and token in the Authorization header, and checks every returned card's board ID against the configured board.
 It does not write cards. It rejects a 1000-card list page as incomplete instead of presenting a partial inventory as
 complete. `status` reports only authentication success, never account details or credentials.
+Returned results and blocked errors do not contain the key or token. The command does not print the child environment,
+HTTP Authorization header, raw provider errors, or a credential-bearing URL. Write operations require a separate
+explicit authorization design and are not included in this read-only route.
 
 Trello's user token can access the user's account within its granted scopes, not just one board. Prefer a dedicated
 Trello account with read-only access to the selected board for this route. Store the key and token in the configured

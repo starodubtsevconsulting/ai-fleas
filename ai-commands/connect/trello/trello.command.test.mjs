@@ -40,3 +40,17 @@ test('list inventory rejects foreign board data and incomplete pages', async () 
   await assert.rejects(run(['list', 'backlog'], config, env,
     response(Array(1000).fill(card))), /PAGINATION_REQUIRED/);
 });
+
+test('credential values never enter results or error messages', async () => {
+  const secretEnv = {TRELLO_API_KEY: 'privateKey123', TRELLO_API_TOKEN: 'privateToken456'};
+  const result = await run(['read', 'AbCd1234'], config, secretEnv,
+    async () => ({status: 200, json: async () => ({id: 'card', name: 'Safe',
+      desc: 'ordinary card', idBoard: board, idList: list})}));
+  assert.doesNotMatch(JSON.stringify(result), /privateKey123|privateToken456/);
+  try {
+    await run(['status'], config, secretEnv, async () => { throw Error('privateToken456'); });
+    assert.fail('offline request must fail');
+  } catch (error) {
+    assert.equal(error.message, 'PROVIDER_UNREACHABLE');
+  }
+});
