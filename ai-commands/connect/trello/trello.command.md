@@ -31,6 +31,34 @@ API route. The public command and examples contain no real board identifiers or 
 the exact board/list IDs and logical secret mappings. Infisical's machine bootstrap remains in owner-only local files
 because it cannot be retrieved from Infisical itself.
 
+### Choosing a transport
+
+| Situation | Select | Why | Limit |
+| --- | --- | --- | --- |
+| An interactive Codex or ChatGPT task has an authorized Trello connected app | `connected_app` | The host manages the account connection and exposes search, card reads, and board/list inventories. No Trello credential enters the agent's profile. | Availability depends on that host's connection and its signed-in account. |
+| A local Hermes agent, scheduled job, or other harness has no connected Trello adapter | `api` | The same profile can run bounded reads unattended with the dedicated account's key and token injected by `secrets`. It does not depend on an interactive browser session. | Requires Infisical and its machine bootstrap; supports card reads and status inventories only. |
+| The selected connected app is disconnected | Repair its connection or deliberately change the profile binding to `api` and validate it | The transport choice is an operator-visible configuration decision. | There is no automatic credential fallback. |
+| A task needs to change a card | Use a separately authorized write route | This command and the currently issued Trello token are read-only. | Do not broaden the token or silently use another identity. |
+
+```mermaid
+flowchart TD
+  A[Authorized tracker task] --> B{Connected Trello adapter in this harness?}
+  B -->|Yes; interactive discovery needed| C[Select connected_app in profile]
+  B -->|No; bounded unattended reads needed| D[Select api in profile]
+  C --> E[Host-managed Trello connection]
+  D --> F[Infisical-injected Trello command]
+  E --> G[Board-scoped read evidence]
+  F --> G
+  A --> H{Card mutation needed?}
+  H -->|Yes| I[Separate write authorization and implementation]
+```
+
+MCP is the connected app's tool interface, not a portable login shared by every harness. A browser login alone does
+not make an MCP connector available to a local agent. Conversely, the API route works only where this command,
+profile binding, Infisical access, and the dedicated Trello account are configured. The dedicated account's board
+membership is the provider-side access boundary; the command's board check is an additional output guard. Changing
+the profile binding requires revalidating the selected route before operational use.
+
 ## Entry point and configuration
 
 `trello/trello.command.md` is an AI-readable provider contract, not a shell executable. Resolve it through the selected
