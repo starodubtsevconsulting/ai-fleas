@@ -31,6 +31,16 @@ governorStrategy:
       access: read-write
       privacy: profile-private
 
+dayPlanning:
+  strategy: fixed-schedule-time-blocking
+  strategyRef: ../../ai-workflows/_common/policy/day-planning/fixed-schedule-time-blocking.md
+  overlays:
+    - id: recovery-constrained
+      strategyRef: ../../ai-workflows/_common/policy/day-planning/recovery-constrained.md
+      activation: evidence-based
+  # Personal clock times and capacity assumptions belong in the private profile.
+  # Example profiles demonstrate the contract without prescribing a universal schedule.
+
 workflows:
   - dev
 
