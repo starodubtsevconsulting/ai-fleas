@@ -29,6 +29,8 @@ To reproduce this with a private profile, create an Infisical project and `dev` 
 
 The [migration FAQ](../../../ai-commands/connect/secrets/secrets.command.md#how-do-i-move-an-existing-or-new-secret-into-the-provider) gives the full sequence for adding a new value or moving an existing one.
 
+The [rotation and recovery FAQ](../../../ai-commands/connect/secrets/secrets.command.md#how-do-i-rotate-a-credential-without-interrupting-a-consumer) describes staging a replacement, checking the normal consumer before and after old-credential revocation, and restoring access when a stage fails. A production profile needs its own provider environment, machine identity, Access credential, and bootstrap files; copying this dev example does not authorize production use. Git authentication should follow its actual credential-helper or keyring path unless a separately reviewed command needs runtime injection.
+
 For a Hermes workflow Agent, the command catalog and generated `SOUL.md` identify the authorized command route.
 For example, an Agent asked for a Cloudflare check uses `secrets run cloudflare -- token-check` after reading both
 contracts; the agent receives the check result, not the API token. Hermes's built-in startup source is only for that

@@ -157,6 +157,31 @@ test('Access redirects and missing secrets fail closed', async () => {
   }), /UNKNOWN_CONSUMER/);
 });
 
+test('offline and unauthorized provider paths fail closed without leaking credentials', async () => {
+  const config = validateConfig(sample);
+  const assertBlocked = async (operation, code) => {
+    await assert.rejects(operation, error => {
+      assert.match(error.message, new RegExp(code));
+      for (const value of ['synthetic-secret', 'synthetic-access-token', 'synthetic-value']) {
+        assert.equal(error.message.includes(value), false);
+      }
+      return true;
+    });
+  };
+  await assertBlocked(verifyConnection(config, async () => {
+    throw Error('offline synthetic-secret');
+  }), 'PROVIDER_UNREACHABLE');
+  await assertBlocked(verifyConnection(config, async () => ({status: 401})), 'PROVIDER_AUTH_FAILED');
+  let calls = 0;
+  await assertBlocked(resolveForConsumer(config, 'cloudflare', async () => {
+    calls++;
+    return calls === 1
+      ? {status: 200, json: async () => ({accessToken: 'synthetic-access-token'})}
+      : {status: 403};
+  }), 'SECRET_READ_FAILED');
+  assert.equal(calls, 2);
+});
+
 test('missing Access bootstrap blocks before or during secret resolution', async () => {
   const missing = path.join(folder, 'missing-access.env');
   const config = validateConfig(sample.replace('  bootstrap_file: ' + bootstrap,

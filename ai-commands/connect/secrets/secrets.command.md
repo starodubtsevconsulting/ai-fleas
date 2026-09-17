@@ -276,6 +276,22 @@ The `secrets` runner reads and injects values; it does not create or import them
 
 If the profile selects `provider: none`, `status` and `run` are disabled. Select and configure a supported provider before a secret-dependent consumer can run through this capability.
 
+### How do I rotate a credential without interrupting a consumer?
+
+Rotation is separate from importing an existing value. Record the issuer, authorized consumers, recovery owner, and a verified encrypted backup before changing a live credential. Keep the old credential valid while a replacement is staged. Put the replacement in the same logical secret mapping, then run the ordinary authorized, read-only consumer path with the selected profile and workflow. Confirm its sanitized result and check output, logs, and agent context for disclosure. Revoke the old credential at its issuer only after the replacement succeeds; repeat the ordinary check after revocation. Finally remove old local assignments and stale persisted copies, while retaining the encrypted backup under the owner's recovery policy. Never put either value in a ticket, prompt, shell argument, or test fixture.
+
+Cloudflare Access and Infisical Universal Auth are bootstrap credentials, so rotate them in stages. Create a replacement with the same narrow access, write it to a new owner-only local file, select that file in the private profile, and verify `secrets status` plus one authorized consumer. Revoke the old bootstrap only after that path succeeds, then repeat the check. Rotate the Access credential and the Infisical identity credential separately so a failed stage has an unambiguous recovery path. Do not widen an Access policy or machine identity merely to make a test pass.
+
+If a stage fails, restore the last known working private file reference while its old credential remains valid, diagnose the failed gate, and retry the replacement. If the old credential has already been revoked, recover through the provider or issuer's administrator path and the verified encrypted backup; do not silently fall back to an untracked local value. A provider outage must fail closed for dependent commands.
+
+### How are dev and production separated?
+
+Use distinct logical names, provider environments, machine identities, Cloudflare Access service credentials, and bootstrap files. A successful dev check does not authorize production adoption. Provision and verify production independently, with its own least-privilege grants and recovery custody; never point production consumers at the dev environment or reuse the dev machine identity.
+
+### Should Git credentials be injected by this command?
+
+Decide from the selected profile's real Git authentication path. A working Git credential helper or GitHub CLI keyring path does not need a parallel `secrets` mapping. Add one only for a bounded consumer that actually requires runtime injection, with a reviewed authorization boundary and tests. Do not export a broad Git token to an agent merely because other integrations use the secret service.
+
 ### Why not use environment-variable names as the logical secret names?
 
 Environment variables are an injection mechanism, not a durable identity for a credential. Different consumers may need
