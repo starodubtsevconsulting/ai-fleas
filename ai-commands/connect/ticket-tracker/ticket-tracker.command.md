@@ -96,6 +96,10 @@ the validated logical execution binding unchanged to the exact Command Runner wh
 For a connected read-only provider with an AI-readable entry point, Manager loads the resolved contract and invokes its
 registered connector operations directly. A Markdown contract is not a shell command. The provider contract owns this
 distinction; a shell wrapper is used only for an executable provider entry point.
+Trello may explicitly select `execution.transport: api` with the registered executable
+`trello/trello.command.sh` and the profile's `secrets` injection binding. This route supports only `read` and
+`status_inventory`; the connected-app route remains the default. Never switch from one transport to the other on an
+authentication or availability failure. The profile must permit both `trello` and `secrets` before API execution.
 Provider implementation commands own mechanical provider interaction; `ticket-tracker` and Manager retain operation
 semantics, authorization, deduplication, lifecycle, ticket formatting, and evidence interpretation. Summary conventions,
 required
