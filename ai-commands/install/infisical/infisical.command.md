@@ -207,6 +207,20 @@ Require STARTTLS when applicable and certificate validation; `SMTP_IGNORE_TLS=fa
 Confirm invitation/reset delivery separately; container health does not prove email delivery. Changing SMTP settings on
 an existing deployment requires a separately reviewed configuration update, not silent reconciliation.
 
+For an existing deployment that this installer does not own, do not point `install --apply` at its directory. Inspect the
+deployment's actual Compose service and startup path first. Stage a dedicated sending-only relay credential in a
+root-owned mode-`0600` SMTP environment file on that host, with a separate recovery copy in the operator's password
+manager. Infisical must receive this bootstrap value when its backend starts; the instance cannot use its own secret
+API as the sole source for its SMTP credential.
+
+Back up the existing Compose file before referencing the SMTP file from the backend service only. Validate the resolved
+Compose configuration without emitting values: the service set, images, volumes, networks, and preexisting environment
+must remain the same, and only the intended `SMTP_*` keys may be added to the backend. Recreate only the backend and
+wait for it to become healthy. Verify TLS certificate validation and relay authentication, then send one credential-free
+test message to an explicitly approved recipient and confirm delivery. Keep the Compose backup until the new backend
+has passed these checks; restore it and recreate the backend if validation or health fails. A relay accepting a message
+does not itself prove inbox delivery or an Infisical-generated notification.
+
 ## Recovery and reinstall
 
 Protect database backups together with the original encryption/authentication material and the exact image/version
