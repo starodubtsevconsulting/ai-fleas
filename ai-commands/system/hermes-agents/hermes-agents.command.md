@@ -123,6 +123,14 @@ endpoint:
 Run `secrets run hermes-agents -- initialize --work-profile example --workflow dev --instance 2 --connection remote` with both referenced variables mapped in the selected profile's `secrets` configuration. Preflight uses the resolved values to check the endpoint. Hermes profile configuration stores only `${env:VARIABLE}` header references. Setup also binds each protected bot to Hermes's native command secret source, which retrieves those same mapped variables at backend startup when the user opens the bot in the Mac app. A bot that already has a different command secret source fails preflight. Header values must not be committed to the provider catalog or written into Hermes profile configuration.
 
 The `hermes` install command and `hermes-agents` lifecycle command operate on the same physical Hermes installation. The former installs the Mac app and CLI; the latter configures bots in that app. There is no second everyday Hermes installation or separate app launcher for secrets. The protected bot's runtime source is active only after its backend restarts and the provider-backed model request succeeds. Keep any old local assignment until that app-level check passes.
+Agent work credentials use a different route: when `secrets` and a consuming command are authorized in the selected
+workflow, generated bot instructions direct the Agent to `secrets run <consumer> -- <operation>`. The model startup source
+does not grant access to those consumer credentials. Initialization supplies the instructions and the protected model
+binding, but each consumer's provider mapping and a read-only end-to-end check remain required. See the
+[`hermes` installation FAQ](../../install/hermes/hermes.command.md#if-i-install-hermes-will-my-agents-use-the-secret-service-automatically)
+and the [`secrets` agent-use contract](../../connect/secrets/secrets.command.md#agent-use).
+When a workflow selects `secrets`, `initialize` and `reconcile` run its profile-owned `secrets validate` before changing
+Hermes profiles. This catches missing or invalid configuration; it does not contact the provider or verify any consumer.
 See the [Cloudflare operator runbook](../../connect/cloudflare/cloudflare.command.md#6-add-machine-to-machine-access-for-hermes)
 for tunnel/application ownership, service-token creation, naming, policy attachment, and end-to-end evidence.
 
@@ -141,7 +149,7 @@ for tunnel/application ownership, service-token creation, naming, policy attachm
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
 | `list` | List existing Hermes profiles. |
 | `show PROFILE` | Inspect one exact profile. |
-| `status PROFILE` | Verify its provider, model endpoint, advertised model, and workspace. |
+| `status PROFILE` | Verify its provider, model endpoint, advertised model, and workspace. For a protected remote endpoint, run `secrets run hermes-agents -- status PROFILE` so the configured header references resolve from the selected secret binding. Missing headers fail closed. |
 | `delete PROFILE --confirm-delete` | Delete one exact non-default profile after explicit confirmation. |
 | `delete-workflow --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] --confirm-delete` | Resolve the exact workflow roster, remove every declared role profile, and tombstone its Hermes group so it cannot be reconstructed from profile metadata. |
 

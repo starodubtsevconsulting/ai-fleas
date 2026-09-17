@@ -382,6 +382,20 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
     }
     scope="$(node "${PROFILE_RESOLVER}" "${PROFILE_ROOT}" "${work_profile}" "${workflow}" "${project}" "${connection}")"
     IFS=$'\t' read -r resolved_profile resolved_workflow resolved_project resolved_provider resolved_provider_label resolved_endpoint resolved_headers_b64 resolved_stored_headers_b64 resolved_model resolved_context_window resolved_compression_threshold resolved_compression_target resolved_protect_last_messages resolved_workspace resolved_project_scope resolved_agent_instructions resolved_commands_root resolved_workflow_instructions resolved_command_ids resolved_role_bindings <<<"${scope}"
+    if [[ ",${resolved_command_ids}," == *",secrets,"* ]]; then
+      secrets_command="${resolved_commands_root}/connect/secrets/secrets.command.sh"
+      [[ -x "${secrets_command}" ]] || {
+        printf '%s\n' 'HERMES_SECRETS_PREFLIGHT_FAILED: selected secrets command is not executable; no Hermes profiles were changed.' >&2
+        exit 2
+      }
+      if ! AI_CONFIG_PROJECT="$(dirname "${PROFILE_ROOT}")" AI_WORK_PROFILE_ID="${resolved_profile}" \
+          AI_FLOW_WORKFLOW="${resolved_workflow}.workflow.md" "${secrets_command}" validate; then
+        printf '%s\n' 'HERMES_SECRETS_PREFLIGHT_FAILED: selected profile secret configuration is invalid; no Hermes profiles were changed.' >&2
+        exit 2
+      fi
+      printf 'HERMES_SECRETS_CONFIG_READY: profile=%s workflow=%s; configuration only, provider and consumer access not tested.\n' \
+        "${resolved_profile}" "${resolved_workflow}"
+    fi
     [[ "${resolved_agent_instructions}" == '-' ]] && resolved_agent_instructions=''
     if [[ -n "${agent_instructions}" ]]; then
       [[ "${agent_instructions}" == /* && -f "${agent_instructions}" ]] || {
@@ -451,8 +465,36 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
       printf 'HERMES_INVALID_INPUT: profile=%s; configured model endpoint is not a valid HTTP(S) URL.\n' "${profile}" >&2
       exit 1
     }
+    profile_config="${HERMES_HOME:-${HOME}/.hermes}/profiles/${profile}/config.yaml"
+    if [[ -f "${profile_config}" ]]; then
+      resolved_status_headers_b64="$(HERMES_STATUS_CONFIG="${profile_config}" HERMES_STATUS_PROVIDER="${provider}" "${PYTHON_BIN}" - <<'PY'
+import base64
+import json
+import os
+from pathlib import Path
+import re
+import sys
+import yaml
+
+config = yaml.safe_load(Path(os.environ['HERMES_STATUS_CONFIG']).read_text()) or {}
+provider = (config.get('providers') or {}).get(os.environ['HERMES_STATUS_PROVIDER']) or {}
+references = provider.get('extra_headers') or {}
+headers = {}
+for name, reference in references.items():
+    match = re.fullmatch(r'\$\{env:([A-Z][A-Z0-9_]*)\}', reference) if isinstance(reference, str) else None
+    if not match or not os.environ.get(match.group(1)):
+        print('HERMES_STATUS_HEADER_UNAVAILABLE: protected endpoint header is missing; run status through the bound secrets consumer.', file=sys.stderr)
+        raise SystemExit(2)
+    headers[name] = os.environ[match.group(1)]
+print(base64.b64encode(json.dumps(headers).encode()).decode())
+PY
+)"
+    else
+      resolved_status_headers_b64='e30='
+    fi
     HERMES_PROFILE="${profile}" HERMES_PROVIDER_ID="${provider}" HERMES_PROVIDER_LABEL="${provider}" \
       HERMES_MODEL="${model}" HERMES_ENDPOINT="${endpoint}" HERMES_WORKSPACE="${workspace}" HERMES_GROUP='' \
+      HERMES_EXTRA_HEADERS_B64="${resolved_status_headers_b64}" \
       "${SETUP_SCRIPT}" --validate-only >/dev/null
     printf 'HERMES_READY\nProfile: %s\nProvider: %s\nModel: %s\nEndpoint: %s\nWorkspace: %s\n' \
       "${profile}" "${provider}" "${model}" "${endpoint%/}" "${workspace}"

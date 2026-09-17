@@ -50,9 +50,13 @@ Committed configuration template: `install/hermes/hermes.command.example.config`
 | Command | Relationship | Use when |
 |---|---|---|
 | [`install`](../install.command.md) | Parent command group and alias router | A generic installation request such as `Install Hermes` needs routing to this command. |
-| [`hermes-agents`](../../hermes-agents/hermes-agents.command.md) | Dependent platform lifecycle command | The installed application will initialize or manage Hermes profiles, bots, conversations, or workflow groups. |
+| [`hermes-agents`](../../system/hermes-agents/hermes-agents.command.md) | Dependent platform lifecycle command | The installed application will initialize or manage Hermes profiles, bots, conversations, or workflow groups. |
 
 This command establishes the physical prerequisite only. A successful installation never initializes bots automatically.
+For an existing, selected AI profile and workflow, `hermes-agents initialize` is the next step. It creates the workflow
+bots and their generated instructions; when a protected model connection is selected through `secrets run hermes-agents`,
+it also configures Hermes's built-in command secret source for those bots. No separate Hermes plugin installation is
+required for that integration.
 
 ## Behavior
 
@@ -63,6 +67,27 @@ This command establishes the physical prerequisite only. A successful installati
 - Reuses the public reviewed Hermes installer and its rollback checks without depending on a private launcher.
 - Requires isolated `--version` and offline `--help` probes after install or upgrade.
 - Never deletes Hermes profiles, conversations, workflow groups, provider configuration, or credentials.
+
+## FAQ
+
+### If I install Hermes, will my agents use the secret service automatically?
+
+The app install makes Hermes available; it cannot choose a private profile, workflow, model route, or secret provider.
+If the installed Hermes CLI already passes this command's `status` and `smoke-test`, do not reinstall it merely to use
+`hermes-agents` or `secrets`; continue with profile initialization or reconciliation. The standalone `secrets` command
+does not require Hermes at all.
+Once those are configured in the selected profile, initialize the workflow with `hermes-agents`. For a model route
+protected by credentials, invoke initialization through `secrets run hermes-agents -- initialize ...`; the initializer
+wires Hermes's built-in startup source automatically. For agent work, the selected workflow must also allow `secrets`
+and each intended consumer must have a mapping in the profile-owned `secrets` config. Generated agent instructions then
+direct the bot to `secrets run <consumer> -- <operation>`. Initialization validates the selected `secrets` configuration
+before changing Hermes profiles; it does not fetch every consumer credential. There is no generic secret-reading plugin
+to install.
+
+Verify these layers separately: `hermes smoke-test` proves the physical install; `secrets validate` and `secrets status`
+check the configured provider; `hermes-agents initialize` must produce a complete workflow receipt; a fresh bot session
+must get a model response; and a bounded read-only `secrets run` operation must succeed for each consumer being adopted.
+An install smoke test alone does not prove provider authentication or consumer access.
 
 ## Tags
 

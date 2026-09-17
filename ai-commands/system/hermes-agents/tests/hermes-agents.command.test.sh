@@ -317,6 +317,24 @@ grep -F 'Hermes bot ready: example-dev-admin' "${test_root}/reinitialize-output"
 grep -F 'Hermes bot ready: example-dev-coder' "${test_root}/reinitialize-output" >/dev/null
 [[ "$(grep -Ec '^example-dev-(admin|coder)$' "${HERMES_TEST_STATE}")" -eq 2 ]]
 "${COMMAND}" status example-dev-admin | grep -F 'HERMES_READY' >/dev/null
+cat >"${HERMES_HOME}/profiles/example-dev-admin/config.yaml" <<'YAML'
+providers:
+  example-box:
+    extra_headers:
+      CF-Access-Client-Id: ${env:TEST_CF_ACCESS_CLIENT_ID}
+      CF-Access-Client-Secret: ${env:TEST_CF_ACCESS_CLIENT_SECRET}
+YAML
+if env -u TEST_CF_ACCESS_CLIENT_SECRET HERMES_PYTHON_BIN="${receipt_python}" "${COMMAND}" status example-dev-admin >"${test_root}/status-missing-header" 2>&1; then
+  printf '%s\n' 'Protected Hermes status unexpectedly succeeded without its secret' >&2
+  exit 1
+fi
+grep -F 'HERMES_STATUS_HEADER_UNAVAILABLE' "${test_root}/status-missing-header" >/dev/null
+HERMES_PYTHON_BIN="${receipt_python}" "${COMMAND}" status example-dev-admin >"${test_root}/status-protected-output" 2>&1
+grep -F 'HERMES_READY' "${test_root}/status-protected-output" >/dev/null
+if grep -F -e 'test-client-id' -e 'test-client-secret' "${test_root}/status-protected-output" >/dev/null; then
+  printf '%s\n' 'Protected Hermes status exposed a header value' >&2
+  exit 1
+fi
 "${COMMAND}" delete throwaway --confirm-delete | grep -F 'HERMES_PROFILE_DELETED: throwaway' >/dev/null
 if "${COMMAND}" delete-workflow --work-profile example --workflow dev --project service >"${test_root}/delete-without-confirm" 2>&1; then
   printf '%s\n' 'delete-workflow unexpectedly succeeded without confirmation' >&2
@@ -332,4 +350,35 @@ if grep -E '^example-dev-(admin|coder)$' "${HERMES_TEST_STATE}" >/dev/null; then
   printf '%s\n' 'delete-workflow left a declared role profile behind' >&2
   exit 1
 fi
+
+# A workflow selecting secrets validates its profile binding before any Hermes mutation.
+mkdir -p "${test_root}/commands/connect/secrets" "${test_root}/ai-profile/example/commands-config"
+printf '%s\n' '# Secrets command' >"${test_root}/commands/connect/secrets/secrets.command.md"
+printf '%s\n' 'provider: none' >"${test_root}/ai-profile/example/commands-config/secrets.yml"
+cat >"${test_root}/commands/connect/secrets/secrets.command.sh" <<'SH'
+#!/usr/bin/env bash
+[[ "${1:-}" == validate && "${HERMES_TEST_SECRETS_FAIL:-}" != 1 ]] || exit 2
+printf '%s\n' 'secrets configuration valid'
+SH
+chmod +x "${test_root}/commands/connect/secrets/secrets.command.sh"
+python3 - "${test_root}/ai-profile/example/example-work-profile.yml" <<'PY'
+from pathlib import Path
+import sys
+target = Path(sys.argv[1])
+source = target.read_text()
+source = source.replace('  - id: hermes-agents\n    config: local-ai-providers.yml\n',
+                        '  - id: hermes-agents\n    config: local-ai-providers.yml\n  - id: secrets\n    config: commands-config/secrets.yml\n', 1)
+source = source.replace('      - hermes-agents\n', '      - hermes-agents\n      - secrets\n', 1)
+target.write_text(source)
+PY
+profiles_before="$(cat "${HERMES_TEST_STATE}")"
+if HERMES_TEST_SECRETS_FAIL=1 "${COMMAND}" initialize --work-profile example --workflow dev --project service --preflight-only >"${test_root}/secrets-failed-output" 2>"${test_root}/secrets-failed-error"; then
+  printf '%s\n' 'initialize accepted an invalid secrets binding' >&2
+  exit 1
+fi
+grep -F 'HERMES_SECRETS_PREFLIGHT_FAILED:' "${test_root}/secrets-failed-error" >/dev/null
+[[ "$(cat "${HERMES_TEST_STATE}")" == "${profiles_before}" ]]
+"${COMMAND}" initialize --work-profile example --workflow dev --project service --preflight-only >"${test_root}/secrets-preflight-output"
+grep -F 'HERMES_SECRETS_CONFIG_READY: profile=example workflow=dev; configuration only, provider and consumer access not tested.' "${test_root}/secrets-preflight-output" >/dev/null
+[[ "$(cat "${HERMES_TEST_STATE}")" == "${profiles_before}" ]]
 printf '%s\n' 'hermes command test passed'

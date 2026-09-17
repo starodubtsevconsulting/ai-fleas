@@ -215,6 +215,39 @@ that every mapped secret exists. A child command can itself print its environmen
 consumers should receive values.
 The internal `hermes-env hermes-agents <profile-id>` operation exists solely for Hermes's native command secret source. It requires the exact profile, workflow, and consumer binding, emits only that consumer's mapped environment assignments to Hermes's captured startup pipe, and must not be run as an interactive credential lookup.
 
+## Agent use
+
+An agent knows the selected command ID and operation, not a credential value. When a selected command needs a secret,
+the agent reads that command's contract and this contract, verifies that both `secrets` and the consumer are allowed by
+its activated workflow, and invokes `secrets run <consumer> -- <operation>` through the profile-aware command runner.
+The runner fetches only the consumer's declared logical secrets and starts only its declared executable. The agent uses
+the child's sanitized result; it must not request a raw value, run `hermes-env` interactively, copy a bootstrap file, or
+place a credential in a prompt, shell argument, report, or memory. If the provider or binding is absent, the action is
+blocked rather than retried with a local credential.
+
+This is separate from Hermes's model-provider authentication. Hermes's built-in command secret source loads only the
+`hermes-agents` consumer's model connection values when that bot starts. It does not make other command credentials
+available to the agent. An extra Hermes secret-source plugin is not a prerequisite for AI Fleas command consumers;
+their prerequisite is the selected `secrets` command, a profile-authorized consumer mapping, and a working runtime
+with its own provider bootstrap. An integration that cannot run as a bounded AI Fleas consumer needs its own reviewed
+adapter before agent use, not a generic secret-reading tool.
+
+```mermaid
+flowchart LR
+  A[Hermes agent: selected command and operation] --> B[Profile-aware secrets run]
+  B --> C[Workflow and consumer authorization]
+  C --> D[Configured secret provider]
+  D --> E[Declared child command environment]
+  E --> F[Sanitized command result to agent]
+```
+
+The host and tool execution boundary matters: a Hermes agent with unrestricted local terminal or file access may be
+able to inspect its own process environment or owner-readable bootstrap files. Agent instructions alone do not prevent
+that. Strong isolation requires a constrained tool/runtime identity that cannot access those files or process variables;
+the `secrets run` contract limits normal command delivery but does not claim to sandbox a hostile agent.
+When starting a consumer, the runner removes inherited configured secret variables and provider bootstrap variables
+from that child, then injects only the selected consumer's resolved mapping.
+
 The command needs Node.js with the repository's pinned dependencies installed (`npm ci`). A missing dependency blocks
 execution. The command does not create an Infisical project, machine identity, Access policy, or secret. Administrators
 provision those separately and bind their non-secret IDs and paths in the private profile.
@@ -242,6 +275,22 @@ The `secrets` runner reads and injects values; it does not create or import them
 6. Once the everyday command path uses the provider successfully, remove the old local value assignment. Keep the encrypted backup according to the owner's recovery policy. Record any planned rotation as a separate follow-up; importing a value does not rotate it.
 
 If the profile selects `provider: none`, `status` and `run` are disabled. Select and configure a supported provider before a secret-dependent consumer can run through this capability.
+
+### How do I rotate a credential without interrupting a consumer?
+
+Rotation is separate from importing an existing value. Record the issuer, authorized consumers, recovery owner, and a verified encrypted backup before changing a live credential. Keep the old credential valid while a replacement is staged. Put the replacement in the same logical secret mapping, then run the ordinary authorized, read-only consumer path with the selected profile and workflow. Confirm its sanitized result and check output, logs, and agent context for disclosure. Revoke the old credential at its issuer only after the replacement succeeds; repeat the ordinary check after revocation. Finally remove old local assignments and stale persisted copies, while retaining the encrypted backup under the owner's recovery policy. Never put either value in a ticket, prompt, shell argument, or test fixture.
+
+Cloudflare Access and Infisical Universal Auth are bootstrap credentials, so rotate them in stages. Create a replacement with the same narrow access, write it to a new owner-only local file, select that file in the private profile, and verify `secrets status` plus one authorized consumer. Revoke the old bootstrap only after that path succeeds, then repeat the check. Rotate the Access credential and the Infisical identity credential separately so a failed stage has an unambiguous recovery path. Do not widen an Access policy or machine identity merely to make a test pass.
+
+If a stage fails, restore the last known working private file reference while its old credential remains valid, diagnose the failed gate, and retry the replacement. If the old credential has already been revoked, recover through the provider or issuer's administrator path and the verified encrypted backup; do not silently fall back to an untracked local value. A provider outage must fail closed for dependent commands.
+
+### How are dev and production separated?
+
+Use distinct logical names, provider environments, machine identities, Cloudflare Access service credentials, and bootstrap files. A successful dev check does not authorize production adoption. Provision and verify production independently, with its own least-privilege grants and recovery custody; never point production consumers at the dev environment or reuse the dev machine identity.
+
+### Should Git credentials be injected by this command?
+
+Decide from the selected profile's real Git authentication path. A working Git credential helper or GitHub CLI keyring path does not need a parallel `secrets` mapping. Add one only for a bounded consumer that actually requires runtime injection, with a reviewed authorization boundary and tests. Do not export a broad Git token to an agent merely because other integrations use the secret service.
 
 ### Why not use environment-variable names as the logical secret names?
 

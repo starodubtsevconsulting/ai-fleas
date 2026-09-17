@@ -225,6 +225,20 @@ export function formatHermesEnv(values) {
   return lines.join('');
 }
 
+export function consumerEnvironment(config, injected, parentEnv = process.env) {
+  const childEnv = {...parentEnv};
+  // A Hermes backend can already hold its model-provider credentials in its
+  // environment. Do not forward another configured consumer's variables to
+  // the selected command merely because the parent process has them.
+  for (const declaration of Object.values(config.command_injection)) {
+    for (const name of Object.keys(declaration.environment)) delete childEnv[name];
+  }
+  for (const name of ['INFISICAL_CLIENT_ID','INFISICAL_CLIENT_SECRET','CF_ACCESS_CLIENT_ID','CF_ACCESS_CLIENT_SECRET']) {
+    delete childEnv[name];
+  }
+  return {...childEnv, ...injected};
+}
+
 function authorizedConsumer(profileFile, workflow, consumer) {
   const profile = parseYaml(fs.readFileSync(profileFile, 'utf8'));
   if (!Array.isArray(profile?.commands) || !profile.commands.some(item => item.id === consumer && item.config)) {
@@ -284,11 +298,8 @@ async function main(argv) {
   if (!executable.startsWith(commandsRoot + path.sep) ||
       !fs.statSync(executable).isFile()) blocked('INVALID_EXECUTABLE');
   const injected = await resolveForConsumer(config, consumer);
-  const childEnv = {...process.env, ...injected, AI_COMMAND_CONFIG_PATH: targetConfig,
+  const childEnv = {...consumerEnvironment(config, injected), AI_COMMAND_CONFIG_PATH: targetConfig,
     AI_SECRETS_CONFIG_PATH: fs.realpathSync(configPath)};
-  for (const name of ['INFISICAL_CLIENT_ID','INFISICAL_CLIENT_SECRET','CF_ACCESS_CLIENT_ID','CF_ACCESS_CLIENT_SECRET']) {
-    delete childEnv[name];
-  }
   const child = spawn(executable, args, {env: childEnv, stdio: 'inherit', shell: false});
   const code = await new Promise((resolve, reject) => {
     child.on('error', reject); child.on('exit', (exitCode, signal) => resolve(signal ? 128 : exitCode ?? 1));

@@ -106,7 +106,29 @@ grep -F "Your AI configuration instructions are \`${test_root}/instructions.md\`
 grep -F "Your active workflow contract is \`${test_root}/workflows/financial-insights/financial-insights.workflow.md\`" "${profile_dir}/SOUL.md" >/dev/null
 grep -F "Your selected AI command catalog root is \`${test_root}/commands\`. The commands allowed by this workflow are: \`statements\`." "${profile_dir}/SOUL.md" >/dev/null
 grep -F 'For every user request, first match the intent against those selected commands.' "${profile_dir}/SOUL.md" >/dev/null
+if grep -F 'When a selected command needs a credential' "${profile_dir}/SOUL.md" >/dev/null; then
+  printf '%s\n' 'secret guidance appeared without the secrets command being selected' >&2
+  exit 1
+fi
 grep -F 'Hermes bot ready: example-dev-service' "${test_root}/output" >/dev/null
+
+HERMES_HOME="${test_root}/hermes-home" \
+HERMES_BIN="${test_root}/bin/hermes" \
+HERMES_PROFILE='example-dev-service' \
+HERMES_PROVIDER_ID='example-box' \
+HERMES_PROVIDER_LABEL='Example box' \
+HERMES_MODEL='example-coder-model' \
+HERMES_ENDPOINT='http://192.0.2.10:1234/v1' \
+HERMES_WORKSPACE="${test_root}/workspace" \
+HERMES_AGENT_INSTRUCTIONS_PATH="${test_root}/instructions.md" \
+HERMES_AI_COMMANDS_ROOT="${test_root}/commands" \
+HERMES_WORKFLOW_INSTRUCTIONS_PATH="${test_root}/workflows/financial-insights/financial-insights.workflow.md" \
+HERMES_WORKFLOW_COMMAND_IDS='statements,secrets' \
+TEST_WORKSPACE="${test_root}/workspace" \
+PATH="${test_root}/bin:${PATH}" \
+  "${SETUP_SCRIPT}" --workspace "${test_root}/workspace" >"${test_root}/secrets-output"
+grep -F 'When a selected command needs a credential' "${profile_dir}/SOUL.md" >/dev/null
+grep -F 'secrets run <consumer> -- <operation>' "${profile_dir}/SOUL.md" >/dev/null
 
 # Target failures are precise and happen before profile mutation.
 failure_home="${test_root}/failure-home"

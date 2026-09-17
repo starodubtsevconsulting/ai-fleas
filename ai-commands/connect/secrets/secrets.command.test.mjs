@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {formatHermesEnv, inspectConfig, readBootstrap, resolveForConsumer, validateConfig, verifyConnection}
+import {spawnSync} from 'node:child_process';
+import {consumerEnvironment, formatHermesEnv, inspectConfig, readBootstrap, resolveForConsumer, validateConfig, verifyConnection}
   from './secrets.command.mjs';
 
 const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-fleas-secrets-test-'));
@@ -49,6 +50,31 @@ test('Hermes startup pipe emits only dotenv assignments and rejects line injecti
   assert.equal(formatHermesEnv({SC_HERMES_SECRET: 'synthetic=value'}), 'SC_HERMES_SECRET=synthetic=value\n');
   assert.throws(() => formatHermesEnv({SC_HERMES_SECRET: 'safe\nOTHER=stolen'}), /INVALID_SECRET_VALUE/);
   assert.throws(() => formatHermesEnv({'BAD-KEY': 'value'}), /INVALID_SECRET_VALUE/);
+});
+
+test('consumer child does not inherit a different consumer credential or provider bootstrap', () => {
+  const config = validateConfig(sample);
+  config.command_injection['hermes-agents'] = {
+    executable: 'system/hermes-agents/hermes-agents.command.sh',
+    environment: {MODEL_ACCESS_SECRET: {logical_secret: 'example.dev.integration.api-token'}},
+  };
+  const child = consumerEnvironment(config, {EXAMPLE_API_TOKEN: 'fetched-value'}, {
+    PATH: '/usr/bin', EXAMPLE_API_TOKEN: 'stale-value', MODEL_ACCESS_SECRET: 'model-value',
+    INFISICAL_CLIENT_SECRET: 'bootstrap-value', CF_ACCESS_CLIENT_SECRET: 'access-value',
+  });
+  assert.deepEqual(child, {PATH: '/usr/bin', EXAMPLE_API_TOKEN: 'fetched-value'});
+  const probe = spawnSync(process.execPath, ['-e', `
+    process.stdout.write(JSON.stringify({
+      selected: process.env.EXAMPLE_API_TOKEN === 'fetched-value',
+      other: 'MODEL_ACCESS_SECRET' in process.env,
+      provider: 'INFISICAL_CLIENT_SECRET' in process.env,
+      access: 'CF_ACCESS_CLIENT_SECRET' in process.env,
+    }));
+  `], {env: child, encoding: 'utf8'});
+  assert.equal(probe.status, 0, probe.stderr);
+  assert.deepEqual(JSON.parse(probe.stdout), {
+    selected: true, other: false, provider: false, access: false,
+  });
 });
 
 test('an explicit none provider has no mappings and blocks resolution', async () => {
@@ -129,6 +155,31 @@ test('Access redirects and missing secrets fail closed', async () => {
   await assert.rejects(resolveForConsumer(config, 'unknown', async () => {
     throw Error('fetch must not happen');
   }), /UNKNOWN_CONSUMER/);
+});
+
+test('offline and unauthorized provider paths fail closed without leaking credentials', async () => {
+  const config = validateConfig(sample);
+  const assertBlocked = async (operation, code) => {
+    await assert.rejects(operation, error => {
+      assert.match(error.message, new RegExp(code));
+      for (const value of ['synthetic-secret', 'synthetic-access-token', 'synthetic-value']) {
+        assert.equal(error.message.includes(value), false);
+      }
+      return true;
+    });
+  };
+  await assertBlocked(verifyConnection(config, async () => {
+    throw Error('offline synthetic-secret');
+  }), 'PROVIDER_UNREACHABLE');
+  await assertBlocked(verifyConnection(config, async () => ({status: 401})), 'PROVIDER_AUTH_FAILED');
+  let calls = 0;
+  await assertBlocked(resolveForConsumer(config, 'cloudflare', async () => {
+    calls++;
+    return calls === 1
+      ? {status: 200, json: async () => ({accessToken: 'synthetic-access-token'})}
+      : {status: 403};
+  }), 'SECRET_READ_FAILED');
+  assert.equal(calls, 2);
 });
 
 test('missing Access bootstrap blocks before or during secret resolution', async () => {
