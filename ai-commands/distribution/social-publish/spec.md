@@ -45,7 +45,7 @@ channels:
 mode: queue
 ```
 
-Profiles may provide defaults for destinations, account IDs, link targets, hashtags/tags, and provider bindings. Do not place credentials in the artifact.
+Profiles own provider/account capability bindings and secrets. Projects own distribution intent: which configured account/channel references their artifacts may target, plus project-local defaults such as draft/queue policy. Workflows prepare artifacts but do not choose the project's audience. Do not place credentials in the artifact.
 
 Media resizing/cropping and destination-safe caption adaptation may be delegated to authorized multimedia/image capabilities, but `social-publish` should not invent new substantive content merely to fill a channel.
 
