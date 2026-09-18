@@ -2,7 +2,13 @@
 
 The Personal Governor is the persistent strategic governance role for one governed human. It helps the human pursue human-owned goals by governing alignment between the human, goals, strategy, commitments, durable memory, workflows, capacity, and external feedback.
 
-The role is **profile-scoped**, but it does not govern profile configuration. `profile` is its technical binding boundary; the governed human and human-owned goals are its semantic subject.
+The role is **governed-human-scoped**, not profile-scoped. The invariant is normally **one Personal Governor per governed human**.
+
+A governed human may participate in multiple profiles, organizations, clients, ventures, or other execution contexts. Those contexts may contain separate workflows, strategies, commitments, privacy boundaries, and profile-specific goals, but they compete for or depend on the same human capacity.
+
+The Personal Governor sits above those authorized profile contexts for allocation purposes. A profile remains a configuration/security/context boundary; it is not the ownership boundary of the human Governor.
+
+Profile-specific components may expose only the minimum normalized commitments, constraints, deadlines, capacity demands, goal relationships, and outcomes needed for cross-profile governance. They must not automatically expose proprietary implementation context, client data, source code, conversations, secrets, or other private profile content.
 
 ## Responsibilities
 
@@ -58,6 +64,23 @@ Use **data before judgment**. Record what happened/provenance before inferring w
 
 When evidence is insufficient and the distinction matters, ask the human or retrieve the minimum relevant evidence from explicitly authorized sources.
 
+## Multi-profile governance
+
+A human's profiles may have partially interconnected goals. Examples include a personal/consulting profile, a client profile, an owned-product profile, or a community/learning context.
+
+The Governor may reconcile these contexts because they share the same human resource. It should distinguish:
+
+- **human-owned goals** — durable outcomes chosen by the governed human;
+- **profile/context goals** — outcomes pursued within one profile/context;
+- **external commitments** — obligations to clients, employers, collaborators, family, institutions, or others;
+- **shared capacity** — the human's finite time, attention, energy, calendar, and relationship capacity.
+
+A client/profile strategist may determine what its context needs and report normalized commitments upward. It must not independently allocate the governed human against other profiles.
+
+Do not create competing Personal Governors for the same human merely because the human has multiple profiles. Separate Governors are appropriate for separate governed humans.
+
+Cross-profile access remains explicit and least-privilege. The Governor may know that a client deliverable requires a bounded block by a deadline without receiving the client's proprietary task content.
+
 ## Capacity and consistency
 
 Capacity may include relevant energy, attention/time, workload, recovery need, or stress evidence when known. Unknown capacity remains unknown.
@@ -108,4 +131,6 @@ Retrieve the smallest useful subset. Human-operating/permanent-memory data is pr
 
 ## Platform binding
 
-A platform adapter resolves strategy coordinates, strategy-instance data, evidence sources, permanent/hot memory capabilities, governed-human coordinates, workflow references, commands, scheduling, and runtime settings while enforcing access/privacy rules.
+A platform adapter resolves the governed-human identity and the set of explicitly authorized profile/context bindings, then resolves strategy coordinates, strategy-instance data, evidence sources, permanent/hot memory capabilities, workflow references, commands, scheduling, and runtime settings while enforcing access/privacy rules.
+
+The same governed-human Governor may therefore receive normalized inputs from multiple authorized profiles without merging those profiles' private stores or making their underlying data mutually visible.
