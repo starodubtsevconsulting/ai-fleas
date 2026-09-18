@@ -27,6 +27,13 @@ for (const profileAgent of profile.profile_agents ?? []) {
   assert.ok(!profileAgentIds.has(profileAgent.id), `${profile.name}: duplicate profile agent ${profileAgent.id}`);
   profileAgentIds.add(profileAgent.id);
 
+  if (profileAgent.config === undefined) {
+    assert.ok(typeof profileAgent.role === 'string' && profileAgent.role.length > 0,
+      `${profile.name}/${profileAgent.id}: inline profile agent role is missing`);
+    assert.ok(fs.existsSync(path.resolve(profileDir, profileAgent.role)),
+      `${profile.name}/${profileAgent.id}: inline profile agent role does not exist`);
+    continue;
+  }
   const configPath = path.resolve(profileDir, profileAgent.config);
   assert.ok(fs.existsSync(configPath), `${profile.name}/${profileAgent.id}: profile agent config does not exist`);
   const binding = parse(fs.readFileSync(configPath, 'utf8'));
@@ -105,6 +112,21 @@ for (const workflow of profile.workflows) {
         'content/tts/voice-profiles', `${listen.voice_profile}.json`)),
       `${scope}: listen-through voice profile is missing`);
       assert.equal(typeof listen.autoplay, 'boolean', `${scope}: invalid listen-through autoplay value`);
+      const ttsBinding = profile.commands.find(({ id }) => id === listen.command);
+      const ttsConfig = parse(fs.readFileSync(path.resolve(profileDir, ttsBinding.config), 'utf8')) ?? {};
+      if (ttsConfig.article_audio_subdirectory !== undefined) {
+        assert.match(ttsConfig.article_audio_subdirectory, /^[a-z][a-z0-9_-]*$/i,
+          `${scope}: invalid TTS article audio subdirectory`);
+      }
+      if (ttsConfig.article_audio_filename_prefix !== undefined) {
+        assert.match(ttsConfig.article_audio_filename_prefix, /^[a-z][a-z0-9_-]*$/i,
+          `${scope}: invalid TTS article audio filename prefix`);
+      }
+      if (ttsConfig.default_output_dir !== undefined) {
+        const dir = ttsConfig.default_output_dir;
+        assert.ok(typeof dir === 'string' && (path.isAbsolute(dir) || dir.startsWith('~/')),
+          `${scope}: invalid TTS default output directory`);
+      }
       if (listen.online_synthesis !== undefined) {
         const online = listen.online_synthesis;
         assert.ok(online && typeof online === 'object' && !Array.isArray(online),
@@ -138,14 +160,30 @@ for (const workflow of profile.workflows) {
         assert.ok(Number.isInteger(policy.target_interval_days) && policy.target_interval_days > 0,
           `${scope}/${binding.id}: release target interval must be a positive integer`);
       }
+      if (policy.min_posts_per_local_week !== undefined) {
+        assert.ok(Number.isInteger(policy.min_posts_per_local_week) && policy.min_posts_per_local_week > 0,
+          `${scope}/${binding.id}: release weekly minimum must be a positive integer`);
+        assert.ok(policy.min_posts_per_local_week <= 7 * policy.max_posts_per_local_day,
+          `${scope}/${binding.id}: release weekly minimum exceeds the daily cap`);
+      }
     }
     if (binding.id === 'obsidian') {
       assert.ok(override.vault_name, `${scope}/obsidian: vault name is missing`);
     }
     if (binding.id === 'medium') {
-      assert.equal(binding.mode, 'draft-only', `${scope}/medium: workflow mode`);
-      assert.equal(override.mode, 'draft-only', `${scope}/medium: command mode`);
+      assert.ok(['draft-only', 'draft-and-schedule'].includes(binding.mode), `${scope}/medium: workflow mode`);
+      assert.equal(override.mode, binding.mode, `${scope}/medium: command mode`);
       assert.match(override.account_profile_url ?? '', /^https:\/\/medium\.com\/@[^/]+$/, `${scope}/medium: account profile URL`);
+      if (binding.mode === 'draft-and-schedule') {
+        const scheduling = binding.release_policy?.scheduling;
+        assert.equal(scheduling?.enabled, true, `${scope}/medium: scheduling must be enabled`);
+        assert.equal(scheduling.allowed_role, 'release-coordinator', `${scope}/medium: scheduling role`);
+        assert.equal(scheduling.requires_human_article_acceptance, true, `${scope}/medium: article acceptance gate`);
+        assert.equal(scheduling.per_item_approval_required, false, `${scope}/medium: scheduling approval policy`);
+      } else {
+        assert.notEqual(binding.release_policy?.scheduling?.enabled, true,
+          `${scope}/medium: scheduling requires draft-and-schedule mode`);
+      }
     }
   }
 }

@@ -61,5 +61,6 @@ new revision-specific review assignment; neither a correction nor an old review 
 The human may still address Writer or Reviewer directly. Writer reports its archive and pending review to the human;
 Reviewer reports critique and the human listen-through gate to the human. After Writer dispositions findings, the
 human accepts or rejects the exact final revision. The human selects Release Coordinator for timing after review
-readiness; Release Coordinator reports its recommendation to the human. Only the human publishes or schedules.
+readiness; Release Coordinator reports its slot and may schedule an accepted revision on Medium if the selected profile
+enables that action. The human performs immediate publication or submission.
 `show-context` is a human-facing presentation command, never peer transport.

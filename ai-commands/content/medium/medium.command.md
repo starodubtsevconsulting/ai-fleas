@@ -2,8 +2,9 @@
 
 ## Purpose
 
-Use `medium` to prepare and verify an unpublished Medium draft from an authorized article. It is a destination
-adapter, not the generic writing or permanent-memory command. Never publish, submit, or schedule a post.
+Use `medium` to prepare and verify an unpublished Medium draft from an authorized article. With a separately enabled
+`draft-and-schedule` workflow binding, Release Coordinator may schedule an accepted exact revision for a future slot
+through Medium's native UI. Never publish immediately or submit to a publication.
 
 ## Inputs
 
@@ -11,7 +12,7 @@ adapter, not the generic writing or permanent-memory command. Never publish, sub
 |---|---|---|---|
 | Active profile and workflow | Yes | Host activation | Must authorize `medium` as a destination command. |
 | Profile-owned defaults | Yes | `AI_COMMAND_CONFIG_PATH` | `medium-command-config.v1` and default safety mode. |
-| Workflow-owned override | Yes for article preparation | Active workflow destination binding | Explicit config path and archive project reference for that workflow. |
+| Workflow-owned override | Yes | Active workflow destination binding | Explicit config path, mode, account, and archive project reference for that workflow. |
 | Article | Yes | Authorized archive or explicit human source | Canonical text, metadata, and assets to prepare. |
 | Existing draft URL | When present | Article metadata or human | Reuse the intended draft rather than making a duplicate. |
 
@@ -19,7 +20,8 @@ adapter, not the generic writing or permanent-memory command. Never publish, sub
 
 - Unpublished Medium draft with reviewed title, subtitle, body, links, visuals, and topics.
 - Draft URL, selected topics, any unresolved issues, and archive metadata read-back.
-- No publication, submission, scheduling, or alteration of an already-published post.
+- For an enabled Release Coordinator: verified scheduled status, date/time, account, draft URL, and archive read-back.
+- No immediate publication, submission, or alteration of an already-published post.
 
 ## Entry point and configuration
 
@@ -33,7 +35,7 @@ schema_version: medium-command-config.v1
 mode: draft-only
 ```
 
-Active writing destination's separate config:
+Active writing destination's separate config defaults to draft-only:
 
 ```yaml
 schema_version: medium-command-config.v1
@@ -48,8 +50,15 @@ to the intended article archive. Require `account_profile_url` to identify the i
 that the signed-in account's profile link matches it before any draft mutation. Reject missing or conflicting
 bindings rather than inferring them from a vault label, cwd, currently open browser tab, display name, or article
 draft URL. A publication is a separate destination choice; do not infer one from the account. Configuration is a
-routing constraint, not permission to publish.
+routing constraint. `draft-and-schedule` is valid only when the active workflow destination also uses that mode and
+its release policy explicitly enables `release-coordinator`, requires human acceptance of the exact final article
+revision, and states that no separate per-item scheduling approval is required. The profile-wide default remains
+`draft-only`; another workflow does not inherit this grant. A cadence target never initiates scheduling by itself.
+Neither mode permits immediate publication or submission.
 
 Read and follow the command-owned [Medium draft skill](skills/medium-draft/SKILL.md) for editor-specific preparation
 and verification. Use the selected profile's article archive for durable source and draft metadata. If editor access,
 assets, or permissions fail, preserve the archived source and report the unfinished step.
+For authorized future scheduling, Release Coordinator follows the separate
+[Medium schedule skill](skills/medium-schedule/SKILL.md), which includes a desktop navigation map, and verifies
+Medium's scheduled state before reporting success.

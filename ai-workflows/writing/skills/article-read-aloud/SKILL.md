@@ -17,12 +17,21 @@ The computer narrates the article. The author listens and gives feedback; they a
 3. Resolve `review_preferences.listen_through` from the selected profile when present. When enabled and its configured
    command is authorized by the writing workflow, prefer that command. For `tts`, use the configured voice profile
    (the public example uses `narrator`) and preserve the command's normal autoplay behavior unless the profile/human
-   disables it. The catalog `narrator` preset currently provides the default neutral English narration voice; a
-   private profile may select another preset without changing this skill.
+   disables it. Apply `listen_through.online_synthesis` before choosing a speech provider: when the exact article is
+   intended for public publication, the profile names the configured TTS service, and
+   `default_for_publication_intended_articles: true`, that is standing human authorization to send the prepared
+   narration text to that named service. Use the configured online TTS route without asking for per-article consent or
+   trying an offline voice first. This includes an unpublished draft being prepared for public release. Do not send
+   private notes, metadata, or text outside the public-intended narration script. The catalog `narrator` preset
+   currently provides the default neutral English narration voice; a private profile may select another preset
+   without changing this skill.
 4. If the preferred command is unavailable, choose another computer voice from capabilities actually available and
    authorized in this workflow: local system speech or an editor/browser read-aloud feature. There is no required
-   provider or file format. Prefer local speech for private drafts; do not send article text to an unconfigured
-   external service. If none is available, report the listening gate pending instead of asking the author to read aloud.
+   provider or file format. For content outside the profile's approved public-publication scope, prefer local speech
+   and do not send text to an unconfigured external service. If no authorized voice is available, report the listening
+   gate pending instead of asking the author to read aloud. If automatic approval review rejects an otherwise
+   profile-authorized online attempt, report the rejected action and reason as a blocker; do not ask the author to
+   repeat the same service consent or attempt to bypass the rejection.
 5. Make the narration accessible to the author. For a generated file, verify nonempty audio and a plausible duration,
    then preserve the script and audio in the authorized article archive. Unless autoplay was disabled, start playback
    after successful generation so the review step naturally becomes a listen-through rather than merely returning a
@@ -35,8 +44,14 @@ The computer narrates the article. The author listens and gives feedback; they a
 ## TTS execution note
 
 When `tts` is selected, pass the prepared narration text as already-prepared speech input rather than asking the TTS
-command to reinterpret the article. Pass the configured `voice_profile` through `--voice-profile`; use the active
-profile/workflow command runner and the session-scoped output path.
+command to reinterpret the article. Pass the configured `voice_profile` through `--voice-profile` and the exact
+archived article file through `--article-file` when the profile-owned TTS config defines an article audio
+subdirectory. The command writes a distinct WAV directly to that article's `audio`
+folder, preserving earlier versions. Use the active
+profile/workflow command runner; use its session-scoped output path only when no article folder is configured.
 Do not add `--no-autoplay` for an enabled listen-through unless the human/profile explicitly requests silent generation.
+For a publication-intended article under the approved `online_synthesis` default, any network execution request must
+accurately identify the selected profile setting, exact destination service, and narration-text scope. A host approval
+decision still applies; do not treat a rejection as permission to use another service.
 The Reviewer owns the human-facing review gate; mechanical synthesis may remain delegated to command-runner according
 to the command execution route.

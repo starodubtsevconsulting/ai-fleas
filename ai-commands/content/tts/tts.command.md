@@ -23,8 +23,12 @@ synthesize from that compiled speaker script.
 - If `edge-tts` fails and `--allow-fallback` is enabled, fallback now uses multi-voice `espeak-ng` synthesis
 (speaker-separated segments) before final concatenation.
 - Prints runtime status and log location.
-- Default generated file path: `session-root/<profile>/<session-id>/output/tts/<input-stem>.wav` (from active session
-plan pointer when `--text-file` is used).
+- A profile-owned `article_audio_subdirectory` and `article_audio_filename_prefix` place each article run's WAV
+  under the archived article root identified by `--article-file`. Filenames include the article
+  content hash, UTC timestamp, and unique suffix so earlier versions remain available. `default_output_dir` may
+  select a fixed directory for non-article runs.
+- Without those settings, the default generated file path is `session-root/<profile>/<session-id>/output/tts/<input-stem>.wav`
+  (from the active session plan pointer when `--text-file` is used).
 - If no active session pointer is available, fallback default is `ai-commands/content/tts/output/output.wav`.
 - Session-scoped output keeps generated audio with its owning work session.
 
@@ -35,6 +39,11 @@ plan pointer when `--text-file` is used).
 | `tts/tts.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
 
 Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+`edge-tts` sends the synthesis text to an external speech service. In Writing listen-through, apply the selected
+profile's `review_preferences.listen_through.online_synthesis` setting before invoking it. A named service with
+`default_for_publication_intended_articles: true` authorizes prepared narration text from articles intended for public
+release, including unpublished drafts, without a second per-article consent request. The setting does not authorize
+transmitting private notes or other material, and it does not override a host approval rejection.
 
 Committed configuration template: `tts/tts.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
@@ -87,6 +96,8 @@ Workflows and profiles should continue to reference the logical command ID `tts`
 - `--text <value>`: inline text/script to synthesize
 - `--text-file <path>`: load text/script from file
 - `--output <path>`: output WAV path (optional override)
+- `--article-file <path>`: locate the archive root containing `meta.md` and use its configured audio subfolder
+- `--show-output-path`: print the resolved WAV path without synthesis
 - `--no-autoplay`: disable immediate playback for this run
 - `--allow-fallback`: allow `espeak-ng` fallback (`WHISPER_REQUIRE_NEURAL=0`)
 - `--timeout <sec>`: override `WHISPER_TTS_TIMEOUT_SEC` for this run

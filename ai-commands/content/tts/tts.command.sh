@@ -48,11 +48,15 @@ DEFAULT_UNLABELED_SPEAKER='narrator'
 text=''
 text_file=''
 output=''
+article_file=''
+show_output_path='0'
+versioned_article_output='0'
 autoplay='1'
 allow_fallback='0'
 timeout_sec='90'
 list_profiles='0'
 compiled_text_out=''
+compiled_text_out_temp='0'
 input_is_compiled='0'
 compile_mode="${TTS_COMPILE_MODE:-auto}"
 compile_model="${TTS_COMPILE_MODEL:-gpt-4o-mini}"
@@ -60,6 +64,14 @@ compile_base_url="${OPENAI_BASE_URL:-https://api.openai.com/v1}"
 compile_timeout_sec="${TTS_COMPILE_TIMEOUT_SEC:-45}"
 
 ai_api_key="${OPENAI_API_KEY:-}"
+configured_output_dir=''
+configured_article_audio_subdirectory=''
+configured_article_audio_filename_prefix=''
+if [ -n "${AI_COMMAND_CONFIG_PATH:-}" ]; then
+  configured_output_dir="$(ai_profile_scalar "$AI_COMMAND_CONFIG_PATH" default_output_dir)"
+  configured_article_audio_subdirectory="$(ai_profile_scalar "$AI_COMMAND_CONFIG_PATH" article_audio_subdirectory)"
+  configured_article_audio_filename_prefix="$(ai_profile_scalar "$AI_COMMAND_CONFIG_PATH" article_audio_filename_prefix)"
+fi
 
 trim_value() {
   printf '%s' "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
@@ -487,6 +499,14 @@ while [ $# -gt 0 ]; do
       output="${2:-}"
       shift 2
       ;;
+    --article-file)
+      article_file="${2:-}"
+      shift 2
+      ;;
+    --show-output-path)
+      show_output_path='1'
+      shift
+      ;;
     --no-autoplay)
       autoplay='0'
       shift
@@ -544,6 +564,8 @@ Options:
   --text <value>              Inline text/script
   --text-file <path>          Read text/script from file
   --output <path>             Output WAV path
+  --article-file <path>      Store a versioned WAV in this archived article's audio folder
+  --show-output-path          Print the resolved WAV path without generating audio
   --no-autoplay               Disable immediate playback
   --allow-fallback            Allow espeak fallback when neural TTS fails
   --timeout <sec>             Timeout in seconds for each edge-tts segment (default 90)
@@ -601,19 +623,68 @@ if [ -n "$text_file" ] && [ ! -f "$text_file" ]; then
   exit 1
 fi
 
-if ! command -v ffmpeg >/dev/null 2>&1; then
-  echo "Missing required command: ffmpeg" >&2
-  exit 1
+if [ -n "$configured_article_audio_subdirectory" ] &&
+   [[ ! "$configured_article_audio_subdirectory" =~ ^[A-Za-z][A-Za-z0-9_-]*$ ]]; then
+  echo "Invalid article_audio_subdirectory in TTS profile config." >&2
+  exit 2
+fi
+if [ -n "$configured_article_audio_filename_prefix" ] &&
+   [[ ! "$configured_article_audio_filename_prefix" =~ ^[A-Za-z][A-Za-z0-9_-]*$ ]]; then
+  echo "Invalid article_audio_filename_prefix in TTS profile config." >&2
+  exit 2
+fi
+if [ -n "$configured_output_dir" ]; then
+  configured_output_dir="$(ai_profile_expand_home_path "$configured_output_dir")"
+  case "$configured_output_dir" in
+    /*) ;;
+    *) echo "default_output_dir must be absolute or use ~/ in TTS profile config." >&2; exit 2 ;;
+  esac
 fi
 
-load_profile_values "$VOICE_PROFILES_DIR"
-mkdir -p "$LOG_DIR"
-
-if [ -z "$output" ]; then
-  if session_output_dir="$(resolve_session_output_dir || true)" && [ -n "$session_output_dir" ]; then
+if [ -n "$output" ]; then
+  OUTPUT_DIR="$(dirname "$output")"
+elif [ -n "$article_file" ]; then
+  case "$article_file" in
+    /*) ;;
+    *) echo "--article-file must be an absolute path." >&2; exit 2 ;;
+  esac
+  [ -f "$article_file" ] || { echo "Article file not found: $article_file" >&2; exit 2; }
+  [ -n "$configured_article_audio_subdirectory" ] || {
+    echo "TTS profile config has no article_audio_subdirectory." >&2
+    exit 2
+  }
+  article_parent="$(cd "$(dirname "$article_file")" && pwd -P)"
+  if [ -f "$article_parent/meta.md" ]; then
+    article_root="$article_parent"
+  elif [ -f "$article_parent/../meta.md" ]; then
+    article_root="$(cd "$article_parent/.." && pwd -P)"
+  else
+    echo "--article-file is outside an archived article folder with meta.md." >&2
+    exit 2
+  fi
+  article_hash="$(python3 - "$article_file" <<'PY'
+import hashlib
+import sys
+from pathlib import Path
+print(hashlib.sha256(Path(sys.argv[1]).read_bytes()).hexdigest()[:12])
+PY
+)"
+  run_stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+  run_nonce="$(python3 - <<'PY'
+import secrets
+print(secrets.token_hex(16))
+PY
+)"
+  OUTPUT_DIR="$article_root/$configured_article_audio_subdirectory"
+  output="$OUTPUT_DIR/${configured_article_audio_filename_prefix:-read-aloud-tts}-${article_hash}-${run_stamp}-${run_nonce}.wav"
+  versioned_article_output='1'
+  [ ! -e "$output" ] || { echo "Versioned article audio path already exists: $output" >&2; exit 2; }
+else
+  if [ -n "$configured_output_dir" ]; then
+    OUTPUT_DIR="$configured_output_dir"
+  elif session_output_dir="$(resolve_session_output_dir || true)" && [ -n "$session_output_dir" ]; then
     OUTPUT_DIR="$session_output_dir"
   fi
-  mkdir -p "$OUTPUT_DIR"
   if [ -n "$text_file" ]; then
     input_name="$(basename "$text_file")"
     input_stem="${input_name%.*}"
@@ -621,15 +692,31 @@ if [ -z "$output" ]; then
   else
     output="$OUTPUT_DIR/output.wav"
   fi
-else
-  mkdir -p "$(dirname "$output")"
 fi
+
+if [ "$show_output_path" = '1' ]; then
+  printf '%s\n' "$output"
+  exit 0
+fi
+
+if ! command -v ffmpeg >/dev/null 2>&1; then
+  echo "Missing required command: ffmpeg" >&2
+  exit 1
+fi
+
+load_profile_values "$VOICE_PROFILES_DIR"
+mkdir -p "$LOG_DIR" "$OUTPUT_DIR"
 
 if [ -n "$text_file" ] && [ "$input_is_compiled" != '1' ]; then
   if [ -z "$compiled_text_out" ]; then
-    input_name="$(basename "$text_file")"
-    input_stem="${input_name%.*}"
-    compiled_text_out="$OUTPUT_DIR/${input_stem}-compiled.txt"
+    if [ "$versioned_article_output" = '1' ]; then
+      compiled_text_out="$(mktemp "${TMPDIR:-/tmp}/tts-compiled.XXXXXX")"
+      compiled_text_out_temp='1'
+    else
+      input_name="$(basename "$text_file")"
+      input_stem="${input_name%.*}"
+      compiled_text_out="$OUTPUT_DIR/${input_stem}-compiled.txt"
+    fi
   fi
   compile_ok='0'
   case "$compile_mode" in
@@ -662,6 +749,9 @@ elif [ -n "$text" ]; then
 else
   source_text='Whisper installation check sample text.'
 fi
+if [ "$compiled_text_out_temp" = '1' ]; then
+  rm -f "$compiled_text_out"
+fi
 
 tmp_dir="$(mktemp -d)"
 parsed_tsv="$tmp_dir/parsed.tsv"
@@ -680,11 +770,13 @@ if command -v edge-tts >/dev/null 2>&1; then
         note='espeak-ng-multivoice-fallback'
       else
         rm -rf "$tmp_dir"
+        if [ "$versioned_article_output" = '1' ]; then rm -f "$output"; fi
         echo "Fallback espeak-ng generation failed." >&2
         exit 1
       fi
     else
       rm -rf "$tmp_dir"
+      if [ "$versioned_article_output" = '1' ]; then rm -f "$output"; fi
       echo "edge-tts generation failed and fallback is disabled/unavailable." >&2
       exit 1
     fi
@@ -695,11 +787,13 @@ else
       note='espeak-ng-multivoice-fallback'
     else
       rm -rf "$tmp_dir"
+      if [ "$versioned_article_output" = '1' ]; then rm -f "$output"; fi
       echo "Fallback espeak-ng generation failed." >&2
       exit 1
     fi
   else
     rm -rf "$tmp_dir"
+    if [ "$versioned_article_output" = '1' ]; then rm -f "$output"; fi
     echo "edge-tts not found and fallback disabled/unavailable." >&2
     exit 1
   fi
