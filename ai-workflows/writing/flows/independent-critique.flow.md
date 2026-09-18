@@ -12,16 +12,17 @@ open editorial decisions. Keep both versions unpublished.
 
 ## Steps
 
-1. Generate a computer-narrated preview with the [article read-aloud skill](../skills/article-read-aloud/SKILL.md)
-   and give the human author a first-pass listen-through. Keep the text available for checking exact claims. Ask
-   what sounds inaccurate, unlike their voice, over-explained, awkward, or missing. Record feedback or `pending
-   human listen-through`; producing or playing audio is not itself approval. The author need not read aloud. Proof:
-   a playable narration or verified live read-aloud, narrated revision, and feedback tied to that revision.
-2. Give the Reviewer, who did not draft or edit this revision, a clean reading copy, its intended audience, effective
-   article template and method emphasis from the brief, and the minimum sources needed to check claims. A separate
-   fresh-context AI task or a human reader can do this when authorized and available; the drafter's own second pass
-   is useful but does not count as independent. Do not claim independence from a role label alone. Proof: reviewer
-   identity or task, revision reviewed, and scope.
+1. Writer gives the exact initialized Reviewer a bounded [review assignment](../agents/editorial-routing.md) for the
+   finished revision. Include a clean reading copy, intended audience, effective article template and method emphasis,
+   and the minimum sources needed to check claims. Reviewer verifies it did not draft or edit this revision. A
+   separate fresh-context AI task or a human reader may do this only when separately authorized; the drafter's own
+   second pass does not count as independent. Proof: exact reviewer identity, revision, packet correlation, and scope.
+2. Reviewer generates a computer-narrated preview with the
+   [article read-aloud skill](../skills/article-read-aloud/SKILL.md) and gives the human author a first-pass
+   listen-through. Keep the text available for checking exact claims. Ask what sounds inaccurate, unlike their voice,
+   over-explained, awkward, or missing. Record feedback or `pending human listen-through`; producing or playing audio
+   is not itself approval. The author need not read aloud. Proof: a playable narration or verified live read-aloud,
+   narrated revision, and feedback tied to that revision.
 3. The Reviewer follows the [review criteria](../guides/review-criteria.md), reads as a skeptical intended reader,
    and identifies specific, prioritized weaknesses: unclear promise or title, unsupported or overstated claims,
    missing counterpoints, weak logic, confusing structure, unearned emotional beats, tone drift, visual problems, and
@@ -35,9 +36,10 @@ open editorial decisions. Keep both versions unpublished.
    This report is for the human, not an agent-to-agent message or handoff protocol.
    Keep any generated HTML outside version control and provide its recoverable location. If the command is unavailable,
    provide the same evidence in Markdown. Proof: the review artifact and source revision.
-5. The writing task resolves each consequential point by revising, checking a source, or recording why it remains
+5. Reviewer returns findings to the exact Writer through the accepted packet's return route and presents them to the
+   human. Writer resolves each consequential point by revising, checking a source, or recording why it remains
    unresolved or is an intentional choice. Recheck any changed claim or destination formatting. Proof: a disposition
-   list tied to the resulting article and draft revisions.
+   list tied to the resulting article and draft revisions. A materially changed revision requires a new review request.
 6. Hand the resulting draft and remaining risks to the human author for a final read or computer-narrated listen.
    The author decides whether the piece sounds like them and is ready to release. Record their decision if given;
    silence is not approval. Proof: author feedback or an explicit `pending human review` state.

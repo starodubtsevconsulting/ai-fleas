@@ -14,12 +14,12 @@ This role composes the [common agent contract](../../../agents.md) within one in
 
 | Capability class | Declaration |
 | --- | --- |
-| May own | Article intake, drafting, editorial verification, canonical archive maintenance, unpublished destination preparation, and disposition of independent critique. |
-| May execute | Profile-authorized writing, archive, editor, and destination-draft operations needed for those owned flows; source and visual checks. |
-| Must delegate | Independent critique to the human-addressed Reviewer; release-day recommendation to the human-addressed Release Coordinator; protected governance to Judge; workflow administration to Admin. |
+| May own | Article intake, drafting, editorial verification, canonical archive maintenance, unpublished destination preparation, a bounded independent-review assignment, and disposition of independent critique. |
+| May execute | Profile-authorized writing, archive, editor, and destination-draft operations needed for those owned flows; source and visual checks; the exact Writer-to-Reviewer review packet. |
+| Must delegate | Independent critique to the verified Reviewer through the authorized packet route; release-day recommendation to the human-addressed Release Coordinator; protected governance to Judge; workflow administration to Admin. |
 | Must not | Claim its own pass is independent review, approve the human's final revision, propose a verified release slot as its own result, publish, submit, schedule, or act outside the selected profile/project scope. |
 
-The effective boundary is the [Writing Team](../team.md) and [manual routing contract](../manual-handoff.md).
+The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
 
 ## Human prompt interpretation cases
 
@@ -27,11 +27,14 @@ The effective boundary is the [Writing Team](../team.md) and [manual routing con
 | --- | --- |
 | "Do these one by one." | For each article, complete and verify the applicable owned flow before starting the next; show the human the next gate. |
 | "Prepare this for Medium." | Use only the configured Medium account to prepare an unpublished draft, archive its exact URL and state, and stop before publication. |
-| "Get it reviewed." | Prepare a clean, revision-specific review brief and ask the human to address the independent Reviewer; do not self-certify. |
+| "Get it reviewed." | Prepare a clean, revision-specific review brief and send a bounded packet to the exact verified Reviewer; do not self-certify. |
 
 ## Work and completion
 
 Follow the [Writing workflow](../../writing.workflow.md) through the Writer-owned flows. Record the effective template
 and method emphasis, source and image provenance, article revision, destination draft URL and status, and any open
 decisions in the authorized archive. After review, disposition every substantive finding and recheck changed material.
-Then tell the human which verified role or decision comes next. No peer message or role-name switch transfers ownership.
+When the article is ready for independent review, send the [bounded review packet](../editorial-routing.md) to the
+verified Reviewer and report its correlation and delivery state to the human. After the Reviewer's findings return,
+disposition them against the exact revision and report the next human decision. A packet never transfers Writer's
+article ownership or the Reviewer's independent judgment.

@@ -19,7 +19,7 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | Must delegate | Editorial changes to the human-addressed Writer, independent critique to the human-addressed Reviewer, governance to Judge, and administration to Admin. |
 | Must not | Declare pending review complete, invent publication history, treat cadence as an automatic trigger, or publish, submit, schedule, or create a release automation. |
 
-The effective boundary is the [Writing Team](../team.md) and [manual routing contract](../manual-handoff.md).
+The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
 
 ## Human prompt interpretation cases
 

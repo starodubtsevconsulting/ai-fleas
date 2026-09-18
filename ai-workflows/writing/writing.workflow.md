@@ -8,23 +8,24 @@ Declaring the roster does not initialize live agents or create publication autho
 
 ## Execution mode
 
-When a selected platform has initialized the complete roster under the [common agent contract](../agents.md), the human
-addresses Writer, Reviewer, and Release Coordinator directly in sequence. They do not automatically message or transfer
-work to one another; each reports the exact artifact, evidence, gate, and suggested next role to the human. The human
-chooses the next task. Before initialization, an authorized task may emulate Writer and Release Coordinator steps for
+When a selected platform has initialized the complete roster under the [common agent contract](../agents.md), Writer
+may send a finished, revision-specific review assignment directly to Reviewer and receive its findings through the
+[editorial routing contract](agents/editorial-routing.md). Both remain directly human-addressable. The human chooses
+when to accept the final revision and when to address Release Coordinator. Before initialization, an authorized task
+may emulate Writer and Release Coordinator steps for
 draft preparation, but it must not claim a managed-agent identity. Independent critique still needs a genuinely
 fresh-context Reviewer task or human reader who did not draft or edit the revision. If unavailable, mark it pending.
 
 ## Responsibility handoff
 
 - The **Writer** owns intake, drafting, editorial verification, archive maintenance, unpublished destination preparation,
-  and resolution of independent critique. The Writer prepares a clean copy and effective article brief for the human
-  to pass to Reviewer. It then records the exact article and destination-draft revisions, source trail, visual credits,
-  review evidence, and open issues for the human to pass to Release Coordinator.
+  and resolution of independent critique. The Writer sends its clean copy and effective article brief to the exact
+  verified Reviewer through a bounded review packet, then records the exact article and destination-draft revisions,
+  source trail, visual credits, review evidence, and open issues for the human to pass to Release Coordinator.
 - The **Reviewer** owns the independent reading and critique within that flow. It must not have drafted or edited the
   revision it reviews. It applies the article-specific template and method emphasis resolved from profile preferences
   and the human's brief, using the [review criteria](guides/review-criteria.md). It returns evidence-linked findings to
-  the human for Writer's disposition, not an edited replacement draft or publication approval.
+  the exact Writer and the human, not an edited replacement draft or publication approval.
 - The **Release Coordinator** owns release planning and the final recommendation to the human. It verifies the review
   gate, destination account, profile-owned cadence, and publication or queue history before proposing a day. If any
   prerequisite is missing, it reports a pending gate instead of inventing a slot. It reports substantive editorial
