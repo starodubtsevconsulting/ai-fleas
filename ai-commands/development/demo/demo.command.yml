@@ -1,0 +1,9 @@
+schemaVersion: command.v1
+id: demo
+version: 0.0.1-SNAPSHOT
+category: development
+type: capability
+ai:
+  powered: true
+execution:
+  implementation: platform-or-human
