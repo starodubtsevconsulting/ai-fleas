@@ -91,6 +91,17 @@ The Governor should run a daily calendar-to-memory reconciliation, normally as p
 
 The morning sync therefore combines two complementary sources of yesterday's history: **calendar reconciliation** for scheduled events and **human/source retrospective capture** for things that happened outside the calendar.
 
+```mermaid
+flowchart TD
+    A[Morning Governor sync] --> B[Reconcile yesterday's calendar]
+    B --> C[Durable daily memory]
+    A --> D[Capture other reported events]
+    D --> C
+    A --> E[Plan today]
+    E --> F[Calendar]
+    F -. next-day history .-> B
+```
+
 If the daily pass is missed, a later reconciliation should backfill the gap rather than silently losing calendar history.
 
 ### Human signal
