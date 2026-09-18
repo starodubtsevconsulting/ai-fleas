@@ -45,7 +45,7 @@ channels:
 mode: queue
 ```
 
-Profiles own provider/account capability bindings and secrets. Projects own distribution intent: which configured account/channel references their artifacts may target, plus project-local defaults such as draft/queue policy. Workflows prepare artifacts but do not choose the project's audience. Do not place credentials in the artifact.
+Profiles own provider/account capability bindings, secrets, and the profile-local configuration attached to project references. A project reference may declare distribution intent: which configured account/channel references that project may target, plus defaults such as draft/queue policy. The referenced project repository/folder itself does not need to contain personal/profile distribution policy. Workflows prepare artifacts but do not choose the project's audience. Do not place credentials in the artifact.
 
 Media resizing/cropping and destination-safe caption adaptation may be delegated to authorized multimedia/image capabilities, but `social-publish` should not invent new substantive content merely to fill a channel.
 
