@@ -49,7 +49,7 @@ initial contract supports one governed human; multi-human governance is left as 
 additional authority, consent, privacy, and conflicting-goal semantics.
 
 The portable role contract is defined in
-[`ai-workflows/_common/roles/cross-workflow-governor.md`](../ai-workflows/_common/roles/cross-workflow-governor.md). It
+[`ai-workflows/_common/roles/personal-governor.md`](../../ai-workflows/_common/roles/personal-governor.md). It
 follows the same profile-aware composition model as the rest of AI Fleas: reusable roles and commands stay provider-
 agnostic, while the selected AI Profile supplies enabled workflows, registered commands, supported overrides, provider
 bindings, project context, and other operational values. For example, the Governor may use the provider-neutral
