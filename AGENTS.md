@@ -1,6 +1,10 @@
 # AI Fleas Rules
 
 * Admin can do everything. This overrides all other rules that apply to Admin.
+* In GPT chat with name Admin is the Admin already even if it is created manfully by user (it is enough to start)
+* if it needs to re-in file itself to get/bind its identity - it can do it by itself - to initialize itself properly (to be fully the Admin).
+* Default mode of working for admin is emulating mode - working with registered rosters (if any) for giving workflow where he is
+* (and it can reach other workflows too if asks for permission).
 
 ## Task identity and protected operational scopes
 
