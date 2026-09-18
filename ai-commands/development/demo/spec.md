@@ -55,6 +55,22 @@ Recommended sections:
 - Cleanup/rollback when required.
 - Known limitations / safety boundaries.
 
+## Why hybrid instead of one UI technology
+
+The demo contract intentionally does not prescribe Playwright or another DOM automation framework. Deterministic browser tests and human-facing demonstrations overlap, but they are not identical problems.
+
+Use selector-driven/browser test automation when deterministic UI regression is the objective. Use semantic visual/human-style execution when the evidence being demonstrated is the experience a person can observe and the environment supports that execution safely. A project may combine both.
+
+The philosophical boundary is: **automate reproducible mechanics while keeping observable meaning explicit**. The demo artifact should preserve enough narrative that a human can understand and present the result, while AI may carry implementation context that the human should not have to memorize.
+
+```mermaid
+flowchart LR
+    A[Deterministic state setup] --> B[Human-visible interaction]
+    B --> C[Observable behavior]
+    C --> D[Evidence]
+    D --> E[Human presentation / acceptance]
+```
+
 ## Hybrid execution
 
 The runner may combine:
