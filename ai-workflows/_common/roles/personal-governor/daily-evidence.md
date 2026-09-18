@@ -57,7 +57,9 @@ Categories are descriptive, not exclusive.
 
 Calendar is an operational scheduling surface, not the Governor's only durable memory of commitments.
 
-Persist a normalized daily record for calendar events or planned commitments when they can materially affect goals, allocation, preparation, deadlines, recovery, or later execution review. The memory record should be usable without requiring the Governor to search historical calendars.
+Persist a normalized memory record for calendar history visible to the Governor, subject to authorization and privacy boundaries. **Past calendar events must be captured into durable memory** so historical planning/execution evidence does not depend on continued calendar access.
+
+Future events remain operational calendar state by default. They may also be projected into memory when they materially affect preparation, allocation, deadlines, travel, or other forward reasoning, but future-event duplication is not required merely because an event exists.
 
 Keep, when known:
 
@@ -72,7 +74,35 @@ Keep, when known:
 
 The calendar remains authoritative for exact current scheduling when available, and may be accessed through MCP or another adapter. Memory preserves the event's durable planning/execution meaning. Do not delete the historical memory record merely because the calendar event is past, moved, cancelled, or later unavailable. Record corrections/rescheduling explicitly.
 
-Do not mirror every low-value calendar entry. Persist commitments that are useful to Governor reasoning or execution history.
+For past events, mirror ordinary and low-value events as minimal normalized records rather than dropping them. Do not copy unnecessary private payloads: title/purpose, source identity, time/window, profile context, lifecycle state, and relevant goal/strategy links are normally sufficient. Client/shared events may use privacy-safe summaries.
+
+Calendar is authoritative for current/future scheduling; memory is the durable historical Governor record. Track lifecycle changes such as rescheduled, cancelled, completed, or missed when known. Recurring series may retain a series identity plus occurrence-level history where useful.
+
+### Daily calendar capture
+
+The Governor should run a daily calendar-to-memory reconciliation, normally as part of the configured morning planning sync or another scheduled Governor maintenance pass:
+
+1. inspect the previous day's calendar events;
+2. ensure every past event has a normalized durable memory representation;
+3. reconcile moved/cancelled/completed/missed status when evidence exists;
+4. attach relevant profile/goal context without importing unnecessary private event payloads;
+5. capture material non-calendar events reported during the morning retrospective in the same dated evidence layer;
+6. make the operation idempotent using source calendar/event identity so repeated runs update/reconcile rather than duplicate records.
+
+The morning sync therefore combines two complementary sources of yesterday's history: **calendar reconciliation** for scheduled events and **human/source retrospective capture** for things that happened outside the calendar.
+
+```mermaid
+flowchart TD
+    A[Morning Governor sync] --> B[Reconcile yesterday's calendar]
+    B --> C[Durable daily memory]
+    A --> D[Capture other reported events]
+    D --> C
+    A --> E[Plan today]
+    E --> F[Calendar]
+    F -. next-day history .-> B
+```
+
+If the daily pass is missed, a later reconciliation should backfill the gap rather than silently losing calendar history.
 
 ### Human signal
 
