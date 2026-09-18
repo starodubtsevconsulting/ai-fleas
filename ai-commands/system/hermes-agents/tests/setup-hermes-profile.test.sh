@@ -8,7 +8,8 @@ test_root="$(mktemp -d "${TMPDIR:-/tmp}/setup-hermes-profile-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
 
-mkdir -p "${test_root}/bin" "${test_root}/workspace" "${test_root}/commands/statements" "${test_root}/workflows/financial-insights"
+mkdir -p "${test_root}/bin" "${test_root}/workspace" "${test_root}/commands/statements" "${test_root}/workflows/financial-insights" "${test_root}/ai-profile/example"
+printf '%s\n' 'name: example' >"${test_root}/ai-profile/example/example-work-profile.yml"
 printf '%s\n' '# Test agent instructions' >"${test_root}/instructions.md"
 printf '%s\n' '# Statements command' >"${test_root}/commands/statements/statements.command.md"
 printf '%s\n' '# Financial Insights workflow' >"${test_root}/workflows/financial-insights/financial-insights.workflow.md"
@@ -128,12 +129,13 @@ HERMES_AGENT_INSTRUCTIONS_PATH="${test_root}/instructions.md" \
 HERMES_AI_COMMANDS_ROOT="${test_root}/commands" \
 HERMES_WORKFLOW_INSTRUCTIONS_PATH="${test_root}/workflows/financial-insights/financial-insights.workflow.md" \
 HERMES_WORKFLOW_COMMAND_IDS='statements,secrets' \
+AI_CONFIG_PROJECT="${test_root}" \
 TEST_WORKSPACE="${test_root}/workspace" \
 PATH="${test_root}/bin:${PATH}" \
   "${SETUP_SCRIPT}" --workspace "${test_root}/workspace" >"${test_root}/secrets-output"
 grep -F 'When a selected command needs a credential' "${profile_dir}/SOUL.md" >/dev/null
 grep -F 'secrets run <consumer> -- <operation>' "${profile_dir}/SOUL.md" >/dev/null
-grep -F "WORK_PROFILE_ID=example AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=financial-insights.workflow.md ${test_root}/commands/connect/secrets/secrets.command.sh run <consumer> -- <operation>" "${profile_dir}/SOUL.md" >/dev/null
+grep -F "AI_CONFIG_PROJECT=${test_root} WORK_PROFILE_ID=example AI_WORK_PROFILE_ID=example AI_FLOW_WORKFLOW=financial-insights.workflow.md ${test_root}/commands/connect/secrets/secrets.command.sh run <consumer> -- <operation>" "${profile_dir}/SOUL.md" >/dev/null
 
 # Target failures are precise and happen before profile mutation.
 failure_home="${test_root}/failure-home"
