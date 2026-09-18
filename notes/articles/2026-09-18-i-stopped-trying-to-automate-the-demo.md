@@ -1,5 +1,10 @@
 # I Stopped Trying to Automate the Demo
 
+> “Don't explain your philosophy. Embody it.”
+>
+> — Epictetus
+
+
 There is a particular kind of confidence that comes from a green test suite.
 
 The code is merged. The API calls work. The fixtures produce exactly the state I expect. I have logs, assertions, screenshots, and enough evidence to convince myself that the feature is real.
