@@ -322,8 +322,16 @@ if [[ "${scope}" != 'system' && ( -n "${ai_commands_root}" || -n "${workflow_ins
     >>"${soul_tmp}"
   if [[ ",${workflow_command_ids}," == *",secrets,"* ]]; then
     printf '%s\n' 'When a selected command needs a credential, read the `secrets` command contract and use its profile-aware `secrets run <consumer> -- <operation>` route. The selected workflow must allow both commands. Use the consumer result, never request or print a raw secret, run `hermes-env` interactively, or copy bootstrap credentials. Hermes model-provider startup authentication is a separate, built-in secret source and does not authorize other consumer credentials.' >>"${soul_tmp}"
-    printf -v secret_command_scope 'WORK_PROFILE_ID=%q AI_WORK_PROFILE_ID=%q AI_FLOW_WORKFLOW=%q %q' \
-      "${work_profile}" "${work_profile}" "${workflow}.workflow.md" "${ai_commands_root}/connect/secrets/secrets.command.sh"
+    profile_project_root="${AI_CONFIG_PROJECT:-}"
+    if [[ -z "${profile_project_root}" && -n "${AI_PROFILE_FILE:-}" ]]; then
+      profile_project_root="$(cd "$(dirname "${AI_PROFILE_FILE}")/../../.." && pwd -P)"
+    fi
+    [[ -n "${profile_project_root}" && -f "${profile_project_root}/ai-profile/${work_profile}/${work_profile}-work-profile.yml" ]] || {
+      printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: selected profile project root is unavailable for secret-backed commands.' >&2
+      exit 2
+    }
+    printf -v secret_command_scope 'AI_CONFIG_PROJECT=%q WORK_PROFILE_ID=%q AI_WORK_PROFILE_ID=%q AI_FLOW_WORKFLOW=%q %q' \
+      "${profile_project_root}" "${work_profile}" "${work_profile}" "${workflow}.workflow.md" "${ai_commands_root}/connect/secrets/secrets.command.sh"
     printf 'Hermes Desktop terminal sessions do not inherit the selected AI profile. For a selected secret-backed consumer, run `%s run <consumer> -- <operation>` from the primary project, replacing both placeholders with the authorized command and operation. Do not omit the profile/workflow assignments or invoke the secrets script without them.\n' \
       "${secret_command_scope}" >>"${soul_tmp}"
   fi
