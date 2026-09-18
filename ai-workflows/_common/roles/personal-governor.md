@@ -90,6 +90,10 @@ The selected strategy has independently versioned strategy/workflow and human-gu
 
 Permanent memory is the governed human's durable, human-readable knowledge layer. The Personal Governor owns its governance/health, not necessarily authorship of every note. The permanent-memory methodology is not hard-coded into this role.
 
+## Daily planning integration
+
+A configured daily planning sync may use [`personal-governor/methods/daily-planning-sync/v1.md`](personal-governor/methods/daily-planning-sync/v1.md) to reconcile the previous day's evidence, today's commitments/capacity, and the operational calendar before discretionary allocation expands. Morning is a useful default trigger, not a universal requirement.
+
 ## One-on-one integration
 
 A one-on-one can fill evidence gaps passive observation cannot explain. It may combine goals/commitments, unexplained execution evidence, capacity/alignment, memory activity, useful discoveries, stale facts, and next adaptations.
