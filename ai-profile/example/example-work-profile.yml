@@ -111,6 +111,7 @@ workflows:
       - ticket-tracker
       - jira
       - test
+      - demo
       - review
       - commit
       - hermes-agents
