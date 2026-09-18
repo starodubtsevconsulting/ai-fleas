@@ -220,13 +220,6 @@ workflows:
       - id: obsidian
         command: obsidian
         config: workflows-config/writing/commands/obsidian/config.yml
-    social_distribution:
-      command: social-publish
-      default_mode: draft
-      config: workflows-config/writing/commands/social-publish/config.example.yml
-      policy:
-        immediate_publish_requires_human_approval: true
-        manufacture_channel_specific_content: false
     destinations:
       - id: medium
         command: medium
