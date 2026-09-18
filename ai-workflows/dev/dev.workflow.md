@@ -21,8 +21,7 @@ The workflow proceeds through the steps below in order. When one step completes 
 5. Designer / Reviewer independently reviews the implementation and applicable documentation.
 6. UI Acceptance Tester performs independent visible acceptance when UI behavior is affected, coordinated through
    the [testing flow](flows/testing.flow.md).
-7. Designer / Reviewer accepts the completed assignment when all required checks pass, including the
-   [demo flow](flows/demo.flow.md) when human demonstration/confirmation applies.
+7. Designer / Reviewer accepts the completed assignment when all required checks pass, including the [demo flow](flows/demo.flow.md) when the plan, human request, acceptance needs, or delivery context calls for demonstration. Demo is an applicability-based acceptance step: common for user-visible/client-facing changes, optional when it adds no useful evidence beyond existing verification.
 8. Command Runner performs delivery or deployment only when explicitly requested and authorized. Use
    [delivery.md](guides/delivery.md) and the [deployment flow](flows/deployment.flow.md) when applicable.
 9. Manager closes the ticket when applicable after all required evidence exists.
