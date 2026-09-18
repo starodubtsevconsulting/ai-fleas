@@ -5,8 +5,8 @@ id: personal-governor
 contract: personal-governor.md
 
 scope:
-  kind: profile
-  bindingOwner: profile
+  kind: governed-human
+  bindingOwner: governed-human
 
 humanFacing: true
 
@@ -15,7 +15,7 @@ lifecycle:
 
 fixed:
   canonicalRole: personal-governor
-  profileCardinality: one
+  profileCardinality: many
   governedSubjectCardinality: one
   goalCardinality: many
   workflowCardinality: many
@@ -41,16 +41,16 @@ configurable:
     owner: profile
 
 bindings:
-  profile:
+  profiles:
     type: profile-reference
-    required: true
-    cardinality: one
-    owner: profile
+    required: false
+    cardinality: many
+    owner: governed-human
   subject:
     type: human-reference
     required: true
     cardinality: one
-    owner: profile
+    owner: governed-human
   governorStrategy:
     type: governor-strategy-binding
     required: true
