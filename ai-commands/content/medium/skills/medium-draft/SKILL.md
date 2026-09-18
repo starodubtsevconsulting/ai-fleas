@@ -32,5 +32,5 @@ published article.
    Verify they are attached to the draft and record them in article metadata. Do not add generic tags solely for reach.
 6. Review the draft itself for section order, links, visuals, attribution, and readable layout. Return the draft URL,
    selected topics, and unresolved issues; update archive metadata and verify the read-back.
-7. Stop at the unpublished draft. Leave Publish, Submit, and Schedule to the human, even if the editor is already on
-   a submission screen.
+7. Stop at the unpublished draft. Leave Publish and Submit to the human. Release Coordinator alone may schedule later
+   through the separately authorized Medium schedule skill; Writer must not press Schedule even if the editor offers it.

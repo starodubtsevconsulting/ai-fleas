@@ -14,10 +14,10 @@ This role composes the [common agent contract](../../../agents.md) within one in
 
 | Capability class | Declaration |
 | --- | --- |
-| May own | Release-readiness gate inspection, destination-specific cadence check, publication-history check, and a proposed release day for the human. |
-| May execute | Read-only checks of the authorized archive and destination account; record a clearly proposed timing recommendation in the archive when authorized. |
+| May own | Release-readiness gate inspection, destination-specific cadence and publication-history checks, a release slot, and Medium native scheduling when the active profile explicitly enables it. |
+| May execute | Check the authorized archive and destination account; record timing evidence; schedule the accepted exact revision on Medium under an enabled destination policy and verify the result. |
 | Must delegate | Editorial changes to the human-addressed Writer, independent critique to the human-addressed Reviewer, governance to Judge, and administration to Admin. |
-| Must not | Declare pending review complete, invent publication history, treat cadence as an automatic trigger, or publish, submit, schedule, or create a release automation. |
+| Must not | Declare pending review complete, invent publication history, treat cadence as an automatic trigger, publish immediately, submit to a publication, schedule without explicit profile authority, or create a release automation. |
 
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
 
@@ -27,10 +27,11 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 | --- | --- |
 | "Do these one by one." | Check one exact release candidate and account at a time; present gates and recommendation before the next. |
 | "When should this go out?" | Read the active account's profile policy and verified history, then propose a day or state the missing evidence. |
-| "Release it." | Present the unpublished draft, review and timing status, and the action for the human; do not press Publish or Schedule. |
+| "Release it." | Verify the accepted exact revision, account, queue, and policy. If Medium scheduling is enabled, select an eligible future slot and schedule it without a second approval; otherwise present the action for the human. Never publish immediately or submit to a publication. |
 
 ## Planning and completion
 
-Follow the [release planning flow](../../flows/release-planning.flow.md). A proposal is neither a scheduled event nor
-publication. If the human later releases it, record the verified timestamp and URL only through an authorized archive
-update. A changed article revision or account queue invalidates affected timing evidence.
+Follow the [release planning flow](../../flows/release-planning.flow.md). A proposal is not a scheduled event. When
+the active profile enables Medium scheduling, use the [Medium schedule skill](../../../../ai-commands/content/medium/skills/medium-schedule/SKILL.md)
+through the selected command. Record the verified scheduled status, slot, and URL in the archive. A changed article
+revision or account queue invalidates affected timing evidence.

@@ -1,5 +1,5 @@
 # Example workflow-owned override. Replace the project reference when copying.
 schema_version: medium-command-config.v1
-mode: draft-only
+mode: draft-and-schedule
 account_profile_url: https://medium.com/@REPLACE_WITH_YOUR_HANDLE
 archive_project_ref: projects-config/writing/example-articles/project.yml

@@ -2,7 +2,7 @@
 
 > “Some things are up to us and some are not.”
 >
-> — Epictetus, *Enchiridion*
+> — Epictetus, *Enchiridion* 1, translated by Elizabeth Carter ([text](https://seaver.pepperdine.edu/academics/ge/seaver-core/foundations-of-reasoning/content/the-handbook-encheiridion-of-epictetus.pdf))
 
 A few years ago, the answer to “where should I keep my secrets?” was often simple: use AWS Secrets Manager, Azure Key Vault, Google Secret Manager, or whatever your cloud already provides.
 
@@ -30,10 +30,10 @@ flowchart LR
     D --> E[Only the declared secret]
     E --> F[Authorized child command]
 
-    G[Agent prompt / memory] -. never receives secret .-> E
+    G[Agent prompt / memory] -. secret kept out of prompt .-> E
 ```
 
-The agent does not need to know a GitHub token, Synology password, database password, or Cloudflare credential. It asks to run an authorized capability. The runtime retrieves only what that command needs and injects it into the child process.
+The agent does not need to know a GitHub token, Synology password, database password, or Cloudflare credential. It asks to run an authorized capability. The runtime retrieves only what that command needs and injects it into the child process. That keeps the secret out of the prompt only if the command also avoids printing it and the runner does not expose it through output, errors, traces, or logs. Those paths need redaction and review; prompt isolation alone is not a guarantee that agent memory never sees a secret.
 
 For a machine outside the secrets server's local network, there can be two gates.
 
@@ -46,9 +46,9 @@ flowchart LR
     P --> S[Scoped secrets]
 ```
 
-Cloudflare answers one question: **may this machine reach the secrets service?**
+Cloudflare Access answers one question: **may this request bearing an approved service credential reach the secrets service?** That credential authorizes the request; it does not prove which physical machine sent it.
 
-Infisical answers another: **now that it reached me, which secrets may this machine read?**
+Infisical answers another: **which secrets may the authenticated machine identity read?** Its project role determines that scope.
 
 Those should not be the same permission.
 
@@ -60,7 +60,7 @@ Ordinary commands do not necessarily need any of this. An `install-docker` comma
 
 That boundary becomes especially important with agents. An agent can be clever without being trusted with every credential available to the machine.
 
-This is not an argument that everyone should self-host their secrets manager. Managed cloud secret stores remove operational work and are often exactly the right choice. The point is that the old choice is no longer simply “proper enterprise cloud infrastructure” versus “some passwords in `.env`.”
+This is not an argument that everyone should self-host their secrets manager. Managed cloud secret stores remove operational work and are often exactly the right choice. A home service has to stay available, backed up, and recoverable when the machine running it fails. The point is that the old choice is no longer simply “proper enterprise cloud infrastructure” versus “some passwords in `.env`.”
 
 There is a useful middle ground.
 

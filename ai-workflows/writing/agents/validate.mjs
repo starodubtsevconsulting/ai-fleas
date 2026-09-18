@@ -72,7 +72,8 @@ for (const [name, cells] of capabilities) {
   assert.ok(cells.every((cell) => ['OWN', 'PROHIBITED'].includes(cell)), `invalid capability: ${name}`);
   assert.ok(cells.filter((cell) => cell === 'OWN').length <= 1, `multiple owners: ${name}`);
 }
-assert.ok(capabilities.get('publication_or_scheduling')?.every((cell) => cell === 'PROHIBITED'));
+assert.deepEqual(capabilities.get('medium_native_scheduling'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN']);
+assert.ok(capabilities.get('immediate_publication_or_submission')?.every((cell) => cell === 'PROHIBITED'));
 assert.deepEqual(capabilities.get('review_assignment'), ['PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED', 'PROHIBITED']);
 assert.deepEqual(capabilities.get('review_findings_return'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED']);
 

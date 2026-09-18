@@ -1,1 +1,3 @@
-# EXAMPLE ONLY. The tts command currently has no command-specific overrides.
+# EXAMPLE ONLY. With --article-file, save each version in that article's audio folder.
+article_audio_subdirectory: audio
+article_audio_filename_prefix: read-aloud-tts

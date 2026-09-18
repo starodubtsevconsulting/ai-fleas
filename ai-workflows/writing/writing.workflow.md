@@ -51,11 +51,12 @@ fresh-context Reviewer task or human reader who did not draft or edit the revisi
    addressing substantive findings before calling it release-ready. The computer prepares a spoken preview for the
    human author's first listen-through; a fresh-context reviewer checks the work; the human accepts the exact final
    revision after any changes.
-7. Hand the Writer's exact revision and review record to the Release Coordinator, who recommends a
-   destination-specific day through the [release planning flow](flows/release-planning.flow.md), using profile-owned
-   cadence settings and verified publication history. Review readiness and release timing are separate gates.
-8. Hand the unpublished draft and any remaining decisions to the human. The human alone publishes, submits, or
-   schedules. Pending review or timing must be visible in the handoff, not silently treated as approval.
+7. Hand the Writer's exact revision and review record to the Release Coordinator, who selects a destination-specific
+   slot through the [release planning flow](flows/release-planning.flow.md), using profile-owned cadence settings and
+   verified publication history. After human acceptance of that exact final revision, Release Coordinator may schedule
+   on Medium only when the selected profile explicitly enables it, without a second per-item approval.
+8. Hand the status and any remaining decisions to the human. The human performs immediate publication or submission.
+   Pending review or timing must be visible in the handoff, not silently treated as approval.
 
 For a source-to-destination conversion, preserve the source in the archive even if import or editor work fails.
 For a read-only question or a minor revision, run only the applicable flows and explain any skipped gate.
@@ -81,11 +82,12 @@ For a read-only question or a minor revision, run only the applicable flows and 
 The selected profile explicitly lists editor and destination commands for this workflow. Choose only a configured destination
 that matches the human's request; the generic `writing` command does not choose a platform. A destination command
 owns its provider-specific editor mechanics and any skill it requires. Preparing a destination draft does not grant
-publication authority; the human performs the final release action.
+publication authority. A separately enabled Medium schedule mode grants Release Coordinator future scheduling after
+human article acceptance; the human performs immediate publication or submission.
 
 Each `destinations[]` binding may hold a `release_policy` for that account and workflow, such as a local time zone
 and maximum posts per local day. These are profile-owned strategy settings, not universal Medium rules and not
-command permissions. Another platform can have a different policy. Missing or unverified publication history makes
-timing provisional; it does not turn a draft into a scheduled or published post.
+command permissions by itself. Another platform can have a different policy. Missing or unverified publication history
+makes timing provisional; it does not turn a draft into a scheduled or published post.
 
 The [shared flow contract](../_common/flows/contract.md) governs evidence and recovery across these flows.

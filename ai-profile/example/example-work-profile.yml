@@ -220,12 +220,17 @@ workflows:
     destinations:
       - id: medium
         command: medium
-        mode: draft-only
+        mode: draft-and-schedule
         config: workflows-config/writing/commands/medium/config.yml
         release_policy:
           time_zone: Etc/UTC
           max_posts_per_local_day: 1
-          target_interval_days: 2
+          min_posts_per_local_week: 2
+          scheduling:
+            enabled: true
+            allowed_role: release-coordinator
+            requires_human_article_acceptance: true
+            per_item_approval_required: false
     projects:
       - ref: projects-config/writing/example-writing/project.yml
       - ref: projects-config/writing/example-articles/project.yml

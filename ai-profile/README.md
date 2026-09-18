@@ -189,12 +189,21 @@ editor and destination references that same project through its workflow-owned o
 destination account URL are separate identities, not substitutes for that path. External file synchronization may
 make the same logical archive available on another device with a different local path.
 The writing workflow may also set a `destinations[].release_policy` per platform/account. For example,
-`time_zone: Etc/UTC`, `max_posts_per_local_day: 1`, and `target_interval_days: 2` cap Medium recommendations at
-one post per local day while aiming for a post every other day in the public example. Another destination can use
+`time_zone: Etc/UTC`, `max_posts_per_local_day: 1`, and `min_posts_per_local_week: 2` cap Medium releases at
+one post per local day while aiming for at least two posts per local week in the public example. Another destination can use
 its own values. This is a workflow strategy override, separate from the
-provider command config, and never authorizes publishing or scheduling. A proposed day must be checked against
+provider command config, and does not by itself authorize scheduling. A proposed day must be checked against
 verified publication history and any queue before handoff. A profile may also express preferred days or a time
 window. The daily cap is only a ceiling, not a requirement to publish daily.
+An optional `min_posts_per_local_week` sets a planning target for each Monday–Sunday week in the configured time zone.
+The Release Coordinator proposes enough eligible days to reach that target when reviewed articles are available, while
+respecting the daily cap and verified queue. An unmet target remains visible; it never waives review or authorizes an
+agent to publish. To permit Release Coordinator to schedule an accepted Medium article without a second approval,
+set that workflow destination and its command override to `draft-and-schedule`, and set
+`release_policy.scheduling` with `enabled: true`, `allowed_role: release-coordinator`,
+`requires_human_article_acceptance: true`, and `per_item_approval_required: false`. The profile-wide command default
+and other workflows can remain `draft-only`. This permits Medium native future scheduling only; it does not create a
+recurring agent trigger or permit immediate publication or submission.
 The writing workflow may set `review_preferences.default_template` (relative to `ai-workflows/`) and
 `review_preferences.method_emphasis` as profile-owned defaults for independent article review. Emphasis values are
 `high`, `normal`, and `low`; the effective article brief may mark a method `not_applicable` with a reason or change
@@ -202,9 +211,16 @@ its emphasis for the actual article type. The Reviewer uses the selected templat
 rubric or an aggregate score. These preferences do not grant an agent role or publication authority.
 The same `review_preferences` mapping may independently set `listen_through` with `enabled`, an authorized `tts`
 command, a catalog `voice_profile`, and `autoplay`. A listen-through setting does not require editorial template or
-method defaults. `listen_through.online_synthesis` may record the human author's approved external `service` and
+method defaults. The profile-owned `tts` command config may select an `article_audio_subdirectory` and
+`article_audio_filename_prefix`. The caller supplies the exact archived article with `--article-file`; each run saves
+a distinct WAV under that article's `audio` folder. `default_output_dir` remains optional
+for non-article runs.
+`listen_through.online_synthesis` may record the human author's approved external `service` and
 `default_for_publication_intended_articles: true`. That default covers articles the human intends to publish publicly,
-including unpublished review drafts; other content still needs a separate decision before its text is sent to the service.
+including unpublished review drafts. It is standing authorization for the named service and the prepared narration
+text, so Reviewer does not ask for the same consent on every public-intended article. It does not cover private notes,
+unrelated metadata, or other content; those still need a separate decision before transmission. Host approval review
+may independently block a network action; report that result rather than treating it as a missing human consent.
 
 ## Credentials and sensitive configuration
 

@@ -27,7 +27,7 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 | --- | --- |
 | "Do these one by one." | Review each exact revision separately; show findings and pending decisions before another revision. |
 | "Review this article." | Verify it was not drafted or edited by this Reviewer, then use the effective article brief and [review criteria](../../guides/review-criteria.md). When the profile enables `review_preferences.listen_through`, prepare/play the narrated preview as part of the human review gate. |
-| "Read it to me" / "Let me listen." | Use [article read-aloud](../../skills/article-read-aloud/SKILL.md) for the exact reviewed revision. Prefer the configured `tts` command and profile voice preset; keep autoplay enabled unless the human/profile disables it. Audio playback is not approval. |
+| "Read it to me" / "Let me listen." | Use [article read-aloud](../../skills/article-read-aloud/SKILL.md) for the exact reviewed revision. For an article intended for public publication, apply the profile's approved online-synthesis default without requesting the same service consent again. Prefer the configured `tts` command and voice preset; keep autoplay enabled unless the human/profile disables it. Audio playback is not article acceptance. |
 | "Show me what's good and bad." | Present evidence-linked strengths, weaknesses, severity, and next decisions; use `show-context` only when authorized. |
 
 ## Review and completion
@@ -42,3 +42,5 @@ When listen-through is enabled, the Reviewer owns the human-facing gate but not 
 spoken preview from the exact revision, invoke/delegate the configured `tts` route, and allow its normal autoplay
 behavior so the author can listen immediately. Record the narrated revision and whether the author actually listened,
 then ask for awkward/inaccurate/missing/voice feedback. Do not mark the gate complete from successful synthesis alone.
+When the profile grants online synthesis for publication-intended articles, do not introduce a second per-article
+permission gate for that service. If host approval review denies the network action, report that blocker directly.
