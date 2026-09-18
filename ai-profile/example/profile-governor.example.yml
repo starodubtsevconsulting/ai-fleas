@@ -2,14 +2,18 @@ schemaVersion: profile-agent-binding.v1
 
 agentId: personal-governor
 roleDefinition: ../../ai-workflows/_common/roles/personal-governor.yml
-scope: profile
+scope: governed-human
 lifecycle: persistent
 humanFacing: true
 readinessToken: PERSONAL_GOVERNOR_READY
 aiBinding: profile-default
 
-profile:
-  id: example
+profiles:
+  - id: example
+    relationship: primary-work-context
+  - id: example-client
+    relationship: external-client-context
+    dataSharing: normalized-commitments-only
 
 subject:
   id: jonathan-example
@@ -30,6 +34,13 @@ governorStrategy:
       uri: profile-memory://governor/human
       access: read-write
       privacy: profile-private
+
+dailyPlanningSync:
+  method: ../../ai-workflows/_common/roles/personal-governor/methods/daily-planning-sync/v1.md
+  preferredWindow:
+    start: "08:00"
+    duration: 30m
+  # Example timing demonstrates configuration only; the portable method does not require morning.
 
 dayPlanning:
   strategy: fixed-schedule-time-blocking
