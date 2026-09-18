@@ -18,12 +18,13 @@ Admin is the workflow administration identity; Judge, Writer, Reviewer, and Rele
 agents. The GPT adapter's mechanical controller creates the complete declared roster when initialization is authorized.
 No role is scheduled, pooled, or given an autonomous publication action.
 
-## Human-directed sequence
+## Editorial sequence
 
-The [manual handoff](manual-handoff.md) is the only ordinary editorial route. Every working agent knows the flow order,
-but the human directs each transition. There are no ordinary agent-to-agent packets or automatic transfers. The
-Reviewer must be independent of the exact revision it critiques, regardless of role label. Writer dispositions the
-findings; the human accepts the final revision; Release Coordinator recommends a day; the human publishes or schedules.
+The [editorial routing contract](editorial-routing.md) permits Writer to hand an exact finished revision directly to
+Reviewer for independent critique, then permits Reviewer to return findings to that Writer. Both remain directly
+human-addressable. The Reviewer must be independent of the exact revision it critiques, regardless of role label.
+Writer dispositions the findings; the human accepts the final revision and selects Release Coordinator for timing.
+Release Coordinator recommends a day; the human publishes or schedules. No other ordinary peer route is authorized.
 
 Each agent is limited to the selected profile's registered project subset, exact logical project, active commands, and
 its matrix column. Provider account, article archive path, editorial preferences, and release cadence come from the
