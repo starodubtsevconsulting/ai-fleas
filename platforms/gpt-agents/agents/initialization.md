@@ -51,6 +51,8 @@ and canonical primary target. Resolve the pre-existing saved Codex Project by ex
 immutable ID and complete ordered selected roots against the profile-authorized subset, and record it before creating tasks. Unselected
 registered projects are not missing roots. If the saved project does not exist or its selected roots differ, stop with zero task mutation. Never infer a project from its label alone, a nearby folder, or repository
 similarity, and never create or edit the saved Project, repository, clone, worktree, or replacement checkout.
+For an existing exact binding, the public `gpt-agents` command's receipt-backed degraded-verification fallback may be
+used only when the host omits the additional scoped-folder list and every recorded root still matches the profile.
 
 Create every workflow agent directly in that one folder-backed saved project's configured primary checkout by selecting the Codex `local` environment.
 Never request a worktree, temporary checkout, detached checkout, clone, or projectless task for a managed workflow agent. All

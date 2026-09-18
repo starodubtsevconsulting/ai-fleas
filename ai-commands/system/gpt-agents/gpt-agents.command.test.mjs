@@ -8,6 +8,7 @@ import { parse } from 'yaml';
 const commandDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(commandDir, '../../..');
 const portable = parse(fs.readFileSync(path.join(root, 'ai-workflows/dev/agents.yml'), 'utf8'));
+const writingPortable = parse(fs.readFileSync(path.join(root, 'ai-workflows/writing/agents.yml'), 'utf8'));
 const adapter = parse(fs.readFileSync(path.join(root, 'platforms/gpt-agents/workflows/dev/agents.yml'), 'utf8'));
 const writingAdapter = parse(fs.readFileSync(path.join(root, 'platforms/gpt-agents/workflows/writing/agents.yml'), 'utf8'));
 const contract = fs.readFileSync(path.join(commandDir, 'gpt-agents.command.md'), 'utf8');
@@ -19,9 +20,13 @@ const exampleWorkflow = exampleProfile.workflows.find((workflow) => workflow.pat
 
 const portableRoles = [portable.initializer.agentId, ...portable.agents.map((agent) => agent.agentId)];
 const adapterRoles = adapter.agents.map((agent) => agent.role);
+const writingPortableRoles = [writingPortable.initializer.agentId, ...writingPortable.agents.map((agent) => agent.agentId)];
+const writingAdapterRoles = writingAdapter.agents.map((agent) => agent.role);
 assert.equal(new Set(portableRoles).size, portableRoles.length, 'portable roles must be unique');
 assert.equal(new Set(adapterRoles).size, adapterRoles.length, 'GPT bindings must be unique');
 assert.deepEqual([...adapterRoles].sort(), [...portableRoles].sort(), 'portable and GPT roles must map one-to-one');
+assert.deepEqual([...writingAdapterRoles].sort(), [...writingPortableRoles].sort(), 'writing roles must map one-to-one');
+assert.equal(writingPortableRoles.includes('manager'), false, 'writing does not declare Manager');
 assert.equal(exampleConfig.schema_version, 'gpt-agents-command-config.v1');
 assert.equal(exampleConfig.grouping.project_name_template, '{profile}-{workflow}{suffix}');
 assert.equal(exampleConfig.grouping.reuse_requires_recorded_project_id, true);
@@ -63,7 +68,9 @@ for (const role of portableRoles) {
 }
 
 assert.match(contract, /mechanical initialization controller/);
-assert.match(contract, /including Admin and Manager, in one host batch/);
+assert.match(contract, /including Admin and any declared Manager, in one host batch/);
+assert.match(contract, /pending task has no role authority or readiness/);
+assert.match(contract, /existing binding receipt for that same project ID only/);
 assert.match(contract, /Admin is a\s+compatibility role and must not bootstrap, delegate, or orchestrate initialization/);
 assert.match(contract, /gpt-agents-binding-state\.v1/);
 assert.match(contract, /dispatch all\s+canonical initialization messages concurrently/);

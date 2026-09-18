@@ -219,6 +219,11 @@ This does not turn System creation into a side effect of ordinary workflow initi
    request. Verify its immutable ID, logical-project name, primary root, and complete ordered selected scoped-folder list, then
    record that binding before any agent creation. This command does not create or edit the saved Codex project. A missing
    project, name-only match, unauthorized or mismatched selected folder, or ambiguous result fails with zero agent mutation.
+   If the host exposes the exact saved-project ID and primary root but cannot list additional scoped folders, an
+   explicitly requested reconciliation may reuse an existing binding receipt for that same project ID only when its
+   complete ordered roots and selected-project definitions still match the current profile, every root resolves to the
+   recorded canonical path, and no host evidence conflicts. Mark the result
+   `ready-runtime-project-list-verification-unavailable`; never use this fallback for a new or changed project binding.
 5. Do not create a custom sidebar section for the logical project. The folder-backed saved project is the logical
    project/group's GPT container; all verified roster tasks appear beneath it.
 6. Join `initializer.agentId` and every portable `agents[].agentId` to exactly one GPT `agents[].role` binding. Reject
@@ -226,12 +231,18 @@ This does not turn System creation into a side effect of ordinary workflow initi
 7. Treat the caller as the mechanical initialization controller. It is never a workflow roster member merely because it
    invoked this command. Resolve the complete effective roster, including Admin, before creating any task. Admin is a
    compatibility role and must not bootstrap, delegate, or orchestrate initialization.
+
+   Exception: A human-designated Admin successor verified and bound under `AGENTS.md` may bootstrap itself, serve as
+   the caller and roster Admin, and initialize or reconcile its exact workflow roster.
 8. Resolve runtime values in order: public GPT role-binding defaults, then supported profile-owned `role_overrides`.
    Reject unknown roles, unsupported keys, unavailable models, invalid reasoning levels, and pool values outside the
    portable role's declared bounds.
-9. Mechanically create exactly one task for every missing selected role, including Admin and Manager, in one host batch
+9. Mechanically create exactly one task for every missing selected role, including Admin and any declared Manager, in one host batch
    when the platform supports batching. Treat `title` only as presentation and apply the effective model and reasoning
-   values exactly. Do not wait for one role to initialize before creating the next role.
+   values exactly before role initialization. If the host creation interface cannot set a profile-selected model without
+   a separate human model request, create a non-operational pending task and apply the exact profile model and reasoning
+   on its first canonical initialization message. A pending task has no role authority or readiness. Do not wait for one
+   role to initialize before creating the next role.
 10. Record every returned task or provisional client ID, resolve all provisional creations together, then dispatch all
     canonical initialization messages concurrently. Role authority governs subsequent workflow work, not roster startup.
 11. Verify every roster task, including the project-bound Admin but excluding an external bootstrap controller, is bound
