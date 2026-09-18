@@ -12,3 +12,12 @@ knowledge:
     kind: instructions
     ref: knowledge/local-development.md
     applies_to: [build, validation]
+
+distribution:
+  command: social-publish
+  default_mode: draft
+  channels:
+    - ref: instagram-ai-project
+  policy:
+    immediate_publish_requires_human_approval: true
+    manufacture_channel_specific_content: false
