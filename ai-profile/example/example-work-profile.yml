@@ -69,6 +69,8 @@ commands:
     config: commands-config/source-control/config.yml
   - id: medium
     config: commands-config/medium/config.yml
+  - id: social-publish
+    config: commands-config/social-publish/config.example.yml
   - id: tts
     config: commands-config/tts/config.yml
   - id: obsidian
@@ -135,6 +137,19 @@ workflows:
     projects:
       - ref: projects-config/dev/example-service/project.yml
       - ref: projects-config/dev/example-web/project.yml
+      - id: example-public-project
+        label: Example public project
+        repo_path: ~/projects/example-workspace/example-public-project
+        remote_url: https://github.example.invalid/example/example-public-project.git
+        distribution:
+          command: social-publish
+          default_mode: draft
+          channels:
+            - ref: instagram-ai-project
+          link_target: https://example.invalid/project
+          policy:
+            immediate_publish_requires_human_approval: true
+            manufacture_channel_specific_content: false
     agent_context:
       schema_version: codex-project-context.v1
       logs:
@@ -196,6 +211,7 @@ workflows:
       - obsidian
       - source-control
       - show-context
+      - social-publish
     article_store:
       project_ref: projects-config/writing/example-articles/project.yml
       format: markdown

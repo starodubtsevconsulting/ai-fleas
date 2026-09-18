@@ -1,0 +1,13 @@
+# Fictional example only. No credentials or real account identifiers.
+provider: buffer
+accounts:
+  - id: instagram-ai-project
+    channel: instagram
+    account_ref: example-ai-project
+    enabled: true
+secrets:
+  token_ref: secret://example/social/buffer-token
+policy:
+  immediate_publish_requires_human_approval: true
+  allow_queue: true
+  allow_draft: true
