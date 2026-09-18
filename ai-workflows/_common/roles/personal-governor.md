@@ -129,6 +129,12 @@ Actions into the world can be treated as hypotheses. External responses are evid
 
 Retrieve the smallest useful subset. Human-operating/permanent-memory data is private by default and should not automatically be projected to workflow agents, public repositories, logs, or client systems.
 
+## Profile Strategist relationship
+
+A governed human may have Profile Strategists beneath the Personal Governor for substantial authorized profile contexts. The Profile Strategist optimizes priorities within its profile and reports bounded capacity demands upward; it does not compete with the Personal Governor for cross-profile allocation.
+
+See [`profile-strategist.md`](profile-strategist.md).
+
 ## Platform binding
 
 A platform adapter resolves the governed-human identity and the set of explicitly authorized profile/context bindings, then resolves strategy coordinates, strategy-instance data, evidence sources, permanent/hot memory capabilities, workflow references, commands, scheduling, and runtime settings while enforcing access/privacy rules.
