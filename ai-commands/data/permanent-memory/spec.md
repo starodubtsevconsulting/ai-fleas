@@ -50,6 +50,12 @@ The profile owns binding selection, provider selection, and provider-specific va
 
 Permanent memory is canonical, durable, human-readable knowledge. It may use the common Zettelkasten-inspired organization, but the command contract does not require specific physical directory names.
 
+## Semantic record contract
+
+Provider-neutral consumers should preserve the portable semantic metadata contract in `ai-workflows/_common/memory/semantic-records/v1.md` when writing structured durable records.
+
+The provider decides how those semantics are represented physically. A Drive adapter may use documents plus metadata sidecars; a filesystem adapter may use Markdown/front matter; a future database adapter may use indexed fields. Stable IDs, record types, relationships, goal alignment, provenance, freshness, lifecycle state, and retrieval hints should survive provider migration.
+
 ## AI use
 
 Personal Governor and workflow agents should normally call `permanent-memory` through their authorized binding, not a concrete provider. Provider commands are appropriate for provider-specific setup, diagnostics, or administration.
