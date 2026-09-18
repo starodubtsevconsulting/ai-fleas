@@ -1,0 +1,14 @@
+# Fictional example only. No credentials or real account identifiers.
+provider: buffer
+default_mode: draft
+channels:
+  - id: instagram
+    enabled: true
+    account_ref: example-ai-project
+link_target: https://example.invalid/project
+secrets:
+  token_ref: secret://example/social/buffer-token
+policy:
+  immediate_publish_requires_human_approval: true
+  allow_queue: true
+  allow_draft: true
