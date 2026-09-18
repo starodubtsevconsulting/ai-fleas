@@ -6,9 +6,10 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
 const commandDir = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(commandDir, '../..');
+const root = path.resolve(commandDir, '../../..');
 const portable = parse(fs.readFileSync(path.join(root, 'ai-workflows/dev/agents.yml'), 'utf8'));
 const adapter = parse(fs.readFileSync(path.join(root, 'platforms/gpt-agents/workflows/dev/agents.yml'), 'utf8'));
+const writingAdapter = parse(fs.readFileSync(path.join(root, 'platforms/gpt-agents/workflows/writing/agents.yml'), 'utf8'));
 const contract = fs.readFileSync(path.join(commandDir, 'gpt-agents.command.md'), 'utf8');
 const systemRole = fs.readFileSync(path.join(root, 'ai-workflows/_common/roles/system.md'), 'utf8');
 const systemSchedule = fs.readFileSync(path.join(root, 'ai-workflows/_common/agents/schedules/system-lifecycle-monitor.yml'), 'utf8');
@@ -30,10 +31,10 @@ assert.deepEqual(exampleConfig.binding_state, {
   schema_version: 'gpt-agents-binding-state.v1',
 });
 for (const overrideRole of Object.keys(exampleConfig.role_overrides ?? {})) {
-  assert.ok(portableRoles.includes(overrideRole), `unknown example override role: ${overrideRole}`);
+  assert.ok([...adapter.agents, ...writingAdapter.agents].some(({ role }) => role === overrideRole), `unknown example override role: ${overrideRole}`);
 }
 assert.equal(exampleProfile.system_agent.platform_bindings['gpt-agents'].readiness_token, 'SYSTEM_READY');
-assert.equal(exampleProfile.system_agent.platform_bindings['gpt-agents'].title, '⚙️ System');
+assert.equal(exampleProfile.system_agent.platform_bindings['gpt-agents'].title, 'example-system');
 assert.ok(exampleWorkflow.projects.length > 1, 'a workflow must support a multi-project scope');
 assert.match(exampleWorkflow.projects[0].ref, /\/example-service\/project\.yml$/);
 assert.deepEqual(exampleProfile.system_agent.schedule, {
@@ -82,16 +83,16 @@ assert.match(contract, /do not create the concrete scheduler on System's behalf/
 assert.match(contract, /System requests the selected platform adapter to create or reconcile exactly one scheduler/);
 assert.match(contract, /include that\s+exact path plus `gpt-agents-binding-state\.v1` in both System's initialization message and scheduler prompt/);
 assert.match(contract, /must not discover receipts by filename search/);
-assert.match(systemRole, /## Human-facing intent map/);
+assert.match(systemRole, /## Human prompt interpretation cases/);
 assert.match(systemRole, /Immediately run the same read-only lifecycle and context-health check used by the scheduler/);
 assert.match(systemRole, /If `X` is omitted and exactly one group is watched, use that group/);
-assert.match(systemRole, /handles only agent\/group monitoring, health, continuity/);
+assert.match(systemRole, /agent health, and authorized lifecycle operations/);
 assert.match(systemSchedule, /Manual requests run immediately and never wait\s+for this timer/);
 assert.match(contract, /Repeat `--watch-group` for multiple groups/);
 assert.match(contract, /Use one scheduler for the complete set/);
 assert.match(contract, /Require one pre-existing folder-backed\s+Codex project named `<profile>-<workflow>/);
 assert.match(contract, /This command does not create or edit the saved Codex project/);
-assert.match(contract, /first folder is primary/);
+assert.match(contract, /first selected folder is primary/);
 assert.match(contract, /Logical project.*group.*synonyms/);
 assert.match(contract, /Project.*one profile-registered folder inside/);
 assert.match(contract, /pre-existing exact folder-backed saved Codex project named for the logical project/);
