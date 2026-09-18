@@ -69,6 +69,8 @@ commands:
     config: commands-config/source-control/config.yml
   - id: medium
     config: commands-config/medium/config.yml
+  - id: social-publish
+    config: commands-config/social-publish/config.example.yml
   - id: tts
     config: commands-config/tts/config.yml
   - id: obsidian
@@ -196,6 +198,7 @@ workflows:
       - obsidian
       - source-control
       - show-context
+      - social-publish
     article_store:
       project_ref: projects-config/writing/example-articles/project.yml
       format: markdown
@@ -217,6 +220,13 @@ workflows:
       - id: obsidian
         command: obsidian
         config: workflows-config/writing/commands/obsidian/config.yml
+    social_distribution:
+      command: social-publish
+      default_mode: draft
+      config: workflows-config/writing/commands/social-publish/config.example.yml
+      policy:
+        immediate_publish_requires_human_approval: true
+        manufacture_channel_specific_content: false
     destinations:
       - id: medium
         command: medium
