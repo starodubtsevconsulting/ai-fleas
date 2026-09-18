@@ -53,23 +53,23 @@ const INIT_PROMPT_INPUT_SCHEMA = Object.freeze({
 
 const BACKENDS = Object.freeze({
   codeStyle: {
-    definitionPath: 'code-style/code-style.command.md',
-    implementationPath: 'code-style/code-style.sh',
+    definitionPath: 'development/code-style/code-style.command.md',
+    implementationPath: 'development/code-style/code-style.sh',
     command: 'bash'
   },
   initPrompt: {
-    definitionPath: 'init-prompt/init-prompt.command.md',
-    implementationPath: 'init-prompt/init-prompt.sh',
+    definitionPath: 'system/init-prompt/init-prompt.command.md',
+    implementationPath: 'system/init-prompt/init-prompt.sh',
     command: 'bash'
   },
   discussionLookup: {
-    definitionPath: 'discussion/discussion.command.md',
-    implementationPath: 'discussion/discussion_index.py',
+    definitionPath: 'utility/discussion/discussion.command.md',
+    implementationPath: 'utility/discussion/discussion_index.py',
     command: 'python3'
   },
   accountingTaxes: {
-    definitionPath: 'taxes/taxes.command.md',
-    implementationPath: 'taxes/taxes.command.sh',
+    definitionPath: 'data/taxes/taxes.command.md',
+    implementationPath: 'data/taxes/taxes.command.sh',
     command: 'bash'
   }
 });
