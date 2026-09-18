@@ -45,10 +45,17 @@ system_agent:
     sc:
       title: "example-system"
       model: platform-default
-profile_agents:
-  - id: personal-governor
-    scope: profile
+human_governance:
+  governor:
+    id: personal-governor
+    scope: governed-human
     config: profile-governor.example.yml
+
+profile_agents:
+  - id: profile-strategist
+    scope: profile
+    role: ../../ai-workflows/_common/roles/profile-strategist.md
+    lifecycle: persistent
 governance_rules_repository: example-governance-rules
 governance_rules_surface:
   - AGENTS.md

@@ -25,9 +25,17 @@ permanentMemory:
 #    provider: permanent-memory-synology
 #    access: read-only
 
+governedHuman:
+  id: jonathan-example
+  profileContexts:
+    - example
+    - example-client
+
 consumers:
   personalGovernor:
     permanentMemoryRef: personal
+    scope: governed-human
+    crossProfilePolicy: normalized-authorized-records-only
 
   # A workflow may explicitly reference its own permanent-memory binding.
   # It does not automatically inherit the Personal Governor's memory.
@@ -60,5 +68,7 @@ rules:
   - memory-bindings-are-explicit-per-consumer
   - workflow-memory-does-not-implicitly-inherit-personal-memory
   - bindings-may-share-a-provider-or-root-only-when-explicitly-configured
-  - memory-never-crosses-profile-boundary-without-explicit-transfer
+  - profile-private-data-never-crosses-profile-boundary-without-explicit-transfer
+  - governor-may-receive-normalized-authorized-cross-profile-records
+  - shared-human-capacity-does-not-imply-shared-profile-data
   - portable-agents-use-permanent-memory-not-provider-directly
