@@ -57,7 +57,7 @@ Categories are descriptive, not exclusive.
 
 Calendar is an operational scheduling surface, not the Governor's only durable memory of commitments.
 
-Persist a normalized daily record for calendar events or planned commitments when they can materially affect goals, allocation, preparation, deadlines, recovery, or later execution review. The memory record should be usable without requiring the Governor to search historical calendars.
+Persist a normalized memory record for every calendar event visible to the Governor, subject to authorization and privacy boundaries. The memory record should be usable without requiring the Governor to search historical calendars. Future events are recorded when scheduled rather than waiting until their occurrence date.
 
 Keep, when known:
 
@@ -72,7 +72,9 @@ Keep, when known:
 
 The calendar remains authoritative for exact current scheduling when available, and may be accessed through MCP or another adapter. Memory preserves the event's durable planning/execution meaning. Do not delete the historical memory record merely because the calendar event is past, moved, cancelled, or later unavailable. Record corrections/rescheduling explicitly.
 
-Do not mirror every low-value calendar entry. Persist commitments that are useful to Governor reasoning or execution history.
+Mirror ordinary and low-value events as minimal normalized records rather than dropping them. Do not copy unnecessary private payloads: title/purpose, source identity, time/window, profile context, lifecycle state, and relevant goal/strategy links are normally sufficient. Client/shared events may use privacy-safe summaries.
+
+Calendar is authoritative for exact current scheduling; memory is authoritative for durable Governor history/projection. Track lifecycle changes such as planned, rescheduled, cancelled, completed, or missed. Recurring series may retain a series identity plus occurrence-level history where useful.
 
 ### Human signal
 
