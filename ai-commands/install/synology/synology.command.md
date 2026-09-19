@@ -15,6 +15,10 @@ the selected private profile or operator record.
 | Run a bounded connectivity diagnostic | `beep-diagnostic.sh` |
 | Validate a private named-share catalog | `synology.command.sh validate` |
 | Show the value-free share/workflow/projection/Git map | `synology.command.sh inspect` |
+| List named mappings | `synology.command.sh mapping list` |
+| Plan one Team Folder, projection, and Git mapping | `synology.command.sh mapping plan <share-id>` |
+| Report concrete mapping blockers | `synology.command.sh mapping status <share-id>` |
+| Reconcile a complete mapping | `synology.command.sh mapping apply <share-id> --apply` |
 | Produce a value-free reconciliation plan | `synology.command.sh share plan <share-id>` |
 | Create a named, least-privilege agent share | `synology.command.sh share apply <share-id> --apply` |
 
