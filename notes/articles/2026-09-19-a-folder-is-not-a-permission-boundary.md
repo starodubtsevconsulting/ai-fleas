@@ -195,7 +195,7 @@ That wording matters. It prevents a successful click sequence from becoming a st
 
 ## The workflow can be public while the data stays private
 
-This pattern is part of [AI Fleas](https://github.com/starodubtsevconsulting/ai-fleas), my public workflow and command infrastructure for AI agents. The reusable parts can be inspected and shared: the [Synology command](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-commands/install/synology/synology.command.md), the workflow contract, validation rules, secret-reference shape, and a sanitized [example profile](https://github.com/starodubtsevconsulting/ai-fleas/tree/main/ai-profile/example).
+This pattern is part of [AI Fleas](https://github.com/starodubtsevconsulting/ai-fleas), my public workflow and command infrastructure for AI agents. The reusable parts can be inspected and shared: the [Synology command](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-commands/data/synology/synology.command.md), the workflow contract, validation rules, secret-reference shape, and a sanitized [example profile](https://github.com/starodubtsevconsulting/ai-fleas/tree/main/ai-profile/example).
 
 The example profile demonstrates the boundary without containing my boundary. Its [fictional Synology mapping](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-profile/example/commands-config/synology/config.example.yml) uses placeholder hosts, paths, accounts, and repository locations. Its [example secrets configuration](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-profile/example/commands-config/secrets/config.example.yml) contains logical references rather than credential values.
 
