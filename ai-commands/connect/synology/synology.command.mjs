@@ -6,6 +6,7 @@ import {mappingRows, profileConfigForShare, readConfig, selectShare, validateCon
   from './application/config.mjs';
 import * as api from './subcommands/api.command.mjs';
 import * as mapping from './subcommands/mapping.command.mjs';
+import * as memory from './subcommands/memory.command.mjs';
 import * as share from './subcommands/share.command.mjs';
 
 export {validateConfig};
@@ -48,6 +49,12 @@ async function main(argv) {
   }
   if (operation === 'mapping' && noun === 'status' && id && !flag) {
     return output(mapping.status(id, selectShare(config, id)));
+  }
+  if (operation === 'memory' && noun === 'plan' && id && !flag) {
+    return output(memory.plan(id, selectShare(config, id)));
+  }
+  if (operation === 'memory' && noun === 'init' && id && flag === '--apply') {
+    return output(memory.init(id, selectShare(config, id)));
   }
   if (operation === 'discover' && argv.length === 1) {
     const result = runHelper('find-synology-ip.sh', [], {encoding: 'utf8', errorCode: 'DISCOVERY_FAILED'});
