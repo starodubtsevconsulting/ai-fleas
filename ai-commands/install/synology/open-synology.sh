@@ -56,7 +56,8 @@ set -e
 # Prevents continuing with partial or incorrect state.
 
 # Path to the discovery helper script
-FINDER="./find-synology-ip.sh"
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)"
+FINDER="${SCRIPT_DIR}/find-synology-ip.sh"
 
 # Ensure the discovery script exists and is executable
 if [ ! -x "$FINDER" ]; then
@@ -88,6 +89,8 @@ echo
 
 # Attempt to open the URL in the default browser.
 # Failure here should not stop the script.
-if command -v xdg-open >/dev/null 2>&1; then
+if command -v open >/dev/null 2>&1; then
+  open "http://$IP:5000" >/dev/null 2>&1 || true
+elif command -v xdg-open >/dev/null 2>&1; then
   xdg-open "http://$IP:5000" >/dev/null 2>&1 || true
 fi
