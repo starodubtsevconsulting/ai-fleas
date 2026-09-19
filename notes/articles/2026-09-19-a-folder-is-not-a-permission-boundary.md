@@ -72,12 +72,18 @@ For durable material, I prefer a controlled publishing path:
 flowchart LR
     E[Human or authorized editor] --> G[Version control]
     G --> R[Review and merge]
-    R --> U[Publisher on trusted infrastructure]
+    R --> U[Publisher on privately operated infrastructure]
     U --> N[NAS source folder]
     N --> M[Read-only agent memory]
 ```
 
 The agent reads from the NAS projection. Changes go through version control, review, and a publisher that updates the canonical folder after merge.
+
+For sensitive personal material, that version control is privately operated infrastructure. The repository and its history remain on systems I control; they are not pushed to GitHub, whether the GitHub repository would be public or private. A private repository changes who the service intends to let in. It does not remove the service provider, its accounts, its infrastructure, or its attack surface from the trust boundary.
+
+This is a threat-model decision, not a claim that a personal server is automatically secure. A self-hosted Git service still needs authentication, updates, backups, restricted network access, and recovery testing. Its advantage here is narrower: sensitive data can remain inside the same deliberately small private boundary as the NAS instead of being copied to another organization's infrastructure.
+
+A large, well-known code-hosting service is an obvious and valuable target. A private system may be less visible, but obscurity alone is not protection. The design relies on fewer entrusted parties, limited exposure, and explicit controls. Reduced visibility is only one small part of that boundary.
 
 Downloads are a different use case. A download folder exists to receive new files, so a bounded write-capable share can be appropriate there. The access mode should follow the purpose of the share instead of becoming a global NAS policy.
 
