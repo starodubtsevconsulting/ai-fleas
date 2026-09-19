@@ -9,7 +9,7 @@ nas:
 shares:
   personal-governor-memory:
     name: personal-governor-memory
-    account: agent-personal-governor
+    account: personal-governor-agent
     access: read-write
     credential:
       username_secret: example.dev.synology.personal-governor-username
