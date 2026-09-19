@@ -1,13 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs';
+import os from 'node:os';
 import {validateConfig} from './synology.command.mjs';
 
-const sample = `nas:\n  host: synology.local\n  https_port: 5001\n  certificate_sha256: AA\n  remote_access:\n    mode: private-tunnel\n    host: TODO_PRIVATE_TUNNEL_HOSTNAME\n    quickconnect: false\nshares:\n  incorporated:\n    name: incorporated\n    account: agent-incorporated\n    access: read-only\n    workflow: financial-insights\n    source: /data/incorparated\n    projection:\n      type: synology-drive\n      team_folder: incorporated\n      local_path: TODO_LOCAL_SYNC_PATH\n      sync_mode: download-only\n    usage: memory\n    mutation: source-control\n    repository:\n      id: sc-memory\n      branch: main\n      subpath: documents/incorparated\n      delivery: on-merge\n      publisher_checkout: TODO_INFRA_01_GIT_CHECKOUT\n`;
+const sample = `nas:\n  host: synology.local\n  https_port: 5001\n  certificate_sha256: AA\n  remote_access:\n    mode: private-tunnel\n    host: TODO_PRIVATE_TUNNEL_HOSTNAME\n    quickconnect: false\nshares:\n  incorporated:\n    name: incorporated\n    account: agent-incorporated\n    access: read-only\n    workflow: financial-insights\n    source: /data/incorparated\n    projection:\n      type: synology-drive\n      team_folder: incorporated\n      local_path: TODO_LOCAL_SYNC_PATH\n      sync_mode: download-only\n    usage: memory\n    mutation: source-control\n    repository:\n      id: example-memory\n      branch: main\n      subpath: documents/incorparated\n      delivery: on-merge\n      publisher_checkout: TODO_PUBLISHER_GIT_CHECKOUT\n`;
 
 test('validates a named share without credentials', () => {
   const config = validateConfig(sample);
   assert.equal(config.shares.incorporated.access, 'read-only');
-  assert.equal(config.shares.incorporated.repository.id, 'sc-memory');
+  assert.equal(config.shares.incorporated.repository.id, 'example-memory');
   assert.equal(sample.includes('password'), false);
 });
 
@@ -15,4 +20,17 @@ test('rejects relative paths and unsafe access', () => {
   assert.throws(() => validateConfig(sample.replace('/data/incorparated', '../data')), /INVALID_SHARE/);
   assert.throws(() => validateConfig(sample.replace('read-only', 'admin')), /INVALID_SHARE/);
   assert.throws(() => validateConfig(sample.replace('read-only', 'read-write')), /INVALID_SHARE/);
+});
+
+test('authenticated API status fails before network access when admin secrets are absent', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'synology-command-'));
+  const config = path.join(dir, 'config.yml');
+  fs.writeFileSync(config, sample);
+  const command = fileURLToPath(new URL('./synology.command.mjs', import.meta.url));
+  const result = spawnSync(process.execPath, [command, 'api', 'status', 'incorporated'], {
+    encoding:'utf8', env:{...process.env, AI_COMMAND_CONFIG_PATH:config, SYNOLOGY_ADMIN_USERNAME:'', SYNOLOGY_ADMIN_PASSWORD:''}
+  });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /DSM_ADMIN_CREDENTIALS_REQUIRED/);
+  fs.rmSync(dir, {recursive:true, force:true});
 });

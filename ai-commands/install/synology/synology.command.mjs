@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import https from 'node:https';
 import {spawnSync} from 'node:child_process';
 import YAML from 'yaml';
 
@@ -52,6 +53,77 @@ function safeShare(config, id) {
 
 function output(value) { process.stdout.write(JSON.stringify(value, null, 2) + '\n'); }
 
+const relevantApis = [
+  'SYNO.API.Auth',
+  'SYNO.Core.Share',
+  'SYNO.Core.Share.Permission',
+  'SYNO.Core.User',
+  'SYNO.SynologyDrive.TeamFolders'
+];
+
+function normalizedFingerprint(value) { return String(value || '').replaceAll(':', '').toUpperCase(); }
+
+function dsmRequest(config, parameters) {
+  const expectedFingerprint = normalizedFingerprint(config.nas.certificate_sha256);
+  const body = new URLSearchParams(parameters).toString();
+  return new Promise((resolve, reject) => {
+    const request = https.request({
+      hostname: config.nas.host,
+      port: config.nas.https_port,
+      path: '/webapi/entry.cgi',
+      method: 'POST',
+      rejectUnauthorized: false,
+      headers: {'content-type':'application/x-www-form-urlencoded', 'content-length':Buffer.byteLength(body)}
+    }, response => {
+      let raw = '';
+      response.setEncoding('utf8');
+      response.on('data', chunk => { raw += chunk; });
+      response.on('end', () => {
+        try {
+          const parsed = JSON.parse(raw);
+          if (!parsed.success) return reject(new Error(`DSM_API_ERROR_${parsed.error?.code ?? 'UNKNOWN'}`));
+          resolve(parsed.data ?? {});
+        } catch (error) { reject(error); }
+      });
+    });
+    request.on('socket', socket => socket.once('secureConnect', () => {
+      const actual = normalizedFingerprint(socket.getPeerCertificate()?.fingerprint256);
+      if (!expectedFingerprint || actual !== expectedFingerprint) request.destroy(new Error('DSM_CERTIFICATE_MISMATCH'));
+    }));
+    request.setTimeout(15000, () => request.destroy(new Error('DSM_API_TIMEOUT')));
+    request.on('error', reject);
+    request.end(body);
+  });
+}
+
+async function dsmCatalog(config) {
+  const data = await dsmRequest(config, {api:'SYNO.API.Info', version:'1', method:'query', query:relevantApis.join(',')});
+  return Object.fromEntries(relevantApis.filter(name => data[name]).map(name => [name, data[name]]));
+}
+
+async function withDsmSession(config, operation) {
+  const account = process.env.SYNOLOGY_ADMIN_USERNAME;
+  const passwd = process.env.SYNOLOGY_ADMIN_PASSWORD;
+  if (!account || !passwd) blocked('DSM_ADMIN_CREDENTIALS_REQUIRED');
+  const login = await dsmRequest(config, {api:'SYNO.API.Auth', version:'7', method:'login', account, passwd,
+    session:'AI-Fleas-Synology', format:'sid', enable_syno_token:'yes'});
+  if (!login.sid) blocked('DSM_LOGIN_FAILED');
+  const session = {sid:login.sid, synotoken:login.synotoken};
+  try { return await operation(session); }
+  finally {
+    try { await dsmRequest(config, {api:'SYNO.API.Auth', version:'7', method:'logout', session:'AI-Fleas-Synology', _sid:session.sid,
+      ...(session.synotoken ? {SynoToken:session.synotoken} : {})}); } catch {}
+  }
+}
+
+async function dsmCall(config, session, api, method, parameters={}) {
+  const catalog = await dsmCatalog(config);
+  const descriptor = catalog[api];
+  if (!descriptor) blocked(`DSM_API_UNAVAILABLE_${api}`);
+  return dsmRequest(config, {api, version:String(descriptor.maxVersion), method, ...parameters, _sid:session.sid,
+    ...(session.synotoken ? {SynoToken:session.synotoken} : {})});
+}
+
 function mappingRows(config) {
   return Object.entries(config.shares).sort(([a],[b]) => a.localeCompare(b)).map(([id, share]) => ({id,
     workflow:share.workflow, access:share.access, team_folder:share.projection.team_folder,
@@ -73,13 +145,35 @@ function allProfileMappings(profileFile) {
   return rows.sort((a,b) => a.id.localeCompare(b.id));
 }
 
-function main(argv) {
+async function main(argv) {
   const configPath = process.env.AI_COMMAND_CONFIG_PATH;
   if (!configPath) blocked('PROFILE_REQUIRED');
   const config = validateConfig(fs.readFileSync(configPath, 'utf8'));
   const [op, noun, id, flag] = argv;
   if (op === 'validate' && argv.length === 1) return output({status:'valid', shares:Object.keys(config.shares).sort()});
   if (op === 'inspect' && argv.length === 1) return output({status:'configured', shares:mappingRows(config)});
+  if (op === 'api' && noun === 'catalog' && argv.length === 2) {
+    const catalog = await dsmCatalog(config);
+    return output({status:'available', apis:Object.fromEntries(Object.entries(catalog).map(([name, value]) =>
+      [name, {path:value.path, min_version:value.minVersion, max_version:value.maxVersion, request_format:value.requestFormat ?? null}]))});
+  }
+  if (op === 'api' && noun === 'status' && id && !flag) {
+    const share = safeShare(config, id);
+    return withDsmSession(config, async session => {
+      const [shares, users, teamFolders] = await Promise.all([
+        dsmCall(config, session, 'SYNO.Core.Share', 'list'),
+        dsmCall(config, session, 'SYNO.Core.User', 'list'),
+        dsmCall(config, session, 'SYNO.SynologyDrive.TeamFolders', 'list')
+      ]);
+      const shareRows = shares.shares ?? shares.items ?? [];
+      const userRows = users.users ?? users.items ?? [];
+      const teamRows = teamFolders.items ?? teamFolders.shares ?? teamFolders.team_folders ?? [];
+      const hasName = (rows, name) => rows.some(row => [row.name,row.share_name,row.username,row.account].includes(name));
+      return output({status:'observed', mapping:id, share_present:hasName(shareRows, share.name),
+        account_present:hasName(userRows, share.account), team_folder_present:hasName(teamRows, share.projection.team_folder),
+        evidence:{shares_returned:shareRows.length, users_returned:userRows.length, team_folders_returned:teamRows.length}});
+    });
+  }
   if (op === 'mapping' && noun === 'list' && argv.length === 2) return output({status:'configured', mappings:mappingRows(config)});
   if (op === 'mapping' && noun === 'list' && id === '--all' && argv.length === 3) return output({status:'configured', mappings:allProfileMappings(process.env.AI_PROFILE_FILE)});
   if (op === 'mapping' && noun === 'status' && id && !flag) {
@@ -117,7 +211,7 @@ function main(argv) {
 }
 
 if (process.argv[1]?.endsWith('/synology.command.mjs')) {
-  try { main(process.argv.slice(2)); } catch (error) {
+  try { await main(process.argv.slice(2)); } catch (error) {
     process.stderr.write('BLOCKED_SYNOLOGY: ' + error.message + '\n');
     process.exitCode = 2;
   }

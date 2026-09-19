@@ -21,9 +21,16 @@ Use either route against the same profile-owned mapping contract:
 
 - **DSM UI route:** the currently verified operator procedure. Use it when the DSM API driver is unavailable or has not
   been verified against the selected DSM version.
-- **DSM API route:** the intended automated `share apply` implementation. It must reconcile the same state and emit the
-  same value-free evidence. Until its driver is verified, `apply` remains fail-closed and directs the operator to the UI
-  route.
+- **DSM API route:** API discovery and authenticated readback are implemented through `api catalog` and `api status`.
+  Both pin the configured DSM certificate; authenticated readback receives credentials only through `secrets run` and
+  always logs out. The mutating `share apply` driver must reconcile the same state and emit the same value-free evidence.
+  Until each mutation request is captured and verified against the selected DSM version, `apply` remains fail-closed and
+  directs the operator to the UI route rather than guessing undocumented Core API parameters.
+
+The verified DSM installation exposes `SYNO.Core.Share`, `SYNO.Core.Share.Permission`, `SYNO.Core.User`, and
+`SYNO.SynologyDrive.TeamFolders`. Synology's supported API flow is capability discovery, login, authenticated requests,
+and logout. The profile must bind `SYNOLOGY_ADMIN_USERNAME` and `SYNOLOGY_ADMIN_PASSWORD` in its approved secrets
+backend before the authenticated readback or future mutation route can run.
 
 Neither route moves existing data as part of share creation. Migration is a separate, reversible operation.
 
@@ -55,15 +62,16 @@ Neither route moves existing data as part of share creation. Migration is a sepa
    cannot write to it, and cannot access an unrelated share. Record a value-free receipt containing the share, account,
    Team Folder/version state, access mode, application boundary, verification time, and result.
 
-## Provisioned SC examples
+## Verified UI evidence
 
-DSM control-plane state and the least-privilege summaries were verified during UI provisioning. Credential-store,
-client projection, and positive/negative access checks remain separate acceptance steps.
+Two operator-owned memory shares were verified during UI provisioning. Exact share names, account names, source paths,
+and credential references remain in the private profile. Credential-store, client projection, and positive/negative
+access checks remain separate acceptance steps.
 
-| Identity | Allowed Team Folder | Folder access | Application access |
+| Identity purpose | Allowed Team Folder | Folder access | Application access |
 | --- | --- | --- | --- |
-| `sc-articles-reader` | `articles` | Read only; all other shares denied | Synology Drive only |
-| `sc-incorporated-reader` | `incorporated` | Read only; all other shares denied | Synology Drive only |
+| Writing-memory reader | Dedicated writing-memory folder | Read only; all other shares denied | Synology Drive only |
+| Financial-memory reader | Dedicated financial-memory folder | Read only; all other shares denied | Synology Drive only |
 
 For remote clients, follow the [private-tunnel access scenario](private-tunnel.md). Use the NAS private DNS name, keep
 service ports private, and do not switch this managed route to Synology QuickConnect.

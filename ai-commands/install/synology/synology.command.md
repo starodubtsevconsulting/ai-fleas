@@ -17,6 +17,8 @@ the selected private profile or operator record.
 | Show the value-free share/workflow/projection/Git map | `synology.command.sh inspect` |
 | List named mappings | `synology.command.sh mapping list` |
 | List every Synology mapping in the active profile | `synology.command.sh mapping list --all` |
+| Discover certificate-pinned DSM API capabilities | `synology.command.sh api catalog` |
+| Read live share, account, and Team Folder presence | `secrets run synology -- api status <share-id>` |
 | Plan one Team Folder, projection, and Git mapping | `synology.command.sh mapping plan <share-id>` |
 | Report concrete mapping blockers | `synology.command.sh mapping status <share-id>` |
 | Reconcile a complete mapping | `synology.command.sh mapping apply <share-id> --apply` |
@@ -29,8 +31,14 @@ installs packages or requests `sudo`. Prefer the stable Finder SMB service name 
 the current numeric IP as diagnostic evidence rather than durable configuration.
 
 The profile config owns NAS and share names, source and mount paths, and access mode. Credentials are injected only as
-environment variables by `secrets run synology -- ...`; the command never accepts a password argument. Mutation remains
-fail-closed until its DSM driver has been verified against the selected NAS version.
+environment variables by `secrets run synology -- ...`; the command never accepts a password argument.
+
+`api catalog` uses the profile's pinned DSM certificate fingerprint and does not authenticate. `api status` logs in with
+the injected administrator binding, reads only the configured control-plane resources, returns value-free presence and
+row-count evidence, and logs out in a `finally` path. It never prints the account, password, session ID, or CSRF token.
+The administrator binding must exist in the selected secrets backend before authenticated status or apply can run.
+
+Mutation remains fail-closed until its DSM driver has been verified against the selected NAS version.
 
 Remote access defaults to `none` when clients already receive a local synchronized projection. Keep SMB
 and Synology Drive off the public internet and do not enable QuickConnect for this command route. Durable edits still go
