@@ -189,6 +189,28 @@ Until those checks pass, the configuration is prepared, not proven.
 
 That wording matters. It prevents a successful click sequence from becoming a stronger security claim than the evidence supports.
 
+## The workflow can be public while the data stays private
+
+This pattern is part of [AI Fleas](https://github.com/starodubtsevconsulting/ai-fleas), my public workflow and command infrastructure for AI agents. The reusable parts can be inspected and shared: the [Synology command](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-commands/install/synology/synology.command.md), the workflow contract, validation rules, secret-reference shape, and a sanitized [example profile](https://github.com/starodubtsevconsulting/ai-fleas/tree/main/ai-profile/example).
+
+The example profile demonstrates the boundary without containing my boundary. Its [fictional Synology mapping](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-profile/example/commands-config/synology/config.example.yml) uses placeholder hosts, paths, accounts, and repository locations. Its [example secrets configuration](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-profile/example/commands-config/secrets/config.example.yml) contains logical references rather than credential values.
+
+My operational profile supplies the private facts: which shares exist, where the source folders live, which private Git service publishes them, and which secret references the runtime may resolve. The personal and financial documents, repository history, credentials, machine addresses, and real mappings remain outside the public repository.
+
+```mermaid
+flowchart LR
+    P[Public AI Fleas repository] --> C[Reusable commands and workflow contracts]
+    E[Sanitized example profile] --> C
+    C --> O[Private operational profile]
+    O --> S[Private secrets and mappings]
+    O --> D[Private personal data]
+
+    S -. values never committed .-> P
+    D -. content never committed .-> P
+```
+
+That separation lets other people reuse and review the method without requiring me to publish the information the method protects.
+
 ## Small infrastructure, explicit boundaries
 
 The useful lesson was not about one NAS product.
