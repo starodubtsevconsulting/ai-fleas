@@ -83,6 +83,8 @@ For sensitive personal material, that version control is privately operated infr
 
 This is a threat-model decision, not a claim that a personal server is automatically secure. A self-hosted Git service still needs authentication, updates, backups, restricted network access, and recovery testing. Its advantage here is narrower: sensitive data can remain inside the same deliberately small private boundary as the NAS instead of being copied to another organization's infrastructure.
 
+Depending on the setup, the private Git service can run on the NAS itself or on another always-on machine in the same private infrastructure. Running it on the NAS reduces the number of machines involved. A separate 24-hour server can provide stronger workload isolation and may be easier to update, back up, or recover independently. Either arrangement preserves the intended boundary when the repository, its backups, and its network access remain private.
+
 A large, well-known code-hosting service is an obvious and valuable target. A private system may be less visible, but obscurity alone is not protection. The design relies on fewer entrusted parties, limited exposure, and explicit controls. Reduced visibility is only one small part of that boundary.
 
 Downloads are a different use case. A download folder exists to receive new files, so a bounded write-capable share can be appropriate there. The access mode should follow the purpose of the share instead of becoming a global NAS policy.
