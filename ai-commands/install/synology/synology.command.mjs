@@ -16,9 +16,16 @@ export function validateConfig(source) {
   if (typeof config.nas.host !== 'string' || !config.nas.host || !Number.isInteger(config.nas.https_port)) blocked('INVALID_NAS');
   if (!config.shares || typeof config.shares !== 'object' || Array.isArray(config.shares)) blocked('INVALID_SHARES');
   for (const [id, share] of Object.entries(config.shares)) {
-    if (!token.test(id) || !share || Object.keys(share).some(k => !['name','account','access','source','mount'].includes(k))) blocked('INVALID_SHARE');
+    if (!token.test(id) || !share || Object.keys(share).some(k => !['name','account','access','source','mount','usage','mutation','repository'].includes(k))) blocked('INVALID_SHARE');
     if (!token.test(share.name) || !token.test(share.account) || !['read-only','read-write'].includes(share.access)) blocked('INVALID_SHARE');
     if (typeof share.source !== 'string' || !path.isAbsolute(share.source) || typeof share.mount !== 'string' || !path.isAbsolute(share.mount)) blocked('INVALID_SHARE');
+    if (!['memory','workspace','inbox'].includes(share.usage) || !['source-control','direct'].includes(share.mutation)) blocked('INVALID_SHARE');
+    if (share.mutation === 'source-control') {
+      if (share.access !== 'read-only' || !share.repository ||
+          Object.keys(share.repository).some(k => !['id','subpath'].includes(k)) ||
+          !token.test(share.repository.id) || typeof share.repository.subpath !== 'string' ||
+          path.isAbsolute(share.repository.subpath) || share.repository.subpath.split('/').includes('..')) blocked('INVALID_SHARE');
+    } else if (share.repository != null) blocked('INVALID_SHARE');
   }
   return config;
 }
@@ -48,7 +55,7 @@ function main(argv) {
   }
   if (op === 'share' && noun === 'plan' && id && !flag) {
     const share = safeShare(config, id);
-    return output({status:'planned', share:id, target:{nas:config.nas.host,name:share.name,account:share.account,access:share.access,mount:share.mount}, source:{path:share.source, migration_required:true}, secrets:{admin:['SYNOLOGY_ADMIN_USERNAME','SYNOLOGY_ADMIN_PASSWORD'], consumer:['SYNOLOGY_SHARE_USERNAME','SYNOLOGY_SHARE_PASSWORD']}, effects:['create-or-reconcile dedicated non-admin account','create-or-reconcile top-level SMB share','deny unrelated shares to dedicated account','grant configured access only','verify account and share without exposing values'], applied:false});
+    return output({status:'planned', share:id, usage:share.usage, mutation:share.mutation, repository:share.repository ?? null, target:{nas:config.nas.host,name:share.name,account:share.account,access:share.access,mount:share.mount}, source:{path:share.source, migration_required:true}, secrets:{admin:['SYNOLOGY_ADMIN_USERNAME','SYNOLOGY_ADMIN_PASSWORD'], consumer:['SYNOLOGY_SHARE_USERNAME','SYNOLOGY_SHARE_PASSWORD']}, effects:['create-or-reconcile dedicated non-admin account','create-or-reconcile top-level SMB share','deny unrelated shares to dedicated account','grant configured access only','verify account and share without exposing values'], applied:false});
   }
   if (op === 'share' && noun === 'apply' && id && flag === '--apply') {
     safeShare(config, id);

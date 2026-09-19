@@ -18,6 +18,26 @@ flowchart LR
   A[Agent profile] -->|logical name + mounted path + access mode| C
 ```
 
+## Use Synology as persistent agent memory
+
+The normal agent route is read-only retrieval. The agent searches or reads the named Synology projection using its
+dedicated identity. A durable correction or addition is made in the mapped Git repository, reviewed there, and then
+delivered to the storage projection by the repository's controlled synchronization process.
+
+```mermaid
+flowchart LR
+  A[Agent] -->|search and read| M[Read-only named memory share]
+  A -->|propose durable change| G[Mapped Git repository and subpath]
+  H[Human or authorized workflow] -->|review and merge| G
+  G -->|controlled synchronization| M
+  D[Download or generated artifact] --> W[Separate writable inbox]
+  W -. separate identity and policy .-> M
+```
+
+This keeps browsing simple while retaining history, review, and recovery for sensitive information. A writable use case
+does not change a memory share's permissions. Give downloads, captures, or generated artifacts their own `inbox` or
+`workspace` share, dedicated credential, retention rule, and ingestion step.
+
 ### Why a top-level shared folder is required
 
 DSM permissions are assigned to Synology shared folders and users or groups. A nested directory inside a Synology
@@ -33,6 +53,9 @@ into it. Keep the old source until verification and rollback requirements are sa
 | DSM shared-folder name | `incorporated` | Top-level share; use a filesystem-safe name. |
 | Dedicated account | `share-incorporated` | Non-admin; one account per independently revocable boundary. |
 | Access mode | `read-only` or `read-write` | Default to read-only. |
+| Usage | `memory`, `workspace`, or `inbox` | Memory is the default for existing information. |
+| Mutation route | `source-control` or `direct` | Source-controlled memory must be read-only. |
+| Repository mapping | Logical repository ID plus relative subpath | Required for source-controlled memory; avoid infrastructure host details. |
 | Source path | Local Synology Drive path or NAS path | Record for migration only; it is not the new boundary. |
 | SMB target | `smb://<host>/<share>` | Keep the host in the private profile. |
 | Local mount path | `/Volumes/<share>` | Verify after mounting; do not assume it exists. |
@@ -84,4 +107,3 @@ into it. Keep the old source until verification and rollback requirements are sa
 - The agent-facing profile contains only the logical name, path, access mode, owner, and secret reference.
 - No password or document content appears in Git, logs, screenshots, tickets, or agent output.
 - The migration has a documented rollback source until its retention decision is complete.
-

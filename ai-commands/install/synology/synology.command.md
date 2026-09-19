@@ -26,11 +26,22 @@ The profile config owns NAS and share names, source and mount paths, and access 
 environment variables by `secrets run synology -- ...`; the command never accepts a password argument. Mutation remains
 fail-closed until its DSM driver has been verified against the selected NAS version.
 
+## Agent memory contract
+
+A share with `usage: memory` is an agent retrieval surface. Agents may search, list, and read it through its dedicated
+read-only identity. When `mutation: source-control`, durable changes must be proposed in the mapped repository and
+subpath; the repository's reviewed delivery mechanism updates the persistent memory. The mounted Synology projection
+must not be edited directly, even when the local operating system happens to permit a write.
+
+Use `mutation: direct` only for a purpose-built writable share such as a download inbox or generated-artifact drop.
+Declare that as a separate share and credential boundary rather than widening an existing memory identity.
+
 ## Safety
 
 - Never place a DSM, SMB, or share password in Git, command arguments, terminal history, documentation, or agent text.
 - Use a dedicated non-admin Synology identity for each independently revocable share or trust boundary.
 - Grant only the selected shared folder and required protocol. Prefer read-only access unless the workflow must write.
+- Require read-only access for a source-controlled memory projection.
 - Treat moving existing data into a new top-level share as a separate migration with backup and rollback evidence.
 - Do not claim that a Finder favorite, Synology Drive sync root, alias, or symbolic link is a Synology permission boundary.
 
