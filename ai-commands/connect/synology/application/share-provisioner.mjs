@@ -66,12 +66,16 @@ async function ensureStorage(config, session, catalog, share, shares, teamFolder
   let teamFolderEnabled = false;
   if (!containsName(shares, share.name)) {
     if (!share.bootstrap?.create_share) blocked('SHARE_MIGRATION_REQUIRED');
-    await call(config, session, catalog, 'SYNO.Core.Share', 'create', {
+    const shareinfo = {
       name: share.name, vol_path: share.bootstrap.volume,
-      desc: `AI Fleas ${share.workflow} permanent memory`, hidden: false,
-      enable_recycle_bin: true, recycle_bin_admin_only: true, hide_unreadable: true,
-      enable_share_cow: true, enable_share_compress: false, share_quota: 0,
-      name_org: '', encryption: false, enc_passwd: '',
+      desc: `AI Fleas ${share.workflow} permanent memory`,
+      enable_recycle_bin: true, recycle_bin_admin_only: true,
+      enable_share_cow: true, enable_share_compress: false, name_org: '',
+    };
+    // DSM 7.3.2 requires the create payload inside a JSON-encoded shareinfo
+    // envelope while retaining the JSON-encoded name at the top level.
+    await call(config, session, catalog, 'SYNO.Core.Share', 'create', {
+      name: share.name, shareinfo,
     });
     shareCreated = true;
   }

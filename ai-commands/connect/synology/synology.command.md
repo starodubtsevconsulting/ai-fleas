@@ -61,9 +61,10 @@ consumers receive only their own share credential and never receive the DSM admi
 Generated values never cross stdout, command arguments, receipts, Git, or agent context. A newly created DSM account is
 deleted if secret storage or permission verification fails.
 
-The DSM driver is verified for existing shares and Team Folders: it creates or reuses the dedicated non-admin account,
-reconciles its exact read-only/read-write permission, upserts the two declared Infisical keys, verifies permission, and
-supports repeat apply without rotation. Missing shares and Team Folders remain fail-closed migration/enablement tasks.
+The DSM driver creates an explicitly opted-in missing share using the DSM 7.3.2 JSON `shareinfo` envelope, enables its
+Synology Drive Team Folder, creates or reuses the dedicated non-admin account, reconciles its exact read-only/read-write
+permission, upserts the two declared Infisical keys, and verifies the result. Existing resources support repeat apply
+without rotation. Profiles that omit either bootstrap opt-in remain fail closed at that boundary.
 
 Remote access defaults to `none` when clients already receive a local synchronized projection. Keep SMB
 and Synology Drive off the public internet and do not enable QuickConnect for this command route. Durable edits still go
