@@ -39,10 +39,13 @@ function validateNas(nas) {
 }
 
 function validateShare(id, share) {
-  const allowed = ['name', 'account', 'access', 'source', 'projection', 'workflow', 'usage', 'mutation',
+  const allowed = ['name', 'description', 'account', 'access', 'source', 'projection', 'workflow', 'usage', 'mutation',
     'repository', 'credential', 'bootstrap'];
   if (!token.test(id) || !share || Object.keys(share).some(key => !allowed.includes(key))) blocked('INVALID_SHARE');
   if (!token.test(share.name) || !token.test(share.account) || !['read-only', 'read-write'].includes(share.access)) {
+    blocked('INVALID_SHARE');
+  }
+  if (share.description != null && (typeof share.description !== 'string' || share.description.length > 64)) {
     blocked('INVALID_SHARE');
   }
   if (typeof share.source !== 'string' || !path.isAbsolute(share.source) || !token.test(share.workflow)) {

@@ -6,6 +6,7 @@ Provider adapter for accessing permanent human-readable memory stored on a Synol
 
 ```bash
 permanent-memory-synology.command.sh check
+permanent-memory-synology.command.sh init
 permanent-memory-synology.command.sh info
 permanent-memory-synology.command.sh list [relative-path]
 permanent-memory-synology.command.sh read <relative-path>
@@ -19,6 +20,6 @@ Configuration follows the normal AI Fleas command-config resolution. See `perman
 
 ## Intended AI use
 
-An AI can use `check`/`info` to understand the configured memory capability, `recent` for activity review, `inbox` for fleeting-note review, and `read` for canonical permanent context. Writes require explicit profile configuration; deletion additionally requires explicit action confirmation.
+An AI can use `check`/`info` to understand the configured memory capability, `init` to create the configured semantic directories inside an existing writable filesystem projection, `recent` for activity review, `inbox` for fleeting-note review, and `read` for canonical permanent context. Writes require explicit profile configuration; deletion additionally requires explicit action confirmation.
 
-The Personal Governor should normally consume permanent memory through a provider-neutral memory layer. This command is the Synology transport/provider implementation beneath that layer.
+Consumers should normally use permanent memory through a provider-neutral memory layer. This command is the Synology transport/provider implementation beneath that layer.

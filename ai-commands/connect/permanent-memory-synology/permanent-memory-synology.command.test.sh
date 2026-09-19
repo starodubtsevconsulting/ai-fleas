@@ -6,7 +6,6 @@ root="$(mktemp -d)"
 config="$(mktemp)"
 trap 'rm -rf "$root" "$config"' EXIT
 
-mkdir -p "$root/memory" "$root/strategy" "$root/daily" "$root/decisions" "$root/references"
 cat >"$config" <<EOF
 TRANSPORT=filesystem
 ROOT=$root
@@ -17,6 +16,8 @@ CONCEPTS_DIR=strategy
 OUTPUTS_DIR=decisions
 EOF
 
+AI_COMMAND_CONFIG="$config" "$command_dir/permanent-memory-synology.command.sh" init | grep -F 'initialized=true' >/dev/null
+for area in memory references strategy decisions; do [[ -d "$root/$area" ]]; done
 AI_COMMAND_CONFIG="$config" "$command_dir/permanent-memory-synology.command.sh" check | grep -F 'reachable=true' >/dev/null
 printf '%s' 'test memory' | AI_COMMAND_CONFIG="$config" \
   "$command_dir/permanent-memory-synology.command.sh" write memory/test.md >/dev/null

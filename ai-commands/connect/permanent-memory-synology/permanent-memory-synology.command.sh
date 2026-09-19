@@ -70,6 +70,17 @@ require_write() {
 
 cmd="${1:-help}"; shift || true
 case "$cmd" in
+  init)
+    require_write
+    [[ "$TRANSPORT" == "filesystem" ]] || { echo "error=init-requires-filesystem-projection" >&2; exit 4; }
+    [[ -d "$ROOT" ]] || { echo "error=memory-root-unavailable" >&2; exit 3; }
+    for area in "$INBOX_DIR" "$REFERENCES_DIR" "$CONCEPTS_DIR" "$OUTPUTS_DIR"; do
+      p="$(local_path "$area")"
+      [[ ! -e "$p" || -d "$p" ]] || { echo "error=memory-area-conflict:$area" >&2; exit 5; }
+      mkdir -p "$p"
+    done
+    echo "initialized=true"
+    ;;
   check)
     echo "provider=synology"
     echo "transport=$TRANSPORT"
@@ -136,7 +147,7 @@ case "$cmd" in
     echo "deleted=$rel"
     ;;
   help|-h|--help)
-    echo "usage: $0 {check|info|list|read|recent|inbox|write|delete} ..."
+    echo "usage: $0 {init|check|info|list|read|recent|inbox|write|delete} ..."
     ;;
   *) echo "error=unknown-operation:$cmd" >&2; exit 2 ;;
 esac

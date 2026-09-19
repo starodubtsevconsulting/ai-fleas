@@ -19,7 +19,7 @@ function loadSecretsConfig() {
 export function createShareParameters(share) {
   const shareinfo = {
     name: share.name, vol_path: share.bootstrap.volume,
-    desc: `AI Fleas ${share.workflow} permanent memory`,
+    desc: share.description ?? '',
     enable_recycle_bin: true, recycle_bin_admin_only: true,
     enable_share_cow: true, enable_share_compress: false, name_org: '',
   };

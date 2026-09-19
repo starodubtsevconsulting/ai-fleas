@@ -55,49 +55,30 @@ test('share plan declares generated credential delivery without producing a valu
 
 test('pins the DSM 7.3.2 create-share wire format', () => {
   const parameters = createShareParameters({
-    name: 'personal-governor-memory', workflow: 'personal-governor',
+    name: 'team-alpha-cache', description: 'Team Alpha cache',
     bootstrap: {volume: '/volume1'},
   });
   assert.deepEqual(Object.keys(parameters).sort(), ['name', 'shareinfo']);
-  assert.equal(parameters.name, 'personal-governor-memory');
+  assert.equal(parameters.name, 'team-alpha-cache');
   assert.equal(parameters.shareinfo.name, parameters.name);
+  assert.equal(parameters.shareinfo.desc, 'Team Alpha cache');
   assert.equal(parameters.shareinfo.vol_path, '/volume1');
   assert.equal('hidden' in parameters.shareinfo, false);
   assert.equal('encryption' in parameters.shareinfo, false);
 });
 
-test('supports a direct bidirectional Governor memory mapping without a repository', () => {
-  const governor = `nas:\n  host: synology.local\n  https_port: 5001\n  certificate_sha256: AA\n  remote_access:\n    mode: none\n    quickconnect: false\nshares:\n  personal-governor-memory:\n    name: personal-governor-memory\n    account: personal-governor-agent\n    access: read-write\n    credential:\n      username_secret: example.dev.synology.personal-governor-username\n      password_secret: example.dev.synology.personal-governor-password\n    workflow: personal-governor\n    source: /data/personal-governor-memory\n    projection:\n      type: synology-drive\n      team_folder: personal-governor-memory\n      local_path: /data/personal-governor-memory\n      sync_mode: bidirectional\n    usage: memory\n    mutation: direct\n`;
+test('supports an arbitrary direct bidirectional mapping without a repository', () => {
+  const mapping = `nas:\n  host: synology.local\n  https_port: 5001\n  certificate_sha256: AA\n  remote_access:\n    mode: none\n    quickconnect: false\nshares:\n  team-alpha-cache:\n    name: team-alpha-cache\n    description: Team Alpha cache\n    account: team-alpha-user\n    access: read-write\n    credential:\n      username_secret: example.dev.synology.team-alpha-username\n      password_secret: example.dev.synology.team-alpha-password\n    workflow: example-workflow\n    source: /data/team-alpha-cache\n    projection:\n      type: synology-drive\n      team_folder: team-alpha-cache\n      local_path: /data/team-alpha-cache\n      sync_mode: bidirectional\n    usage: workspace\n    mutation: direct\n`;
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'synology-command-'));
   const config = path.join(dir, 'config.yml');
-  fs.writeFileSync(config, governor);
+  fs.writeFileSync(config, mapping);
   const command = fileURLToPath(new URL('./synology.command.mjs', import.meta.url));
-  const result = spawnSync(process.execPath, [command, 'mapping', 'status', 'personal-governor-memory'], {
+  const result = spawnSync(process.execPath, [command, 'mapping', 'status', 'team-alpha-cache'], {
     encoding:'utf8', env:{...process.env, AI_COMMAND_CONFIG_PATH:config}
   });
   assert.equal(result.status, 0, result.stderr);
   const status = JSON.parse(result.stdout);
   assert.equal(status.publisher_checkout, null);
   assert.equal(status.blockers.includes('PUBLISHER_CHECKOUT_NOT_CONFIGURED'), false);
-  fs.rmSync(dir, {recursive:true, force:true});
-});
-
-test('initializes only the canonical areas inside an existing Governor projection', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'synology-command-'));
-  const root = path.join(dir, 'personal-governor-memory');
-  fs.mkdirSync(root);
-  fs.writeFileSync(path.join(root, 'existing.md'), 'preserve');
-  const governor = `nas:\n  host: synology.local\n  https_port: 5001\n  certificate_sha256: AA\n  remote_access:\n    mode: none\n    quickconnect: false\nshares:\n  personal-governor-memory:\n    name: personal-governor-memory\n    account: personal-governor-agent\n    access: read-write\n    credential:\n      username_secret: example.dev.synology.personal-governor-username\n      password_secret: example.dev.synology.personal-governor-password\n    workflow: personal-governor\n    source: ${root}\n    projection:\n      type: synology-drive\n      team_folder: personal-governor-memory\n      local_path: ${root}\n      sync_mode: bidirectional\n    usage: memory\n    mutation: direct\n`;
-  const config = path.join(dir, 'config.yml');
-  fs.writeFileSync(config, governor);
-  const command = fileURLToPath(new URL('./synology.command.mjs', import.meta.url));
-  const result = spawnSync(process.execPath, [command, 'memory', 'init', 'personal-governor-memory', '--apply'], {
-    encoding:'utf8', env:{...process.env, AI_COMMAND_CONFIG_PATH:config}
-  });
-  assert.equal(result.status, 0, result.stderr);
-  for (const area of ['memory', 'strategy', 'daily', 'decisions', 'references']) {
-    assert.equal(fs.statSync(path.join(root, area)).isDirectory(), true);
-  }
-  assert.equal(fs.readFileSync(path.join(root, 'existing.md'), 'utf8'), 'preserve');
   fs.rmSync(dir, {recursive:true, force:true});
 });

@@ -38,9 +38,6 @@ same application/subcommand structure used by established connector commands:
 - `application/share-provisioner.mjs` reconciles the account, permission, and declared Infisical credential pair;
 - `application/errors.mjs` keeps fail-closed command errors consistent across modules;
 - `subcommands/` owns the `api`, `mapping`, and `share` use-case handlers.
-- `memory plan <mapping>` describes the canonical human-readable memory areas without changing files;
-- `memory init <mapping> --apply` creates only missing `memory`, `strategy`, `daily`, `decisions`, and `references`
-  directories inside an already mounted read/write projection and preserves existing content.
 
 Provider transport and secret values stay outside the argument router. New DSM operations belong in the client or a
 focused application module, while new CLI behavior belongs in a focused subcommand handler.
@@ -68,6 +65,10 @@ The DSM driver creates an explicitly opted-in missing share using the DSM 7.3.2 
 Synology Drive Team Folder, creates or reuses the dedicated non-admin account, reconciles its exact read-only/read-write
 permission, upserts the two declared Infisical keys, and verifies the result. Existing resources support repeat apply
 without rotation. Profiles that omit either bootstrap opt-in remain fail closed at that boundary.
+
+The command treats `description`, `workflow`, `usage`, and `mutation` as validated profile metadata. It does not derive
+agent behavior, directory structure, or authorization from those labels. Semantic memory initialization belongs to the
+selected permanent-memory provider.
 
 Remote access defaults to `none` when clients already receive a local synchronized projection. Keep SMB
 and Synology Drive off the public internet and do not enable QuickConnect for this command route. Durable edits still go
