@@ -34,6 +34,33 @@ backend before the authenticated readback or future mutation route can run.
 
 Neither route moves existing data as part of share creation. Migration is a separate, reversible operation.
 
+## Administrative bootstrap and generated credentials
+
+Programmatic provisioning requires a DSM account authorized to create shared folders, local users, permissions, and
+Team Folders. Prefer a dedicated provisioning administrator over a person's ordinary DSM login. Keep its unique login
+in the approved secrets service and inject it only into the bounded provisioning process. It is a bootstrap credential:
+the command cannot create DSM resources without an already authorized DSM identity.
+
+The consumer account is different. Its account name comes from the private profile, while `share apply` generates a
+unique password with the operating system's cryptographic random source. The password exists only in process memory and
+is delivered directly to DSM and to a separately authorized secret-store writer. It must never appear in command-line
+arguments, standard output, logs, temporary files, receipts, Git, or agent context.
+
+Do not widen the ordinary read-only `secrets run` identity to support this. Provisioning uses a separate machine identity
+or operator session that may create or update only the two declared consumer keys for the selected share. The sequence is:
+
+1. authenticate to DSM with the injected provisioning administrator;
+2. generate the consumer password in memory;
+3. create the disabled-by-default or otherwise non-usable consumer identity and reconcile its exact boundaries;
+4. write the declared username and password keys through the narrow secret writer;
+5. resolve the new credential through the ordinary read-only consumer route and prove positive and negative access;
+6. enable or retain the consumer identity only after verification;
+7. erase in-memory references and emit a value-free receipt.
+
+For a newly created account, failure to store or verify the credential deletes or disables that account before logout.
+For rotation, keep the previous credential valid until the replacement is stored and verified; revoke the old value only
+after the new consumer route succeeds.
+
 ## DSM UI procedure
 
 1. **Discover and protect.** Discover the NAS, identify the exact source, and confirm snapshot or backup coverage before

@@ -34,3 +34,20 @@ test('authenticated API status fails before network access when admin secrets ar
   assert.match(result.stderr, /DSM_ADMIN_CREDENTIALS_REQUIRED/);
   fs.rmSync(dir, {recursive:true, force:true});
 });
+
+test('share plan declares generated credential delivery without producing a value', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'synology-command-'));
+  const config = path.join(dir, 'config.yml');
+  fs.writeFileSync(config, sample);
+  const command = fileURLToPath(new URL('./synology.command.mjs', import.meta.url));
+  const result = spawnSync(process.execPath, [command, 'share', 'plan', 'incorporated'], {
+    encoding:'utf8', env:{...process.env, AI_COMMAND_CONFIG_PATH:config}
+  });
+  assert.equal(result.status, 0);
+  const plan = JSON.parse(result.stdout);
+  assert.equal(plan.secrets.generated_consumer_credential.printed, false);
+  assert.equal(plan.secrets.generated_consumer_credential.persisted_locally, false);
+  assert.match(plan.secrets.generated_consumer_credential.password, /generated in memory/);
+  assert.equal(result.stdout.includes('secretValue'), false);
+  fs.rmSync(dir, {recursive:true, force:true});
+});

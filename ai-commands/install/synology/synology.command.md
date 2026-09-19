@@ -38,6 +38,11 @@ the injected administrator binding, reads only the configured control-plane reso
 row-count evidence, and logs out in a `finally` path. It never prints the account, password, session ID, or CSRF token.
 The administrator binding must exist in the selected secrets backend before authenticated status or apply can run.
 
+`share apply` uses that administrator only for the DSM control plane. It generates each consumer password in memory and
+delivers it directly to DSM and a separately authorized, key-scoped secret writer. The normal `secrets run` identity
+remains read-only. Generated values never cross stdout, command arguments, receipts, Git, or agent context. Provisioning
+must roll back or disable a newly created DSM account if secret storage or consumer verification fails.
+
 Mutation remains fail-closed until its DSM driver has been verified against the selected NAS version.
 
 Remote access defaults to `none` when clients already receive a local synchronized projection. Keep SMB
