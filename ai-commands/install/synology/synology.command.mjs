@@ -22,8 +22,9 @@ export function validateConfig(source) {
     if (!['memory','workspace','inbox'].includes(share.usage) || !['source-control','direct'].includes(share.mutation)) blocked('INVALID_SHARE');
     if (share.mutation === 'source-control') {
       if (share.access !== 'read-only' || !share.repository ||
-          Object.keys(share.repository).some(k => !['id','subpath'].includes(k)) ||
-          !token.test(share.repository.id) || typeof share.repository.subpath !== 'string' ||
+          Object.keys(share.repository).some(k => !['id','branch','subpath','delivery'].includes(k)) ||
+          !token.test(share.repository.id) || !token.test(share.repository.branch) ||
+          share.repository.delivery !== 'on-merge' || typeof share.repository.subpath !== 'string' ||
           path.isAbsolute(share.repository.subpath) || share.repository.subpath.split('/').includes('..')) blocked('INVALID_SHARE');
     } else if (share.repository != null) blocked('INVALID_SHARE');
   }

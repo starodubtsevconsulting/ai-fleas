@@ -30,7 +30,7 @@ fail-closed until its DSM driver has been verified against the selected NAS vers
 
 A share with `usage: memory` is an agent retrieval surface. Agents may search, list, and read it through its dedicated
 read-only identity. When `mutation: source-control`, durable changes must be proposed in the mapped repository and
-subpath; the repository's reviewed delivery mechanism updates the persistent memory. The mounted Synology projection
+branch/subpath; an `on-merge` publisher updates the persistent memory after validation. The mounted Synology projection
 must not be edited directly, even when the local operating system happens to permit a write.
 
 Use `mutation: direct` only for a purpose-built writable share such as a download inbox or generated-artifact drop.
