@@ -25,6 +25,9 @@ the selected private profile or operator record.
 | Produce a value-free reconciliation plan | `synology.command.sh share plan <share-id>` |
 | Create a named, least-privilege agent share | `synology.command.sh share apply <share-id> --apply` |
 
+See [Troubleshooting](troubleshooting.md) for deterministic handling of DSM API errors, including the DSM 7.3.2
+create-share `403` compatibility case.
+
 ### Implementation layout
 
 The stable shell entrypoint delegates to the small argument router in `synology.command.mjs`. Supporting code follows the

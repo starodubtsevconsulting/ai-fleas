@@ -6,6 +6,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
 import {validateConfig} from './synology.command.mjs';
+import {createShareParameters} from './application/share-provisioner.mjs';
 
 const sample = `nas:\n  host: synology.local\n  https_port: 5001\n  certificate_sha256: AA\n  remote_access:\n    mode: private-tunnel\n    host: TODO_PRIVATE_TUNNEL_HOSTNAME\n    quickconnect: false\nshares:\n  incorporated:\n    name: incorporated\n    account: agent-incorporated\n    access: read-only\n    credential:\n      username_secret: example.dev.synology.incorporated-username\n      password_secret: example.dev.synology.incorporated-password\n    workflow: financial-insights\n    source: /data/incorparated\n    projection:\n      type: synology-drive\n      team_folder: incorporated\n      local_path: TODO_LOCAL_SYNC_PATH\n      sync_mode: download-only\n    usage: memory\n    mutation: source-control\n    repository:\n      id: example-memory\n      branch: main\n      subpath: documents/incorparated\n      delivery: on-merge\n      publisher_checkout: TODO_PUBLISHER_GIT_CHECKOUT\n`;
 
@@ -50,6 +51,19 @@ test('share plan declares generated credential delivery without producing a valu
   assert.match(plan.secrets.generated_consumer_credential.password, /generated in memory/);
   assert.equal(result.stdout.includes('secretValue'), false);
   fs.rmSync(dir, {recursive:true, force:true});
+});
+
+test('pins the DSM 7.3.2 create-share wire format', () => {
+  const parameters = createShareParameters({
+    name: 'personal-governor-memory', workflow: 'personal-governor',
+    bootstrap: {volume: '/volume1'},
+  });
+  assert.deepEqual(Object.keys(parameters).sort(), ['name', 'shareinfo']);
+  assert.equal(parameters.name, 'personal-governor-memory');
+  assert.equal(parameters.shareinfo.name, parameters.name);
+  assert.equal(parameters.shareinfo.vol_path, '/volume1');
+  assert.equal('hidden' in parameters.shareinfo, false);
+  assert.equal('encryption' in parameters.shareinfo, false);
 });
 
 test('supports a direct bidirectional Governor memory mapping without a repository', () => {
