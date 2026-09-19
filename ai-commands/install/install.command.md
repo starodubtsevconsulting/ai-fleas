@@ -18,11 +18,11 @@ before mutation. Remote installation is a separate explicitly selected target co
 
 | Input | Required | Source | Description |
 |---|---|---|---|
-| Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned configuration. |
-| Detailed command inputs | As documented below | User, workflow, profile, or artifact | Command-specific values and preconditions. |
-| Installation command | Yes for targeted lifecycle | User or profile | Canonical child command such as `chatgpt` or `hermes`; human aliases resolve to those exact IDs. |
+| Active AI Profile and workflow | Yes | Host activation | Authorization and audit envelope only; it supplies no installation choices or tuning. |
+| Detailed command inputs | As documented below | User or installation artifact | Command-specific values and preconditions. |
+| Installation command | Yes for targeted lifecycle | User | Canonical child command such as `chatgpt` or `hermes`; human aliases resolve to those exact IDs. |
 | Lifecycle action | Yes for targeted lifecycle | User | One of `status`, `smoke-test`, `install`, `check-update`, `update`, `upgrade`, or `uninstall`. |
-| Component | No | User, profile, or child command default | Selects an installation form such as application, backend, CLI, or bundle without changing the child command identity. |
+| Component | No | User or child command default | Selects an installation form such as application, backend, CLI, or bundle without changing the child command identity. |
 
 - `ai-commands/install/*`
 
@@ -40,9 +40,12 @@ before mutation. Remote installation is a separate explicitly selected target co
 |---|---|---|
 | `install/install.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
 
-Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+Every governed invocation is profile-authorized: the host verifies that the active workflow allows installation and
+records its audit scope. The installer itself is profile-independent. It must not derive the target, component, version,
+destination, settings, permissions, or post-install behavior from profile or workflow configuration.
 
-Committed configuration template: `install/install.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+`install/install.command.example.config` intentionally declares no operational overrides. A profile binding exists only
+to participate in command authorization and must not influence installation behavior.
 
 ## Supported Prompts
 

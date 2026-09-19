@@ -20,6 +20,8 @@ Define the operating rules for the `install` command.
 - Installation ends after the minimum generic bootstrap and successful verification. It must not apply personal,
   client, profile, workflow, project, use-case, data-access, permission, or routine operating configuration.
 - Ongoing configuration belongs to the capability's normal-use companion command in its natural category.
+- Profile and workflow context may authorize and audit an installer invocation, but it must not affect the selected
+  artifact, component, version, destination, permissions, settings, or post-install behavior.
 - `check-update` and `update` are read-only; `upgrade` and `uninstall` require explicit human authorization.
 - The `codex` installation command means Codex CLI and must never silently stand in for `chatgpt`.
 - An unsupported host operation returns an explicit unavailable result with zero mutation.

@@ -113,7 +113,9 @@ Only add files the command actually needs.
 
 ## Execution
 
-All command execution is profile-aware. The host activates the selected profile/workflow, verifies command access, resolves `AI_COMMANDS_ROOT`, and supplies profile-owned configuration through `AI_COMMAND_CONFIG_PATH`.
+Governed command execution carries a profile/workflow authorization envelope. Commands use profile-owned configuration
+only when their contract declares it as an operational input. Installer commands are profile-independent: the envelope
+may authorize and audit the invocation, but profile values cannot affect installation behavior.
 
 Catalog examples are documentation, not operational configuration.
 
