@@ -1,8 +1,9 @@
 id: example-articles
 label: Example existing article archive and Obsidian vault
-description: TODO replace with an existing local article folder; do not create or rename it just to match a vault label.
+description: Example read-only Synology article memory; durable changes publish from the mapped Git checkout.
 project_type: folder
-repo_path: ~/projects/example-workspace/example-articles
+repo_path: /Volumes/example-articles
 storage_type: folder
-storage_path: ~/projects/example-workspace/example-articles
-storage_label: Existing local folder
+storage_path: /Volumes/example-articles
+storage_label: Read-only Synology article memory
+sync_provider: synology-memory

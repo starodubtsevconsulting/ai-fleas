@@ -95,6 +95,8 @@ commands:
     config: commands-config/secrets/config.example.yml
   - id: synology
     config: commands-config/synology/config.example.yml
+  - id: synology-memory
+    config: commands-config/synology-memory/config.example.yml
   - id: statements
     config: commands-config/statements/config.example.env
   - id: taxes
@@ -216,6 +218,8 @@ workflows:
       - medium
       - obsidian
       - source-control
+      - secrets
+      - synology-memory
       - show-context
       - social-publish
     article_store:
