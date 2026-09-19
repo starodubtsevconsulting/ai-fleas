@@ -41,6 +41,24 @@ Team Folders. Prefer a dedicated provisioning administrator over a person's ordi
 in the approved secrets service and inject it only into the bounded provisioning process. It is a bootstrap credential:
 the command cannot create DSM resources without an already authorized DSM identity.
 
+```mermaid
+flowchart LR
+  B[Owner-only Infisical bootstrap] --> S[Secrets service]
+  S -->|DSM admin username and password| R[secrets run synology]
+  R -->|child-process environment only| C[Synology provisioning command]
+  C -->|certificate-pinned authenticated session| D[DSM API]
+  D --> N[Share, account, permissions, Team Folder]
+
+  S -. no value .-> A[Agent context]
+  C -. no value .-> O[Logs and receipts]
+```
+
+The DSM administrator values are ordinary managed secrets. The local owner-only Infisical Universal Auth and optional
+Access files are the unavoidable bootstrap that allows the runtime to retrieve them. The secrets runner removes those
+bootstrap values before launching the Synology child and injects only `SYNOLOGY_ADMIN_USERNAME` and
+`SYNOLOGY_ADMIN_PASSWORD`. The command uses them to create a short-lived DSM session, retains neither value, and logs
+out in a `finally` path.
+
 The consumer account is different. Its account name comes from the private profile, while `share apply` generates a
 unique password with the operating system's cryptographic random source. The password exists only in process memory and
 is delivered directly to DSM and to a separately authorized secret-store writer. It must never appear in command-line
