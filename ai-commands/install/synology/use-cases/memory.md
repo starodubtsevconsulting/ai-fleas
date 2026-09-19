@@ -41,10 +41,12 @@ repository:
   branch: main
   subpath: documents/example
   delivery: on-merge
+  publisher_checkout: TODO_PUBLISHER_GIT_CHECKOUT
 ```
 
 The repository ID is logical and does not expose the machine hosting the repository. An agent must not edit the mounted
 memory projection directly even when a local operating-system session accidentally makes it writable.
+An unresolved publisher location uses an explicit `TODO_*` placeholder and prevents claiming that publication is live.
 
 ## Acceptance evidence
 

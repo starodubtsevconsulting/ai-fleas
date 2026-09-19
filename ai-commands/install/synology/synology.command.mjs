@@ -22,10 +22,12 @@ export function validateConfig(source) {
     if (!['memory','workspace','inbox'].includes(share.usage) || !['source-control','direct'].includes(share.mutation)) blocked('INVALID_SHARE');
     if (share.mutation === 'source-control') {
       if (share.access !== 'read-only' || !share.repository ||
-          Object.keys(share.repository).some(k => !['id','branch','subpath','delivery'].includes(k)) ||
+          Object.keys(share.repository).some(k => !['id','branch','subpath','delivery','publisher_checkout'].includes(k)) ||
           !token.test(share.repository.id) || !token.test(share.repository.branch) ||
           share.repository.delivery !== 'on-merge' || typeof share.repository.subpath !== 'string' ||
-          path.isAbsolute(share.repository.subpath) || share.repository.subpath.split('/').includes('..')) blocked('INVALID_SHARE');
+          path.isAbsolute(share.repository.subpath) || share.repository.subpath.split('/').includes('..') ||
+          !(typeof share.repository.publisher_checkout === 'string' &&
+            (path.isAbsolute(share.repository.publisher_checkout) || /^TODO_[A-Z0-9_]+$/.test(share.repository.publisher_checkout)))) blocked('INVALID_SHARE');
     } else if (share.repository != null) blocked('INVALID_SHARE');
   }
   return config;
