@@ -1,5 +1,9 @@
 # A Folder Is Not a Permission Boundary
 
+> “But only if they depend on us, and not we on them.”
+>
+> — Seneca, *Moral Letters to Lucilius*, Letter 98 ([text](https://en.wikisource.org/wiki/Moral_letters_to_Lucilius/Letter_98))
+
 > **Draft:** This article records a working design and has not completed the Writing workflow's independent review or human release approval.
 
 I wanted to give an AI agent access to one folder on my NAS.
