@@ -11,8 +11,13 @@ shares:
     name: financial-memory
     account: agent-financial-memory
     access: read-only
+    workflow: financial-insights
     source: /absolute/path/to/existing/financial-memory
-    mount: /Volumes/example-financial-memory
+    projection:
+      type: synology-drive
+      team_folder: financial-memory
+      local_path: TODO_SYNOLOGY_DRIVE_FINANCIAL_MEMORY_LOCAL_PATH
+      sync_mode: download-only
     usage: memory
     mutation: source-control
     repository:

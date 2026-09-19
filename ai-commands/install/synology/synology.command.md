@@ -14,6 +14,7 @@ the selected private profile or operator record.
 | Open DSM for administration | `open-synology.sh` |
 | Run a bounded connectivity diagnostic | `beep-diagnostic.sh` |
 | Validate a private named-share catalog | `synology.command.sh validate` |
+| Show the value-free share/workflow/projection/Git map | `synology.command.sh inspect` |
 | Produce a value-free reconciliation plan | `synology.command.sh share plan <share-id>` |
 | Create a named, least-privilege agent share | `synology.command.sh share apply <share-id> --apply` |
 
@@ -26,7 +27,7 @@ The profile config owns NAS and share names, source and mount paths, and access 
 environment variables by `secrets run synology -- ...`; the command never accepts a password argument. Mutation remains
 fail-closed until its DSM driver has been verified against the selected NAS version.
 
-Remote access defaults to `none` when clients already receive a local synchronized or LAN-mounted projection. Keep SMB
+Remote access defaults to `none` when clients already receive a local synchronized projection. Keep SMB
 and Synology Drive off the public internet and do not enable QuickConnect for this command route. Durable edits still go
 through the mapped Git checkout and publisher rather than through the projection.
 

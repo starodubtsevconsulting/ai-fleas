@@ -50,6 +50,7 @@ An unresolved publisher location uses an explicit `TODO_*` placeholder and preve
 
 ## Acceptance evidence
 
+- The Team Folder appears by name in Synology Drive and maps to the recorded local projection.
 - The dedicated identity can list, search, and read the named share.
 - A write probe through that identity fails.
 - The configured repository and subpath represent the same content boundary.
