@@ -1,0 +1,7 @@
+id: example-financial-memory
+label: Example financial memory
+project_type: folder
+repo_path: /Volumes/example-financial-memory
+storage_type: folder
+storage_path: /Volumes/example-financial-memory
+storage_label: Read-only Synology memory

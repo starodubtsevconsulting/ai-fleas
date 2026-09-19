@@ -8,6 +8,11 @@ Reusable command definitions live in the monorepo `ai-commands/` catalog. This `
 
 The source-control example binds the provider-neutral `source-control` command to the reusable `git` provider command. Authentication and the populated Git identity remain local.
 
+The Synology example binds a fictional financial-memory share only to the Financial Insights workflow. Agents receive
+read-only retrieval access. Durable changes use the mapped repository, branch, and subpath; an unresolved
+`TODO_PUBLISHER_GIT_CHECKOUT` records that merge publication is not operational until a private profile supplies and
+verifies its publisher checkout. The example contains secret references only.
+
 ## Secret-service example
 
 The example profile binds `secrets` to [`secrets/config.example.yml`](secrets/config.example.yml). That file selects `provider: infisical`; the profile has no second provider setting. Its fictional `dev` mapping shows the complete route:
