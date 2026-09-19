@@ -14,10 +14,13 @@ export function validateConfig(source) {
   if (!config || Object.keys(config).some(k => !['nas','shares'].includes(k))) blocked('INVALID_CONFIG');
   if (!config.nas || Object.keys(config.nas).some(k => !['host','https_port','certificate_sha256','remote_access'].includes(k))) blocked('INVALID_NAS');
   if (typeof config.nas.host !== 'string' || !config.nas.host || !Number.isInteger(config.nas.https_port)) blocked('INVALID_NAS');
-  if (!config.nas.remote_access || Object.keys(config.nas.remote_access).some(k => !['mode','host','quickconnect'].includes(k)) ||
-      config.nas.remote_access.mode !== 'private-tunnel' || config.nas.remote_access.quickconnect !== false ||
+  if (!config.nas.remote_access || Object.keys(config.nas.remote_access).some(k => !['mode','host','quickconnect','command','client','status'].includes(k)) ||
+      !['private-tunnel','cloudflare-private-network'].includes(config.nas.remote_access.mode) || config.nas.remote_access.quickconnect !== false ||
       !(typeof config.nas.remote_access.host === 'string' &&
         (/^TODO_[A-Z0-9_]+$/.test(config.nas.remote_access.host) || config.nas.remote_access.host.includes('.')))) blocked('INVALID_NAS');
+  if (config.nas.remote_access.mode === 'cloudflare-private-network' &&
+      (config.nas.remote_access.command !== 'cloudflare' || config.nas.remote_access.client !== 'warp' ||
+       !/^TODO_[A-Z0-9_]+$/.test(config.nas.remote_access.status || ''))) blocked('INVALID_NAS');
   if (!config.shares || typeof config.shares !== 'object' || Array.isArray(config.shares)) blocked('INVALID_SHARES');
   for (const [id, share] of Object.entries(config.shares)) {
     if (!token.test(id) || !share || Object.keys(share).some(k => !['name','account','access','source','mount','usage','mutation','repository'].includes(k))) blocked('INVALID_SHARE');

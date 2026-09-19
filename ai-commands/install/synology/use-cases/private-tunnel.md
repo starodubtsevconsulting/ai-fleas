@@ -22,9 +22,10 @@ flowchart LR
 - Keep share-level Synology credentials in the approved secret service even though transport is encrypted.
 - Record tunnel configuration, key owner, recovery procedure, and last verification without committing private keys.
 
-A managed overlay network may be selected deliberately when its operational benefits are accepted, but it is not the
-default and must not be introduced silently. The profile records `mode: private-tunnel`; the specific implementation
-belongs to private infrastructure configuration.
+A managed overlay network may be selected deliberately when its operational benefits are accepted. Reusing an already
+trusted Cloudflare control plane can avoid introducing QuickConnect as a second provider. In that case, select
+`cloudflare-private-network`, link the `cloudflare` command, and require WARP/private-network routing. The existing public
+hostname/Access tunnel route alone cannot carry a normal SMB mount.
 
 ## Acceptance evidence
 
@@ -33,4 +34,3 @@ belongs to private infrastructure configuration.
 - An authorized tunnel client reaches the NAS by its private hostname.
 - A client without an active tunnel cannot reach it.
 - Revoking one client identity does not interrupt other authorized clients.
-

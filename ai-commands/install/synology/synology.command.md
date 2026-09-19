@@ -30,8 +30,10 @@ Remote access uses a profile-declared private network tunnel. Keep SMB and Synol
 do not enable QuickConnect for this command route. The tunnel hostname may remain an explicit `TODO_*` until provisioned;
 that placeholder means remote access is not operational.
 
-Prefer a self-managed WireGuard gateway when minimizing third-party trust is the priority. A managed overlay is an
-explicit infrastructure choice, not a command default.
+Prefer a self-managed WireGuard gateway when minimizing all third-party trust is the priority. When a profile already
+trusts Cloudflare for remote access, it may explicitly select `cloudflare-private-network` and the existing `cloudflare`
+command rather than adding QuickConnect as another provider. That route requires WARP/private-network support; a public
+HTTP hostname is not sufficient for SMB or Synology Drive.
 
 ## Agent memory contract
 
