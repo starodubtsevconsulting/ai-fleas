@@ -1,4 +1,4 @@
-# Synology scenarios
+# Synology use case scenarios
 
 ## Create a named agent share
 

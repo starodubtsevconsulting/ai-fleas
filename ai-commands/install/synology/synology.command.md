@@ -45,6 +45,7 @@ Declare that as a separate share and credential boundary rather than widening an
 - Treat moving existing data into a new top-level share as a separate migration with backup and rollback evidence.
 - Do not claim that a Finder favorite, Synology Drive sync root, alias, or symbolic link is a Synology permission boundary.
 
-## Related scenario
+## Use case scenarios
 
-See [Create a named agent share](synology.scenario.md#create-a-named-agent-share).
+See [Synology use case scenarios](synology.use-case-scenarios.md) for persistent agent memory, source-controlled
+updates, separately bounded writable inboxes, and named-share provisioning.
