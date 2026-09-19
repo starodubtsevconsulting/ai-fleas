@@ -8,6 +8,7 @@ Keep short engineering/research notes directly under `notes/`; keep article-leng
 
 Newest first:
 
+- [2026-09-19 — A Folder Is Not a Permission Boundary](2026-09-19-a-folder-is-not-a-permission-boundary.md) — draft
 - [2026-09-18 — I Stopped Trying to Automate the Demo](2026-09-18-i-stopped-trying-to-automate-the-demo.md)
 - [2026-09-17 — I Asked AI to Plan My Day. It Told Me to Go Back to Bed.](2026-09-17-what-if-ai-planned-your-day.md)
 - [2026-09-17 — The New Way of Work Starts With Rules](2026-09-17-the-new-way-of-work-starts-with-rules.md)

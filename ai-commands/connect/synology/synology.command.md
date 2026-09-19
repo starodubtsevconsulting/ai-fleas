@@ -1,0 +1,107 @@
+# Synology
+
+## Purpose
+
+Use `synology` to discover, open, diagnose, and configure a Synology NAS. Reusable mechanics and safety rules live in
+this public command. Server addresses, share names, account names, permission choices, and secret references belong to
+the selected private profile or operator record.
+
+## Supported operations
+
+| Operation | Implementation |
+| --- | --- |
+| Discover a NAS on the local network | `find-synology-ip.sh` |
+| Open DSM for administration | `open-synology.sh` |
+| Run a bounded connectivity diagnostic | `beep-diagnostic.sh` |
+| Validate a private named-share catalog | `synology.command.sh validate` |
+| Show the value-free share/workflow/projection/Git map | `synology.command.sh inspect` |
+| List named mappings | `synology.command.sh mapping list` |
+| List every Synology mapping in the active profile | `synology.command.sh mapping list --all` |
+| Discover certificate-pinned DSM API capabilities | `synology.command.sh api catalog` |
+| Read live share, account, and Team Folder presence | `secrets run synology -- api status <share-id>` |
+| Plan one Team Folder, projection, and Git mapping | `synology.command.sh mapping plan <share-id>` |
+| Report concrete mapping blockers | `synology.command.sh mapping status <share-id>` |
+| Reconcile a complete mapping | `synology.command.sh mapping apply <share-id> --apply` |
+| Produce a value-free reconciliation plan | `synology.command.sh share plan <share-id>` |
+| Create a named, least-privilege agent share | `synology.command.sh share apply <share-id> --apply` |
+
+See [Troubleshooting](troubleshooting.md) for deterministic handling of DSM API errors, including the DSM 7.3.2
+create-share `403` compatibility case.
+
+### Implementation layout
+
+The stable shell entrypoint delegates to the small argument router in `synology.command.mjs`. Supporting code follows the
+same application/subcommand structure used by established connector commands:
+
+- `application/config.mjs` validates configuration and resolves profile-owned mappings;
+- `application/dsm-client.mjs` owns certificate-pinned DSM transport, API discovery, sessions, and response normalization;
+- `application/share-provisioner.mjs` reconciles the account, permission, and declared Infisical credential pair;
+- `application/errors.mjs` keeps fail-closed command errors consistent across modules;
+- `subcommands/` owns the `api`, `mapping`, and `share` use-case handlers.
+
+Provider transport and secret values stay outside the argument router. New DSM operations belong in the client or a
+focused application module, while new CLI behavior belongs in a focused subcommand handler.
+
+`find-synology-ip.sh` is non-mutating. On macOS it uses the ARP table and Synology's registered MAC prefix, then
+requires a live DSM, SMB, or Synology Drive port. On Linux it may additionally use an already-installed `nmap`; it never
+installs packages or requests `sudo`. Prefer the stable Finder SMB service name when Bonjour exposes one, while keeping
+the current numeric IP as diagnostic evidence rather than durable configuration.
+
+The profile config owns NAS and share names, source and mount paths, and access mode. Credentials are injected only as
+environment variables by `secrets run synology -- ...`; the command never accepts a password argument.
+
+`api catalog` uses the profile's pinned DSM certificate fingerprint and does not authenticate. `api status` logs in with
+the injected administrator binding, reads only the configured control-plane resources, returns value-free presence and
+row-count evidence, and logs out in a `finally` path. It never prints the account, password, session ID, or CSRF token.
+The administrator binding must exist in the selected secrets backend before authenticated status or apply can run.
+
+`share apply` uses that administrator only for the DSM control plane. It generates each consumer password in memory and
+delivers it directly to DSM and the profile-declared secret keys through the provisioning machine identity. Runtime
+consumers receive only their own share credential and never receive the DSM administrator or secret-store bootstrap.
+Generated values never cross stdout, command arguments, receipts, Git, or agent context. A newly created DSM account is
+deleted if secret storage or permission verification fails.
+
+The DSM driver creates an explicitly opted-in missing share using the DSM 7.3.2 JSON `shareinfo` envelope, enables its
+Synology Drive Team Folder, creates or reuses the dedicated non-admin account, reconciles its exact read-only/read-write
+permission, upserts the two declared Infisical keys, and verifies the result. Existing resources support repeat apply
+without rotation. Profiles that omit either bootstrap opt-in remain fail closed at that boundary.
+
+The command treats `description`, `workflow`, `usage`, and `mutation` as validated profile metadata. It does not derive
+agent behavior, directory structure, or authorization from those labels. Semantic memory initialization belongs to the
+selected permanent-memory provider.
+
+Remote access defaults to `none` when clients already receive a local synchronized projection. Keep SMB
+and Synology Drive off the public internet and do not enable QuickConnect for this command route. Durable edits still go
+through the mapped Git checkout and publisher rather than through the projection.
+
+When remote access is actually required, prefer a self-managed WireGuard gateway when minimizing all third-party trust is the priority. When a profile already
+trusts Cloudflare for remote access, it may explicitly select `cloudflare-private-network` and the existing `cloudflare`
+command rather than adding QuickConnect as another provider. That route requires WARP/private-network support; a public
+HTTP hostname is not sufficient for SMB or Synology Drive.
+
+## Agent memory contract
+
+A share with `usage: memory` is an agent retrieval surface. Agents may search, list, and read it through its dedicated
+read-only identity. When `mutation: source-control`, durable changes must be proposed in the mapped repository and
+branch/subpath; an `on-merge` publisher updates the persistent memory after validation. The mounted Synology projection
+must not be edited directly, even when the local operating system happens to permit a write.
+
+Use `mutation: direct` only for a purpose-built writable share such as a download inbox or generated-artifact drop.
+Declare that as a separate share and credential boundary rather than widening an existing memory identity.
+
+## Safety
+
+- Never place a DSM, SMB, or share password in Git, command arguments, terminal history, documentation, or agent text.
+- Use a dedicated non-admin Synology identity for each independently revocable share or trust boundary.
+- Grant only the selected shared folder and required protocol. Prefer read-only access unless the workflow must write.
+- Require read-only access for a source-controlled memory projection.
+- Treat moving existing data into a new top-level share as a separate migration with backup and rollback evidence.
+- Do not claim that a Finder favorite, Synology Drive sync root, alias, or symbolic link is a Synology permission boundary.
+
+## Use case scenarios
+
+- [Persistent agent memory](use-cases/memory.md): read-only retrieval with durable changes delivered through Git.
+- [Download destination](use-cases/downloads.md): direct writes to a separately bounded inbox without version control.
+- [Named-share provisioning](use-cases/named-share-provisioning.md): create the share, identity, permissions, secret
+  references, migration, and verification boundary.
+- [Private-tunnel access](use-cases/private-tunnel.md): secure remote access without QuickConnect or public NAS ports.

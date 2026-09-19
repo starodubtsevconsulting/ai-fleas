@@ -1,0 +1,52 @@
+# EXAMPLE ONLY: fictional host, paths, identities, and repository mapping.
+nas:
+  host: nas.example.invalid
+  https_port: 5001
+  certificate_sha256: REPLACE_WITH_VERIFIED_FINGERPRINT
+  remote_access:
+    mode: none
+    quickconnect: false
+shares:
+  example-agent-memory:
+    name: example-agent-memory
+    description: Example agent memory
+    account: example-agent-memory-user
+    access: read-write
+    credential:
+      username_secret: example.dev.synology.agent-memory-username
+      password_secret: example.dev.synology.agent-memory-password
+    workflow: example-workflow
+    source: /absolute/path/to/existing/example-agent-memory
+    projection:
+      type: synology-drive
+      team_folder: example-agent-memory
+      local_path: TODO_SYNOLOGY_DRIVE_AGENT_MEMORY_LOCAL_PATH
+      sync_mode: bidirectional
+    usage: memory
+    mutation: direct
+    bootstrap:
+      create_share: true
+      volume: /volume1
+      enable_team_folder: true
+  financial-memory:
+    name: financial-memory
+    account: agent-financial-memory
+    access: read-only
+    credential:
+      username_secret: example.dev.synology.financial-memory-username
+      password_secret: example.dev.synology.financial-memory-password
+    workflow: financial-insights
+    source: /absolute/path/to/existing/financial-memory
+    projection:
+      type: synology-drive
+      team_folder: financial-memory
+      local_path: TODO_SYNOLOGY_DRIVE_FINANCIAL_MEMORY_LOCAL_PATH
+      sync_mode: download-only
+    usage: memory
+    mutation: source-control
+    repository:
+      id: example-financial-memory
+      branch: main
+      subpath: records
+      delivery: on-merge
+      publisher_checkout: TODO_PUBLISHER_GIT_CHECKOUT

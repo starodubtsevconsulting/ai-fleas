@@ -30,6 +30,10 @@ Current categories:
 
 See [`categories.md`](categories.md) for the normative rules.
 
+`install` is limited to initial installation and minimum bootstrap. Routine operation and profile/workflow tuning belong
+to the capability category used after installation; for example, installation may prepare a provider while `connect`,
+`data`, or `system` owns its normal-use companion command.
+
 ## Command identity
 
 Category is not part of the public command ID.
@@ -68,8 +72,11 @@ Adapters expose provider-neutral capabilities. Providers own provider-specific m
 | [`logs`](connect/logs/logs.command.md) | [`datadog`](connect/datadog/datadog.command.md) |
 | [`health-data`](data/health-data/spec.md) | [`health-data-garmin`](data/health-data-garmin/spec.md) |
 | [`activity-data`](data/activity-data/spec.md) | [`activity-data-android`](data/activity-data-android/spec.md) |
+| [`permanent-memory`](data/permanent-memory/permanent-memory.command.md) | [`permanent-memory-synology`](connect/permanent-memory-synology/permanent-memory-synology.command.md) |
 
 Adapters and providers are peer commands. A provider is not a subcommand of its adapter.
+Provider-specific integration families may be kept together under `connect`; the logical adapter remains in its
+capability category and resolves the provider by command ID rather than by physical path.
 
 ## Category commands
 
@@ -109,7 +116,9 @@ Only add files the command actually needs.
 
 ## Execution
 
-All command execution is profile-aware. The host activates the selected profile/workflow, verifies command access, resolves `AI_COMMANDS_ROOT`, and supplies profile-owned configuration through `AI_COMMAND_CONFIG_PATH`.
+Governed command execution carries a profile/workflow authorization envelope. Commands use profile-owned configuration
+only when their contract declares it as an operational input. Installer commands are profile-independent: the envelope
+may authorize and audit the invocation, but profile values cannot affect installation behavior.
 
 Catalog examples are documentation, not operational configuration.
 

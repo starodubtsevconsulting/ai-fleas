@@ -36,7 +36,7 @@ Rules:
 
 | Category | Purpose | Examples |
 | --- | --- | --- |
-| `install` | Installation, setup, and provisioning | Docker, Git, Hermes, GrapheneOS |
+| `install` | Initial installation and minimum bootstrap needed to make a capability available | Docker, Git, Hermes, GrapheneOS |
 | `data` | Acquire, normalize, persist, or process structured data/evidence | health data, activity data, permanent memory, statements |
 | `connect` | Access external systems and services | source control, Jira, calendar, email, browser, logs |
 | `development` | Build, change, test, review, or validate software | coding, bug fix, tests, review, SDD |
@@ -45,6 +45,27 @@ Rules:
 | `utility` | Generic reusable helpers that do not fit another capability family | planning, discussion, demo |
 
 Prefer an existing category over creating a new one. Add a new category only when several commands share a stable capability type that does not fit the existing list.
+
+## Installer and normal-use companions
+
+`install` owns the bounded initial lifecycle: install software, establish the minimum safe bootstrap, verify that the
+capability can start, and hand it off. It does not own ongoing profile tuning, workflow mappings, routine data access,
+normal service operations, or use-case-specific permissions after the capability is available.
+
+When a capability needs both stages, keep independent commands in their natural categories. They may share a provider,
+but they have separate contracts and authorization boundaries:
+
+| Initial/bootstrap command | Normal-use companion |
+| --- | --- |
+| `install/git` | `connect/git` and `connect/source-control` |
+| `install/infisical` | `connect/secrets` |
+| `install/hermes` | `system/hermes-agents` |
+| `install/cloudflare` | `connect/cloudflare` |
+| a future Synology installer | `connect/synology` and the selected Synology-specific provider under `connect` |
+
+Do not keep a normal-use command under `install` merely because it can perform setup-like reconciliation. Categorize it
+by the capability it provides during ordinary workflow execution. An installer may invoke or link to the normal command
+for post-install guidance, but it must not absorb that command's ongoing ownership.
 
 ## Category commands
 

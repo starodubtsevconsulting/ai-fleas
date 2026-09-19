@@ -1,0 +1,31 @@
+# EXAMPLE ONLY: fictional host, paths, identities, and repository mapping.
+nas:
+  host: nas.example.invalid
+  https_port: 5001
+  certificate_sha256: REPLACE_WITH_VERIFIED_FINGERPRINT
+  remote_access:
+    mode: none
+    quickconnect: false
+shares:
+  articles:
+    name: articles
+    account: agent-articles
+    access: read-only
+    credential:
+      username_secret: example.dev.synology.articles-username
+      password_secret: example.dev.synology.articles-password
+    workflow: writing
+    source: /absolute/path/to/existing/articles
+    projection:
+      type: synology-drive
+      team_folder: articles
+      local_path: TODO_SYNOLOGY_DRIVE_ARTICLES_LOCAL_PATH
+      sync_mode: download-only
+    usage: memory
+    mutation: source-control
+    repository:
+      id: example-articles
+      branch: main
+      subpath: articles
+      delivery: on-merge
+      publisher_checkout: TODO_ARTICLES_PUBLISHER_GIT_CHECKOUT

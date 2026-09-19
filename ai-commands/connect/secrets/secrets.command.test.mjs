@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
-import {consumerEnvironment, formatHermesEnv, inspectConfig, readBootstrap, resolveForConsumer, validateConfig, verifyConnection}
+import {consumerEnvironment, formatHermesEnv, inspectConfig, readBootstrap, resolveForConsumer, upsertLogicalSecrets,
+  validateConfig, verifyConnection}
   from './secrets.command.mjs';
 
 const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-fleas-secrets-test-'));
@@ -142,6 +143,38 @@ test('authenticates and resolves only the declared secret for a consumer', async
   assert.match(calls[1].url, /environment=dev/);
   assert.equal(calls[1].options.headers.Authorization, 'Bearer synthetic-access-token');
   assert.equal(calls[1].options.redirect, 'manual');
+});
+
+test('upserts only declared logical secrets without returning generated values', async () => {
+  const calls = [];
+  const fakeFetch = async (url, options) => {
+    calls.push({url: String(url), options});
+    return calls.length === 1
+      ? {status: 200, json: async () => ({accessToken: 'synthetic-access-token'})}
+      : {status: 200, json: async () => ({secrets: []})};
+  };
+  const result = await upsertLogicalSecrets(validateConfig(sample), {
+    'example.dev.integration.api-token': 'generated-safe-value',
+  }, fakeFetch);
+  assert.equal(result, undefined);
+  assert.equal(calls.length, 2);
+  assert.match(calls[1].url, /\/api\/v3\/secrets\/batch\/raw$/);
+  assert.equal(calls[1].options.method, 'PATCH');
+  assert.equal(calls[1].options.headers.Authorization, 'Bearer synthetic-access-token');
+  const body = JSON.parse(calls[1].options.body);
+  assert.equal(body.workspaceId, '00000000-0000-4000-8000-000000000000');
+  assert.equal(body.environment, 'dev');
+  assert.equal(body.secretPath, '/');
+  assert.deepEqual(body.secrets,
+    [{secretKey: 'EXAMPLE_API_TOKEN', secretValue: 'generated-safe-value', type: 'shared'}]);
+});
+
+test('logical secret writer rejects undeclared keys before authenticating', async () => {
+  let calls = 0;
+  await assert.rejects(upsertLogicalSecrets(validateConfig(sample), {
+    'example.dev.integration.unknown': 'generated-safe-value',
+  }, async () => { calls++; throw Error('fetch must not happen'); }), /INVALID_SECRET_WRITE/);
+  assert.equal(calls, 0);
 });
 
 test('Access redirects and missing secrets fail closed', async () => {

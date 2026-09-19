@@ -4,11 +4,11 @@
 
 Integrate a profile's permanent human-readable memory with a Synology-hosted filesystem, typically an Obsidian vault, without exposing Obsidian itself as a server.
 
-The command is an infrastructure/provider adapter. Higher layers such as the Personal Governor should reason in provider-neutral memory terms rather than depending directly on Synology, SSH, SFTP, Tailscale, or Obsidian.
+The command is an infrastructure/provider adapter. Higher-level consumers should reason in provider-neutral memory terms rather than depending directly on Synology, SSH, SFTP, Tailscale, or Obsidian.
 
 ## Transport
 
-V1 supports SSH/SFTP-compatible access to a Synology host. Private-network transports such as Tailscale are recommended but not required by the command contract.
+V1 supports a local Synology Drive filesystem projection and SSH/SFTP-compatible access to a Synology host. The local projection is preferred for desktop agents because Synology Drive owns authentication and synchronization while the command remains bounded to one configured root.
 
 The command must not require the NAS to be publicly exposed.
 
@@ -32,6 +32,10 @@ Optional values:
 
 ## Operations
 
+### `init`
+
+Create the configured semantic directories inside an existing writable local filesystem projection. Preserve existing directories and content, and fail when a configured area conflicts with an existing non-directory object. Share and account provisioning remain the responsibility of `connect/synology`.
+
 ### `check`
 
 Validate configuration, network/SSH reachability, authentication, root path, and effective read/write permissions without modifying permanent knowledge.
@@ -50,7 +54,7 @@ Read one text/Markdown memory object beneath the configured root.
 
 ### `recent [days]`
 
-Return recently modified permanent-memory objects, defaulting to 7 days, for Governor review/activity inspection.
+Return recently modified permanent-memory objects, defaulting to 7 days, for consumer review and activity inspection.
 
 ### `inbox`
 
@@ -71,6 +75,7 @@ The adapter supports the common Zettelkasten-inspired semantics introduced under
 - Inbox / fleeting capture
 - References
 - Concepts / permanent notes
+- Daily notes
 - Outputs
 
 Physical directory names are configurable because an existing Obsidian vault may use different names.
@@ -79,7 +84,7 @@ Physical directory names are configurable because an existing Obsidian vault may
 
 Output should be concise, deterministic, and machine-readable enough for an AI agent to use from a terminal. `info` and `check` should emit `key=value` records. Listing/recent operations should emit one relative path per line.
 
-The command is intentionally useful to Personal Governor procedures such as weekly one-on-one memory review, but it does not contain Governor strategy itself.
+The command supports higher-level review procedures, but it does not contain consumer-specific strategy.
 
 ## Security
 

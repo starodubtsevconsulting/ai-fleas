@@ -93,6 +93,17 @@ commands:
     config: commands-config/infisical/config.example.env
   - id: secrets
     config: commands-config/secrets/config.example.yml
+  - id: synology
+    config: commands-config/synology/config.example.yml
+  - id: synology-memory
+    config: commands-config/synology-memory/config.example.yml
+  - id: permanent-memory
+  - id: permanent-memory-synology
+    config: commands-config/permanent-memory-synology/permanent-memory-synology.command.config
+  - id: statements
+    config: commands-config/statements/config.example.env
+  - id: taxes
+    config: commands-config/taxes/config.example.env
   - id: machine-profile
     config: commands-config/install/config.yml
   - id: lodgify
@@ -210,6 +221,8 @@ workflows:
       - medium
       - obsidian
       - source-control
+      - secrets
+      - synology-memory
       - show-context
       - social-publish
     article_store:
@@ -250,6 +263,22 @@ workflows:
     projects:
       - ref: projects-config/writing/example-writing/project.yml
       - ref: projects-config/writing/example-articles/project.yml
+  - path: financial-insights.workflow.md
+    harness: hermes
+    local_ai:
+      providers_config: local-ai-providers.yml
+      provider: asus-gx10-model-provider
+      model: qwen-coder
+    commands:
+      - hermes-agents
+      - gpt-agents
+      - statements
+      - taxes
+      - secrets
+      - synology
+      - source-control
+    projects:
+      - ref: projects-config/financial-insights/example-financial-memory/project.yml
 app_mode:
   default: dev
   ui_surface: electron
@@ -264,6 +293,7 @@ app_mode:
     dev.workflow.md: terminal
     youtube.workflow.md: chat
     writing.workflow.md: chat
+    financial-insights.workflow.md: chat
 projects_root_path: ~/projects/example-workspace
 sessions_root: ~/.ai-work-sessions/example
 org_domain: example.com

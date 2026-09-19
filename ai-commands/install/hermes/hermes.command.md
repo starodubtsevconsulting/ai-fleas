@@ -12,9 +12,9 @@ bots, conversations, and workflow groups.
 
 | Input | Required | Source | Description |
 |---|---|---|---|
-| Active AI Profile and workflow | Yes | Host activation | Authorizes local software lifecycle execution and resolves profile-owned settings. |
+| Active AI Profile and workflow | Yes | Host activation | Authorization and audit envelope only; it does not configure installation. |
 | Action | Yes | User | `status`, `smoke-test`, `install`, `check-update`, `update`, `upgrade`, or `uninstall`. |
-| Component | No | User or profile | Installation form selected with `--component`; defaults to `bundle`. Unsupported values fail closed. |
+| Component | No | User | Installation form selected with `--component`; defaults to `bundle`. Unsupported values fail closed. |
 | Local platform | Yes | Runtime | Must be exactly `Darwin/arm64`. |
 
 ## Outputs
@@ -29,10 +29,10 @@ bots, conversations, and workflow groups.
 |---|---|---|
 | `install/hermes/hermes.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke `<action> [--component bundle]` through the command runner. |
 
-Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve
-`AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+Every governed invocation is profile-authorized, but installation behavior is profile-independent. The profile cannot
+select the component, version, destination, or post-install tuning.
 
-Committed configuration template: `install/hermes/hermes.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
+The committed configuration file is an authorization placeholder and declares no operational overrides.
 
 ## Supported Prompts
 

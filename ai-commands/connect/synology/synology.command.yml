@@ -1,0 +1,7 @@
+id: synology
+version: 0.1.0-SNAPSHOT
+category: connect
+type: executable
+entrypoint: synology.command.sh
+ai:
+  powered: false
