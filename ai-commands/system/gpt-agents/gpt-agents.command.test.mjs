@@ -71,6 +71,11 @@ assert.match(contract, /Changes to the roster must come from the portable workfl
 assert.match(contract, /public GPT role-binding defaults, then supported profile-owned `role_overrides`/);
 assert.match(contract, /direct-human-only role such as Judge receives its own binding/);
 assert.match(contract, /Never emulate a logical saved project with a custom sidebar section/);
+assert.match(contract, /`initialize-governor --human HUMAN_PROFILE_ID`/);
+assert.match(contract, /`status-governor --human HUMAN_PROFILE_ID`/);
+assert.match(contract, /`reinitialize-governor --human HUMAN_PROFILE_ID/);
+assert.match(contract, /PERSONAL_GOVERNOR_READY/);
+assert.match(contract, /Governor initialization never initializes, reconciles, or mutates workflow rosters/);
 assert.match(contract, /`initialize-system`/);
 assert.match(contract, /System remains outside every workflow sidebar section/);
 assert.match(contract, /pin the exact System task in the global pinned section/);
