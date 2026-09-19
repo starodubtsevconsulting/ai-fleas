@@ -47,5 +47,7 @@ Declare that as a separate share and credential boundary rather than widening an
 
 ## Use case scenarios
 
-See [Synology use case scenarios](synology.use-case-scenarios.md) for persistent agent memory, source-controlled
-updates, separately bounded writable inboxes, and named-share provisioning.
+- [Persistent agent memory](use-cases/memory.md): read-only retrieval with durable changes delivered through Git.
+- [Download destination](use-cases/downloads.md): direct writes to a separately bounded inbox without version control.
+- [Named-share provisioning](use-cases/named-share-provisioning.md): create the share, identity, permissions, secret
+  references, migration, and verification boundary.
