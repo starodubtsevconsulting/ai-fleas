@@ -1,0 +1,24 @@
+schemaVersion: personal-governor-continuity.v1
+scope: governed-human
+cardinality: one-active-per-human-per-platform
+lifecycle: persistent
+selfManaged: true
+selfBootstrap: true
+selfReplace: true
+
+replacement:
+  strategy: successor-first
+  triggers:
+    - explicit-human-request
+    - context-exhaustion
+    - runtime-failure
+  handoff:
+    durableMemoryRequired: true
+    predecessorIdentityRequired: true
+  cutover:
+    successorReadinessRequired: true
+    pinSuccessorWhenSupported: true
+    predecessorDisposition: ask-human-to-archive
+    deleteRequiresExplicitDecision: true
+  failure:
+    preservePredecessorActive: true
