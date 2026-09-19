@@ -39,11 +39,14 @@ row-count evidence, and logs out in a `finally` path. It never prints the accoun
 The administrator binding must exist in the selected secrets backend before authenticated status or apply can run.
 
 `share apply` uses that administrator only for the DSM control plane. It generates each consumer password in memory and
-delivers it directly to DSM and a separately authorized, key-scoped secret writer. The normal `secrets run` identity
-remains read-only. Generated values never cross stdout, command arguments, receipts, Git, or agent context. Provisioning
-must roll back or disable a newly created DSM account if secret storage or consumer verification fails.
+delivers it directly to DSM and the profile-declared secret keys through the provisioning machine identity. Runtime
+consumers receive only their own share credential and never receive the DSM administrator or secret-store bootstrap.
+Generated values never cross stdout, command arguments, receipts, Git, or agent context. A newly created DSM account is
+deleted if secret storage or permission verification fails.
 
-Mutation remains fail-closed until its DSM driver has been verified against the selected NAS version.
+The DSM driver is verified for existing shares and Team Folders: it creates or reuses the dedicated non-admin account,
+reconciles its exact read-only/read-write permission, upserts the two declared Infisical keys, verifies permission, and
+supports repeat apply without rotation. Missing shares and Team Folders remain fail-closed migration/enablement tasks.
 
 Remote access defaults to `none` when clients already receive a local synchronized projection. Keep SMB
 and Synology Drive off the public internet and do not enable QuickConnect for this command route. Durable edits still go

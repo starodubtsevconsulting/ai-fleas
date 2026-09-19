@@ -11,6 +11,9 @@ shares:
     name: financial-memory
     account: agent-financial-memory
     access: read-only
+    credential:
+      username_secret: example.dev.synology.financial-memory-username
+      password_secret: example.dev.synology.financial-memory-password
     workflow: financial-insights
     source: /absolute/path/to/existing/financial-memory
     projection:

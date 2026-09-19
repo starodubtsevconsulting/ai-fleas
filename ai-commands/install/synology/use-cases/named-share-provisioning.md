@@ -21,11 +21,11 @@ Use either route against the same profile-owned mapping contract:
 
 - **DSM UI route:** the currently verified operator procedure. Use it when the DSM API driver is unavailable or has not
   been verified against the selected DSM version.
-- **DSM API route:** API discovery and authenticated readback are implemented through `api catalog` and `api status`.
-  Both pin the configured DSM certificate; authenticated readback receives credentials only through `secrets run` and
-  always logs out. The mutating `share apply` driver must reconcile the same state and emit the same value-free evidence.
-  Until each mutation request is captured and verified against the selected DSM version, `apply` remains fail-closed and
-  directs the operator to the UI route rather than guessing undocumented Core API parameters.
+- **DSM API route:** `api catalog`, `api status`, and `share apply` pin the configured DSM certificate, receive the DSM
+  administrator only through `secrets run`, and always log out. For an existing share and Team Folder, `share apply`
+  creates or reuses its dedicated account, reconciles the declared permission, stores the generated credential directly
+  in the declared secret keys, verifies permission, and emits value-free evidence. Missing shares or Team Folders block
+  for the separately reviewed migration or enablement step.
 
 The verified DSM installation exposes `SYNO.Core.Share`, `SYNO.Core.Share.Permission`, `SYNO.Core.User`, and
 `SYNO.SynologyDrive.TeamFolders`. Synology's supported API flow is capability discovery, login, authenticated requests,
@@ -64,8 +64,9 @@ unique password with the operating system's cryptographic random source. The pas
 is delivered directly to DSM and to a separately authorized secret-store writer. It must never appear in command-line
 arguments, standard output, logs, temporary files, receipts, Git, or agent context.
 
-Do not widen the ordinary read-only `secrets run` identity to support this. Provisioning uses a separate machine identity
-or operator session that may create or update only the two declared consumer keys for the selected share. The sequence is:
+The provisioning machine identity needs secret write access, while the runtime consumer still receives only its own
+share credential. Prefer a key-scoped custom role when available; the verified self-hosted Free deployment uses the
+built-in project Member role because Viewer cannot write and custom roles are unavailable. The sequence is:
 
 1. authenticate to DSM with the injected provisioning administrator;
 2. generate the consumer password in memory;

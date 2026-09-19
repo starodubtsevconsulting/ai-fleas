@@ -176,9 +176,69 @@ async function postLogin(config, fetcher = fetch) {
   return body.accessToken;
 }
 
+export async function upsertLogicalSecrets(config, values, fetcher = fetch) {
+  if (config.provider !== 'infisical') blocked('PROVIDER_DISABLED');
+  if (!values || typeof values !== 'object' || Array.isArray(values) || !Object.keys(values).length) {
+    blocked('INVALID_SECRET_WRITE');
+  }
+  const mapped = [];
+  for (const [logicalName, value] of Object.entries(values)) {
+    const declaration = config.secrets[logicalName];
+    if (!declaration || typeof value !== 'string' || !value || /[\r\n]/.test(value)) blocked('INVALID_SECRET_WRITE');
+    if (declaration.backend.path !== '/') blocked('UNSUPPORTED_SECRET_WRITE_PATH');
+    mapped.push({secretKey: declaration.backend.key, secretValue: value, type: 'shared'});
+  }
+  const token = await postLogin(config, fetcher);
+  let response;
+  try {
+    response = await fetcher(config.endpoint + '/api/v3/secrets/batch/raw', {
+      method: 'PATCH', redirect: 'manual',
+      headers: {Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', ...accessHeaders(config)},
+      body: JSON.stringify({environment: config.provider_config.environment,
+        workspaceId: config.provider_config.project_id, secretPath: '/', mode: 'upsert', secrets: mapped}),
+      signal: AbortSignal.timeout(10000),
+    });
+  } catch (error) {
+    if (error instanceof SecretsBlocked) throw error;
+    blocked('PROVIDER_UNREACHABLE');
+  }
+  if (response.status !== 200) blocked(response.status >= 300 && response.status < 400 ?
+    'ACCESS_GATE_REQUIRED' : response.status === 403 ? 'SECRET_WRITE_FORBIDDEN' : 'SECRET_WRITE_FAILED');
+}
+
 export async function verifyConnection(config, fetcher = fetch) {
   if (config.provider === 'none') blocked('PROVIDER_DISABLED');
   await postLogin(config, fetcher);
+}
+
+export async function resolveLogicalSecrets(config, logicalNames, fetcher = fetch) {
+  if (config.provider !== 'infisical' || !Array.isArray(logicalNames) || !logicalNames.length) blocked('INVALID_SECRET_READ');
+  const token = await postLogin(config, fetcher);
+  const result = {};
+  for (const logicalName of logicalNames) {
+    const declaration = config.secrets[logicalName];
+    if (!declaration) blocked('UNKNOWN_LOGICAL_SECRET');
+    const mapping = declaration.backend;
+    const url = new URL(config.endpoint + '/api/v4/secrets/' + encodeURIComponent(mapping.key));
+    url.searchParams.set('projectId', config.provider_config.project_id);
+    url.searchParams.set('environment', config.provider_config.environment);
+    url.searchParams.set('secretPath', mapping.path);
+    url.searchParams.set('type', 'shared');
+    url.searchParams.set('expandSecretReferences', 'false');
+    let response;
+    try {
+      response = await fetcher(url, {redirect: 'manual', headers: {Authorization: 'Bearer ' + token,
+        ...accessHeaders(config)}, signal: AbortSignal.timeout(10000)});
+    } catch (error) {
+      if (error instanceof SecretsBlocked) throw error;
+      blocked('PROVIDER_UNREACHABLE');
+    }
+    if (response.status !== 200) blocked(response.status === 404 ? 'SECRET_NOT_FOUND' : 'SECRET_READ_FAILED');
+    const body = await response.json().catch(() => blocked('INVALID_PROVIDER_RESPONSE'));
+    if (typeof body?.secret?.secretValue !== 'string' || !body.secret.secretValue) blocked('INVALID_SECRET_VALUE');
+    result[logicalName] = body.secret.secretValue;
+  }
+  return result;
 }
 
 export async function resolveForConsumer(config, consumer, fetcher = fetch) {

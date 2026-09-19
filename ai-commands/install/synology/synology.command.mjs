@@ -2,8 +2,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import https from 'node:https';
+import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import YAML from 'yaml';
+import {validateConfig as validateSecretsConfig, resolveLogicalSecrets, upsertLogicalSecrets}
+  from '../../connect/secrets/secrets.command.mjs';
 
 const blocked = code => { throw new Error(code); };
 const token = /^[a-z][a-z0-9-]{0,62}$/;
@@ -25,9 +28,12 @@ export function validateConfig(source) {
        !/^TODO_[A-Z0-9_]+$/.test(config.nas.remote_access.status || ''))) blocked('INVALID_NAS');
   if (!config.shares || typeof config.shares !== 'object' || Array.isArray(config.shares)) blocked('INVALID_SHARES');
   for (const [id, share] of Object.entries(config.shares)) {
-    if (!token.test(id) || !share || Object.keys(share).some(k => !['name','account','access','source','projection','workflow','usage','mutation','repository'].includes(k))) blocked('INVALID_SHARE');
+    if (!token.test(id) || !share || Object.keys(share).some(k => !['name','account','access','source','projection','workflow','usage','mutation','repository','credential'].includes(k))) blocked('INVALID_SHARE');
     if (!token.test(share.name) || !token.test(share.account) || !['read-only','read-write'].includes(share.access)) blocked('INVALID_SHARE');
     if (typeof share.source !== 'string' || !path.isAbsolute(share.source) || !token.test(share.workflow)) blocked('INVALID_SHARE');
+    if (!share.credential || Object.keys(share.credential).some(k => !['username_secret','password_secret'].includes(k)) ||
+        !/^[a-z0-9-]+(?:\.[a-z0-9-]+){3,}$/.test(share.credential.username_secret || '') ||
+        !/^[a-z0-9-]+(?:\.[a-z0-9-]+){3,}$/.test(share.credential.password_secret || '')) blocked('INVALID_SHARE');
     if (!share.projection || Object.keys(share.projection).some(k => !['type','team_folder','local_path','sync_mode'].includes(k)) ||
         share.projection.type !== 'synology-drive' || share.projection.team_folder !== share.name ||
         share.projection.sync_mode !== 'download-only' || typeof share.projection.local_path !== 'string' ||
@@ -53,6 +59,14 @@ function safeShare(config, id) {
 
 function output(value) { process.stdout.write(JSON.stringify(value, null, 2) + '\n'); }
 
+function generatedPassword() { return `Aa1!${crypto.randomBytes(32).toString('base64url')}`; }
+
+function loadSecretsConfig() {
+  const filename = process.env.AI_SECRETS_CONFIG_PATH;
+  if (!filename || !path.isAbsolute(filename)) blocked('SECRETS_WRITER_REQUIRED');
+  return validateSecretsConfig(fs.readFileSync(filename, 'utf8'));
+}
+
 const relevantApis = [
   'SYNO.API.Auth',
   'SYNO.Core.Share',
@@ -63,17 +77,20 @@ const relevantApis = [
 
 function normalizedFingerprint(value) { return String(value || '').replaceAll(':', '').toUpperCase(); }
 
-function dsmRequest(config, parameters) {
+function dsmRequest(config, parameters, options={}) {
   const expectedFingerprint = normalizedFingerprint(config.nas.certificate_sha256);
   const body = new URLSearchParams(parameters).toString();
   return new Promise((resolve, reject) => {
     const request = https.request({
       hostname: config.nas.host,
       port: config.nas.https_port,
-      path: '/webapi/entry.cgi',
+      path: '/webapi/' + (options.path || 'entry.cgi'),
       method: 'POST',
+      agent: new https.Agent({maxCachedSessions:0}),
       rejectUnauthorized: false,
-      headers: {'content-type':'application/x-www-form-urlencoded', 'content-length':Buffer.byteLength(body)}
+      headers: {'content-type':'application/x-www-form-urlencoded', 'content-length':Buffer.byteLength(body),
+        ...(options.synotoken ? {'X-SYNO-TOKEN':options.synotoken} : {}),
+        ...(options.sidCookie ? {Cookie:`id=${options.sidCookie}`} : {})}
     }, response => {
       let raw = '';
       response.setEncoding('utf8');
@@ -116,12 +133,21 @@ async function withDsmSession(config, operation) {
   }
 }
 
-async function dsmCall(config, session, api, method, parameters={}) {
-  const catalog = await dsmCatalog(config);
+async function dsmCall(config, session, catalog, api, method, parameters={}) {
   const descriptor = catalog[api];
   if (!descriptor) blocked(`DSM_API_UNAVAILABLE_${api}`);
-  return dsmRequest(config, {api, version:String(descriptor.maxVersion), method, ...parameters, _sid:session.sid,
-    ...(session.synotoken ? {SynoToken:session.synotoken} : {})});
+  try {
+    if (descriptor.requestFormat === 'JSON') {
+      const encoded = Object.fromEntries(Object.entries(parameters).map(([name, value]) => [name, JSON.stringify(value)]));
+      return await dsmRequest(config, {api, version:String(descriptor.maxVersion), method, ...encoded},
+        {path:`${descriptor.path}/${api}`, sidCookie:session.sid, synotoken:session.synotoken});
+    }
+    return await dsmRequest(config, {api, version:String(descriptor.maxVersion), method, ...parameters, _sid:session.sid,
+      ...(session.synotoken ? {SynoToken:session.synotoken} : {})},
+    {path:descriptor.path, synotoken:session.synotoken});
+  } catch (error) {
+    blocked(`${api}_${error.message}`);
+  }
 }
 
 function mappingRows(config) {
@@ -145,6 +171,21 @@ function allProfileMappings(profileFile) {
   return rows.sort((a,b) => a.id.localeCompare(b.id));
 }
 
+function profileShareConfig(profileFile, id, fallback) {
+  if (fallback.shares[id]) return fallback;
+  if (!profileFile || !path.isAbsolute(profileFile)) blocked('UNKNOWN_SHARE');
+  const profileDir = fs.realpathSync(path.dirname(profileFile));
+  const profile = YAML.parse(fs.readFileSync(profileFile, 'utf8'));
+  for (const binding of profile.commands || []) {
+    if (!['synology','synology-memory'].includes(binding.id) || typeof binding.config !== 'string') continue;
+    const configPath = fs.realpathSync(path.resolve(profileDir, binding.config));
+    if (!configPath.startsWith(profileDir + path.sep)) blocked('INVALID_PROFILE_CONFIG');
+    const candidate = validateConfig(fs.readFileSync(configPath, 'utf8'));
+    if (candidate.shares[id]) return candidate;
+  }
+  blocked('UNKNOWN_SHARE');
+}
+
 async function main(argv) {
   const configPath = process.env.AI_COMMAND_CONFIG_PATH;
   if (!configPath) blocked('PROFILE_REQUIRED');
@@ -160,10 +201,11 @@ async function main(argv) {
   if (op === 'api' && noun === 'status' && id && !flag) {
     const share = safeShare(config, id);
     return withDsmSession(config, async session => {
+      const catalog = await dsmCatalog(config);
       const [shares, users, teamFolders] = await Promise.all([
-        dsmCall(config, session, 'SYNO.Core.Share', 'list'),
-        dsmCall(config, session, 'SYNO.Core.User', 'list'),
-        dsmCall(config, session, 'SYNO.SynologyDrive.TeamFolders', 'list')
+        dsmCall(config, session, catalog, 'SYNO.Core.Share', 'list'),
+        dsmCall(config, session, catalog, 'SYNO.Core.User', 'list'),
+        dsmCall(config, session, catalog, 'SYNO.SynologyDrive.TeamFolders', 'list')
       ]);
       const shareRows = shares.shares ?? shares.items ?? [];
       const userRows = users.users ?? users.items ?? [];
@@ -195,11 +237,75 @@ async function main(argv) {
   }
   if ((op === 'share' || op === 'mapping') && noun === 'plan' && id && !flag) {
     const share = safeShare(config, id);
-    return output({status:'planned', share:id, workflow:share.workflow, usage:share.usage, mutation:share.mutation, repository:share.repository ?? null, target:{nas:config.nas.host,name:share.name,account:share.account,access:share.access,projection:share.projection}, source:{path:share.source, migration_required:true}, secrets:{admin:['SYNOLOGY_ADMIN_USERNAME','SYNOLOGY_ADMIN_PASSWORD'], consumer:['SYNOLOGY_SHARE_USERNAME','SYNOLOGY_SHARE_PASSWORD'], generated_consumer_credential:{username:'profile-declared account',password:'cryptographically random; generated in memory',delivery:'DSM and approved secret-store writer only',printed:false,persisted_locally:false}}, effects:['authenticate with a dedicated DSM provisioning administrator','generate a unique share password in memory','create-or-reconcile dedicated non-admin account','create-or-reconcile top-level shared folder','enable Synology Drive Team Folder','deny unrelated shares to dedicated account','grant configured access only','store the consumer username and generated password through a separately authorized secret writer','create download-only local projection','verify account, secret resolution, and projection without exposing values'], applied:false});
+    return output({status:'planned', share:id, workflow:share.workflow, usage:share.usage, mutation:share.mutation, repository:share.repository ?? null, target:{nas:config.nas.host,name:share.name,account:share.account,access:share.access,projection:share.projection}, source:{path:share.source, migration_required:true}, prerequisites:['top-level shared folder exists','Synology Drive Team Folder is enabled'], secrets:{admin:['SYNOLOGY_ADMIN_USERNAME','SYNOLOGY_ADMIN_PASSWORD'], consumer:['SYNOLOGY_SHARE_USERNAME','SYNOLOGY_SHARE_PASSWORD'], generated_consumer_credential:{username:'profile-declared account',password:'cryptographically random; generated in memory',delivery:'DSM and approved secret-store writer only',printed:false,persisted_locally:false}}, effects:['authenticate with a dedicated DSM provisioning administrator','verify the shared folder and Team Folder exist','generate a unique share password in memory when the account needs creation or recovery','create-or-reconcile the dedicated non-admin account','grant the configured access','store the consumer username and generated password through the profile-declared secret writer','verify permission without exposing values'], applied:false});
   }
   if (op === 'share' && noun === 'apply' && id && flag === '--apply') {
-    safeShare(config, id);
-    blocked('DSM_MUTATION_DRIVER_NOT_VERIFIED');
+    const selectedConfig = profileShareConfig(process.env.AI_PROFILE_FILE, id, config);
+    const share = safeShare(selectedConfig, id);
+    const secretsConfig = loadSecretsConfig();
+    return withDsmSession(selectedConfig, async session => {
+      const catalog = await dsmCatalog(selectedConfig);
+      const [shares, users, teamFolders] = await Promise.all([
+        dsmCall(selectedConfig, session, catalog, 'SYNO.Core.Share', 'list'),
+        dsmCall(selectedConfig, session, catalog, 'SYNO.Core.User', 'list'),
+        dsmCall(selectedConfig, session, catalog, 'SYNO.SynologyDrive.TeamFolders', 'list')
+      ]);
+      const shareRows = shares.shares ?? shares.items ?? [];
+      const userRows = users.users ?? users.items ?? [];
+      const teamRows = teamFolders.items ?? teamFolders.shares ?? teamFolders.team_folders ?? [];
+      const hasName = (rows, name) => rows.some(row => [row.name,row.share_name,row.username,row.account].includes(name));
+      if (!hasName(shareRows, share.name)) blocked('SHARE_MIGRATION_REQUIRED');
+      if (!hasName(teamRows, share.projection.team_folder)) blocked('TEAM_FOLDER_ENABLEMENT_REQUIRED');
+      let created = false;
+      let rotated = false;
+      let password;
+      if (hasName(userRows, share.account)) {
+        try {
+          const stored = await resolveLogicalSecrets(secretsConfig,
+            [share.credential.username_secret, share.credential.password_secret]);
+          if (stored[share.credential.username_secret] !== share.account) blocked('SECRET_ACCOUNT_MISMATCH');
+          password = stored[share.credential.password_secret];
+        } catch (error) {
+          if (error?.message !== 'SECRET_NOT_FOUND') throw error;
+          password = generatedPassword();
+          await dsmCall(selectedConfig, session, catalog, 'SYNO.Core.User', 'set', {type:'local', name:share.account,
+            new_name:share.account, password, description:`AI Fleas ${id} share account`, email:'', expired:'never',
+            cannot_chg_passwd:true, passwd_never_expire:true, notify_by_email:false, send_password:false});
+          rotated = true;
+        }
+      } else {
+        password = generatedPassword();
+        await dsmCall(selectedConfig, session, catalog, 'SYNO.Core.User', 'create', {name:share.account, password,
+          description:`AI Fleas ${id} share account`, email:'', expired:'never', cannot_chg_passwd:true,
+          passwd_never_expire:true, notify_by_email:false, send_password:false});
+        created = true;
+      }
+      try {
+        await dsmCall(selectedConfig, session, catalog, 'SYNO.Core.Share.Permission', 'set', {name:share.name,
+          user_group_type:'local_user', permissions:[{name:share.account, is_deny:false,
+            is_readonly:share.access === 'read-only', is_writable:share.access === 'read-write'}]});
+        await upsertLogicalSecrets(secretsConfig, {
+          [share.credential.username_secret]:share.account,
+          [share.credential.password_secret]:password
+        });
+        const permissions = await dsmCall(selectedConfig, session, catalog, 'SYNO.Core.Share.Permission', 'list',
+          {name:share.name, offset:0, limit:100, action:'enum', is_unite_permission:false,
+            with_inherit:false, user_group_type:'local_user'});
+        const permissionRows = permissions.items ?? permissions.permissions ?? [];
+        const permission = permissionRows.find(row => row.name === share.account);
+        if (!permission || (share.access === 'read-only' && permission.is_readonly !== true) ||
+            (share.access === 'read-write' && permission.is_writable !== true)) blocked('PERMISSION_VERIFICATION_FAILED');
+      } catch (error) {
+        if (created) {
+          try { await dsmCall(selectedConfig, session, catalog, 'SYNO.Core.User', 'delete', {name:share.account}); }
+          catch { blocked('ROLLBACK_FAILED'); }
+        }
+        throw error;
+      }
+      return output({status:'applied', share:id, account:share.account, access:share.access,
+        account_created:created, credential_rotated:rotated, secret_store_updated:true,
+        share_present:true, team_folder_present:true, credential_values_exposed:false});
+    });
   }
   if (op === 'mapping' && noun === 'apply' && id && flag === '--apply') {
     const share = safeShare(config, id);

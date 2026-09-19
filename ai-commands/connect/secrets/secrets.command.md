@@ -265,7 +265,12 @@ provision those separately and bind their non-secret IDs and paths in the privat
 
 ### How do I move an existing or new secret into the provider?
 
-The `secrets` runner reads and injects values; it does not create or import them. A provider administrator enters the value through the provider's approved UI, CLI, or API. For the current Infisical adapter, open **Secrets Management → project → environment → folder → Add Secret**. Set the secret's key to the private mapping's `backend.key`, enter its value in the provider, and use the folder named by `backend.path`. Then:
+The ordinary `secrets` runner reads and injects values. A bounded provisioning command may also call the exported
+logical-secret writer to upsert only profile-declared keys; this is used for generated credentials that must never cross
+stdout or agent context. The provisioning machine identity must have explicit write access. Existing operator-owned
+values are still entered through the provider's approved UI, CLI, or API. For the current Infisical adapter, open
+**Secrets Management → project → environment → folder → Add Secret**. Set the key to the private mapping's
+`backend.key`, enter its value in the provider, and use the folder named by `backend.path`. Then:
 
 1. For an existing local credential, make an encrypted, access-controlled backup and verify that it can be recovered. Keep the current source in place during cutover. For a new credential, create it directly in the provider.
 2. Give the runtime's machine identity read access only to the required project and secret. Keep its Universal Auth bootstrap and any Cloudflare Access bootstrap in separate owner-only files outside Git.
