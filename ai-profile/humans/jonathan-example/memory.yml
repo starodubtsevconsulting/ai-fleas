@@ -1,0 +1,14 @@
+schemaVersion: profile-memory.v0-draft
+status: example
+permanentMemory:
+  governor:
+    command: permanent-memory
+    provider: permanent-memory-synology
+    access: read-write
+    sourceOfTruth: true
+semanticAreas:
+  memory: memory
+  strategy: strategy
+  daily: daily
+  decisions: decisions
+  references: references

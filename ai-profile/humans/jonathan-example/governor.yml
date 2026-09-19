@@ -1,0 +1,14 @@
+schemaVersion: profile-agent-binding.v1
+agentId: personal-governor
+scope: governed-human
+lifecycle: persistent
+humanFacing: true
+subject:
+  id: jonathan-example
+  name: Jonathan Example
+memory:
+  - name: governor
+    uri: profile-memory://governor
+    access: read-write
+commands:
+  - permanent-memory
