@@ -29,11 +29,23 @@ BROWSER_CMD=""
 BROWSER_ARGS=""
 BROWSER_STRICT="true"
 BROWSER_DETACH="${BROWSER_DETACH:-true}"
-BROWSER_MODE="${BROWSER_MODE:-desktop}"
+
+# Default mode from config file (default_mode, use_embedded_by_default)
+# Override via CLI flags (--embedded, --desktop)
+BROWSER_MODE=""
 
 if [[ -n "$CONF_FILE" && -f "$CONF_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$CONF_FILE"
+fi
+
+# Apply config defaults if no CLI flag was set
+if [[ -z "$BROWSER_MODE" ]]; then
+  if [[ "${use_embedded_by_default:-false}" == "true" ]]; then
+    BROWSER_MODE="embedded"
+  else
+    BROWSER_MODE="${default_mode:-desktop}"
+  fi
 fi
 
 while [[ $# -gt 0 ]]; do
