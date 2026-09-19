@@ -13,15 +13,18 @@ the selected private profile or operator record.
 | Discover a NAS on the local network | `find-synology-ip.sh` |
 | Open DSM for administration | `open-synology.sh` |
 | Run a bounded connectivity diagnostic | `beep-diagnostic.sh` |
-| Create a named, least-privilege agent share | [`synology.scenario.md`](synology.scenario.md) |
+| Validate a private named-share catalog | `synology.command.sh validate` |
+| Produce a value-free reconciliation plan | `synology.command.sh share plan <share-id>` |
+| Create a named, least-privilege agent share | `synology.command.sh share apply <share-id> --apply` |
 
 `find-synology-ip.sh` is non-mutating. On macOS it uses the ARP table and Synology's registered MAC prefix, then
 requires a live DSM, SMB, or Synology Drive port. On Linux it may additionally use an already-installed `nmap`; it never
 installs packages or requests `sudo`. Prefer the stable Finder SMB service name when Bonjour exposes one, while keeping
 the current numeric IP as diagnostic evidence rather than durable configuration.
 
-The named-share scenario is currently an operator procedure. It does not automate DSM administration or accept a
-password on a command line.
+The profile config owns NAS and share names, source and mount paths, and access mode. Credentials are injected only as
+environment variables by `secrets run synology -- ...`; the command never accepts a password argument. Mutation remains
+fail-closed until its DSM driver has been verified against the selected NAS version.
 
 ## Safety
 

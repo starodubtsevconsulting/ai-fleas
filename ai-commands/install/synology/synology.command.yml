@@ -1,7 +1,7 @@
 id: synology
-version: 0.0.1-SNAPSHOT
+version: 0.1.0-SNAPSHOT
 category: install
 type: executable
+entrypoint: synology.command.sh
 ai:
   powered: false
-
