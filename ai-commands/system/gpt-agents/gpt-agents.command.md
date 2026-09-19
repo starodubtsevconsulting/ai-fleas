@@ -64,7 +64,7 @@ therefore changes profile configuration rather than the portable workflow roster
 | Ordered selected project subset and complete logical project | Yes | User and profile | Select one or more project/work targets from those registered to the workflow. Registration authorizes availability but does not make every project mandatory. The first selected project is primary and hosts the rules, commands, workflow definitions, and Codex agents; remaining selected projects are associated work projects. |
 | GPT role overrides | No | Profile-owned `commands[].config` | Override supported model, reasoning, title, or elastic-pool realization values without changing role authority. |
 | Grouping policy | No | Profile-owned `commands[].config` | Defines the saved-project name template and deterministic collision suffix policy. |
-| Lifecycle subcommand | Yes | User request | One of `check-update`, `initialize-system`, `status-system`, `watch-system-group`, `unwatch-system-group`, `reinitialize-system`, `initialize`, `list`, `status`, `message`, `reconcile`, `replace`, `archive`, or `delete-workflow`. Human wording such as “delete group” routes to `delete-workflow`. |
+| Lifecycle subcommand | Yes | User request | One of `check-update`, `initialize-governor`, `status-governor`, `reinitialize-governor`, `initialize-system`, `status-system`, `watch-system-group`, `unwatch-system-group`, `reinitialize-system`, `initialize`, `list`, `status`, `message`, `reconcile`, `replace`, `archive`, or `delete-workflow`. Human wording such as “delete group” routes to `delete-workflow`. |
 | Exact instance identifiers | Conditional | Prior creation receipts | Required for operations on existing tasks; titles are never lifecycle identity. |
 
 ## Outputs
@@ -111,7 +111,7 @@ The application must be installed and pass its smoke test before agent initializ
 
 | Subcommand | Behavior |
 |---|---|
-| `check-update` | Read-only query of the GPT/Codex app host's trusted stable update channel. Report the installed and latest stable versions when the host exposes them, recommend an explicit upgrade when newer, or return `GPT_APP_UPDATE_CHECK_UNAVAILABLE` when status cannot be established. Never update automatically. |
+| `initialize-governor --human HUMAN_PROFILE_ID` | Create or reconcile the one human-scoped Personal Governor task for the exact human profile. Load the portable Governor role plus human-owned memory/resources/authorized-profile bindings, verify `PERSONAL_GOVERNOR_READY`, and pin the exact task when supported. No workflow or Admin is required. |\n| `status-governor --human HUMAN_PROFILE_ID` | Verify the exact recorded Personal Governor binding, human profile, readiness, authoritative memory route, and pin state without title-based inference. |\n| `reinitialize-governor --human HUMAN_PROFILE_ID --confirm-reinitialize-governor` | Transactionally create/initialize/verify/pin a successor Governor before recoverably archiving the exact predecessor. |\n| `check-update` | Read-only query of the GPT/Codex app host's trusted stable update channel. Report the installed and latest stable versions when the host exposes them, recommend an explicit upgrade when newer, or return `GPT_APP_UPDATE_CHECK_UNAVAILABLE` when status cannot be established. Never update automatically. |
 | `initialize-system [--watch-group LOGICAL_PROJECT_ID]... [--every DURATION]` | Explicitly create or reconcile the one system-scoped System task, pin it when supported, and bootstrap one scheduler with the exact initial watch-scope set. Repeat `--watch-group` for multiple groups. Reuse only an exact recorded binding. |
 | `status-system` | Verify the exact recorded System task without inferring identity from title, project, section, or recency. |
 | `watch-system-group --group LOGICAL_PROJECT_ID` | Add one exact receipt-backed logical project to System's scheduler watch scope and verify the updated schedule. |
@@ -166,6 +166,20 @@ adapter—not the shared lifecycle verb—determines the concrete task/profile m
 System and workflow initialization are separate lifecycle transactions. A human may explicitly request both in one
 command-level operation; in that case run `initialize-system` first and then `initialize`, returning separate receipts.
 This does not turn System creation into a side effect of ordinary workflow initialization.
+
+### Personal Governor initialization
+
+Personal Governor lifecycle is independent of workflow and System lifecycle.
+
+1. Require explicit Personal Governor intent and exact human profile ID. Resolve a configured `type: human` profile; never infer the person from a workflow profile, task title, previous conversation, or nearby files.
+2. Load the complete portable Personal Governor role and calendar/governance policies plus the human profile's Governor, authoritative-memory, resource, and authorized-profile bindings.
+3. Resolve the selected GPT platform realization. The Governor is human-scoped and global/persistent; it is not created inside a workflow saved project and requires no Admin, Manager, or System.
+4. Resolve trusted lifecycle state for this exact human/platform binding. Reuse one exact active Governor. Ambiguous/unrecorded candidates block creation rather than being adopted by title.
+5. When absent, create exactly one Governor task with the configured model/reasoning and recommended presentation title `🧭 Personal Governor`. Dispatch the canonical initialization message containing the exact human identity, role/policies, logical permanent-memory route, and authorized profile contexts. Do not embed secret values or provider administrator credentials.
+6. Verify `PERSONAL_GOVERNOR_READY`, including usable authoritative memory resolution. Pin the exact task in global navigation when supported and record task/host/human IDs, readiness, generation, memory binding identity, and pin result in trusted lifecycle state.
+7. `status-governor` verifies the recorded binding and memory route read-only.
+8. `reinitialize-governor` is successor-first: preflight existing binding, create successor, initialize from canonical configuration and durable memory, verify readiness, pin successor, then recoverably archive predecessor. A failure leaves the predecessor active.
+9. Governor initialization never initializes, reconciles, or mutates workflow rosters. Authorized workflow profiles are context/capability grants, not ownership.
 
 ### System initialization
 
