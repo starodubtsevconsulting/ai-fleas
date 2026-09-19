@@ -30,6 +30,10 @@ Current categories:
 
 See [`categories.md`](categories.md) for the normative rules.
 
+`install` is limited to initial installation and minimum bootstrap. Routine operation and profile/workflow tuning belong
+to the capability category used after installation; for example, installation may prepare a provider while `connect`,
+`data`, or `system` owns its normal-use companion command.
+
 ## Command identity
 
 Category is not part of the public command ID.
