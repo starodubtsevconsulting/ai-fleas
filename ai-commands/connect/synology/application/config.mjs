@@ -40,7 +40,7 @@ function validateNas(nas) {
 
 function validateShare(id, share) {
   const allowed = ['name', 'account', 'access', 'source', 'projection', 'workflow', 'usage', 'mutation',
-    'repository', 'credential'];
+    'repository', 'credential', 'bootstrap'];
   if (!token.test(id) || !share || Object.keys(share).some(key => !allowed.includes(key))) blocked('INVALID_SHARE');
   if (!token.test(share.name) || !token.test(share.account) || !['read-only', 'read-write'].includes(share.access)) {
     blocked('INVALID_SHARE');
@@ -61,6 +61,10 @@ function validateShare(id, share) {
       !(path.isAbsolute(projection.local_path) || pendingPath.test(projection.local_path))) blocked('INVALID_SHARE');
   if (!['memory', 'workspace', 'inbox'].includes(share.usage) ||
       !['source-control', 'direct'].includes(share.mutation)) blocked('INVALID_SHARE');
+  if (share.bootstrap != null && (!share.bootstrap ||
+      Object.keys(share.bootstrap).some(key => !['create_share', 'volume', 'enable_team_folder'].includes(key)) ||
+      share.bootstrap.create_share !== true || share.bootstrap.enable_team_folder !== true ||
+      !/^\/volume[1-9][0-9]*$/.test(share.bootstrap.volume || ''))) blocked('INVALID_SHARE');
   validateRepository(share);
 }
 

@@ -7,7 +7,8 @@ export function plan(config, id, share) {
     target: {nas: config.nas.host, name: share.name, account: share.account, access: share.access,
       projection: share.projection},
     source: {path: share.source, migration_required: true},
-    prerequisites: ['top-level shared folder exists', 'Synology Drive Team Folder is enabled'],
+    prerequisites: share.bootstrap ? ['configured DSM volume exists'] :
+      ['top-level shared folder exists', 'Synology Drive Team Folder is enabled'],
     secrets: {
       admin: ['SYNOLOGY_ADMIN_USERNAME', 'SYNOLOGY_ADMIN_PASSWORD'],
       consumer: ['SYNOLOGY_SHARE_USERNAME', 'SYNOLOGY_SHARE_PASSWORD'],

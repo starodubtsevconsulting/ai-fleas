@@ -61,6 +61,38 @@ async function verifyPermission(config, session, catalog, share) {
       (share.access === 'read-write' && permission.is_writable !== true)) blocked('PERMISSION_VERIFICATION_FAILED');
 }
 
+async function ensureStorage(config, session, catalog, share, shares, teamFolders) {
+  let shareCreated = false;
+  let teamFolderEnabled = false;
+  if (!containsName(shares, share.name)) {
+    if (!share.bootstrap?.create_share) blocked('SHARE_MIGRATION_REQUIRED');
+    await call(config, session, catalog, 'SYNO.Core.Share', 'create', {
+      name: share.name, vol_path: share.bootstrap.volume,
+      desc: `AI Fleas ${share.workflow} permanent memory`, hidden: false,
+      enable_recycle_bin: true, recycle_bin_admin_only: true, hide_unreadable: true,
+      enable_share_cow: true, enable_share_compress: false, share_quota: 0,
+      name_org: '', encryption: false, enc_passwd: '',
+    });
+    shareCreated = true;
+  }
+  if (!containsName(teamFolders, share.projection.team_folder)) {
+    if (!share.bootstrap?.enable_team_folder) blocked('TEAM_FOLDER_ENABLEMENT_REQUIRED');
+    await call(config, session, catalog, 'SYNO.SynologyDrive.Share', 'set', {
+      share: [{share_name: share.name, share_enable: true, enable_versioning: true, rotate_cnt: 8}],
+    });
+    teamFolderEnabled = true;
+  }
+  const [verifiedShares, verifiedTeamFolders] = await Promise.all([
+    call(config, session, catalog, 'SYNO.Core.Share', 'list'),
+    call(config, session, catalog, 'SYNO.SynologyDrive.TeamFolders', 'list'),
+  ]);
+  if (!containsName(rows(verifiedShares, 'shares', 'items'), share.name)) blocked('SHARE_CREATION_VERIFICATION_FAILED');
+  if (!containsName(rows(verifiedTeamFolders, 'items', 'shares', 'team_folders'), share.projection.team_folder)) {
+    blocked('TEAM_FOLDER_ENABLEMENT_VERIFICATION_FAILED');
+  }
+  return {shareCreated, teamFolderEnabled};
+}
+
 export async function provisionShare(config, id, share) {
   const secretsConfig = loadSecretsConfig();
   return withSession(config, async session => {
@@ -73,8 +105,7 @@ export async function provisionShare(config, id, share) {
     const shares = rows(shareResponse, 'shares', 'items');
     const users = rows(userResponse, 'users', 'items');
     const teamFolders = rows(teamFolderResponse, 'items', 'shares', 'team_folders');
-    if (!containsName(shares, share.name)) blocked('SHARE_MIGRATION_REQUIRED');
-    if (!containsName(teamFolders, share.projection.team_folder)) blocked('TEAM_FOLDER_ENABLEMENT_REQUIRED');
+    const storage = await ensureStorage(config, session, catalog, share, shares, teamFolders);
 
     const account = await ensureAccount(config, session, catalog, id, share, users, secretsConfig);
     try {
@@ -97,7 +128,8 @@ export async function provisionShare(config, id, share) {
     return {
       status: 'applied', share: id, account: share.account, access: share.access,
       account_created: account.created, credential_rotated: account.rotated, secret_store_updated: true,
-      share_present: true, team_folder_present: true, credential_values_exposed: false,
+      share_present: true, share_created: storage.shareCreated, team_folder_present: true,
+      team_folder_enabled: storage.teamFolderEnabled, credential_values_exposed: false,
     };
   });
 }

@@ -23,6 +23,10 @@ shares:
       sync_mode: bidirectional
     usage: memory
     mutation: direct
+    bootstrap:
+      create_share: true
+      volume: /volume1
+      enable_team_folder: true
   financial-memory:
     name: financial-memory
     account: agent-financial-memory

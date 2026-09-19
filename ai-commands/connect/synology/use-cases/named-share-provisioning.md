@@ -127,3 +127,9 @@ service ports private, and do not switch this managed route to Synology QuickCon
 Generate the replacement in the approved secret store, update DSM and the mapped secret during one maintenance window,
 clear cached SMB sessions, and repeat positive and negative access checks. Revoke by disabling the dedicated user first;
 preserving or deleting data is a separate decision.
+## DSM shared-folder creation authority
+
+An explicitly configured `bootstrap` block allows `share apply` to create the named top-level share and enable its
+Synology Drive Team Folder before reconciling the dedicated account. DSM may reserve shared-folder creation for a
+stronger administrator context than user and permission management. A provider denial fails closed; exact-read status
+must confirm that no partial share, account, or Team Folder exists before an operator uses the DSM administrator UI.

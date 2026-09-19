@@ -7,6 +7,7 @@ const relevantApis = [
   'SYNO.Core.Share.Permission',
   'SYNO.Core.User',
   'SYNO.SynologyDrive.TeamFolders',
+  'SYNO.SynologyDrive.Share',
 ];
 
 function normalizedFingerprint(value) {
