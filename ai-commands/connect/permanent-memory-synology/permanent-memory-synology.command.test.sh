@@ -13,11 +13,12 @@ ACCESS=read-write
 INBOX_DIR=memory
 REFERENCES_DIR=references
 CONCEPTS_DIR=strategy
+DAILY_DIR=daily
 OUTPUTS_DIR=decisions
 EOF
 
 AI_COMMAND_CONFIG="$config" "$command_dir/permanent-memory-synology.command.sh" init | grep -F 'initialized=true' >/dev/null
-for area in memory references strategy decisions; do [[ -d "$root/$area" ]]; done
+for area in memory references strategy daily decisions; do [[ -d "$root/$area" ]]; done
 AI_COMMAND_CONFIG="$config" "$command_dir/permanent-memory-synology.command.sh" check | grep -F 'reachable=true' >/dev/null
 printf '%s' 'test memory' | AI_COMMAND_CONFIG="$config" \
   "$command_dir/permanent-memory-synology.command.sh" write memory/test.md >/dev/null

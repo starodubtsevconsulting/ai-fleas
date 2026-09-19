@@ -75,6 +75,7 @@ The adapter supports the common Zettelkasten-inspired semantics introduced under
 - Inbox / fleeting capture
 - References
 - Concepts / permanent notes
+- Daily notes
 - Outputs
 
 Physical directory names are configurable because an existing Obsidian vault may use different names.

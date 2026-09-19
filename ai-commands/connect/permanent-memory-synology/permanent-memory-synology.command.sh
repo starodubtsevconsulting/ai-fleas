@@ -16,6 +16,7 @@ TRANSPORT="${TRANSPORT:-filesystem}"
 INBOX_DIR="${INBOX_DIR:-Inbox}"
 REFERENCES_DIR="${REFERENCES_DIR:-References}"
 CONCEPTS_DIR="${CONCEPTS_DIR:-Concepts}"
+DAILY_DIR="${DAILY_DIR:-Daily}"
 OUTPUTS_DIR="${OUTPUTS_DIR:-Articles}"
 IDENTITY_FILE="${IDENTITY_FILE:-}"
 
@@ -74,7 +75,7 @@ case "$cmd" in
     require_write
     [[ "$TRANSPORT" == "filesystem" ]] || { echo "error=init-requires-filesystem-projection" >&2; exit 4; }
     [[ -d "$ROOT" ]] || { echo "error=memory-root-unavailable" >&2; exit 3; }
-    for area in "$INBOX_DIR" "$REFERENCES_DIR" "$CONCEPTS_DIR" "$OUTPUTS_DIR"; do
+    for area in "$INBOX_DIR" "$REFERENCES_DIR" "$CONCEPTS_DIR" "$DAILY_DIR" "$OUTPUTS_DIR"; do
       p="$(local_path "$area")"
       [[ ! -e "$p" || -d "$p" ]] || { echo "error=memory-area-conflict:$area" >&2; exit 5; }
       mkdir -p "$p"
@@ -96,6 +97,7 @@ case "$cmd" in
     echo "inbox=$INBOX_DIR"
     echo "references=$REFERENCES_DIR"
     echo "concepts=$CONCEPTS_DIR"
+    echo "daily=$DAILY_DIR"
     echo "outputs=$OUTPUTS_DIR"
     ;;
   list)
