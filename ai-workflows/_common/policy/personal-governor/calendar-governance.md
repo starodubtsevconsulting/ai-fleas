@@ -4,6 +4,16 @@ Use calendar events as both human commitments and inspectable Governor context. 
 
 ## Governor-created events
 
+### Provenance marker
+
+Prefix calendar events created or materially scheduled/restructured by the Personal Governor with `🧭 ` in the event title. This is the default cross-profile Governor provenance marker; it is not profile-specific.
+
+- `🧭 Event title` means the Personal Governor originated or materially scheduled/restructured the calendar block.
+- Events created by the human or external organizers keep their original title and do not receive the marker merely because the Governor reads, reasons about, or annotates them.
+- If the human later edits a Governor-created event, keep the marker unless the human explicitly takes ownership/removes it.
+- Do not add the marker to externally owned/shared events; use a private companion event when Governor-specific planning context is needed.
+- The marker records provenance only. It does not imply priority, mandatory attendance, or permission to modify the event.
+
 When the Personal Governor creates or materially restructures a meaningful event, include a private Governor section when useful. Keep it short enough to remain usable when the calendar is revisited.
 
 Suggested structure:
