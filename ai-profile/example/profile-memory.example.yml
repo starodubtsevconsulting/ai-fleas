@@ -12,7 +12,7 @@ permanentMemory:
     humanInterface: obsidian-compatible
     sourceOfTruth: true
     method: zettelkasten-v1
-    access: read-only
+    access: read-write
     providerConfig: commands-config/permanent-memory-synology/permanent-memory-synology.command.config
 
 # Future examples; intentionally not enabled/configured in this profile:

@@ -8,7 +8,7 @@ The command is an infrastructure/provider adapter. Higher layers such as the Per
 
 ## Transport
 
-V1 supports SSH/SFTP-compatible access to a Synology host. Private-network transports such as Tailscale are recommended but not required by the command contract.
+V1 supports a local Synology Drive filesystem projection and SSH/SFTP-compatible access to a Synology host. The local projection is preferred for desktop agents because Synology Drive owns authentication and synchronization while the command remains bounded to one configured root.
 
 The command must not require the NAS to be publicly exposed.
 

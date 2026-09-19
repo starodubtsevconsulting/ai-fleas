@@ -1,6 +1,6 @@
 # permanent-memory-synology
 
-Provider adapter for accessing permanent human-readable memory stored on a Synology filesystem, commonly an Obsidian vault.
+Provider adapter for accessing permanent human-readable memory stored on a Synology filesystem, commonly an Obsidian vault. The preferred desktop route is a bounded local Synology Drive projection; SSH remains available for hosts that deliberately configure it.
 
 ## Usage
 

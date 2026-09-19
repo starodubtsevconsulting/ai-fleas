@@ -51,3 +51,19 @@ test('share plan declares generated credential delivery without producing a valu
   assert.equal(result.stdout.includes('secretValue'), false);
   fs.rmSync(dir, {recursive:true, force:true});
 });
+
+test('supports a direct bidirectional Governor memory mapping without a repository', () => {
+  const governor = `nas:\n  host: synology.local\n  https_port: 5001\n  certificate_sha256: AA\n  remote_access:\n    mode: none\n    quickconnect: false\nshares:\n  governor:\n    name: governor\n    account: agent-governor\n    access: read-write\n    credential:\n      username_secret: example.dev.synology.governor-username\n      password_secret: example.dev.synology.governor-password\n    workflow: personal-governor\n    source: /data/governor\n    projection:\n      type: synology-drive\n      team_folder: governor\n      local_path: /data/governor\n      sync_mode: bidirectional\n    usage: memory\n    mutation: direct\n`;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'synology-command-'));
+  const config = path.join(dir, 'config.yml');
+  fs.writeFileSync(config, governor);
+  const command = fileURLToPath(new URL('./synology.command.mjs', import.meta.url));
+  const result = spawnSync(process.execPath, [command, 'mapping', 'status', 'governor'], {
+    encoding:'utf8', env:{...process.env, AI_COMMAND_CONFIG_PATH:config}
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const status = JSON.parse(result.stdout);
+  assert.equal(status.publisher_checkout, null);
+  assert.equal(status.blockers.includes('PUBLISHER_CHECKOUT_NOT_CONFIGURED'), false);
+  fs.rmSync(dir, {recursive:true, force:true});
+});

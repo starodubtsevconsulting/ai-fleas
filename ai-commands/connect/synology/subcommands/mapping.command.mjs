@@ -18,7 +18,7 @@ export function status(id, share) {
     status: projectionPending || publisherPending ? 'pending' : 'configured', mapping: id,
     workflow: share.workflow, source_present: sourcePresent, team_folder: share.projection.team_folder,
     local_projection: projectionPending ? 'pending' : share.projection.local_path,
-    publisher_checkout: publisherPending ? 'pending' : share.repository.publisher_checkout,
+    publisher_checkout: share.repository ? (publisherPending ? 'pending' : share.repository.publisher_checkout) : null,
     blockers: [...(!sourcePresent ? ['SOURCE_NOT_FOUND'] : []),
       ...(projectionPending ? ['LOCAL_PROJECTION_NOT_CONFIGURED'] : []),
       ...(publisherPending ? ['PUBLISHER_CHECKOUT_NOT_CONFIGURED'] : [])],

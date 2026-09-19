@@ -7,6 +7,22 @@ nas:
     mode: none
     quickconnect: false
 shares:
+  governor:
+    name: governor
+    account: agent-governor
+    access: read-write
+    credential:
+      username_secret: example.dev.synology.governor-username
+      password_secret: example.dev.synology.governor-password
+    workflow: personal-governor
+    source: /absolute/path/to/existing/governor
+    projection:
+      type: synology-drive
+      team_folder: governor
+      local_path: TODO_SYNOLOGY_DRIVE_GOVERNOR_LOCAL_PATH
+      sync_mode: bidirectional
+    usage: memory
+    mutation: direct
   financial-memory:
     name: financial-memory
     account: agent-financial-memory

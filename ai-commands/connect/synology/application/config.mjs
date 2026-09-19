@@ -54,7 +54,10 @@ function validateShare(id, share) {
   const projection = share.projection;
   if (!projection || Object.keys(projection).some(key => !['type', 'team_folder', 'local_path', 'sync_mode'].includes(key)) ||
       projection.type !== 'synology-drive' || projection.team_folder !== share.name ||
-      projection.sync_mode !== 'download-only' || typeof projection.local_path !== 'string' ||
+      !['download-only', 'bidirectional'].includes(projection.sync_mode) ||
+      (share.access === 'read-only' && projection.sync_mode !== 'download-only') ||
+      (share.access === 'read-write' && projection.sync_mode !== 'bidirectional') ||
+      typeof projection.local_path !== 'string' ||
       !(path.isAbsolute(projection.local_path) || pendingPath.test(projection.local_path))) blocked('INVALID_SHARE');
   if (!['memory', 'workspace', 'inbox'].includes(share.usage) ||
       !['source-control', 'direct'].includes(share.mutation)) blocked('INVALID_SHARE');

@@ -97,6 +97,9 @@ commands:
     config: commands-config/synology/config.example.yml
   - id: synology-memory
     config: commands-config/synology-memory/config.example.yml
+  - id: permanent-memory
+  - id: permanent-memory-synology
+    config: commands-config/permanent-memory-synology/permanent-memory-synology.command.config
   - id: statements
     config: commands-config/statements/config.example.env
   - id: taxes
