@@ -1,0 +1,17 @@
+schemaVersion: human-profile.v1
+id: jonathan-example
+type: human
+name: Jonathan Example
+
+governor:
+  config: governor.yml
+  role: personal-governor
+  lifecycle: persistent
+  readinessToken: PERSONAL_GOVERNOR_READY
+
+memory:
+  config: memory.yml
+
+authorizedProfiles:
+  - id: workflow-profile-example
+    relationship: primary-work-context
