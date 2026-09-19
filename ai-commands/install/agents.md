@@ -52,7 +52,7 @@ System must not:
 
 - silently substitute another install target or implementation;
 - treat a child install command as independently AI-powered;
-- modify profile, platform, workflow, or provider configuration unless the selected install contract explicitly authorizes that change;
+- modify profile, platform, workflow, project, provider, personal, client, use-case, data-access, or permission configuration;
 - perform unrelated product, development, review, ticket, or workflow-agent work while in install scope.
 
 ## Completion

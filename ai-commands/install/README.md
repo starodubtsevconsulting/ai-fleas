@@ -1,6 +1,11 @@
 # Install
 
-AI commands for installing and provisioning software, operating systems, and connected devices.
+AI commands for the initial installation and minimum generic bootstrap of software, operating systems, and connected
+devices.
+
+An installer stops when the selected capability is present, starts successfully, and passes its bounded smoke test. It
+does not apply personal, client, profile, workflow, project, use-case, data-access, or ongoing operating configuration.
+That tuning belongs to the capability's normal command under `connect`, `data`, `system`, or another appropriate category.
 
 Each installation target lives under this category as its own command package.
 

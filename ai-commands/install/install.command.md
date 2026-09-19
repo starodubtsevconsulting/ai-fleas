@@ -6,6 +6,11 @@ Use `install` to manage the local physical lifecycle of explicitly selected soft
 upgrade, or uninstall it through a target-specific adapter and verify the result. Application-specific agent, profile,
 workflow, project, bot, task, and group lifecycle remains in the application's own command.
 
+The installation result is deliberately minimal: the software or device capability is present, can start, and has only
+the generic bootstrap required for that verification. `install` does not tune the capability for a person, client,
+profile, workflow, project, use case, data set, permission model, or ongoing operating preference. Route that work to the
+capability's normal-use companion command after installation.
+
 Local installation currently supports **macOS on Apple Silicon only** (`Darwin/arm64`). Reject every other local host
 before mutation. Remote installation is a separate explicitly selected target context and is not implied by this command.
 
@@ -46,7 +51,6 @@ Committed configuration template: `install/install.command.example.config`. Copy
 | `Install GPT` or `Install ChatGPT` | Route to the `chatgpt` command's `install` action and install or return an exact unavailable result. |
 | `Check for a Hermes update` | Route to the `hermes` command's read-only update check. |
 | `Upgrade Hermes` | Route to the `hermes` command's explicitly authorized upgrade and smoke test. |
-| `Create a named Synology share for an agent` | Route to the `synology` command's named-share operator scenario. |
 | `Show installation status` | Inspect the selected installation commands without changing software. |
 
 ```mermaid
@@ -82,8 +86,6 @@ Install and configure dev tooling using the local `ai-commands/install/` tree.
 |---|---|---|---|
 | `GPT`, `GPT App`, `Codex App`, `ChatGPT`, or `ChatGPT App` | [`chatgpt`](chatgpt/chatgpt.command.md) | The ChatGPT desktop application's trusted host installer and update channel. | Codex task, sidebar-section, logical-project, and managed-agent lifecycle. |
 | `Hermes` or `Hermes App` | [`hermes`](hermes/hermes.command.md) | The reviewed Hermes package installer already exposed by the public Hermes integration. | Hermes role profiles, bots, conversations, and workflow groups. |
-| `Synology`, `NAS`, or `Synology share` | [`synology`](synology/synology.command.md) | NAS discovery, diagnostics, DSM entry, and the reviewed named-share procedure. | Profile-specific hosts, credentials, share inventory, and agent authorization records. |
-
 The existing `install/codex` command remains **Codex CLI**, not `chatgpt`. Detecting a Codex binary bundled inside a desktop
 application does not make the CLI installer a desktop-application installer.
 
@@ -112,6 +114,8 @@ opening an unrelated package manager, scraping a download, or claiming success.
   `install` and `upgrade` require the smoke test to pass; installation alone is not completion.
 - Keep package lifecycle in `install`; application commands may retain compatibility delegates but must route physical
   installation or upgrade through this contract.
+- Stop after the minimum generic bootstrap and successful smoke test. Do not apply personal, client, profile, workflow,
+  project, use-case, data, permission, or routine operating configuration.
 - `update` is read-only. Never turn an update check into an automatic upgrade.
 - Never interpret uninstalling an application as authorization to delete its agents, profiles, projects, groups,
   conversations, credentials, repositories, or other user data.
