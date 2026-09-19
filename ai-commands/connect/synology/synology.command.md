@@ -27,16 +27,17 @@ the selected private profile or operator record.
 
 ### Implementation layout
 
-The stable shell entrypoint delegates to the argument router in `synology.command.mjs`. Supporting code is grouped by
-responsibility under `lib/`:
+The stable shell entrypoint delegates to the small argument router in `synology.command.mjs`. Supporting code follows the
+same application/subcommand structure used by established connector commands:
 
-- `config.mjs` validates configuration and resolves profile-owned mappings;
-- `dsm-client.mjs` owns certificate-pinned DSM transport, API discovery, sessions, and response normalization;
-- `share-provisioner.mjs` reconciles the account, permission, and declared Infisical credential pair;
-- `errors.mjs` keeps fail-closed command errors consistent across modules.
+- `application/config.mjs` validates configuration and resolves profile-owned mappings;
+- `application/dsm-client.mjs` owns certificate-pinned DSM transport, API discovery, sessions, and response normalization;
+- `application/share-provisioner.mjs` reconciles the account, permission, and declared Infisical credential pair;
+- `application/errors.mjs` keeps fail-closed command errors consistent across modules;
+- `subcommands/` owns the `api`, `mapping`, and `share` use-case handlers.
 
 Provider transport and secret values stay outside the argument router. New DSM operations belong in the client or a
-focused domain module, while new CLI verbs compose those modules in `synology.command.mjs`.
+focused application module, while new CLI behavior belongs in a focused subcommand handler.
 
 `find-synology-ip.sh` is non-mutating. On macOS it uses the ARP table and Synology's registered MAC prefix, then
 requires a live DSM, SMB, or Synology Drive port. On Linux it may additionally use an already-installed `nmap`; it never

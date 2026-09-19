@@ -1,6 +1,6 @@
 id: synology-memory
 version: 0.1.0-SNAPSHOT
-category: data
+category: connect
 type: executable
 entrypoint: synology-memory.command.sh
 ai:

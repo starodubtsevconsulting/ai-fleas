@@ -72,8 +72,11 @@ Adapters expose provider-neutral capabilities. Providers own provider-specific m
 | [`logs`](connect/logs/logs.command.md) | [`datadog`](connect/datadog/datadog.command.md) |
 | [`health-data`](data/health-data/spec.md) | [`health-data-garmin`](data/health-data-garmin/spec.md) |
 | [`activity-data`](data/activity-data/spec.md) | [`activity-data-android`](data/activity-data-android/spec.md) |
+| [`permanent-memory`](data/permanent-memory/permanent-memory.command.md) | [`permanent-memory-synology`](connect/permanent-memory-synology/permanent-memory-synology.command.md) |
 
 Adapters and providers are peer commands. A provider is not a subcommand of its adapter.
+Provider-specific integration families may be kept together under `connect`; the logical adapter remains in its
+capability category and resolves the provider by command ID rather than by physical path.
 
 ## Category commands
 

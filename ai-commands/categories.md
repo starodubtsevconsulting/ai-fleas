@@ -61,7 +61,7 @@ but they have separate contracts and authorization boundaries:
 | `install/infisical` | `connect/secrets` |
 | `install/hermes` | `system/hermes-agents` |
 | `install/cloudflare` | `connect/cloudflare` |
-| a future Synology installer | `data/synology` and `data/synology-memory` |
+| a future Synology installer | `connect/synology` and the selected Synology-specific provider under `connect` |
 
 Do not keep a normal-use command under `install` merely because it can perform setup-like reconciliation. Categorize it
 by the capability it provides during ordinary workflow execution. An installer may invoke or link to the normal command
