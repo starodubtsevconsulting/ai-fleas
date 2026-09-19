@@ -1,6 +1,7 @@
 # Access Synology through a private tunnel
 
-Use a private network tunnel for Synology access outside the trusted LAN. The recommended trust-minimizing setup is a
+This scenario is optional. Use it only when a client must reach Synology outside the trusted LAN and cannot rely on a
+local synchronized projection. The recommended trust-minimizing setup is a
 self-managed WireGuard tunnel between authorized clients and the network containing the NAS. Keep QuickConnect disabled
 and do not publish DSM, SMB, SSH, or Synology Drive ports to the internet.
 

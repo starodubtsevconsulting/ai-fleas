@@ -4,8 +4,7 @@ nas:
   https_port: 5001
   certificate_sha256: REPLACE_WITH_VERIFIED_FINGERPRINT
   remote_access:
-    mode: private-tunnel
-    host: TODO_PRIVATE_TUNNEL_HOSTNAME
+    mode: none
     quickconnect: false
 shares:
   financial-memory:
