@@ -25,6 +25,19 @@ the selected private profile or operator record.
 | Produce a value-free reconciliation plan | `synology.command.sh share plan <share-id>` |
 | Create a named, least-privilege agent share | `synology.command.sh share apply <share-id> --apply` |
 
+### Implementation layout
+
+The stable shell entrypoint delegates to the argument router in `synology.command.mjs`. Supporting code is grouped by
+responsibility under `lib/`:
+
+- `config.mjs` validates configuration and resolves profile-owned mappings;
+- `dsm-client.mjs` owns certificate-pinned DSM transport, API discovery, sessions, and response normalization;
+- `share-provisioner.mjs` reconciles the account, permission, and declared Infisical credential pair;
+- `errors.mjs` keeps fail-closed command errors consistent across modules.
+
+Provider transport and secret values stay outside the argument router. New DSM operations belong in the client or a
+focused domain module, while new CLI verbs compose those modules in `synology.command.mjs`.
+
 `find-synology-ip.sh` is non-mutating. On macOS it uses the ARP table and Synology's registered MAC prefix, then
 requires a live DSM, SMB, or Synology Drive port. On Linux it may additionally use an already-installed `nmap`; it never
 installs packages or requests `sudo`. Prefer the stable Finder SMB service name when Bonjour exposes one, while keeping
