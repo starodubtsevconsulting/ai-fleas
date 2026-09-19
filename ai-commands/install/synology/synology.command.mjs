@@ -52,14 +52,36 @@ function safeShare(config, id) {
 
 function output(value) { process.stdout.write(JSON.stringify(value, null, 2) + '\n'); }
 
+function mappingRows(config) {
+  return Object.entries(config.shares).sort(([a],[b]) => a.localeCompare(b)).map(([id, share]) => ({id,
+    workflow:share.workflow, access:share.access, team_folder:share.projection.team_folder,
+    local_projection:share.projection.local_path, sync_mode:share.projection.sync_mode,
+    repository:share.repository ?? null}));
+}
+
+function allProfileMappings(profileFile) {
+  if (!profileFile || !path.isAbsolute(profileFile)) blocked('PROFILE_REQUIRED');
+  const profileDir = fs.realpathSync(path.dirname(profileFile));
+  const profile = YAML.parse(fs.readFileSync(profileFile, 'utf8'));
+  const rows = [];
+  for (const binding of profile.commands || []) {
+    if (!['synology','synology-memory'].includes(binding.id) || typeof binding.config !== 'string') continue;
+    const configPath = fs.realpathSync(path.resolve(profileDir, binding.config));
+    if (!configPath.startsWith(profileDir + path.sep)) blocked('INVALID_PROFILE_CONFIG');
+    for (const row of mappingRows(validateConfig(fs.readFileSync(configPath, 'utf8')))) rows.push({...row, command:binding.id});
+  }
+  return rows.sort((a,b) => a.id.localeCompare(b.id));
+}
+
 function main(argv) {
   const configPath = process.env.AI_COMMAND_CONFIG_PATH;
   if (!configPath) blocked('PROFILE_REQUIRED');
   const config = validateConfig(fs.readFileSync(configPath, 'utf8'));
   const [op, noun, id, flag] = argv;
   if (op === 'validate' && argv.length === 1) return output({status:'valid', shares:Object.keys(config.shares).sort()});
-  if (op === 'inspect' && argv.length === 1) return output({status:'configured', shares:Object.entries(config.shares).sort(([a],[b]) => a.localeCompare(b)).map(([id, share]) => ({id, workflow:share.workflow, access:share.access, team_folder:share.projection.team_folder, local_projection:share.projection.local_path, sync_mode:share.projection.sync_mode, repository:share.repository ?? null}))});
-  if (op === 'mapping' && noun === 'list' && argv.length === 2) return output({status:'configured', mappings:Object.entries(config.shares).sort(([a],[b]) => a.localeCompare(b)).map(([id, share]) => ({id, workflow:share.workflow, team_folder:share.projection.team_folder, local_projection:share.projection.local_path, repository:share.repository}))});
+  if (op === 'inspect' && argv.length === 1) return output({status:'configured', shares:mappingRows(config)});
+  if (op === 'mapping' && noun === 'list' && argv.length === 2) return output({status:'configured', mappings:mappingRows(config)});
+  if (op === 'mapping' && noun === 'list' && id === '--all' && argv.length === 3) return output({status:'configured', mappings:allProfileMappings(process.env.AI_PROFILE_FILE)});
   if (op === 'mapping' && noun === 'status' && id && !flag) {
     const share = safeShare(config, id);
     const sourcePresent = fs.existsSync(share.source);
