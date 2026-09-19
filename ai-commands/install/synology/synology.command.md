@@ -30,6 +30,9 @@ Remote access uses a profile-declared private network tunnel. Keep SMB and Synol
 do not enable QuickConnect for this command route. The tunnel hostname may remain an explicit `TODO_*` until provisioned;
 that placeholder means remote access is not operational.
 
+Prefer a self-managed WireGuard gateway when minimizing third-party trust is the priority. A managed overlay is an
+explicit infrastructure choice, not a command default.
+
 ## Agent memory contract
 
 A share with `usage: memory` is an agent retrieval surface. Agents may search, list, and read it through its dedicated
@@ -55,3 +58,4 @@ Declare that as a separate share and credential boundary rather than widening an
 - [Download destination](use-cases/downloads.md): direct writes to a separately bounded inbox without version control.
 - [Named-share provisioning](use-cases/named-share-provisioning.md): create the share, identity, permissions, secret
   references, migration, and verification boundary.
+- [Private-tunnel access](use-cases/private-tunnel.md): secure remote access without QuickConnect or public NAS ports.

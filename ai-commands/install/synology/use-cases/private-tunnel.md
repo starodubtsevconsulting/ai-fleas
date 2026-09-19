@@ -1,0 +1,36 @@
+# Access Synology through a private tunnel
+
+Use a private network tunnel for Synology access outside the trusted LAN. The recommended trust-minimizing setup is a
+self-managed WireGuard tunnel between authorized clients and the network containing the NAS. Keep QuickConnect disabled
+and do not publish DSM, SMB, SSH, or Synology Drive ports to the internet.
+
+```mermaid
+flowchart LR
+  A[Authorized client] -->|encrypted WireGuard tunnel| G[Private tunnel gateway]
+  G -->|private network route| S[Synology NAS]
+  S -. no public service ports .-> I[Internet]
+  Q[QuickConnect] -. disabled .-> S
+```
+
+## Recommended properties
+
+- Terminate the tunnel on a maintained gateway rather than exposing the NAS directly.
+- Route only the NAS address and required private subnets.
+- Give each client its own revocable tunnel identity.
+- Use private DNS for a stable NAS hostname; do not persist changing LAN addresses in agent configuration.
+- Restrict DSM administration separately from SMB memory access.
+- Keep share-level Synology credentials in the approved secret service even though transport is encrypted.
+- Record tunnel configuration, key owner, recovery procedure, and last verification without committing private keys.
+
+A managed overlay network may be selected deliberately when its operational benefits are accepted, but it is not the
+default and must not be introduced silently. The profile records `mode: private-tunnel`; the specific implementation
+belongs to private infrastructure configuration.
+
+## Acceptance evidence
+
+- QuickConnect is disabled for the managed route.
+- DSM, SMB, SSH, and Synology Drive are not reachable from the public internet.
+- An authorized tunnel client reaches the NAS by its private hostname.
+- A client without an active tunnel cannot reach it.
+- Revoking one client identity does not interrupt other authorized clients.
+

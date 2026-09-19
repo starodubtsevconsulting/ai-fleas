@@ -12,6 +12,9 @@ The Synology example binds a fictional financial-memory share only to the Financ
 read-only retrieval access. Durable changes use the mapped repository, branch, and subpath; an unresolved
 `TODO_PUBLISHER_GIT_CHECKOUT` records that merge publication is not operational until a private profile supplies and
 verifies its publisher checkout. The example contains secret references only.
+Remote Synology access uses a private-tunnel placeholder with QuickConnect disabled. A private profile may select a
+self-managed WireGuard gateway or another explicitly reviewed private overlay; the public example does not assume a
+third-party relay or expose NAS service ports.
 
 ## Secret-service example
 
