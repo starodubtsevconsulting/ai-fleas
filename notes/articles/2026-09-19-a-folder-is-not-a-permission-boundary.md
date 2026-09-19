@@ -81,6 +81,39 @@ The agent reads from the NAS projection. Changes go through version control, rev
 
 Downloads are a different use case. A download folder exists to receive new files, so a bounded write-capable share can be appropriate there. The access mode should follow the purpose of the share instead of becoming a global NAS policy.
 
+## Start with memory both sides can read
+
+An article folder is not the final form of agent memory.
+
+Agents may eventually work better with an additional persistent-memory layer: extracted facts, structured relationships, indexes, embeddings, summaries, or caches optimized for retrieval. Different agents may need different representations of the same material.
+
+Those layers can sit above the readable source.
+
+```mermaid
+flowchart TD
+    H[Human-and-agent-readable source]
+    H --> X[Extraction and normalization]
+    X --> F[Factual memory]
+    X --> I[Search index]
+    X --> E[Embeddings]
+    X --> C[Derived cache]
+
+    F --> A[Agent retrieval]
+    I --> A
+    E --> A
+    C --> A
+
+    A -. cited reference .-> H
+```
+
+The lower layer remains valuable because both parties can inspect it. A human can open the files without a specialized memory service. An agent can read the same source, cite it, and reconstruct a derived index when the representation changes or a cache becomes unreliable.
+
+This suggests a practical first step: convert the material you already have into a format that agents can discover and read, then give them a safe way to propose changes. The initial result does not need to solve every problem in long-term agent memory. It needs to make existing knowledge accessible without surrendering control of the source.
+
+Later, a more agent-oriented memory system can improve recall and context selection. It should remain a derived layer with provenance back to the readable material. Otherwise the organization may gain a memory that is efficient for a model but opaque to the person responsible for it.
+
+The shared readable layer is therefore not a temporary workaround. It is the durable meeting point between human knowledge and machine retrieval.
+
 ## Start with the UI, preserve the procedure
 
 I wanted this setup to become a command, but the first reliable route was the NAS administration UI.
