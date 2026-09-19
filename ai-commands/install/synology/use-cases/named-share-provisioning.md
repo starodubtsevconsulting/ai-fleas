@@ -26,9 +26,11 @@ flowchart LR
 7. Verify allowed access and denial of an unrelated share using the dedicated identity, without cached personal credentials.
 8. Record a value-free receipt containing the share, account, access mode, verification time, and result.
 
+For remote clients, route the NAS through a private network tunnel and use its private DNS name. Do not expose SMB or
+DSM ports publicly, and do not switch this managed route to Synology QuickConnect.
+
 ## Credential rotation and revocation
 
 Generate the replacement in the approved secret store, update DSM and the mapped secret during one maintenance window,
 clear cached SMB sessions, and repeat positive and negative access checks. Revoke by disabling the dedicated user first;
 preserving or deleting data is a separate decision.
-

@@ -26,6 +26,10 @@ The profile config owns NAS and share names, source and mount paths, and access 
 environment variables by `secrets run synology -- ...`; the command never accepts a password argument. Mutation remains
 fail-closed until its DSM driver has been verified against the selected NAS version.
 
+Remote access uses a profile-declared private network tunnel. Keep SMB and Synology Drive off the public internet and
+do not enable QuickConnect for this command route. The tunnel hostname may remain an explicit `TODO_*` until provisioned;
+that placeholder means remote access is not operational.
+
 ## Agent memory contract
 
 A share with `usage: memory` is an agent retrieval surface. Agents may search, list, and read it through its dedicated
