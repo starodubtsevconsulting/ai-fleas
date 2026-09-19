@@ -53,12 +53,12 @@ test('share plan declares generated credential delivery without producing a valu
 });
 
 test('supports a direct bidirectional Governor memory mapping without a repository', () => {
-  const governor = `nas:\n  host: synology.local\n  https_port: 5001\n  certificate_sha256: AA\n  remote_access:\n    mode: none\n    quickconnect: false\nshares:\n  governor:\n    name: governor\n    account: agent-governor\n    access: read-write\n    credential:\n      username_secret: example.dev.synology.governor-username\n      password_secret: example.dev.synology.governor-password\n    workflow: personal-governor\n    source: /data/governor\n    projection:\n      type: synology-drive\n      team_folder: governor\n      local_path: /data/governor\n      sync_mode: bidirectional\n    usage: memory\n    mutation: direct\n`;
+  const governor = `nas:\n  host: synology.local\n  https_port: 5001\n  certificate_sha256: AA\n  remote_access:\n    mode: none\n    quickconnect: false\nshares:\n  personal-governor-memory:\n    name: personal-governor-memory\n    account: agent-personal-governor\n    access: read-write\n    credential:\n      username_secret: example.dev.synology.personal-governor-username\n      password_secret: example.dev.synology.personal-governor-password\n    workflow: personal-governor\n    source: /data/personal-governor-memory\n    projection:\n      type: synology-drive\n      team_folder: personal-governor-memory\n      local_path: /data/personal-governor-memory\n      sync_mode: bidirectional\n    usage: memory\n    mutation: direct\n`;
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'synology-command-'));
   const config = path.join(dir, 'config.yml');
   fs.writeFileSync(config, governor);
   const command = fileURLToPath(new URL('./synology.command.mjs', import.meta.url));
-  const result = spawnSync(process.execPath, [command, 'mapping', 'status', 'governor'], {
+  const result = spawnSync(process.execPath, [command, 'mapping', 'status', 'personal-governor-memory'], {
     encoding:'utf8', env:{...process.env, AI_COMMAND_CONFIG_PATH:config}
   });
   assert.equal(result.status, 0, result.stderr);
@@ -70,14 +70,14 @@ test('supports a direct bidirectional Governor memory mapping without a reposito
 
 test('initializes only the canonical areas inside an existing Governor projection', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'synology-command-'));
-  const root = path.join(dir, 'governor');
+  const root = path.join(dir, 'personal-governor-memory');
   fs.mkdirSync(root);
   fs.writeFileSync(path.join(root, 'existing.md'), 'preserve');
-  const governor = `nas:\n  host: synology.local\n  https_port: 5001\n  certificate_sha256: AA\n  remote_access:\n    mode: none\n    quickconnect: false\nshares:\n  governor:\n    name: governor\n    account: agent-governor\n    access: read-write\n    credential:\n      username_secret: example.dev.synology.governor-username\n      password_secret: example.dev.synology.governor-password\n    workflow: personal-governor\n    source: ${root}\n    projection:\n      type: synology-drive\n      team_folder: governor\n      local_path: ${root}\n      sync_mode: bidirectional\n    usage: memory\n    mutation: direct\n`;
+  const governor = `nas:\n  host: synology.local\n  https_port: 5001\n  certificate_sha256: AA\n  remote_access:\n    mode: none\n    quickconnect: false\nshares:\n  personal-governor-memory:\n    name: personal-governor-memory\n    account: agent-personal-governor\n    access: read-write\n    credential:\n      username_secret: example.dev.synology.personal-governor-username\n      password_secret: example.dev.synology.personal-governor-password\n    workflow: personal-governor\n    source: ${root}\n    projection:\n      type: synology-drive\n      team_folder: personal-governor-memory\n      local_path: ${root}\n      sync_mode: bidirectional\n    usage: memory\n    mutation: direct\n`;
   const config = path.join(dir, 'config.yml');
   fs.writeFileSync(config, governor);
   const command = fileURLToPath(new URL('./synology.command.mjs', import.meta.url));
-  const result = spawnSync(process.execPath, [command, 'memory', 'init', 'governor', '--apply'], {
+  const result = spawnSync(process.execPath, [command, 'memory', 'init', 'personal-governor-memory', '--apply'], {
     encoding:'utf8', env:{...process.env, AI_COMMAND_CONFIG_PATH:config}
   });
   assert.equal(result.status, 0, result.stderr);
