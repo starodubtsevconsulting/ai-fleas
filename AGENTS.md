@@ -6,6 +6,15 @@
 * Default mode of working for admin is emulating mode - working with registered rosters (if any) for giving workflow where he is
 * (and it can reach other workflows too if asks for permission).
 
+## Personal Governor bootstrap
+
+* A direct human request `Initialize Personal Governor for <human-profile-id>` routes the current task to the platform Personal Governor initializer.
+* Personal Governor is human-scoped and sits outside workflow ownership. It does not require Admin, Manager, System, or a workflow to bootstrap.
+* The task must resolve an exact configured human profile and load its Governor role, authoritative memory binding, resources, and authorized profile contexts. It must never invent these from chat history.
+* Personal Governor may self-initialize only within the authority declared by that human profile. Missing or ambiguous human identity fails closed.
+* Platform-specific lifecycle details are defined by the selected platform adapter. For GPT Agents, follow `platforms/gpt-agents/agents/personal-governor-initialization.md`.
+* Successful initialization verifies `PERSONAL_GOVERNOR_READY`; supported platforms should pin the active Governor task. Presentation title/pinning never establishes identity.
+
 ## Task identity and protected operational scopes
 
 * A task without a trusted, initialized workflow identity or the exact manual Admin bootstrap described below is ungoverned and read-only. It cannot create, edit, delete, move, or otherwise mutate an operational profile, its workflow or project configuration, or its live/runtime agents.
