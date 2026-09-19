@@ -6,13 +6,15 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  browser.command.sh [--project-dir <path>] [--output-dir <path>] [--detach|--no-detach] <url1> <url2> ...
-  browser.command.sh [--project-dir <path>] [--output-dir <path>] [--detach|--no-detach] --file <path>
+  browser.command.sh [--project-dir <path>] [--output-dir <path>] [--detach|--no-detach] [--embedded|--desktop] <url1> <url2> ...
+  browser.command.sh [--project-dir <path>] [--output-dir <path>] [--detach|--no-detach] [--embedded|--desktop] --file <path>
 
 Notes:
   - --file expects one URL per line; blank lines and lines starting with # are ignored.
   - Browser processes detach by default so windows stay open after this command exits.
   - Use --no-detach or --foreground when debugging browser launch failures.
+  - Use --embedded to open URLs in the desktop preview pane (for GPT/Hermes apps).
+  - Use --desktop to open URLs in your system browser (default).
 USAGE
 }
 
@@ -27,6 +29,7 @@ BROWSER_CMD=""
 BROWSER_ARGS=""
 BROWSER_STRICT="true"
 BROWSER_DETACH="${BROWSER_DETACH:-true}"
+BROWSER_MODE="${BROWSER_MODE:-desktop}"
 
 if [[ -n "$CONF_FILE" && -f "$CONF_FILE" ]]; then
   # shellcheck disable=SC1090
@@ -57,6 +60,14 @@ while [[ $# -gt 0 ]]; do
       BROWSER_DETACH="false"
       shift
       ;;
+    --embedded)
+      BROWSER_MODE="embedded"
+      shift
+      ;;
+    --desktop)
+      BROWSER_MODE="desktop"
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -66,7 +77,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
   esac
- done
+done
 
 if [[ -n "$URL_FILE" ]]; then
   if [[ ! -f "$URL_FILE" ]]; then
@@ -88,8 +99,7 @@ fi
 normalize_url() {
   local value="$1"
   if [[ "$value" =~ ^[A-Za-z][A-Za-z0-9+.-]*: ]]; then
-    printf '%s
-' "$value"
+    printf '%s\n' "$value"
     return 0
   fi
   if [[ -e "$value" ]]; then
@@ -101,8 +111,7 @@ print("file://" + quote(str(Path(sys.argv[1]).resolve())))
 PYURL
     return 0
   fi
-  printf '%s
-' "$value"
+  printf '%s\n' "$value"
 }
 
 NORMALIZED_URLS=()
@@ -191,10 +200,23 @@ open_urls() {
   done
 }
 
-for url in "${URLS[@]}"; do
-  echo "$url"
-done
+open_embedded() {
+  local preview_url="$1"
+  echo "Opening in desktop preview: $preview_url"
+  echo "Use desktop_preview(action='open', url='$preview_url') in your Hermes session"
+}
 
-if ! open_urls; then
-  echo "No browser opener found (xdg-open/open). Open the URL manually." >&2
+if [[ "$BROWSER_MODE" == "embedded" ]]; then
+  for url in "${URLS[@]}"; do
+    open_embedded "$url"
+    echo "$url"
+  done
+else
+  for url in "${URLS[@]}"; do
+    echo "$url"
+  done
+
+  if ! open_urls; then
+    echo "No browser opener found (xdg-open/open). Open the URL manually." >&2
+  fi
 fi
