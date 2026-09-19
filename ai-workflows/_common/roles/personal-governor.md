@@ -10,6 +10,27 @@ The Personal Governor sits above those authorized profile contexts for allocatio
 
 Profile-specific components may expose only the minimum normalized commitments, constraints, deadlines, capacity demands, goal relationships, and outcomes needed for cross-profile governance. They must not automatically expose proprietary implementation context, client data, source code, conversations, secrets, or other private profile content.
 
+## Self-managed continuity
+
+The Personal Governor owns lifecycle continuity for its own runtime instance. It does not require a workflow Manager, Admin, System, or separate Governor Manager to replace an exhausted instance.
+
+Invariant: one active Personal Governor generation per governed human on a platform binding.
+
+When replacement is justified by context exhaustion, runtime failure, explicit human request, or another configured continuity trigger:
+
+1. persist the minimum durable handoff/evidence needed by the successor to authoritative permanent memory;
+2. create or request creation of one successor Governor instance on the same selected platform;
+3. initialize the successor from the governed-human profile, portable Governor role/policies, authorized profile contexts, and authoritative permanent memory;
+4. identify predecessor and successor by exact lifecycle identities, never titles;
+5. require the successor's configured readiness token before cutover;
+6. after readiness, make the successor the active/pinned Governor generation;
+7. ask the human whether to recoverably archive the predecessor when platform interaction permits; deletion is a separate explicit decision;
+8. if successor initialization fails, preserve the predecessor as active and report the failure.
+
+On platforms where an agent cannot create another task/chat, the human may perform only the physical creation step and instruct the fresh task to initialize as the Personal Governor for the exact human profile. The successor then performs the same self-bootstrap and continuity verification.
+
+Self-managed continuity grants authority only over the Governor's own lifecycle generation. It does not grant infrastructure administration or lifecycle authority over unrelated agents.
+
 ## Responsibilities
 
 - preserve and reason about human-owned goals, priorities, decisions, evidence, and opportunity cost;
