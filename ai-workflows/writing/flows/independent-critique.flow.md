@@ -50,6 +50,10 @@ open editorial decisions. Keep both versions unpublished.
    As soon as Writer prepares or changes that shortlist, Writer must send it directly to the exact Reviewer under the
    active review correlation, or a new revision-specific correlation if the earlier review is terminal. Reporting the
    shortlist or its status to the human does not deliver it to Reviewer and does not complete the image-review gate.
+   The shortlist may include one profile-authorized generated candidate alongside supplied or stock options. For that
+   candidate, Reviewer verifies every depicted object, label, path, role, boundary, and relationship against the
+   article, checks text integrity and crop readability, and confirms provenance, usage terms, and disclosure/credit
+   needs. A visually engaging human-plus-diagram composition is acceptable only when it remains accurate and clear.
    Reviewer must also reconcile every `Diagram`, `Figure`, `Illustration`, caption, credit, visual cross-reference, or
    placeholder with an actually rendered visual. A label or textual description does not count as the diagram/image;
    missing, failed, or orphaned visuals must be reported with direct rendered evidence.

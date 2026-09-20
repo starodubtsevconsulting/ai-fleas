@@ -80,6 +80,14 @@ Writer's fixed shortlist of at most three candidates. Describe each one,
 compare relevance, interest, clarity, crop resilience, and licensing or credit evidence, then recommend exactly one;
 if none is acceptable, say so instead of choosing the least-bad image. Reviewer critiques and recommends but does not
 silently replace the image, search for alternatives, or expand the shortlist beyond three candidates.
+The shortlist may contain supplied, stock, or one profile-authorized generated candidate. Evaluate a generated image
+by the same editorial standard, plus factual visual accuracy: describe the actual human/lived-in context, subject
+object, diagram overlays, labels, paths, roles, and boundaries; verify each claim against the article; check for
+invented relationships, malformed or unreadable text, misleading devices/interfaces, excessive visual clutter, and a
+focal point that fails in the destination crop. A cinematic editorial infographic can be preferred when its human
+context and diagram layer make the subject clearer and more interesting, but reject it when spectacle outruns truth.
+Confirm generation provenance, usage terms, and any disclosure or credit requirement. Generated, stock, and supplied
+images compete in the same bounded shortlist; no category wins automatically.
 Reviewer receives the shortlist through the verified Writer-to-Reviewer route. A human-facing Writer report is not an
 input to Reviewer and cannot clear the selection gate; missing direct delivery leaves the image decision pending.
 Classify a defect as `blocking` when it makes the draft misleading, inaccessible, or unsafe to release, and at least

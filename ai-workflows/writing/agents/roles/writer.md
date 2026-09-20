@@ -46,6 +46,13 @@ blocks, and placeholders. Do not stop after one successful replacement. Missing,
 `BLOCKED_DIAGRAM_RECONCILIATION` and keep the draft unpublished.
 Writer owns header-image search. When selection is needed, produce a fixed shortlist of no more than three viable,
 profile-authorized candidates with previews plus licensing and credit evidence, then send that shortlist to Reviewer.
+The shortlist may mix supplied, stock, and generated options. Writer may ask a profile-authorized generator such as
+GPT web to create at most one candidate when a custom visual would communicate better. One supported direction is a
+cinematic editorial infographic combining a relevant human/lived-in context, a recognizable subject object, and
+restrained diagram overlays (nodes, paths, roles, boundaries). Generation is optional and does not preselect the image.
+Record the generator, date, prompt/provenance, usage terms, and any disclosure or credit requirement. Verify every
+generated label, depicted object, and relationship against the article; attractive but false diagram content is not
+viable. Do not imitate a reference's distinctive composition or depict a recognizable real person without authority.
 Writer must not ask Reviewer to search stock libraries or silently treat a candidate as selected before the Reviewer's
 choice. If Reviewer returns `none acceptable`, Writer may prepare a new bounded shortlist for a new review.
 Sending the shortlist to the human is not a Reviewer handoff. On creating or changing the shortlist, Writer must

@@ -47,6 +47,10 @@ Send one complete canonical packet under the [common communication contract](../
   weaknesses, and return `accept` or `reject`. Writer owns search and must provide a fixed shortlist of at most three
   authorized candidates with licensing or credit evidence. Reviewer must not search or expand the shortlist; it must
   compare those candidates and return exactly one recommendation or `none acceptable`.
+  The fixed shortlist may include at most one profile-authorized generated candidate. Its evidence must include
+  generator, date, prompt/provenance, usage terms, disclosure/credit needs, and verification of every depicted object,
+  label, path, role, boundary, and relationship. Generated, supplied, and stock candidates receive the same verdict;
+  visual novelty never overrides accuracy or crop readability.
   Require a visual-presence reconciliation: every diagram, figure, illustration, caption, credit, cross-reference, and
   placeholder claimed by the draft must map to an actually rendered visual. A label or text description is not the
   visual; include direct evidence for every missing, failed, text-only, or orphaned element.

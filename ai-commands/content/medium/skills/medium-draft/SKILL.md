@@ -19,8 +19,14 @@ published article.
    headings; do not add a divider before every heading or use literal ellipses as a substitute. Verify the rendered
    spacing and reading flow.
 3. Give each draft a relevant lead image near the title. Prefer a suitable image supplied by the human; otherwise
-   choose a stock photograph with verified reuse rights. Do not generate a photographic lead image with AI by
-   default. Record its creator, source URL, license, and any required credit in article metadata; add a visible
+   Writer may shortlist a stock photograph with verified reuse rights or commission one generated candidate through
+   a profile-authorized image service such as GPT web. AI generation is an option, not the default winner and not a
+   reason to exceed the three-candidate limit. A useful generated direction is a cinematic editorial infographic:
+   a human-centered or lived-in scene when relevant, a recognizable subject object, and restrained diagram overlays
+   such as nodes, paths, roles, or trust boundaries that explain the article visually. Do not copy a reference image's
+   distinctive composition or characters, depict a recognizable real person without authorization, or let decorative
+   complexity obscure the subject. Record stock creator/source/license, or for generated work record the service,
+   generation date, prompt/provenance, and usage terms, plus any required credit in article metadata; add a visible
    credit when required or appropriate. Check the crop and appearance in the draft and its preview. If no suitable
    licensed image is available, leave the draft unpublished and report the missing lead image rather than using an
    unverified image.
