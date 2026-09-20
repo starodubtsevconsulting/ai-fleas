@@ -39,6 +39,8 @@ Send one complete canonical packet under the [common communication contract](../
   listen-through status, and unresolved questions. When a destination draft exists, also require the exact rendered
   surface or viewport, direct visual evidence such as screenshots, and findings for every special block, including
   spacing, padding, blockquote attribution, captions, credits, wrapping, indentation, hierarchy, and image presentation.
+  For every picture, require a finding on whether its editorial location supports the nearby passage and reading flow,
+  follows a sensible sequence, and preserves its caption and credit association.
   Terminal condition: return one review disposition to this Writer.
 
 The selected platform adapter sends to the verified target instance ID. Keep the accepted messaging receipt and

@@ -39,7 +39,8 @@ findings to the human and return them to the exact Writer for disposition under 
 When a rendered destination draft exists, visually inspect its beginning, middle, end, and every special block.
 Explicitly check padding and whitespace, blockquote attribution spacing, captions and credits, wrapping, indentation,
 hierarchy, and image presentation; record the inspected surface and direct visual evidence. Source equivalence is not
-visual QA.
+visual QA. For each picture, also verify that its editorial location supports the nearby passage, follows a sensible
+sequence, does not disrupt or mislead the reading flow, and keeps its caption and credit attached.
 `show-context` makes the report visible; it is not a peer transport or approval mechanism.
 
 When listen-through is enabled, the Reviewer owns the human-facing gate but not arbitrary shell execution. Prepare the

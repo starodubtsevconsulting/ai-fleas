@@ -49,6 +49,9 @@ Look specifically for excessive or uneven padding and whitespace, collapsed or d
 attributions or captions, awkward line wrapping, incorrect indentation, broken hierarchy, poor image sizing or
 cropping, misplaced credits, and elements that appear orphaned from the content they describe. A blockquote with a
 large empty gap between its quotation and attribution is a destination-rendering defect even when all text is present.
+For every picture, verify editorial placement as well as rendering: it must appear next to the passage it supports,
+in a sensible sequence, without interrupting or misleading the argument, and remain clearly associated with its
+caption and credit. A correctly rendered picture in the wrong part of the article is a review finding.
 Classify a defect as `blocking` when it makes the draft misleading, inaccessible, or unsafe to release, and at least
 `substantive` when it visibly harms reading rhythm or professional presentation. Source equivalence alone cannot clear
 rendered-destination QA. When the destination supports materially different narrow and desktop layouts, inspect both.

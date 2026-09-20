@@ -36,7 +36,9 @@ open editorial decisions. Keep both versions unpublished.
    critique tied to passages. For a destination draft, Reviewer must also directly inspect its rendered presentation,
    record the viewport or surface and visual evidence, and check every special block for excess padding, broken spacing,
    detached attribution or captions, awkward wrapping, image and credit placement, indentation, and hierarchy. Textual
-   equivalence or metadata read-back cannot substitute for this visual pass.
+   equivalence or metadata read-back cannot substitute for this visual pass. For every picture, Reviewer must judge
+   whether it is located beside the passage it supports, appears in a sensible sequence, preserves the reading flow,
+   and remains associated with its caption and credit; correct rendering alone does not prove correct placement.
 4. When `show-context` is enabled by the selected profile and writing workflow, the Reviewer uses it to present a
    bounded, human-readable review report: what works, what needs work, severity, supporting passages, and the next
    decision. The critique remains the source of judgment; `show-context` only renders it and must not imply approval.

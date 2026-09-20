@@ -111,9 +111,12 @@ assert.match(writerRole, /destination request is incomplete until the destinatio
 assert.match(routing, /new or materially changed destination draft[\s\S]*no\s+second human request is required/);
 assert.match(reviewCriteria, /Source equivalence alone cannot clear\s+rendered-destination QA/);
 assert.match(reviewCriteria, /large empty gap between its quotation and attribution/);
+assert.match(reviewCriteria, /correctly rendered picture in the wrong part of the article is a review finding/);
 assert.match(destinationFlow, /direct rendered\s+evidence such as screenshots/);
 assert.match(critiqueFlow, /Textual\s+equivalence or metadata read-back cannot substitute for this visual pass/);
 assert.match(reviewerRole, /Source equivalence is not\s+visual QA/);
+assert.match(reviewerRole, /For each picture,[\s\S]*editorial location supports the nearby passage/);
 assert.match(routing, /direct visual evidence such as screenshots/);
+assert.match(routing, /For every picture,[\s\S]*editorial location supports the nearby passage/);
 
 console.log('Writing managed-agent roster: PASS');
