@@ -35,6 +35,14 @@ published article.
    visually verify that the diagram itself rendered beside the intended passage. If rendering or upload cannot be
    verified, keep the Medium draft unpublished and report `BLOCKED_DIAGRAM_RENDERING`; a labeled text explanation may
    aid accessibility but cannot replace a diagram the article claims to contain.
+   Before editing Medium, build a complete source-diagram inventory with a stable ID, source location, intended article
+   position, and source revision for every Mermaid fence and every diagram placeholder. Convert and verify every
+   inventory item, not only the first one encountered, and record the uploaded asset/evidence against the same ID.
+   Re-scan the finished Medium draft for leftovers. Arrow-chain prose such as `A → B → C`, `Diagram—` descriptions,
+   Mermaid fences, raw diagram syntax, caption-only or alt-text-only blocks, and diagram placeholders are unresolved
+   conversions unless the article explicitly intends them as ordinary prose. The number and identities of rendered
+   destination diagrams must reconcile one-to-one with the source inventory; any mismatch leaves the draft unpublished
+   with `BLOCKED_DIAGRAM_RECONCILIATION`.
 5. Choose topics supported by the article's content and likely reader intent, within Medium's current limit.
    Verify they are attached to the draft and record them in article metadata. Do not add generic tags solely for reach.
 6. Review the draft itself for section order, links, visuals, attribution, and readable layout. Return the draft URL,

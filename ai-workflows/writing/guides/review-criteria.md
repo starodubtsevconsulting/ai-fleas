@@ -52,6 +52,12 @@ present, legible, and adjacent to its label or explanatory passage. Flag orphane
 missing embeds, raw placeholders, and text-only diagram descriptions. A draft that claims a diagram but renders only
 the words describing it has a substantive defect, and it is blocking when the missing visual is needed to understand
 the argument.
+Independently inventory the source revision's Mermaid fences and diagram placeholders, then reconcile stable identities
+and counts against rendered destination visuals. Inspect the entire draft, not a sample. Treat arrow-chain prose such as
+`A → B → C`, `Diagram—` descriptions, Mermaid fences or syntax, caption-only/alt-text-only blocks, and other serialized
+diagram text as unresolved placeholders unless the article clearly intends ordinary prose. Reject destination visual
+QA when any source diagram is missing or duplicated, any rendered visual has no source mapping, or any placeholder
+remains—even if another diagram was converted successfully.
 
 Look specifically for excessive or uneven padding and whitespace, collapsed or doubled spacing, detached quote
 attributions or captions, awkward line wrapping, incorrect indentation, broken hierarchy, poor image sizing or

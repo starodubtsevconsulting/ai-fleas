@@ -53,6 +53,9 @@ open editorial decisions. Keep both versions unpublished.
    Reviewer must also reconcile every `Diagram`, `Figure`, `Illustration`, caption, credit, visual cross-reference, or
    placeholder with an actually rendered visual. A label or textual description does not count as the diagram/image;
    missing, failed, or orphaned visuals must be reported with direct rendered evidence.
+   Build an independent source-diagram inventory and reconcile every stable ID and count with the rendered destination.
+   Scan the full draft for residual arrow chains, `Diagram—` prose, Mermaid fences/syntax, caption-only blocks, and
+   placeholders. One successful diagram replacement does not clear other inventory items or residual placeholders.
 4. When `show-context` is enabled by the selected profile and writing workflow, the Reviewer uses it to present a
    bounded, human-readable review report: what works, what needs work, severity, supporting passages, and the next
    decision. The critique remains the source of judgment; `show-context` only renders it and must not imply approval.

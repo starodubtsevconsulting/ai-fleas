@@ -50,6 +50,10 @@ Send one complete canonical packet under the [common communication contract](../
   Require a visual-presence reconciliation: every diagram, figure, illustration, caption, credit, cross-reference, and
   placeholder claimed by the draft must map to an actually rendered visual. A label or text description is not the
   visual; include direct evidence for every missing, failed, text-only, or orphaned element.
+  Include the Writer's complete stable-ID source-diagram inventory and conversion evidence. Reviewer independently
+  recreates the inventory and reconciles counts and identities across the full destination draft, including residual
+  arrow chains, `Diagram—` prose, Mermaid syntax, caption-only blocks, duplicates, and placeholders. One successful
+  conversion does not satisfy the packet when another inventory item or placeholder remains.
   Terminal condition: return one review disposition to this Writer.
 
 Creating or changing a header-image shortlist automatically triggers delivery from Writer to the exact Reviewer. Use

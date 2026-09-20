@@ -52,6 +52,10 @@ shortlist, or silently replace the image.
 Reconcile every claimed diagram, figure, illustration, caption, credit, visual cross-reference, and placeholder with an
 actually rendered visual. Do not accept a label or prose description as proof that the visual exists. Report missing,
 failed, text-only, or orphaned visuals with direct rendered evidence and their effect on comprehension.
+Independently inventory every source Mermaid fence and diagram placeholder, then reconcile stable IDs and counts against
+the entire rendered destination. Explicitly search for residual arrow-chain prose (`A → B → C`), `Diagram—` text,
+Mermaid syntax, captions/alt text without visuals, duplicates, and placeholders. Never infer completeness from one
+successful replacement; reject visual QA until every source item maps exactly once and no placeholder remains.
 `show-context` makes the report visible; it is not a peer transport or approval mechanism.
 
 When listen-through is enabled, the Reviewer owns the human-facing gate but not arbitrary shell execution. Prepare the

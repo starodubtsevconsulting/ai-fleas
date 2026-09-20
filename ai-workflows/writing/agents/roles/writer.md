@@ -39,6 +39,11 @@ source, render and export it through an authorized Mermaid-capable route, upload
 intended passage, add useful alt text/caption, and visually verify the diagram itself on desktop and narrow layouts.
 Raw Mermaid, a `Diagram—` paragraph, alt text, or a caption is not a successful transfer. If the asset cannot be
 rendered, uploaded, and verified, leave the draft unpublished and report `BLOCKED_DIAGRAM_RENDERING`.
+Before conversion, inventory every Mermaid fence and diagram placeholder using stable IDs, source locations, intended
+positions, and revisions. Convert all inventory items, attach rendered evidence to each ID, and re-scan the entire
+destination draft for residual arrow-chain prose (`A → B → C`), `Diagram—` descriptions, Mermaid syntax, caption-only
+blocks, and placeholders. Do not stop after one successful replacement. Missing, duplicate, or residual items produce
+`BLOCKED_DIAGRAM_RECONCILIATION` and keep the draft unpublished.
 Writer owns header-image search. When selection is needed, produce a fixed shortlist of no more than three viable,
 profile-authorized candidates with previews plus licensing and credit evidence, then send that shortlist to Reviewer.
 Writer must not ask Reviewer to search stock libraries or silently treat a candidate as selected before the Reviewer's
