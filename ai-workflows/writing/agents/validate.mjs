@@ -117,6 +117,7 @@ assert.match(writerRole, /fixed shortlist of no more than three/);
 assert.match(writerRole, /GPT web to create at most one candidate/);
 assert.match(writerRole, /cinematic editorial infographic/);
 assert.match(writerRole, /generic AI “cozy productivity” filler/);
+assert.match(writerRole, /one\s+dominant visual story, clear spatial hierarchy/);
 assert.match(writerRole, /Sending the shortlist to the human is not a Reviewer handoff/);
 assert.match(writerRole, /Writer owns conversion of source visuals/);
 assert.match(writerRole, /BLOCKED_DIAGRAM_RENDERING/);
@@ -132,6 +133,7 @@ assert.match(reviewCriteria, /Writer owns image search and supplies no more than
 assert.match(reviewCriteria, /explicit `accept` or `reject` verdict/);
 assert.match(reviewCriteria, /generated, stock, and supplied\s+images compete in the same bounded shortlist/i);
 assert.match(reviewCriteria, /mugs\/cups, loose paper or notebooks, stacked books/);
+assert.match(reviewCriteria, /Background atmosphere should recede/);
 assert.match(reviewCriteria, /human-facing Writer report is not an\s+input to Reviewer/);
 assert.match(reviewCriteria, /claims a diagram but renders only\s+the words describing it/);
 assert.match(reviewCriteria, /Independently inventory the source revision's Mermaid fences/);
@@ -152,6 +154,7 @@ assert.match(reviewerRole, /compare at most three authorized candidates and reco
 assert.match(reviewerRole, /Writer owns search and supplies the fixed shortlist/);
 assert.match(reviewerRole, /cinematic\s+human-plus-diagram editorial image/);
 assert.match(reviewerRole, /Penalize generic AI filler/);
+assert.match(reviewerRole, /Allow subdued background atmosphere/);
 assert.match(reviewerRole, /Reconcile every claimed diagram[\s\S]*actually rendered visual/);
 assert.match(reviewerRole, /Never infer completeness from one\s+successful replacement/);
 assert.match(routing, /direct visual evidence such as screenshots/);

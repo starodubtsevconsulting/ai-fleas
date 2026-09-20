@@ -54,7 +54,9 @@ Record the generator, date, prompt/provenance, usage terms, and any disclosure o
 generated label, depicted object, and relationship against the article; attractive but false diagram content is not
 viable. Prompt against generic AI “cozy productivity” filler such as mugs/cups, loose paper or notebooks, stacked
 books, and decorative desk clutter unless each prop has a clear article-specific function. Every prominent object must
-earn its place. Do not imitate a reference's distinctive composition or depict a recognizable real person without authority.
+earn its place. Subdued background atmosphere is acceptable when it does not compete with the subject. Prompt for one
+dominant visual story, clear spatial hierarchy, and diagram elements anchored to the meaningful people, roles, objects,
+and boundaries they explain. Do not imitate a reference's distinctive composition or depict a recognizable real person without authority.
 Writer must not ask Reviewer to search stock libraries or silently treat a candidate as selected before the Reviewer's
 choice. If Reviewer returns `none acceptable`, Writer may prepare a new bounded shortlist for a new review.
 Sending the shortlist to the human is not a Reviewer handoff. On creating or changing the shortlist, Writer must

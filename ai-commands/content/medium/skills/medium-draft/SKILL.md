@@ -27,7 +27,10 @@ published article.
    distinctive composition or characters, depict a recognizable real person without authorization, or let decorative
    complexity obscure the subject. Exclude generic AI “cozy productivity” filler—coffee mugs/cups, loose paper or
    notebooks, stacked books, decorative desk clutter, and similar props—unless a specific item materially explains the
-   article. Every prominent object must earn its place through the brief. Record stock creator/source/license, or for generated work record the service,
+   article. Subdued environmental context may establish mood, but it must not compete with the subject. Prefer one
+   dominant visual story, a clear spatial hierarchy, and diagram overlays visibly anchored to the meaningful people,
+   roles, objects, and boundaries they explain. Every prominent object must earn its place through the brief. Record
+   stock creator/source/license, or for generated work record the service,
    generation date, prompt/provenance, and usage terms, plus any required credit in article metadata; add a visible
    credit when required or appropriate. Check the crop and appearance in the draft and its preview. If no suitable
    licensed image is available, leave the draft unpublished and report the missing lead image rather than using an

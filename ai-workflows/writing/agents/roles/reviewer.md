@@ -55,6 +55,9 @@ against the article; check malformed text, misleading details, clutter, crop rea
 disclosure/credit needs. Penalize generic AI filler such as mugs/cups, loose paper or notebooks, stacked books, and
 decorative desk clutter unless every prominent prop has a clear article-specific function. A cinematic
 human-plus-diagram editorial image is valuable only when it is accurate, purposeful, and clear.
+Allow subdued background atmosphere when it recedes. Prefer one dominant visual story, clear spatial hierarchy, and
+diagram overlays anchored to the meaningful people/roles, subject objects, and allowed or denied boundaries they
+explain; those relationships must remain legible at header size and after the actual crop.
 Reconcile every claimed diagram, figure, illustration, caption, credit, visual cross-reference, and placeholder with an
 actually rendered visual. Do not accept a label or prose description as proof that the visual exists. Report missing,
 failed, text-only, or orphaned visuals with direct rendered evidence and their effect on comprehension.

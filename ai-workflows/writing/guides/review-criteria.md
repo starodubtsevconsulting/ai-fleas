@@ -89,6 +89,10 @@ context and diagram layer make the subject clearer and more interesting, but rej
 Treat generic AI “cozy productivity” props—mugs/cups, loose paper or notebooks, stacked books, decorative desk clutter,
 and similar filler—as weaknesses unless each object has an article-specific explanatory purpose. Ask what every
 prominent object contributes; reject or penalize a candidate whose filler dilutes the subject or creates an AI-cliché look.
+Do not reject subdued environmental context merely for existing. Prefer a candidate when it presents one dominant
+visual story, a readable spatial hierarchy, and diagram overlays clearly anchored to the meaningful human/agent roles,
+subject objects, and allowed or denied boundaries they explain. Background atmosphere should recede; explanatory
+subjects and relationships should remain legible at header size and after cropping.
 Confirm generation provenance, usage terms, and any disclosure or credit requirement. Generated, stock, and supplied
 images compete in the same bounded shortlist; no category wins automatically.
 Reviewer receives the shortlist through the verified Writer-to-Reviewer route. A human-facing Writer report is not an
