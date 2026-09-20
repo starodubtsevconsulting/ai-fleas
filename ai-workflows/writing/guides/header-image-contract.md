@@ -25,6 +25,20 @@ For every candidate, Writer must establish and Reviewer must independently verif
 5. A factual description of what is visibly shown, separated from inference, followed by strengths, weaknesses, and an
    explicit `accept` or `reject` verdict.
 
+## Image text and subtitles
+
+Treat every subtitle, tagline, caption, embedded heading, label, and callout associated with the image as editorial
+copy. Writer must propose it from the exact article promise; Reviewer independently verifies that it accurately
+expresses or advances the central idea, uses the article's terminology and tone, and does not introduce a broader,
+different, exaggerated, or generic message. Decorative slogans and impressive-sounding text that do not clarify the
+article are defects. Prefer no embedded subtitle when the image communicates better without one.
+
+Verify spelling, grammar, factual meaning, role/object association, and consistency between embedded text, visible
+objects, caption, alt text, article title/subtitle, and nearby passage. Text must remain legible at header size and
+after the actual crop; no important words may be truncated or hidden. Generated-image text must receive literal
+character-by-character inspection for malformed, duplicated, or invented words. The header candidate cannot be
+accepted while any image text is inaccurate, unreadable, or mismatched to the article's idea.
+
 A cinematic editorial infographic is a supported generated direction: a relevant human or lived-in context when
 useful, a recognizable subject object, and restrained diagram overlays—nodes, paths, roles, or boundaries—anchored to
 what they explain. Verify every depicted object, label, path, role, boundary, and relationship against the article.

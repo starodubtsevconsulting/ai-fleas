@@ -163,5 +163,8 @@ assert.match(headerImageContract, /at most one image commissioned/);
 assert.match(headerImageContract, /Generic AI “cozy productivity” filler/);
 assert.match(headerImageContract, /explicit `accept` or `reject` verdict/);
 assert.match(headerImageContract, /cinematic editorial infographic/);
+assert.match(headerImageContract, /Treat every subtitle, tagline, caption/);
+assert.match(headerImageContract, /exact article promise/);
+assert.match(headerImageContract, /character-by-character inspection/);
 
 console.log('Writing managed-agent roster: PASS');
