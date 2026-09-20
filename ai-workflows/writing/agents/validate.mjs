@@ -112,11 +112,15 @@ assert.match(routing, /new or materially changed destination draft[\s\S]*no\s+se
 assert.match(reviewCriteria, /Source equivalence alone cannot clear\s+rendered-destination QA/);
 assert.match(reviewCriteria, /large empty gap between its quotation and attribution/);
 assert.match(reviewCriteria, /correctly rendered picture in the wrong part of the article is a review finding/);
+assert.match(reviewCriteria, /Review the header or hero image separately as an editorial choice/);
+assert.match(reviewCriteria, /prefer a recognizable NAS/);
 assert.match(destinationFlow, /direct rendered\s+evidence such as screenshots/);
 assert.match(critiqueFlow, /Textual\s+equivalence or metadata read-back cannot substitute for this visual pass/);
 assert.match(reviewerRole, /Source equivalence is not\s+visual QA/);
 assert.match(reviewerRole, /For each picture,[\s\S]*editorial location supports the nearby passage/);
+assert.match(reviewerRole, /Evaluate the header image independently[\s\S]*actual destination crop/);
 assert.match(routing, /direct visual evidence such as screenshots/);
 assert.match(routing, /For every picture,[\s\S]*editorial location supports the nearby passage/);
+assert.match(routing, /separate header-image finding[\s\S]*focal point survives/);
 
 console.log('Writing managed-agent roster: PASS');

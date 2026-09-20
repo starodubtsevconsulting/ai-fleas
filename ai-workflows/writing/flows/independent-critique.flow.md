@@ -39,6 +39,9 @@ open editorial decisions. Keep both versions unpublished.
    equivalence or metadata read-back cannot substitute for this visual pass. For every picture, Reviewer must judge
    whether it is located beside the passage it supports, appears in a sensible sequence, preserves the reading flow,
    and remains associated with its caption and credit; correct rendering alone does not prove correct placement.
+   Reviewer must separately validate the header image against the article's specific subject and promise, reader
+   interest, possible misleading implications, and the focal point retained by the destination's actual crop. A
+   generic broadly related image must be challenged when a clearer subject-specific image would communicate better.
 4. When `show-context` is enabled by the selected profile and writing workflow, the Reviewer uses it to present a
    bounded, human-readable review report: what works, what needs work, severity, supporting passages, and the next
    decision. The critique remains the source of judgment; `show-context` only renders it and must not imply approval.

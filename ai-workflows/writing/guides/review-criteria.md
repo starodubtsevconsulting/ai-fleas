@@ -52,6 +52,12 @@ large empty gap between its quotation and attribution is a destination-rendering
 For every picture, verify editorial placement as well as rendering: it must appear next to the passage it supports,
 in a sensible sequence, without interrupting or misleading the argument, and remain clearly associated with its
 caption and credit. A correctly rendered picture in the wrong part of the article is a review finding.
+Review the header or hero image separately as an editorial choice. Verify that it clearly represents the article's
+specific subject and promise rather than being merely decorative or broadly related; is interesting and useful to the
+intended reader; does not imply a false subject; and retains a meaningful, legible focal point in the destination's
+actual header crop. Compare the image against a more direct subject-specific alternative when the current choice is
+generic—for example, prefer a recognizable NAS for an article specifically about NAS boundaries over an ambiguous
+server-rack detail. A technically valid image that weakens or obscures the article's promise is a substantive finding.
 Classify a defect as `blocking` when it makes the draft misleading, inaccessible, or unsafe to release, and at least
 `substantive` when it visibly harms reading rhythm or professional presentation. Source equivalence alone cannot clear
 rendered-destination QA. When the destination supports materially different narrow and desktop layouts, inspect both.

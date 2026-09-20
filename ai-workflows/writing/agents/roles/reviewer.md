@@ -41,6 +41,9 @@ Explicitly check padding and whitespace, blockquote attribution spacing, caption
 hierarchy, and image presentation; record the inspected surface and direct visual evidence. Source equivalence is not
 visual QA. For each picture, also verify that its editorial location supports the nearby passage, follows a sensible
 sequence, does not disrupt or mislead the reading flow, and keeps its caption and credit attached.
+Evaluate the header image independently for specific relevance to the article's promise, reader interest, misleading
+implications, and focal-point survival in the actual destination crop. Flag a generic or ambiguous header when a more
+recognizable subject-specific image would communicate the article better, even if the current file renders correctly.
 `show-context` makes the report visible; it is not a peer transport or approval mechanism.
 
 When listen-through is enabled, the Reviewer owns the human-facing gate but not arbitrary shell execution. Prepare the
