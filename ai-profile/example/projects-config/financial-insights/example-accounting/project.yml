@@ -1,0 +1,7 @@
+id: example-accounting
+label: Example accounting records
+project_type: folder
+repo_path: /Volumes/example-accounting
+storage_type: folder
+storage_path: /Volumes/example-accounting
+storage_label: Example financial records
