@@ -8,3 +8,5 @@ entry: financial-insights.workflow.md
 required_commands:
   - statements
   - taxes
+  - financial-records
+  - financial-analysis
