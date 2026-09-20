@@ -1,5 +1,9 @@
 # I Was Cutting the Grass. My AI Team Was Doing the Accounting.
 
+> “It is not that we have a short time to live, but that we waste a lot of it.”
+>
+> — Seneca, *On the Shortness of Life*
+
 > **Draft:** Prepared through the Writing workflow in emulation mode. Independent fresh-context critique, human listen-through, and release approval remain pending.
 
 The birds were singing.
