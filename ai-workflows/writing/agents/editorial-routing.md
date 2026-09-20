@@ -41,16 +41,11 @@ Send one complete canonical packet under the [common communication contract](../
   spacing, padding, blockquote attribution, captions, credits, wrapping, indentation, hierarchy, and image presentation.
   For every picture, require a finding on whether its editorial location supports the nearby passage and reading flow,
   follows a sensible sequence, and preserves its caption and credit association.
-  Require a separate header-image finding covering specific relevance to the article's promise, reader interest,
-  misleading implications, and whether its focal point survives the destination's actual crop; rendering alone is
-  insufficient. The finding must describe visible content, separate observation from inference, state strengths and
-  weaknesses, and return `accept` or `reject`. Writer owns search and must provide a fixed shortlist of at most three
-  authorized candidates with licensing or credit evidence. Reviewer must not search or expand the shortlist; it must
-  compare those candidates and return exactly one recommendation or `none acceptable`.
-  The fixed shortlist may include at most one profile-authorized generated candidate. Its evidence must include
-  generator, date, prompt/provenance, usage terms, disclosure/credit needs, and verification of every depicted object,
-  label, path, role, boundary, and relationship. Generated, supplied, and stock candidates receive the same verdict;
-  visual novelty never overrides accuracy or crop readability.
+  For header-image selection, inject the canonical
+  [header-image selection contract](../guides/header-image-contract.md) by repository-relative path and exact content
+  hash, plus the bounded shortlist and evidence it requires. Writer and Reviewer both verify that identity before use;
+  copied criteria, a stale hash, or a role-local variant blocks the header-image verdict. Writer owns candidate
+  preparation; Reviewer returns exactly one recommendation or `none acceptable` under that same contract revision.
   Require a visual-presence reconciliation: every diagram, figure, illustration, caption, credit, cross-reference, and
   placeholder claimed by the draft must map to an actually rendered visual. A label or text description is not the
   visual; include direct evidence for every missing, failed, text-only, or orphaned element.

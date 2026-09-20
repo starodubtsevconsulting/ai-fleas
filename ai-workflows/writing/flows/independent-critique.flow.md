@@ -39,21 +39,13 @@ open editorial decisions. Keep both versions unpublished.
    equivalence or metadata read-back cannot substitute for this visual pass. For every picture, Reviewer must judge
    whether it is located beside the passage it supports, appears in a sensible sequence, preserves the reading flow,
    and remains associated with its caption and credit; correct rendering alone does not prove correct placement.
-   Reviewer must separately validate the header image against the article's specific subject and promise, reader
-   interest, possible misleading implications, and the focal point retained by the destination's actual crop. A
-   generic broadly related image must be challenged when a clearer subject-specific image would communicate better.
-   Its finding must describe what is visibly present, separate observation from inference, list what works and fails,
-   and return `accept` or `reject`. Writer owns search and supplies a fixed shortlist of no more than three authorized
-   candidates with licensing and credit evidence. Reviewer does not search; it compares that shortlist and recommends
-   exactly one based on relevance, interest, clarity, crop resilience, and licensing or credit evidence, or reports
-   when none passes rather than broadening the shortlist or silently replacing the image.
+   For header images, both roles load the canonical
+   [header-image selection contract](../guides/header-image-contract.md) using the packet's repository-relative path and
+   exact content hash. This flow does not restate its criteria. Reviewer returns its bounded verdict under that exact
+   contract revision.
    As soon as Writer prepares or changes that shortlist, Writer must send it directly to the exact Reviewer under the
    active review correlation, or a new revision-specific correlation if the earlier review is terminal. Reporting the
    shortlist or its status to the human does not deliver it to Reviewer and does not complete the image-review gate.
-   The shortlist may include one profile-authorized generated candidate alongside supplied or stock options. For that
-   candidate, Reviewer verifies every depicted object, label, path, role, boundary, and relationship against the
-   article, checks text integrity and crop readability, and confirms provenance, usage terms, and disclosure/credit
-   needs. A visually engaging human-plus-diagram composition is acceptable only when it remains accurate and clear.
    Reviewer must also reconcile every `Diagram`, `Figure`, `Illustration`, caption, credit, visual cross-reference, or
    placeholder with an actually rendered visual. A label or textual description does not count as the diagram/image;
    missing, failed, or orphaned visuals must be reported with direct rendered evidence.

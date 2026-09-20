@@ -41,23 +41,10 @@ Explicitly check padding and whitespace, blockquote attribution spacing, caption
 hierarchy, and image presentation; record the inspected surface and direct visual evidence. Source equivalence is not
 visual QA. For each picture, also verify that its editorial location supports the nearby passage, follows a sensible
 sequence, does not disrupt or mislead the reading flow, and keeps its caption and credit attached.
-Evaluate the header image independently for specific relevance to the article's promise, reader interest, misleading
-implications, and focal-point survival in the actual destination crop. Flag a generic or ambiguous header when a more
-recognizable subject-specific image would communicate the article better, even if the current file renders correctly.
-Report what is visibly shown, distinguish observation from inference, state what works and fails, and issue an explicit
-`accept` or `reject`. If rejected, compare at most three authorized candidates and recommend exactly one using subject
-relevance, reader interest, clarity, crop resilience, and licensing or credit evidence. Report `none acceptable` when
-needed. Writer owns search and supplies the fixed shortlist; Reviewer must not search for alternatives, broaden the
-shortlist, or silently replace the image.
-The shortlist may include at most one profile-authorized generated candidate. Judge it beside supplied and stock
-options without category preference. Verify every depicted object, label, path, role, boundary, and relationship
-against the article; check malformed text, misleading details, clutter, crop readability, provenance, usage terms, and
-disclosure/credit needs. Penalize generic AI filler such as mugs/cups, loose paper or notebooks, stacked books, and
-decorative desk clutter unless every prominent prop has a clear article-specific function. A cinematic
-human-plus-diagram editorial image is valuable only when it is accurate, purposeful, and clear.
-Allow subdued background atmosphere when it recedes. Prefer one dominant visual story, clear spatial hierarchy, and
-diagram overlays anchored to the meaningful people/roles, subject objects, and allowed or denied boundaries they
-explain; those relationships must remain legible at header size and after the actual crop.
+Evaluate the header shortlist independently using the canonical
+[header-image selection contract](../../guides/header-image-contract.md). Verify the packet's contract path and exact
+content hash before judging; do not accept copied criteria or a different revision. Reviewer owns comparison and the
+one-candidate-or-`none acceptable` verdict, not search or replacement.
 Reconcile every claimed diagram, figure, illustration, caption, credit, visual cross-reference, and placeholder with an
 actually rendered visual. Do not accept a label or prose description as proof that the visual exists. Report missing,
 failed, text-only, or orphaned visuals with direct rendered evidence and their effect on comprehension.

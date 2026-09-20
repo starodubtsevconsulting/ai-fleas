@@ -66,37 +66,10 @@ large empty gap between its quotation and attribution is a destination-rendering
 For every picture, verify editorial placement as well as rendering: it must appear next to the passage it supports,
 in a sensible sequence, without interrupting or misleading the argument, and remain clearly associated with its
 caption and credit. A correctly rendered picture in the wrong part of the article is a review finding.
-Review the header or hero image separately as an editorial choice. Verify that it clearly represents the article's
-specific subject and promise rather than being merely decorative or broadly related; is interesting and useful to the
-intended reader; does not imply a false subject; and retains a meaningful, legible focal point in the destination's
-actual header crop. Compare the image against a more direct subject-specific alternative when the current choice is
-generic—for example, prefer a recognizable NAS for an article specifically about NAS boundaries over an ambiguous
-server-rack detail. A technically valid image that weakens or obscures the article's promise is a substantive finding.
-Writer owns image search and supplies no more than three viable, profile-authorized candidates with licensing and
-credit evidence. Reviewer does not search for candidates. The header-image finding must first describe only what is
-visibly shown, distinguishing observation from guesses about the scene or object. It must then state what works, what
-does not, and an explicit `accept` or `reject` verdict with a reason tied to the article and actual crop. Review the
-Writer's fixed shortlist of at most three candidates. Describe each one,
-compare relevance, interest, clarity, crop resilience, and licensing or credit evidence, then recommend exactly one;
-if none is acceptable, say so instead of choosing the least-bad image. Reviewer critiques and recommends but does not
-silently replace the image, search for alternatives, or expand the shortlist beyond three candidates.
-The shortlist may contain supplied, stock, or one profile-authorized generated candidate. Evaluate a generated image
-by the same editorial standard, plus factual visual accuracy: describe the actual human/lived-in context, subject
-object, diagram overlays, labels, paths, roles, and boundaries; verify each claim against the article; check for
-invented relationships, malformed or unreadable text, misleading devices/interfaces, excessive visual clutter, and a
-focal point that fails in the destination crop. A cinematic editorial infographic can be preferred when its human
-context and diagram layer make the subject clearer and more interesting, but reject it when spectacle outruns truth.
-Treat generic AI “cozy productivity” props—mugs/cups, loose paper or notebooks, stacked books, decorative desk clutter,
-and similar filler—as weaknesses unless each object has an article-specific explanatory purpose. Ask what every
-prominent object contributes; reject or penalize a candidate whose filler dilutes the subject or creates an AI-cliché look.
-Do not reject subdued environmental context merely for existing. Prefer a candidate when it presents one dominant
-visual story, a readable spatial hierarchy, and diagram overlays clearly anchored to the meaningful human/agent roles,
-subject objects, and allowed or denied boundaries they explain. Background atmosphere should recede; explanatory
-subjects and relationships should remain legible at header size and after cropping.
-Confirm generation provenance, usage terms, and any disclosure or credit requirement. Generated, stock, and supplied
-images compete in the same bounded shortlist; no category wins automatically.
-Reviewer receives the shortlist through the verified Writer-to-Reviewer route. A human-facing Writer report is not an
-input to Reviewer and cannot clear the selection gate; missing direct delivery leaves the image decision pending.
+Review the header or hero image through the canonical
+[header-image selection contract](header-image-contract.md). Writer and Reviewer must use the same path and exact
+content hash. This general review guide does not duplicate that contract. Missing direct shortlist delivery, contract
+identity, or hash leaves the header-image gate pending.
 Classify a defect as `blocking` when it makes the draft misleading, inaccessible, or unsafe to release, and at least
 `substantive` when it visibly harms reading rhythm or professional presentation. Source equivalence alone cannot clear
 rendered-destination QA. When the destination supports materially different narrow and desktop layouts, inspect both.

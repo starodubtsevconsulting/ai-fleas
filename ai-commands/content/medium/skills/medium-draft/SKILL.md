@@ -18,23 +18,11 @@ published article.
    suits the opening, and native three-dot section breaks at major narrative transitions. Keep meaningful section
    headings; do not add a divider before every heading or use literal ellipses as a substitute. Verify the rendered
    spacing and reading flow.
-3. Give each draft a relevant lead image near the title. Prefer a suitable image supplied by the human; otherwise
-   Writer may shortlist a stock photograph with verified reuse rights or commission one generated candidate through
-   a profile-authorized image service such as GPT web. AI generation is an option, not the default winner and not a
-   reason to exceed the three-candidate limit. A useful generated direction is a cinematic editorial infographic:
-   a human-centered or lived-in scene when relevant, a recognizable subject object, and restrained diagram overlays
-   such as nodes, paths, roles, or trust boundaries that explain the article visually. Do not copy a reference image's
-   distinctive composition or characters, depict a recognizable real person without authorization, or let decorative
-   complexity obscure the subject. Exclude generic AI “cozy productivity” filler—coffee mugs/cups, loose paper or
-   notebooks, stacked books, decorative desk clutter, and similar props—unless a specific item materially explains the
-   article. Subdued environmental context may establish mood, but it must not compete with the subject. Prefer one
-   dominant visual story, a clear spatial hierarchy, and diagram overlays visibly anchored to the meaningful people,
-   roles, objects, and boundaries they explain. Every prominent object must earn its place through the brief. Record
-   stock creator/source/license, or for generated work record the service,
-   generation date, prompt/provenance, and usage terms, plus any required credit in article metadata; add a visible
-   credit when required or appropriate. Check the crop and appearance in the draft and its preview. If no suitable
-   licensed image is available, leave the draft unpublished and report the missing lead image rather than using an
-   unverified image.
+3. Give each draft a relevant lead image near the title. Writer and Reviewer use the single canonical
+   [header-image selection contract](../../../../ai-workflows/writing/guides/header-image-contract.md); this provider
+   skill does not restate or override it. Record the selected candidate's required provenance/rights metadata, add any
+   required visible credit, and verify its crop in the Medium draft and preview. If no candidate is accepted, leave the
+   draft unpublished and report the unresolved header-image gate.
 4. For a diagram, keep its editable source in the archive and place a legible rendered image or clean screenshot of
    the rendered diagram in the draft. A fenced Mermaid block must be converted by rendering that exact source through
    an authorized Mermaid-capable renderer, then exporting a Medium-supported image such as PNG (or another format
