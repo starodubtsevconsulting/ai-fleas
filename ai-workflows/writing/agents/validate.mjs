@@ -14,9 +14,11 @@ const portable = parse(fs.readFileSync(portablePath, 'utf8'));
 const gpt = parse(fs.readFileSync(gptPath, 'utf8'));
 const writerRole = fs.readFileSync(path.join(here, 'roles/writer.md'), 'utf8');
 const reviewerRole = fs.readFileSync(path.join(here, 'roles/reviewer.md'), 'utf8');
+const releaseCoordinatorRole = fs.readFileSync(path.join(here, 'roles/release-coordinator.md'), 'utf8');
 const routing = fs.readFileSync(path.join(here, 'editorial-routing.md'), 'utf8');
 const destinationFlow = fs.readFileSync(path.join(workflowRoot, 'flows/destination-preparation.flow.md'), 'utf8');
 const critiqueFlow = fs.readFileSync(path.join(workflowRoot, 'flows/independent-critique.flow.md'), 'utf8');
+const releaseFlow = fs.readFileSync(path.join(workflowRoot, 'flows/release-planning.flow.md'), 'utf8');
 const reviewCriteria = fs.readFileSync(path.join(workflowRoot, 'guides/review-criteria.md'), 'utf8');
 const roster = [portable.initializer, ...portable.agents];
 const ids = roster.map(({ agentId }) => agentId);
@@ -136,5 +138,9 @@ assert.match(routing, /Writer owns search[\s\S]*fixed shortlist of at most three
 assert.match(routing, /Creating or changing a header-image shortlist automatically triggers delivery/);
 assert.match(routing, /human-facing message[\s\S]*is not\s+peer delivery/);
 assert.match(routing, /visual-presence reconciliation/);
+assert.match(releaseCoordinatorRole, /Never treat Medium's default profile\/home as consent/);
+assert.match(releaseCoordinatorRole, /author's profile\/home or one\s+named authorized Publication/);
+assert.match(releaseFlow, /BLOCKED_PUBLICATION_TARGET/);
+assert.match(releaseFlow, /silently fall back to profile\/home/);
 
 console.log('Writing managed-agent roster: PASS');
