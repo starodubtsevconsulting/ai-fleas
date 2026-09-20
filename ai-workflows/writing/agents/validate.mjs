@@ -12,6 +12,10 @@ const portablePath = path.join(workflowRoot, 'agents.yml');
 const gptPath = path.join(publicRoot, 'platforms/gpt-agents/workflows/writing/agents.yml');
 const portable = parse(fs.readFileSync(portablePath, 'utf8'));
 const gpt = parse(fs.readFileSync(gptPath, 'utf8'));
+const writerRole = fs.readFileSync(path.join(here, 'roles/writer.md'), 'utf8');
+const routing = fs.readFileSync(path.join(here, 'editorial-routing.md'), 'utf8');
+const destinationFlow = fs.readFileSync(path.join(workflowRoot, 'flows/destination-preparation.flow.md'), 'utf8');
+const critiqueFlow = fs.readFileSync(path.join(workflowRoot, 'flows/independent-critique.flow.md'), 'utf8');
 const roster = [portable.initializer, ...portable.agents];
 const ids = roster.map(({ agentId }) => agentId);
 const expected = ['admin', 'judge', 'writer', 'reviewer', 'release-coordinator'];
@@ -95,5 +99,13 @@ assert.deepEqual(routes.get('writer_to_reviewer'),
   ['PROHIBITED', 'PROHIBITED', 'AUTHORIZED', 'PROHIBITED', 'PROHIBITED']);
 assert.deepEqual(routes.get('reviewer_to_writer'),
   ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'AUTHORIZED', 'PROHIBITED']);
+
+assert.match(destinationFlow, /must immediately send the[\s\S]*exact archived revision and exact destination draft/);
+assert.match(destinationFlow, /does not\s+require a second human prompt/);
+assert.match(destinationFlow, /BLOCKED_DESTINATION_REVIEW/);
+assert.match(critiqueFlow, /A prior article-only disposition does not\s+review the later destination representation/);
+assert.match(writerRole, /automatically send the exact destination draft to the verified Reviewer/);
+assert.match(writerRole, /destination request is incomplete until the destination-specific disposition/);
+assert.match(routing, /new or materially changed destination draft[\s\S]*no\s+second human request is required/);
 
 console.log('Writing managed-agent roster: PASS');

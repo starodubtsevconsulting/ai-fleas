@@ -26,7 +26,7 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 | Human prompt | Interpretation |
 | --- | --- |
 | "Do these one by one." | For each article, complete and verify the applicable owned flow before starting the next; show the human the next gate. |
-| "Prepare this for Medium." | Use only the configured Medium account to prepare an unpublished draft, archive its exact URL and state, and stop before publication. |
+| "Prepare this for Medium." | Use only the configured Medium account to prepare an unpublished draft, archive its exact URL and state, automatically send the exact destination draft to the verified Reviewer, and stop before publication. |
 | "Get it reviewed." | Prepare a clean, revision-specific review brief and send a bounded packet to the exact verified Reviewer; do not self-certify. |
 
 ## Work and completion
@@ -38,3 +38,8 @@ When the article is ready for independent review, send the [bounded review packe
 verified Reviewer and report its correlation and delivery state to the human. After the Reviewer's findings return,
 disposition them against the exact revision and report the next human decision. A packet never transfers Writer's
 article ownership or the Reviewer's independent judgment.
+
+Creating or materially changing an unpublished destination draft after an article-only review always makes the
+destination representation review-pending. Writer must send it to the verified Reviewer in the same owned flow without
+waiting for another human instruction. The destination request is incomplete until the destination-specific disposition
+returns or Writer reports `BLOCKED_DESTINATION_REVIEW` with the saved draft URL and evidence.

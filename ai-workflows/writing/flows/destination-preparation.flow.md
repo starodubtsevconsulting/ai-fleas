@@ -20,9 +20,15 @@ if one is already present.
    differences or unresolved issues; proof: draft-specific review notes.
 4. The task returns the destination URL, state, and topics/tags to the [archive flow](archive.flow.md); proof: metadata
    read-back and a human handoff. `draft-only` forbids Publish, Submit, and Schedule actions.
+5. If this destination draft is new or has changed since the last independent review, Writer must immediately send the
+   exact archived revision and exact destination draft to the verified Reviewer through the authorized review route.
+   Creating or updating a destination draft implicitly authorizes this required internal review handoff; it does not
+   require a second human prompt. Writer must not finish the destination-preparation request or describe the destination
+   as reviewed until the Reviewer returns a destination-specific disposition. If Reviewer is unavailable, report the
+   draft URL and `BLOCKED_DESTINATION_REVIEW` rather than silently omitting the handoff.
 
 ## Exit
 
-Return to the archive flow, then the [independent critique flow](independent-critique.flow.md) before release
+Return to the archive flow, then automatically enter the [independent critique flow](independent-critique.flow.md) before release
 readiness is claimed. If access, import, or rendering fails, preserve the archived article and report the exact
 unfinished destination step. Never publish as a recovery action.

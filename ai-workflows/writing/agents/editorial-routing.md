@@ -15,7 +15,9 @@ not give Writer editorial control over independent critique.
 ## Writer handoff
 
 After Writer completes its draft, editorial verification, archive record, and any selected unpublished destination draft,
-it may request independent critique without making the human copy its report. Resolve the active Reviewer and Writer
+it requests independent critique without making the human copy its report. A new or materially changed destination draft
+requires this handoff in the same Writer-owned flow even when the article text already has an accepted disposition; no
+second human request is required. Resolve the active Reviewer and Writer
 from trusted platform receipts for the same `profileId`, `workflowId`, complete `logicalProjectId`, and `runtimeScopeId`.
 Verify the Reviewer did not draft or edit the exact revision. Do not derive a target from a task title, folder name,
 conversation memory, or a previous generation. If the Reviewer is unavailable or identity is uncertain, report the
