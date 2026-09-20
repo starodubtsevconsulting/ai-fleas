@@ -12,6 +12,9 @@ components:
       v1:
         ref: human.v1.md
         methods:
+          - id: actual-activity-reconciliation
+            version: v1
+            ref: ../../methods/actual-activity-reconciliation/v1.md
           - id: commitment-discipline
             version: v1
             ref: ../../methods/commitment-discipline/v1.md
