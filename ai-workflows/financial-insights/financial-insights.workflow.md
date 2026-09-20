@@ -39,6 +39,10 @@ overwrite canonical records.
 Filesystem-present records are legitimate inputs. Reconciliation reuses the same classification, extraction,
 provenance, collision, and review rules and is idempotent for already canonical records.
 
+Agent access and durable mutations follow [`versioned-data.md`](versioned-data.md): Analyst/Reviewer are read-only;
+Records / Bookkeeping proposes changes through a version-controlled publisher. Existing human-facing UI storage/write
+behavior remains compatible until separately migrated and acceptance-tested.
+
 ## Operational agents
 
 - **Financial Analyst** — cash flow, trends, anomalies, scenarios, and sourced evidence for buy/sell/spend/retain
