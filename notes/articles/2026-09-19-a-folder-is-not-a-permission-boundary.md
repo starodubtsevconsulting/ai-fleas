@@ -1,4 +1,4 @@
-# Turn Your NAS Into Private Memory for an AI Agent Team
+# Turn Your NAS Into Private Shared Memory for AI Agents
 
 > **Draft:** Material rewrite pending independent review. Human listen-through and release approval remain pending.
 
