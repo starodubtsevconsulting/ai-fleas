@@ -47,6 +47,9 @@ open editorial decisions. Keep both versions unpublished.
    candidates with licensing and credit evidence. Reviewer does not search; it compares that shortlist and recommends
    exactly one based on relevance, interest, clarity, crop resilience, and licensing or credit evidence, or reports
    when none passes rather than broadening the shortlist or silently replacing the image.
+   As soon as Writer prepares or changes that shortlist, Writer must send it directly to the exact Reviewer under the
+   active review correlation, or a new revision-specific correlation if the earlier review is terminal. Reporting the
+   shortlist or its status to the human does not deliver it to Reviewer and does not complete the image-review gate.
 4. When `show-context` is enabled by the selected profile and writing workflow, the Reviewer uses it to present a
    bounded, human-readable review report: what works, what needs work, severity, supporting passages, and the next
    decision. The critique remains the source of judgment; `show-context` only renders it and must not imply approval.

@@ -49,6 +49,12 @@ Send one complete canonical packet under the [common communication contract](../
   compare those candidates and return exactly one recommendation or `none acceptable`.
   Terminal condition: return one review disposition to this Writer.
 
+Creating or changing a header-image shortlist automatically triggers delivery from Writer to the exact Reviewer. Use
+the active correlation while it remains open; if the prior review is terminal, create a new revision-specific review
+packet and correlation. A human-facing message, sidebar task update, or statement that candidates are pending is not
+peer delivery and never satisfies this handoff. Writer must retain the delivery receipt and await Reviewer's selection
+or report the exact delivery blocker.
+
 The selected platform adapter sends to the verified target instance ID. Keep the accepted messaging receipt and
 follow [common delivery](../../_common/agents/delivery.md): await the Reviewer's first-commentary `COPY THAT` and
 terminal handoff before treating critique as received. Retry only after a definite failure with no accepted receipt.

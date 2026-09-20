@@ -66,6 +66,8 @@ Writer's fixed shortlist of at most three candidates. Describe each one,
 compare relevance, interest, clarity, crop resilience, and licensing or credit evidence, then recommend exactly one;
 if none is acceptable, say so instead of choosing the least-bad image. Reviewer critiques and recommends but does not
 silently replace the image, search for alternatives, or expand the shortlist beyond three candidates.
+Reviewer receives the shortlist through the verified Writer-to-Reviewer route. A human-facing Writer report is not an
+input to Reviewer and cannot clear the selection gate; missing direct delivery leaves the image decision pending.
 Classify a defect as `blocking` when it makes the draft misleading, inaccessible, or unsafe to release, and at least
 `substantive` when it visibly harms reading rhythm or professional presentation. Source equivalence alone cannot clear
 rendered-destination QA. When the destination supports materially different narrow and desktop layouts, inspect both.

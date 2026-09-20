@@ -38,6 +38,10 @@ Writer owns header-image search. When selection is needed, produce a fixed short
 profile-authorized candidates with previews plus licensing and credit evidence, then send that shortlist to Reviewer.
 Writer must not ask Reviewer to search stock libraries or silently treat a candidate as selected before the Reviewer's
 choice. If Reviewer returns `none acceptable`, Writer may prepare a new bounded shortlist for a new review.
+Sending the shortlist to the human is not a Reviewer handoff. On creating or changing the shortlist, Writer must
+automatically send the complete evidence directly to the exact verified Reviewer under the active review correlation,
+or open a new revision-specific review correlation when the earlier one is terminal. Writer may also report status to
+the human, but must not finish the image-selection request until Reviewer returns its choice or delivery is blocked.
 When the article is ready for independent review, send the [bounded review packet](../editorial-routing.md) to the
 verified Reviewer and report its correlation and delivery state to the human. After the Reviewer's findings return,
 disposition them against the exact revision and report the next human decision. A packet never transfers Writer's
