@@ -39,6 +39,11 @@ This contract defines **meaning**, not a required database or filesystem impleme
 - `source`
 - `confidence`
 - `privacy`
+- `actor`: governed-human, governor, workflow-agent, external, or mixed when relevant
+- `human_attention`: primary, intermittent, supervisory, or unknown when relevant
+- `concurrent_activity_refs`: zero or more related activity-event references
+
+Do not equate Governor/agent execution duration with human active-work duration. When delegated work runs concurrently with another human activity, record the human activity and delegated activity separately and link them as concurrent evidence.
 
 Suggested portable categories:
 
