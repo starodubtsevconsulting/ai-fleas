@@ -86,6 +86,9 @@ object, diagram overlays, labels, paths, roles, and boundaries; verify each clai
 invented relationships, malformed or unreadable text, misleading devices/interfaces, excessive visual clutter, and a
 focal point that fails in the destination crop. A cinematic editorial infographic can be preferred when its human
 context and diagram layer make the subject clearer and more interesting, but reject it when spectacle outruns truth.
+Treat generic AI “cozy productivity” props—mugs/cups, loose paper or notebooks, stacked books, decorative desk clutter,
+and similar filler—as weaknesses unless each object has an article-specific explanatory purpose. Ask what every
+prominent object contributes; reject or penalize a candidate whose filler dilutes the subject or creates an AI-cliché look.
 Confirm generation provenance, usage terms, and any disclosure or credit requirement. Generated, stock, and supplied
 images compete in the same bounded shortlist; no category wins automatically.
 Reviewer receives the shortlist through the verified Writer-to-Reviewer route. A human-facing Writer report is not an

@@ -25,7 +25,9 @@ published article.
    a human-centered or lived-in scene when relevant, a recognizable subject object, and restrained diagram overlays
    such as nodes, paths, roles, or trust boundaries that explain the article visually. Do not copy a reference image's
    distinctive composition or characters, depict a recognizable real person without authorization, or let decorative
-   complexity obscure the subject. Record stock creator/source/license, or for generated work record the service,
+   complexity obscure the subject. Exclude generic AI “cozy productivity” filler—coffee mugs/cups, loose paper or
+   notebooks, stacked books, decorative desk clutter, and similar props—unless a specific item materially explains the
+   article. Every prominent object must earn its place through the brief. Record stock creator/source/license, or for generated work record the service,
    generation date, prompt/provenance, and usage terms, plus any required credit in article metadata; add a visible
    credit when required or appropriate. Check the crop and appearance in the draft and its preview. If no suitable
    licensed image is available, leave the draft unpublished and report the missing lead image rather than using an

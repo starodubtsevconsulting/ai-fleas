@@ -52,7 +52,9 @@ shortlist, or silently replace the image.
 The shortlist may include at most one profile-authorized generated candidate. Judge it beside supplied and stock
 options without category preference. Verify every depicted object, label, path, role, boundary, and relationship
 against the article; check malformed text, misleading details, clutter, crop readability, provenance, usage terms, and
-disclosure/credit needs. A cinematic human-plus-diagram editorial image is valuable only when it is accurate and clear.
+disclosure/credit needs. Penalize generic AI filler such as mugs/cups, loose paper or notebooks, stacked books, and
+decorative desk clutter unless every prominent prop has a clear article-specific function. A cinematic
+human-plus-diagram editorial image is valuable only when it is accurate, purposeful, and clear.
 Reconcile every claimed diagram, figure, illustration, caption, credit, visual cross-reference, and placeholder with an
 actually rendered visual. Do not accept a label or prose description as proof that the visual exists. Report missing,
 failed, text-only, or orphaned visuals with direct rendered evidence and their effect on comprehension.

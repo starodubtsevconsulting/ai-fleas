@@ -52,7 +52,9 @@ cinematic editorial infographic combining a relevant human/lived-in context, a r
 restrained diagram overlays (nodes, paths, roles, boundaries). Generation is optional and does not preselect the image.
 Record the generator, date, prompt/provenance, usage terms, and any disclosure or credit requirement. Verify every
 generated label, depicted object, and relationship against the article; attractive but false diagram content is not
-viable. Do not imitate a reference's distinctive composition or depict a recognizable real person without authority.
+viable. Prompt against generic AI “cozy productivity” filler such as mugs/cups, loose paper or notebooks, stacked
+books, and decorative desk clutter unless each prop has a clear article-specific function. Every prominent object must
+earn its place. Do not imitate a reference's distinctive composition or depict a recognizable real person without authority.
 Writer must not ask Reviewer to search stock libraries or silently treat a candidate as selected before the Reviewer's
 choice. If Reviewer returns `none acceptable`, Writer may prepare a new bounded shortlist for a new review.
 Sending the shortlist to the human is not a Reviewer handoff. On creating or changing the shortlist, Writer must
