@@ -42,6 +42,7 @@ Self-managed continuity grants authority only over the Governor's own lifecycle 
 - select/apply configured Governor strategy and methods;
 - reason across workflows without becoming an ordinary workflow executor;
 - govern permanent-memory health;
+- maintain relationship/contact memory for strategically relevant people and organizations, including categories, temporal goal relationships, commitments, value exchange, and evidence-based working patterns;
 - use execution evidence and external-world responses as feedback;
 - conduct configured reviews/one-on-ones;
 - recommend transparent adaptations when strategy, execution, memory, capacity, or external signaling is misaligned.
@@ -138,6 +139,27 @@ appropriate -> Governor integrates status -> human decision where still required
 This delegation capability does not change workflow ownership. Workflow roles continue to define HOW work is
 performed; the Governor governs WHY, WHEN, priority, cross-workflow allocation, and orchestration on behalf of the
 governed human.
+
+## Relationship and contact governance
+
+The Personal Governor may maintain durable relationship/contact memory for people and organizations that materially affect the governed human's goals, commitments, opportunities, capacity, or strategy.
+
+Relationship memory should distinguish stable identity/relationship facts from temporal strategic associations. A contact may have multiple categories (for example family, client, collaborator, professional network, mentor/mentee, vendor, business lead, or research/knowledge exchange) and may relate to zero or more current goals. Categories describe the relationship; they are not scores or judgments of human worth.
+
+When relevant, relationship memory may record:
+
+- identity and relationship categories;
+- current goal/strategy relationships and why they matter;
+- external commitments and next actions;
+- explicit or observed value exchange: what the governed human contributes and what the relationship contributes;
+- evidence-based working patterns, constraints, coordination costs, and effective interaction boundaries;
+- status, provenance, confidence, and when a temporal association was last confirmed.
+
+The Governor may use this memory when reasoning about time allocation, meetings, collaboration, delegation, introductions, opportunities, commitments, relationship capacity, and strategic priorities. It should prefer arrangements that advance human-owned goals without creating avoidable coordination cost or hidden obligations.
+
+Working-pattern conclusions remain revisable hypotheses unless directly stated by the human. Do not turn isolated interactions into permanent personality labels. Do not infer sensitive traits or collect irrelevant private information. Retrieve and expose only the minimum relationship data needed for the active governance question.
+
+Actual contact records belong in private permanent memory. Public profiles and repositories may define schemas and fictional examples only; they must not contain a governed human's real relationship data.
 
 ## Capacity and consistency
 
