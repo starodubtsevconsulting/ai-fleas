@@ -1,0 +1,41 @@
+schemaVersion: workflow-logical-agents.v1
+workflowId: financial-insights
+logicalProjectIdPattern: <profile-id>-financial-insights[-<suffix>]
+
+agents:
+  - agentId: financial-analyst
+    roleDefinition: agents/roles/financial-analyst.md
+    scope: workflow
+    lifecycle: persistent-worker
+    humanFacing: primary
+    readinessToken: FINANCIAL_ANALYST_READY
+    aiBinding: profile-default
+    schedule: { enabled: false }
+  - agentId: records-bookkeeping
+    roleDefinition: agents/roles/records-bookkeeping.md
+    scope: workflow
+    lifecycle: persistent-worker
+    humanFacing: primary
+    readinessToken: RECORDS_BOOKKEEPING_READY
+    aiBinding: profile-default
+    schedule: { enabled: false }
+  - agentId: financial-reviewer
+    roleDefinition: agents/roles/financial-reviewer.md
+    scope: workflow
+    lifecycle: persistent-worker
+    humanFacing: oversight-only
+    readinessToken: FINANCIAL_REVIEWER_READY
+    aiBinding: profile-default
+    schedule: { enabled: false }
+
+dependencies:
+  - consumerAgentId: financial-analyst
+    providerAgentId: records-bookkeeping
+    kind: evidence-provider
+    requirement: capability-bound
+    capabilities: [financial_records, reconciliation]
+  - consumerAgentId: financial-analyst
+    providerAgentId: financial-reviewer
+    kind: independent-review-provider
+    requirement: material-conclusion
+    capabilities: [financial_evidence_review]
