@@ -1,0 +1,9 @@
+flowchart TD
+    S[Canonical article source]
+    P[Article-memory share]
+    C[Download-only projection]
+    A[Writing agent]
+    V[Reviewed publisher]
+
+    V --> S --> P --> C --> A
+    A -. no direct mutation .-> P

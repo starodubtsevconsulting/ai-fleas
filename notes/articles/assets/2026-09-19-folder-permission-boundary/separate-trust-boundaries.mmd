@@ -1,0 +1,13 @@
+flowchart TD
+    SM[Secrets service]
+
+    SM --> IA[Article-reader identity]
+    SM --> IB[Financial-memory identity]
+
+    IA --> SA[Article share: read-only]
+    IB --> SB[Financial share: read-only]
+
+    SA ~~~ IB
+
+    IA -. denied .-> SB
+    IB -. denied .-> SA
