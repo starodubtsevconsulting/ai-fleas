@@ -23,6 +23,8 @@ const reviewCriteria = fs.readFileSync(path.join(workflowRoot, 'guides/review-cr
 const headerImageContract = fs.readFileSync(path.join(workflowRoot, 'guides/header-image-contract.md'), 'utf8');
 const mediumDraftSkill = fs.readFileSync(path.join(publicRoot,
   'ai-commands/content/medium/skills/medium-draft/SKILL.md'), 'utf8');
+const mediumPublicationSkill = fs.readFileSync(path.join(publicRoot,
+  'ai-commands/content/medium/skills/medium-publication/SKILL.md'), 'utf8');
 const roster = [portable.initializer, ...portable.agents];
 const ids = roster.map(({ agentId }) => agentId);
 const expected = ['admin', 'judge', 'writer', 'reviewer', 'release-coordinator'];
@@ -84,6 +86,7 @@ for (const [name, cells] of capabilities) {
   assert.ok(cells.filter((cell) => cell === 'OWN').length <= 1, `multiple owners: ${name}`);
 }
 assert.deepEqual(capabilities.get('medium_native_scheduling'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN']);
+assert.deepEqual(capabilities.get('medium_publication_creation'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN']);
 assert.ok(capabilities.get('immediate_publication_or_submission')?.every((cell) => cell === 'PROHIBITED'));
 assert.deepEqual(capabilities.get('review_assignment'), ['PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED', 'PROHIBITED']);
 assert.deepEqual(capabilities.get('review_findings_return'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED']);
@@ -156,6 +159,8 @@ assert.match(routing, /visual-presence reconciliation/);
 assert.match(routing, /complete stable-ID source-diagram inventory/);
 assert.match(releaseCoordinatorRole, /Never treat Medium's default profile\/home as consent/);
 assert.match(releaseCoordinatorRole, /author's profile\/home or one\s+named authorized Publication/);
+assert.match(releaseCoordinatorRole, /Medium Publication skill/);
+assert.match(releaseCoordinatorRole, /name, description, or avatar/);
 assert.match(releaseFlow, /BLOCKED_PUBLICATION_TARGET/);
 assert.match(releaseFlow, /silently fall back to profile\/home/);
 assert.match(headerImageContract, /single canonical header\/hero-image contract/);
@@ -166,5 +171,8 @@ assert.match(headerImageContract, /cinematic editorial infographic/);
 assert.match(headerImageContract, /Treat every subtitle, tagline, caption/);
 assert.match(headerImageContract, /exact article promise/);
 assert.match(headerImageContract, /character-by-character inspection/);
+assert.match(mediumPublicationSkill, /active Medium membership/);
+assert.match(mediumPublicationSkill, /limit of seven owned Publications/);
+assert.match(mediumPublicationSkill, /BLOCKED_MEDIUM_PUBLICATION_CREATION/);
 
 console.log('Writing managed-agent roster: PASS');
