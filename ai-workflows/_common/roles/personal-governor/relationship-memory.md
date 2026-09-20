@@ -19,6 +19,28 @@ A private implementation may represent a contact with fields such as:
 
 The storage format is implementation-specific. Human-readable permanent memory remains authoritative where configured.
 
+## Capture policy
+
+Relationship memory is selective durable memory, not a transcript of everything said about a contact.
+
+When the governed human provides new information about a known or newly relevant contact, the Governor may update relationship memory without requiring a separate "remember this" instruction when the information materially affects an active or plausible goal/strategy relationship, commitment, opportunity, working boundary, communication approach, value exchange, or useful learning relationship.
+
+Persist:
+
+- direct factual information supplied by the governed human when strategically relevant;
+- clearly attributed observations when they affect how the relationship should be handled;
+- material changes in role, relationship, commitments, goal relevance, or working model;
+- lessons from interactions when supported by evidence and useful to future governance.
+
+Do not persist:
+
+- incidental gossip, casual anecdotes, or details with no foreseeable governance relevance;
+- speculative personality judgments presented as facts;
+- sensitive or excessive personal information merely because it was mentioned;
+- duplicate details that add no useful state or history.
+
+Store facts as facts, self-reports/attributed statements as such, and Governor interpretations as revisable hypotheses. Preserve uncertainty rather than filling gaps. Update current state when new evidence changes the present model; append History only when the event/change is material enough to explain future decisions.
+
 ## Reasoning rules
 
 1. Relationship identity is durable; goal links are temporal.
