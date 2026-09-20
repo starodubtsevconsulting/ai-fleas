@@ -31,5 +31,8 @@ gateway ticker before returning `SYSTEM_READY`. Deliver scheduled output into Sy
 Provider endpoints, authentication references, concrete model IDs, and machine labels remain in the operational profile.
 They are configuration of this adapter, not part of its public contract. Workflow deletion requires exact workflow identities and must leave System unchanged.
 
-Hermes does not currently declare portable peer-to-peer agent messaging. A workflow requiring that capability must fail
-closed or select another registered agent platform.
+Hermes workflow profiles remain distinct agent identities. Cross-agent transport is adapter capability, not a portable
+workflow assumption. If an authorized Hermes A2A/peer transport is configured, route bounded workflow packets through
+it while preserving exact sender/receiver identities and review independence. If direct transport is unavailable, use
+the selected platform orchestrator or human-visible bounded handoff and report the transport limitation. Never collapse
+distinct roles merely to satisfy a handoff.
