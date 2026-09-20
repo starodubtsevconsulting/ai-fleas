@@ -1,0 +1,6 @@
+id: financial-records
+version: 0.0.1-SNAPSHOT
+category: data
+type: capability-contract
+ai:
+  powered: false
