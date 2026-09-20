@@ -26,7 +26,7 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 | Human prompt | Interpretation |
 | --- | --- |
 | "Do these one by one." | For each article, complete and verify the applicable owned flow before starting the next; show the human the next gate. |
-| "Prepare this for Medium." | Use only the configured Medium account to prepare an unpublished draft, archive its exact URL and state, and stop before publication. |
+| "Prepare this for Medium." | Use only the configured Medium account to prepare an unpublished draft, archive its exact URL and state, automatically send the exact destination draft to the verified Reviewer, and stop before publication. |
 | "Get it reviewed." | Prepare a clean, revision-specific review brief and send a bounded packet to the exact verified Reviewer; do not self-certify. |
 
 ## Work and completion
@@ -34,7 +34,32 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 Follow the [Writing workflow](../../writing.workflow.md) through the Writer-owned flows. Record the effective template
 and method emphasis, source and image provenance, article revision, destination draft URL and status, and any open
 decisions in the authorized archive. After review, disposition every substantive finding and recheck changed material.
+Writer owns conversion of source visuals into destination-supported artifacts. For Mermaid, preserve the exact editable
+source, render and export it through an authorized Mermaid-capable route, upload the resulting supported image at the
+intended passage, add useful alt text/caption, and visually verify the diagram itself on desktop and narrow layouts.
+Raw Mermaid, a `Diagram—` paragraph, alt text, or a caption is not a successful transfer. If the asset cannot be
+rendered, uploaded, and verified, leave the draft unpublished and report `BLOCKED_DIAGRAM_RENDERING`.
+Before conversion, inventory every Mermaid fence and diagram placeholder using stable IDs, source locations, intended
+positions, and revisions. Convert all inventory items, attach rendered evidence to each ID, and re-scan the entire
+destination draft for residual arrow-chain prose (`A → B → C`), `Diagram—` descriptions, Mermaid syntax, caption-only
+blocks, and placeholders. Do not stop after one successful replacement. Missing, duplicate, or residual items produce
+`BLOCKED_DIAGRAM_RECONCILIATION` and keep the draft unpublished.
+Writer owns header-image search. When selection is needed, produce a fixed shortlist of no more than three viable,
+profile-authorized candidates by applying the canonical
+[header-image selection contract](../../guides/header-image-contract.md). Send Reviewer the shortlist, required
+evidence, canonical contract path, and exact content hash. Do not copy the shared criteria into the packet or role.
+Writer must not ask Reviewer to search stock libraries or silently treat a candidate as selected before the Reviewer's
+choice. If Reviewer returns `none acceptable`, Writer may prepare a new bounded shortlist for a new review.
+Sending the shortlist to the human is not a Reviewer handoff. On creating or changing the shortlist, Writer must
+automatically send the complete evidence directly to the exact verified Reviewer under the active review correlation,
+or open a new revision-specific review correlation when the earlier one is terminal. Writer may also report status to
+the human, but must not finish the image-selection request until Reviewer returns its choice or delivery is blocked.
 When the article is ready for independent review, send the [bounded review packet](../editorial-routing.md) to the
 verified Reviewer and report its correlation and delivery state to the human. After the Reviewer's findings return,
 disposition them against the exact revision and report the next human decision. A packet never transfers Writer's
 article ownership or the Reviewer's independent judgment.
+
+Creating or materially changing an unpublished destination draft after an article-only review always makes the
+destination representation review-pending. Writer must send it to the verified Reviewer in the same owned flow without
+waiting for another human instruction. The destination request is incomplete until the destination-specific disposition
+returns or Writer reports `BLOCKED_DESTINATION_REVIEW` with the saved draft URL and evidence.

@@ -51,10 +51,13 @@ fresh-context Reviewer task or human reader who did not draft or edit the revisi
    addressing substantive findings before calling it release-ready. The computer prepares a spoken preview for the
    human author's first listen-through; a fresh-context reviewer checks the work; the human accepts the exact final
    revision after any changes.
-7. Hand the Writer's exact revision and review record to the Release Coordinator, who selects a destination-specific
-   slot through the [release planning flow](flows/release-planning.flow.md), using profile-owned cadence settings and
-   verified publication history. After human acceptance of that exact final revision, Release Coordinator may schedule
-   on Medium only when the selected profile explicitly enables it, without a second per-item approval.
+7. Hand the Writer's exact revision and review record to the Release Coordinator, who first resolves the explicit
+   publication target (such as Medium profile/home versus a named authorized Publication), then selects a
+   destination-specific slot through the [release planning flow](flows/release-planning.flow.md), using profile-owned
+   cadence settings and verified publication history. After human acceptance of that exact final revision, Release
+   Coordinator may schedule on Medium only when the selected profile explicitly enables it and the selected target
+   supports it, without a second per-item timing approval. Publication-target selection is still required and must
+   never default silently.
 8. Hand the status and any remaining decisions to the human. The human performs immediate publication or submission.
    Pending review or timing must be visible in the handoff, not silently treated as approval.
 

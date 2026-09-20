@@ -1,0 +1,14 @@
+flowchart TD
+    W[Public workflow repository]
+    E[Sanitized example profile]
+    O[Private operational profile]
+    S[Secret references and mappings]
+    D[Private memory]
+
+    W --> O
+    E --> O
+    O --> S
+    O --> D
+    S ~~~ D
+    S -. never copied back .-> W
+    D -. never copied back .-> W

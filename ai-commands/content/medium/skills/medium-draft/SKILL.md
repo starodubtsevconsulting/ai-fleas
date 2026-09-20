@@ -18,16 +18,30 @@ published article.
    suits the opening, and native three-dot section breaks at major narrative transitions. Keep meaningful section
    headings; do not add a divider before every heading or use literal ellipses as a substitute. Verify the rendered
    spacing and reading flow.
-3. Give each draft a relevant lead image near the title. Prefer a suitable image supplied by the human; otherwise
-   choose a stock photograph with verified reuse rights. Do not generate a photographic lead image with AI by
-   default. Record its creator, source URL, license, and any required credit in article metadata; add a visible
-   credit when required or appropriate. Check the crop and appearance in the draft and its preview. If no suitable
-   licensed image is available, leave the draft unpublished and report the missing lead image rather than using an
-   unverified image.
+3. Give each draft a relevant lead image near the title. Writer and Reviewer use the single canonical
+   [header-image selection contract](../../../../ai-workflows/writing/guides/header-image-contract.md); this provider
+   skill does not restate or override it. Record the selected candidate's required provenance/rights metadata, add any
+   required visible credit, and verify its crop in the Medium draft and preview. If no candidate is accepted, leave the
+   draft unpublished and report the unresolved header-image gate.
 4. For a diagram, keep its editable source in the archive and place a legible rendered image or clean screenshot of
-   the rendered diagram in the draft. Crop editor chrome, check mobile readability, and add useful alt text or a
-   caption. AI generation is acceptable for diagrams. If rendering cannot be verified, use a labeled text
-   explanation and flag the missing visual.
+   the rendered diagram in the draft. A fenced Mermaid block must be converted by rendering that exact source through
+   an authorized Mermaid-capable renderer, then exporting a Medium-supported image such as PNG (or another format
+   verified in the current editor). Do not paste Mermaid source, convert it into a paragraph beginning `Diagram—`, or
+   treat alt text/caption as the visual. Crop editor chrome, preserve the complete diagram, use sufficient resolution,
+   check desktop and narrow/mobile readability, and add useful alt text plus a caption when needed. Record the diagram
+   source revision and exported asset with the article so later edits can be reproduced. AI generation is acceptable
+   for diagrams only when it faithfully represents the verified source. Upload the asset, read the draft back, and
+   visually verify that the diagram itself rendered beside the intended passage. If rendering or upload cannot be
+   verified, keep the Medium draft unpublished and report `BLOCKED_DIAGRAM_RENDERING`; a labeled text explanation may
+   aid accessibility but cannot replace a diagram the article claims to contain.
+   Before editing Medium, build a complete source-diagram inventory with a stable ID, source location, intended article
+   position, and source revision for every Mermaid fence and every diagram placeholder. Convert and verify every
+   inventory item, not only the first one encountered, and record the uploaded asset/evidence against the same ID.
+   Re-scan the finished Medium draft for leftovers. Arrow-chain prose such as `A → B → C`, `Diagram—` descriptions,
+   Mermaid fences, raw diagram syntax, caption-only or alt-text-only blocks, and diagram placeholders are unresolved
+   conversions unless the article explicitly intends them as ordinary prose. The number and identities of rendered
+   destination diagrams must reconcile one-to-one with the source inventory; any mismatch leaves the draft unpublished
+   with `BLOCKED_DIAGRAM_RECONCILIATION`.
 5. Choose topics supported by the article's content and likely reader intent, within Medium's current limit.
    Verify they are attached to the draft and record them in article metadata. Do not add generic tags solely for reach.
 6. Review the draft itself for section order, links, visuals, attribution, and readable layout. Return the draft URL,

@@ -36,6 +36,22 @@ Follow the [independent critique flow](../../flows/independent-critique.flow.md)
 independence: inspect the revision's provenance and stop if this same task drafted or edited it. Apply the selected
 template and method emphasis proportionately, check facts and repetition separately, and return passage-specific
 findings to the human and return them to the exact Writer for disposition under the accepted review correlation.
+When a rendered destination draft exists, visually inspect its beginning, middle, end, and every special block.
+Explicitly check padding and whitespace, blockquote attribution spacing, captions and credits, wrapping, indentation,
+hierarchy, and image presentation; record the inspected surface and direct visual evidence. Source equivalence is not
+visual QA. For each picture, also verify that its editorial location supports the nearby passage, follows a sensible
+sequence, does not disrupt or mislead the reading flow, and keeps its caption and credit attached.
+Evaluate the header shortlist independently using the canonical
+[header-image selection contract](../../guides/header-image-contract.md). Verify the packet's contract path and exact
+content hash before judging; do not accept copied criteria or a different revision. Reviewer owns comparison and the
+one-candidate-or-`none acceptable` verdict, not search or replacement.
+Reconcile every claimed diagram, figure, illustration, caption, credit, visual cross-reference, and placeholder with an
+actually rendered visual. Do not accept a label or prose description as proof that the visual exists. Report missing,
+failed, text-only, or orphaned visuals with direct rendered evidence and their effect on comprehension.
+Independently inventory every source Mermaid fence and diagram placeholder, then reconcile stable IDs and counts against
+the entire rendered destination. Explicitly search for residual arrow-chain prose (`A → B → C`), `Diagram—` text,
+Mermaid syntax, captions/alt text without visuals, duplicates, and placeholders. Never infer completeness from one
+successful replacement; reject visual QA until every source item maps exactly once and no placeholder remains.
 `show-context` makes the report visible; it is not a peer transport or approval mechanism.
 
 When listen-through is enabled, the Reviewer owns the human-facing gate but not arbitrary shell execution. Prepare the

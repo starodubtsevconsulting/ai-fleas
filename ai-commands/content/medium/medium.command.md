@@ -4,7 +4,9 @@
 
 Use `medium` to prepare and verify an unpublished Medium draft from an authorized article. With a separately enabled
 `draft-and-schedule` workflow binding, Release Coordinator may schedule an accepted exact revision for a future slot
-through Medium's native UI. Never publish immediately or submit to a publication.
+through Medium's native UI. On an explicit human request, Release Coordinator may also create and verify a Medium
+Publication through the separate guarded Publication skill. Never publish immediately or submit a story merely because
+a Publication was created.
 
 ## Inputs
 
@@ -21,6 +23,7 @@ through Medium's native UI. Never publish immediately or submit to a publication
 - Unpublished Medium draft with reviewed title, subtitle, body, links, visuals, and topics.
 - Draft URL, selected topics, any unresolved issues, and archive metadata read-back.
 - For an enabled Release Coordinator: verified scheduled status, date/time, account, draft URL, and archive read-back.
+- For an explicitly requested Publication setup: verified Publication name, URL, owner role, avatar, and description.
 - No immediate publication, submission, or alteration of an already-published post.
 
 ## Entry point and configuration
@@ -62,3 +65,6 @@ assets, or permissions fail, preserve the archived source and report the unfinis
 For authorized future scheduling, Release Coordinator follows the separate
 [Medium schedule skill](skills/medium-schedule/SKILL.md), which includes a desktop navigation map, and verifies
 Medium's scheduled state before reporting success.
+For explicitly requested Publication creation or configuration, Release Coordinator follows the
+[Medium Publication skill](skills/medium-publication/SKILL.md). Publication creation never follows implicitly from
+draft preparation, target resolution, or scheduling.

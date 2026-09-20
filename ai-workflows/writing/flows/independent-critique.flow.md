@@ -17,6 +17,10 @@ open editorial decisions. Keep both versions unpublished.
    and the minimum sources needed to check claims. Reviewer verifies it did not draft or edit this revision. A
    separate fresh-context AI task or a human reader may do this only when separately authorized; the drafter's own
    second pass does not count as independent. Proof: exact reviewer identity, revision, packet correlation, and scope.
+   When a destination draft was created or materially changed after an earlier article-only review, Writer must initiate
+   a new assignment automatically and include the exact destination URL, state, destination revision, formatting and
+   visual substitutions, topics/tags, and the canonical article revision. A prior article-only disposition does not
+   review the later destination representation.
 2. Reviewer generates a computer-narrated preview with the
    [article read-aloud skill](../skills/article-read-aloud/SKILL.md) and gives the human author a first-pass
    listen-through. Keep the text available for checking exact claims. Ask what sounds inaccurate, unlike their voice,
@@ -29,7 +33,25 @@ open editorial decisions. Keep both versions unpublished.
    what a reader might misunderstand or stop reading at.
    Ask specifically where the same idea appears again without advancing it, while distinguishing a deliberate
    callback or refrain. Request evidence and suggested questions, not a blanket rewrite or praise. Proof: a
-   critique tied to passages.
+   critique tied to passages. For a destination draft, Reviewer must also directly inspect its rendered presentation,
+   record the viewport or surface and visual evidence, and check every special block for excess padding, broken spacing,
+   detached attribution or captions, awkward wrapping, image and credit placement, indentation, and hierarchy. Textual
+   equivalence or metadata read-back cannot substitute for this visual pass. For every picture, Reviewer must judge
+   whether it is located beside the passage it supports, appears in a sensible sequence, preserves the reading flow,
+   and remains associated with its caption and credit; correct rendering alone does not prove correct placement.
+   For header images, both roles load the canonical
+   [header-image selection contract](../guides/header-image-contract.md) using the packet's repository-relative path and
+   exact content hash. This flow does not restate its criteria. Reviewer returns its bounded verdict under that exact
+   contract revision.
+   As soon as Writer prepares or changes that shortlist, Writer must send it directly to the exact Reviewer under the
+   active review correlation, or a new revision-specific correlation if the earlier review is terminal. Reporting the
+   shortlist or its status to the human does not deliver it to Reviewer and does not complete the image-review gate.
+   Reviewer must also reconcile every `Diagram`, `Figure`, `Illustration`, caption, credit, visual cross-reference, or
+   placeholder with an actually rendered visual. A label or textual description does not count as the diagram/image;
+   missing, failed, or orphaned visuals must be reported with direct rendered evidence.
+   Build an independent source-diagram inventory and reconcile every stable ID and count with the rendered destination.
+   Scan the full draft for residual arrow chains, `Diagram—` prose, Mermaid fences/syntax, caption-only blocks, and
+   placeholders. One successful diagram replacement does not clear other inventory items or residual placeholders.
 4. When `show-context` is enabled by the selected profile and writing workflow, the Reviewer uses it to present a
    bounded, human-readable review report: what works, what needs work, severity, supporting passages, and the next
    decision. The critique remains the source of judgment; `show-context` only renders it and must not imply approval.

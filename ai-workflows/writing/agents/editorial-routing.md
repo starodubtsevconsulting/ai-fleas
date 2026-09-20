@@ -15,7 +15,9 @@ not give Writer editorial control over independent critique.
 ## Writer handoff
 
 After Writer completes its draft, editorial verification, archive record, and any selected unpublished destination draft,
-it may request independent critique without making the human copy its report. Resolve the active Reviewer and Writer
+it requests independent critique without making the human copy its report. A new or materially changed destination draft
+requires this handoff in the same Writer-owned flow even when the article text already has an accepted disposition; no
+second human request is required. Resolve the active Reviewer and Writer
 from trusted platform receipts for the same `profileId`, `workflowId`, complete `logicalProjectId`, and `runtimeScopeId`.
 Verify the Reviewer did not draft or edit the exact revision. Do not derive a target from a task title, folder name,
 conversation memory, or a previous generation. If the Reviewer is unavailable or identity is uncertain, report the
@@ -34,7 +36,30 @@ Send one complete canonical packet under the [common communication contract](../
   the human. Prohibited effects include drafting or editing the reviewed revision, publishing, submitting, scheduling,
   accepting the human review gate, or changing the work target.
 - Required evidence: passage-specific findings, the exact revisions inspected, independence/provenance check,
-  listen-through status, and unresolved questions. Terminal condition: return one review disposition to this Writer.
+  listen-through status, and unresolved questions. When a destination draft exists, also require the exact rendered
+  surface or viewport, direct visual evidence such as screenshots, and findings for every special block, including
+  spacing, padding, blockquote attribution, captions, credits, wrapping, indentation, hierarchy, and image presentation.
+  For every picture, require a finding on whether its editorial location supports the nearby passage and reading flow,
+  follows a sensible sequence, and preserves its caption and credit association.
+  For header-image selection, inject the canonical
+  [header-image selection contract](../guides/header-image-contract.md) by repository-relative path and exact content
+  hash, plus the bounded shortlist and evidence it requires. Writer and Reviewer both verify that identity before use;
+  copied criteria, a stale hash, or a role-local variant blocks the header-image verdict. Writer owns candidate
+  preparation; Reviewer returns exactly one recommendation or `none acceptable` under that same contract revision.
+  Require a visual-presence reconciliation: every diagram, figure, illustration, caption, credit, cross-reference, and
+  placeholder claimed by the draft must map to an actually rendered visual. A label or text description is not the
+  visual; include direct evidence for every missing, failed, text-only, or orphaned element.
+  Include the Writer's complete stable-ID source-diagram inventory and conversion evidence. Reviewer independently
+  recreates the inventory and reconciles counts and identities across the full destination draft, including residual
+  arrow chains, `Diagram—` prose, Mermaid syntax, caption-only blocks, duplicates, and placeholders. One successful
+  conversion does not satisfy the packet when another inventory item or placeholder remains.
+  Terminal condition: return one review disposition to this Writer.
+
+Creating or changing a header-image shortlist automatically triggers delivery from Writer to the exact Reviewer. Use
+the active correlation while it remains open; if the prior review is terminal, create a new revision-specific review
+packet and correlation. A human-facing message, sidebar task update, or statement that candidates are pending is not
+peer delivery and never satisfies this handoff. Writer must retain the delivery receipt and await Reviewer's selection
+or report the exact delivery blocker.
 
 The selected platform adapter sends to the verified target instance ID. Keep the accepted messaging receipt and
 follow [common delivery](../../_common/agents/delivery.md): await the Reviewer's first-commentary `COPY THAT` and

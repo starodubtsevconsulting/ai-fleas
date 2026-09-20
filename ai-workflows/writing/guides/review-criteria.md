@@ -37,6 +37,43 @@ manufacture a personal story to satisfy a method.
 The Writer dispositions findings and rechecks changed material. The human accepts the final revision. The Reviewer
 does not rewrite the article, mark it release-ready alone, or publish it.
 
+## Rendered destination QA
+
+When a destination draft exists, inspect the actual rendered draft rather than accepting editor fields, source text,
+or metadata read-back as proof of presentation quality. Record the destination URL, revision, viewport or surface,
+and direct visual evidence such as screenshots. Check the beginning, middle, and end of the article and inspect every
+special block, including images and credits, blockquotes and attributions, headings, lists, separators, links, embeds,
+captions, and any destination-specific substitution.
+
+Reconcile every visual reference and label with what is actually rendered. Text such as `Diagram—`, `Figure`,
+`Illustration`, a caption, alt-text fallback, credit, or prose that says “shown below/above” is not evidence that the
+visual itself exists. Verify that the corresponding image, diagram, embed, or destination-safe substitute is visibly
+present, legible, and adjacent to its label or explanatory passage. Flag orphaned labels/captions, failed uploads,
+missing embeds, raw placeholders, and text-only diagram descriptions. A draft that claims a diagram but renders only
+the words describing it has a substantive defect, and it is blocking when the missing visual is needed to understand
+the argument.
+Independently inventory the source revision's Mermaid fences and diagram placeholders, then reconcile stable identities
+and counts against rendered destination visuals. Inspect the entire draft, not a sample. Treat arrow-chain prose such as
+`A → B → C`, `Diagram—` descriptions, Mermaid fences or syntax, caption-only/alt-text-only blocks, and other serialized
+diagram text as unresolved placeholders unless the article clearly intends ordinary prose. Reject destination visual
+QA when any source diagram is missing or duplicated, any rendered visual has no source mapping, or any placeholder
+remains—even if another diagram was converted successfully.
+
+Look specifically for excessive or uneven padding and whitespace, collapsed or doubled spacing, detached quote
+attributions or captions, awkward line wrapping, incorrect indentation, broken hierarchy, poor image sizing or
+cropping, misplaced credits, and elements that appear orphaned from the content they describe. A blockquote with a
+large empty gap between its quotation and attribution is a destination-rendering defect even when all text is present.
+For every picture, verify editorial placement as well as rendering: it must appear next to the passage it supports,
+in a sensible sequence, without interrupting or misleading the argument, and remain clearly associated with its
+caption and credit. A correctly rendered picture in the wrong part of the article is a review finding.
+Review the header or hero image through the canonical
+[header-image selection contract](header-image-contract.md). Writer and Reviewer must use the same path and exact
+content hash. This general review guide does not duplicate that contract. Missing direct shortlist delivery, contract
+identity, or hash leaves the header-image gate pending.
+Classify a defect as `blocking` when it makes the draft misleading, inaccessible, or unsafe to release, and at least
+`substantive` when it visibly harms reading rhythm or professional presentation. Source equivalence alone cannot clear
+rendered-destination QA. When the destination supports materially different narrow and desktop layouts, inspect both.
+
 ## Human-visible report
 
 When the selected profile and workflow authorize `show-context`, the Reviewer may render its findings through that
