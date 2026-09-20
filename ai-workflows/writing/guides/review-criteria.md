@@ -58,6 +58,13 @@ intended reader; does not imply a false subject; and retains a meaningful, legib
 actual header crop. Compare the image against a more direct subject-specific alternative when the current choice is
 generic—for example, prefer a recognizable NAS for an article specifically about NAS boundaries over an ambiguous
 server-rack detail. A technically valid image that weakens or obscures the article's promise is a substantive finding.
+The header-image finding must first describe only what is visibly shown, distinguishing observation from guesses about
+the scene or object. It must then state what works, what does not, and an explicit `accept` or `reject` verdict with a
+reason tied to the article and actual crop. If the current image is rejected and authorized candidates are available,
+review at most three plausible candidates rather than conducting an open-ended stock-image search. Describe each one,
+compare relevance, interest, clarity, crop resilience, and licensing or credit evidence, then recommend exactly one;
+if none is acceptable, say so instead of choosing the least-bad image. Reviewer critiques and recommends but does not
+silently replace the image or expand the search beyond three candidates without a new human decision.
 Classify a defect as `blocking` when it makes the draft misleading, inaccessible, or unsafe to release, and at least
 `substantive` when it visibly harms reading rhythm or professional presentation. Source equivalence alone cannot clear
 rendered-destination QA. When the destination supports materially different narrow and desktop layouts, inspect both.

@@ -42,6 +42,10 @@ open editorial decisions. Keep both versions unpublished.
    Reviewer must separately validate the header image against the article's specific subject and promise, reader
    interest, possible misleading implications, and the focal point retained by the destination's actual crop. A
    generic broadly related image must be challenged when a clearer subject-specific image would communicate better.
+   Its finding must describe what is visibly present, separate observation from inference, list what works and fails,
+   and return `accept` or `reject`. After rejection, Reviewer may compare no more than three authorized candidates and
+   recommend exactly one based on relevance, interest, clarity, crop resilience, and licensing or credit evidence; it
+   must report when none passes rather than broaden the search or silently replace the image.
 4. When `show-context` is enabled by the selected profile and writing workflow, the Reviewer uses it to present a
    bounded, human-readable review report: what works, what needs work, severity, supporting passages, and the next
    decision. The critique remains the source of judgment; `show-context` only renders it and must not imply approval.

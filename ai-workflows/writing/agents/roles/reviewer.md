@@ -44,6 +44,10 @@ sequence, does not disrupt or mislead the reading flow, and keeps its caption an
 Evaluate the header image independently for specific relevance to the article's promise, reader interest, misleading
 implications, and focal-point survival in the actual destination crop. Flag a generic or ambiguous header when a more
 recognizable subject-specific image would communicate the article better, even if the current file renders correctly.
+Report what is visibly shown, distinguish observation from inference, state what works and fails, and issue an explicit
+`accept` or `reject`. If rejected, compare at most three authorized candidates and recommend exactly one using subject
+relevance, reader interest, clarity, crop resilience, and licensing or credit evidence. Report `none acceptable` when
+needed; do not perform an unbounded stock search or silently replace the image.
 `show-context` makes the report visible; it is not a peer transport or approval mechanism.
 
 When listen-through is enabled, the Reviewer owns the human-facing gate but not arbitrary shell execution. Prepare the

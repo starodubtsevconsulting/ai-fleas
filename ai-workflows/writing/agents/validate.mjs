@@ -114,13 +114,17 @@ assert.match(reviewCriteria, /large empty gap between its quotation and attribut
 assert.match(reviewCriteria, /correctly rendered picture in the wrong part of the article is a review finding/);
 assert.match(reviewCriteria, /Review the header or hero image separately as an editorial choice/);
 assert.match(reviewCriteria, /prefer a recognizable NAS/);
+assert.match(reviewCriteria, /review at most three plausible candidates/);
+assert.match(reviewCriteria, /explicit `accept` or `reject` verdict/);
 assert.match(destinationFlow, /direct rendered\s+evidence such as screenshots/);
 assert.match(critiqueFlow, /Textual\s+equivalence or metadata read-back cannot substitute for this visual pass/);
 assert.match(reviewerRole, /Source equivalence is not\s+visual QA/);
 assert.match(reviewerRole, /For each picture,[\s\S]*editorial location supports the nearby passage/);
 assert.match(reviewerRole, /Evaluate the header image independently[\s\S]*actual destination crop/);
+assert.match(reviewerRole, /compare at most three authorized candidates and recommend exactly one/);
 assert.match(routing, /direct visual evidence such as screenshots/);
 assert.match(routing, /For every picture,[\s\S]*editorial location supports the nearby passage/);
 assert.match(routing, /separate header-image finding[\s\S]*focal point survives/);
+assert.match(routing, /comparison of at most three authorized[\s\S]*`none acceptable`/);
 
 console.log('Writing managed-agent roster: PASS');
