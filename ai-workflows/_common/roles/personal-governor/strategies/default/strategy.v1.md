@@ -10,7 +10,7 @@ A strategy component may compose reusable methods rather than duplicating their 
 
 ## Structure
 
-Maintain in external strategy instance data when applicable: governed subject, active goals/priorities, primary bet, workflow-to-goal relationships, decisions/rationale, hypotheses/opportunities, risks/constraints, strategic evidence, review triggers, and relevant external actions/responses/adaptations.
+Maintain in external strategy instance data when applicable: governed subject, active goals/priorities, primary bet, workflow-to-goal relationships, decisions/rationale, hypotheses/opportunities, risks/constraints, strategically relevant relationships/contacts, temporal contact-to-goal relationships, value exchanges/working constraints when relevant, strategic evidence, review triggers, and relevant external actions/responses/adaptations.
 
 ## Operating rule
 
