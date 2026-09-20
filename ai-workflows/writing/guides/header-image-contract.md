@@ -45,10 +45,14 @@ what they explain. Verify every depicted object, label, path, role, boundary, an
 Reject invented relationships, malformed or unreadable text, misleading devices/interfaces, excessive clutter, or
 spectacle that outruns truth.
 
-Generic AI “cozy productivity” filler—mugs/cups, loose paper or notebooks, stacked books, decorative desk clutter, and
-similar props—is a weakness unless each item has an article-specific explanatory purpose. Subdued environmental
-atmosphere is acceptable when it recedes and does not compete with the subject. Do not copy a reference image's
-distinctive composition or characters or depict a recognizable real person without authorization.
+Generic AI “cozy productivity” filler—mugs/cups, loose paper or notebooks, stacked books, decorative desk clutter,
+motivational posters, and similar props—is a weakness unless each item has an article-specific explanatory purpose.
+Do not add slogans, titles, inspirational phrases, branding, or decorative writing to cups, mugs, clothing, books,
+notebooks, wall art, device surfaces, or other props merely to make the image feel designed or thematic. Prefer
+ordinary unlabelled objects or omit the prop entirely. Embedded text should exist only when the article concept
+specifically requires that text to communicate the visual idea. Subdued environmental atmosphere is acceptable when
+it recedes and does not compete with the subject. Do not copy a reference image's distinctive composition or
+characters or depict a recognizable real person without authorization.
 
 If all candidates fail, Reviewer returns `none acceptable`. Writer may prepare a new bounded shortlist for a new
 review; neither role silently substitutes an image.
