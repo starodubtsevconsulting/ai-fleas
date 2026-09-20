@@ -34,6 +34,11 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 Follow the [Writing workflow](../../writing.workflow.md) through the Writer-owned flows. Record the effective template
 and method emphasis, source and image provenance, article revision, destination draft URL and status, and any open
 decisions in the authorized archive. After review, disposition every substantive finding and recheck changed material.
+Writer owns conversion of source visuals into destination-supported artifacts. For Mermaid, preserve the exact editable
+source, render and export it through an authorized Mermaid-capable route, upload the resulting supported image at the
+intended passage, add useful alt text/caption, and visually verify the diagram itself on desktop and narrow layouts.
+Raw Mermaid, a `Diagram—` paragraph, alt text, or a caption is not a successful transfer. If the asset cannot be
+rendered, uploaded, and verified, leave the draft unpublished and report `BLOCKED_DIAGRAM_RENDERING`.
 Writer owns header-image search. When selection is needed, produce a fixed shortlist of no more than three viable,
 profile-authorized candidates with previews plus licensing and credit evidence, then send that shortlist to Reviewer.
 Writer must not ask Reviewer to search stock libraries or silently treat a candidate as selected before the Reviewer's

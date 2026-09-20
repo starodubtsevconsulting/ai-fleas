@@ -20,6 +20,8 @@ const destinationFlow = fs.readFileSync(path.join(workflowRoot, 'flows/destinati
 const critiqueFlow = fs.readFileSync(path.join(workflowRoot, 'flows/independent-critique.flow.md'), 'utf8');
 const releaseFlow = fs.readFileSync(path.join(workflowRoot, 'flows/release-planning.flow.md'), 'utf8');
 const reviewCriteria = fs.readFileSync(path.join(workflowRoot, 'guides/review-criteria.md'), 'utf8');
+const mediumDraftSkill = fs.readFileSync(path.join(publicRoot,
+  'ai-commands/content/medium/skills/medium-draft/SKILL.md'), 'utf8');
 const roster = [portable.initializer, ...portable.agents];
 const ids = roster.map(({ agentId }) => agentId);
 const expected = ['admin', 'judge', 'writer', 'reviewer', 'release-coordinator'];
@@ -113,6 +115,8 @@ assert.match(writerRole, /destination request is incomplete until the destinatio
 assert.match(writerRole, /Writer owns header-image search/);
 assert.match(writerRole, /fixed shortlist of no more than three/);
 assert.match(writerRole, /Sending the shortlist to the human is not a Reviewer handoff/);
+assert.match(writerRole, /Writer owns conversion of source visuals/);
+assert.match(writerRole, /BLOCKED_DIAGRAM_RENDERING/);
 assert.match(routing, /new or materially changed destination draft[\s\S]*no\s+second human request is required/);
 assert.match(reviewCriteria, /Source equivalence alone cannot clear\s+rendered-destination QA/);
 assert.match(reviewCriteria, /large empty gap between its quotation and attribution/);
@@ -124,6 +128,9 @@ assert.match(reviewCriteria, /explicit `accept` or `reject` verdict/);
 assert.match(reviewCriteria, /human-facing Writer report is not an\s+input to Reviewer/);
 assert.match(reviewCriteria, /claims a diagram but renders only\s+the words describing it/);
 assert.match(destinationFlow, /direct rendered\s+evidence such as screenshots/);
+assert.match(destinationFlow, /Mermaid or another non-native\s+diagram format/);
+assert.match(mediumDraftSkill, /fenced Mermaid block must be converted/);
+assert.match(mediumDraftSkill, /caption as the visual/);
 assert.match(critiqueFlow, /Textual\s+equivalence or metadata read-back cannot substitute for this visual pass/);
 assert.match(reviewerRole, /Source equivalence is not\s+visual QA/);
 assert.match(reviewerRole, /For each picture,[\s\S]*editorial location supports the nearby passage/);

@@ -25,9 +25,16 @@ published article.
    licensed image is available, leave the draft unpublished and report the missing lead image rather than using an
    unverified image.
 4. For a diagram, keep its editable source in the archive and place a legible rendered image or clean screenshot of
-   the rendered diagram in the draft. Crop editor chrome, check mobile readability, and add useful alt text or a
-   caption. AI generation is acceptable for diagrams. If rendering cannot be verified, use a labeled text
-   explanation and flag the missing visual.
+   the rendered diagram in the draft. A fenced Mermaid block must be converted by rendering that exact source through
+   an authorized Mermaid-capable renderer, then exporting a Medium-supported image such as PNG (or another format
+   verified in the current editor). Do not paste Mermaid source, convert it into a paragraph beginning `Diagram—`, or
+   treat alt text/caption as the visual. Crop editor chrome, preserve the complete diagram, use sufficient resolution,
+   check desktop and narrow/mobile readability, and add useful alt text plus a caption when needed. Record the diagram
+   source revision and exported asset with the article so later edits can be reproduced. AI generation is acceptable
+   for diagrams only when it faithfully represents the verified source. Upload the asset, read the draft back, and
+   visually verify that the diagram itself rendered beside the intended passage. If rendering or upload cannot be
+   verified, keep the Medium draft unpublished and report `BLOCKED_DIAGRAM_RENDERING`; a labeled text explanation may
+   aid accessibility but cannot replace a diagram the article claims to contain.
 5. Choose topics supported by the article's content and likely reader intent, within Medium's current limit.
    Verify they are attached to the draft and record them in article metadata. Do not add generic tags solely for reach.
 6. Review the draft itself for section order, links, visuals, attribution, and readable layout. Return the draft URL,
