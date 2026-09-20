@@ -34,6 +34,10 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 Follow the [Writing workflow](../../writing.workflow.md) through the Writer-owned flows. Record the effective template
 and method emphasis, source and image provenance, article revision, destination draft URL and status, and any open
 decisions in the authorized archive. After review, disposition every substantive finding and recheck changed material.
+Writer owns header-image search. When selection is needed, produce a fixed shortlist of no more than three viable,
+profile-authorized candidates with previews plus licensing and credit evidence, then send that shortlist to Reviewer.
+Writer must not ask Reviewer to search stock libraries or silently treat a candidate as selected before the Reviewer's
+choice. If Reviewer returns `none acceptable`, Writer may prepare a new bounded shortlist for a new review.
 When the article is ready for independent review, send the [bounded review packet](../editorial-routing.md) to the
 verified Reviewer and report its correlation and delivery state to the human. After the Reviewer's findings return,
 disposition them against the exact revision and report the next human decision. A packet never transfers Writer's

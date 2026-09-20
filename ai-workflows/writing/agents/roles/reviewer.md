@@ -47,7 +47,8 @@ recognizable subject-specific image would communicate the article better, even i
 Report what is visibly shown, distinguish observation from inference, state what works and fails, and issue an explicit
 `accept` or `reject`. If rejected, compare at most three authorized candidates and recommend exactly one using subject
 relevance, reader interest, clarity, crop resilience, and licensing or credit evidence. Report `none acceptable` when
-needed; do not perform an unbounded stock search or silently replace the image.
+needed. Writer owns search and supplies the fixed shortlist; Reviewer must not search for alternatives, broaden the
+shortlist, or silently replace the image.
 `show-context` makes the report visible; it is not a peer transport or approval mechanism.
 
 When listen-through is enabled, the Reviewer owns the human-facing gate but not arbitrary shell execution. Prepare the

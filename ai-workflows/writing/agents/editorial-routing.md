@@ -44,8 +44,9 @@ Send one complete canonical packet under the [common communication contract](../
   Require a separate header-image finding covering specific relevance to the article's promise, reader interest,
   misleading implications, and whether its focal point survives the destination's actual crop; rendering alone is
   insufficient. The finding must describe visible content, separate observation from inference, state strengths and
-  weaknesses, and return `accept` or `reject`. After rejection, permit a comparison of at most three authorized
-  candidates and require exactly one recommendation or `none acceptable`, including licensing or credit evidence.
+  weaknesses, and return `accept` or `reject`. Writer owns search and must provide a fixed shortlist of at most three
+  authorized candidates with licensing or credit evidence. Reviewer must not search or expand the shortlist; it must
+  compare those candidates and return exactly one recommendation or `none acceptable`.
   Terminal condition: return one review disposition to this Writer.
 
 The selected platform adapter sends to the verified target instance ID. Keep the accepted messaging receipt and
