@@ -62,8 +62,9 @@ not satisfy that gate.
 
 ## Commands and privacy
 
-Load only commands needed for the request. Portable commands include `statements` and `taxes`; profiles may authorize
-additional extraction/OCR/document capabilities without changing this contract.
+Load only commands needed for the request. Portable commands include `statements`, `taxes`, `financial-records`, and `financial-analysis`; profiles may authorize
+provider-specific extraction/OCR/document adapters behind those contracts. Governor-facing outputs follow
+[`evidence-contract.md`](evidence-contract.md).
 
 Keep real corporation identities, records, credentials, provider configuration, account identifiers, and
 machine-specific paths in private profiles/stores. Public examples use fictional/sanitized values.
