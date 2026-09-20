@@ -16,6 +16,7 @@ This principle guides all human-governance methods and the interpretation of evi
 
 ## Methods
 
+- [`actual-activity-reconciliation@v1`](../../methods/actual-activity-reconciliation/v1.md)
 - [`commitment-discipline@v1`](../../methods/commitment-discipline/v1.md)
 - [`execution-adaptation@v1`](../../methods/execution-adaptation/v1.md)
 - [`one-on-one@v1`](../../methods/one-on-one/v1.md)
