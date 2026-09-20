@@ -49,6 +49,9 @@ Report what is visibly shown, distinguish observation from inference, state what
 relevance, reader interest, clarity, crop resilience, and licensing or credit evidence. Report `none acceptable` when
 needed. Writer owns search and supplies the fixed shortlist; Reviewer must not search for alternatives, broaden the
 shortlist, or silently replace the image.
+Reconcile every claimed diagram, figure, illustration, caption, credit, visual cross-reference, and placeholder with an
+actually rendered visual. Do not accept a label or prose description as proof that the visual exists. Report missing,
+failed, text-only, or orphaned visuals with direct rendered evidence and their effect on comprehension.
 `show-context` makes the report visible; it is not a peer transport or approval mechanism.
 
 When listen-through is enabled, the Reviewer owns the human-facing gate but not arbitrary shell execution. Prepare the

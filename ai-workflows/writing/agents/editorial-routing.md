@@ -47,6 +47,9 @@ Send one complete canonical packet under the [common communication contract](../
   weaknesses, and return `accept` or `reject`. Writer owns search and must provide a fixed shortlist of at most three
   authorized candidates with licensing or credit evidence. Reviewer must not search or expand the shortlist; it must
   compare those candidates and return exactly one recommendation or `none acceptable`.
+  Require a visual-presence reconciliation: every diagram, figure, illustration, caption, credit, cross-reference, and
+  placeholder claimed by the draft must map to an actually rendered visual. A label or text description is not the
+  visual; include direct evidence for every missing, failed, text-only, or orphaned element.
   Terminal condition: return one review disposition to this Writer.
 
 Creating or changing a header-image shortlist automatically triggers delivery from Writer to the exact Reviewer. Use

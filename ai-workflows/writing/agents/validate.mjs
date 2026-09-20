@@ -120,6 +120,7 @@ assert.match(reviewCriteria, /prefer a recognizable NAS/);
 assert.match(reviewCriteria, /Writer owns image search and supplies no more than three/);
 assert.match(reviewCriteria, /explicit `accept` or `reject` verdict/);
 assert.match(reviewCriteria, /human-facing Writer report is not an\s+input to Reviewer/);
+assert.match(reviewCriteria, /claims a diagram but renders only\s+the words describing it/);
 assert.match(destinationFlow, /direct rendered\s+evidence such as screenshots/);
 assert.match(critiqueFlow, /Textual\s+equivalence or metadata read-back cannot substitute for this visual pass/);
 assert.match(reviewerRole, /Source equivalence is not\s+visual QA/);
@@ -127,11 +128,13 @@ assert.match(reviewerRole, /For each picture,[\s\S]*editorial location supports 
 assert.match(reviewerRole, /Evaluate the header image independently[\s\S]*actual destination crop/);
 assert.match(reviewerRole, /compare at most three authorized candidates and recommend exactly one/);
 assert.match(reviewerRole, /Writer owns search and supplies the fixed shortlist/);
+assert.match(reviewerRole, /Reconcile every claimed diagram[\s\S]*actually rendered visual/);
 assert.match(routing, /direct visual evidence such as screenshots/);
 assert.match(routing, /For every picture,[\s\S]*editorial location supports the nearby passage/);
 assert.match(routing, /separate header-image finding[\s\S]*focal point survives/);
 assert.match(routing, /Writer owns search[\s\S]*fixed shortlist of at most three/);
 assert.match(routing, /Creating or changing a header-image shortlist automatically triggers delivery/);
 assert.match(routing, /human-facing message[\s\S]*is not\s+peer delivery/);
+assert.match(routing, /visual-presence reconciliation/);
 
 console.log('Writing managed-agent roster: PASS');

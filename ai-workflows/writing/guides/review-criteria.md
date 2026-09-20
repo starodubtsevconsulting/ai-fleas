@@ -45,6 +45,14 @@ and direct visual evidence such as screenshots. Check the beginning, middle, and
 special block, including images and credits, blockquotes and attributions, headings, lists, separators, links, embeds,
 captions, and any destination-specific substitution.
 
+Reconcile every visual reference and label with what is actually rendered. Text such as `Diagram—`, `Figure`,
+`Illustration`, a caption, alt-text fallback, credit, or prose that says “shown below/above” is not evidence that the
+visual itself exists. Verify that the corresponding image, diagram, embed, or destination-safe substitute is visibly
+present, legible, and adjacent to its label or explanatory passage. Flag orphaned labels/captions, failed uploads,
+missing embeds, raw placeholders, and text-only diagram descriptions. A draft that claims a diagram but renders only
+the words describing it has a substantive defect, and it is blocking when the missing visual is needed to understand
+the argument.
+
 Look specifically for excessive or uneven padding and whitespace, collapsed or doubled spacing, detached quote
 attributions or captions, awkward line wrapping, incorrect indentation, broken hierarchy, poor image sizing or
 cropping, misplaced credits, and elements that appear orphaned from the content they describe. A blockquote with a

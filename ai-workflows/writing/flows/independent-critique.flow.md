@@ -50,6 +50,9 @@ open editorial decisions. Keep both versions unpublished.
    As soon as Writer prepares or changes that shortlist, Writer must send it directly to the exact Reviewer under the
    active review correlation, or a new revision-specific correlation if the earlier review is terminal. Reporting the
    shortlist or its status to the human does not deliver it to Reviewer and does not complete the image-review gate.
+   Reviewer must also reconcile every `Diagram`, `Figure`, `Illustration`, caption, credit, visual cross-reference, or
+   placeholder with an actually rendered visual. A label or textual description does not count as the diagram/image;
+   missing, failed, or orphaned visuals must be reported with direct rendered evidence.
 4. When `show-context` is enabled by the selected profile and writing workflow, the Reviewer uses it to present a
    bounded, human-readable review report: what works, what needs work, severity, supporting passages, and the next
    decision. The critique remains the source of judgment; `show-context` only renders it and must not imply approval.
