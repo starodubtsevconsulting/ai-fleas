@@ -13,6 +13,8 @@ A private implementation may represent a contact with fields such as:
 - value exchange: governed-human contribution and contact/relationship contribution;
 - commitments and next actions;
 - working patterns/constraints with provenance and confidence;
+- current relationship state: the present operating model and strategic relevance;
+- history: chronological relationship events, material interactions, experiments, decisions, changes, and lessons that explain how the current state was reached;
 - notes/evidence references.
 
 The storage format is implementation-specific. Human-readable permanent memory remains authoritative where configured.
@@ -25,7 +27,9 @@ The storage format is implementation-specific. Human-readable permanent memory r
 4. Use relationship evidence for allocation and strategy only when relevant to an active governance question.
 5. Prefer explicit agreements over inferred obligations.
 6. Never use relationship records as covert social scoring.
-7. Keep real contact data private; public examples use fictional identities only.
+7. Keep current state separate from history: current state is the Governor's present working model; history is append-oriented evidence of how it evolved.
+8. Do not rewrite history merely because the current strategy changes; correct factual errors explicitly and preserve material prior states when useful.
+9. Keep real contact data private; public examples use fictional identities only.
 
 ## Example
 
