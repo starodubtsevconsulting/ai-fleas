@@ -33,7 +33,10 @@ open editorial decisions. Keep both versions unpublished.
    what a reader might misunderstand or stop reading at.
    Ask specifically where the same idea appears again without advancing it, while distinguishing a deliberate
    callback or refrain. Request evidence and suggested questions, not a blanket rewrite or praise. Proof: a
-   critique tied to passages.
+   critique tied to passages. For a destination draft, Reviewer must also directly inspect its rendered presentation,
+   record the viewport or surface and visual evidence, and check every special block for excess padding, broken spacing,
+   detached attribution or captions, awkward wrapping, image and credit placement, indentation, and hierarchy. Textual
+   equivalence or metadata read-back cannot substitute for this visual pass.
 4. When `show-context` is enabled by the selected profile and writing workflow, the Reviewer uses it to present a
    bounded, human-readable review report: what works, what needs work, severity, supporting passages, and the next
    decision. The critique remains the source of judgment; `show-context` only renders it and must not imply approval.

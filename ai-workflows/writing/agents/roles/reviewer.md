@@ -36,6 +36,10 @@ Follow the [independent critique flow](../../flows/independent-critique.flow.md)
 independence: inspect the revision's provenance and stop if this same task drafted or edited it. Apply the selected
 template and method emphasis proportionately, check facts and repetition separately, and return passage-specific
 findings to the human and return them to the exact Writer for disposition under the accepted review correlation.
+When a rendered destination draft exists, visually inspect its beginning, middle, end, and every special block.
+Explicitly check padding and whitespace, blockquote attribution spacing, captions and credits, wrapping, indentation,
+hierarchy, and image presentation; record the inspected surface and direct visual evidence. Source equivalence is not
+visual QA.
 `show-context` makes the report visible; it is not a peer transport or approval mechanism.
 
 When listen-through is enabled, the Reviewer owns the human-facing gate but not arbitrary shell execution. Prepare the

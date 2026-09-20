@@ -17,7 +17,10 @@ if one is already present.
 2. The task invokes that destination command's contract and provider skill. The destination command owns editor
    formatting, visuals, topic/tag entry, and provider-specific verification; proof: a reviewed unpublished draft.
 3. The task compares the destination draft with the canonical archived article and records intentional formatting
-   differences or unresolved issues; proof: draft-specific review notes.
+   differences or unresolved issues. It visually inspects the rendered beginning, middle, end, and every special block
+   at a normal desktop viewport and a materially different narrow layout when supported. Source text, editor fields,
+   and metadata read-back do not prove rendered quality; proof: draft-specific review notes plus direct rendered
+   evidence such as screenshots, including blockquote spacing and attribution placement when blockquotes exist.
 4. The task returns the destination URL, state, and topics/tags to the [archive flow](archive.flow.md); proof: metadata
    read-back and a human handoff. `draft-only` forbids Publish, Submit, and Schedule actions.
 5. If this destination draft is new or has changed since the last independent review, Writer must immediately send the

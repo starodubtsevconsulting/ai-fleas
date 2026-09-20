@@ -36,7 +36,10 @@ Send one complete canonical packet under the [common communication contract](../
   the human. Prohibited effects include drafting or editing the reviewed revision, publishing, submitting, scheduling,
   accepting the human review gate, or changing the work target.
 - Required evidence: passage-specific findings, the exact revisions inspected, independence/provenance check,
-  listen-through status, and unresolved questions. Terminal condition: return one review disposition to this Writer.
+  listen-through status, and unresolved questions. When a destination draft exists, also require the exact rendered
+  surface or viewport, direct visual evidence such as screenshots, and findings for every special block, including
+  spacing, padding, blockquote attribution, captions, credits, wrapping, indentation, hierarchy, and image presentation.
+  Terminal condition: return one review disposition to this Writer.
 
 The selected platform adapter sends to the verified target instance ID. Keep the accepted messaging receipt and
 follow [common delivery](../../_common/agents/delivery.md): await the Reviewer's first-commentary `COPY THAT` and

@@ -13,9 +13,11 @@ const gptPath = path.join(publicRoot, 'platforms/gpt-agents/workflows/writing/ag
 const portable = parse(fs.readFileSync(portablePath, 'utf8'));
 const gpt = parse(fs.readFileSync(gptPath, 'utf8'));
 const writerRole = fs.readFileSync(path.join(here, 'roles/writer.md'), 'utf8');
+const reviewerRole = fs.readFileSync(path.join(here, 'roles/reviewer.md'), 'utf8');
 const routing = fs.readFileSync(path.join(here, 'editorial-routing.md'), 'utf8');
 const destinationFlow = fs.readFileSync(path.join(workflowRoot, 'flows/destination-preparation.flow.md'), 'utf8');
 const critiqueFlow = fs.readFileSync(path.join(workflowRoot, 'flows/independent-critique.flow.md'), 'utf8');
+const reviewCriteria = fs.readFileSync(path.join(workflowRoot, 'guides/review-criteria.md'), 'utf8');
 const roster = [portable.initializer, ...portable.agents];
 const ids = roster.map(({ agentId }) => agentId);
 const expected = ['admin', 'judge', 'writer', 'reviewer', 'release-coordinator'];
@@ -107,5 +109,11 @@ assert.match(critiqueFlow, /A prior article-only disposition does not\s+review t
 assert.match(writerRole, /automatically send the exact destination draft to the verified Reviewer/);
 assert.match(writerRole, /destination request is incomplete until the destination-specific disposition/);
 assert.match(routing, /new or materially changed destination draft[\s\S]*no\s+second human request is required/);
+assert.match(reviewCriteria, /Source equivalence alone cannot clear\s+rendered-destination QA/);
+assert.match(reviewCriteria, /large empty gap between its quotation and attribution/);
+assert.match(destinationFlow, /direct rendered\s+evidence such as screenshots/);
+assert.match(critiqueFlow, /Textual\s+equivalence or metadata read-back cannot substitute for this visual pass/);
+assert.match(reviewerRole, /Source equivalence is not\s+visual QA/);
+assert.match(routing, /direct visual evidence such as screenshots/);
 
 console.log('Writing managed-agent roster: PASS');

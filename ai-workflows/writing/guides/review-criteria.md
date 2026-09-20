@@ -37,6 +37,22 @@ manufacture a personal story to satisfy a method.
 The Writer dispositions findings and rechecks changed material. The human accepts the final revision. The Reviewer
 does not rewrite the article, mark it release-ready alone, or publish it.
 
+## Rendered destination QA
+
+When a destination draft exists, inspect the actual rendered draft rather than accepting editor fields, source text,
+or metadata read-back as proof of presentation quality. Record the destination URL, revision, viewport or surface,
+and direct visual evidence such as screenshots. Check the beginning, middle, and end of the article and inspect every
+special block, including images and credits, blockquotes and attributions, headings, lists, separators, links, embeds,
+captions, and any destination-specific substitution.
+
+Look specifically for excessive or uneven padding and whitespace, collapsed or doubled spacing, detached quote
+attributions or captions, awkward line wrapping, incorrect indentation, broken hierarchy, poor image sizing or
+cropping, misplaced credits, and elements that appear orphaned from the content they describe. A blockquote with a
+large empty gap between its quotation and attribution is a destination-rendering defect even when all text is present.
+Classify a defect as `blocking` when it makes the draft misleading, inaccessible, or unsafe to release, and at least
+`substantive` when it visibly harms reading rhythm or professional presentation. Source equivalence alone cannot clear
+rendered-destination QA. When the destination supports materially different narrow and desktop layouts, inspect both.
+
 ## Human-visible report
 
 When the selected profile and workflow authorize `show-context`, the Reviewer may render its findings through that
