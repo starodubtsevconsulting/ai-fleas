@@ -17,11 +17,11 @@ policy:
 initializer:
   agentId: admin
   matrixColumn: admin
-  roleDefinition: ../_common/roles/admin.md
+  roleDefinition: agents/roles/admin.md
   scope: workflow
   lifecycle: persistent-control
   humanFacing: human-owned
-  communicationMode: direct-human-administration-only
+  communicationMode: human-administration-and-workflow-orchestration
   readinessToken: ADMIN_READY
   aiBinding: profile-default
   schedule: { enabled: false }
@@ -63,7 +63,7 @@ agents:
     scope: workflow
     lifecycle: persistent-worker
     humanFacing: primary
-    communicationMode: direct-human-only
+    communicationMode: human-dialogue-and-canonical-packets
     readinessToken: RELEASE_COORDINATOR_READY
     aiBinding: profile-default
     schedule: { enabled: false }
@@ -79,3 +79,8 @@ dependencies:
     kind: return-coordinator
     requirement: capability-bound
     capabilities: [critique_disposition]
+  - consumerAgentId: release-coordinator
+    providerAgentId: reviewer
+    kind: evidence-provider
+    requirement: capability-bound
+    capabilities: [release_gate_diagnosis]

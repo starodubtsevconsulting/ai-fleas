@@ -1,10 +1,12 @@
 # Writing editorial routing
 
-Writer and Reviewer remain directly human-addressable. The only ordinary peer exchange is one bounded review
+Writer and Reviewer remain directly human-addressable. The ordinary editorial peer exchange is one bounded review
 assignment from the exact Writer to the exact Reviewer, followed by the Reviewer's findings return to that Writer.
+Release Coordinator may also ask Reviewer for one bounded release-gate diagnosis, and Admin may orchestrate declared
+owners when the human asks Admin to run the workflow.
 The [communication matrix](role-communication-matrix.csv) and [capability matrix](role-capability-ownership.csv) grant
 these directions; this contract narrows their use. Writer coordinates the assignment but does not supervise or change
-the Reviewer's independent judgment. No peer route to Release Coordinator, Judge, or Admin is granted.
+the Reviewer's independent judgment. Judge remains outside ordinary peer routing.
 
 For the [common compatibility ceiling](../../_common/policy/access-matrix.md), Writer is the supervising Worker only
 for this bounded review assignment, and Reviewer is its assigned Worker only for this review. The reverse direction is
@@ -89,3 +91,23 @@ human accepts or rejects the exact final revision. The human selects Release Coo
 readiness; Release Coordinator reports its slot and may schedule an accepted revision on Medium if the selected profile
 enables that action. The human performs immediate publication or submission.
 `show-context` is a human-facing presentation command, never peer transport.
+
+## Release-gate diagnosis
+
+Release Coordinator may send Reviewer a read-only diagnostic packet only when release readiness is blocked by missing,
+stale, conflicting, or ambiguous review evidence. The packet preserves the four verified workflow coordinates and
+identifies the exact article revision, destination revision, recorded review evidence, precise discrepancy, prohibited
+effects, and Release Coordinator return instance. Reviewer returns existing proof, a mismatch diagnosis, or
+`REVIEW_REQUIRED`; it does not edit, accept, or perform an unassigned fresh critique. If a fresh critique is required,
+Writer remains the assignment owner. Release Coordinator resumes planning from the returned evidence or routes the
+remaining blocker to Writer/Admin instead of requiring the human to relay the diagnostic question.
+
+## Admin orchestration
+
+When directly requested by the human to run or finish the workflow, the verified Writing Admin may send bounded
+next-step packets to Writer, Reviewer, and Release Coordinator and receive their evidence returns. Admin follows the
+durable state, waits for each terminal return, validates it, and continues until completion or a genuine human-only or
+blocking condition. This orchestration grants transport and follow-up responsibility, not the owner's capability:
+Admin cannot author an independent verdict, accept a revision for the human, select an unconfirmed publication target,
+or bypass destination authority. Normal Writer/Reviewer and Release Coordinator/Reviewer routes remain preferred;
+Admin repairs stalled coordination rather than becoming a substitute editor or reviewer.

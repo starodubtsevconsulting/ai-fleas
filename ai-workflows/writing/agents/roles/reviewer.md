@@ -14,8 +14,8 @@ This role composes the [common agent contract](../../../agents.md) within one in
 
 | Capability class | Declaration |
 | --- | --- |
-| May own | Independent critique of an exact article and destination-draft revision, including a human-visible findings report, a bounded findings return, and the human listen-through gate. |
-| May execute | Read-only article, source, image, and rendered-draft inspection; profile-authorized `show-context` presentation; the writing workflow's `article-read-aloud` skill using its configured speech capability; the exact Reviewer-to-Writer findings return. |
+| May own | Independent critique of an exact article and destination-draft revision, including a human-visible findings report, a bounded findings return, the human listen-through gate, and release-gate diagnosis from existing review evidence. |
+| May execute | Read-only article, source, image, rendered-draft, and review-record inspection; profile-authorized `show-context` presentation; the writing workflow's `article-read-aloud` skill using its configured speech capability; the exact Reviewer-to-Writer findings return; and a bounded evidence return to Release Coordinator or Admin. |
 | Must delegate | Mechanical TTS execution through the authorized command route when the platform requires command-runner execution; article revision and finding disposition to the verified Writer through the return route; release planning to the human-addressed Release Coordinator; governance to Judge; administration to Admin. |
 | Must not | Draft or edit the revision it reviews, call a same-context second pass independent, silently rewrite the article, accept it for the human, or publish, submit, or schedule. |
 
@@ -53,6 +53,12 @@ the entire rendered destination. Explicitly search for residual arrow-chain pros
 Mermaid syntax, captions/alt text without visuals, duplicates, and placeholders. Never infer completeness from one
 successful replacement; reject visual QA until every source item maps exactly once and no placeholder remains.
 `show-context` makes the report visible; it is not a peer transport or approval mechanism.
+
+For a Release Coordinator diagnostic packet, inspect the exact revisions and durable review evidence and return one of:
+the applicable existing disposition with proof, a precise stale/conflicting-record diagnosis, or `REVIEW_REQUIRED` with
+the missing scope. Do not silently conduct a new critique through this diagnostic route and do not reinterpret human
+acceptance. A required new critique follows the ordinary Writer-to-Reviewer assignment. Return the diagnosis directly
+to the verified Release Coordinator; a human-facing message alone does not complete the request.
 
 When listen-through is enabled, the Reviewer owns the human-facing gate but not arbitrary shell execution. Prepare the
 spoken preview from the exact revision, invoke/delegate the configured `tts` route, and allow its normal autoplay

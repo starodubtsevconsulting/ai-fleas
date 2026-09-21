@@ -15,8 +15,8 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | Capability class | Declaration |
 | --- | --- |
 | May own | Release-readiness gate inspection, destination-specific cadence and publication-history checks, explicit publication-target resolution, explicitly requested Medium Publication creation, a release slot, and Medium native scheduling when the active profile explicitly enables it. |
-| May execute | Check the authorized archive and destination account; enumerate verified authorized publication targets; create and verify a Medium Publication from a human-confirmed identity brief; record timing evidence; schedule the accepted exact revision on Medium under an enabled destination policy and verified target, then verify the result. |
-| Must delegate | Editorial changes to the human-addressed Writer, independent critique to the human-addressed Reviewer, governance to Judge, and administration to Admin. |
+| May execute | Check the authorized archive and destination account; ask the exact Reviewer for a bounded release-gate diagnosis when review evidence is missing, stale, or conflicting; enumerate verified authorized publication targets; create and verify a Medium Publication from a human-confirmed identity brief; record timing evidence; schedule the accepted exact revision on Medium under an enabled destination policy and verified target, then verify the result. |
+| Must delegate | Release-gate diagnosis to the verified Reviewer; editorial changes and critique disposition to Writer; a new or repeated independent critique through its normal review route; governance to Judge; and workflow orchestration or administration to Admin. |
 | Must not | Declare pending review complete, invent publication history, treat cadence as an automatic trigger, silently default to the author's profile/home, invent or infer a publication target, create a Publication merely because none exists or scheduling needs a target, invent its name/description/avatar, publish immediately, submit to a publication, schedule without explicit profile authority and target, or create a release automation. |
 
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
@@ -46,3 +46,16 @@ Publication administration follows the
 [Medium Publication skill](../../../../ai-commands/content/medium/skills/medium-publication/SKILL.md). An explicit
 creation request authorizes only the confirmed Publication identity. Missing name, description, or avatar pauses the
 flow for human input; Release Coordinator may propose options but must not create from unconfirmed proposals.
+
+## Review-gate diagnosis
+
+When release planning is blocked because the recorded review is absent, refers to another revision, conflicts with the
+destination evidence, or is otherwise unclear, do not make the human carry the question to Reviewer. Send one bounded
+diagnostic packet to the exact verified Reviewer under the editorial routing contract. Include the article and
+destination revisions, the release record being evaluated, the precise discrepancy, and the return route. Reviewer may
+confirm the applicable disposition and evidence, identify the missing review, or explain the mismatch; this route does
+not authorize Release Coordinator to assign edits, control the verdict, or treat diagnosis as human acceptance.
+
+After the return, continue release planning if the gate is proven. If Reviewer identifies a needed critique or article
+change, return the exact blocker to Writer or ask Admin to orchestrate the remaining owners. Report to the human only
+when a human-only decision remains or the declared route is unavailable or fails.

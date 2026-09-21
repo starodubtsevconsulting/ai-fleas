@@ -15,6 +15,7 @@ const gpt = parse(fs.readFileSync(gptPath, 'utf8'));
 const writerRole = fs.readFileSync(path.join(here, 'roles/writer.md'), 'utf8');
 const reviewerRole = fs.readFileSync(path.join(here, 'roles/reviewer.md'), 'utf8');
 const releaseCoordinatorRole = fs.readFileSync(path.join(here, 'roles/release-coordinator.md'), 'utf8');
+const adminRole = fs.readFileSync(path.join(here, 'roles/admin.md'), 'utf8');
 const routing = fs.readFileSync(path.join(here, 'editorial-routing.md'), 'utf8');
 const destinationFlow = fs.readFileSync(path.join(workflowRoot, 'flows/destination-preparation.flow.md'), 'utf8');
 const critiqueFlow = fs.readFileSync(path.join(workflowRoot, 'flows/independent-critique.flow.md'), 'utf8');
@@ -44,12 +45,15 @@ assert.equal(roster.find(({ agentId }) => agentId === 'reviewer')?.communication
 assert.equal(roster.find(({ agentId }) => agentId === 'judge')?.communicationMode,
   'direct-human-governance-only');
 assert.equal(roster.find(({ agentId }) => agentId === 'release-coordinator')?.communicationMode,
-  'direct-human-only');
+  'human-dialogue-and-canonical-packets');
+assert.equal(portable.initializer.communicationMode, 'human-administration-and-workflow-orchestration');
 assert.deepEqual(portable.dependencies, [
   { consumerAgentId: 'writer', providerAgentId: 'reviewer', kind: 'capability-provider',
     requirement: 'capability-bound', capabilities: ['independent_critique'] },
   { consumerAgentId: 'reviewer', providerAgentId: 'writer', kind: 'return-coordinator',
     requirement: 'capability-bound', capabilities: ['critique_disposition'] },
+  { consumerAgentId: 'release-coordinator', providerAgentId: 'reviewer', kind: 'evidence-provider',
+    requirement: 'capability-bound', capabilities: ['release_gate_diagnosis'] },
 ]);
 
 for (const relative of [portable.teamPolicy, ...Object.values(portable.policy)]) {
@@ -87,6 +91,8 @@ for (const [name, cells] of capabilities) {
 }
 assert.deepEqual(capabilities.get('medium_native_scheduling'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN']);
 assert.deepEqual(capabilities.get('medium_publication_creation'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN']);
+assert.deepEqual(capabilities.get('workflow_orchestration'), ['OWN', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
+assert.deepEqual(capabilities.get('release_gate_diagnosis'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED']);
 assert.ok(capabilities.get('immediate_publication_or_submission')?.every((cell) => cell === 'PROHIBITED'));
 assert.deepEqual(capabilities.get('review_assignment'), ['PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED', 'PROHIBITED']);
 assert.deepEqual(capabilities.get('review_findings_return'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED']);
@@ -98,6 +104,9 @@ for (const [name, cells] of routes) {
 assert.deepEqual([...routes.keys()], [
   'human_to_admin', 'human_to_judge', 'human_to_writer', 'human_to_reviewer',
   'human_to_release_coordinator', 'writer_to_reviewer', 'reviewer_to_writer',
+  'release_coordinator_to_reviewer', 'reviewer_to_release_coordinator',
+  'admin_to_writer', 'writer_to_admin', 'admin_to_reviewer', 'reviewer_to_admin',
+  'admin_to_release_coordinator', 'release_coordinator_to_admin',
 ]);
 for (const [index, id] of expected.entries()) {
   const route = routes.get(`human_to_${roster[index].matrixColumn}`);
@@ -109,6 +118,16 @@ assert.deepEqual(routes.get('writer_to_reviewer'),
   ['PROHIBITED', 'PROHIBITED', 'AUTHORIZED', 'PROHIBITED', 'PROHIBITED']);
 assert.deepEqual(routes.get('reviewer_to_writer'),
   ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'AUTHORIZED', 'PROHIBITED']);
+assert.deepEqual(routes.get('release_coordinator_to_reviewer'),
+  ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'AUTHORIZED']);
+assert.deepEqual(routes.get('reviewer_to_release_coordinator'),
+  ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'AUTHORIZED', 'PROHIBITED']);
+assert.deepEqual(routes.get('admin_to_writer'),
+  ['AUTHORIZED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
+assert.deepEqual(routes.get('admin_to_reviewer'),
+  ['AUTHORIZED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
+assert.deepEqual(routes.get('admin_to_release_coordinator'),
+  ['AUTHORIZED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
 
 assert.match(destinationFlow, /must immediately send the[\s\S]*exact archived revision and exact destination draft/);
 assert.match(destinationFlow, /does not\s+require a second human prompt/);
@@ -161,6 +180,12 @@ assert.match(releaseCoordinatorRole, /Never treat Medium's default profile\/home
 assert.match(releaseCoordinatorRole, /author's profile\/home or one\s+named authorized Publication/);
 assert.match(releaseCoordinatorRole, /Medium Publication skill/);
 assert.match(releaseCoordinatorRole, /name, description, or avatar/);
+assert.match(releaseCoordinatorRole, /do not make the human carry the question to Reviewer/);
+assert.match(releaseCoordinatorRole, /ask Admin to orchestrate the remaining owners/);
+assert.match(reviewerRole, /REVIEW_REQUIRED/);
+assert.match(routing, /Release-gate diagnosis/);
+assert.match(routing, /Admin orchestration/);
+assert.match(adminRole, /owns orchestration from the current verified\s+state until a terminal outcome/);
 assert.match(releaseFlow, /BLOCKED_PUBLICATION_TARGET/);
 assert.match(releaseFlow, /silently fall back to profile\/home/);
 assert.match(headerImageContract, /single canonical header\/hero-image contract/);

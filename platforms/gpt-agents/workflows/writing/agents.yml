@@ -32,7 +32,7 @@ agents:
     reasoning: low
 
 role_contracts:
-  admin: ../../../../ai-workflows/_common/roles/admin.md
+  admin: ../../../../ai-workflows/writing/agents/roles/admin.md
   judge: ../../../../ai-workflows/_common/roles/judge.md
   writer: ../../../../ai-workflows/writing/agents/roles/writer.md
   reviewer: ../../../../ai-workflows/writing/agents/roles/reviewer.md

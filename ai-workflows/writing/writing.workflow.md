@@ -28,8 +28,13 @@ fresh-context Reviewer task or human reader who did not draft or edit the revisi
   the exact Writer and the human, not an edited replacement draft or publication approval.
 - The **Release Coordinator** owns release planning and the final recommendation to the human. It verifies the review
   gate, destination account, profile-owned cadence, and publication or queue history before proposing a day. If any
-  prerequisite is missing, it reports a pending gate instead of inventing a slot. It reports substantive editorial
-  issues to the human for Writer's attention; a changed revision requires affected checks to be repeated.
+  review evidence is missing, stale, or conflicting, it asks the exact Reviewer for a bounded diagnosis instead of
+  requiring the human to relay the question. It reports a pending gate instead of inventing a slot. Substantive
+  editorial changes remain Writer-owned; a changed revision requires affected checks to be repeated.
+- The **Admin**, when directly asked by the human to run or finish the workflow, owns orchestration across the declared
+  agents. Admin identifies the next unmet gate, routes it to its exact owner, waits for and verifies the return, and
+  continues until completion or a genuine human-only blocker. Admin does not inherit the owners' editorial verdicts,
+  human acceptance, publication-target choice, or publication authority.
 - The human author alone accepts the final revision and performs any Publish, Submit, or Schedule action. These
   responsibilities do not imply autonomous publishing. A Reviewer title or emulated role switch alone does not make a
   critique independent.

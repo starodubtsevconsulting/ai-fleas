@@ -8,7 +8,7 @@ The matrices are the mechanical authority; this page explains their ownership an
 
 | Agent | Human access | Ownership | Lifecycle |
 | --- | --- | --- | --- |
-| Admin | administration | Human-requested Writing workflow administration | persistent |
+| Admin | administration | Human-requested Writing workflow administration and end-to-end orchestration | persistent |
 | Judge | oversight | Protected rule governance and compliance | persistent |
 | Writer | primary | Article intake, draft, edit, archive, unpublished destination draft, critique disposition | persistent |
 | Reviewer | primary | Independent critique and human-visible review report | persistent |
@@ -26,7 +26,9 @@ Reviewer for independent critique, then permits Reviewer to return findings to t
 human-addressable. The Reviewer must be independent of the exact revision it critiques, regardless of role label.
 Writer dispositions the findings; the human accepts the final revision and selects Release Coordinator for timing.
 Release Coordinator selects an eligible day and may schedule it on an enabled Medium destination without a second
-approval. The human performs any immediate publication or submission. No other ordinary peer route is authorized.
+approval. If review evidence is unclear, Release Coordinator asks Reviewer directly for a bounded diagnosis. When the
+human asks Admin to run or finish the workflow, Admin coordinates each declared owner and follows returns until the
+workflow completes or reaches a genuine human-only blocker. The human performs any immediate publication or submission.
 
 Each agent is limited to the selected profile's registered project subset, exact logical project, active commands, and
 its matrix column. Provider account, article archive path, editorial preferences, and release cadence come from the

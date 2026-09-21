@@ -15,9 +15,12 @@ a release-ready recommendation.
 
 ## Steps
 
-1. Verify that independent critique is addressed and the human accepted the exact final revision. If not, record the
-   missing gate and do not mark the article release-ready. Return editorial issues to the Writer. Proof: review record
-   and exact revision identifiers, or an explicit pending status.
+1. Verify that independent critique is addressed and the human accepted the exact final revision. When review evidence
+   is missing, stale, conflicting, or ambiguous, send the exact Reviewer one bounded release-gate diagnostic packet and
+   wait for its evidence return; do not make the human relay the question. If Reviewer returns `REVIEW_REQUIRED`, route
+   the required critique through Writer's normal assignment path or ask Admin to orchestrate it. If acceptance or review
+   still is not proven, record the missing gate and do not mark the article release-ready. Return editorial changes to
+   Writer. Proof: review record and exact revision identifiers, diagnostic receipt/return when used, or explicit status.
 2. Resolve the exact publication target separately from the provider account and schedule: for Medium, either the
    author's profile/home or one named Publication that the signed-in account is verified and authorized to use. Present
    the verified choices and ask the human where this exact revision should be published unless that exact target is
