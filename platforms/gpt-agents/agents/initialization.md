@@ -76,11 +76,19 @@ task ID under the exact saved-project ID before dispatching more lifecycle work 
 host cannot persist or reconcile this metadata through a supported operation, return a capability mismatch instead of
 declaring readiness or creating another candidate.
 
-The adapter must also normalize the saved project's sidebar task order to the exact active roster and reread the expanded
-project as the user sees it. Remove stale or archived ordering entries from the active roster sequence; they must not
-truncate, cap, or interrupt enumeration of active agents. A task returned by the backend catalog but absent from the
-expanded saved-project sidebar is still incomplete initialization. Clear stale same-named custom-section references
-through supported presentation operations; the custom section cannot replace saved-project enumeration evidence.
+The adapter must also normalize the saved project's sidebar task order so the exact managed roster is a contiguous ordered
+sequence. Remove stale or archived ordering entries from that sequence; they must not truncate, cap, or interrupt
+enumeration of managed agents. Additional human-created tasks, including another Admin task, may coexist outside managed
+lifecycle receipts and cannot satisfy a required role.
+
+After normalization, inspect the rendered expanded project with the host's screenshot/computer-vision capability.
+Automatically expand or scroll the project as needed and require visual evidence of every exact managed task title and
+managed count. Record the capture timestamp, project ID, expected and observed managed titles and counts, any extras, and
+the observation method in the binding receipt. An accessibility-tree or backend-catalog result alone is supporting
+evidence, not rendered acceptance. Do not ask the human for visual confirmation when the host can capture its UI. A
+managed task returned by the backend catalog but absent from the computer-vision-verified expanded saved-project sidebar
+is still incomplete initialization. Clear stale same-named custom-section references through supported presentation
+operations; the custom section cannot replace saved-project enumeration evidence.
 
 Every canonical initialization message must also identify the selected operational profile by its canonical absolute
 directory and include the exact resolved profile-owned binding-registry path and schema. This is required when the public

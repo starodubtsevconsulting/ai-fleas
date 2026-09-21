@@ -70,9 +70,14 @@ Verified exact task receipts or a precise no-mutation failure.
   target is insufficient evidence of project membership.
 - A task omitted from the saved project's catalog is an invalid provisional creation. It is reconciled by exact candidate
   ID before another task is created, and readiness from that hidden candidate never makes the roster complete.
-- The saved-project sidebar order contains the exact active roster without stale, archived, or unrelated task IDs before
-  or between active agents. Completion requires a user-visible expanded-project enumeration of every active role; a
-  backend task-catalog result by itself is insufficient.
+- The saved-project sidebar order contains the exact managed roster as a contiguous ordered sequence without stale or
+  archived task IDs between managed agents. Additional human-created tasks, including another Admin task, are allowed
+  outside lifecycle receipts; they cannot satisfy or replace a required roster member.
+- Completion requires a screenshot/computer-vision inspection of the rendered expanded project. The adapter automatically
+  expands or scrolls the project as needed, verifies every exact managed title and count, and records the capture time,
+  project, expected and observed managed titles and counts, extras, and observation method. Backend catalog or
+  accessibility-tree data alone is insufficient. Human visual confirmation is not a normal acceptance dependency when
+  the host can capture its UI.
 - A stale custom section with the logical-project name is cleared through supported presentation operations. It never
   substitutes for the exact saved-project roster or counts as initialization evidence.
 - Every initialization message carries the canonical absolute selected-profile directory and its exact resolved binding
@@ -97,8 +102,9 @@ Verified exact task receipts or a precise no-mutation failure.
 ## Completion criteria
 
 The requested workflow lifecycle operation returns exact project, logical-agent, role, task, and host bindings, with all affected
-instances returned by a fresh host task-catalog read and a user-visible expanded-project sidebar read beneath the exact
-saved project and verified in their requested state.
+instances returned by a fresh host task-catalog read and verified by a recorded screenshot/computer-vision inspection of
+the rendered expanded-project sidebar beneath the exact saved project. Additional human-created tasks may coexist but
+never count toward the managed roster.
 A `check-update` operation instead returns installed/latest stable version
 evidence and a recommendation, or an explicit no-mutation unavailable result. A `delete-workflow` operation instead
 returns the logical saved-project ID, ordered scoped-folder bindings, exact recoverably archived task IDs, and verified
