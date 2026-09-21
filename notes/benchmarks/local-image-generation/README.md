@@ -84,6 +84,7 @@ Public results must not contain hostnames, IP addresses, account or personal nam
 - `anime-generator.env.example` — non-secret single-file SDXL configuration.
 - `qwen-image-mode-conflict.conf` — reciprocal systemd exclusion for direct/manual service starts.
 - `summarize.py` — internal reporting worker that creates a Markdown comparison table.
+- `results/` — sanitized, machine-readable completed benchmark records; generated media remains private unless separately approved.
 - `gx10.md` — sanitized hardware-specific report and current measurements.
 - `requirements.txt` — minimum Python dependencies; every run additionally records the resolved package versions.
 - `references/reference-edit.svg` — fixed editing reference; the runner renders it deterministically to 1024×1024 through CairoSVG.

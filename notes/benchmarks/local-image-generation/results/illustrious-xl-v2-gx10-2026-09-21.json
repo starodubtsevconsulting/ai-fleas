@@ -1,0 +1,76 @@
+{
+  "schema_version": "local-image-benchmark-result.v1",
+  "captured_date": "2026-09-21",
+  "machine_label": "gx10-128gb",
+  "candidate_id": "illustrious-xl-v2-bf16",
+  "model": "OnomaAIResearch/Illustrious-XL-v2.0",
+  "repository_revision": "69459c1",
+  "checkpoint": {
+    "filename": "Illustrious-XL-v2.0.safetensors",
+    "bytes": 6938040674,
+    "sha256": "c2a1a3eaa13d4c107dc7e00c3fe830cab427aa026362740ea094745b3422a331"
+  },
+  "runtime": {
+    "pipeline": "StableDiffusionXLPipeline.from_single_file",
+    "precision": "bfloat16",
+    "device": "cuda",
+    "architecture": "arm64"
+  },
+  "license": {
+    "declared": "creativeml-openrail-m",
+    "commercial_model_use": "permitted subject to license use restrictions",
+    "production_note": "Generated-content, third-party-IP, and separately licensed LoRA or derivative review remain independent requirements."
+  },
+  "storage": {
+    "available_before_bytes": 526048964608,
+    "available_after_bytes": 519108632576,
+    "existing_models_moved_to_network_storage": false
+  },
+  "lifecycle": {
+    "previous_mode": "image",
+    "active_mode_after_switch": "anime",
+    "other_large_model_modes_active": false,
+    "switch_to_ready_seconds": 11
+  },
+  "generation_memory": {
+    "peak_system_used_bytes": 20341358592,
+    "minimum_system_available_bytes": 110254694400,
+    "measurement_scope": "whole-system sampled during generation"
+  },
+  "generation_parameters": {
+    "steps": 30,
+    "guidance_scale": 5.0,
+    "seed": 20260921
+  },
+  "results": [
+    {"case_id": "anime-story-frame-16x9", "width": 1344, "height": 768, "generation_seconds": 8.921, "output_bytes": 1236051, "output_sha256": "8ae507602dc58d43cb9faa0e58a5087214ba4cd404c2c6bfa791da5179de9215"},
+    {"case_id": "anime-character-portrait", "width": 1024, "height": 1024, "generation_seconds": 16.962, "output_bytes": 1359719, "output_sha256": "d83e1e5fd66e131afeba922b3423519f4eb80d1b33b71c43e50c2c618854e104"},
+    {"case_id": "anime-character-full-body", "width": 768, "height": 1344, "generation_seconds": 8.771, "output_bytes": 764241, "output_sha256": "fe51fa3466b44cd81c720d87a4733f7839740330f32f22cd934e4937ac6c1433"},
+    {"case_id": "anime-character-indoor", "width": 1344, "height": 768, "generation_seconds": 8.872, "output_bytes": 1157894, "output_sha256": "36695c01dfb0d336dd096654e009e68cfbc72008bf745a47121387f55cec417f"},
+    {"case_id": "anime-character-outdoor", "width": 1344, "height": 768, "generation_seconds": 17.87, "output_bytes": 1172601, "output_sha256": "4756ee6d405c5448af67e60f5dd57a7a809294676564460174a041e59ada0f8b"},
+    {"case_id": "anime-character-dynamic-pose", "width": 1344, "height": 768, "generation_seconds": 8.845, "output_bytes": 1193760, "output_sha256": "88f2fb15083dd26cacc1adf998cbe7cc32a00e1c408d05c9effe3df22dfa8c77"}
+  ],
+  "qualitative_review": {
+    "strengths": [
+      "strong anime rendering",
+      "fast generation",
+      "red scarf, green eyes, and dark outfit persisted across most frames"
+    ],
+    "failures": [
+      "hair color and style drift",
+      "crescent hair clip drift",
+      "character duplicated in the 16:9 scene",
+      "missing or malformed requested sketchbook",
+      "full-body accessory and composition artifacts",
+      "unwanted pseudo-text or viewfinder marks"
+    ],
+    "decision": "credible fast anime baseline; recurring-character production acceptance not yet met",
+    "next_experiment": "Evaluate a separately licensed consistency mechanism or character LoRA as a distinct candidate."
+  },
+  "privacy": {
+    "public_record_sanitized": true,
+    "retained_pngs": "private benchmark storage",
+    "contains_personal_paths": false,
+    "contains_credentials": false
+  }
+}
