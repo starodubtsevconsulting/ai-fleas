@@ -1,0 +1,344 @@
+#!/usr/bin/env python3
+"""Small OpenAI-compatible image endpoint for the selected local pipeline."""
+
+from __future__ import annotations
+
+import asyncio
+import base64
+import io
+import json
+import os
+import time
+import uuid
+from contextlib import asynccontextmanager
+from dataclasses import dataclass, field
+from pathlib import Path
+
+import torch
+from diffusers import DiffusionPipeline
+from fastapi import FastAPI, HTTPException, Query, Request, Response
+from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
+
+
+MODEL_ID = os.environ.get("IMAGE_MODEL_ID", "black-forest-labs/FLUX.2-dev")
+MODEL_ALIASES = {MODEL_ID, MODEL_ID.rsplit("/", 1)[-1], "local-image-generator"}
+DTYPE_NAME = os.environ.get("IMAGE_DTYPE", "bfloat16")
+DEFAULT_STEPS = int(os.environ.get("IMAGE_DEFAULT_STEPS", "50"))
+DEFAULT_GUIDANCE = float(os.environ.get("IMAGE_DEFAULT_GUIDANCE", "4.0"))
+OUTPUT_DIR = Path(os.environ.get("IMAGE_OUTPUT_DIR", "/outputs"))
+PIPELINE = None
+GENERATION_LOCK = asyncio.Lock()
+BACKGROUND_TASKS: set[asyncio.Task] = set()
+STREAM_SESSIONS: dict[str, "StreamSession"] = {}
+STREAM_SESSION_TTL_SECONDS = 300
+
+
+@dataclass
+class StreamSession:
+    conversation_id: str
+    started_at: int = field(default_factory=lambda: int(time.time()))
+    completed_at: int = 0
+    buffer: bytearray = field(default_factory=bytearray)
+    condition: asyncio.Condition = field(default_factory=asyncio.Condition)
+    producer: asyncio.Task | None = None
+    cancelled: bool = False
+
+    @property
+    def done(self) -> bool:
+        return self.completed_at > 0
+
+    async def append(self, value: str) -> None:
+        async with self.condition:
+            self.buffer.extend(value.encode("utf-8"))
+            self.condition.notify_all()
+
+    async def finish(self) -> None:
+        async with self.condition:
+            self.completed_at = int(time.time())
+            self.condition.notify_all()
+
+
+def prune_stream_sessions() -> None:
+    cutoff = int(time.time()) - STREAM_SESSION_TTL_SECONDS
+    expired = [key for key, session in STREAM_SESSIONS.items() if session.done and session.completed_at < cutoff]
+    for key in expired:
+        STREAM_SESSIONS.pop(key, None)
+
+
+async def consume_stream(session: StreamSession, offset: int = 0):
+    while True:
+        async with session.condition:
+            await session.condition.wait_for(lambda: len(session.buffer) > offset or session.done)
+            data = bytes(session.buffer[offset:])
+            offset = len(session.buffer)
+            done = session.done
+        if data:
+            yield data
+        if done and offset >= len(session.buffer):
+            return
+
+
+class GenerationRequest(BaseModel):
+    prompt: str = Field(min_length=1, max_length=8000)
+    model: str | None = None
+    n: int = Field(default=1, ge=1, le=1)
+    size: str = "1024x1024"
+    response_format: str = "b64_json"
+    seed: int | None = None
+    steps: int | None = Field(default=None, ge=1, le=100)
+    guidance_scale: float | None = Field(default=None, ge=0, le=20)
+
+
+def parse_size(value: str) -> tuple[int, int]:
+    try:
+        width, height = (int(part) for part in value.lower().split("x", 1))
+    except (TypeError, ValueError):
+        raise HTTPException(400, "size must be WIDTHxHEIGHT")
+    if width < 256 or height < 256 or width > 2048 or height > 2048 or width % 16 or height % 16:
+        raise HTTPException(400, "dimensions must be 256..2048 and divisible by 16")
+    return width, height
+
+
+def chat_prompt(messages: object) -> str:
+    if not isinstance(messages, list):
+        raise HTTPException(400, "messages must be a list")
+    for message in reversed(messages):
+        if not isinstance(message, dict) or message.get("role") != "user":
+            continue
+        content = message.get("content")
+        if isinstance(content, str) and content.strip():
+            return content.strip()
+        if isinstance(content, list):
+            parts = [
+                item.get("text", "").strip()
+                for item in content
+                if isinstance(item, dict) and item.get("type") == "text"
+            ]
+            prompt = "\n".join(part for part in parts if part)
+            if prompt:
+                return prompt
+    raise HTTPException(400, "a non-empty user message is required")
+
+
+async def generate_image(prompt: str, width: int, height: int, steps: int, guidance: float, seed: int):
+    kwargs = {
+        "prompt": prompt,
+        "width": width,
+        "height": height,
+        "num_inference_steps": steps,
+        "guidance_scale": guidance,
+        "generator": torch.Generator(device="cpu").manual_seed(seed),
+    }
+    async with GENERATION_LOCK:
+        started = time.perf_counter()
+        image = await asyncio.to_thread(lambda: PIPELINE(**kwargs).images[0])
+        elapsed = time.perf_counter() - started
+    return image, elapsed
+
+
+async def generate_chat_content(prompt: str, width: int, height: int, steps: int, guidance: float, seed: int) -> str:
+    image, elapsed = await generate_image(prompt, width, height, steps, guidance, seed)
+    filename = f"{int(time.time())}-{uuid.uuid4().hex}.png"
+    output_path = OUTPUT_DIR / filename
+    image.save(output_path, format="PNG")
+    return (
+        f"![Generated image](/outputs/{filename})\n\n"
+        f"Model: `{MODEL_ID}` · Seed: `{seed}` · {width}×{height} · "
+        f"{steps} steps · {elapsed:.2f} s"
+    )
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    global PIPELINE
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    dtype = getattr(torch, DTYPE_NAME)
+    PIPELINE = DiffusionPipeline.from_pretrained(MODEL_ID, torch_dtype=dtype, device_map="cuda")
+    yield
+    PIPELINE = None
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
+app = FastAPI(title="GX10 Local Image Generator", version="1", lifespan=lifespan)
+app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR), check_dir=False), name="outputs")
+
+
+@app.get("/health")
+def health():
+    return {"status": "ready", "model": MODEL_ID}
+
+
+@app.get("/v1/models")
+def models():
+    return {"object": "list", "data": [{"id": MODEL_ID, "object": "model", "owned_by": "local"}]}
+
+
+@app.get("/props")
+def props(model: str | None = None, autoload: bool = False):
+    del autoload
+    if model and model not in MODEL_ALIASES:
+        raise HTTPException(404, f"model is not active: {model}")
+    return {
+        "model": MODEL_ID,
+        "model_path": MODEL_ID,
+        "total_slots": 1,
+        "modalities": {"vision": False, "audio": False},
+        "capabilities": ["image-generation"],
+        "default_generation_settings": {
+            "id": MODEL_ID,
+            "params": {
+                "size": "1024x1024",
+                "steps": DEFAULT_STEPS,
+                "guidance_scale": DEFAULT_GUIDANCE,
+            },
+        },
+    }
+
+
+@app.post("/v1/images/generations")
+async def generate(request: GenerationRequest):
+    if request.model and request.model not in MODEL_ALIASES:
+        raise HTTPException(400, f"model is not active: {request.model}")
+    if request.response_format != "b64_json":
+        raise HTTPException(400, "only response_format=b64_json is supported")
+    width, height = parse_size(request.size)
+    seed = request.seed if request.seed is not None else int.from_bytes(os.urandom(8), "big")
+    image, elapsed = await generate_image(
+        request.prompt,
+        width,
+        height,
+        request.steps or DEFAULT_STEPS,
+        request.guidance_scale if request.guidance_scale is not None else DEFAULT_GUIDANCE,
+        seed,
+    )
+    output = io.BytesIO()
+    image.save(output, format="PNG")
+    return {
+        "created": int(time.time()),
+        "data": [{"b64_json": base64.b64encode(output.getvalue()).decode("ascii")}],
+        "model": MODEL_ID,
+        "seed": seed,
+        "generation_seconds": elapsed,
+    }
+
+
+@app.post("/v1/chat/completions")
+async def chat_completions(payload: dict, http_request: Request):
+    prompt = chat_prompt(payload.get("messages"))
+    width, height = parse_size(str(payload.get("size", "1024x1024")))
+    steps = int(payload.get("steps", DEFAULT_STEPS))
+    guidance = float(payload.get("guidance_scale", DEFAULT_GUIDANCE))
+    seed = int(payload.get("seed", int.from_bytes(os.urandom(8), "big")))
+    if not 1 <= steps <= 100:
+        raise HTTPException(400, "steps must be 1..100")
+    if not 0 <= guidance <= 20:
+        raise HTTPException(400, "guidance_scale must be 0..20")
+    created = int(time.time())
+    completion_id = f"chatcmpl-{uuid.uuid4().hex}"
+    if not payload.get("stream"):
+        content = await generate_chat_content(prompt, width, height, steps, guidance, seed)
+        return {
+            "id": completion_id,
+            "object": "chat.completion",
+            "created": created,
+            "model": MODEL_ID,
+            "choices": [{"index": 0, "message": {"role": "assistant", "content": content}, "finish_reason": "stop"}],
+            "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+        }
+
+    conversation_id = http_request.headers.get("x-conversation-id", "").strip() or completion_id
+    prune_stream_sessions()
+    session = STREAM_SESSIONS.get(conversation_id)
+
+    async def produce_stream(active_session: StreamSession):
+        generation_task = asyncio.create_task(generate_chat_content(prompt, width, height, steps, guidance, seed))
+        BACKGROUND_TASKS.add(generation_task)
+        generation_task.add_done_callback(BACKGROUND_TASKS.discard)
+        while not generation_task.done() and not active_session.cancelled:
+            try:
+                await asyncio.wait_for(asyncio.shield(generation_task), timeout=10)
+            except TimeoutError:
+                await active_session.append(": keep-alive\n\n")
+        try:
+            if active_session.cancelled:
+                generation_task.cancel()
+                return
+            content = generation_task.result()
+            chunk = {
+                "id": completion_id,
+                "object": "chat.completion.chunk",
+                "created": created,
+                "model": MODEL_ID,
+                "choices": [{"index": 0, "delta": {"role": "assistant", "content": content}, "finish_reason": None}],
+            }
+            await active_session.append(f"data: {json.dumps(chunk)}\n\n")
+            done = dict(chunk)
+            done["choices"] = [{"index": 0, "delta": {}, "finish_reason": "stop"}]
+            await active_session.append(f"data: {json.dumps(done)}\n\n")
+            await active_session.append("data: [DONE]\n\n")
+        except Exception as error:
+            message = {"error": {"message": str(error), "type": "generation_error"}}
+            await active_session.append(f"data: {json.dumps(message)}\n\n")
+            await active_session.append("data: [DONE]\n\n")
+        finally:
+            await active_session.finish()
+
+    if session is None or session.done:
+        session = StreamSession(conversation_id=conversation_id)
+        STREAM_SESSIONS[conversation_id] = session
+        session.producer = asyncio.create_task(produce_stream(session))
+        BACKGROUND_TASKS.add(session.producer)
+        session.producer.add_done_callback(BACKGROUND_TASKS.discard)
+
+    return StreamingResponse(consume_stream(session), media_type="text/event-stream")
+
+
+@app.post("/v1/streams/lookup")
+async def streams_lookup(payload: dict):
+    prune_stream_sessions()
+    requested = payload.get("conversation_ids", [])
+    if not isinstance(requested, list) or not all(isinstance(value, str) for value in requested):
+        raise HTTPException(400, "conversation_ids must be a list of strings")
+    matches = []
+    for requested_id in requested:
+        for session in STREAM_SESSIONS.values():
+            if session.conversation_id == requested_id or session.conversation_id.startswith(f"{requested_id}::"):
+                matches.append(
+                    {
+                        "conversation_id": session.conversation_id,
+                        "is_done": session.done,
+                        "total_bytes": len(session.buffer),
+                        "started_at": session.started_at,
+                        "completed_at": session.completed_at,
+                    }
+                )
+    return matches
+
+
+@app.get("/v1/stream")
+async def stream_resume(conv_id: str, from_offset: int = Query(default=0, alias="from", ge=0)):
+    prune_stream_sessions()
+    session = STREAM_SESSIONS.get(conv_id)
+    if session is None:
+        raise HTTPException(404, "Stream not found or expired")
+    if from_offset > len(session.buffer):
+        raise HTTPException(400, "Stream offset is beyond available data")
+    return StreamingResponse(consume_stream(session, from_offset), media_type="text/event-stream")
+
+
+@app.delete("/v1/stream")
+async def stream_delete(conv_id: str):
+    session = STREAM_SESSIONS.pop(conv_id, None)
+    if session is not None:
+        session.cancelled = True
+        await session.finish()
+    return Response(status_code=204)
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("IMAGE_PORT", "8000")))

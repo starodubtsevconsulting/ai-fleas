@@ -16,11 +16,11 @@ printf 'Installation log: %s\n' "$run_log"
 config_path="${AI_COMMAND_CONFIG_PATH:-}"
 action="install"
 box="" host="" ssh_user="" ssh_port="" ssh_key="" ssh_alias="" preset="" storage_volume="" dry_run=false
-save_profile=false
+save_profile=false mode=""
 
 usage() {
   cat <<'EOF'
-Usage: install-ai-local-provider.sh [inspect|status|preflight|install] [options]
+Usage: install-ai-local-provider.sh [inspect|status|preflight|install|model-auth|model-status|switch|unload] [options]
   --box ID          Select a box from the active profile command configuration
   --host HOST       Use a host for this invocation
   --user USER       SSH user for an explicit host
@@ -28,6 +28,7 @@ Usage: install-ai-local-provider.sh [inspect|status|preflight|install] [options]
   --ssh-key PATH    Private-key reference (never key contents)
   --ssh-alias NAME  Use a host from the user's SSH configuration
   --preset ID       Model preset
+  --mode ID         Configured model mode for the switch action
   --storage-volume PATH  Existing filesystem used for models and download staging
   --dry-run         Show the validated plan without provisioning
   --save-profile    Save inspect JSON under the private profile command config
@@ -70,12 +71,12 @@ if [[ $# -eq 0 && -t 0 ]]; then
     *) fail "INVALID_SELECTION: choose a number from 1 to 5." ;;
   esac
 elif [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
-case "$action" in inspect|status|preflight|install) ;; -h|--help|help) usage; exit 0 ;; *) fail "INVALID_ACTION: $action" ;; esac
+case "$action" in inspect|status|preflight|install|model-auth|model-status|switch|unload) ;; -h|--help|help) usage; exit 0 ;; *) fail "INVALID_ACTION: $action" ;; esac
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --box|--host|--user|--ssh-port|--ssh-key|--ssh-alias|--preset|--storage-volume)
+    --box|--host|--user|--ssh-port|--ssh-key|--ssh-alias|--preset|--storage-volume|--mode)
       [[ $# -ge 2 ]] || fail "MISSING_VALUE: $1"
-      case "$1" in --box) box="$2";; --host) host="$2";; --user) ssh_user="$2";; --ssh-port) ssh_port="$2";; --ssh-key) ssh_key="$2";; --ssh-alias) ssh_alias="$2";; --preset) preset="$2";; --storage-volume) storage_volume="$2";; esac
+      case "$1" in --box) box="$2";; --host) host="$2";; --user) ssh_user="$2";; --ssh-port) ssh_port="$2";; --ssh-key) ssh_key="$2";; --ssh-alias) ssh_alias="$2";; --preset) preset="$2";; --storage-volume) storage_volume="$2";; --mode) mode="$2";; esac
       shift 2 ;;
     --dry-run) dry_run=true; shift ;;
     --save-profile) save_profile=true; shift ;;
@@ -83,6 +84,10 @@ while [[ $# -gt 0 ]]; do
     *) fail "UNKNOWN_OPTION: $1" ;;
   esac
 done
+if [[ "$action" == switch ]]; then
+  [[ -n "$mode" ]] || fail 'CONFIGURATION_REQUIRED: switch requires --mode ID.'
+  valid_id "$mode" || fail 'CONFIGURATION_INVALID: invalid mode ID.'
+fi
 
 config_value() { node "$command_dir/resolve-config.mjs" "$config_path" "$box" "$1"; }
 if [[ -n "$box" ]]; then
@@ -141,7 +146,12 @@ fi
 
 if [[ "$action" != inspect ]]; then
   printf 'Target: %s%s\n' "${box:+$box -> }" "$target"
-  printf 'Preset: %s\n' "$preset"
+  case "$action" in
+    switch) printf 'Requested model mode: %s\n' "$mode" ;;
+    model-status|unload) printf '%s\n' 'Model lifecycle: configured mode registry' ;;
+    model-auth) printf '%s\n' 'Model authentication: configured private cache' ;;
+    *) printf 'Preset: %s\n' "$preset" ;;
+  esac
 fi
 auth_error="$(mktemp "${TMPDIR:-/tmp}/ai-local-provider-ssh.XXXXXX")"
 trap 'rm -f -- "$auth_error"' EXIT
@@ -172,6 +182,48 @@ if ! ssh "${ssh_args[@]}" "$target" 'printf "AI_LOCAL_SSH_OK\\n"' >/dev/null 2>"
     printf 'Configure an SSH-agent identity or generate and authorize a dedicated key, then retry.\n' >&2
   fi
   exit 5
+fi
+
+if [[ "$action" == model-auth ]]; then
+  [[ -n "$box" && -n "$config_path" && -f "$config_path" ]] || fail 'CONFIGURATION_REQUIRED: model-auth requires a configured --box.'
+  [[ -n "${HF_TOKEN:-}" ]] || fail 'SECRET_REQUIRED: model-auth requires HF_TOKEN through the profile secrets adapter.'
+  [[ "$HF_TOKEN" != *$'\n'* && "$HF_TOKEN" != *$'\r'* ]] || fail 'SECRET_INVALID: HF_TOKEN contains a control character.'
+  model_auth_cache_dir="$(config_value model_auth_cache_dir)"
+  model_auth_image="$(config_value model_auth_image)"
+  [[ "$model_auth_cache_dir" =~ ^/[-A-Za-z0-9._/]+$ ]] || fail 'CONFIGURATION_INVALID: model_auth_cache_dir must be an absolute safe path.'
+  [[ "$model_auth_image" =~ ^[A-Za-z0-9][A-Za-z0-9._/:@-]+$ ]] || fail 'CONFIGURATION_INVALID: model_auth_image is required.'
+  remote_auth_script="$(ssh "${ssh_args[@]}" "$target" 'mktemp /tmp/ai-local-provider-model-auth.XXXXXX.sh')"
+  [[ "$remote_auth_script" == /tmp/ai-local-provider-model-auth.*.sh ]] || fail 'MODEL_AUTH_FAILED: unsafe remote staging path.'
+  scp_args=(-q -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=yes)
+  if [[ -z "$ssh_alias" ]]; then scp_args+=(-P "$ssh_port"); fi
+  if [[ -n "$expanded_key" ]]; then scp_args+=(-o IdentitiesOnly=yes -i "$expanded_key"); fi
+  scp "${scp_args[@]}" "$command_dir/model-auth-remote.sh" "$target:$remote_auth_script" || fail 'MODEL_AUTH_FAILED: could not stage authentication adapter.'
+  set +e
+  printf '%s\n' "$HF_TOKEN" | ssh "${ssh_args[@]}" "$target" "bash $(printf '%q ' "$remote_auth_script" "$model_auth_cache_dir" "$model_auth_image")"
+  auth_code=$?
+  set -e
+  unset HF_TOKEN
+  ssh "${ssh_args[@]}" "$target" "rm -f -- $(printf '%q' "$remote_auth_script")" >/dev/null 2>&1 || true
+  [[ $auth_code -eq 0 ]] || fail "MODEL_AUTH_FAILED: remote authentication exited with code $auth_code." "$auth_code"
+  exit 0
+fi
+
+if [[ "$action" == model-status || "$action" == switch || "$action" == unload ]]; then
+  [[ -n "$box" && -n "$config_path" && -f "$config_path" ]] || fail 'CONFIGURATION_REQUIRED: model lifecycle actions require a configured --box.'
+  encoded_modes="$(node "$command_dir/resolve-model-modes.mjs" "$config_path" "$box" "${mode:-}")"
+  remote_lifecycle_script="$(ssh "${ssh_args[@]}" "$target" 'mktemp /tmp/ai-local-provider-model-mode.XXXXXX.sh')"
+  [[ "$remote_lifecycle_script" == /tmp/ai-local-provider-model-mode.*.sh ]] || fail 'MODEL_SWITCH_FAILED: unsafe remote staging path.'
+  scp_args=(-q -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=yes)
+  if [[ -z "$ssh_alias" ]]; then scp_args+=(-P "$ssh_port"); fi
+  if [[ -n "$expanded_key" ]]; then scp_args+=(-o IdentitiesOnly=yes -i "$expanded_key"); fi
+  scp "${scp_args[@]}" "$command_dir/model-mode-remote.sh" "$target:$remote_lifecycle_script" || fail 'MODEL_SWITCH_FAILED: could not stage lifecycle adapter.'
+  set +e
+  ssh "${ssh_args[@]}" "$target" "bash $(printf '%q' "$remote_lifecycle_script") $(printf '%q ' "$action" "${mode:-}" "$encoded_modes")"
+  lifecycle_code=$?
+  set -e
+  ssh "${ssh_args[@]}" "$target" "rm -f -- $(printf '%q' "$remote_lifecycle_script")" >/dev/null 2>&1 || true
+  [[ $lifecycle_code -eq 0 ]] || fail "MODEL_SWITCH_FAILED: lifecycle adapter exited with code $lifecycle_code." "$lifecycle_code"
+  exit 0
 fi
 
 plan_step AI-LOCAL-03 'Qualify the machine and plan'

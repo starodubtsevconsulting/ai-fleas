@@ -24,7 +24,7 @@ run. Interactive sudo password input is never echoed or logged.
 | Input | Required | Source | Description |
 |---|---|---|---|
 | Active AI Profile and workflow | Yes | Host activation | Authorizes execution and resolves profile-owned machine configuration. |
-| Action | No | Human or workflow | `inspect`, `status`, `preflight`, or `install`; defaults to `install`. |
+| Action | No | Human or workflow | `inspect`, `status`, `preflight`, `install`, `model-auth`, `model-status`, `switch`, or `unload`; defaults to `install`. |
 | Target | Yes for remote mode | Profile, CLI, or interactive prompt | A configured box ID, SSH alias, or explicit host and SSH user. |
 | Model preset | Yes for installation | Profile, CLI, or committed preset default | Reviewed model/runtime definition to validate and provision. |
 
@@ -52,8 +52,29 @@ the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documen
 ## Normal invocation
 
 ```text
-install-ai-local-provider.sh [status|preflight|install]
+install-ai-local-provider.sh [inspect|status|preflight|install|model-auth|model-status|switch|unload]
 ```
+
+Model lifecycle subcommands use the selected box's profile-owned `model_modes` registry:
+
+```text
+install-ai-local-provider.sh model-status --box <box>
+install-ai-local-provider.sh model-auth --box <box>
+install-ai-local-provider.sh switch --box <box> --mode coding
+install-ai-local-provider.sh switch --box <box> --mode image
+install-ai-local-provider.sh unload --box <box>
+```
+
+`switch` first validates the target service in the configured system/user manager. If that mode is already the sole active
+and healthy mode, it returns without reloading the model. Otherwise it stops every configured peer service before starting
+the requested mode, reports periodic loading progress, waits for its localhost health endpoint, fails early if the target
+service enters systemd's failed state, verifies that exactly one mode is active, and attempts to
+restore the previously active mode if startup or readiness fails. `unload`
+stops all configured model modes while preserving services, configuration, and downloaded model artifacts.
+
+`model-auth` accepts `HF_TOKEN` only through an authorized secrets-adapter child environment, streams it to the selected
+machine over SSH standard input, authenticates the configured owner-only Hugging Face cache, and never places the token in
+command arguments or logs. Direct invocation without an injected secret fails closed.
 
 Launching the shell file with no arguments in a terminal opens a deterministic guided menu. It explains the command's
 current capabilities, offers first-run preflight, status, installation-plan validation, help or exit, lists machines from

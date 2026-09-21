@@ -274,6 +274,17 @@ Installation is not complete when files/packages are merely present.
 
 A machine may retain multiple installed models. Switching means stop/unload current model, select another installed model/preset, update active-model configuration, start/load it and verify HTTP/inference. No more than one model may intentionally be active concurrently.
 
+The profile may define named `model_modes` for a box. Each mode binds an exact systemd service manager (`user` or
+`system`), service name, optional localhost-only health URL and bounded readiness timeout. `model-status` reports every
+configured mode with readiness and fails on concurrent active modes or an active-but-unhealthy mode. `switch --mode ID`
+validates that the target service exists before unloading anything, reuses an already active and healthy target without a
+restart, and otherwise stops all configured modes before starting and health-checking the target with periodic progress.
+On failure it stops the target and attempts to restore the one previously active mode.
+`unload` stops all configured modes without deleting services, configuration, runtimes, or model artifacts.
+For gated Hugging Face artifacts, `model-auth` requires a profile-injected `HF_TOKEN`, transmits it only over SSH standard
+input to a bounded remote adapter, and stores it in the target user's owner-only configured Hugging Face cache. It must not
+accept the token as a CLI argument or print it to the transcript.
+
 ## Idempotency
 
 Re-running reconciles the target with requested configuration. Valid runtimes/models are reused rather than blindly reinstalled/downloaded.

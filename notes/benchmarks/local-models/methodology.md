@@ -20,6 +20,23 @@ Where practical, results record:
 - Hermes/tool-use compatibility
 - independent verification of task output
 
+## Benchmark purpose profile
+
+Every hardware/model report should state, before presenting numbers:
+
+- the practical job being evaluated;
+- the benchmark role of each candidate;
+- intended users and workload shape;
+- capabilities in and out of scope;
+- the acceptance criteria for a practical winner;
+- licensing or deployment constraints that can disqualify an otherwise strong result.
+
+A benchmark result does not imply production eligibility. Quality, performance, operational fit, and license fit are separate decisions.
+
+## Public-result privacy
+
+Public benchmark artifacts use non-identifying hardware labels. They must not contain hostnames, IP addresses, account names, personal names, secret identifiers, private service URLs, tokens, or personal filesystem paths. Machine-specific operational evidence belongs in a private runbook; public reports retain only the sanitized facts needed to reproduce and interpret the result.
+
 ## Interpretation
 
 Direct inference measurements and full Hermes-agent measurements answer different questions and should not be treated as interchangeable.

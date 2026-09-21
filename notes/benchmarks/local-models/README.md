@@ -1,5 +1,7 @@
 # Local Model Benchmarks
 
+[All benchmarks](../README.md)
+
 ## Why local workers
 
 A local model does not have to replace a high-level reasoning model. A useful architecture is to keep a strong hosted model such as GPT or Claude in the coordinating/reasoning role and delegate suitable work to a pool of agents. Some agents can use hosted models while others run locally.
@@ -21,6 +23,8 @@ flowchart TD
 ```
 
 The purpose of these benchmarks is practical: find the strongest local model that can run at an acceptable speed and reliability on the available hardware.
+
+Image-generation models use a separate quality-first corpus and retained-output workflow: [local image-generation benchmarks](../local-image-generation/README.md).
 
 ## Current results
 
