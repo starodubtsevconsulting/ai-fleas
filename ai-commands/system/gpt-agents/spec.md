@@ -61,6 +61,22 @@ Verified exact task receipts or a precise no-mutation failure.
 - Portable agent IDs and GPT role bindings form an exact one-to-one set before any task creation.
 - Titles are presentation only; model, reasoning, readiness token, lifecycle, and role contract resolve from the GPT and
   portable manifests.
+- Every creation request carries the complete canonical initialization prompt as a non-empty first user message and an
+  effective non-empty presentation title. These fields make the task catalogable; neither becomes lifecycle identity.
+- The child task must persist that prompt as user-visible first-message and preview metadata. A controller-side tool-call
+  input or function-call output alone is an invalid creation receipt.
+- Initialization commits no active task receipt until a fresh host task-catalog read returns every exact task ID beneath
+  the exact logical saved-project ID. Direct task access, readiness output, local persistence, or a requested creation
+  target is insufficient evidence of project membership.
+- A task omitted from the saved project's catalog is an invalid provisional creation. It is reconciled by exact candidate
+  ID before another task is created, and readiness from that hidden candidate never makes the roster complete.
+- The saved-project sidebar order contains the exact active roster without stale, archived, or unrelated task IDs before
+  or between active agents. Completion requires a user-visible expanded-project enumeration of every active role; a
+  backend task-catalog result by itself is insufficient.
+- A stale custom section with the logical-project name is cleared through supported presentation operations. It never
+  substitutes for the exact saved-project roster or counts as initialization evidence.
+- Every initialization message carries the canonical absolute selected-profile directory and its exact resolved binding
+  registry path. Private operational profiles are never replaced with public examples or repository-relative guesses.
 - Profile-owned command configuration may override only declared GPT realization fields. It cannot add/remove required
   roles or change authority, lifecycle, readiness, dependencies, communication topology, or workflow pool bounds.
 - Initialization never relies on title, sidebar position, recency, or filesystem sibling discovery.
@@ -69,7 +85,7 @@ Verified exact task receipts or a precise no-mutation failure.
 - `delete-workflow` requires the complete recorded logical saved-project, scoped-folder, and task bindings; it
   recoverably archives the exact bound tasks and preserves the saved project and every scoped folder.
 - A successful workflow deletion retains a tombstone receipt; a missing or conflicting binding fails before mutation.
-- Partial rosters, duplicates, missing receipts, and capability mismatches fail closed.
+- Partial or non-visible rosters, duplicates, missing receipts, and capability mismatches fail closed.
 - A missing, ambiguous, or conflicting saved Project stops before agent mutation.
 - The profile-owned `gpt-agents-binding-state.v1` registry is the durable identity authority for project, task,
   System scheduler/watch, readiness/generation, and tombstone receipts; titles and transient caller memory are not.
@@ -81,7 +97,9 @@ Verified exact task receipts or a precise no-mutation failure.
 ## Completion criteria
 
 The requested workflow lifecycle operation returns exact project, logical-agent, role, task, and host bindings, with all affected
-instances verified in their requested state. A `check-update` operation instead returns installed/latest stable version
+instances returned by a fresh host task-catalog read and a user-visible expanded-project sidebar read beneath the exact
+saved project and verified in their requested state.
+A `check-update` operation instead returns installed/latest stable version
 evidence and a recommendation, or an explicit no-mutation unavailable result. A `delete-workflow` operation instead
 returns the logical saved-project ID, ordered scoped-folder bindings, exact recoverably archived task IDs, and verified
 outcomes while confirming that the saved Codex project and folders were preserved. A System lifecycle operation returns
