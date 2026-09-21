@@ -256,9 +256,11 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
     readiness response, a locally persisted task record, or a requested project target does not prove saved-project
     membership. A task omitted from the project catalog is an invalid provisional creation and must not receive an active
     binding receipt. Reconcile that exact candidate before considering another creation; never create a duplicate while
-    the candidate remains unresolved. Normalize the saved project's sidebar order to the exact active roster and verify
-    that the user-visible expanded project enumerates every active role. Stale, archived, or unrelated task IDs must not
-    precede or interrupt the active roster. A backend catalog result alone does not prove sidebar visibility. Remove stale
+    the candidate remains unresolved. Normalize the saved project's sidebar order so the exact managed roster is a
+    contiguous ordered sequence, then verify that the user-visible expanded project enumerates every managed role.
+    Additional human-created tasks, including another Admin task, are allowed and remain outside managed lifecycle
+    receipts; they cannot satisfy or replace a required roster member. Stale or archived task IDs must not precede or
+    interrupt the managed roster. A backend catalog result alone does not prove sidebar visibility. Remove stale
     same-named custom-section references through supported presentation operations; a custom section never substitutes
     for the saved-project roster. Do not move a valid project task into a custom section.
 12. Build each initialization message from the portable role definition, team policy, routing and permission policies,
@@ -268,9 +270,15 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
     location in any workflow-agent initialization message. Include the selected profile's canonical absolute directory and
     exact resolved binding-registry path; never substitute a public example or a repository-relative profile guess. Do not
     replace contracts with a hand-written role summary.
-13. Wait for every role's exact readiness token, reread the project catalog and the expanded saved-project sidebar,
-    verify the complete visible roster in both views, and only then commit active binding receipts. Readiness without
-    catalog and sidebar presence is an explicit partial-initialization failure.
+13. Wait for every role's exact readiness token, reread the project catalog, and inspect the rendered expanded
+    saved-project sidebar with the host's screenshot/computer-vision capability. Automatically expand or scroll the
+    project as needed and require visual evidence of every exact managed task title and task count. An accessibility-tree
+    or backend-only result is supporting evidence, not a substitute for the rendered check. Record the capture timestamp,
+    project ID, expected and observed managed titles and counts, and observation method in the binding receipt. Never ask
+    the human to confirm roster visibility when the host can capture the UI. Additional human-created Admin tasks are
+    permitted but are recorded as extras and never counted toward the managed roster. Only then commit active binding
+    receipts. Readiness without catalog and computer-vision-verified sidebar presence is an explicit
+    partial-initialization failure.
 
 For the current Dev roster, the mechanical controller directly creates or reconciles Admin, Manager, Designer Reviewer,
 Judge, Coder, Command Runner, and UI Acceptance Tester. Admin remains temporarily for compatibility but has no special
