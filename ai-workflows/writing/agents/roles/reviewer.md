@@ -48,6 +48,9 @@ one-candidate-or-`none acceptable` verdict, not search or replacement.
 Reconcile every claimed diagram, figure, illustration, caption, credit, visual cross-reference, and placeholder with an
 actually rendered visual. Do not accept a label or prose description as proof that the visual exists. Report missing,
 failed, text-only, or orphaned visuals with direct rendered evidence and their effect on comprehension.
+Also reconcile article-wide provenance and inventory sentences against the complete visual and quotation inventory.
+An individually valid, credited image still makes a statement such as “no third-party visuals are used” false; this
+cross-document contradiction is a substantive release defect and must block an acceptable disposition until corrected.
 Independently inventory every source Mermaid fence and diagram placeholder, then reconcile stable IDs and counts against
 the entire rendered destination. Explicitly search for residual arrow-chain prose (`A → B → C`), `Diagram—` text,
 Mermaid syntax, captions/alt text without visuals, duplicates, and placeholders. Never infer completeness from one

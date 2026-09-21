@@ -59,6 +59,12 @@ diagram text as unresolved placeholders unless the article clearly intends ordin
 QA when any source diagram is missing or duplicated, any rendered visual has no source mapping, or any placeholder
 remains—even if another diagram was converted successfully.
 
+Cross-check every article-wide provenance, rights, and inventory claim against the actual source and rendered draft.
+Statements such as “no third-party visuals,” “no quotations,” “all images are original,” or a claimed visual count must
+agree with every header image, inline image, diagram, quotation, caption, credit, license record, and archived asset.
+Do not clear a draft merely because each visual is individually acceptable: reject any global provenance statement
+that contradicts an actually used asset, even when metadata elsewhere correctly credits that asset.
+
 Look specifically for excessive or uneven padding and whitespace, collapsed or doubled spacing, detached quote
 attributions or captions, awkward line wrapping, incorrect indentation, broken hierarchy, poor image sizing or
 cropping, misplaced credits, and elements that appear orphaned from the content they describe. A blockquote with a

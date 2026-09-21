@@ -152,6 +152,8 @@ assert.match(reviewCriteria, /general review guide does not duplicate that contr
 assert.match(reviewCriteria, /claims a diagram but renders only\s+the words describing it/);
 assert.match(reviewCriteria, /Independently inventory the source revision's Mermaid fences/);
 assert.match(reviewCriteria, /another diagram was converted successfully/);
+assert.match(reviewCriteria, /Cross-check every article-wide provenance, rights, and inventory claim/);
+assert.match(reviewCriteria, /no third-party visuals/);
 assert.match(destinationFlow, /direct rendered\s+evidence such as screenshots/);
 assert.match(destinationFlow, /Mermaid or another non-native\s+diagram format/);
 assert.match(mediumDraftSkill, /fenced Mermaid block must be converted/);
@@ -168,6 +170,8 @@ assert.match(reviewerRole, /header-image selection contract/);
 assert.match(reviewerRole, /contract path and exact\s+content hash/);
 assert.match(reviewerRole, /Reconcile every claimed diagram[\s\S]*actually rendered visual/);
 assert.match(reviewerRole, /Never infer completeness from one\s+successful replacement/);
+assert.match(reviewerRole, /reconcile article-wide provenance and inventory sentences/);
+assert.match(reviewerRole, /no third-party visuals are used/);
 assert.match(routing, /Admin is the sole inter-agent coordinator/);
 assert.match(routing, /No specialist-to-specialist route is authorized/);
 assert.match(routing, /Writer does not contact Reviewer or Release Coordinator/);
