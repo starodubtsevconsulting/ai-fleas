@@ -62,9 +62,12 @@
       "character duplicated in the 16:9 scene",
       "missing or malformed requested sketchbook",
       "full-body accessory and composition artifacts",
-      "unwanted pseudo-text or viewfinder marks"
+      "unwanted pseudo-text or viewfinder marks",
+      "valid images can still merge, duplicate, omit, or deform requested scene elements"
     ],
-    "decision": "credible fast anime baseline; recurring-character production acceptance not yet met",
+    "reliability": "not reliable at the tested settings; every output requires visual review even when the API and PNG are valid",
+    "operator_summary": "hallucinating painter: fast and visually capable, but sometimes smashes unrelated scene details together",
+    "decision": "fast anime experimentation baseline only; production and recurring-character acceptance not met",
     "next_experiment": "Evaluate a separately licensed consistency mechanism or character LoRA as a distinct candidate."
   },
   "privacy": {

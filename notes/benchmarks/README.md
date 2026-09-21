@@ -36,7 +36,7 @@ The shared [language-model methodology](local-models/methodology.md) defines dir
 
 | Candidate | Benchmark purpose | Capabilities | Production disposition | Status |
 |---|---|---|---|---|
-| Illustrious XL v2.0 BF16 | Fast anime and illustrated-story production baseline, including recurring-character frames | Text-to-image | CreativeML OpenRAIL-M; commercial use permitted subject to use restrictions and separate output/IP review | Official 6.94 GB checkpoint verified; 11 s load; six-frame acceptance set completed; consistency gaps recorded |
+| Illustrious XL v2.0 BF16 | Fast anime and illustrated-story baseline, including recurring-character frames | Text-to-image | CreativeML OpenRAIL-M; commercial use permitted subject to use restrictions and separate output/IP review | Official 6.94 GB checkpoint verified; 11 s load; six-frame set completed; quality unreliable at tested settings and production acceptance not met |
 | FLUX.2-dev BF16 | Maximum-quality full-precision baseline on large unified-memory hardware | Text-to-image and image editing | Evaluation/non-commercial; separate commercial license required for commercial model operation | Downloaded, loaded, endpoint-tested, and startup measured; full quality corpus pending |
 | FLUX.2-dev NVFP4 | Blackwell-oriented reduced-precision comparison against BF16 | Text-to-image and image editing | Evaluation/non-commercial unless separately licensed | Access, loader integration, and benchmark pending |
 | FLUX.1 Krea-dev BF16 | Photographic and aesthetic quality comparison | Text-to-image | Verify model-specific terms before use beyond private evaluation | Pending |
