@@ -68,6 +68,25 @@ A creation request must use `target.type: project`, the exact resolved Codex pro
 the workflow instance. Reconcile or remove that failed candidate before retrying the exact role; never create a second
 candidate while the first may still resolve.
 
+The child task must retain the complete canonical initialization prompt as a real user-visible first message and a
+non-empty preview, plus the configured presentation title. A prompt visible only in the controller's create-task tool call
+or as a function-call output in the child is not sufficient: the task is absent from normal project catalog queries and is
+therefore not an initialized user-visible agent. Reread the host catalog immediately after creation and require the exact
+task ID under the exact saved-project ID before dispatching more lifecycle work or committing an active receipt. If the
+host cannot persist or reconcile this metadata through a supported operation, return a capability mismatch instead of
+declaring readiness or creating another candidate.
+
+The adapter must also normalize the saved project's sidebar task order to the exact active roster and reread the expanded
+project as the user sees it. Remove stale or archived ordering entries from the active roster sequence; they must not
+truncate, cap, or interrupt enumeration of active agents. A task returned by the backend catalog but absent from the
+expanded saved-project sidebar is still incomplete initialization. Clear stale same-named custom-section references
+through supported presentation operations; the custom section cannot replace saved-project enumeration evidence.
+
+Every canonical initialization message must also identify the selected operational profile by its canonical absolute
+directory and include the exact resolved profile-owned binding-registry path and schema. This is required when the public
+workflow repository and private operational profile are separate repositories. Never guess `ai-profile/<id>` relative to
+the worktree and never substitute the committed example profile.
+
 Messaging targets exact task IDs. Remove and delete map to recoverable archival. Replacement verifies successors before
 archiving predecessors. Never use titles, sidebar order, recency, or remembered conversation as lifecycle identity.
 

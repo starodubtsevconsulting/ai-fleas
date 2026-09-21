@@ -244,19 +244,33 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    Reject unknown roles, unsupported keys, unavailable models, invalid reasoning levels, and pool values outside the
    portable role's declared bounds.
 9. Mechanically create exactly one task for every missing selected role, including Admin and Manager, in one host batch
-   when the platform supports batching. Treat `title` only as presentation and apply the effective model and reasoning
-   values exactly. Do not wait for one role to initialize before creating the next role.
+   when the platform supports batching. Every creation request must include the complete canonical initialization prompt
+   as its non-empty first user message and the effective non-empty presentation title. Treat `title` only as presentation
+   and apply the effective model and reasoning values exactly. Do not wait for one role to initialize before creating the
+   next role. A prompt retained only as the controller's tool-call input or function-call output is not a child-task user
+   message and does not satisfy creation.
 10. Record every returned task or provisional client ID, resolve all provisional creations together, then dispatch all
     canonical initialization messages concurrently. Role authority governs subsequent workflow work, not roster startup.
-11. Verify every roster task, including the project-bound Admin but excluding an external bootstrap controller, is bound
-    to the exact logical saved project. Do not move it into a custom section.
+11. Reread the host's task catalog after creation and require every exact task ID to be present beneath the exact logical
+    saved-project ID with a non-empty user-visible preview, first user message, and effective presentation title. Direct task access, a
+    readiness response, a locally persisted task record, or a requested project target does not prove saved-project
+    membership. A task omitted from the project catalog is an invalid provisional creation and must not receive an active
+    binding receipt. Reconcile that exact candidate before considering another creation; never create a duplicate while
+    the candidate remains unresolved. Normalize the saved project's sidebar order to the exact active roster and verify
+    that the user-visible expanded project enumerates every active role. Stale, archived, or unrelated task IDs must not
+    precede or interrupt the active roster. A backend catalog result alone does not prove sidebar visibility. Remove stale
+    same-named custom-section references through supported presentation operations; a custom section never substitutes
+    for the saved-project roster. Do not move a valid project task into a custom section.
 12. Build each initialization message from the portable role definition, team policy, routing and permission policies,
     complete ordered selected project subset, primary-project binding, logical-project scope, and readiness token. Supply exact peer task-ID bindings only when that role's declared
     communication topology permits peer routing. A direct-human-only role such as Judge receives its own binding and
     governance scope, never a participant-routing roster. Never include System's task ID, routing address, or runtime
-    location in any workflow-agent initialization message. Do not replace contracts with a hand-written role summary.
-13. Wait for every role's exact readiness token, verify the complete roster, and return exact receipts. Partial
-    initialization is an explicit failure state.
+    location in any workflow-agent initialization message. Include the selected profile's canonical absolute directory and
+    exact resolved binding-registry path; never substitute a public example or a repository-relative profile guess. Do not
+    replace contracts with a hand-written role summary.
+13. Wait for every role's exact readiness token, reread the project catalog and the expanded saved-project sidebar,
+    verify the complete visible roster in both views, and only then commit active binding receipts. Readiness without
+    catalog and sidebar presence is an explicit partial-initialization failure.
 
 For the current Dev roster, the mechanical controller directly creates or reconciles Admin, Manager, Designer Reviewer,
 Judge, Coder, Command Runner, and UI Acceptance Tester. Admin remains temporarily for compatibility but has no special
