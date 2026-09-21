@@ -19,7 +19,7 @@ flowchart TD
 | Benchmark | What it is for | Selection principle | Current state |
 |---|---|---|---|
 | [Local language models](local-models/README.md) | Coding, agent/tool workflows, System agents, portable inference, and always-on workers | Strongest useful model that remains fast, reliable, and appropriately sized for its assigned job | Multiple hardware baselines recorded; additional candidates planned |
-| [Local image generation](local-image-generation/README.md) | Photorealistic images, illustrations, covers, text rendering, and controlled reference edits | Human-reviewed quality joined with startup, latency, memory, stability, architecture support, and license fit | FLUX.2-dev BF16 baseline running; full corpus and comparisons pending |
+| [Local image generation](local-image-generation/README.md) | Photorealistic images, anime/illustrated stories, covers, text rendering, and controlled reference edits | Human-reviewed quality joined with startup, latency, memory, stability, architecture support, and license fit | FLUX.2-dev quality baseline and Illustrious XL v2 anime baseline recorded; broader corpus pending |
 
 ## Local language-model reports
 
@@ -36,6 +36,7 @@ The shared [language-model methodology](local-models/methodology.md) defines dir
 
 | Candidate | Benchmark purpose | Capabilities | Production disposition | Status |
 |---|---|---|---|---|
+| Illustrious XL v2.0 BF16 | Fast anime and illustrated-story production baseline, including recurring-character frames | Text-to-image | CreativeML OpenRAIL-M; commercial use permitted subject to use restrictions and separate output/IP review | Official 6.94 GB checkpoint verified; 11 s load; six-frame acceptance set completed; consistency gaps recorded |
 | FLUX.2-dev BF16 | Maximum-quality full-precision baseline on large unified-memory hardware | Text-to-image and image editing | Evaluation/non-commercial; separate commercial license required for commercial model operation | Downloaded, loaded, endpoint-tested, and startup measured; full quality corpus pending |
 | FLUX.2-dev NVFP4 | Blackwell-oriented reduced-precision comparison against BF16 | Text-to-image and image editing | Evaluation/non-commercial unless separately licensed | Access, loader integration, and benchmark pending |
 | FLUX.1 Krea-dev BF16 | Photographic and aesthetic quality comparison | Text-to-image | Verify model-specific terms before use beyond private evaluation | Pending |

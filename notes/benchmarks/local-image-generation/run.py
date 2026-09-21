@@ -120,7 +120,7 @@ def main() -> int:
         parser.error("candidate and case selection have no compatible cases")
 
     import torch
-    from diffusers import DiffusionPipeline
+    from diffusers import DiffusionPipeline, StableDiffusionXLPipeline
     from diffusers.utils import load_image
     from PIL import Image
 
@@ -134,11 +134,17 @@ def main() -> int:
 
     load_started = time.perf_counter()
     with MemorySampler() as load_memory:
-        pipe = DiffusionPipeline.from_pretrained(
-            candidate["model"],
-            torch_dtype=dtype,
-            device_map=candidate["device_map"],
-        )
+        if candidate.get("format") == "single-file-sdxl":
+            pipe = StableDiffusionXLPipeline.from_single_file(
+                candidate["model_file"],
+                torch_dtype=dtype,
+            ).to(candidate["device_map"])
+        else:
+            pipe = DiffusionPipeline.from_pretrained(
+                candidate["model"],
+                torch_dtype=dtype,
+                device_map=candidate["device_map"],
+            )
     load_seconds = time.perf_counter() - load_started
     model_revision = getattr(pipe, "_commit_hash", None)
 

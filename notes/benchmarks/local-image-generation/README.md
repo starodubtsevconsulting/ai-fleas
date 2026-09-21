@@ -31,13 +31,16 @@ The license decision occurs before performance testing and again before final se
 
 The first target is one ASUS Ascent GX10 with NVIDIA GB10 and 128 GB unified memory. The benchmark records the exact model revision, runtime, precision, prompt parameters, retained PNG, latency, storage, process/system memory, repeated-run stability, and ARM64/CUDA environment.
 
-The initial candidate order is:
+Candidate order depends on the intended job:
 
-1. `black-forest-labs/FLUX.2-dev` in BF16 — primary maximum-quality generation/editing candidate.
-2. `black-forest-labs/FLUX.2-dev-NVFP4` — official Blackwell-oriented lower-precision comparison.
-3. `black-forest-labs/FLUX.1-Krea-dev` in BF16 — photographic/aesthetic comparison.
-4. `black-forest-labs/FLUX.1-dev` in BF16 — FLUX.1 baseline.
-5. `black-forest-labs/FLUX.1-Kontext-dev` in BF16 — editing/reference-consistency baseline.
+1. `OnomaAIResearch/Illustrious-XL-v2.0` in BF16 — production-relevant anime and illustrated-story baseline.
+2. `black-forest-labs/FLUX.2-dev` in BF16 — maximum-quality generation/editing baseline.
+3. `black-forest-labs/FLUX.2-dev-NVFP4` — official Blackwell-oriented lower-precision comparison.
+4. `black-forest-labs/FLUX.1-Krea-dev` in BF16 — photographic/aesthetic comparison.
+5. `black-forest-labs/FLUX.1-dev` in BF16 — FLUX.1 baseline.
+6. `black-forest-labs/FLUX.1-Kontext-dev` in BF16 — editing/reference-consistency baseline.
+
+Illustrious XL v2.0 is distributed as one 6.94 GB SDXL safetensors checkpoint under CreativeML OpenRAIL-M metadata. That license permits commercial model use subject to its use restrictions, but it does not remove the operator's responsibility for generated content, third-party intellectual property, or separately licensed LoRAs and derivatives. The benchmark pins the official repository revision and checkpoint SHA-256 and does not add a LoRA.
 
 FLUX.2-dev is deliberately ahead of the original card candidates: it is a newer 32B open-weight model that supports generation and editing, and the GX10 is one of the few local machines with enough unified memory to test the full BF16 checkpoint practically. Model access is gated and its license must be accepted by the operator before weights can be downloaded.
 
@@ -76,7 +79,9 @@ Public results must not contain hostnames, IP addresses, account or personal nam
 - `serve.py` — internal OpenAI-compatible service worker used by the command and managed service.
 - `test_resumable_stream.py` — internal regression worker for replay and duplicate-request suppression.
 - `gx10-image-generator.service` — user-service template used by the profile model-mode switch.
+- `gx10-anime-generator.service` — mutually exclusive Illustrious XL service template.
 - `image-generator.env.example` — non-secret selected-model configuration.
+- `anime-generator.env.example` — non-secret single-file SDXL configuration.
 - `qwen-image-mode-conflict.conf` — reciprocal systemd exclusion for direct/manual service starts.
 - `summarize.py` — internal reporting worker that creates a Markdown comparison table.
 - `gx10.md` — sanitized hardware-specific report and current measurements.

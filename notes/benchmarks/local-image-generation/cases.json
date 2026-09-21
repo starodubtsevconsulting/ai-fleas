@@ -1,5 +1,59 @@
 [
   {
+    "id": "anime-story-frame-16x9",
+    "capability": "text-to-image",
+    "width": 1344,
+    "height": 768,
+    "steps": 30,
+    "guidance_scale": 5.0,
+    "prompt": "masterpiece, best quality, anime cinematic story frame, 16:9. A young adult woman named Mina with short wavy auburn hair, green eyes, a small gold crescent hair clip above her left temple, navy cropped jacket with two silver buttons, cream shirt, red scarf, charcoal pleated skirt, black ankle boots. Mina stands on a quiet railway platform at blue hour holding a worn tan sketchbook, distant mountains, warm station lamps, expressive face, clean anatomy, coherent hands, detailed background, no text, no watermark."
+  },
+  {
+    "id": "anime-character-portrait",
+    "capability": "text-to-image",
+    "width": 1024,
+    "height": 1024,
+    "steps": 30,
+    "guidance_scale": 5.0,
+    "prompt": "masterpiece, best quality, anime character reference portrait. Mina, young adult woman, short wavy auburn hair, green eyes, small gold crescent hair clip above her left temple, navy cropped jacket with two silver buttons, cream shirt, red scarf. Head and shoulders, neutral pale background, front three-quarter view, calm determined expression, clean anatomy, no text, no watermark."
+  },
+  {
+    "id": "anime-character-full-body",
+    "capability": "text-to-image",
+    "width": 768,
+    "height": 1344,
+    "steps": 30,
+    "guidance_scale": 5.0,
+    "prompt": "masterpiece, best quality, full-body anime character reference. Mina, young adult woman, short wavy auburn hair, green eyes, small gold crescent hair clip above her left temple, navy cropped jacket with two silver buttons, cream shirt, red scarf, charcoal pleated skirt, black ankle boots, standing relaxed, entire body visible, plain light background, clean hands and feet, no text, no watermark."
+  },
+  {
+    "id": "anime-character-indoor",
+    "capability": "text-to-image",
+    "width": 1344,
+    "height": 768,
+    "steps": 30,
+    "guidance_scale": 5.0,
+    "prompt": "masterpiece, best quality, anime story frame. Mina, young adult woman with short wavy auburn hair, green eyes, small gold crescent hair clip above her left temple, navy cropped jacket with two silver buttons, cream shirt, red scarf, charcoal pleated skirt, black ankle boots. Inside a cozy attic studio, seated at a wooden desk drawing in a worn tan sketchbook, warm window light, three-quarter camera angle, consistent outfit and face, coherent hands, no text, no watermark."
+  },
+  {
+    "id": "anime-character-outdoor",
+    "capability": "text-to-image",
+    "width": 1344,
+    "height": 768,
+    "steps": 30,
+    "guidance_scale": 5.0,
+    "prompt": "masterpiece, best quality, anime story frame. Mina, young adult woman with short wavy auburn hair, green eyes, small gold crescent hair clip above her left temple, navy cropped jacket with two silver buttons, cream shirt, red scarf, charcoal pleated skirt, black ankle boots. Walking through a windy meadow carrying a worn tan sketchbook, low camera angle, red scarf blowing to the right, afternoon clouds, consistent outfit and face, coherent motion and anatomy, no text, no watermark."
+  },
+  {
+    "id": "anime-character-dynamic-pose",
+    "capability": "text-to-image",
+    "width": 1344,
+    "height": 768,
+    "steps": 30,
+    "guidance_scale": 5.0,
+    "prompt": "masterpiece, best quality, dynamic anime story frame. Mina, young adult woman with short wavy auburn hair, green eyes, small gold crescent hair clip above her left temple, navy cropped jacket with two silver buttons, cream shirt, red scarf, charcoal pleated skirt, black ankle boots. She turns quickly toward the camera while running down stone steps, worn tan sketchbook held securely under her left arm, high camera angle, dramatic evening light, consistent face and outfit, correct limbs and hands, no text, no watermark."
+  },
+  {
     "id": "photoreal-person-animal",
     "capability": "text-to-image",
     "width": 1024,

@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import torch
-from diffusers import DiffusionPipeline
+from diffusers import DiffusionPipeline, StableDiffusionXLPipeline
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -23,6 +23,8 @@ from pydantic import BaseModel, Field
 
 
 MODEL_ID = os.environ.get("IMAGE_MODEL_ID", "black-forest-labs/FLUX.2-dev")
+MODEL_FILE = os.environ.get("IMAGE_MODEL_FILE", "")
+PIPELINE_TYPE = os.environ.get("IMAGE_PIPELINE_TYPE", "diffusers-repository")
 MODEL_ALIASES = {MODEL_ID, MODEL_ID.rsplit("/", 1)[-1], "local-image-generator"}
 DTYPE_NAME = os.environ.get("IMAGE_DTYPE", "bfloat16")
 DEFAULT_STEPS = int(os.environ.get("IMAGE_DEFAULT_STEPS", "50"))
@@ -155,7 +157,15 @@ async def lifespan(_: FastAPI):
     global PIPELINE
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     dtype = getattr(torch, DTYPE_NAME)
-    PIPELINE = DiffusionPipeline.from_pretrained(MODEL_ID, torch_dtype=dtype, device_map="cuda")
+    if PIPELINE_TYPE == "single-file-sdxl":
+        if not MODEL_FILE:
+            raise RuntimeError("IMAGE_MODEL_FILE is required for single-file-sdxl")
+        PIPELINE = StableDiffusionXLPipeline.from_single_file(
+            MODEL_FILE,
+            torch_dtype=dtype,
+        ).to("cuda")
+    else:
+        PIPELINE = DiffusionPipeline.from_pretrained(MODEL_ID, torch_dtype=dtype, device_map="cuda")
     yield
     PIPELINE = None
     if torch.cuda.is_available():
