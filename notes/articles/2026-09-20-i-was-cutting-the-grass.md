@@ -1,8 +1,8 @@
-# I Was Cutting the Grass. My AI Team Was Doing the Accounting.
+# I Was Cutting the Grass. Could My AI Team Do the Accounting?
 
 > “It is not that we have a short time to live, but that we waste a lot of it.”
 >
-> — Seneca, *On the Shortness of Life*
+> — Seneca, *On the Shortness of Life*, translated by C. D. N. Costa
 
 > **Draft:** Prepared through the Writing workflow in emulation mode. Independent fresh-context critique, human listen-through, and release approval remain pending.
 
@@ -10,7 +10,7 @@ The birds were singing.
 
 The air at the chalet was cool enough to make cutting the grass almost recreational. I had the mower moving, the phone in my pocket, and—for once—I was not sitting in front of a computer.
 
-Then I remembered the bills.
+Then I thought about the bills.
 
 There are taxes around the chalet. There are receipts. There are financial things that do not disappear merely because the weather is good.
 
@@ -18,9 +18,7 @@ Normally that thought has a price.
 
 Stop what I am doing. Go inside. Open the laptop. Find the right folder. Find the statement. Remember what I already checked. Work out what still needs attention. Perhaps open the calendar. Perhaps create another task. Twenty minutes later I am no longer cutting grass. I am doing administration.
 
-This time I pulled out my phone.
-
-I asked my Personal Governor about it.
+This time I pulled out my phone and asked a design question: what would it take for my Personal Governor to hand a bounded financial question to specialists without pulling me away from the yard?
 
 Then I went back to the grass.
 
@@ -30,7 +28,7 @@ We already know that phones can access financial applications.
 
 That is not particularly interesting.
 
-What interested me was that I did not have to reconstruct the problem for the AI.
+What interested me was the possibility that I would not have to reconstruct the problem for the AI every time.
 
 Over time I had already been building the pieces:
 
@@ -132,7 +130,7 @@ The useful thing is not unlimited memory.
 
 It is **memory with boundaries**.
 
-## Then the AI started working while I didn't
+## What concurrent AI work changes
 
 There is another subtlety here.
 
@@ -144,7 +142,7 @@ Perhaps I spent five minutes intermittently directing the work and making decisi
 
 Those are different facts.
 
-This became important enough that I added an activity-reconciliation rule to the Governor.
+This became important enough that I added an activity-reconciliation rule to the Governor's design.
 
 It distinguishes:
 
@@ -276,9 +274,9 @@ The human decides.
 
 ## And then I kept cutting the grass
 
-The financial question did not need to consume the afternoon.
+The point is not that a verified accounting result arrived that afternoon. This was a design exercise, not a completed financial run.
 
-I got the information I needed. A couple of things deserved follow-up, so they could become calendar commitments instead of thoughts bouncing around my head.
+The useful possibility is simpler: I can hand off a bounded investigation without immediately becoming the accounting department. In a real run, any answer would still need sources, uncertainty, and review before I acted on it. Genuine follow-ups could then become calendar commitments instead of thoughts bouncing around my head.
 
 Then the phone went back into my pocket.
 
@@ -288,4 +286,4 @@ The birds had not gone anywhere.
 
 And neither had the bills.
 
-The difference was that I no longer had to choose between forgetting them and immediately becoming the accounting department.
+The design question was whether those had to remain the only two choices.
