@@ -8,7 +8,7 @@ separate scheduling approval. Other destinations remain recommendation and human
 
 ## Entry
 
-The Writer's handoff: exact archived article and unpublished destination-draft revisions, source and visual credits,
+Admin's release packet: exact archived article and unpublished destination-draft revisions, source and visual credits,
 review evidence, outstanding issues, and selected destination. Resolve that destination through the selected profile's
 binding, then inspect publication history for its account. A missing review gate permits a pending-status handoff, not
 a release-ready recommendation.
@@ -16,11 +16,10 @@ a release-ready recommendation.
 ## Steps
 
 1. Verify that independent critique is addressed and the human accepted the exact final revision. When review evidence
-   is missing, stale, conflicting, or ambiguous, send the exact Reviewer one bounded release-gate diagnostic packet and
-   wait for its evidence return; do not make the human relay the question. If Reviewer returns `REVIEW_REQUIRED`, route
-   the required critique through Writer's normal assignment path or ask Admin to orchestrate it. If acceptance or review
-   still is not proven, record the missing gate and do not mark the article release-ready. Return editorial changes to
-   Writer. Proof: review record and exact revision identifiers, diagnostic receipt/return when used, or explicit status.
+   is missing, stale, conflicting, or ambiguous, return one precise blocker packet to Admin; do not contact Reviewer or
+   make the human relay the question. Admin routes diagnosis or revision work to the proper owner and may send a verified
+   continuation packet back. If acceptance or review still is not proven, record the missing gate and do not mark the
+   article release-ready. Proof: review record and exact revision identifiers, Admin continuation when used, or status.
 2. Resolve the exact publication target separately from the provider account and schedule: for Medium, either the
    author's profile/home or one named Publication that the signed-in account is verified and authorized to use. Present
    the verified choices and ask the human where this exact revision should be published unless that exact target is

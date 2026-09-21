@@ -19,7 +19,14 @@ identified gate to its declared owner. It must not perform or overrule independe
 silently select a publication target, publish or submit, or bypass an action reserved to the human. A changed revision
 invalidates affected downstream evidence and Admin routes it through the required gates again.
 
-Admin does not replace normal Writer-to-Reviewer review or Release-Coordinator-to-Reviewer diagnosis. It intervenes
-when the human addresses Admin for orchestration, an owner reports a blocker requiring another declared owner, a
-handoff fails, or the workflow would otherwise stop with the human acting only as a courier. Cycles, uncertain task
-identity, unavailable owners, and genuinely human-only decisions are reported with the exact blocker and evidence.
+Admin is the sole canonical inter-agent coordinator. Writer, Reviewer, and Release Coordinator return their terminal
+packets to Admin; they do not route work directly to each other. Admin validates each return, preserves the parent
+correlation and exact revision evidence, and creates the next bounded child packet for the next declared owner. Admin
+must not advance a dependent gate from a transport receipt alone: it requires visible `COPY THAT` and terminal evidence.
+
+When an agent is missing, duplicated, stale-bound, or unable to receive packets, Admin performs a transactional lifecycle
+repair: resolve the exact active receipt, create at most one successor candidate, verify its readiness and identity,
+archive the predecessor, update durable binding state, and verify that only one active task remains for the role. A
+temporary successor candidate never becomes authoritative before readiness and must not remain as a duplicate roster
+member after the transaction. Cycles, uncertain identity, unavailable owners, and genuinely human-only decisions are
+reported with the exact blocker and evidence.

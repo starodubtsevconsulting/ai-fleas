@@ -21,14 +21,12 @@ profile explicitly enables it and the human has accepted the exact final article
 
 ## Editorial sequence
 
-The [editorial routing contract](editorial-routing.md) permits Writer to hand an exact finished revision directly to
-Reviewer for independent critique, then permits Reviewer to return findings to that Writer. Both remain directly
-human-addressable. The Reviewer must be independent of the exact revision it critiques, regardless of role label.
-Writer dispositions the findings; the human accepts the final revision and selects Release Coordinator for timing.
-Release Coordinator selects an eligible day and may schedule it on an enabled Medium destination without a second
-approval. If review evidence is unclear, Release Coordinator asks Reviewer directly for a bounded diagnosis. When the
-human asks Admin to run or finish the workflow, Admin coordinates each declared owner and follows returns until the
-workflow completes or reaches a genuine human-only blocker. The human performs any immediate publication or submission.
+The [Admin orchestration contract](admin-orchestration.md) makes Admin the sole inter-agent coordinator. Writer returns
+the exact finished revision and proposed review packet to Admin; Admin assigns Reviewer; Reviewer returns findings to
+Admin; Admin returns changes to Writer or advances an accepted revision to Release Coordinator. The Reviewer remains
+independent of the exact revision it critiques, regardless of role label. Release Coordinator returns scheduling
+evidence or blockers to Admin. Agents remain directly human-addressable, but they never use the human as a message
+courier and never contact another specialist directly. The human performs any immediate publication or submission.
 
 Each agent is limited to the selected profile's registered project subset, exact logical project, active commands, and
 its matrix column. Provider account, article archive path, editorial preferences, and release cadence come from the
