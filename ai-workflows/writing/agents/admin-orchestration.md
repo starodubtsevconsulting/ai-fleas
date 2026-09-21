@@ -17,9 +17,11 @@ directly to one another.
 4. **Resolve changes.** For `CHANGES_REQUIRED`, Admin sends the bounded findings to Writer. Writer returns a new exact
    revision and proposed review packet. Admin repeats independent review until Reviewer returns an acceptable terminal
    disposition. Old dispositions never cover changed revisions.
-5. **Obtain human-only decisions.** Admin shows the exact final revision and unresolved human gates. Human acceptance,
-   publication target, and any authority reserved to the human must be explicit and revision-bound. Admin records them;
-   it does not infer them.
+5. **Resolve human authorization.** Admin applies the
+   [session-scoped release authorization contract](../guides/session-release-authorization.md). A preserved bounded
+   end-to-end mandate may already authorize the final independently accepted in-scope revision, target, action, and
+   timing. Do not ask the human to repeat it at each stage or after an in-scope reviewed correction. Ask only for a
+   genuinely missing choice or changed scope, and record the exact final hash selected under the mandate.
 6. **Assign release.** Admin sends Release Coordinator the accepted exact revision, destination draft, review evidence,
    target, timing instruction, and enabled destination policy. Release Coordinator returns scheduled/read-back evidence
    or one precise blocker to Admin.

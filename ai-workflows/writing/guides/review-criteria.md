@@ -34,7 +34,8 @@ manufacture a personal story to satisfy a method.
    it matters to this reader, and a question or suggested direction. Report strengths and deliberate tradeoffs too.
    Do not use a single aggregate score to conceal a factual or ethical problem.
 
-The Writer dispositions findings and rechecks changed material. The human accepts the final revision. The Reviewer
+The Writer dispositions findings and rechecks changed material. The human accepts the final revision directly or
+through a valid session-scoped release mandate. The Reviewer
 does not rewrite the article, mark it release-ready alone, or publish it.
 
 ## Rendered destination QA

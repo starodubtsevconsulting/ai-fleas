@@ -29,7 +29,7 @@ proof, a precise stale/conflicting-record diagnosis, or `REVIEW_REQUIRED`; this 
 
 ## Admin to Release Coordinator
 
-After exact-revision review and human gates are complete, Admin sends Release Coordinator the accepted revision,
+After exact-revision review and the human gates or preserved session-scoped release mandate are complete, Admin sends Release Coordinator the accepted revision,
 destination draft, review evidence, explicit publication target, timing instruction, applicable account policy, and
 prohibited effects. Release Coordinator acknowledges with `COPY THAT`, performs release planning or authorized Medium
 scheduling, verifies the resulting state, and returns terminal evidence or one precise blocker to Admin. Release

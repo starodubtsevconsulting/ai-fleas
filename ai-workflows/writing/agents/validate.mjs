@@ -23,6 +23,8 @@ const critiqueFlow = fs.readFileSync(path.join(workflowRoot, 'flows/independent-
 const releaseFlow = fs.readFileSync(path.join(workflowRoot, 'flows/release-planning.flow.md'), 'utf8');
 const reviewCriteria = fs.readFileSync(path.join(workflowRoot, 'guides/review-criteria.md'), 'utf8');
 const headerImageContract = fs.readFileSync(path.join(workflowRoot, 'guides/header-image-contract.md'), 'utf8');
+const sessionReleaseAuthorization = fs.readFileSync(
+  path.join(workflowRoot, 'guides/session-release-authorization.md'), 'utf8');
 const mediumDraftSkill = fs.readFileSync(path.join(publicRoot,
   'ai-commands/content/medium/skills/medium-draft/SKILL.md'), 'utf8');
 const mediumPublicationSkill = fs.readFileSync(path.join(publicRoot,
@@ -190,6 +192,12 @@ assert.match(orchestration, /empty completed turn is `BLOCKED_DELIVERY_UNACKNOWL
 assert.match(orchestration, /how many independent review rounds occurred/);
 assert.match(orchestration, /verified scheduled local date, time, and time zone/);
 assert.match(orchestration, /proof that exactly one active binding remains per role/);
+assert.match(orchestration, /session-scoped release authorization contract/);
+assert.match(sessionReleaseAuthorization, /authorize one bounded Writing run once/);
+assert.match(sessionReleaseAuthorization, /must not ask the human to\s+repeat it/);
+assert.match(sessionReleaseAuthorization, /review correction produced a new hash/);
+assert.match(sessionReleaseAuthorization, /only its\s+author profile\/home is eligible/);
+assert.match(sessionReleaseAuthorization, /Listen-through is a review aid, not a second release authorization/);
 assert.match(orchestration, /periodic heartbeat rather than\s+continuously polling agents/);
 assert.match(orchestration, /more than one active visible task for one role/);
 assert.match(orchestration, /heartbeat reports evidence[\s\S]*never creates, replaces, archives/);

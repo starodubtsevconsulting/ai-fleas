@@ -54,8 +54,8 @@ that the signed-in account's profile link matches it before any draft mutation. 
 bindings rather than inferring them from a vault label, cwd, currently open browser tab, display name, or article
 draft URL. A publication is a separate destination choice; do not infer one from the account. Configuration is a
 routing constraint. `draft-and-schedule` is valid only when the active workflow destination also uses that mode and
-its release policy explicitly enables `release-coordinator`, requires human acceptance of the exact final article
-revision, and states that no separate per-item scheduling approval is required. The profile-wide default remains
+its release policy explicitly enables `release-coordinator`, requires direct human acceptance of the exact final article
+revision or a valid session-scoped release mandate, and states that no separate per-item scheduling approval is required. The profile-wide default remains
 `draft-only`; another workflow does not inherit this grant. A cadence target never initiates scheduling by itself.
 Neither mode permits immediate publication or submission.
 

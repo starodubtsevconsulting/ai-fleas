@@ -53,12 +53,12 @@ fresh-context Reviewer task or human reader who did not draft or edit the revisi
    the draft URL, status, and topics. Destination preparation never includes publication.
 6. Challenge the finished article through the [independent critique flow](flows/independent-critique.flow.md),
    addressing substantive findings before calling it release-ready. The computer prepares a spoken preview for the
-   human author's first listen-through; a fresh-context reviewer checks the work; the human accepts the exact final
-   revision after any changes.
+   human author's first listen-through when available or required; a fresh-context reviewer checks the work; the human
+   accepts the exact final revision directly or through a bounded session-scoped release mandate.
 7. Admin hands the accepted exact revision and review record to Release Coordinator, which first resolves the explicit
    publication target (such as Medium profile/home versus a named authorized Publication), then selects a
    destination-specific slot through the [release planning flow](flows/release-planning.flow.md), using profile-owned
-   cadence settings and verified publication history. After human acceptance of that exact final revision, Release
+   cadence settings and verified publication history. After direct human acceptance or a valid session-scoped mandate, Release
    Coordinator may schedule on Medium only when the selected profile explicitly enables it and the selected target
    supports it, without a second per-item timing approval. Publication-target selection is still required and must
    never default silently.

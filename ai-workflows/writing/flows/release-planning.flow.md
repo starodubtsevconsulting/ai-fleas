@@ -15,7 +15,8 @@ a release-ready recommendation.
 
 ## Steps
 
-1. Verify that independent critique is addressed and the human accepted the exact final revision. When review evidence
+1. Verify that independent critique is addressed and the human accepted the exact final revision directly or through
+   a valid [session-scoped release mandate](../guides/session-release-authorization.md). When review evidence
    is missing, stale, conflicting, or ambiguous, return one precise blocker packet to Admin; do not contact Reviewer or
    make the human relay the question. Admin routes diagnosis or revision work to the proper owner and may send a verified
    continuation packet back. If acceptance or review still is not proven, record the missing gate and do not mark the
@@ -23,8 +24,10 @@ a release-ready recommendation.
 2. Resolve the exact publication target separately from the provider account and schedule: for Medium, either the
    author's profile/home or one named Publication that the signed-in account is verified and authorized to use. Present
    the verified choices and ask the human where this exact revision should be published unless that exact target is
-   already explicitly recorded for it. A destination account, existing draft, previous article target, UI default, or
-   absence of a response does not select profile/home. If target choices cannot be verified, record
+   already explicitly recorded or validly resolved under the session-scoped release mandate. A destination account,
+   existing draft, previous article target, UI default, or absence of a response alone does not select profile/home.
+   The sole-target resolution in the authorization contract applies only after the human was shown that limitation.
+   If target choices cannot be verified, record
    `BLOCKED_PUBLICATION_TARGET`; do not schedule. Proof: revision-bound human selection, target type and exact name/ID,
    account authorization evidence, and supported action (`schedule` or `submit`).
 3. Read the active destination's profile-owned `release_policy`, including its time zone, maximum posts per local
@@ -48,8 +51,8 @@ a release-ready recommendation.
    and checked constraints.
 6. For a destination or selected publication target without explicit scheduling authority, record the proposed day and status as `proposed` and hand
    the draft, readiness evidence, and timing recommendation to the human. For Medium `draft-and-schedule`, verify the
-   workflow override and `release_policy.scheduling` enable `release-coordinator`, require human acceptance of the
-   exact final article revision, and waive only the separate per-item scheduling approval. Match the archive revision
+   workflow override and `release_policy.scheduling` enable `release-coordinator`, require direct exact-revision
+   acceptance or a valid session-scoped release mandate, and waive the separate per-item scheduling approval. Match the archive revision
    to the intended Medium draft, verify the signed-in account, and verify the selected publication target is still
    active and supports native scheduling. Select a future slot that obeys the daily cap and
    known queue. Use the [Medium schedule skill](../../../ai-commands/content/medium/skills/medium-schedule/SKILL.md)

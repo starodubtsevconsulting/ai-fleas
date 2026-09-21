@@ -69,7 +69,8 @@ open editorial decisions. Keep both versions unpublished.
 
 ## Exit
 
-Mark release review complete only when the independent critique is addressed and the human has reviewed and accepted
-the exact final revision; then continue to [release planning](release-planning.flow.md). Otherwise hand off the
+Mark release review complete only when the independent critique is addressed and the human has directly reviewed and
+accepted the exact final revision, or when a valid session-scoped release mandate delegates final selection to the
+completed review loop; then continue to [release planning](release-planning.flow.md). Otherwise hand off the
 unpublished draft with the pending gate and next action. Any later material edit invalidates the affected review
 evidence. This flow never publishes, submits, or schedules.

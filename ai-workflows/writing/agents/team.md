@@ -17,7 +17,8 @@ The matrices are the mechanical authority; this page explains their ownership an
 Admin is the workflow administration identity; Judge, Writer, Reviewer, and Release Coordinator are the four governed
 agents. The GPT adapter's mechanical controller creates the complete declared roster when initialization is authorized.
 No role is scheduled or pooled. Release Coordinator may use Medium's native future scheduling only when the selected
-profile explicitly enables it and the human has accepted the exact final article revision.
+profile explicitly enables it and the human has directly accepted the exact final article revision or supplied a
+still-valid session-scoped release mandate that delegates final selection to this review loop.
 
 ## Editorial sequence
 
