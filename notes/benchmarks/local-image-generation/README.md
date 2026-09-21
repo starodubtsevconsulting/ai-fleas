@@ -27,6 +27,24 @@ flowchart LR
 
 The license decision occurs before performance testing and again before final selection. An evaluation-only model may establish a useful quality ceiling, but it cannot silently become the production choice.
 
+## Current results
+
+This dashboard mirrors the local language-model benchmark registry. A completed baseline means the recorded configuration ran successfully and produced reviewable evidence; it does not mean the candidate passed production acceptance.
+
+| Hardware | Candidate | Purpose | Load or startup | Generation | Acceptance status |
+|---|---|---|---:|---:|---|
+| ASUS Ascent GX10, 128 GB unified memory | **Illustrious XL v2.0 BF16** | Anime and illustrated-story consistency baseline | 11 s switch/load to ready | 8.77–17.87 s for six fixed 30-step frames | Preliminary baseline complete; technically valid images, but visual reliability and recurring-character consistency failed at tested settings |
+| ASUS Ascent GX10, 128 GB unified memory | **FLUX.2-dev BF16** | Maximum-quality full-precision generation/editing baseline | 10 min 19 s–12 min 1 s stopped-to-ready | 3 min 51 s–3 min 55 s for observed 1024×1024, 50-step browser runs | Operational baseline complete; full fixed quality corpus pending; not production-eligible without a separate commercial license |
+
+## Benchmark reports and records
+
+- [ASUS Ascent GX10 report](gx10.md) — shared hardware report for FLUX.2-dev and Illustrious XL v2.0, including startup, generation, resource, transport, license, and qualitative findings.
+- [Illustrious XL v2.0 machine-readable result](results/illustrious-xl-v2-gx10-2026-09-21.json) — sanitized parameters, hashes, timing, storage, memory, lifecycle, and qualitative decision for the six-frame preliminary baseline.
+- [`candidates.json`](candidates.json) — canonical ordered model registry, benchmark purpose, intended use, capabilities, license disposition, and production eligibility.
+- [`cases.json`](cases.json) — canonical fixed test corpus and generation parameters.
+
+The Illustrious record is intentionally classified as a **preliminary baseline** because each fixed anime case currently has one retained run. The shared acceptance method calls for three repetitions per compatible case where practical plus blind scoring. Those remaining measurements must be added before treating it as a completed comparative benchmark or selecting it for production.
+
 ## ASUS GX10 target
 
 The first target is one ASUS Ascent GX10 with NVIDIA GB10 and 128 GB unified memory. The benchmark records the exact model revision, runtime, precision, prompt parameters, retained PNG, latency, storage, process/system memory, repeated-run stability, and ARM64/CUDA environment.

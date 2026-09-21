@@ -34,14 +34,14 @@ The shared [language-model methodology](local-models/methodology.md) defines dir
 
 ## Image-generation candidates
 
-| Candidate | Benchmark purpose | Capabilities | Production disposition | Status |
-|---|---|---|---|---|
-| Illustrious XL v2.0 BF16 | Fast anime and illustrated-story baseline, including recurring-character frames | Text-to-image | CreativeML OpenRAIL-M; commercial use permitted subject to use restrictions and separate output/IP review | Official 6.94 GB checkpoint verified; 11 s load; six-frame set completed; quality unreliable at tested settings and production acceptance not met |
-| FLUX.2-dev BF16 | Maximum-quality full-precision baseline on large unified-memory hardware | Text-to-image and image editing | Evaluation/non-commercial; separate commercial license required for commercial model operation | Downloaded, loaded, endpoint-tested, and startup measured; full quality corpus pending |
-| FLUX.2-dev NVFP4 | Blackwell-oriented reduced-precision comparison against BF16 | Text-to-image and image editing | Evaluation/non-commercial unless separately licensed | Access, loader integration, and benchmark pending |
-| FLUX.1 Krea-dev BF16 | Photographic and aesthetic quality comparison | Text-to-image | Verify model-specific terms before use beyond private evaluation | Pending |
-| FLUX.1 dev BF16 | Previous-generation baseline | Text-to-image | Verify model-specific terms before use beyond private evaluation | Pending |
-| FLUX.1 Kontext-dev BF16 | Editing and reference-consistency baseline | Image editing | Verify model-specific terms before use beyond private evaluation | Pending |
+| Candidate | Benchmark purpose | Capabilities | Production disposition | Benchmark record | Status |
+|---|---|---|---|---|---|
+| Illustrious XL v2.0 BF16 | Fast anime and illustrated-story baseline, including recurring-character frames | Text-to-image | CreativeML OpenRAIL-M; commercial use permitted subject to use restrictions and separate output/IP review | [GX10 report](local-image-generation/gx10.md#illustrious-xl-v20-anime-baseline) · [JSON result](local-image-generation/results/illustrious-xl-v2-gx10-2026-09-21.json) | Preliminary six-frame baseline complete: official 6.94 GB checkpoint verified, 11 s load, and quality unreliable at tested settings; repeated-run and blind-scoring acceptance remains pending |
+| FLUX.2-dev BF16 | Maximum-quality full-precision baseline on large unified-memory hardware | Text-to-image and image editing | Evaluation/non-commercial; separate commercial license required for commercial model operation | [GX10 report](local-image-generation/gx10.md#current-flux2-dev-bf16-evidence) | Downloaded, loaded, endpoint-tested, and startup measured; full quality corpus pending |
+| FLUX.2-dev NVFP4 | Blackwell-oriented reduced-precision comparison against BF16 | Text-to-image and image editing | Evaluation/non-commercial unless separately licensed | — | Access, loader integration, and benchmark pending |
+| FLUX.1 Krea-dev BF16 | Photographic and aesthetic quality comparison | Text-to-image | Verify model-specific terms before use beyond private evaluation | — | Pending |
+| FLUX.1 dev BF16 | Previous-generation baseline | Text-to-image | Verify model-specific terms before use beyond private evaluation | — | Pending |
+| FLUX.1 Kontext-dev BF16 | Editing and reference-consistency baseline | Image editing | Verify model-specific terms before use beyond private evaluation | — | Pending |
 
 See the [image benchmark methodology and fixed corpus](local-image-generation/README.md), [GX10 image report](local-image-generation/gx10.md), [candidate metadata](local-image-generation/candidates.json), and [test cases](local-image-generation/cases.json).
 
