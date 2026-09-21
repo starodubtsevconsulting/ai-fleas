@@ -19,7 +19,7 @@ flowchart TD
 | Benchmark | What it is for | Selection principle | Current state |
 |---|---|---|---|
 | [Local language models](local-models/README.md) | Coding, agent/tool workflows, System agents, portable inference, and always-on workers | Strongest useful model that remains fast, reliable, and appropriately sized for its assigned job | Multiple hardware baselines recorded; additional candidates planned |
-| [Local image generation](local-image-generation/README.md) | Photorealistic images, illustrations, covers, text rendering, and controlled reference edits | Human-reviewed quality joined with startup, latency, memory, stability, architecture support, and license fit | FLUX.2-dev BF16 baseline running; full corpus and comparisons pending |
+| [Local image generation](local-image-generation/README.md) | Photorealistic images, anime/illustrated stories, covers, text rendering, and controlled reference edits | Human-reviewed quality joined with startup, latency, memory, stability, architecture support, and license fit | FLUX.2-dev quality baseline and Illustrious XL v2 anime baseline recorded; broader corpus pending |
 
 ## Local language-model reports
 
@@ -34,13 +34,14 @@ The shared [language-model methodology](local-models/methodology.md) defines dir
 
 ## Image-generation candidates
 
-| Candidate | Benchmark purpose | Capabilities | Production disposition | Status |
-|---|---|---|---|---|
-| FLUX.2-dev BF16 | Maximum-quality full-precision baseline on large unified-memory hardware | Text-to-image and image editing | Evaluation/non-commercial; separate commercial license required for commercial model operation | Downloaded, loaded, endpoint-tested, and startup measured; full quality corpus pending |
-| FLUX.2-dev NVFP4 | Blackwell-oriented reduced-precision comparison against BF16 | Text-to-image and image editing | Evaluation/non-commercial unless separately licensed | Access, loader integration, and benchmark pending |
-| FLUX.1 Krea-dev BF16 | Photographic and aesthetic quality comparison | Text-to-image | Verify model-specific terms before use beyond private evaluation | Pending |
-| FLUX.1 dev BF16 | Previous-generation baseline | Text-to-image | Verify model-specific terms before use beyond private evaluation | Pending |
-| FLUX.1 Kontext-dev BF16 | Editing and reference-consistency baseline | Image editing | Verify model-specific terms before use beyond private evaluation | Pending |
+| Candidate | Benchmark purpose | Capabilities | Production disposition | Benchmark record | Status |
+|---|---|---|---|---|---|
+| Illustrious XL v2.0 BF16 | Fast anime and illustrated-story baseline, including recurring-character frames | Text-to-image | CreativeML OpenRAIL-M; commercial use permitted subject to use restrictions and separate output/IP review | [GX10 report](local-image-generation/gx10.md#illustrious-xl-v20-anime-baseline) · [JSON result](local-image-generation/results/illustrious-xl-v2-gx10-2026-09-21.json) | Preliminary six-frame baseline complete: official 6.94 GB checkpoint verified, 11 s load, and quality unreliable at tested settings; repeated-run and blind-scoring acceptance remains pending |
+| FLUX.2-dev BF16 | Maximum-quality full-precision baseline on large unified-memory hardware | Text-to-image and image editing | Evaluation/non-commercial; separate commercial license required for commercial model operation | [GX10 report](local-image-generation/gx10.md#current-flux2-dev-bf16-evidence) | Downloaded, loaded, endpoint-tested, and startup measured; full quality corpus pending |
+| FLUX.2-dev NVFP4 | Blackwell-oriented reduced-precision comparison against BF16 | Text-to-image and image editing | Evaluation/non-commercial unless separately licensed | — | Access, loader integration, and benchmark pending |
+| FLUX.1 Krea-dev BF16 | Photographic and aesthetic quality comparison | Text-to-image | Verify model-specific terms before use beyond private evaluation | — | Pending |
+| FLUX.1 dev BF16 | Previous-generation baseline | Text-to-image | Verify model-specific terms before use beyond private evaluation | — | Pending |
+| FLUX.1 Kontext-dev BF16 | Editing and reference-consistency baseline | Image editing | Verify model-specific terms before use beyond private evaluation | — | Pending |
 
 See the [image benchmark methodology and fixed corpus](local-image-generation/README.md), [GX10 image report](local-image-generation/gx10.md), [candidate metadata](local-image-generation/candidates.json), and [test cases](local-image-generation/cases.json).
 

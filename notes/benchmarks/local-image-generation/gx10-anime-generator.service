@@ -1,0 +1,17 @@
+[Unit]
+Description=GX10 local anime image generator (Illustrious XL)
+After=docker.service network-online.target
+Wants=network-online.target
+Conflicts=qwen3-coder-next.service gx10-image-generator.service
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/ai-fleas/anime-generator.env
+ExecStartPre=-/usr/bin/docker rm -f gx10-anime-generator
+ExecStart=/usr/bin/docker run --rm --name gx10-anime-generator --gpus=all --network=host --ipc=host -e IMAGE_MODEL_ID -e IMAGE_MODEL_FILE -e IMAGE_PIPELINE_TYPE -e IMAGE_DTYPE -e IMAGE_DEFAULT_STEPS -e IMAGE_DEFAULT_GUIDANCE -e IMAGE_PORT=8000 -v %h/image-benchmarks/harness:/benchmark:ro -v %h/image-benchmarks/models:/models:ro -v %h/.cache/huggingface:/root/.cache/huggingface -v %h/image-benchmarks/outputs:/outputs --entrypoint python3 ai-fleas/gx10-image-benchmark:26.08 /benchmark/serve.py
+ExecStop=-/usr/bin/docker stop -t 30 gx10-anime-generator
+Restart=no
+TimeoutStopSec=45
+
+[Install]
+WantedBy=default.target

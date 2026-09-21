@@ -27,17 +27,38 @@ flowchart LR
 
 The license decision occurs before performance testing and again before final selection. An evaluation-only model may establish a useful quality ceiling, but it cannot silently become the production choice.
 
+## Current results
+
+This dashboard mirrors the local language-model benchmark registry. A completed baseline means the recorded configuration ran successfully and produced reviewable evidence; it does not mean the candidate passed production acceptance.
+
+| Hardware | Candidate | Purpose | Load or startup | Generation | Acceptance status |
+|---|---|---|---:|---:|---|
+| ASUS Ascent GX10, 128 GB unified memory | **Illustrious XL v2.0 BF16** | Anime and illustrated-story consistency baseline | 11 s switch/load to ready | 8.77–17.87 s for six fixed 30-step frames | Preliminary baseline complete; technically valid images, but visual reliability and recurring-character consistency failed at tested settings |
+| ASUS Ascent GX10, 128 GB unified memory | **FLUX.2-dev BF16** | Maximum-quality full-precision generation/editing baseline | 10 min 19 s–12 min 1 s stopped-to-ready | 3 min 51 s–3 min 55 s for observed 1024×1024, 50-step browser runs | Operational baseline complete; full fixed quality corpus pending; not production-eligible without a separate commercial license |
+
+## Benchmark reports and records
+
+- [ASUS Ascent GX10 report](gx10.md) — shared hardware report for FLUX.2-dev and Illustrious XL v2.0, including startup, generation, resource, transport, license, and qualitative findings.
+- [Illustrious XL v2.0 machine-readable result](results/illustrious-xl-v2-gx10-2026-09-21.json) — sanitized parameters, hashes, timing, storage, memory, lifecycle, and qualitative decision for the six-frame preliminary baseline.
+- [`candidates.json`](candidates.json) — canonical ordered model registry, benchmark purpose, intended use, capabilities, license disposition, and production eligibility.
+- [`cases.json`](cases.json) — canonical fixed test corpus and generation parameters.
+
+The Illustrious record is intentionally classified as a **preliminary baseline** because each fixed anime case currently has one retained run. The shared acceptance method calls for three repetitions per compatible case where practical plus blind scoring. Those remaining measurements must be added before treating it as a completed comparative benchmark or selecting it for production.
+
 ## ASUS GX10 target
 
 The first target is one ASUS Ascent GX10 with NVIDIA GB10 and 128 GB unified memory. The benchmark records the exact model revision, runtime, precision, prompt parameters, retained PNG, latency, storage, process/system memory, repeated-run stability, and ARM64/CUDA environment.
 
-The initial candidate order is:
+Candidate order depends on the intended job:
 
-1. `black-forest-labs/FLUX.2-dev` in BF16 — primary maximum-quality generation/editing candidate.
-2. `black-forest-labs/FLUX.2-dev-NVFP4` — official Blackwell-oriented lower-precision comparison.
-3. `black-forest-labs/FLUX.1-Krea-dev` in BF16 — photographic/aesthetic comparison.
-4. `black-forest-labs/FLUX.1-dev` in BF16 — FLUX.1 baseline.
-5. `black-forest-labs/FLUX.1-Kontext-dev` in BF16 — editing/reference-consistency baseline.
+1. `OnomaAIResearch/Illustrious-XL-v2.0` in BF16 — production-relevant anime and illustrated-story baseline.
+2. `black-forest-labs/FLUX.2-dev` in BF16 — maximum-quality generation/editing baseline.
+3. `black-forest-labs/FLUX.2-dev-NVFP4` — official Blackwell-oriented lower-precision comparison.
+4. `black-forest-labs/FLUX.1-Krea-dev` in BF16 — photographic/aesthetic comparison.
+5. `black-forest-labs/FLUX.1-dev` in BF16 — FLUX.1 baseline.
+6. `black-forest-labs/FLUX.1-Kontext-dev` in BF16 — editing/reference-consistency baseline.
+
+Illustrious XL v2.0 is distributed as one 6.94 GB SDXL safetensors checkpoint under CreativeML OpenRAIL-M metadata. That license permits commercial model use subject to its use restrictions, but it does not remove the operator's responsibility for generated content, third-party intellectual property, or separately licensed LoRAs and derivatives. The benchmark pins the official repository revision and checkpoint SHA-256 and does not add a LoRA.
 
 FLUX.2-dev is deliberately ahead of the original card candidates: it is a newer 32B open-weight model that supports generation and editing, and the GX10 is one of the few local machines with enough unified memory to test the full BF16 checkpoint practically. Model access is gated and its license must be accepted by the operator before weights can be downloaded.
 
@@ -76,9 +97,12 @@ Public results must not contain hostnames, IP addresses, account or personal nam
 - `serve.py` — internal OpenAI-compatible service worker used by the command and managed service.
 - `test_resumable_stream.py` — internal regression worker for replay and duplicate-request suppression.
 - `gx10-image-generator.service` — user-service template used by the profile model-mode switch.
+- `gx10-anime-generator.service` — mutually exclusive Illustrious XL service template.
 - `image-generator.env.example` — non-secret selected-model configuration.
+- `anime-generator.env.example` — non-secret single-file SDXL configuration.
 - `qwen-image-mode-conflict.conf` — reciprocal systemd exclusion for direct/manual service starts.
 - `summarize.py` — internal reporting worker that creates a Markdown comparison table.
+- `results/` — sanitized, machine-readable completed benchmark records; generated media remains private unless separately approved.
 - `gx10.md` — sanitized hardware-specific report and current measurements.
 - `requirements.txt` — minimum Python dependencies; every run additionally records the resolved package versions.
 - `references/reference-edit.svg` — fixed editing reference; the runner renders it deterministically to 1024×1024 through CairoSVG.

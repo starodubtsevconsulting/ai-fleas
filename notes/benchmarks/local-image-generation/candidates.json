@@ -1,5 +1,20 @@
 [
   {
+    "id": "illustrious-xl-v2-bf16",
+    "model": "OnomaAIResearch/Illustrious-XL-v2.0",
+    "model_file": "/models/illustrious-xl-v2.0/Illustrious-XL-v2.0.safetensors",
+    "format": "single-file-sdxl",
+    "revision": "69459c1",
+    "dtype": "bfloat16",
+    "device_map": "cuda",
+    "capabilities": ["text-to-image"],
+    "benchmark_role": "production-relevant anime and illustrated-story baseline",
+    "intended_use": "commercially usable anime story frames and recurring-character evaluation for the Max workflow",
+    "license_disposition": "CreativeML OpenRAIL-M permits commercial use subject to use restrictions; retain license evidence and assess output/IP obligations separately",
+    "production_eligible": true,
+    "priority": 1
+  },
+  {
     "id": "flux2-dev-bf16",
     "model": "black-forest-labs/FLUX.2-dev",
     "dtype": "bfloat16",
@@ -9,7 +24,7 @@
     "intended_use": "private evaluation of generation and editing quality on large unified-memory hardware",
     "license_disposition": "evaluation/non-commercial; separate commercial license required for commercial model operation",
     "production_eligible": false,
-    "priority": 1
+    "priority": 2
   },
   {
     "id": "flux2-dev-nvfp4",
@@ -21,7 +36,7 @@
     "intended_use": "measure quality, startup, memory, and throughput tradeoffs against the full-precision baseline",
     "license_disposition": "evaluation/non-commercial unless separately licensed for commercial model operation",
     "production_eligible": false,
-    "priority": 2
+    "priority": 3
   },
   {
     "id": "flux1-krea-dev-bf16",
@@ -33,7 +48,7 @@
     "intended_use": "compare photorealism and visual taste against the FLUX.2 baseline",
     "license_disposition": "verify model-specific terms before any use beyond private evaluation",
     "production_eligible": false,
-    "priority": 3
+    "priority": 4
   },
   {
     "id": "flux1-dev-bf16",
@@ -45,7 +60,7 @@
     "intended_use": "measure whether the newer or quantized candidates provide a practical improvement",
     "license_disposition": "verify model-specific terms before any use beyond private evaluation",
     "production_eligible": false,
-    "priority": 4
+    "priority": 5
   },
   {
     "id": "flux1-kontext-dev-bf16",
@@ -57,6 +72,6 @@
     "intended_use": "compare controlled edits, subject preservation, and composition consistency",
     "license_disposition": "verify model-specific terms before any use beyond private evaluation",
     "production_eligible": false,
-    "priority": 5
+    "priority": 6
   }
 ]
