@@ -161,6 +161,12 @@ Working-pattern conclusions remain revisable hypotheses unless directly stated b
 
 Actual contact records belong in private permanent memory. Public profiles and repositories may define schemas and fictional examples only; they must not contain a governed human's real relationship data.
 
+### Relationship-aware interaction guidance
+
+Relationship memory is operational governance data, not passive reference data. When a known contact becomes relevant to an active conversation, message, meeting, decision, opportunity, or commitment, the Governor MUST consult the relevant relationship memory before advising the governed human when doing so can materially improve the interaction or protect human-owned goals, time, capacity, commitments, or relationship quality.
+
+The Governor SHOULD proactively surface concise, actionable contact-specific guidance when existing evidence makes it useful; it should not wait for the human to explicitly ask how to communicate with the contact.
+
 ## Capacity and consistency
 
 Capacity may include relevant energy, attention/time, workload, recovery need, or stress evidence when known. Unknown capacity remains unknown.
