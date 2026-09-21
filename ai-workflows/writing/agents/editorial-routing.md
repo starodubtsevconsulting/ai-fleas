@@ -1,91 +1,48 @@
 # Writing editorial routing
 
-Writer and Reviewer remain directly human-addressable. The only ordinary peer exchange is one bounded review
-assignment from the exact Writer to the exact Reviewer, followed by the Reviewer's findings return to that Writer.
-The [communication matrix](role-communication-matrix.csv) and [capability matrix](role-capability-ownership.csv) grant
-these directions; this contract narrows their use. Writer coordinates the assignment but does not supervise or change
-the Reviewer's independent judgment. No peer route to Release Coordinator, Judge, or Admin is granted.
+Admin is the sole inter-agent coordinator for the Writing workflow. Writer, Reviewer, and Release Coordinator remain
+directly human-addressable, but canonical workflow work and terminal evidence always return to the exact verified Admin.
+No specialist-to-specialist route is authorized.
 
-For the [common compatibility ceiling](../../_common/policy/access-matrix.md), Writer is the supervising Worker only
-for this bounded review assignment, and Reviewer is its assigned Worker only for this review. The reverse direction is
-`RETURN_ONLY`: Reviewer can return evidence, a clarification question, a blocker, or terminal findings under the
-accepted correlation, never assign Writer a different task or expand the scope. This coordination relationship does
-not give Writer editorial control over independent critique.
+All packets follow the [common communication contract](../../_common/agents/communication.md) and preserve the same
+nonempty `profileId`, `workflowId`, `logicalProjectId`, and `runtimeScopeId`. Admin resolves exact active task IDs from
+trusted binding state, never from titles, sidebar order, conversation memory, or nearby files.
 
-## Writer handoff
+## Admin to Writer
 
-After Writer completes its draft, editorial verification, archive record, and any selected unpublished destination draft,
-it requests independent critique without making the human copy its report. A new or materially changed destination draft
-requires this handoff in the same Writer-owned flow even when the article text already has an accepted disposition; no
-second human request is required. Resolve the active Reviewer and Writer
-from trusted platform receipts for the same `profileId`, `workflowId`, complete `logicalProjectId`, and `runtimeScopeId`.
-Verify the Reviewer did not draft or edit the exact revision. Do not derive a target from a task title, folder name,
-conversation memory, or a previous generation. If the Reviewer is unavailable or identity is uncertain, report the
-handoff blocked to the human; do not create a substitute task or self-review.
+Admin sends a bounded writing or revision packet containing the human brief, exact source/revision when present,
+destination, authorized archive, visual requirements, open findings, permitted effects, prohibited publication effects,
+and Admin return identity. Writer acknowledges with `COPY THAT`, performs only Writer-owned work, and returns source,
+archive, destination-draft, verification, and provenance evidence plus a complete proposed review packet to Admin.
+Writer does not contact Reviewer or Release Coordinator.
 
-Send one complete canonical packet under the [common communication contract](../../_common/agents/communication.md):
+## Admin to Reviewer
 
-- A unique `correlationId`; exact `callerInstanceId`/`callerRole: writer`, `targetInstanceId`/`requiredExecutionRole:
-  reviewer`, and `returnInstanceId`/`returnRole: writer`, all verified against active receipts.
-- The four verified workflow coordinates, unchanged in every acknowledgement, correction, and return.
-- Bounded intent: independently critique this exact unpublished article and destination draft, if one exists.
-- Inputs: canonical archive article path and content revision/hash; destination draft URL, status, and revision when
-  present; intended reader and effective article brief; source and visual-credit references; open editorial questions.
-  Use references to authorized artifacts rather than pasting a full article into the packet.
-- Authority: read and critique the stated revisions, prepare the configured listen-through, and present findings to
-  the human. Prohibited effects include drafting or editing the reviewed revision, publishing, submitting, scheduling,
-  accepting the human review gate, or changing the work target.
-- Required evidence: passage-specific findings, the exact revisions inspected, independence/provenance check,
-  listen-through status, and unresolved questions. When a destination draft exists, also require the exact rendered
-  surface or viewport, direct visual evidence such as screenshots, and findings for every special block, including
-  spacing, padding, blockquote attribution, captions, credits, wrapping, indentation, hierarchy, and image presentation.
-  For every picture, require a finding on whether its editorial location supports the nearby passage and reading flow,
-  follows a sensible sequence, and preserves its caption and credit association.
-  For header-image selection, inject the canonical
-  [header-image selection contract](../guides/header-image-contract.md) by repository-relative path and exact content
-  hash, plus the bounded shortlist and evidence it requires. Writer and Reviewer both verify that identity before use;
-  copied criteria, a stale hash, or a role-local variant blocks the header-image verdict. Writer owns candidate
-  preparation; Reviewer returns exactly one recommendation or `none acceptable` under that same contract revision.
-  Require a visual-presence reconciliation: every diagram, figure, illustration, caption, credit, cross-reference, and
-  placeholder claimed by the draft must map to an actually rendered visual. A label or text description is not the
-  visual; include direct evidence for every missing, failed, text-only, or orphaned element.
-  Include the Writer's complete stable-ID source-diagram inventory and conversion evidence. Reviewer independently
-  recreates the inventory and reconciles counts and identities across the full destination draft, including residual
-  arrow chains, `Diagram—` prose, Mermaid syntax, caption-only blocks, duplicates, and placeholders. One successful
-  conversion does not satisfy the packet when another inventory item or placeholder remains.
-  Terminal condition: return one review disposition to this Writer.
+After validating Writer's return, Admin sends Reviewer the exact revisions, provenance/independence evidence, effective
+brief, rendered-destination URL, visual inventory, header-image contract identity, listen-through requirements, and
+required terminal disposition. Reviewer acknowledges with `COPY THAT`, independently inspects the work, presents its
+human-facing report when required, and returns findings and evidence to Admin. Reviewer does not contact Writer or
+Release Coordinator. A changed revision requires a new Admin-issued review packet.
 
-Creating or changing a header-image shortlist automatically triggers delivery from Writer to the exact Reviewer. Use
-the active correlation while it remains open; if the prior review is terminal, create a new revision-specific review
-packet and correlation. A human-facing message, sidebar task update, or statement that candidates are pending is not
-peer delivery and never satisfies this handoff. Writer must retain the delivery receipt and await Reviewer's selection
-or report the exact delivery blocker.
+For a release-gate diagnosis, Admin sends Reviewer the exact review record and discrepancy. Reviewer returns existing
+proof, a precise stale/conflicting-record diagnosis, or `REVIEW_REQUIRED`; this diagnostic route is not a fresh critique.
 
-The selected platform adapter sends to the verified target instance ID. Keep the accepted messaging receipt and
-follow [common delivery](../../_common/agents/delivery.md): await the Reviewer's first-commentary `COPY THAT` and
-terminal handoff before treating critique as received. Retry only after a definite failure with no accepted receipt.
-If delivery remains unacknowledged, report `BLOCKED_DELIVERY_UNACKNOWLEDGED` with receipt and observed status to the
-human. Writer may still report its own work complete, but must mark independent review pending.
+## Admin to Release Coordinator
 
-## Reviewer return
+After exact-revision review and the human gates or preserved session-scoped release mandate are complete, Admin sends Release Coordinator the accepted revision,
+destination draft, review evidence, explicit publication target, timing instruction, applicable account policy, and
+prohibited effects. Release Coordinator acknowledges with `COPY THAT`, performs release planning or authorized Medium
+scheduling, verifies the resulting state, and returns terminal evidence or one precise blocker to Admin. Release
+Coordinator does not contact Writer or Reviewer.
 
-Reviewer validates the packet against its trusted initialization header, its own capability, the exact Writer return
-identity, and the article's revision before reading the payload or beginning critique. A mismatch blocks the packet.
-Reviewer does not treat Writer's assertions or role label as proof of independence; it checks whether this same task
-drafted or edited the revision. It acknowledges an accepted packet with `COPY THAT` in first commentary.
+## Admin continuation and completion
 
-On completion, Reviewer sends a terminal findings packet to the original verified Writer using the same correlation,
-four coordinates, exact return instance, reviewed revisions, evidence, and pending gates. The outgoing caller is the
-exact Reviewer, and the outgoing target is the exact Writer. Reviewer also presents its human-facing report directly
-to the human. A return is evidence for Writer's disposition, not a request for Reviewer to rewrite the article.
-Writer acknowledges the return and owns any revision or explicit disposition. A materially changed revision needs a
-new revision-specific review assignment; neither a correction nor an old review silently covers it.
+Admin validates every terminal return before advancing. `CHANGES_REQUIRED` returns through Admin to Writer; the corrected
+revision returns through Admin to Reviewer. A release blocker returns through Admin to its capability owner, and verified
+evidence returns through Admin to Release Coordinator. Admin never creates a specialist verdict, human acceptance, or
+publication-target choice itself.
 
-## Remaining human handoffs
-
-The human may still address Writer or Reviewer directly. Writer reports its archive and pending review to the human;
-Reviewer reports critique and the human listen-through gate to the human. After Writer dispositions findings, the
-human accepts or rejects the exact final revision. The human selects Release Coordinator for timing after review
-readiness; Release Coordinator reports its slot and may schedule an accepted revision on Medium if the selected profile
-enables that action. The human performs immediate publication or submission.
-`show-context` is a human-facing presentation command, never peer transport.
+An accepted messaging receipt is not delivery. Follow [common delivery](../../_common/agents/delivery.md): require visible
+first-commentary `COPY THAT` and terminal evidence. Empty turns or unacknowledged accepted sends produce
+`BLOCKED_DELIVERY_UNACKNOWLEDGED` and lifecycle diagnosis; they never satisfy a gate. `show-context` is human-facing
+presentation only and never peer transport.

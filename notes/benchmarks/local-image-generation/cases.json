@@ -1,0 +1,57 @@
+[
+  {
+    "id": "photoreal-person-animal",
+    "capability": "text-to-image",
+    "width": 1024,
+    "height": 1024,
+    "steps": 50,
+    "guidance_scale": 4.0,
+    "prompt": "Documentary photograph at golden hour: one adult woman in a yellow raincoat kneels beside exactly two border collies, one black-and-white and one brown-and-white, in a wet meadow. Natural skin texture, anatomically correct hands and paws, realistic wet fur, 50 mm lens, shallow depth of field. No other people, no other animals, no text, no watermark."
+  },
+  {
+    "id": "complex-object-adherence",
+    "capability": "text-to-image",
+    "width": 1024,
+    "height": 1024,
+    "steps": 50,
+    "guidance_scale": 4.0,
+    "prompt": "Clean editorial illustration viewed straight on. A round cobalt-blue table holds exactly five objects: a red ceramic teapot, two green pears, one closed purple notebook, and one brass key. The key is in front of the notebook; the pears are left of the teapot. Cream background, soft shadows. No cups, no flowers, no extra fruit, no letters, no watermark."
+  },
+  {
+    "id": "cinematic-cover-16x9",
+    "capability": "text-to-image",
+    "width": 1344,
+    "height": 768,
+    "steps": 50,
+    "guidance_scale": 4.0,
+    "prompt": "Cinematic 16:9 documentary cover: a compact black AI workstation on a wooden desk in a dark studio, a soft cyan status light, rain on the window, realistic reflections, premium restrained color grade. Leave the upper-left quarter visually quiet for a title overlay. No people, no logos, no text, no watermark."
+  },
+  {
+    "id": "requested-text",
+    "capability": "text-to-image",
+    "width": 1024,
+    "height": 1024,
+    "steps": 50,
+    "guidance_scale": 4.0,
+    "prompt": "Minimal Swiss-style poster on white paper. Center a single dark navy circle above the exact words LOCAL IMAGINATION in uppercase geometric sans-serif. The only visible text must be exactly LOCAL IMAGINATION, correctly spelled, on one line. Red registration mark in the bottom-right. No other letters, no mockup scene, no watermark."
+  },
+  {
+    "id": "stylized-illustration",
+    "capability": "text-to-image",
+    "width": 1024,
+    "height": 1024,
+    "steps": 50,
+    "guidance_scale": 4.0,
+    "prompt": "Detailed storybook gouache illustration: a tiny observatory built inside a hollow old oak tree, an elderly fox astronomer adjusting a brass telescope, three paper star charts pinned to the curved wooden wall, warm lantern light against a deep indigo night. Clearly painted texture, coherent perspective, expressive but anatomically plausible fox paws. No humans, no modern screens, no text, no watermark."
+  },
+  {
+    "id": "reference-edit",
+    "capability": "image-editing",
+    "width": 1024,
+    "height": 1024,
+    "steps": 40,
+    "guidance_scale": 2.5,
+    "image": "references/reference-edit.svg",
+    "prompt": "Keep the subject, camera position, silhouette, facial features, and background composition unchanged. Replace only the subject's grey jacket with a deep forest-green jacket made of waxed canvas. Preserve lighting and all other objects. Add nothing and remove nothing."
+  }
+]

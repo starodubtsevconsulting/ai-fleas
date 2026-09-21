@@ -2,6 +2,10 @@
 
 This comparison uses a 12 GiB NVIDIA GeForce RTX 3080 Ti workstation with approximately 47 GiB of OS-visible RAM. The provider runs a pinned CUDA build of `llama.cpp` with one inference slot; context varies by candidate. Unlike the controlled GX10 measurements, the first result records a real, existing Hermes System-agent conversation and is therefore an operational baseline rather than a synthetic benchmark.
 
+## Purpose
+
+Evaluate the workstation as a responsive local System-agent and micro-command worker. The preferred candidate must fit the Hermes context requirement, remain fully or effectively GPU accelerated, and minimize end-to-end latency for frequent small tasks; running the largest possible model is not the objective.
+
 ## Takeaways
 
 The RTX 3080 Ti turned out to be **useful, but for a different role than a large-model worker**.

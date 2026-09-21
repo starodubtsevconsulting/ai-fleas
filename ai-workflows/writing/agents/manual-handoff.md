@@ -1,5 +1,7 @@
 # Writing handoff compatibility link
 
-The current Writing route is [editorial routing](editorial-routing.md). The human continues to control final article
-acceptance, release planning, publication, and scheduling; the exact Writer may now send a bounded review assignment
-to the exact Reviewer and receive its findings directly.
+The current Writing route is [Admin orchestration](admin-orchestration.md) with bounded packets defined by
+[editorial routing](editorial-routing.md). The human continues to control final article acceptance, including through
+a bounded session-scoped release mandate, and other reserved
+decisions. Writer, Reviewer, and Release Coordinator return every terminal packet to exact verified Admin; Admin alone
+validates the return and dispatches the next specialist stage. The human is never required to relay agent messages.

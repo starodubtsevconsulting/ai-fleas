@@ -9,6 +9,7 @@ policy:
   communicationMatrix: agents/role-communication-matrix.csv
   accessMatrixMechanism: ../_common/policy/access-matrix.md
   routing: agents/editorial-routing.md
+  orchestration: agents/admin-orchestration.md
   scope: ../_common/agents/scope.md
   continuity: ../_common/agents/continuity.md
   knowledgeTransfer: ../_common/agents/knowledge-transfer.md
@@ -17,11 +18,11 @@ policy:
 initializer:
   agentId: admin
   matrixColumn: admin
-  roleDefinition: ../_common/roles/admin.md
+  roleDefinition: agents/roles/admin.md
   scope: workflow
   lifecycle: persistent-control
   humanFacing: human-owned
-  communicationMode: direct-human-administration-only
+  communicationMode: human-administration-and-workflow-orchestration
   readinessToken: ADMIN_READY
   aiBinding: profile-default
   schedule: { enabled: false }
@@ -63,19 +64,24 @@ agents:
     scope: workflow
     lifecycle: persistent-worker
     humanFacing: primary
-    communicationMode: direct-human-only
+    communicationMode: human-dialogue-and-canonical-packets
     readinessToken: RELEASE_COORDINATOR_READY
     aiBinding: profile-default
     schedule: { enabled: false }
 
 dependencies:
-  - consumerAgentId: writer
-    providerAgentId: reviewer
-    kind: capability-provider
-    requirement: capability-bound
-    capabilities: [independent_critique]
-  - consumerAgentId: reviewer
+  - consumerAgentId: admin
     providerAgentId: writer
-    kind: return-coordinator
+    kind: workflow-stage-provider
     requirement: capability-bound
-    capabilities: [critique_disposition]
+    capabilities: [article_intake, article_drafting, editorial_verification, article_archive, destination_draft_preparation, critique_disposition]
+  - consumerAgentId: admin
+    providerAgentId: reviewer
+    kind: workflow-stage-provider
+    requirement: capability-bound
+    capabilities: [independent_critique, review_findings_return, review_presentation, human_listen_through, release_gate_diagnosis]
+  - consumerAgentId: admin
+    providerAgentId: release-coordinator
+    kind: workflow-stage-provider
+    requirement: capability-bound
+    capabilities: [release_planning, release_recommendation, medium_native_scheduling, medium_publication_creation]

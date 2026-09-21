@@ -16,7 +16,8 @@ workflow destination and its command override to use `draft-and-schedule`; requi
 may remain `draft-only`. Never infer this grant from a human request to plan a release, an account login, or a cadence
 target.
 
-1. Read the human's acceptance of the exact final article revision and the completed independent critique and
+1. Read the human's direct acceptance of the exact final article revision or the preserved valid session-scoped
+   release mandate that delegates final revision selection to the completed independent critique, and
    Writer disposition. Resolve the canonical archive article and the intended unpublished Medium draft. Verify that
    the draft reflects the accepted revision, including title, body, links, visuals, and topics. Stop on a mismatch or
    any material change. Medium may publish edits to a scheduled story automatically at the scheduled time.
@@ -36,6 +37,7 @@ target.
    state and repair the record before starting another release. If scheduling is uncertain, inspect the queue before
    retrying so the action is not duplicated.
 
-No extra per-item scheduling approval is required after the human accepts the exact article revision. A new or
-materially changed revision needs renewed article acceptance. Never publish immediately, submit to a publication,
+No extra per-item scheduling approval is required after direct acceptance or a valid session-scoped release mandate.
+An in-scope correction needs renewed independent review but not repeated human wording; a revision outside the mandate
+needs new human authorization. Never publish immediately, submit to a publication,
 create a recurring release automation, or claim success from a proposed slot alone.

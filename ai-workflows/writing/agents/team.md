@@ -8,7 +8,7 @@ The matrices are the mechanical authority; this page explains their ownership an
 
 | Agent | Human access | Ownership | Lifecycle |
 | --- | --- | --- | --- |
-| Admin | administration | Human-requested Writing workflow administration | persistent |
+| Admin | administration | Human-requested Writing workflow administration and end-to-end orchestration | persistent |
 | Judge | oversight | Protected rule governance and compliance | persistent |
 | Writer | primary | Article intake, draft, edit, archive, unpublished destination draft, critique disposition | persistent |
 | Reviewer | primary | Independent critique and human-visible review report | persistent |
@@ -17,16 +17,17 @@ The matrices are the mechanical authority; this page explains their ownership an
 Admin is the workflow administration identity; Judge, Writer, Reviewer, and Release Coordinator are the four governed
 agents. The GPT adapter's mechanical controller creates the complete declared roster when initialization is authorized.
 No role is scheduled or pooled. Release Coordinator may use Medium's native future scheduling only when the selected
-profile explicitly enables it and the human has accepted the exact final article revision.
+profile explicitly enables it and the human has directly accepted the exact final article revision or supplied a
+still-valid session-scoped release mandate that delegates final selection to this review loop.
 
 ## Editorial sequence
 
-The [editorial routing contract](editorial-routing.md) permits Writer to hand an exact finished revision directly to
-Reviewer for independent critique, then permits Reviewer to return findings to that Writer. Both remain directly
-human-addressable. The Reviewer must be independent of the exact revision it critiques, regardless of role label.
-Writer dispositions the findings; the human accepts the final revision and selects Release Coordinator for timing.
-Release Coordinator selects an eligible day and may schedule it on an enabled Medium destination without a second
-approval. The human performs any immediate publication or submission. No other ordinary peer route is authorized.
+The [Admin orchestration contract](admin-orchestration.md) makes Admin the sole inter-agent coordinator. Writer returns
+the exact finished revision and proposed review packet to Admin; Admin assigns Reviewer; Reviewer returns findings to
+Admin; Admin returns changes to Writer or advances an accepted revision to Release Coordinator. The Reviewer remains
+independent of the exact revision it critiques, regardless of role label. Release Coordinator returns scheduling
+evidence or blockers to Admin. Agents remain directly human-addressable, but they never use the human as a message
+courier and never contact another specialist directly. The human performs any immediate publication or submission.
 
 Each agent is limited to the selected profile's registered project subset, exact logical project, active commands, and
 its matrix column. Provider account, article archive path, editorial preferences, and release cadence come from the
