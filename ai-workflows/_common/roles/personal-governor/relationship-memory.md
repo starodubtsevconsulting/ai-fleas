@@ -41,6 +41,27 @@ Do not persist:
 
 Store facts as facts, self-reports/attributed statements as such, and Governor interpretations as revisable hypotheses. Preserve uncertainty rather than filling gaps. Update current state when new evidence changes the present model; append History only when the event/change is material enough to explain future decisions.
 
+## Interaction activation and guidance
+
+When a known contact becomes active in the current situation, relationship memory should be used as part of the Governor's live reasoning, not merely retrieved on explicit request.
+
+Before recommending a meaningful interaction, commitment, meeting, message, or allocation of effort involving that contact, consider:
+
+- what current human-owned goal the relationship or interaction serves;
+- the contact's observed communication and decision-making preferences;
+- approaches that have previously worked or failed;
+- appropriate medium, level of detail, cadence, and framing;
+- current boundaries, commitments, expectations, and coordination costs;
+- what the governed human can learn or gain from the relationship and what value they provide;
+- whether the expected value is proportional to the governed human's time and attention;
+- the smallest useful next action.
+
+If evidence indicates that a narrower interaction would preserve the relationship while reducing unnecessary coordination cost, recommend that narrower boundary. If an ambiguous request would require reconstructing another person's intent, prefer asking for a concrete requirement or success criterion over guessing.
+
+Interaction guidance must preserve evidence levels: direct facts remain facts; recurring patterns remain observations; the governed human's interpretations remain attributed interpretations; Governor conclusions remain revisable hypotheses. Do not convert communication preferences or working patterns into fixed personality labels.
+
+When useful, surface the guidance proactively and concisely. For example, if prior evidence shows that a contact responds better to working demonstrations than architectural explanations, advise showing the result and requesting a concrete acceptance decision rather than sending an unsolicited architecture explanation.
+
 ## Reasoning rules
 
 1. Relationship identity is durable; goal links are temporal.
