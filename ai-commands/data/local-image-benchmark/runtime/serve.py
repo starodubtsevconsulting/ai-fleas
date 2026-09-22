@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import gc
 import io
 import json
 import os
@@ -21,6 +22,8 @@ from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from safety import available_memory_bytes, env_bool, env_float, env_int, request_limit_error
+
 
 MODEL_ID = os.environ.get("IMAGE_MODEL_ID", "black-forest-labs/FLUX.2-dev")
 MODEL_REVISION = os.environ.get("IMAGE_MODEL_REVISION", "")
@@ -32,6 +35,18 @@ DEFAULT_STEPS = int(os.environ.get("IMAGE_DEFAULT_STEPS", "50"))
 DEFAULT_GUIDANCE = float(os.environ.get("IMAGE_DEFAULT_GUIDANCE", "4.0"))
 GUIDANCE_PARAMETER = os.environ.get("IMAGE_GUIDANCE_PARAMETER", "guidance_scale")
 DEFAULT_NEGATIVE_PROMPT = os.environ.get("IMAGE_DEFAULT_NEGATIVE_PROMPT", "")
+DEFAULT_SIZE = os.environ.get("IMAGE_DEFAULT_SIZE", "1024x1024")
+MAX_WIDTH = env_int("IMAGE_MAX_WIDTH", 2048, 256)
+MAX_HEIGHT = env_int("IMAGE_MAX_HEIGHT", 2048, 256)
+MAX_PIXELS = env_int("IMAGE_MAX_PIXELS", 4194304, 65536)
+MAX_STEPS = env_int("IMAGE_MAX_STEPS", 100, 1)
+MIN_AVAILABLE_BYTES = env_int("IMAGE_MIN_AVAILABLE_BYTES", 0, 0)
+EMERGENCY_AVAILABLE_BYTES = env_int("IMAGE_EMERGENCY_AVAILABLE_BYTES", 0, 0)
+MEMORY_POLL_SECONDS = env_float("IMAGE_MEMORY_POLL_SECONDS", 0.5, 0.05)
+EXIT_ON_MEMORY_EMERGENCY = env_bool("IMAGE_EXIT_ON_MEMORY_EMERGENCY", False)
+RELEASE_CACHE_AFTER_GENERATION = env_bool("IMAGE_RELEASE_CACHE_AFTER_GENERATION", False)
+if EMERGENCY_AVAILABLE_BYTES > MIN_AVAILABLE_BYTES:
+    raise RuntimeError("IMAGE_EMERGENCY_AVAILABLE_BYTES cannot exceed IMAGE_MIN_AVAILABLE_BYTES")
 if GUIDANCE_PARAMETER not in {"guidance_scale", "true_cfg_scale", "none"}:
     raise RuntimeError("IMAGE_GUIDANCE_PARAMETER must be guidance_scale, true_cfg_scale, or none")
 OUTPUT_DIR = Path(os.environ.get("IMAGE_OUTPUT_DIR", "/outputs"))
@@ -91,7 +106,7 @@ class GenerationRequest(BaseModel):
     prompt: str = Field(min_length=1, max_length=8000)
     model: str | None = None
     n: int = Field(default=1, ge=1, le=1)
-    size: str = "1024x1024"
+    size: str = DEFAULT_SIZE
     response_format: str = "b64_json"
     seed: int | None = None
     steps: int | None = Field(default=None, ge=1, le=100)
@@ -108,6 +123,48 @@ def parse_size(value: str) -> tuple[int, int]:
     if width < 256 or height < 256 or width > 2048 or height > 2048 or width % 16 or height % 16:
         raise HTTPException(400, "dimensions must be 256..2048 and divisible by 16")
     return width, height
+
+
+def validated_request(width: int, height: int, steps: int) -> None:
+    limit_error = request_limit_error(width, height, steps, MAX_WIDTH, MAX_HEIGHT, MAX_PIXELS, MAX_STEPS)
+    if limit_error:
+        raise HTTPException(400, limit_error)
+    available = available_memory_bytes()
+    if available < MIN_AVAILABLE_BYTES:
+        raise HTTPException(
+            503,
+            f"insufficient host memory: {available} available; {MIN_AVAILABLE_BYTES} required",
+        )
+
+
+def release_generation_memory() -> None:
+    if not RELEASE_CACHE_AFTER_GENERATION:
+        return
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        if hasattr(torch.cuda, "ipc_collect"):
+            torch.cuda.ipc_collect()
+
+
+async def memory_watchdog(stop: asyncio.Event) -> None:
+    if EMERGENCY_AVAILABLE_BYTES == 0:
+        return
+    while not stop.is_set():
+        available = available_memory_bytes()
+        if available < EMERGENCY_AVAILABLE_BYTES:
+            message = (
+                f"MEMORY_EMERGENCY: {available} bytes available is below "
+                f"{EMERGENCY_AVAILABLE_BYTES}; terminating worker to protect the host"
+            )
+            print(message, flush=True)
+            if EXIT_ON_MEMORY_EMERGENCY:
+                os._exit(75)
+            raise RuntimeError(message)
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=MEMORY_POLL_SECONDS)
+        except TimeoutError:
+            pass
 
 
 def chat_prompt(messages: object) -> str:
@@ -140,6 +197,7 @@ async def generate_image(
     seed: int,
     negative_prompt: str | None = None,
 ):
+    validated_request(width, height, steps)
     kwargs = {
         "prompt": prompt,
         "width": width,
@@ -153,21 +211,30 @@ async def generate_image(
         kwargs["negative_prompt"] = DEFAULT_NEGATIVE_PROMPT if negative_prompt is None else negative_prompt
     async with GENERATION_LOCK:
         started = time.perf_counter()
-        image = await asyncio.to_thread(lambda: PIPELINE(**kwargs).images[0])
-        elapsed = time.perf_counter() - started
+        watchdog_stop = asyncio.Event()
+        watchdog = asyncio.create_task(memory_watchdog(watchdog_stop))
+        try:
+            image = await asyncio.to_thread(lambda: PIPELINE(**kwargs).images[0])
+            elapsed = time.perf_counter() - started
+        finally:
+            watchdog_stop.set()
+            await watchdog
     return image, elapsed
 
 
 async def generate_chat_content(prompt: str, width: int, height: int, steps: int, guidance: float, seed: int, negative_prompt: str | None = None) -> str:
-    image, elapsed = await generate_image(prompt, width, height, steps, guidance, seed, negative_prompt)
-    filename = f"{int(time.time())}-{uuid.uuid4().hex}.png"
-    output_path = OUTPUT_DIR / filename
-    image.save(output_path, format="PNG")
-    return (
-        f"![Generated image](/outputs/{filename})\n\n"
-        f"Model: `{MODEL_ID}` · Seed: `{seed}` · {width}×{height} · "
-        f"{steps} steps · {elapsed:.2f} s"
-    )
+    try:
+        image, elapsed = await generate_image(prompt, width, height, steps, guidance, seed, negative_prompt)
+        filename = f"{int(time.time())}-{uuid.uuid4().hex}.png"
+        output_path = OUTPUT_DIR / filename
+        image.save(output_path, format="PNG")
+        return (
+            f"![Generated image](/outputs/{filename})\n\n"
+            f"Model: `{MODEL_ID}` · Seed: `{seed}` · {width}×{height} · "
+            f"{steps} steps · {elapsed:.2f} s"
+        )
+    finally:
+        release_generation_memory()
 
 
 @asynccontextmanager
@@ -199,7 +266,10 @@ app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR), check_dir=False), n
 
 @app.get("/health")
 def health():
-    return {"status": "ready", "model": MODEL_ID}
+    available = available_memory_bytes()
+    if available < MIN_AVAILABLE_BYTES:
+        raise HTTPException(503, f"degraded host memory: {available} bytes available")
+    return {"status": "ready", "model": MODEL_ID, "available_memory_bytes": available}
 
 
 @app.get("/v1/models")
@@ -221,7 +291,7 @@ def props(model: str | None = None, autoload: bool = False):
         "default_generation_settings": {
             "id": MODEL_ID,
             "params": {
-                "size": "1024x1024",
+                "size": DEFAULT_SIZE,
                 "steps": DEFAULT_STEPS,
                 "guidance_scale": DEFAULT_GUIDANCE,
                 "guidance_parameter": GUIDANCE_PARAMETER,
@@ -238,30 +308,33 @@ async def generate(request: GenerationRequest):
         raise HTTPException(400, "only response_format=b64_json is supported")
     width, height = parse_size(request.size)
     seed = request.seed if request.seed is not None else int.from_bytes(os.urandom(8), "big")
-    image, elapsed = await generate_image(
-        request.prompt,
-        width,
-        height,
-        request.steps or DEFAULT_STEPS,
-        request.true_cfg_scale if request.true_cfg_scale is not None else request.guidance_scale if request.guidance_scale is not None else DEFAULT_GUIDANCE,
-        seed,
-        request.negative_prompt,
-    )
-    output = io.BytesIO()
-    image.save(output, format="PNG")
-    return {
-        "created": int(time.time()),
-        "data": [{"b64_json": base64.b64encode(output.getvalue()).decode("ascii")}],
-        "model": MODEL_ID,
-        "seed": seed,
-        "generation_seconds": elapsed,
-    }
+    try:
+        image, elapsed = await generate_image(
+            request.prompt,
+            width,
+            height,
+            request.steps or DEFAULT_STEPS,
+            request.true_cfg_scale if request.true_cfg_scale is not None else request.guidance_scale if request.guidance_scale is not None else DEFAULT_GUIDANCE,
+            seed,
+            request.negative_prompt,
+        )
+        output = io.BytesIO()
+        image.save(output, format="PNG")
+        return {
+            "created": int(time.time()),
+            "data": [{"b64_json": base64.b64encode(output.getvalue()).decode("ascii")}],
+            "model": MODEL_ID,
+            "seed": seed,
+            "generation_seconds": elapsed,
+        }
+    finally:
+        release_generation_memory()
 
 
 @app.post("/v1/chat/completions")
 async def chat_completions(payload: dict, http_request: Request):
     prompt = chat_prompt(payload.get("messages"))
-    width, height = parse_size(str(payload.get("size", "1024x1024")))
+    width, height = parse_size(str(payload.get("size", DEFAULT_SIZE)))
     steps = int(payload.get("steps", DEFAULT_STEPS))
     guidance = float(payload.get("guidance_scale", DEFAULT_GUIDANCE))
     if GUIDANCE_PARAMETER == "true_cfg_scale":
