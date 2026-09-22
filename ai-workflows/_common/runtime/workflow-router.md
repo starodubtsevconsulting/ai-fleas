@@ -39,6 +39,12 @@ Role resolution and dispatch are transactional. The host adapter must return an 
 coordinates and role match the next stage. Missing identity, failed delivery, or mismatched scope leaves the current
 stage and history unchanged; a successful dispatch commits the transition and its target instance receipt.
 
+Each dispatch carries one Router-owned `correlationId`, exact stage, exact role, and exact recipient instance. The
+endpoint must acknowledge with `COPY THAT` and return those three identity fields byte-for-byte in its terminal result.
+It must not shorten, normalize, regenerate, or substitute the correlation. Missing acknowledgement or any correlation,
+stage, or role mismatch is `BLOCKED_ROUTER_RESULT_IDENTITY`; the Router preserves the current state and does not advance.
+The host, not the endpoint, remains authoritative for the run and attempt correlation.
+
 `blocked`, `depleted`, and `unclear` are exception events. They use the workflow's declared exception path, normally to
 Manager, and preserve the interrupted stage as the resume point. The Router does not invent recovery, replace a worker,
 reinterpret acceptance, or choose among ambiguous domain outcomes.

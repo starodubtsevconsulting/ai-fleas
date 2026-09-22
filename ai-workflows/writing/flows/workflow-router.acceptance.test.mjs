@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import { createWorkflowRuntime } from '../../_common/runtime/workflow-router.mjs';
+import { createWorkflowRuntime, validateEndpointResult } from '../../_common/runtime/workflow-router.mjs';
 
 const workflowRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const publicRoot = path.resolve(workflowRoot, '../..');
@@ -101,5 +101,34 @@ assert.deepEqual(completed.history.map(({ fromRole, toRole }) => `${fromRole}->$
   'reviewer->release-coordinator',
   'release-coordinator->release-coordinator',
 ]);
+
+const expectedResult = {
+  correlationId: 'writing-run-a:review:attempt-1',
+  stage: 'review',
+  role: 'reviewer',
+};
+assert.deepEqual(validateEndpointResult(expectedResult, {
+  acknowledgement: 'COPY THAT',
+  ...expectedResult,
+  event: 'accepted',
+  references: [{ kind: 'review', ref: 'review://accepted-revision-2' }],
+}), {
+  acknowledgement: 'COPY THAT',
+  ...expectedResult,
+  event: 'accepted',
+  references: [{ kind: 'review', ref: 'review://accepted-revision-2' }],
+});
+assert.throws(() => validateEndpointResult(expectedResult, {
+  acknowledgement: 'COPY THAT',
+  ...expectedResult,
+  correlationId: 'writing-run-a:review',
+  event: 'accepted',
+  references: [],
+}), ({ code }) => code === 'BLOCKED_ROUTER_RESULT_IDENTITY');
+assert.throws(() => validateEndpointResult(expectedResult, {
+  ...expectedResult,
+  event: 'accepted',
+  references: [],
+}), ({ code }) => code === 'BLOCKED_ROUTER_ACKNOWLEDGEMENT');
 
 console.log('Writing Workflow Router acceptance: PASS');

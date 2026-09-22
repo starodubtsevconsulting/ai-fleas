@@ -146,6 +146,8 @@ assert.match(routing, /independent\s+role endpoints/);
 assert.match(routing, /Writer does not send\s+it to Reviewer, Release Coordinator, or Admin/);
 assert.match(routing, /Router assigns Reviewer/);
 assert.match(routing, /Router\s+dispatches Release Coordinator/);
+assert.match(routing, /echo the Router-owned `correlationId`, stage, and role byte-for-byte/);
+assert.match(routing, /begin with `COPY THAT`/);
 assert.match(releaseCoordinatorRole, /Never treat Medium's default profile\/home as consent/);
 assert.match(releaseCoordinatorRole, /author's profile\/home or one\s+named authorized Publication/);
 assert.match(releaseCoordinatorRole, /Medium Publication skill/);
