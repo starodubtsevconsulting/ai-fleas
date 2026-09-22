@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { createWorkflowRuntime, validateEndpointResult } from '../../_common/runtime/workflow-router.mjs';
+import { renderWorkflowMap } from '../../_common/runtime/workflow-map.mjs';
 
 const workflowRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const publicRoot = path.resolve(workflowRoot, '../..');
@@ -28,38 +29,15 @@ const scope = {
   logicalProjectId: 'example-profile-a-writing',
   runtimeScopeId: 'writing-run-a',
 };
-const definition = {
-  source: '../writing.workflow.md',
-  scope,
-  initialStage: 'drafting',
-  capabilityOwners: {
-    article_drafting: 'writer',
-    independent_critique: 'reviewer',
-    critique_disposition: 'writer',
-    release_planning: 'release-coordinator',
-    release_gate_diagnosis: 'reviewer',
-  },
-  stages: {
-    drafting: { role: 'writer', capability: 'article_drafting', transitions: {
-      review_ready: { to: 'review', requiredReferenceKinds: ['revision', 'review-packet'] },
-    } },
-    review: { role: 'reviewer', capability: 'independent_critique', transitions: {
-      accepted: { to: 'release', requiredReferenceKinds: ['review'] },
-      changes_required: { to: 'correction', requiredReferenceKinds: ['findings'] },
-    } },
-    correction: { role: 'writer', capability: 'critique_disposition', transitions: {
-      review_ready: { to: 'review', requiredReferenceKinds: ['revision', 'review-packet'] },
-    } },
-    release: { role: 'release-coordinator', capability: 'release_planning', transitions: {
-      released: { to: 'complete', terminal: true, requiredReferenceKinds: ['release-record'] },
-      review_required: { to: 'diagnosis', requiredReferenceKinds: ['blocker'] },
-    } },
-    diagnosis: { role: 'reviewer', capability: 'release_gate_diagnosis', transitions: {
-      proven: { to: 'release', requiredReferenceKinds: ['review'] },
-    } },
-    complete: { role: 'release-coordinator', capability: 'release_planning', transitions: {} },
-  },
-};
+const portableDefinition = JSON.parse(fs.readFileSync(
+  path.join(workflowRoot, 'writing.workflow-map.json'), 'utf8'));
+const definition = { ...portableDefinition, scope };
+assert.equal(portableDefinition.source, 'writing.workflow.md');
+assert.equal(
+  fs.readFileSync(path.join(workflowRoot, 'writing.workflow-map.mmd'), 'utf8'),
+  renderWorkflowMap(portableDefinition),
+  'Writing Mermaid companion must be generated from the executable workflow map',
+);
 
 const dispatched = [];
 const adapter = {
@@ -81,8 +59,21 @@ await router.route({ scope, type: 'review_ready', expectedStage: 'correction', r
   { kind: 'revision', ref: 'article://revision-2' },
   { kind: 'review-packet', ref: 'review://packet-2' },
 ] }, adapter);
+const waiting = await router.route({ scope, type: 'human_action_required', expectedStage: 'review', references: [
+  { kind: 'human-action', ref: 'human-action://listen-through-revision-2' },
+] }, adapter);
+assert.equal(waiting.status, 'waiting-human');
+assert.equal(waiting.currentStage, 'human_review');
+assert.equal(waiting.assignedInstanceId, null);
+await router.route({ scope, type: 'human_rejected', expectedStage: 'human_review', references: [
+  { kind: 'findings', ref: 'human://revision-2-rejected' },
+] }, adapter);
+await router.route({ scope, type: 'review_ready', expectedStage: 'correction', references: [
+  { kind: 'revision', ref: 'article://revision-3' },
+  { kind: 'review-packet', ref: 'review://packet-3' },
+] }, adapter);
 await router.route({ scope, type: 'accepted', expectedStage: 'review', references: [
-  { kind: 'review', ref: 'review://accepted-revision-2' },
+  { kind: 'review', ref: 'review://accepted-revision-3' },
 ] }, adapter);
 const completed = await router.route({ scope, type: 'released', expectedStage: 'release', references: [
   { kind: 'release-record', ref: 'medium://scheduled-item-1' },
@@ -91,11 +82,14 @@ const completed = await router.route({ scope, type: 'released', expectedStage: '
 assert.equal(completed.status, 'completed');
 assert.equal(completed.currentStage, 'complete');
 assert.deepEqual(dispatched.map(({ requiredExecutionRole }) => requiredExecutionRole),
-  ['reviewer', 'writer', 'reviewer', 'release-coordinator', 'release-coordinator']);
+  ['reviewer', 'writer', 'reviewer', 'writer', 'reviewer', 'release-coordinator', 'release-coordinator']);
 assert.ok(dispatched.every(({ targetInstanceId, requiredExecutionRole }) =>
   targetInstanceId === `writing:${requiredExecutionRole}`));
 assert.deepEqual(completed.history.map(({ fromRole, toRole }) => `${fromRole}->${toRole}`), [
   'writer->reviewer',
+  'reviewer->writer',
+  'writer->reviewer',
+  'reviewer->reviewer',
   'reviewer->writer',
   'writer->reviewer',
   'reviewer->release-coordinator',

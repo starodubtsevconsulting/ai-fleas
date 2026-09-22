@@ -2,6 +2,7 @@ const EXCEPTION_EVENTS = new Set(['blocked', 'depleted', 'unclear']);
 const COORDINATES = ['profileId', 'workflowId', 'logicalProjectId', 'runtimeScopeId'];
 const EVENT_FIELDS = new Set(['scope', 'type', 'expectedStage', 'references']);
 const RESULT_FIELDS = new Set(['acknowledgement', 'correlationId', 'stage', 'role', 'event', 'references']);
+const HUMAN_ENTRY_FIELDS = new Set(['scope', 'capability', 'correlationId', 'recipient', 'references']);
 
 function fail(code, message) {
   const error = new Error(message);
@@ -39,6 +40,19 @@ function validateStage(definition, stageId) {
   return stage;
 }
 
+function stageForCapability(definition, capability) {
+  if (!capability || !definition.capabilityOwners?.[capability]) {
+    fail('BLOCKED_ROUTER_ENTRY_CAPABILITY', 'Human entry requires a workflow-declared capability');
+  }
+  const matches = Object.entries(definition.stages ?? {})
+    .filter(([, stage]) => stage.capability === capability);
+  if (matches.length !== 1) {
+    fail('BLOCKED_ROUTER_ENTRY_AMBIGUOUS', `Capability ${capability} must resolve to exactly one workflow stage`);
+  }
+  const [entry] = matches;
+  return { stageId: entry[0], stage: validateStage(definition, entry[0]) };
+}
+
 export function validateEndpointResult(expected, result) {
   if (!result || Object.keys(result).some((field) => !RESULT_FIELDS.has(field))) {
     fail('BLOCKED_ROUTER_RESULT', 'Endpoint result contains fields outside the result envelope');
@@ -62,19 +76,25 @@ export function validateEndpointResult(expected, result) {
   };
 }
 
-export function createWorkflowRuntime(definition, identity) {
+export function createWorkflowRuntime(definition, identity, entry = {}) {
   exactScope(definition.scope, identity);
   if (!definition.source || !definition.initialStage || !definition.stages?.[definition.initialStage]) {
     fail('BLOCKED_ROUTER_DEFINITION', 'Runtime definition requires source, initialStage, and declared stages');
   }
   for (const stageId of Object.keys(definition.stages)) validateStage(definition, stageId);
 
+  const initialStage = entry.stage ?? definition.initialStage;
+  const initialStageDefinition = validateStage(definition, initialStage);
+  if (entry.role && entry.role !== initialStageDefinition.role) {
+    fail('BLOCKED_ROUTER_ENTRY_ROLE', 'Entry role does not own the selected workflow stage');
+  }
+
   const state = {
     routerRuntimeId: identity.routerRuntimeId,
     ...Object.fromEntries(COORDINATES.map((field) => [field, identity[field]])),
-    currentStage: definition.initialStage,
-    assignedRole: definition.stages[definition.initialStage].role,
-    assignedInstanceId: null,
+    currentStage: initialStage,
+    assignedRole: initialStageDefinition.role,
+    assignedInstanceId: entry.instanceId ?? null,
     status: 'active',
     resumeStage: null,
     references: [],
@@ -109,7 +129,9 @@ export function createWorkflowRuntime(definition, identity) {
 
     state.currentStage = rule.to;
     state.assignedRole = validateStage(definition, rule.to).role;
-    state.status = exception ? 'exception' : (rule.terminal ? 'completed' : 'active');
+    state.status = exception
+      ? 'exception'
+      : (rule.terminal ? 'completed' : (rule.waitForHuman ? 'waiting-human' : 'active'));
     state.resumeStage = exception ? fromStage : null;
     state.references = references;
     state.history.push({
@@ -135,6 +157,10 @@ export function createWorkflowRuntime(definition, identity) {
     }
     const previous = snapshot();
     const advanced = transition(event);
+    if (advanced.status === 'waiting-human') {
+      state.assignedInstanceId = null;
+      return snapshot();
+    }
     try {
       const recipient = await adapter.resolveRole({
         scope: Object.fromEntries(COORDINATES.map((field) => [field, state[field]])),
@@ -161,4 +187,63 @@ export function createWorkflowRuntime(definition, identity) {
   }
 
   return { route, transition, snapshot };
+}
+
+export async function createHumanEntryRuntime(definition, identity, input, adapter) {
+  exactScope(definition.scope, identity);
+  exactScope(definition.scope, input?.scope);
+  if (!input || Object.keys(input).some((field) => !HUMAN_ENTRY_FIELDS.has(field))) {
+    fail('BLOCKED_ROUTER_ENTRY', 'Human entry contains fields outside the entry envelope');
+  }
+  if (!input.correlationId || !input.recipient?.instanceId || !input.recipient?.role) {
+    fail('BLOCKED_ROUTER_ENTRY_IDENTITY', 'Human entry requires correlation and exact recipient identity');
+  }
+  exactScope(definition.scope, input.recipient);
+
+  const references = referencesOnly(input.references);
+  const { stageId, stage } = stageForCapability(definition, input.capability);
+  const ownedByRecipient = input.recipient.role === stage.role;
+  if (ownedByRecipient) {
+    const runtime = createWorkflowRuntime(definition, identity, {
+      stage: stageId,
+      role: stage.role,
+      instanceId: input.recipient.instanceId,
+    });
+    return {
+      disposition: 'accepted-by-recipient',
+      correlationId: input.correlationId,
+      references,
+      runtime,
+      snapshot: runtime.snapshot(),
+    };
+  }
+
+  if (!adapter?.resolveRole || !adapter?.dispatch) {
+    fail('BLOCKED_ROUTER_ADAPTER', 'Runtime adapter must resolve roles and dispatch routed human entry');
+  }
+  const recipient = await adapter.resolveRole({ scope: input.scope, role: stage.role });
+  exactScope(definition.scope, recipient);
+  if (!recipient.instanceId || recipient.role !== stage.role) {
+    fail('BLOCKED_ROUTER_IDENTITY', 'Resolved entry instance does not match the workflow capability owner');
+  }
+  await adapter.dispatch({
+    targetInstanceId: recipient.instanceId,
+    requiredExecutionRole: recipient.role,
+    correlationId: input.correlationId,
+    stage: stageId,
+    references,
+    scope: input.scope,
+  });
+  const runtime = createWorkflowRuntime(definition, identity, {
+    stage: stageId,
+    role: recipient.role,
+    instanceId: recipient.instanceId,
+  });
+  return {
+    disposition: 'routed-to-owner',
+    correlationId: input.correlationId,
+    references,
+    runtime,
+    snapshot: runtime.snapshot(),
+  };
 }

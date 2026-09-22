@@ -59,13 +59,18 @@ open editorial decisions. Keep both versions unpublished.
    This report is for the human, not an agent-to-agent message or handoff protocol.
    Keep any generated HTML outside version control and provide its recoverable location. If the command is unavailable,
    provide the same evidence in Markdown. Proof: the review artifact and source revision.
-5. Reviewer exposes findings through the accepted Router result contract and presents them to the human. The Router
-   validates and sends consequential findings to Writer. Writer resolves each point by revising, checking a source, or recording why it remains
+5. Reviewer persists the complete Writer-owned findings under the ignored
+   `.agent-runtime/writing/findings/` directory and exposes its repository-relative path plus exact content hash through
+   the accepted Router result contract; a synthetic URI or conversation-only report is not a resolvable artifact.
+   Reviewer also presents the findings to the human. The Router
+   validates and sends consequential Writer-owned findings to Writer. Writer resolves each point by revising, checking a source, or recording why it remains
    unresolved or is an intentional choice. Recheck any changed claim or destination formatting. Proof: a disposition
    list tied to the resulting article and draft revisions. A materially changed revision requires a new review request.
-6. Hand the resulting draft and remaining risks to the human author for a final read or computer-narrated listen.
-   The author decides whether the piece sounds like them and is ready to release. Record their decision if given;
-   silence is not approval. Proof: author feedback or an explicit `pending human review` state.
+6. When Writer-owned work is complete, Reviewer returns `human_action_required`; the Router records `waiting-human` and
+   dispatches no agent. Hand the resulting draft and remaining risks to the human author for a final read or
+   computer-narrated listen. The author decides whether the piece sounds like them and is ready to release. Acceptance
+   advances to release planning; rejection returns bounded findings to Writer. Silence leaves the workflow paused.
+   Proof: author feedback or an explicit `pending human review` state.
 
 ## Exit
 

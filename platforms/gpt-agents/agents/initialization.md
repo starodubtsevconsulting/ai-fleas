@@ -1,112 +1,251 @@
-# GPT/Codex Agents agent initialization
+# GPT/Codex workflow initialization: questions and answers
 
-This adapter runs only when the selected profile lists `gpt-agents` in `agent_platforms.available`, the invocation selects
-it explicitly or through `agent_platforms.default`, and the host exposes compatible Codex project, task, messaging, and
-archival capabilities.
+## What does initialization create?
 
-Initialization has two scopes:
+It creates or reconciles one visible Codex task for every workflow role and registers one hidden Workflow Router for
+that exact workflow scope. Profile-wide agents are outside this adapter.
 
-- workflow initialization creates or reconciles only the selected workflow logical project/group;
-- system initialization creates or reconciles the one system-scoped System agent for this profile/platform binding.
+```text
+Workflow roles -> visible Codex tasks + one hidden Router
+```
 
-Workflow initialization must never create, replace, archive, move, or otherwise modify System. System initialization must be explicitly requested. If one active recorded System task already exists, reuse it; if identity is ambiguous or more than one candidate exists, block instead of creating another. Reinitializing System requires an explicit System reinitialization request and follows continuity and knowledge-transfer rules.
+## What must already exist?
 
-Workflow initialization is independent of System availability. The requested saved Codex Project must already exist;
-creating it in the GPT UI is a platform prerequisite, not an initializer responsibility. Never include System's task ID, routing address, or
-runtime location in a workflow role endpoint's initialization message or roster. The host records exact workflow receipts in
-trusted lifecycle state that System may resolve separately. This creates an asymmetric topology: System may initiate
-authorized health, continuity, context-exhaustion, or lifecycle contact to exact workflow task IDs, while workflow agents
-cannot directly address System. Secure System-identity disclosure is reserved for a future explicit registration contract.
+The profile, workflow, authorized project roots, primary work target, and saved Codex Project must already be configured.
+The saved project must resolve to the authorized roots by immutable project ID. Initialization does not create a project,
+clone, checkout, or worktree.
 
-System initialization must include the complete common System role, including its human-facing intent map and
-out-of-domain guard. Manual lifecycle requests use the same receipt-backed operation as scheduled checks and execute
-immediately; the scheduler is only an automatic trigger.
+```text
+Configured profile + workflow + saved project -> initialization
+```
 
-One logical workflow role endpoint maps to one user-visible Codex task. The configured Codex project ID is the runtime-project binding; the
-app-returned task ID is the concrete endpoint-instance ID; a title is presentation only. Model and reasoning values come from
-the selected GPT role overlay or explicit compatible defaults. System instead uses the profile's `system_agent.platform_bindings.gpt-agents` realization values and remains outside workflow sidebar groups. After readiness verification, pin its exact task in the global pinned section. Pinning changes presentation only and never makes System a workflow-group member.
+## Where do the agents run?
 
-Apply the System binding's exact presentation title when creating or reconciling its task. The standard GPT title is
-`⚙️ System`; title remains presentation only and never serves as lifecycle identity.
+Every role task uses the saved project's `local` environment and shared primary checkout. Titles and sidebar positions
+are presentation only; trusted receipts use immutable project and task IDs.
 
-If the profile enables System scheduling, include the portable schedule and initial watch scopes in System's initialization
-message. Resolve the profile-owned command configuration's `binding_state.path` beneath the activated profile directory
-and include its canonical absolute path and schema in the System message and concrete scheduler prompt. System reads that
-exact registry and never searches for receipt-like filenames. System then requests this adapter to create or reconcile one concrete scheduler targeted at its exact task and
-verifies the returned receipt before declaring readiness. Accept explicit initial logical-project watch scopes, including a pending exact scope whose group receipt does
-not exist yet. Missing pending groups do not fail System initialization; report each missing exact scope to the user on
-every scheduled run and check again at the configured interval without agent mutation. On each interval, inspect trusted task-list, lifecycle, availability, and explicit context-health metadata
-for receipt-backed watched groups; do not read product conversation payloads merely to estimate exhaustion. The human may
-explicitly watch or unwatch groups later without reinitializing System. System is not ready until its enabled scheduler is
-verified.
+```text
+Saved project -> local shared checkout -> role tasks
+```
 
-Repeated watch-group inputs create one deduplicated watch-scope set on that scheduler. Each scheduled run iterates every
-exact scope once and retains independent receipt cursors, task bindings, health evidence, and pending/active state per
-group. A missing or failed group must not suppress safe checks or reports for other groups.
+## What happens during initialization?
 
-Before workflow mutation, validate the exact profile, workflow, complete logical-project ID including any suffix, non-empty
-ordered selected project subset drawn only from registered workflow projects, and its first/primary work target,
-portable role-endpoint roster, hidden Router runtime contract, role contracts, and host capabilities. Resolve the exact profile project record
-and canonical primary target. Resolve the pre-existing saved Codex Project by exact logical-project name, verify its
-immutable ID and complete ordered selected roots against the profile-authorized subset, and record it before creating tasks. Unselected
-registered projects are not missing roots. If the saved project does not exist or its selected roots differ, stop with zero task mutation. Never infer a project from its label alone, a nearby folder, or repository
-similarity, and never create or edit the saved Project, repository, clone, worktree, or replacement checkout.
+```mermaid
+flowchart TD
+    A[Resolve profile + workflow + saved project] --> B[Load workflow map]
+    B --> C[Create or reconcile role tasks]
+    C --> D[Verify exact task receipts]
+    D --> E[Register host-only workflow map]
+    D --> F[Register peer-free endpoint bindings]
+    E --> G[Verify hooks, trust, and host dispatch]
+    F --> G
+    G --> H[Test forward and correction routes]
+    H --> I[Workflow ready]
+```
 
-Create every workflow agent directly in that one folder-backed saved project's configured primary checkout by selecting the Codex `local` environment.
-Never request a worktree, temporary checkout, detached checkout, clone, or projectless task for a managed workflow agent. All
-agents in one runtime scope share the saved project's main working tree; repository dirty-state and concurrent-write
-rules remain governed by the repository and workflow contracts.
+## Who knows which agent should go next?
 
-Run workflow lifecycle initialization through the public `gpt-agents` command. The invoking controller first registers
-one hidden workflow Router runtime bound to the exact workflow source and saved-project scope. It then resolves the
-complete independent role-endpoint roster, mechanically creates every missing task—including Admin—in one batch when
-supported, and dispatches their canonical initialization messages concurrently. Each endpoint receives only its own
-identity, scope, role/capability contract, readiness requirement, and Router return protocol; it receives no peer IDs,
-workflow successor, or communication topology. Admin is a temporary compatibility role, not an initializer or
-delegation hop. Manager owns governed lifecycle work only after startup completes. Missing receipts, duplicate roles,
-mismatched projects, unsupported capabilities, or incomplete bindings fail closed. A plain `init` refers to workflow scope only; it never initializes System. A human may explicitly request both scopes in one invocation, which runs `initialize-system` and then workflow `initialize` as distinct transactions and receipts.
+The workflow definition declares the next stage and the role that owns it. The hidden Router executes that declaration;
+it does not decide creatively who should work next.
 
-A creation request must use `target.type: project`, the exact resolved Codex project ID, and
-`environment.type: local`. A provisional receipt produced by any other environment is invalid and must not be adopted as
-the workflow instance. Reconcile or remove that failed candidate before retrying the exact role; never create a second
-candidate while the first may still resolve.
+```text
+Workflow declaration -> Router execution -> next role
+```
 
-The child task must retain the complete canonical initialization prompt as a real user-visible first message and a
-non-empty preview, plus the configured presentation title. A prompt visible only in the controller's create-task tool call
-or as a function-call output in the child is not sufficient: the task is absent from normal project catalog queries and is
-therefore not an initialized user-visible agent. Reread the host catalog immediately after creation and require the exact
-task ID under the exact saved-project ID before dispatching more lifecycle work or committing an active receipt. If the
-host cannot persist or reconcile this metadata through a supported operation, return a capability mismatch instead of
-declaring readiness or creating another candidate.
+## Why use a mechanical Router instead of letting agents communicate through a matrix?
 
-The adapter must also normalize the saved project's sidebar task order so the exact managed roster is a contiguous ordered
-sequence. Remove stale or archived ordering entries from that sequence; they must not truncate, cap, or interrupt
-enumeration of managed agents. Additional human-created tasks, including another Admin task, may coexist outside managed
-lifecycle receipts and cannot satisfy a required role.
+The workflow already defines who goes next. Using another AI agent to interpret a communication matrix would add
+unnecessary cost, delay, and mistakes.
 
-After normalization, inspect the rendered expanded project with the host's screenshot/computer-vision capability.
-Automatically expand or scroll the project as needed and require visual evidence of every exact managed task title and
-managed count. Record the capture timestamp, project ID, expected and observed managed titles and counts, any extras, and
-the observation method in the binding receipt. An accessibility-tree or backend-catalog result alone is supporting
-evidence, not rendered acceptance. Do not ask the human for visual confirmation when the host can capture its UI. A
-managed task returned by the backend catalog but absent from the computer-vision-verified expanded saved-project sidebar
-is still incomplete initialization. Clear stale same-named custom-section references through supported presentation
-operations; the custom section cannot replace saved-project enumeration evidence.
+```text
+Declared transition -> deterministic lookup
+                     X AI re-interpretation
+```
 
-Every canonical initialization message must also identify the selected operational profile by its canonical absolute
-directory and include the exact resolved profile-owned binding-registry path and schema. This is required when the public
-workflow repository and private operational profile are separate repositories. Never guess `ai-profile/<id>` relative to
-the worktree and never substitute the committed example profile.
+## Are we creating more complexity by keeping the Router mechanical? Would a lightweight Router agent be better?
 
-Messaging targets exact task IDs. Remove and delete map to recoverable archival. Replacement verifies successors before
-archiving predecessors. Never use titles, sidebar order, recency, or remembered conversation as lifecycle identity.
+The Reviewer/Writer loop came from an incomplete workflow map: it lacked an explicit human-wait state. A Router agent
+might have improvised around that omission, but it could make different routing decisions for identical events and hide
+missing workflow rules instead of exposing them.
 
-Normal workflow delivery is Router-to-endpoint. An endpoint returns its declared result event in its own task turn; the
-host Router observes that exact turn, validates run/stage/scope, and chooses the next stage from the workflow. Endpoints
-never send task messages to one another. Admin inspection reads bounded Router state and delivery receipts without
-becoming the runtime or entering the workflow roster.
+Keep known transitions mechanical because they are inexpensive, repeatable, testable, and auditable. A lightweight AI
+may help classify ambiguous human intent into a declared capability or event, but deterministic code must validate and
+execute the final route. Human decisions remain explicit waiting states rather than AI guesses.
 
-A human request to delete a group routes to the `gpt-agents` command's `delete-workflow` lifecycle operation. The logical
-project selects the recorded workflow agent-task bindings and complete scoped-folder receipt; it does not identify System or another saved
-Codex project itself. The operation recoverably archives all exact bound workflow tasks, retires only the exact workflow
-binding, retains a deletion receipt, and preserves System, the saved project, checkout, repository, and work target.
+```text
+ambiguous human intent -> lightweight AI classification
+declared workflow event -> mechanical Router
+human decision required -> pause for human
+```
+
+## How is the mechanical Router implemented?
+
+It is a Codex plugin with lifecycle hooks. `UserPromptSubmit` restores the task's workflow binding and creates a Router
+correlation. `Stop` validates the agent's `WORKFLOW_ROUTER_RESULT`. The plugin's JavaScript then looks up the returned
+stage and event in the registered workflow map, resolves the next role to an exact task ID, and asks the host dispatcher
+to deliver the next assignment.
+
+```text
+Codex hooks -> Router JavaScript -> workflow map -> host dispatcher
+```
+
+## Must Codex be restarted every time the plugin code changes?
+
+No. After changing the plugin's JavaScript or hook definition, rebuild or cache-bust and reinstall the plugin, then test
+it in a new task so that task loads the new installed version. A full Codex app restart is a fallback only when a fresh
+task still loads the old version or the changed hook definition requires its trust state to be refreshed. Batch related
+plugin-code changes before reinstalling to avoid unnecessary reload overhead.
+
+A workflow-map or runtime-binding change is Router data, not plugin executable code, and should not require reinstalling
+the plugin or restarting Codex.
+
+```text
+plugin code or hook     -> reinstall -> new task
+fresh task is still stale or trust changed -> restart/review trust
+workflow map or binding -> no reinstall and no restart
+```
+
+## How does the hidden Router resolve the next agent?
+
+It follows one deterministic lookup:
+
+```text
+(current stage, returned event) -> next stage -> owning role -> exact task ID
+```
+
+For Writing:
+
+```text
+review + changes_required -> correction -> writer
+correction + review_ready -> review -> reviewer
+review + accepted -> release -> release-coordinator
+```
+
+If a transition declares a progress-reference retry policy, the Router also compares its bounded progress references.
+Writing stops the third `correction -> review` attempt for the same exact revision instead of allowing an endless
+Writer/Reviewer loop. A new revision reference begins a new attempt sequence.
+
+```text
+same revision x3 -> stop visibly
+new revision     -> resume declared route
+```
+
+```text
+stage + event -> transition -> role -> task ID
+```
+
+## What is the registered workflow map?
+
+It is the host's executable runtime record for one exact workflow scope. Initialization combines:
+
+- the portable `*.workflow-map.json`, which contains stages, roles, events, transitions, and evidence requirements; and
+- a private runtime overlay containing the exact scope and receipt-backed task ID for every role.
+
+The plugin contains no Writing-specific Reviewer-to-Writer rule. It runs the transitions supplied by the selected
+workflow map.
+
+```text
+portable JSON + private task bindings -> registered host map
+```
+
+## Does the workflow map have a visual companion?
+
+Yes. Every `*.workflow-map.json` must have a same-name `*.workflow-map.mmd` Mermaid file generated from it. JSON is the
+executable projection; Mermaid is the human-readable view. Initialization verifies that they match before registration.
+
+For Writing, see [writing.workflow-map.json](../../../ai-workflows/writing/writing.workflow-map.json) and
+[writing.workflow-map.mmd](../../../ai-workflows/writing/writing.workflow-map.mmd).
+
+```text
+workflow-map.json -> generated workflow-map.mmd -> human view
+```
+
+## What does each agent know?
+
+Each agent receives only its own endpoint binding:
+
+- exact workflow scope;
+- its role and owned capabilities;
+- authoritative workflow source; and
+- Router correlation and result contract.
+
+It does not receive peer task IDs or successor rules. The complete workflow map remains host-only.
+
+```text
+Agent: own binding only | Host: full map + all task IDs
+```
+
+## Can a human start with any workflow agent?
+
+Yes. A direct message to any active bound endpoint is normal workflow ingress. If that role owns the requested
+capability, it performs the work. Otherwise it performs no substitute work and returns `route-required`; the Router
+resolves the single workflow-declared owner. Missing or ambiguous ownership blocks instead of guessing.
+
+```text
+Human -> any endpoint -> owned work OR route-required -> Router
+```
+
+## How does an agent return control to the Router?
+
+Every completed endpoint turn ends with `WORKFLOW_ROUTER_RESULT`. The hook validates the Router-owned correlation,
+stage, role, event, and bounded references. The Router then consults the workflow map and dispatches only the declared
+successor. Agents never message one another, and Admin is not routine transport.
+
+```text
+Agent result -> Stop hook -> Router validation -> declared successor
+```
+
+## What happens when the workflow needs a human decision?
+
+The endpoint returns `human_action_required`. The Router records a `waiting-human` stage and dispatches no agent. Human
+acceptance follows the declared release route; human rejection returns bounded findings to the declared correction role.
+
+```text
+Agent -> human_action_required -> PAUSE -> human accepts OR rejects -> declared route
+```
+
+## In what order is the workflow initialized?
+
+1. Validate the exact scope, saved project, roots, workflow source, portable map, diagram, and roster.
+2. Create or reconcile one visible Codex task per declared role in the saved project's `local` environment.
+3. Reread the host catalog and verify every task under the exact saved-project ID.
+4. Persist active task receipts.
+5. Register the portable map plus private scope/endpoint overlay with `scripts/register-workflow.mjs`.
+6. Register each peer-free endpoint binding with `scripts/register-binding.mjs`.
+7. Verify the installed plugin version and trust for the current hook definition.
+8. Test one forward transition and one correction/review loop.
+9. Declare readiness only after the exact target task starts and its completed result is observed.
+
+```text
+validate -> create -> verify -> register -> trust -> test -> ready
+```
+
+## What causes initialization to stop?
+
+Missing receipts, duplicate roles, mismatched roots, stale task IDs, unsupported host capabilities, map/diagram drift,
+undeclared transitions, or ambiguous ownership fail closed. Initialization must not create speculative replacement
+tasks while an earlier candidate may still resolve.
+
+```text
+Any identity, map, receipt, or capability mismatch -> BLOCKED
+```
+
+## Does a successful hook or queue call prove delivery?
+
+No. Hook observation and cross-task delivery are separate capabilities. A local queue can accept a message without
+waking an idle desktop task. Initialization must verify a connected host dispatcher and a delivery receipt; otherwise it
+returns `BLOCKED_ROUTER_IDLE_DISPATCH_UNAVAILABLE` and does not claim unattended execution.
+
+```text
+queue accepted -/-> task started -> result observed
+```
+
+## How are workflow agents replaced or removed?
+
+Reinitialization reconciles receipt-backed tasks first. Replacement verifies the successor before recoverably archiving
+the predecessor. Deleting a workflow group archives only its exact bound tasks and retires its workflow registration;
+the saved project, checkout, repository, and work target remain intact.
+
+```text
+verify successor -> archive predecessor | preserve project and repository
+```

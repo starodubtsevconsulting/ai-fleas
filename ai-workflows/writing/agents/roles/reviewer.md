@@ -69,3 +69,19 @@ behavior so the author can listen immediately. Record the narrated revision and 
 then ask for awkward/inaccurate/missing/voice feedback. Do not mark the gate complete from successful synthesis alone.
 When the profile grants online synthesis for publication-intended articles, do not introduce a second per-article
 permission gate for that service. If host approval review denies the network action, report that blocker directly.
+
+Do not return `changes_required` merely because the human has not listened or accepted yet; Writer cannot satisfy a
+human-only gate. After all Writer-owned findings are resolved, return `human_action_required` with a `human-action`
+reference. The Router pauses at `human_review`. When the human responds, return `human_accepted` with
+`human-acceptance` evidence or `human_rejected` with bounded `findings` for Writer.
+
+When the exact same revision returns without resolving the same findings, do not invent progress, replace the finding
+identity, or accept the unchanged work. Report that the revision is unchanged and preserve a stable findings reference.
+The Writing workflow allows at most three correction-to-review attempts for one exact revision; the Router then stops
+the loop visibly instead of dispatching another review.
+
+Before returning `changes_required`, persist the complete Writer-owned findings as a Markdown artifact under the
+repository's ignored `.agent-runtime/writing/findings/` directory. The `findings` reference must be a repository-relative
+`repo://` reference containing that exact path and its SHA-256 content hash. A conversational report or synthetic
+`findings://` identifier is not transferable evidence: Writer must be able to open the referenced artifact without
+reading Reviewer's task history.

@@ -19,6 +19,26 @@ cannot add a stage, role, route, capability, or exception policy.
 
 ## Workflow execution
 
+### Universal human entry
+
+Any exact initialized workflow endpoint may be the human-facing entry point. The human does not need to address Admin
+or a visible Router first. At ingress, the host resolves the addressed task's trusted workflow binding and attaches a
+Router-owned correlation to the turn.
+
+The receiving endpoint checks the request against the workflow's declared capabilities. When its role owns the exact
+capability, that endpoint handles the request in the corresponding stage and returns its terminal result to the Router.
+When another role owns the capability, the addressed endpoint performs no substitute work: the host Router resolves and
+dispatches the workflow-declared owner. Undeclared capabilities and capabilities that map ambiguously to more than one
+stage fail closed instead of being routed by title, conversational similarity, or Router judgment.
+
+This ingress-and-return mechanism is common to every workflow. Individual workflows still own their capabilities,
+stages, role assignments, transitions, evidence requirements, and terminal events. Admin remains available for
+initialization, inspection, and authorized recovery; it is not an ordinary workflow entry or relay requirement.
+
+Whether the addressed endpoint owns the work or the Router dispatches another endpoint, every completed endpoint turn
+returns to the same hidden Router runtime. The Router validates the terminal result and follows the workflow's declared
+transition. Endpoints never contact one another.
+
 For a normal workflow event, the Router runtime:
 
 1. validates exact workflow scope and the expected current stage;
@@ -32,12 +52,34 @@ The Router therefore runs the workflow and routes execution from one assigned ro
 separate worker-to-worker topology: the workflow declares who owns each stage, while the platform binding resolves that
 role to an exact instance at runtime.
 
+Operationally, the reusable runtime performs one deterministic lookup chain:
+
+```text
+(current stage, returned event) -> declared transition -> next stage -> stage owner role -> bound runtime instance
+```
+
+For example, a Writing workflow may declare `review + changes_required -> correction` and assign `correction` to
+Writer. The generic Router reaches Writer because of those declarations and the host's receipt-backed Writer binding,
+not because its implementation contains a Reviewer-to-Writer special case. Another workflow can use the same runtime
+with entirely different stage names, events, roles, and transitions.
+
 The Router never consumes artifact bodies merely because a reference exists. A transition may require a particular
 reference kind, but interpreting its content remains with the assigned role.
+
+A workflow may place a retry policy on a transition and identify the bounded reference kinds that prove progress. The
+Router counts dispatch attempts carrying the same declared progress references and stops at the workflow's ceiling.
+This guard is mechanical and workflow-neutral: it prevents an endpoint pair from repeatedly returning the same revision
+without hard-coding role names or asking the Router to judge artifact content. A new progress reference starts a new
+attempt sequence.
 
 Role resolution and dispatch are transactional. The host adapter must return an exact instance whose workflow
 coordinates and role match the next stage. Missing identity, failed delivery, or mismatched scope leaves the current
 stage and history unchanged; a successful dispatch commits the transition and its target instance receipt.
+
+Queue acceptance alone is not successful dispatch. For an idle saved task, the host must resume the exact bound task,
+start a turn, and observe target-matching `turn.started` evidence before promoting a pending delivery receipt. Completion
+and failure remain distinct receipt states. A bounded reference is transferable only when the receiving endpoint can
+resolve it to a durable artifact without reading the sending endpoint's conversation.
 
 Each dispatch carries one Router-owned `correlationId`, exact stage, exact role, and exact recipient instance. The
 endpoint must acknowledge with `COPY THAT` and return those three identity fields byte-for-byte in its terminal result.
