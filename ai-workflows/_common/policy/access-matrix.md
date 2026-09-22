@@ -15,15 +15,14 @@ flowchart TD
   Actor["Actor: workflow composes declared agents and filled matrices"] --> Decision{"Decision: declarations, columns, rows, and role boundaries agree?"}
   Decision -->|Allowed| Route["Allowed: calculate the effective workflow-specific agent permission"]
   Decision -->|Prohibited| Blocked["BLOCKED: missing, empty, duplicate, unsupported, or conflicting declaration"]
-  Route --> Outcome["Outcome: fail-closed capability and communication policy"]
+  Route --> Outcome["Outcome: fail-closed capability policy"]
   Blocked --> Outcome
 ```
 
 The workflow's `agents.yml` names the exact filled capability-ownership matrix. After the leading row key, matrix columns
 must equal the manifest's unique `matrixColumn` values in declaration order. Row keys are nonempty and unique; every cell
 is nonempty. `PROHIBITED` is an explicit denial. An absent agent, row, column, cell, or referenced file grants nothing.
-Legacy workflows may still reference a communication matrix during migration; a workflow selecting a Router runtime must
-not also define peer routes.
+Communication matrices and peer-route grants are unsupported. A workflow uses Router stage declarations for dispatch.
 
 An effective action requires all applicable layers: the common role supports the behavior, the agent declaration selects
 that role, the workflow capability matrix grants the action, workflow/Router routing requirements pass, and the
@@ -31,46 +30,8 @@ initialized profile/project context matches. A workflow may narrow a common role
 boundary. A profile may fill declared parameters or narrow project context but cannot silently add a role, capability,
 runtime transition, or matrix column.
 
-The examples in [capability-ownership.template.csv](capability-ownership.template.csv) and
-[communication.template.csv](communication.template.csv) demonstrate shape only. Their placeholder rows grant nothing and
-must never be loaded as an effective workflow policy.
-
-## Legacy role-relationship communication compatibility
-
-```mermaid
-flowchart TD
-  Actor["Actor: workflow binding one Role relationship to another"] --> Decision{"Decision: common compatibility and exact workflow route both permit the direction?"}
-  Decision -->|Allowed| Route["Allowed: use only the bounded communication kind in the compatibility table"]
-  Decision -->|Prohibited, absent, or broader| Blocked["BLOCKED: no Role-class grant, reverse assignment, or inferred peer route"]
-  Route --> Outcome["Outcome: workflow-specific communication within the common ceiling"]
-  Blocked --> Outcome
-```
-
-The common matrix below is a migration-only compatibility ceiling for workflows that still use peer communication, not a
-concrete communication grant. New and migrated workflows use Router runtime dispatch instead. A legacy workflow binds
-concrete Agents to these relationships and must separately authorize the exact sender,
-recipient, direction, capability, and packet type. `PERMITTED_IF_WORKFLOW_BOUND` means only that a workflow may grant
-the narrower route; it never permits every Agent with the same Role class to communicate. `RETURN_ONLY` carries a
-result, question, blocker, or terminal disposition to the packet's exact return identity and grants no reverse
-assignment authority. An absent relationship or communication kind is `PROHIBITED`.
-
-| Sender relationship | Recipient relationship | Common compatibility | Maximum communication kind |
-| --- | --- | --- | --- |
-| Supervising Worker | Assigned Worker | PERMITTED_IF_WORKFLOW_BOUND | Bounded assignment or same-scope correction packet. |
-| Assigned Worker | Supervising Worker | RETURN_ONLY | Evidence, clarification question, blocker, or terminal disposition. |
-| Assigned Worker | Execution Worker | PERMITTED_IF_WORKFLOW_BOUND | Bounded implementation-mechanics packet. |
-| Tracker operation owner | Execution Worker | PERMITTED_IF_WORKFLOW_BOUND | Bounded configured tracker-adapter mechanics only; no generic command assignment or transfer of ticket semantics. |
-| Execution Worker | Packet return coordinator | RETURN_ONLY | Mechanical evidence, blocker, or terminal disposition. |
-| Worker | Manager | PERMITTED_IF_WORKFLOW_BOUND | Ticket, capability, staffing, or lifecycle request allowed by the selected workflow. |
-| Manager | Exact requesting Worker | RETURN_ONLY | Requested ticket, capability, staffing, or lifecycle result. |
-| Governed Agent | Judge | PROHIBITED | None. |
-| Judge | Governed Agent | PROHIBITED | None. |
-| Governed Agent | Admin | PROHIBITED | None. |
-| Admin | Governed Agent | INITIALIZATION_ONLY | Exact human-directed initialization or lifecycle binding only; never product work. |
-
-A legacy workflow may narrow any compatible row or prohibit it completely. It must not broaden `RETURN_ONLY`,
-`INITIALIZATION_ONLY`, or `PROHIBITED`, and it must not convert a relationship into a universal Role-class route.
-Conflict between the common ceiling and a workflow matrix fails as `BLOCKED_ROLE_COMMUNICATION_COMPATIBILITY`.
+The example in [capability-ownership.template.csv](capability-ownership.template.csv) demonstrates shape only. Its
+placeholder rows grant nothing and must never be loaded as effective workflow policy.
 
 ## Workflow dependency projection
 
@@ -79,7 +40,7 @@ flowchart TD
   Actor["Actor: workflow maps consumer to provider"] --> Decision{"Decision: both agents and capability are declared?"}
   Decision -->|Allowed| Route["Allowed: record a capability-bound dependency without granting authority"]
   Decision -->|Prohibited| Blocked["BLOCKED: undeclared role, self-edge, duplicate, empty capability, or implicit requirement"]
-  Route --> Outcome["Outcome: explicit workflow topology with reusable independent roles"]
+  Route --> Outcome["Outcome: provider requirement without a communication edge"]
   Blocked --> Outcome
 ```
 
@@ -96,8 +57,8 @@ workflow declaration, Router contract, and runtime context must independently au
 fail-closed.
 
 The example in [dependencies.template.yml](dependencies.template.yml) demonstrates shape only. Placeholder entries grant
-nothing and must never be loaded as effective workflow policy. Exact peer names and topology belong in the workflow
-manifest, matrices, or an explicit workflow override, never in an unrelated role.
+nothing and must never be loaded as effective workflow policy. Provider requirements belong in the workflow manifest,
+never in an unrelated role, and never create peer topology.
 
 ## Workflow projection
 
@@ -106,10 +67,10 @@ flowchart TD
   Actor["Actor: workflow author creates a filled access matrix"] --> Decision{"Decision: exact agents.yml references and validates the workflow files?"}
   Decision -->|Allowed| Route["Allowed: define workflow-specific cells without changing the common mechanism"]
   Decision -->|Prohibited| Blocked["BLOCKED: embedded default grant, foreign workflow path, or profile-specific permission"]
-  Route --> Outcome["Outcome: portable workflow policy with explicit external matrices"]
+  Route --> Outcome["Outcome: portable workflow policy with explicit capability ownership"]
   Blocked --> Outcome
 ```
 
-During the current incremental schema, `agents.yml` references external CSV matrices. A later schema version may embed
+During the current incremental schema, `agents.yml` references an external capability-ownership CSV. A later schema version may embed
 equivalent row and cell data inside `agents.yml`, but it must preserve the same unique-column, unique-row, nonempty-cell,
-role-boundary, communication, profile-neutrality, and fail-closed rules. Moving representation never changes authority.
+role-boundary, profile-neutrality, and fail-closed rules. Moving representation never changes authority.

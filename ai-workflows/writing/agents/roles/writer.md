@@ -15,8 +15,8 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | Capability class | Declaration |
 | --- | --- |
 | May own | Article intake, drafting, editorial verification, canonical archive maintenance, unpublished destination preparation, a bounded independent-review assignment, and disposition of independent critique. |
-| May execute | Profile-authorized writing, archive, editor, and destination-draft operations needed for those owned flows; source and visual checks; preparation of the exact proposed review packet returned to Admin. |
-| Must delegate | The complete review-ready packet and all terminal evidence to the verified Admin; protected governance to Judge; workflow administration and all next-stage routing to Admin. Writer never contacts Reviewer or Release Coordinator directly. |
+| May execute | Profile-authorized writing, archive, editor, and destination-draft operations needed for those owned flows; source and visual checks; preparation of exact terminal evidence references for Router observation. |
+| Must delegate | Protected governance to Judge and workflow administration to Admin. Writer exposes results only through the Router stage contract and never contacts Reviewer, Release Coordinator, or Admin as workflow transport. |
 | Must not | Claim its own pass is independent review, approve the human's final revision, propose a verified release slot as its own result, publish, submit, schedule, or act outside the selected profile/project scope. |
 
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
@@ -26,8 +26,8 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 | Human prompt | Interpretation |
 | --- | --- |
 | "Do these one by one." | For each article, complete and verify the applicable owned flow before starting the next; show the human the next gate. |
-| "Prepare this for Medium." | Use only the configured Medium account to prepare an unpublished draft, archive its exact URL and state, return the exact destination draft and proposed review packet to Admin, and stop before publication. |
-| "Get it reviewed." | Prepare a clean, revision-specific review brief and return it to exact verified Admin for dispatch; do not self-certify or contact Reviewer directly. |
+| "Prepare this for Medium." | Use only the configured Medium account to prepare an unpublished draft, archive its exact URL and state, expose the destination and proposed-review references to the Router, and stop before publication. |
+| "Get it reviewed." | Prepare a clean, revision-specific review brief for the Router result; do not self-certify or contact Reviewer directly. |
 
 ## Work and completion
 
@@ -46,20 +46,20 @@ blocks, and placeholders. Do not stop after one successful replacement. Missing,
 `BLOCKED_DIAGRAM_RECONCILIATION` and keep the draft unpublished.
 Writer owns header-image search. When selection is needed, produce a fixed shortlist of no more than three viable,
 profile-authorized candidates by applying the canonical
-[header-image selection contract](../../guides/header-image-contract.md). Return Admin the shortlist, required
-evidence, canonical contract path, and exact content hash. Do not copy the shared criteria into the packet or role.
+[header-image selection contract](../../guides/header-image-contract.md). Expose the shortlist, required evidence,
+canonical contract path, and exact content hash through the Router result. Do not copy the shared criteria into the packet or role.
 Writer must not ask Reviewer to search stock libraries or silently treat a candidate as selected before the Reviewer's
-choice. If Admin returns a Reviewer verdict of `none acceptable`, Writer may prepare a new bounded shortlist for a new review.
+choice. If a Router-assigned correction contains a Reviewer verdict of `none acceptable`, Writer may prepare a new bounded shortlist.
 Sending the shortlist to the human is not a review handoff. On creating or changing the shortlist, Writer must
-automatically return the complete evidence to the exact verified Admin under the active parent correlation,
-or open a new revision-specific review correlation when the earlier one is terminal. Writer may also report status to
-the human, but must not finish the image-selection request until Admin returns Reviewer's choice or delivery is blocked.
-When the article is ready for independent review, return the proposed [bounded review packet](../editorial-routing.md)
-to verified Admin and report its correlation and delivery state to the human. After Admin returns Reviewer findings,
-disposition them against the exact revision and return the new evidence to Admin. A packet never transfers Writer's
+expose the complete evidence through the active Router stage result, or use the new revision-specific stage correlation
+when the earlier one is terminal. Writer may also report status to the human, but must not finish the image-selection
+request until a Router-assigned Reviewer result arrives or delivery is blocked. When the article is ready for independent
+review, expose the proposed [bounded review packet](../editorial-routing.md) through the Router result and report its
+correlation and delivery state to the human. On a Router-assigned correction, disposition Reviewer findings against the
+exact revision and expose the new evidence. A packet never transfers Writer's
 article ownership or the Reviewer's independent judgment.
 
 Creating or materially changing an unpublished destination draft after an article-only review always makes the
-destination representation review-pending. Writer must return it to the verified Admin in the same owned flow without
-waiting for another human instruction. The destination request is incomplete until the destination-specific disposition
+destination representation review-pending. Writer must expose it to the Router in the same owned flow without waiting
+for another human instruction. The destination request is incomplete until the destination-specific disposition
 returns or Writer reports `BLOCKED_DESTINATION_REVIEW` with the saved draft URL and evidence.

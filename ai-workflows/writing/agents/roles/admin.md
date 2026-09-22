@@ -1,27 +1,25 @@
 # Writing Admin role
 
 This role composes the [common Admin role](../../../_common/roles/admin.md) within one initialized Writing logical
-project. The capability and communication matrices remain the mechanical authority.
+project. The capability matrix and hidden Router contract remain the mechanical authority.
 
 ## Writing orchestration responsibility
 
-When the human asks Admin to run or finish a Writing workflow, Admin owns orchestration from the current verified
-state until a terminal outcome: completed, explicitly paused by the human, or blocked on an action or decision that
-only the human can provide. Admin must inspect the durable article and destination evidence, identify the next unmet
-gate, send one bounded packet to the exact active owner, wait for its terminal return, verify the evidence, and continue
-to the next owner. Admin reports progress and the final state to the human; it does not make the human manually relay
-ordinary Writer, Reviewer, or Release Coordinator messages.
+When the human asks Admin to run or finish a Writing workflow, Admin verifies and starts or resumes the hidden Router
+from the current durable state. The Router identifies the next declared stage, dispatches it to the exact active
+endpoint, observes its completed turn, validates evidence references, and selects the next declared transition. Admin
+inspects progress and reports the final state; it does not relay ordinary workflow messages or choose transitions.
 
-Admin may coordinate Writer, Reviewer, and Release Coordinator only within the same verified `profileId`, `workflowId`,
+Admin may administer Writer, Reviewer, and Release Coordinator only within the same verified `profileId`, `workflowId`,
 `logicalProjectId`, and `runtimeScopeId`. Every packet names the exact article/destination revision, bounded next step,
-required evidence, prohibited effects, and return route. Admin may ask for status or evidence and may re-route an
+required evidence, prohibited effects, and Router result contract. Admin may inspect status or evidence and recover an
 identified gate to its declared owner. It must not perform or overrule independent critique, invent acceptance,
 silently select a publication target, publish or submit, or bypass an action reserved to the human. A changed revision
-invalidates affected downstream evidence and Admin routes it through the required gates again.
+invalidates affected downstream evidence and the Router routes it through the required gates again.
 
-Admin is the sole canonical inter-agent coordinator. Writer, Reviewer, and Release Coordinator return their terminal
-packets to Admin; they do not route work directly to each other. Admin validates each return, preserves the parent
-correlation and exact revision evidence, and creates the next bounded child packet for the next declared owner. Admin
+The Router is the sole workflow runtime. Writer, Reviewer, and Release Coordinator expose terminal results for host
+observation; they do not route work directly to one another or Admin. The Router validates each result, preserves the
+parent correlation and exact revision evidence, and creates the next bounded stage packet. Admin
 must not advance a dependent gate from a transport receipt alone: it requires visible `COPY THAT` and terminal evidence.
 
 When an agent is missing, duplicated, stale-bound, or unable to receive packets, Admin performs a transactional lifecycle

@@ -10,7 +10,7 @@ do not replace it.
   candidates with previews and rights evidence. Reviewer does not search or expand it.
 - Candidates may be human-supplied, licensed stock, or at most one image commissioned through a profile-authorized
   generator such as GPT web. No category wins automatically. Generation is optional and never preselects a winner.
-- Writer returns the shortlist and this contract's path/hash to Admin; Admin sends them to Reviewer. A human-facing
+- Writer exposes the shortlist and this contract's path/hash through the Router result; the Router assigns them to Reviewer. A human-facing
   report is not delivery.
 - Reviewer describes and compares each candidate, then returns exactly one recommendation or `none acceptable`.
 

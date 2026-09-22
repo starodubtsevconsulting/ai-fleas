@@ -1,7 +1,9 @@
 # Writing handoff compatibility link
 
-The current Writing route is [Admin orchestration](admin-orchestration.md) with bounded packets defined by
-[editorial routing](editorial-routing.md). The human continues to control final article acceptance, including through
-a bounded session-scoped release mandate, and other reserved
-decisions. Writer, Reviewer, and Release Coordinator return every terminal packet to exact verified Admin; Admin alone
-validates the return and dispatches the next specialist stage. The human is never required to relay agent messages.
+Writing now runs through the hidden [Workflow Router](../../_common/runtime/workflow-router.md), with stage envelopes
+defined by [Router routing](editorial-routing.md). Writer, Reviewer, and Release Coordinator are independent endpoints;
+they neither exchange packets nor use Admin or the human as a message courier. The host observes terminal endpoint
+results and the Router selects the next stage from the workflow definition.
+
+The human retains final article acceptance and all reserved publication decisions. Admin may inspect runtime state and
+repair endpoint bindings but is not the workflow transport.
