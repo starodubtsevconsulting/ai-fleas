@@ -1,0 +1,17 @@
+{
+  "name": "ai-fleas-workflow-router",
+  "version": "0.1.0+codex.20260922032123",
+  "description": "Universal hidden Workflow Router lifecycle hooks for initialized AI Fleas endpoints.",
+  "author": {
+    "name": "Local developer"
+  },
+  "interface": {
+    "displayName": "AI Fleas Workflow Router",
+    "shortDescription": "Runs the hidden Router contract for bound workflow tasks.",
+    "longDescription": "Loads receipt-backed workflow identity at session start and enforces a structured terminal Router result for every bound endpoint turn, independent of workflow name.",
+    "developerName": "AI Fleas",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Inspect the Workflow Router binding for this task."
+  }
+}

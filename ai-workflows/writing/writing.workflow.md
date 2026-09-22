@@ -18,6 +18,9 @@ may emulate Writer and Release Coordinator steps for
 draft preparation, but it must not claim a managed-agent identity. Independent critique still needs a genuinely
 fresh-context Reviewer task or human reader who did not draft or edit the revision. If unavailable, mark it pending.
 
+The executable projection is [writing.workflow-map.json](writing.workflow-map.json); its generated human-readable view
+is [writing.workflow-map.mmd](writing.workflow-map.mmd).
+
 ## Responsibility handoff
 
 - The **Writer** owns intake, drafting, editorial verification, archive maintenance, unpublished destination preparation,
@@ -55,7 +58,11 @@ fresh-context Reviewer task or human reader who did not draft or edit the revisi
 6. Challenge the finished article through the [independent critique flow](flows/independent-critique.flow.md),
    addressing substantive findings before calling it release-ready. The computer prepares a spoken preview for the
    human author's first listen-through when available or required; a fresh-context reviewer checks the work; the human
-   accepts the exact final revision directly or through a bounded session-scoped release mandate.
+   accepts the exact final revision directly or through a bounded session-scoped release mandate. A source-only pass
+   is not the workflow event `accepted` while required destination rendering, visual preparation, listen-through, or
+   human acceptance remains pending. Reviewer returns `changes_required` only for remaining Writer-owned preparation.
+   When only human listen-through or acceptance remains, Reviewer returns `human_action_required`; the Router pauses
+   without dispatching an agent until the human accepts or rejects the exact revision.
 7. The Router assigns the accepted exact revision and review record to Release Coordinator, which first resolves the explicit
    publication target (such as Medium profile/home versus a named authorized Publication), then selects a
    destination-specific slot through the [release planning flow](flows/release-planning.flow.md), using profile-owned

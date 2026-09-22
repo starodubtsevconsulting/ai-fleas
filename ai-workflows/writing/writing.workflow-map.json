@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "workflow-router-map.v1",
+  "workflowId": "writing",
+  "source": "writing.workflow.md",
+  "initialStage": "drafting",
+  "capabilityOwners": {
+    "article_drafting": "writer",
+    "independent_critique": "reviewer",
+    "critique_disposition": "writer",
+    "human_listen_through": "reviewer",
+    "release_planning": "release-coordinator",
+    "release_gate_diagnosis": "reviewer"
+  },
+  "stages": {
+    "drafting": {
+      "role": "writer",
+      "capability": "article_drafting",
+      "transitions": {
+        "review_ready": {
+          "to": "review",
+          "requiredReferenceKinds": ["revision", "review-packet"]
+        }
+      }
+    },
+    "review": {
+      "role": "reviewer",
+      "capability": "independent_critique",
+      "transitions": {
+        "accepted": {
+          "to": "release",
+          "requiredReferenceKinds": ["review"]
+        },
+        "changes_required": {
+          "to": "correction",
+          "requiredReferenceKinds": ["findings"]
+        },
+        "human_action_required": {
+          "to": "human_review",
+          "waitForHuman": true,
+          "requiredReferenceKinds": ["human-action"]
+        }
+      }
+    },
+    "human_review": {
+      "role": "reviewer",
+      "capability": "human_listen_through",
+      "transitions": {
+        "human_accepted": {
+          "to": "release",
+          "requiredReferenceKinds": ["human-acceptance"]
+        },
+        "human_rejected": {
+          "to": "correction",
+          "requiredReferenceKinds": ["findings"]
+        }
+      }
+    },
+    "correction": {
+      "role": "writer",
+      "capability": "critique_disposition",
+      "transitions": {
+        "review_ready": {
+          "to": "review",
+          "requiredReferenceKinds": ["revision", "review-packet"],
+          "retryPolicy": {
+            "maxSameProgressAttempts": 3,
+            "progressReferenceKinds": ["revision"]
+          }
+        }
+      }
+    },
+    "release": {
+      "role": "release-coordinator",
+      "capability": "release_planning",
+      "transitions": {
+        "released": {
+          "to": "complete",
+          "terminal": true,
+          "requiredReferenceKinds": ["release-record"]
+        },
+        "review_required": {
+          "to": "diagnosis",
+          "requiredReferenceKinds": ["blocker"]
+        }
+      }
+    },
+    "diagnosis": {
+      "role": "reviewer",
+      "capability": "release_gate_diagnosis",
+      "transitions": {
+        "proven": {
+          "to": "release",
+          "requiredReferenceKinds": ["review"]
+        }
+      }
+    },
+    "complete": {
+      "role": "release-coordinator",
+      "capability": "release_planning",
+      "transitions": {}
+    }
+  }
+}

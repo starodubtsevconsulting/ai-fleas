@@ -1,282 +1,307 @@
 # Your AI Agents Do Not Need to Talk to Each Other
 
-*Sometimes the simplest way to coordinate an AI team is to stop making every agent coordinate.*
+*A workflow can coordinate an AI team without turning every agent into a coordinator.*
 
-When I first started designing teams of AI agents, one question seemed unavoidable:
+When people imagine a team of AI agents, they often draw a network.
 
-**Who is allowed to talk to whom?**
+The Writer talks to the Reviewer. The Reviewer sends corrections back to the Writer. The Release Coordinator asks both
+of them whether the work is ready. Soon every agent needs to know which peers exist, what they are called, when they may
+be contacted, and how to interpret their replies.
 
-A Coder might need a Manager. A Reviewer might return work to a Coder. A Designer might ask a specialist for help. Some
-roles could initiate a request; others could only reply. Before long, the system had a communication matrix that looked
-less like software and more like an organizational chart.
+That looks collaborative. It also gives every endpoint part of the orchestration problem.
 
-The matrix looked rigorous. It also duplicated something the system already had:
+There is a simpler design: agents do their assigned work, return a small result, and let a mechanical runtime execute the
+workflow.
 
-**the workflow.**
+The agents do not need to talk to one another because the workflow already knows what happens next.
 
-## The workflow already knows what happens next
+## The workflow is the program
 
-A generic development workflow might look like this:
-
-> Plan → Implement → Validate → Review → Accept → Deliver
-
-Each stage already declares its owner. A planning role owns the plan, an implementation specialist owns the change, a
-validation role runs checks, and an independent reviewer owns review. Those are intentionally generic stage owners,
-not a claim about the exact role mapping in any particular workflow.
-
-When implementation finishes, the Coder does not need to discover the Reviewer, know its task identifier, or decide how
-to contact it. The workflow already declares the next stage and the role assigned to it.
-
-That changes the coordination problem. Instead of teaching every agent how to communicate with every other agent, the
-system can teach the workflow runtime how to move a bounded envelope.
-
-At a conceptual level, the implementation role only needs to return something like:
+Consider a small editorial workflow:
 
 ```text
-Stage: implementation
-Event: completed
-Artifact: <reference>
-Evidence: <reference>
+Draft -> Review -> Release
+           |
+           +-- changes required -> Correction -> Review
+           +-- human decision required -> Wait for human
 ```
 
-That sketch is deliberately abbreviated. A real Router result envelope must also repeat the profile, workflow, logical
-project, and runtime-scope coordinates; Router runtime and workflow-run identities; stage and transition sequence; exact
-role and instance identity; and bounded artifact, evidence, and handoff references.
+This is more than a picture. Each stage can declare:
 
-The workflow decides what that event means. The runtime moves execution to the role declared by the next stage.
+- the role that owns it;
+- the events that may finish it;
+- the next stage for each event;
+- the evidence that must accompany the event; and
+- whether execution should dispatch another agent, stop, or wait for a human.
 
-## The workflow is the program; the Router is the runtime
+An executable projection might contain a transition like this:
 
-This distinction helped me name the missing component.
+```json
+{
+  "review": {
+    "role": "reviewer",
+    "transitions": {
+      "changes_required": {
+        "to": "correction",
+        "requiredReferenceKinds": ["findings"]
+      },
+      "human_action_required": {
+        "to": "human_review",
+        "waitForHuman": true,
+        "requiredReferenceKinds": ["human-action"]
+      }
+    }
+  },
+  "correction": {
+    "role": "writer",
+    "transitions": {
+      "review_ready": {
+        "to": "review",
+        "requiredReferenceKinds": ["revision", "review-packet"]
+      }
+    }
+  }
+}
+```
 
-The workflow is declarative. It defines stages, assigned roles, transitions, and exception paths. It says what should
-happen.
+Nothing in that map says that Reviewer must discover Writer or send Writer a message. It says that when the `review`
+stage returns `changes_required`, the workflow advances to `correction`, which is owned by Writer.
 
-The **Router** executes that definition. It keeps the current stage, validates an event, resolves the next role to one
-exact runtime endpoint, delivers a bounded envelope, and records the transition.
+That distinction matters:
 
-The Router is not another workflow. It is also not another team member.
+> The workflow declares the route. The agents perform the work on the route.
 
-It does not design, code, review, approve, or manage. It answers three deliberately small questions:
+## The Router is the runtime
 
-> Where is this workflow run now?
+A declarative workflow does not execute itself. Something must observe that a stage ended, validate its result, find the
+declared transition, resolve the next role to a live endpoint, and deliver the next assignment.
 
-> What declared event just occurred?
+That component is the **Router**.
 
-> Where does the workflow say execution goes next?
-
-That is runtime behavior, not domain reasoning.
-
-## Do not build another brain
-
-It would be easy to make the Router an expensive reasoning agent.
-
-The Coder finishes. The Router reads the entire implementation, rereads the design, decides whether the code is good,
-and eventually concludes that a Reviewer should inspect it.
-
-At that point the Router has become another Reviewer—except now every transition depends on it.
-
-A Router should instead receive the smallest contract-complete result envelope:
+The Router is not another workflow and it is not another specialist agent. It is a small state machine that performs a
+deterministic lookup:
 
 ```text
-profileId: <profile>
-workflowId: <workflow>
-logicalProjectId: <logical-project>
-runtimeScopeId: <runtime-scope>
-routerRuntimeId: <router-runtime>
-workflowRunId: <workflow-run>
-stageId: implementation
-transitionSequence: <expected-sequence>
-role: <workflow-assigned-role>
-instanceId: <exact-runtime-instance>
-event: completed
-artifactRefs: [<bounded-reference>]
-evidenceRefs: [<bounded-reference>]
-handoffRefs: [<bounded-reference>]
+(current stage, returned event)
+    -> declared transition
+    -> next stage
+    -> owning role
+    -> exact initialized endpoint
 ```
 
-It validates the envelope and consults the workflow definition. Artifact bodies remain with the roles that are
-authorized to interpret them.
-
-The intelligence stays where it belongs:
-
-- specialists perform domain work;
-- the workflow defines order and ownership;
-- the Router advances state.
-
-The less the Router has to understand, the easier it is to test.
-
-## Agents return to the Router, not to one another
-
-This produces a different topology from the usual picture of an “agent team.”
+For example:
 
 ```text
-Workflow Router ──assignment──▶ Planner
-Planner ──result event────────▶ Workflow Router
-
-Workflow Router ──assignment──▶ Coder
-Coder ──result event──────────▶ Workflow Router
-
-Workflow Router ──assignment──▶ Reviewer
-Reviewer ──result event───────▶ Workflow Router
-
-Workflow Router ──declared exception transition only──▶ Manager
-Manager ──recovery result event───────────────────────▶ Workflow Router
-
-No endpoint-to-endpoint edges
+review + changes_required -> correction -> writer -> exact Writer task
+correction + review_ready -> review -> reviewer -> exact Reviewer task
+review + human_action_required -> human_review -> wait
 ```
 
-The agents do not form a social network. They are independently addressable execution endpoints for roles in a process.
+The Router does not decide whether the article is good. Reviewer does that. It does not decide how to fix a paragraph.
+Writer does that. It does not decide whether a human enjoyed the narration. The human does that.
 
-For each dispatch, an endpoint receives one stage assignment from the Router and returns one declared result event to
-that same Router. The next endpoint does not receive a story about what happened. It receives a new bounded envelope
-containing the references required by its own stage.
+The Router only executes outcomes that the workflow already permits.
 
-This removes a surprising amount of routing policy. The capability and authority matrix remains necessary and
-authoritative for what each role may do. What disappears from primary orchestration is a second matrix describing every
-possible peer conversation.
+## Hooks are the bridge between a conversation and the state machine
 
-Capability answers:
+The phrase “hidden Router” can make the mechanism sound mysterious. It is not.
 
-> What may this role do?
+In one practical Codex implementation, a plugin installs lifecycle hooks around agent turns. A prompt-submission hook
+recognizes the addressed task's trusted workflow binding and prepares a Router-owned assignment. A stop hook observes
+the endpoint's terminal result after the agent finishes.
 
-The workflow answers:
+The hook itself does not reason about who should work next. It invokes ordinary JavaScript that validates the result and
+executes the registered workflow map. If another stage should run, the host dispatcher starts a turn on the exact task
+bound to that stage's role.
 
-> Which role owns this stage?
+<!-- diagram-id: hook-router-runtime-v1 -->
+```mermaid
+flowchart LR
+    H[Human prompt] --> PS[Prompt-submission hook]
+    PS --> E[Bound role endpoint]
+    E -->|terminal result| S[Stop hook]
+    S --> V[Validate result]
+    V --> M[Workflow-map lookup]
+    M --> D{Transition disposition}
+    D -->|dispatch| X[Host sends next assignment]
+    D -->|wait| W[Pause for human]
+    D -->|terminal| C[Complete run]
+```
 
-The Router answers:
+This separates four things that are easy to blur together:
 
-> Which exact initialized endpoint currently represents that role?
+- **Hooks** observe lifecycle boundaries.
+- **Router code** validates results and advances state.
+- **The workflow map** declares legal transitions and stage ownership.
+- **The host dispatcher** delivers an assignment to a concrete endpoint.
 
-Those are different questions. Keeping them separate makes the system much easier to reason about.
+The plugin is therefore an adapter for this host, not the workflow itself. Another host could execute the same contract
+with a service, queue consumer, state-machine engine, or another lifecycle mechanism.
 
-## Exceptional reasoning should remain exceptional
+## The endpoint returns an event, not a message to a peer
 
-Normal workflows are not always successful. An agent may become blocked, exhaust its context, receive an ambiguous
-requirement, or discover that a required artifact is missing.
-
-That does not mean the Router should diagnose the problem.
-
-The workflow can declare exception events such as:
+After completing one assignment, an endpoint returns a narrow result to the Router:
 
 ```text
-blocked
-depleted
-unclear
+COPY THAT
+WORKFLOW_ROUTER_RESULT {
+  "correlationId": "<router-owned-correlation>",
+  "stage": "review",
+  "role": "reviewer",
+  "event": "changes_required",
+  "references": [
+    {"kind": "findings", "ref": "<bounded-reference>"}
+  ]
+}
 ```
 
-Those events transition to a Manager stage while preserving the interrupted stage as the resume point. The Manager can
-clarify the plan, arrange capacity, or decide which authorized recovery applies. When recovery completes, the workflow
-determines what happens next.
+The result does not name Writer. Reviewer is not authorized to choose its successor. The Router checks that the
+correlation, stage, role, event, and required reference kinds match the active assignment, then follows the map.
 
-This keeps the separation clear:
-
-**Router owns ordinary state transitions.**
-
-**Manager owns declared exceptional coordination.**
-
-**Specialists own domain decisions and evidence.**
-
-The Manager can understand the plan without spending its time carrying every routine envelope.
-
-## Identity still needs an exact binding
-
-Removing peer communication does not remove the need for identity. In fact, exact endpoint identity becomes more
-important because the Router must know that a runtime task really represents the role selected by the workflow.
-
-The portable contract does not prescribe a candidate lifecycle or a readiness-token protocol. It requires something
-narrower: before dispatch, the platform binding must resolve the workflow-assigned role to one exact initialized runtime
-instance whose role and workflow coordinates match the next stage.
+That gives each component one job:
 
 ```text
-workflow declares next role
-           ↓
-binding resolves one exact initialized instance
-           ↓
-verify role and workflow coordinates
-      ┌────┴────┐
-      │         │
-    match     mismatch or missing identity
-      │         │
-      ▼         ▼
-dispatch      keep current stage and history unchanged
-confirmed
-      │
-      ▼
-commit transition and target-instance receipt
+Reviewer: "I completed review; changes are required; here are the findings."
+Workflow: "That event moves review to correction, owned by Writer."
+Registry: "This exact task currently represents Writer in this workflow run."
+Router:   "Validated. Dispatch correction there."
 ```
 
-Role resolution and delivery are transactional: only confirmed delivery commits the transition. Missing identity,
-failed delivery, or mismatched scope leaves the current stage and history unchanged. A display name is not identity.
+The agents remain independent execution endpoints. They do not need peer task IDs, a communication matrix, or a shared
+conversation.
 
-## Hidden does not mean impossible to debug
+## A human can enter through any initialized endpoint
 
-The Router should not appear as another teammate merely because humans need observability.
+Removing peer communication should not force the human to begin every request with an Admin or orchestration chat.
 
-An optional host- or platform-specific administrative inspector can expose:
+A human may start with any initialized workflow endpoint. If the addressed role owns the requested capability, it does
+the work. If another stage owns it, the endpoint returns a route-required outcome and the Router resolves the declared
+owner.
+
+In both cases, control returns to the Router when the endpoint finishes.
+
+<!-- diagram-id: universal-human-entry-v1 -->
+```mermaid
+flowchart TD
+    H[Human addresses any initialized endpoint] --> O{Does this role own the capability?}
+    O -->|Yes| A[Endpoint performs the work]
+    O -->|No| RR[Return route-required]
+    A --> R[Return declared result to Router]
+    RR --> R
+    R --> L[Resolve workflow-declared transition or owner]
+```
+
+The receiving endpoint still does not select another agent. It either performs work it owns or reports that routing is
+required. Undeclared or ambiguous capabilities stop visibly rather than being guessed from conversational similarity.
+
+## Waiting is a real workflow state
+
+Our first mechanical loops exposed an important modeling error: we had described agent stages, but not the moment when
+the workflow genuinely belonged to a human.
+
+Suppose Reviewer determines that the source is sound but a person must listen to the rendered narration. Sending the
+task to Writer would be wrong; Writer cannot manufacture human acceptance. Sending it back to Reviewer repeatedly would
+create a loop.
+
+The correct transition is neither “pick another agent” nor “let the Router decide.” It is:
 
 ```text
-Workflow run: <id>
-Current stage: review
-Assigned role: reviewer
-Assigned instance: <runtime-id>
-Previous transition: implementation → review
-Status: running
+review + human_action_required -> human_review -> waiting-human
 ```
 
-It can also show failed delivery, rejected events, endpoint receipts, and concise transition history. This inspector is
-an infrastructure surface, not the workflow Admin agent, and its availability or presentation is not guaranteed by the
-portable Router contract. It makes the runtime observable without turning it into a conversational participant.
+The runtime records the state and stops dispatching. Only an explicit human outcome resumes it:
 
-The distinction is useful:
+```text
+human_accepted -> release
+human_rejected -> correction
+```
 
-**Agents are participants. Infrastructure is inspectable.**
+This is one of the advantages of a deterministic Router: missing workflow states become visible. A reasoning agent might
+improvise around the omission and make the design appear to work while choosing a different behavior next time.
 
-A host may show active roles and Router state in such an inspector, or expose the same state through another
-administrative mechanism.
+## Why not make the Router another AI agent?
 
-## Keep every Router inside one boundary
+A lightweight Router agent is possible. It could read a communication matrix, interpret every completion, and decide
+who should receive the work next.
 
-A Router moves references and controls which endpoint receives the next stage. It therefore belongs inside one exact
-workflow scope.
+That approach is useful when the route is genuinely ambiguous. But for known transitions it adds cost, latency, and
+variance to a problem that is already specified.
 
-A runtime should be bound to a profile, workflow, logical project, and runtime scope. Every event repeats those
-coordinates. A missing or mismatched coordinate is rejected before the Router reads the payload or changes state.
+If `review + changes_required` always means `correction`, asking a model to rediscover that answer on every turn is not
+intelligence. It is nondeterminism.
 
-Two organizations may use the same public workflow definition without sharing runtime state, endpoint bindings,
-artifacts, or history. Reuse belongs in the workflow contract. Isolation belongs in each runtime instance.
+A practical boundary is:
 
-This is not merely an implementation detail. The component responsible for moving context is precisely the component
-that must be strict about which context it can see.
+```text
+ambiguous human intent -> optional AI classification
+declared workflow event -> mechanical validation and routing
+domain judgment        -> specialist agent
+human decision         -> explicit pause
+```
 
-## Maybe agents need less organization
+An AI classifier may help translate an unclear request into one declared capability. But deterministic code should
+validate the classification against the workflow and execute the final route.
 
-Specialized roles still need boundaries. Reviews still need independence. Dangerous effects still need explicit
-authority. Work still needs evidence.
+## Mechanical does not mean opaque
 
-But orchestration can be much simpler than a web of agents talking to one another.
+The Router can remain hidden as a participant while still being observable as infrastructure.
 
-You may not need every agent to know every other agent.
+Useful runtime state includes:
 
-You may not need a communication matrix that recreates an artificial organization.
+```text
+current stage: review
+assigned role: reviewer
+assigned endpoint: <runtime ID>
+last event: changes_required
+next stage: correction
+delivery status: confirmed
+```
 
-You probably do not need an intelligent manager reasoning about every ordinary transition.
+Transition history should contain identifiers, events, dispositions, and bounded references—not entire conversations or
+artifact bodies. Failed validation or failed delivery should leave the current stage unchanged.
 
-You need a declarative workflow. You need explicit, reference-based handoffs. You need specialists with narrow
-authority. And between them, you need something intentionally boring that knows what happens next.
+That makes routing inspectable without creating a fake teammate named Router.
 
-That is the Router.
+## Exact bindings make the map executable
 
-The less domain judgment it performs, the easier it is to verify.
+A workflow map contains role names, not live destinations. Initialization must therefore register an exact endpoint for
+each role in one workflow scope:
 
----
+```text
+portable workflow map + private role-to-task bindings = executable registered map
+```
 
-## Sources and provenance
+The portable map can be public. The runtime overlay remains private because it contains concrete task identifiers and
+scope coordinates. Display names are not identity.
 
-This article is an original synthesis of a locally verified AI Fleas design proposal recorded in
-`ai-workflows/_common/runtime/workflow-router.md`, `ai-workflows/dev/dev.workflow.md`,
-`ai-workflows/dev/agents/shared-execution-routing.md`, and `ai-workflows/_common/policy/access-matrix.md`. As of public
-repository commit [`8fc7a1886c29b0befff776794abb8d808cfa55fe`](https://github.com/starodubtsevconsulting/ai-fleas/tree/8fc7a1886c29b0befff776794abb8d808cfa55fe),
-the Router contract was not published and the public versions of the other files still described the older
-architecture. The article therefore presents a local, unpublished design—not the current public architecture—and uses
-no private profile, client, organization, machine, task, credential, or operational runtime data.
+Dispatch is transactional: the Router commits a transition only after the host confirms delivery to the exact endpoint
+whose binding matches the workflow and role. Missing identity, mismatched scope, or failed delivery leaves the run where
+it was.
+
+## Keep each Router inside one boundary
+
+A Router controls where context goes. It must therefore belong to one exact workflow scope.
+
+Every run is bound to explicit coordinates such as profile, workflow, logical project, and runtime scope. Every result
+must match them through trusted host state before the Router considers its event. Two teams may reuse the same public
+workflow without sharing task bindings, artifacts, or history.
+
+Reuse belongs in the workflow definition. Isolation belongs in the runtime instance.
+
+## The boring part is the point
+
+Specialized agents still need judgment. Review still needs independence. Dangerous actions still need explicit
+authority. Humans still need places to approve, reject, and intervene.
+
+But ordinary coordination does not need another mind.
+
+It needs a workflow that declares legal transitions, hooks that observe turn boundaries, a small runtime that validates
+events, exact bindings that resolve roles to endpoints, and a dispatcher that moves the next bounded assignment.
+
+The workflow is the program.
+
+The Router is the runtime.
+
+The hooks let the runtime see when work begins and ends.
+
+And the agents can concentrate on the work instead of learning how to talk to one another.
