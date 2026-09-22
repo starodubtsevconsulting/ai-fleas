@@ -1,97 +1,63 @@
-# Shared execution routing
+# Dev workflow runtime routing
 
-This portable contract translates the Dev Team policy into exact packets. It does not select a transport or grant a
-capability. The selected platform adapter delivers each packet between exact initialized agent instances.
+The Dev workflow has no agent-to-agent communication topology. Its authoritative workflow and applicable flow files
+declare each stage and assigned role. The workflow-scoped [Router runtime](../../_common/runtime/workflow-router.md)
+executes those declarations, resolves the assigned role to one exact initialized instance, and dispatches the next
+bounded work envelope.
 
-Every packet includes a correlation ID, caller/recipient/return instance IDs and roles, `profileId`, `workflowId`,
-`logicalProjectId`, `runtimeScopeId`, bounded intent and inputs, granted and prohibited effects, required evidence, and
-terminal condition. The recipient validates trusted runtime identity and Team authority before reading the payload.
+Agents never select, address, or return directly to another workflow Agent. They receive work from the Router and return
+one result event to the same Router runtime. Tool or transport availability does not create a peer route.
 
-Designer/Reviewer dispatches implementation to Coder, deterministic mechanics to Command Runner, visible acceptance to
-UI Acceptance Tester, and tracker operations to Manager. Workers return only to the packet's verified return instance.
-Manager may contact Command Runner only for a configured mechanical tracker adapter. Judge has no peer route.
+## Runtime envelope
 
-The matrix's `manager_to_command_runner` route carries only that registered tracker mechanic; its
-`command_runner_to_manager` route is return-only for the exact requesting Manager. Neither grants Manager a general
-command-dispatch capability or Command Runner ticket ownership.
+Every Router dispatch contains:
 
-## Ticket lookup packets
+- exact `profileId`, `workflowId`, `logicalProjectId`, and `runtimeScopeId`;
+- Router runtime ID, workflow run ID, stage ID, and transition sequence;
+- exact target instance ID and workflow-assigned execution role;
+- bounded intent, inputs, allowed/prohibited effects, required evidence, and terminal condition; and
+- reference-only artifact, evidence, and handoff values.
 
-Designer/Reviewer automatically requests Manager discovery when the human describes an existing ticket without its key.
-Use the same route for an explicit "ask Manager" correction. Before sending, resolve the caller, Manager, and return
-identities from trusted active bindings and check all four workflow coordinates. The return identity is the requesting
-Designer/Reviewer. Unknown lookup facts are permitted; unknown authority or identity is not.
+The recipient validates its exact initialized identity, workflow coordinates, assigned role, stage capability, and
+effect boundary before reading the work payload. It returns to the Router runtime—not another Agent—with the same run,
+stage, sequence, and coordinates plus one declared event such as `completed`, `blocked`, `depleted`, or `unclear` and
+bounded evidence references.
 
-The following is a construction template, not runtime identity or operational configuration. Replace every coordinate
-and identity placeholder from trusted initialized state. Fill work-target values only from the authorized request and
-profile project record. A ticket key is optional for this read-only assignment.
+The Router validates the result against the active stage. It then consults the workflow declaration, resolves the next
+stage's role from trusted runtime bindings, and dispatches the next envelope. A stale, duplicate, cross-scope, or
+undeclared event is blocked without advancing state.
 
-```yaml
-correlationId: <stable lookup correlation>
-callerInstanceId: <exact requesting instance>
-callerRole: designer-reviewer
-targetInstanceId: <exact Manager instance>
-requiredExecutionRole: manager
-returnInstanceId: <exact requesting instance>
-returnRole: designer-reviewer
-profileId: <initialized profile>
-workflowId: <initialized workflow>
-logicalProjectId: <complete initialized logical project>
-runtimeScopeId: <initialized runtime scope>
-intent: Discover and read the existing ticket described by the human.
-inputs:
-  projectId: <authorized work-target project>
-  repository: <authorized repository>
-  workspacePath: <authorized workspace>
-  originalRequest: <human's full current request>
-  requestedOutcome: <desired work or behavior>
-  knownFacts: <supplied component, machine, environment, and other identifiers>
-  unknownFacts: <missing lookup facts; ticket key may be unknown>
-authority:
-  allowedEffects: [tracker-search, tracker-inventory, tracker-read]
-  prohibitedEffects: [tracker-mutation, machine-mutation, source-mutation]
-requiredEvidence: Exact ticket read and match reasons, or candidates/coverage/blocker and one precise missing fact.
-terminalCondition: Return one evidenced lookup disposition to the exact requesting instance.
-```
+## Capability validation
 
-Manager preserves this correlation and the lookup's ticket/work target in candidate, clarification, and terminal responses.
-The reply's transport recipient changes to the verified return instance as specified below. Designer/Reviewer
-relays any necessary question to the human and supplies the answer as a same-scope correction. A rejected packet is
-corrected by its sender from trusted state; the recipient never reconstructs a missing authority header.
+The [capability-ownership matrix](role-capability-ownership.csv) remains authoritative for what a role may do. Before
+dispatch, the Router verifies that the role assigned by the workflow owns the stage's required capability. The matrix
+does not say who communicates with whom and grants no transport route.
 
-### Constructing a lookup reply
+Workflow `dependencies` describe capability availability only. They may tell the Router that a stage cannot run until a
+provider role is available, but they never authorize one Agent to contact another.
 
-Build a new outgoing header from trusted active receipts; do not copy the incoming header wholesale. For a Manager reply:
+## Ticket lookup and mechanical execution
 
-| Outgoing field | Required value |
-| --- | --- |
-| `correlationId` | Original accepted lookup correlation. |
-| `callerInstanceId`, `callerRole` | This exact initialized Manager instance and `manager`. |
-| `targetInstanceId`, `requiredExecutionRole` | The accepted request's verified `returnInstanceId` and `returnRole`. |
-| `returnInstanceId`, `returnRole` | The accepted request's verified return route, unchanged. |
-| Four workflow coordinates | Original accepted coordinates, identical to all three trusted receipts. |
-| Work target, authority, evidence requirements | Original bounded assignment; a correction may narrow effects. |
+Ticket discovery, implementation, deterministic commands, review, and visible acceptance are workflow stages rather
+than peer requests. For example:
 
-For the usual return to Designer/Reviewer, `requiredExecutionRole` is `designer-reviewer`. It describes the current
-recipient, not the role that performed the lookup. If `targetRole` is also present, it must equal `requiredExecutionRole`.
-The messaging tool's destination must equal `targetInstanceId`. Compare every outgoing ID/role pair against its trusted
-receipt immediately before sending, including a same-scope correction. A failed comparison blocks the send; a successful
-app receipt cannot repair an invalid header. Keep original requester/executor provenance in separate result fields when
-needed, without replacing the outgoing caller or recipient.
+1. an intake stage assigned to Designer/Reviewer may emit `ticket-lookup-required` with bounded request references;
+2. the workflow transitions to a ticket-discovery stage assigned to Manager;
+3. Manager returns `completed`, `blocked`, or `unclear` to the Router with tracker evidence references;
+4. the workflow determines the next stage; and
+5. when a registered mechanical operation is required, the workflow transitions to a Command Runner stage and later
+   returns its evidence to the Router before resuming a decision stage.
+
+Manager never contacts Command Runner, Designer/Reviewer never contacts Coder, and workers never contact Manager. The
+same workflow run and Router state connect those stages without creating peer authority.
 
 Evidence capture times must come from an observed clock or provider receipt. Use `capturedAt: null` with an explicit
-unavailable reason if the capture time was not recorded. A correction's current time may be `responseCreatedAt`; it must
-not be presented as the time of earlier tracker reads. Never fabricate a timestamp or fill a placeholder with guessed
-fractional seconds. Header correction preserves the original requirements, searched scope, evidence, and unknowns.
+unavailable reason when no capture time exists. A later transition time must not be presented as the time of an earlier
+external read.
 
-For a configured provider mechanic, Manager constructs a separate complete child packet to one exact available Command
-Runner, with Manager as caller and return coordinator. Use a unique child correlation and retain the parent lookup
-correlation as a reference. Include the validated provider
-execution binding, registered operation and exact argument vector, expected receipt, and the same read-only effect
-limits. The provider contract determines valid arguments; a descriptive lookup does not become an exact-summary search
-unless that summary is known. Command Runner returns mechanical evidence to Manager, who interprets it and returns the
-lookup result to Designer/Reviewer. Use the common delivery contract for acknowledgement and terminal observation.
+## Delivery and failure
 
-Missing, stale, duplicated, cross-scope, or unauthorized coordinates are `BLOCKED` with zero payload execution. A
-platform may retry definite delivery failure according to its adapter, but it must never infer identity from labels,
-presentation order, conversation memory, or physical repository proximity.
+Role resolution and dispatch are transactional. The Router commits a transition only after the platform confirms
+delivery to the exact scoped instance. Failed resolution or delivery preserves the current stage and history. Definite
+transport failures may follow the platform's bounded retry policy; they never authorize a different role, instance,
+profile, workflow, project, or runtime scope.

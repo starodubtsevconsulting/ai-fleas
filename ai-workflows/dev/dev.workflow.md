@@ -4,6 +4,12 @@ The development workflow follows the common [agent rules](../agents.md), the wor
 
 This file owns orchestration only: workflow order, applicable gates, and the supporting guides used by each step. Role permissions, responsibility ownership, communication boundaries, and lifecycle rules remain in their authoritative agent and team contracts and are not repeated here.
 
+The common [Workflow Router runtime](../_common/runtime/workflow-router.md) may execute these ordered steps. This file is
+the authoritative program: each step declares the role that performs it, and applicable flows declare finer-grained
+role assignments. The Router resolves each declared role to an exact runtime instance, dispatches the next step, and
+routes `blocked`, `depleted`, or `unclear` to Manager with the interrupted step preserved. It does not review work,
+select a recovery, or replace verified identity, delivery, and communication contracts.
+
 The workflow proceeds through the steps below in order. When one step completes successfully, it continues to the next applicable step without waiting for additional human instruction. A step cannot start until the required evidence from the previous applicable step exists.
 
 ## Workflow

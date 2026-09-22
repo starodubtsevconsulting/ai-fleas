@@ -8,7 +8,7 @@ Managed-agent initialization requires all of the following:
 - an explicit human request to initialize or reinitialize managed agents;
 - one verified profile, Dev workflow, and exact profile-authorized work target;
 - the common [workflow-agent contract](../../agents.md);
-- a complete host-owned roster, communication topology, lifecycle implementation, and identity binding;
+- a complete host-owned role-endpoint roster, hidden workflow runtime, lifecycle implementation, and identity binding;
 - a platform permission boundary that permits the requested agent-instance lifecycle changes.
 
 If any requirement is missing, return `BLOCKED_HOST_INITIALIZER` and activate, modify, message, deactivate, or replace no
