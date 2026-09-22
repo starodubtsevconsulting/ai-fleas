@@ -11,7 +11,9 @@ if (!hasSingleInstanceLock) app.quit();
 
 const commandDir = process.env.CLOUDFLARE_COMMAND_DIR || path.resolve(__dirname, '../..');
 const commandPath = path.join(commandDir, 'cloudflare.command.sh');
-const profileRoot = path.resolve(commandDir, '../../../ai-profile');
+const profileRoot = process.env.AI_CONFIG_PROJECT
+  ? path.resolve(process.env.AI_CONFIG_PROJECT, 'ai-profile')
+  : path.resolve(commandDir, '../../../ai-profile');
 let mainWindow;
 let tray;
 let isQuitting = false;
