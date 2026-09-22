@@ -4,8 +4,9 @@
 diagram containing its actor, prerequisite or decision, allowed route, prohibited or `BLOCKED` route, and terminal
 outcome. Diagram/text mismatch is `BLOCKED`.
 
-This reusable mechanism defines how a workflow grants capabilities and communication routes to instantiated agents. It
-contains no workflow roles, permissions, providers, or project values. Filled matrices always belong to one workflow.
+This reusable mechanism defines how a workflow grants capabilities to instantiated agents. It contains no workflow
+roles, permissions, providers, or project values. Filled matrices always belong to one workflow. Runtime-routed
+workflows derive dispatch from their authoritative stage-to-role declarations, not from a communication matrix.
 
 ## Composition and authority
 
@@ -18,22 +19,23 @@ flowchart TD
   Blocked --> Outcome
 ```
 
-The workflow's `agents.yml` names the exact filled capability-ownership and communication matrices. After the leading row
-key, matrix columns must equal the manifest's unique `matrixColumn` values in declaration order. Row keys are nonempty and
-unique; every cell is nonempty. `PROHIBITED` is an explicit denial. An absent agent, row, column, cell, or referenced file
-grants nothing.
+The workflow's `agents.yml` names the exact filled capability-ownership matrix. After the leading row key, matrix columns
+must equal the manifest's unique `matrixColumn` values in declaration order. Row keys are nonempty and unique; every cell
+is nonempty. `PROHIBITED` is an explicit denial. An absent agent, row, column, cell, or referenced file grants nothing.
+Legacy workflows may still reference a communication matrix during migration; a workflow selecting a Router runtime must
+not also define peer routes.
 
 An effective action requires all applicable layers: the common role supports the behavior, the agent declaration selects
-that role, the workflow capability matrix grants the action, the communication matrix permits its route, workflow routing
-requirements pass, and the initialized profile/project context matches. A workflow may narrow a common role but cannot
-expand its intrinsic boundary. A profile may fill declared parameters or narrow project context but cannot silently add a
-role, capability, communication route, or matrix column.
+that role, the workflow capability matrix grants the action, workflow/Router routing requirements pass, and the
+initialized profile/project context matches. A workflow may narrow a common role but cannot expand its intrinsic
+boundary. A profile may fill declared parameters or narrow project context but cannot silently add a role, capability,
+runtime transition, or matrix column.
 
 The examples in [capability-ownership.template.csv](capability-ownership.template.csv) and
 [communication.template.csv](communication.template.csv) demonstrate shape only. Their placeholder rows grant nothing and
 must never be loaded as an effective workflow policy.
 
-## Role-relationship communication compatibility
+## Legacy role-relationship communication compatibility
 
 ```mermaid
 flowchart TD
@@ -44,8 +46,9 @@ flowchart TD
   Blocked --> Outcome
 ```
 
-The common matrix below is an authoritative compatibility ceiling for relationships, not a concrete communication
-grant. A workflow binds concrete Agents to these relationships and must separately authorize the exact sender,
+The common matrix below is a migration-only compatibility ceiling for workflows that still use peer communication, not a
+concrete communication grant. New and migrated workflows use Router runtime dispatch instead. A legacy workflow binds
+concrete Agents to these relationships and must separately authorize the exact sender,
 recipient, direction, capability, and packet type. `PERMITTED_IF_WORKFLOW_BOUND` means only that a workflow may grant
 the narrower route; it never permits every Agent with the same Role class to communicate. `RETURN_ONLY` carries a
 result, question, blocker, or terminal disposition to the packet's exact return identity and grants no reverse
@@ -65,7 +68,7 @@ assignment authority. An absent relationship or communication kind is `PROHIBITE
 | Governed Agent | Admin | PROHIBITED | None. |
 | Admin | Governed Agent | INITIALIZATION_ONLY | Exact human-directed initialization or lifecycle binding only; never product work. |
 
-A workflow may narrow any compatible row or prohibit it completely. It must not broaden `RETURN_ONLY`,
+A legacy workflow may narrow any compatible row or prohibit it completely. It must not broaden `RETURN_ONLY`,
 `INITIALIZATION_ONLY`, or `PROHIBITED`, and it must not convert a relationship into a universal Role-class route.
 Conflict between the common ceiling and a workflow matrix fails as `BLOCKED_ROLE_COMMUNICATION_COMPATIBILITY`.
 
@@ -82,14 +85,14 @@ flowchart TD
 
 Reusable common roles define intrinsic behavior and boundaries. They must not require another named role to exist.
 When one instantiated agent needs another instantiated agent for a workflow capability, `agents.yml` declares that
-relationship under `dependencies`. Each dependency names a declared `consumerRole`, a different declared
+relationship under `dependencies`. Each dependency names a declared consumer, a different declared
 `providerRole`, a supported `kind`, the `capability-bound` requirement, and one or more unique nonempty capabilities.
 The current schema supports `capability-provider` and `return-coordinator` kinds.
 
 `capability-bound` means the consumer may still be instantiated and perform unrelated capabilities when the provider is
 unavailable. Only the named capability is blocked. The current schema intentionally has no agent-existence dependency.
 A dependency entry cannot grant ownership, execution, dispatch, receipt, or contact. The common role, capability matrix,
-communication matrix, routing contract, and runtime context must independently authorize the action. Conflict is
+workflow declaration, Router contract, and runtime context must independently authorize the action. Conflict is
 fail-closed.
 
 The example in [dependencies.template.yml](dependencies.template.yml) demonstrates shape only. Placeholder entries grant

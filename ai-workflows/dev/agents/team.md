@@ -4,14 +4,16 @@ The team follows the common [Agent contract](../../agents.md), [Dev workflow](..
 
 ## Mechanical policy
 
-Two workflow-local matrices are the mechanical authority for permissions:
+The workflow-local [role-capability-ownership.csv](role-capability-ownership.csv) matrix is the mechanical authority for
+which role owns each capability. It does not define communication routes.
 
-- [role-capability-ownership.csv](role-capability-ownership.csv) — explicit capability ownership;
-- [role-communication-matrix.csv](role-communication-matrix.csv) — explicit directional communication routes.
+[`agents.yml`](../agents.yml) remains the single source for agent identity and runtime-facing role metadata and binds each
+initialized agent to one capability column. The common [access-matrix mechanism](../../_common/policy/access-matrix.md)
+defines composition and fail-closed behavior. The [Router runtime](../../_common/runtime/workflow-router.md) executes the
+workflow's stage-to-role assignments.
 
-[`agents.yml`](../agents.yml) remains the single source for agent identity and runtime-facing role metadata and binds each initialized agent to one matrix column. The common [access-matrix mechanism](../../_common/policy/access-matrix.md) defines composition and fail-closed behavior.
-
-This document explains the team in readable form. It must not create a capability or communication route absent from the matrices.
+This document explains the team in readable form. It must not create a capability absent from the matrix or a runtime
+transition absent from the workflow.
 
 ## Team
 
@@ -45,7 +47,9 @@ platform's trusted lifecycle channel, but team agents do not initiate direct Sys
 
 The capability-ownership matrix is authoritative when this summary and a matrix cell disagree.
 
-An agent can request work from another agent only through a route authorized by the communication matrix and shared routing contract. Ownership remains with the capability owner; delegation does not transfer it.
+Agents do not request work from or return work to one another. Each Agent receives its assigned stage from the Router and
+returns a declared event to that same workflow runtime. The workflow determines the next role; ownership remains with the
+capability owner, and runtime dispatch does not transfer it.
 
 Judge is isolated from the workflow agents and communicates only with the human.
 

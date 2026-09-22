@@ -6,9 +6,9 @@ teamPolicy: agents/team.md
 policy:
   authority: agents/team.md
   capabilityOwnershipMatrix: agents/role-capability-ownership.csv
-  communicationMatrix: agents/role-communication-matrix.csv
   accessMatrixMechanism: ../_common/policy/access-matrix.md
   routing: agents/shared-execution-routing.md
+  workflowRuntime: ../_common/runtime/workflow-router.md
   permissionEnvelope: agents/permission-envelope.md
   elasticPool: agents/elastic-agent-pool.md
   scope: ../_common/agents/scope.md
@@ -20,7 +20,7 @@ policy:
 # realizes the properties it supports. `aiBinding` selects a profile-owned
 # provider/model binding; `profile-default` selects the workflow default.
 # Scope declares where the agent belongs, independently from what it may access.
-# Matrix columns bind each declared agent to workflow-local capability and route policy.
+# Matrix columns bind each declared agent to workflow-local capability policy.
 # Continuity follows the common default unless an agent overrides it, for example:
 # `continuity: { enabled: false }` or `continuity: { maxDuration: 24h }`.
 # Scheduling is independent from continuity. Each agent declares whether it is
@@ -50,7 +50,7 @@ agents:
     aliases: [designer reviewer, designer/reviewer]
     lifecycle: persistent-control
     humanFacing: primary
-    communicationMode: human-dialogue-and-canonical-packets
+    communicationMode: human-dialogue-and-router-runtime
     readinessToken: DESIGNER_REVIEWER_READY
     requiresTicket: false
     aiBinding: profile-default
@@ -76,7 +76,7 @@ agents:
     aliases: [manager, ask manager]
     lifecycle: persistent-control
     humanFacing: false
-    communicationMode: internal-canonical-packets-only
+    communicationMode: router-runtime-only
     readinessToken: MANAGER_READY
     requiresTicket: false
     aiBinding: profile-default
@@ -89,7 +89,7 @@ agents:
     aliases: [coder]
     lifecycle: disposable-worker
     humanFacing: false
-    communicationMode: internal-canonical-packets-only
+    communicationMode: router-runtime-only
     readinessToken: CODER_READY
     requiresTicket: true
     aiBinding: profile-default
@@ -103,7 +103,7 @@ agents:
     aliases: [command runner, command-runner]
     lifecycle: disposable-worker
     humanFacing: false
-    communicationMode: internal-canonical-packets-only
+    communicationMode: router-runtime-only
     readinessToken: COMMAND_RUNNER_READY
     requiresTicket: true
     aiBinding: profile-default
@@ -117,18 +117,9 @@ agents:
     aliases: [ui tester, ui-acceptance-tester]
     lifecycle: disposable-worker
     humanFacing: false
-    communicationMode: internal-canonical-packets-only
+    communicationMode: router-runtime-only
     readinessToken: UI_ACCEPTANCE_TESTER_READY
     requiresTicket: true
     aiBinding: profile-default
     continuity: { maxDuration: 24h }
     schedule: { enabled: false }
-
-dependencies:
-  - { consumerAgentId: designer-reviewer, providerAgentId: manager, kind: capability-provider }
-  - { consumerAgentId: designer-reviewer, providerAgentId: coder, kind: capability-provider }
-  - { consumerAgentId: designer-reviewer, providerAgentId: command-runner, kind: capability-provider }
-  - { consumerAgentId: designer-reviewer, providerAgentId: ui-acceptance-tester, kind: capability-provider }
-  - { consumerAgentId: coder, providerAgentId: designer-reviewer, kind: return-coordinator }
-  - { consumerAgentId: command-runner, providerAgentId: designer-reviewer, kind: return-coordinator }
-  - { consumerAgentId: ui-acceptance-tester, providerAgentId: designer-reviewer, kind: return-coordinator }

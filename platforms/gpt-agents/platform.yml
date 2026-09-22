@@ -10,7 +10,9 @@ capabilities:
   - agent-pinning
   - persistent-identity
   - exact-instance-id
-  - peer-messaging
+  - workflow-runtime-dispatch
+  - workflow-runtime-result-observation
+  - admin-runtime-inspection
   - recoverable-archive
   - workflow-group-delete
   - project-binding

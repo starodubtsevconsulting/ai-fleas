@@ -13,7 +13,7 @@ Workflow initialization must never create, replace, archive, move, or otherwise 
 
 Workflow initialization is independent of System availability. The requested saved Codex Project must already exist;
 creating it in the GPT UI is a platform prerequisite, not an initializer responsibility. Never include System's task ID, routing address, or
-runtime location in a workflow agent's initialization message or peer roster. The host records exact workflow receipts in
+runtime location in a workflow role endpoint's initialization message or roster. The host records exact workflow receipts in
 trusted lifecycle state that System may resolve separately. This creates an asymmetric topology: System may initiate
 authorized health, continuity, context-exhaustion, or lifecycle contact to exact workflow task IDs, while workflow agents
 cannot directly address System. Secure System-identity disclosure is reserved for a future explicit registration contract.
@@ -22,8 +22,8 @@ System initialization must include the complete common System role, including it
 out-of-domain guard. Manual lifecycle requests use the same receipt-backed operation as scheduled checks and execute
 immediately; the scheduler is only an automatic trigger.
 
-One logical workflow agent maps to one user-visible Codex task. The configured Codex project ID is the runtime-project binding; the
-app-returned task ID is the concrete agent-instance ID; a title is presentation only. Model and reasoning values come from
+One logical workflow role endpoint maps to one user-visible Codex task. The configured Codex project ID is the runtime-project binding; the
+app-returned task ID is the concrete endpoint-instance ID; a title is presentation only. Model and reasoning values come from
 the selected GPT role overlay or explicit compatible defaults. System instead uses the profile's `system_agent.platform_bindings.gpt-agents` realization values and remains outside workflow sidebar groups. After readiness verification, pin its exact task in the global pinned section. Pinning changes presentation only and never makes System a workflow-group member.
 
 Apply the System binding's exact presentation title when creating or reconciling its task. The standard GPT title is
@@ -46,7 +46,7 @@ group. A missing or failed group must not suppress safe checks or reports for ot
 
 Before workflow mutation, validate the exact profile, workflow, complete logical-project ID including any suffix, non-empty
 ordered selected project subset drawn only from registered workflow projects, and its first/primary work target,
-portable roster, communication topology, role contracts, and host capabilities. Resolve the exact profile project record
+portable role-endpoint roster, hidden Router runtime contract, role contracts, and host capabilities. Resolve the exact profile project record
 and canonical primary target. Resolve the pre-existing saved Codex Project by exact logical-project name, verify its
 immutable ID and complete ordered selected roots against the profile-authorized subset, and record it before creating tasks. Unselected
 registered projects are not missing roots. If the saved project does not exist or its selected roots differ, stop with zero task mutation. Never infer a project from its label alone, a nearby folder, or repository
@@ -57,9 +57,12 @@ Never request a worktree, temporary checkout, detached checkout, clone, or proje
 agents in one runtime scope share the saved project's main working tree; repository dirty-state and concurrent-write
 rules remain governed by the repository and workflow contracts.
 
-Run workflow lifecycle initialization through the public `gpt-agents` command. The invoking controller resolves the
-complete roster first, mechanically creates every missing task—including Admin—in one batch when supported, and dispatches
-their canonical initialization messages concurrently. Admin is a temporary compatibility role, not an initializer or
+Run workflow lifecycle initialization through the public `gpt-agents` command. The invoking controller first registers
+one hidden workflow Router runtime bound to the exact workflow source and saved-project scope. It then resolves the
+complete independent role-endpoint roster, mechanically creates every missing task—including Admin—in one batch when
+supported, and dispatches their canonical initialization messages concurrently. Each endpoint receives only its own
+identity, scope, role/capability contract, readiness requirement, and Router return protocol; it receives no peer IDs,
+workflow successor, or communication topology. Admin is a temporary compatibility role, not an initializer or
 delegation hop. Manager owns governed lifecycle work only after startup completes. Missing receipts, duplicate roles,
 mismatched projects, unsupported capabilities, or incomplete bindings fail closed. A plain `init` refers to workflow scope only; it never initializes System. A human may explicitly request both scopes in one invocation, which runs `initialize-system` and then workflow `initialize` as distinct transactions and receipts.
 
@@ -97,6 +100,11 @@ the worktree and never substitute the committed example profile.
 
 Messaging targets exact task IDs. Remove and delete map to recoverable archival. Replacement verifies successors before
 archiving predecessors. Never use titles, sidebar order, recency, or remembered conversation as lifecycle identity.
+
+Normal workflow delivery is Router-to-endpoint. An endpoint returns its declared result event in its own task turn; the
+host Router observes that exact turn, validates run/stage/scope, and chooses the next stage from the workflow. Endpoints
+never send task messages to one another. Admin inspection reads bounded Router state and delivery receipts without
+becoming the runtime or entering the workflow roster.
 
 A human request to delete a group routes to the `gpt-agents` command's `delete-workflow` lifecycle operation. The logical
 project selects the recorded workflow agent-task bindings and complete scoped-folder receipt; it does not identify System or another saved

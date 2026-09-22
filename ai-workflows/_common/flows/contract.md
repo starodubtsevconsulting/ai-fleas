@@ -2,6 +2,8 @@
 
 A flow is a bounded path inside a workflow. It reuses existing roles and commands without adding authority.
 Use the [flow template](flow.template.md); load only applicable flows.
+The workflow-scoped [Router runtime](../runtime/workflow-router.md) may execute declared flow transitions. The flow remains
+the authoritative program; the Router interprets it and does not acquire an assigned role's judgment.
 
 A flow states:
 
