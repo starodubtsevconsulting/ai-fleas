@@ -1,6 +1,7 @@
 const EXCEPTION_EVENTS = new Set(['blocked', 'depleted', 'unclear']);
 const COORDINATES = ['profileId', 'workflowId', 'logicalProjectId', 'runtimeScopeId'];
 const EVENT_FIELDS = new Set(['scope', 'type', 'expectedStage', 'references']);
+const RESULT_FIELDS = new Set(['acknowledgement', 'correlationId', 'stage', 'role', 'event', 'references']);
 
 function fail(code, message) {
   const error = new Error(message);
@@ -36,6 +37,29 @@ function validateStage(definition, stageId) {
     fail('BLOCKED_ROUTER_CAPABILITY', `Role ${stage.role} does not own ${stage.capability}`);
   }
   return stage;
+}
+
+export function validateEndpointResult(expected, result) {
+  if (!result || Object.keys(result).some((field) => !RESULT_FIELDS.has(field))) {
+    fail('BLOCKED_ROUTER_RESULT', 'Endpoint result contains fields outside the result envelope');
+  }
+  if (result.acknowledgement !== 'COPY THAT') {
+    fail('BLOCKED_ROUTER_ACKNOWLEDGEMENT', 'Endpoint must acknowledge the exact stage envelope');
+  }
+  for (const field of ['correlationId', 'stage', 'role']) {
+    if (!expected?.[field] || result[field] !== expected[field]) {
+      fail('BLOCKED_ROUTER_RESULT_IDENTITY', `Endpoint result mismatch: ${field}`);
+    }
+  }
+  if (!result.event) fail('BLOCKED_ROUTER_RESULT', 'Endpoint result requires an event');
+  return {
+    acknowledgement: result.acknowledgement,
+    correlationId: result.correlationId,
+    stage: result.stage,
+    role: result.role,
+    event: result.event,
+    references: referencesOnly(result.references),
+  };
 }
 
 export function createWorkflowRuntime(definition, identity) {

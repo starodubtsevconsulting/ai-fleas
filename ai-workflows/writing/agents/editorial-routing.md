@@ -45,3 +45,7 @@ Admin may inspect the Router state, bindings, correlations, and evidence referen
 lifecycle repair. Admin cannot impersonate the runtime by manually relaying workflow packets. Dispatch acceptance is
 not completion: the Router advances only after the host observes the exact endpoint turn and validates its terminal
 event. Empty or unacknowledged turns produce `BLOCKED_DELIVERY_UNACKNOWLEDGED` and do not satisfy a gate.
+
+Every endpoint must echo the Router-owned `correlationId`, stage, and role byte-for-byte in its terminal
+`WORKFLOW_ROUTER_RESULT`. It must begin with `COPY THAT`; it may not shorten an attempt correlation or derive a new one.
+The host rejects a missing acknowledgement or any identity mismatch without advancing the Writing run.
