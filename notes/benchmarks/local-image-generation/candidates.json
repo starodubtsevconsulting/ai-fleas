@@ -12,7 +12,7 @@
       "negative_prompt": " "
     },
     "benchmark_role": "commercially usable prompt-adherence and scene-composition candidate",
-    "intended_use": "anime and illustrated-story frames for the Animation workflow, including recurring characters and complex spatial relationships",
+    "intended_use": "anime and illustrated-story frames for the Animation Workflow, including recurring characters and complex spatial relationships",
     "license_disposition": "Apache 2.0 permits commercial model use; generated-content and third-party-IP review remain independent requirements",
     "production_eligible": true,
     "priority": 1
