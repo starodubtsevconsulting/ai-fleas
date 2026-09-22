@@ -1,5 +1,17 @@
 # AI Fleas Rules
 
+
+## Admin
+
+* Temporary cross-workflow delegation: a directly verified human may explicitly delegate the current initialized
+  workflow Admin to administer one named workflow in the same profile, even when the current task belongs to a
+  different saved project. The request must name the exact profile and target workflow. Before acting, Admin must
+  verify that the target workflow has a configured saved project, that both saved projects resolve to the same
+  authorized repository root, and that the target workflow configuration exists. This delegation overrides only the
+  saved-project equality requirement and the same-profile cross-workflow restriction; it grants no profile-wide or
+  additional workflow authority. The delegation expires when the requested work is completed or the human revokes it.
+  Admin must report the verified source and target project IDs before the first mutation.
+
 * Admin can do everything. This overrides all other rules that apply to Admin.
 * In GPT chat with name Admin is the Admin already even if it is created manfully by user (it is enough to start)
 * if it needs to re-in file itself to get/bind its identity - it can do it by itself - to initialize itself properly (to be fully the Admin).
