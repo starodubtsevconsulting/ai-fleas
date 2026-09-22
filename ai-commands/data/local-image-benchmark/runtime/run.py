@@ -16,9 +16,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parent
-
-
 def read_json(path: Path):
     with path.open(encoding="utf-8") as handle:
         return json.load(handle)
@@ -75,7 +72,7 @@ def command_output(command: list[str]) -> str | None:
         return None
 
 
-def environment(machine_label: str) -> dict:
+def environment(machine_label: str, catalog_root: Path) -> dict:
     import torch
 
     memory = meminfo()
@@ -90,13 +87,19 @@ def environment(machine_label: str) -> dict:
         "cuda_available": torch.cuda.is_available(),
         "gpu": command_output(["nvidia-smi", "--query-gpu=name,driver_version", "--format=csv,noheader"]),
         "memory_total_bytes": memory.get("MemTotal"),
-        "git_commit": command_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"]),
+        "git_commit": command_output(["git", "-C", str(catalog_root), "rev-parse", "HEAD"]),
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--candidate", required=True)
+    parser.add_argument(
+        "--catalog-root",
+        type=Path,
+        required=True,
+        help="Directory containing candidates.json, cases.json, and benchmark references.",
+    )
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--repeat", type=int, default=3)
     parser.add_argument("--seed", type=int, default=104729)
@@ -108,11 +111,14 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    candidates = {item["id"]: item for item in read_json(ROOT / "candidates.json")}
+    catalog_root = args.catalog_root.expanduser().resolve()
+    if not catalog_root.is_dir():
+        parser.error("catalog root is not a directory")
+    candidates = {item["id"]: item for item in read_json(catalog_root / "candidates.json")}
     if args.candidate not in candidates:
         parser.error(f"unknown candidate: {args.candidate}")
     candidate = candidates[args.candidate]
-    cases = read_json(ROOT / "cases.json")
+    cases = read_json(catalog_root / "cases.json")
     if args.case_ids:
         cases = [case for case in cases if case["id"] in args.case_ids]
     cases = [case for case in cases if case["capability"] in candidate["capabilities"]]
@@ -128,7 +134,7 @@ def main() -> int:
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + f"-{candidate['id']}"
     run_dir = args.output_root.expanduser().resolve() / run_id
     run_dir.mkdir(parents=True)
-    (run_dir / "environment.json").write_text(json.dumps(environment(args.machine_label), indent=2) + "\n", encoding="utf-8")
+    (run_dir / "environment.json").write_text(json.dumps(environment(args.machine_label, catalog_root), indent=2) + "\n", encoding="utf-8")
     packages = command_output([os.sys.executable, "-m", "pip", "freeze"]) or ""
     (run_dir / "resolved-packages.txt").write_text(packages + "\n", encoding="utf-8")
 
@@ -177,7 +183,11 @@ def main() -> int:
                         "guidance_scale", case["guidance_scale"]
                     )
                 if case["capability"] == "image-editing":
-                    image_path = (ROOT / case["image"]).resolve()
+                    image_path = (catalog_root / case["image"]).resolve()
+                    try:
+                        image_path.relative_to(catalog_root)
+                    except ValueError:
+                        raise RuntimeError("benchmark reference must stay within the catalog root")
                     if not image_path.is_file():
                         raise FileNotFoundError(f"missing benchmark reference: {image_path}")
                     if image_path.suffix.lower() == ".svg":

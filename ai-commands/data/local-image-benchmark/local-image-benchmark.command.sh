@@ -3,7 +3,8 @@ set -euo pipefail
 
 COMMAND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPOSITORY_ROOT="$(cd "$COMMAND_DIR/../../.." && pwd -P)"
-BENCHMARK_DIR="$REPOSITORY_ROOT/notes/benchmarks/local-image-generation"
+BENCHMARK_DIR="${LOCAL_IMAGE_BENCHMARK_CATALOG_DIR:-$REPOSITORY_ROOT/notes/benchmarks/local-image-generation}"
+RUNTIME_DIR="$COMMAND_DIR/runtime"
 PYTHON_BIN="${LOCAL_IMAGE_BENCHMARK_PYTHON:-python3}"
 
 usage() {
@@ -80,6 +81,13 @@ require_python() {
   }
 }
 
+require_catalog() {
+  [[ "$BENCHMARK_DIR" == /* && -r "$BENCHMARK_DIR/candidates.json" && -r "$BENCHMARK_DIR/cases.json" ]] || {
+    printf 'ERROR: benchmark catalog must be an absolute directory containing candidates.json and cases.json.\n' >&2
+    exit 66
+  }
+}
+
 require_profile() {
   # Read-only help and reporting do not need operational authority. Loading a
   # model does, so only run/serve activate this guard.
@@ -110,6 +118,7 @@ EOF
 
 list_candidates() {
   require_python
+  require_catalog
   "$PYTHON_BIN" - "$BENCHMARK_DIR/candidates.json" <<'PY'
 import json
 import sys
@@ -146,12 +155,13 @@ case "$action" in
     consume_isolation_confirmation "$@"
     require_profile
     require_python
-    exec "$PYTHON_BIN" "$BENCHMARK_DIR/run.py" ${FORWARDED_ARGS[@]+"${FORWARDED_ARGS[@]}"}
+    require_catalog
+    exec "$PYTHON_BIN" "$RUNTIME_DIR/run.py" --catalog-root "$BENCHMARK_DIR" ${FORWARDED_ARGS[@]+"${FORWARDED_ARGS[@]}"}
     ;;
   summarize)
     [[ $# -gt 0 ]] || { printf 'ERROR: summarize requires at least one results.jsonl path.\n' >&2; exit 64; }
     require_python
-    exec "$PYTHON_BIN" "$BENCHMARK_DIR/summarize.py" "$@"
+    exec "$PYTHON_BIN" "$RUNTIME_DIR/summarize.py" "$@"
     ;;
   serve)
     consume_isolation_confirmation "$@"
@@ -188,13 +198,13 @@ case "$action" in
     export IMAGE_MODEL_ID="$model" IMAGE_MODEL_REVISION="$model_revision" IMAGE_DTYPE="$dtype" IMAGE_DEFAULT_STEPS="$steps"
     export IMAGE_DEFAULT_GUIDANCE="$guidance" IMAGE_GUIDANCE_PARAMETER="$guidance_parameter"
     export IMAGE_DEFAULT_NEGATIVE_PROMPT="$negative_prompt" IMAGE_OUTPUT_DIR="$output_dir"
-    cd "$BENCHMARK_DIR"
+    cd "$RUNTIME_DIR"
     exec "$PYTHON_BIN" -m uvicorn serve:app --host 0.0.0.0 --port "$port"
     ;;
   test-stream)
     [[ $# -eq 0 ]] || { printf 'ERROR: test-stream accepts no arguments.\n' >&2; exit 64; }
     require_python
-    exec "$PYTHON_BIN" "$BENCHMARK_DIR/test_resumable_stream.py"
+    exec "$PYTHON_BIN" "$RUNTIME_DIR/test_resumable_stream.py"
     ;;
   *)
     printf 'ERROR: unknown action: %s\n\n' "$action" >&2
