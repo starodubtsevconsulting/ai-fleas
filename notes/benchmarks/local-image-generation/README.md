@@ -59,7 +59,7 @@ Candidate order depends on the intended job:
 6. `black-forest-labs/FLUX.1-dev` in BF16 — FLUX.1 baseline.
 7. `black-forest-labs/FLUX.1-Kontext-dev` in BF16 — editing/reference-consistency baseline.
 
-Qwen-Image is pinned to repository revision `75e0b4be04f60ec59a75f475837eced720f823b6` and is distributed under Apache 2.0. The production-eligible classification applies to model operation under that license; generated-content and third-party intellectual-property review remain separate acceptance requirements.
+Qwen-Image is pinned to repository revision `75e0b4be04f60ec59a75f475837eced720f823b6` and is distributed under Apache 2.0. The production-eligible classification applies to model operation under that license; generated-content and third-party intellectual-property review remain separate acceptance requirements. The first GX10 run retained a task-approved early evidence set of 12 images across four Animation Workflow cases and three seeds; see the [sanitized result](results/qwen-image-gx10-2026-09-22.json). This limited set is promising but is not a full comparative benchmark.
 
 Illustrious XL v2.0 is distributed as one 6.94 GB SDXL safetensors checkpoint under CreativeML OpenRAIL-M metadata. That license permits commercial model use subject to its use restrictions, but it does not remove the operator's responsibility for generated content, third-party intellectual property, or separately licensed LoRAs and derivatives. The benchmark pins the official repository revision and checkpoint SHA-256 and does not add a LoRA.
 
