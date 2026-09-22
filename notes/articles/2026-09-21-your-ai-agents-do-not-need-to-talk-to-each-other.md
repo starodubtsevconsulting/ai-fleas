@@ -13,7 +13,8 @@ That looks collaborative. It also gives every endpoint part of the orchestration
 There is a simpler design: agents do their assigned work, return a small result, and let a mechanical runtime execute the
 workflow.
 
-The agents do not need to talk to one another because the workflow already knows what happens next.
+For declared workflow transitions, the agents do not need to talk to one another because the workflow already knows
+what happens next.
 
 ## The workflow is the program
 
@@ -58,6 +59,19 @@ An executable projection might contain a transition like this:
       "review_ready": {
         "to": "review",
         "requiredReferenceKinds": ["revision", "review-packet"]
+      }
+    }
+  },
+  "human_review": {
+    "role": "reviewer",
+    "transitions": {
+      "human_accepted": {
+        "to": "release",
+        "requiredReferenceKinds": ["human-acceptance"]
+      },
+      "human_rejected": {
+        "to": "correction",
+        "requiredReferenceKinds": ["findings"]
       }
     }
   }
@@ -145,6 +159,7 @@ After completing one assignment, an endpoint returns a narrow result to the Rout
 ```text
 COPY THAT
 WORKFLOW_ROUTER_RESULT {
+  "acknowledgement": "COPY THAT",
   "correlationId": "<router-owned-correlation>",
   "stage": "review",
   "role": "reviewer",
@@ -156,7 +171,8 @@ WORKFLOW_ROUTER_RESULT {
 ```
 
 The result does not name Writer. Reviewer is not authorized to choose its successor. The Router checks that the
-correlation, stage, role, event, and required reference kinds match the active assignment, then follows the map.
+acknowledgement, correlation, stage, role, event, and required reference kinds match the active assignment, then
+follows the map.
 
 That gives each component one job:
 
@@ -287,6 +303,20 @@ must match them through trusted host state before the Router considers its event
 workflow without sharing task bindings, artifacts, or history.
 
 Reuse belongs in the workflow definition. Isolation belongs in the runtime instance.
+
+## Sources and provenance
+
+The workflow and Router contract described here are portable: they define stages, events, evidence gates, endpoint
+bindings, and transition semantics without requiring a particular host. The lifecycle-hook mechanism is one
+host-specific Codex implementation of that contract, not part of the portable workflow itself.
+
+The implementation claims in this article are grounded in the repository's
+[Workflow Router runtime contract](../../ai-workflows/_common/runtime/workflow-router.md),
+[Writing executable map](../../ai-workflows/writing/writing.workflow-map.json),
+[Writing editorial-routing contract](../../ai-workflows/writing/agents/editorial-routing.md), and
+[Codex workflow-Router plugin documentation](../../platforms/gpt-agents/plugins/ai-fleas-workflow-router/README.md).
+The broader boundary between portable workflows and host-specific lifecycle integration is defined by the
+[platform adapter contract](../../platforms/contract/platform-adapter.md).
 
 ## The boring part is the point
 
