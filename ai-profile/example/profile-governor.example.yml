@@ -89,3 +89,9 @@ commands:
   - calendar
   - messaging
   - email
+
+goalRehearsal:
+  method: ../../ai-workflows/_common/roles/personal-governor/methods/goal-rehearsal/v1.md
+  cadence: 1w
+  languages: [en, fr]
+  # Rehearsal keeps important goals understood and communicable; cadence and languages are human-specific configuration.
