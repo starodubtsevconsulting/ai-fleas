@@ -1,48 +1,47 @@
-# Writing editorial routing
+# Writing Router routing
 
-Admin is the sole inter-agent coordinator for the Writing workflow. Writer, Reviewer, and Release Coordinator remain
-directly human-addressable, but canonical workflow work and terminal evidence always return to the exact verified Admin.
-No specialist-to-specialist route is authorized.
+The hidden Workflow Router is the Writing workflow runtime. Writer, Reviewer, and Release Coordinator are independent
+role endpoints: they do not contact one another and they do not return workflow packets to Admin. The Router observes
+each endpoint's terminal result, validates its evidence references, and advances only through transitions declared by
+the [Writing workflow](../writing.workflow.md).
 
-All packets follow the [common communication contract](../../_common/agents/communication.md) and preserve the same
-nonempty `profileId`, `workflowId`, `logicalProjectId`, and `runtimeScopeId`. Admin resolves exact active task IDs from
-trusted binding state, never from titles, sidebar order, conversation memory, or nearby files.
+Every Router event preserves the same nonempty `profileId`, `workflowId`, `logicalProjectId`, and `runtimeScopeId`.
+The host adapter resolves one exact active role endpoint from trusted binding state. Titles, sidebar order, conversation
+memory, and nearby files are never endpoint identity.
 
-## Admin to Writer
+## Writer stage
 
-Admin sends a bounded writing or revision packet containing the human brief, exact source/revision when present,
-destination, authorized archive, visual requirements, open findings, permitted effects, prohibited publication effects,
-and Admin return identity. Writer acknowledges with `COPY THAT`, performs only Writer-owned work, and returns source,
-archive, destination-draft, verification, and provenance evidence plus a complete proposed review packet to Admin.
-Writer does not contact Reviewer or Release Coordinator.
+The Router dispatches the human brief, exact source or revision, destination, authorized archive, visual requirements,
+open findings, permitted effects, prohibited publication effects, and required evidence to Writer. Writer acknowledges
+with `COPY THAT`, performs only Writer-owned work, and finishes with source, archive, destination-draft, verification,
+and provenance references plus a proposed review-packet reference. The host observes that result; Writer does not send
+it to Reviewer, Release Coordinator, or Admin.
 
-## Admin to Reviewer
+## Reviewer stage
 
-After validating Writer's return, Admin sends Reviewer the exact revisions, provenance/independence evidence, effective
-brief, rendered-destination URL, visual inventory, header-image contract identity, listen-through requirements, and
-required terminal disposition. Reviewer acknowledges with `COPY THAT`, independently inspects the work, presents its
-human-facing report when required, and returns findings and evidence to Admin. Reviewer does not contact Writer or
-Release Coordinator. A changed revision requires a new Admin-issued review packet.
+After the Writer stage satisfies its declared evidence gate, the Router dispatches Reviewer the exact revisions,
+provenance and independence evidence, effective brief, rendered-destination reference, visual inventory, header-image
+contract identity, listen-through requirements, and required disposition. Reviewer independently inspects the work,
+presents its human-facing report when required, and finishes with findings and evidence references. A changed revision
+requires a new Router-assigned review stage.
 
-For a release-gate diagnosis, Admin sends Reviewer the exact review record and discrepancy. Reviewer returns existing
-proof, a precise stale/conflicting-record diagnosis, or `REVIEW_REQUIRED`; this diagnostic route is not a fresh critique.
+For a release-gate diagnosis, the Router assigns Reviewer the exact review record and discrepancy. Reviewer returns
+existing proof, a precise stale or conflicting-record diagnosis, or `REVIEW_REQUIRED`; it never routes the result.
 
-## Admin to Release Coordinator
+## Release Coordinator stage
 
-After exact-revision review and the human gates or preserved session-scoped release mandate are complete, Admin sends Release Coordinator the accepted revision,
-destination draft, review evidence, explicit publication target, timing instruction, applicable account policy, and
-prohibited effects. Release Coordinator acknowledges with `COPY THAT`, performs release planning or authorized Medium
-scheduling, verifies the resulting state, and returns terminal evidence or one precise blocker to Admin. Release
-Coordinator does not contact Writer or Reviewer.
+After exact-revision review and the human gates or preserved session-scoped release mandate are complete, the Router
+dispatches Release Coordinator the accepted revision, destination draft, review evidence, explicit publication target,
+timing instruction, applicable account policy, and prohibited effects. Release Coordinator performs release planning
+or authorized Medium scheduling and finishes with terminal evidence references or one precise blocker.
 
-## Admin continuation and completion
+## Advancement, recovery, and inspection
 
-Admin validates every terminal return before advancing. `CHANGES_REQUIRED` returns through Admin to Writer; the corrected
-revision returns through Admin to Reviewer. A release blocker returns through Admin to its capability owner, and verified
-evidence returns through Admin to Release Coordinator. Admin never creates a specialist verdict, human acceptance, or
-publication-target choice itself.
+`CHANGES_REQUIRED` transitions back to a Writer correction stage; the corrected revision transitions to a fresh
+Reviewer stage. A release-review blocker transitions to Reviewer diagnosis, and verified diagnosis transitions back to
+Release Coordinator. The Router never creates a specialist verdict, human acceptance, or publication-target choice.
 
-An accepted messaging receipt is not delivery. Follow [common delivery](../../_common/agents/delivery.md): require visible
-first-commentary `COPY THAT` and terminal evidence. Empty turns or unacknowledged accepted sends produce
-`BLOCKED_DELIVERY_UNACKNOWLEDGED` and lifecycle diagnosis; they never satisfy a gate. `show-context` is human-facing
-presentation only and never peer transport.
+Admin may inspect the Router state, bindings, correlations, and evidence references and may perform authorized endpoint
+lifecycle repair. Admin cannot impersonate the runtime by manually relaying workflow packets. Dispatch acceptance is
+not completion: the Router advances only after the host observes the exact endpoint turn and validates its terminal
+event. Empty or unacknowledged turns produce `BLOCKED_DELIVERY_UNACKNOWLEDGED` and do not satisfy a gate.

@@ -15,8 +15,8 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | Capability class | Declaration |
 | --- | --- |
 | May own | Release-readiness gate inspection, destination-specific cadence and publication-history checks, explicit publication-target resolution, explicitly requested Medium Publication creation, a release slot, and Medium native scheduling when the active profile explicitly enables it. |
-| May execute | Check the authorized archive and destination account; report a precise missing/stale/conflicting review gate to Admin; enumerate verified authorized publication targets; create and verify a Medium Publication from a human-confirmed identity brief; record timing evidence; schedule the accepted exact revision on Medium under an enabled destination policy and verified target, then verify the result. |
-| Must delegate | Every blocker and terminal release result to Admin. Admin routes review diagnosis to Reviewer and editorial changes or critique disposition to Writer. Governance remains with Judge; orchestration and administration remain with Admin. Release Coordinator never contacts Writer or Reviewer directly. |
+| May execute | Check the authorized archive and destination account; expose a precise missing, stale, or conflicting review-gate event to the Router; enumerate verified authorized publication targets; create and verify a Medium Publication from a human-confirmed identity brief; record timing evidence; schedule the accepted exact revision on Medium under an enabled destination policy and verified target, then verify the result. |
+| Must delegate | Governance remains with Judge and administration with Admin. Every blocker and terminal result uses the Router result contract; Release Coordinator never contacts Writer, Reviewer, or Admin as workflow transport. |
 | Must not | Declare pending review complete, invent publication history, treat cadence as an automatic trigger, silently default to the author's profile/home, invent or infer a publication target, create a Publication merely because none exists or scheduling needs a target, invent its name/description/avatar, publish immediately, submit to a publication, schedule without explicit profile authority and target, or create a release automation. |
 
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
@@ -51,8 +51,8 @@ flow for human input; Release Coordinator may propose options but must not creat
 
 When release planning is blocked because the recorded review is absent, refers to another revision, conflicts with the
 destination evidence, or is otherwise unclear, do not make the human carry the question. Return one bounded blocker
-packet to the exact verified Admin. Include the article and destination revisions, the release record being evaluated,
-the precise discrepancy, and required evidence. Admin dispatches a child diagnostic packet to Reviewer.
+event through the Router result contract. Include the article and destination revisions, the release record being
+evaluated, the precise discrepancy, and required evidence. The Router assigns a child diagnostic stage to Reviewer.
 
-Admin may send Release Coordinator a continuation packet after the diagnosis is proven. Release Coordinator continues
-only from that verified Admin packet. It never routes the blocker directly to Writer or Reviewer.
+The Router may assign Release Coordinator a continuation stage after the diagnosis is proven. Release Coordinator
+continues only from that verified Router envelope. It never routes the blocker directly to Writer or Reviewer.

@@ -36,31 +36,27 @@ const expected = ['admin', 'judge', 'writer', 'reviewer', 'release-coordinator']
 assert.equal(portable.workflowId, 'writing');
 assert.equal(gpt.workflow, 'writing');
 assert.deepEqual(ids, expected);
-assert.deepEqual(gpt.agents.map(({ role }) => role), expected);
+assert.equal(gpt.schema_version, 'gpt-agents-workflow-runtime.v2');
+assert.equal(gpt.workflow_runtime.visibility, 'hidden');
+assert.equal(gpt.runtime_semantics.peer_delivery, 'prohibited');
+assert.deepEqual(gpt.role_endpoints.map(({ role }) => role), expected);
 assert.deepEqual(Object.keys(gpt.role_contracts), expected);
 assert.equal(new Set(roster.map(({ readinessToken }) => readinessToken)).size, expected.length);
 assert.ok(roster.every(({ scope, schedule }) => scope === 'workflow' && schedule?.enabled === false));
 assert.equal(portable.policy.routing, 'agents/editorial-routing.md');
+assert.equal(portable.policy.communicationMatrix, undefined);
+assert.equal(portable.policy.workflowRuntime, '../_common/runtime/workflow-router.md');
+assert.equal(portable.dependencies, undefined);
+assert.ok(!fs.existsSync(path.join(here, 'role-communication-matrix.csv')));
 assert.equal(roster.find(({ agentId }) => agentId === 'writer')?.communicationMode,
-  'human-dialogue-and-canonical-packets');
+  'human-dialogue-and-router-runtime');
 assert.equal(roster.find(({ agentId }) => agentId === 'reviewer')?.communicationMode,
-  'human-dialogue-and-canonical-packets');
+  'human-dialogue-and-router-runtime');
 assert.equal(roster.find(({ agentId }) => agentId === 'judge')?.communicationMode,
   'direct-human-governance-only');
 assert.equal(roster.find(({ agentId }) => agentId === 'release-coordinator')?.communicationMode,
-  'human-dialogue-and-canonical-packets');
-assert.equal(portable.initializer.communicationMode, 'human-administration-and-workflow-orchestration');
-assert.deepEqual(portable.dependencies, [
-  { consumerAgentId: 'admin', providerAgentId: 'writer', kind: 'workflow-stage-provider',
-    requirement: 'capability-bound', capabilities: ['article_intake', 'article_drafting', 'editorial_verification',
-      'article_archive', 'destination_draft_preparation', 'critique_disposition'] },
-  { consumerAgentId: 'admin', providerAgentId: 'reviewer', kind: 'workflow-stage-provider',
-    requirement: 'capability-bound', capabilities: ['independent_critique', 'review_findings_return',
-      'review_presentation', 'human_listen_through', 'release_gate_diagnosis'] },
-  { consumerAgentId: 'admin', providerAgentId: 'release-coordinator', kind: 'workflow-stage-provider',
-    requirement: 'capability-bound', capabilities: ['release_planning', 'release_recommendation',
-      'medium_native_scheduling', 'medium_publication_creation'] },
-]);
+  'human-dialogue-and-router-runtime');
+assert.equal(portable.initializer.communicationMode, 'direct-human-administration-only');
 
 for (const relative of [portable.teamPolicy, ...Object.values(portable.policy)]) {
   assert.ok(fs.existsSync(path.resolve(workflowRoot, relative)), `missing portable policy: ${relative}`);
@@ -103,40 +99,11 @@ assert.ok(capabilities.get('immediate_publication_or_submission')?.every((cell) 
 assert.deepEqual(capabilities.get('review_assignment'), ['OWN', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
 assert.deepEqual(capabilities.get('review_findings_return'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED']);
 
-const routes = matrix(portable.policy.communicationMatrix, 'route');
-for (const [name, cells] of routes) {
-  assert.ok(cells.every((cell) => ['AUTHORIZED', 'PROHIBITED'].includes(cell)), `invalid route: ${name}`);
-}
-assert.deepEqual([...routes.keys()], [
-  'human_to_admin', 'human_to_judge', 'human_to_writer', 'human_to_reviewer',
-  'human_to_release_coordinator',
-  'admin_to_writer', 'writer_to_admin', 'admin_to_reviewer', 'reviewer_to_admin',
-  'admin_to_release_coordinator', 'release_coordinator_to_admin',
-]);
-for (const [index, id] of expected.entries()) {
-  const route = routes.get(`human_to_${roster[index].matrixColumn}`);
-  assert.ok(route, `missing human route: ${id}`);
-  assert.equal(route.filter((cell) => cell === 'AUTHORIZED').length, 1);
-  assert.equal(route[index], 'AUTHORIZED');
-}
-assert.deepEqual(routes.get('admin_to_writer'),
-  ['AUTHORIZED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
-assert.deepEqual(routes.get('admin_to_reviewer'),
-  ['AUTHORIZED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
-assert.deepEqual(routes.get('admin_to_release_coordinator'),
-  ['AUTHORIZED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
-assert.deepEqual(routes.get('writer_to_admin'),
-  ['PROHIBITED', 'PROHIBITED', 'AUTHORIZED', 'PROHIBITED', 'PROHIBITED']);
-assert.deepEqual(routes.get('reviewer_to_admin'),
-  ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'AUTHORIZED', 'PROHIBITED']);
-assert.deepEqual(routes.get('release_coordinator_to_admin'),
-  ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'AUTHORIZED']);
-
-assert.match(destinationFlow, /must immediately return the[\s\S]*exact archived revision, exact destination draft/);
+assert.match(destinationFlow, /must immediately expose the[\s\S]*exact archived revision, exact destination draft/);
 assert.match(destinationFlow, /does not\s+require a second human prompt/);
 assert.match(destinationFlow, /BLOCKED_DESTINATION_REVIEW/);
 assert.match(critiqueFlow, /A prior article-only disposition does not\s+review the later destination representation/);
-assert.match(writerRole, /Writer never contacts Reviewer or Release Coordinator directly/);
+assert.match(writerRole, /never contacts Reviewer, Release Coordinator, or Admin as workflow transport/);
 assert.match(writerRole, /destination request is incomplete until the destination-specific disposition/);
 assert.match(writerRole, /Writer owns header-image search/);
 assert.match(writerRole, /fixed shortlist of no more than three/);
@@ -174,34 +141,34 @@ assert.match(reviewerRole, /Reconcile every claimed diagram[\s\S]*actually rende
 assert.match(reviewerRole, /Never infer completeness from one\s+successful replacement/);
 assert.match(reviewerRole, /reconcile article-wide provenance and inventory sentences/);
 assert.match(reviewerRole, /no third-party visuals are used/);
-assert.match(routing, /Admin is the sole inter-agent coordinator/);
-assert.match(routing, /No specialist-to-specialist route is authorized/);
-assert.match(routing, /Writer does not contact Reviewer or Release Coordinator/);
-assert.match(routing, /Reviewer does not contact Writer or\s+Release Coordinator/);
-assert.match(routing, /Release\s+Coordinator does not contact Writer or Reviewer/);
+assert.match(routing, /hidden Workflow Router is the Writing workflow runtime/);
+assert.match(routing, /independent\s+role endpoints/);
+assert.match(routing, /Writer does not send\s+it to Reviewer, Release Coordinator, or Admin/);
+assert.match(routing, /Router assigns Reviewer/);
+assert.match(routing, /Router\s+dispatches Release Coordinator/);
 assert.match(releaseCoordinatorRole, /Never treat Medium's default profile\/home as consent/);
 assert.match(releaseCoordinatorRole, /author's profile\/home or one\s+named authorized Publication/);
 assert.match(releaseCoordinatorRole, /Medium Publication skill/);
 assert.match(releaseCoordinatorRole, /name, description, or avatar/);
-assert.match(releaseCoordinatorRole, /Return one bounded blocker[\s\S]*exact verified Admin/);
+assert.match(releaseCoordinatorRole, /event through the Router result contract/);
 assert.match(reviewerRole, /REVIEW_REQUIRED/);
-assert.match(orchestration, /End-to-end state machine/);
+assert.match(orchestration, /Runtime state machine/);
 assert.match(orchestration, /exactly one active receipt/);
-assert.match(orchestration, /Every canonical agent packet starts[\s\S]*from Admin/);
-assert.match(orchestration, /empty completed turn is `BLOCKED_DELIVERY_UNACKNOWLEDGED`/);
-assert.match(orchestration, /how many independent review rounds occurred/);
-assert.match(orchestration, /verified scheduled local date, time, and time zone/);
-assert.match(orchestration, /proof that exactly one active binding remains per role/);
-assert.match(orchestration, /session-scoped release authorization contract/);
+assert.match(orchestration, /Router assigns Writer/);
+assert.match(orchestration, /`BLOCKED_DELIVERY_UNACKNOWLEDGED`/);
+assert.match(orchestration, /review\s+rounds and dispositions/);
+assert.match(orchestration, /requested and verified timing/);
+assert.match(orchestration, /lifecycle repairs/);
+assert.match(orchestration, /session-scoped release authorization/);
 assert.match(sessionReleaseAuthorization, /authorize one bounded Writing run once/);
 assert.match(sessionReleaseAuthorization, /must not ask the human to\s+repeat it/);
 assert.match(sessionReleaseAuthorization, /review correction produced a new hash/);
 assert.match(sessionReleaseAuthorization, /only its\s+author profile\/home is eligible/);
 assert.match(sessionReleaseAuthorization, /Listen-through is a review aid, not a second release authorization/);
-assert.match(orchestration, /periodic heartbeat rather than\s+continuously polling agents/);
-assert.match(orchestration, /more than one active visible task for one role/);
-assert.match(orchestration, /heartbeat reports evidence[\s\S]*never creates, replaces, archives/);
-assert.match(adminRole, /owns orchestration from the current verified\s+state until a terminal outcome/);
+assert.match(orchestration, /supported heartbeat/);
+assert.match(orchestration, /never dispatches stages/);
+assert.match(orchestration, /creates or archives endpoints/);
+assert.match(adminRole, /starts or resumes the hidden Router/);
 assert.match(releaseFlow, /BLOCKED_PUBLICATION_TARGET/);
 assert.match(releaseFlow, /silently fall back to profile\/home/);
 assert.match(headerImageContract, /single canonical header\/hero-image contract/);

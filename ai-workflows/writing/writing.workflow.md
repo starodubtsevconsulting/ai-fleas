@@ -8,10 +8,12 @@ Declaring the roster does not initialize live agents or create publication autho
 
 ## Execution mode
 
-When a selected platform has initialized the complete roster under the [common agent contract](../agents.md), Admin
-coordinates every specialist stage through the [Admin orchestration contract](agents/admin-orchestration.md) and
-[editorial routing contract](agents/editorial-routing.md). Every specialist returns to Admin and never contacts another
-specialist directly. All roles remain directly human-addressable. Before initialization, an authorized task
+When a selected platform has initialized the complete roster under the [common agent contract](../agents.md), the hidden
+[Workflow Router](../_common/runtime/workflow-router.md) executes the declared flow through the
+[Writing routing contract](agents/editorial-routing.md). It assigns each stage to one exact role endpoint, observes the
+completed turn, validates evidence references, and selects the next declared transition. Endpoints never contact one
+another. Admin inspects the runtime and performs authorized recovery; it is not the workflow transport. All roles remain
+directly human-addressable. Before initialization, an authorized task
 may emulate Writer and Release Coordinator steps for
 draft preparation, but it must not claim a managed-agent identity. Independent critique still needs a genuinely
 fresh-context Reviewer task or human reader who did not draft or edit the revision. If unavailable, mark it pending.
@@ -20,20 +22,19 @@ fresh-context Reviewer task or human reader who did not draft or edit the revisi
 
 - The **Writer** owns intake, drafting, editorial verification, archive maintenance, unpublished destination preparation,
   and resolution of independent critique. Writer returns its clean copy, exact revisions, evidence, and proposed review
-  packet to Admin. Admin validates and dispatches the next specialist stage.
+  result for host observation. The Router validates it and dispatches the next declared stage.
 - The **Reviewer** owns the independent reading and critique within that flow. It must not have drafted or edited the
   revision it reviews. It applies the article-specific template and method emphasis resolved from profile preferences
   and the human's brief, using the [review criteria](guides/review-criteria.md). It returns evidence-linked findings to
-  Admin and the human, not an edited replacement draft or publication approval.
+  the Router-observed stage result and the human, not an edited replacement draft or publication approval.
 - The **Release Coordinator** owns release planning and the final recommendation to the human. It verifies the review
   gate, destination account, profile-owned cadence, and publication or queue history before proposing a day. If any
-  review evidence is missing, stale, or conflicting, it returns the blocker to Admin, which asks Reviewer for a bounded
-  diagnosis. It reports a pending gate instead of inventing a slot. Substantive
+  review evidence is missing, stale, or conflicting, it returns a blocker event; the Router assigns Reviewer a bounded
+  diagnosis stage. It reports a pending gate instead of inventing a slot. Substantive
   editorial changes remain Writer-owned; a changed revision requires affected checks to be repeated.
-- The **Admin**, when directly asked by the human to run or finish the workflow, owns orchestration across the declared
-  agents. Admin identifies the next unmet gate, routes it to its exact owner, waits for and verifies the return, and
-  continues until completion or a genuine human-only blocker. Admin does not inherit the owners' editorial verdicts,
-  human acceptance, publication-target choice, or publication authority.
+- The **Admin** owns roster administration, Router inspection, and authorized recovery. Admin may start or resume a
+  declared run and report its state, but does not manually relay stage packets or choose transitions. Admin does not
+  inherit editorial verdicts, human acceptance, publication-target choice, or publication authority.
 - The human author alone accepts the final revision and performs any Publish, Submit, or Schedule action. These
   responsibilities do not imply autonomous publishing. A Reviewer title or emulated role switch alone does not make a
   critique independent.
@@ -55,7 +56,7 @@ fresh-context Reviewer task or human reader who did not draft or edit the revisi
    addressing substantive findings before calling it release-ready. The computer prepares a spoken preview for the
    human author's first listen-through when available or required; a fresh-context reviewer checks the work; the human
    accepts the exact final revision directly or through a bounded session-scoped release mandate.
-7. Admin hands the accepted exact revision and review record to Release Coordinator, which first resolves the explicit
+7. The Router assigns the accepted exact revision and review record to Release Coordinator, which first resolves the explicit
    publication target (such as Medium profile/home versus a named authorized Publication), then selects a
    destination-specific slot through the [release planning flow](flows/release-planning.flow.md), using profile-owned
    cadence settings and verified publication history. After direct human acceptance or a valid session-scoped mandate, Release

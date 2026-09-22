@@ -1,68 +1,42 @@
-# Writing Admin orchestration
+# Writing Admin runtime administration
 
-Admin owns the workflow control plane; specialist agents own their capabilities. Every canonical agent packet starts
-from Admin and every terminal packet returns to Admin. Writer, Reviewer, and Release Coordinator never dispatch work
-directly to one another.
+The hidden Workflow Router owns execution state and stage transitions. Admin owns roster administration, runtime
+inspection, and authorized recovery; specialist endpoints own their capabilities. Admin never becomes a manual message
+bus between Writer, Reviewer, and Release Coordinator.
 
-## End-to-end state machine
+## Runtime state machine
 
-1. **Initialize and reconcile roster.** Verify exactly one active receipt for Admin, Judge, Writer, Reviewer, and
-   Release Coordinator in the same four workflow coordinates. Repair a role transactionally when needed: one temporary
-   successor candidate, readiness verification, predecessor archival, binding update, then uniqueness verification.
-2. **Assign writing.** Admin sends Writer the human brief, destination, authorized roots, intended release offset, and
-   prohibitions. Writer returns source/archive revisions, verification evidence, unpublished destination draft evidence,
-   and a complete proposed review packet to Admin.
-3. **Assign review.** Admin validates Writer's evidence and sends Reviewer an exact revision-specific packet. Reviewer
-   returns findings, rendered-destination evidence, listen-through status, and terminal disposition to Admin.
-4. **Resolve changes.** For `CHANGES_REQUIRED`, Admin sends the bounded findings to Writer. Writer returns a new exact
-   revision and proposed review packet. Admin repeats independent review until Reviewer returns an acceptable terminal
-   disposition. Old dispositions never cover changed revisions.
-5. **Resolve human authorization.** Admin applies the
-   [session-scoped release authorization contract](../guides/session-release-authorization.md). A preserved bounded
-   end-to-end mandate may already authorize the final independently accepted in-scope revision, target, action, and
-   timing. Do not ask the human to repeat it at each stage or after an in-scope reviewed correction. Ask only for a
-   genuinely missing choice or changed scope, and record the exact final hash selected under the mandate.
-6. **Assign release.** Admin sends Release Coordinator the accepted exact revision, destination draft, review evidence,
-   target, timing instruction, and enabled destination policy. Release Coordinator returns scheduled/read-back evidence
-   or one precise blocker to Admin.
-7. **Diagnose blockers.** Admin routes a release-review evidence question to Reviewer or an editorial correction to
-   Writer, then returns verified evidence to Release Coordinator in a continuation packet. The human is not a courier.
-8. **Finish.** Admin verifies the destination state and archive record and reports the terminal outcome to the human.
+1. **Initialize and reconcile endpoints.** Verify exactly one active receipt for Admin, Judge, Writer, Reviewer, and
+   Release Coordinator in the same workflow coordinates. Repair an endpoint transactionally when authorized.
+2. **Start or resume the run.** Verify the Router identity, workflow source, initial or current stage, parent
+   correlation, authorized roots, and human-owned decisions already supplied.
+3. **Inspect Writer execution.** The Router assigns Writer the intake, drafting, verification, archive, destination, or
+   correction stage and advances only from validated terminal evidence references.
+4. **Inspect independent review.** The Router assigns Reviewer an exact revision. `CHANGES_REQUIRED` transitions to a
+   Writer correction and then to a new review; an old disposition never covers a changed revision.
+5. **Preserve human authorization.** The Router state references the applicable
+   [session-scoped release authorization](../guides/session-release-authorization.md). Missing or changed human-owned
+   choices block; an already valid in-scope mandate is not requested again.
+6. **Inspect release execution.** The Router assigns Release Coordinator the accepted revision, destination draft,
+   review evidence, explicit target, timing instruction, and enabled destination policy.
+7. **Recover declared exceptions.** Blocked, depleted, or unclear stages enter a declared exception state. Admin may
+   diagnose bindings and perform authorized lifecycle repair, then explicitly resume the preserved stage.
+8. **Finish.** The Router reaches a terminal stage only from declared transitions with required evidence references.
+   Admin reports the resulting state to the human without manufacturing missing evidence.
 
 ## Required final report
 
-Admin's final human report includes:
-
-- the article title, exact accepted revision/hash, source path, archive path, and destination draft/public URL;
-- how many independent review rounds occurred, each disposition, and the final Reviewer evidence;
-- the destination platform and exact account/publication target;
-- the requested timing rule and the verified scheduled local date, time, and time zone;
-- proof links or durable evidence for the draft, review, schedule read-back, and archive metadata;
-- any lifecycle repairs performed, predecessor/successor task IDs, and proof that exactly one active binding remains per role;
-- any skipped or still-pending gate. Admin must not report the workflow complete while a required gate is pending.
+Admin's final human report includes the article and exact accepted revision, archive and destination references, review
+rounds and dispositions, publication target, requested and verified timing, Router run and stage identity, terminal
+evidence references, lifecycle repairs, and every skipped or pending gate.
 
 ## Delivery and recovery
 
-A send receipt is attempted transport only. Admin requires visible `COPY THAT` and a terminal return for the same
-correlation before advancing. An empty completed turn is `BLOCKED_DELIVERY_UNACKNOWLEDGED`, not agent refusal. Admin
-does not resend an accepted-but-unacknowledged packet. It diagnoses the binding/task, performs an authorized lifecycle
-repair when required, and sends the still-pending work once to the verified successor under a new delivery correlation
-linked to the parent workflow correlation.
+A dispatch receipt proves attempted transport only. The Router advances after the host observes the exact assigned
+endpoint's completed turn and validates its terminal event. Empty or unacknowledged turns produce
+`BLOCKED_DELIVERY_UNACKNOWLEDGED`. Admin diagnoses or repairs the endpoint; Admin does not copy the packet to another
+role manually. The Router persists one parent correlation and a unique stage-attempt correlation with exact workflow
+coordinates, revisions, bounded authority, prohibited effects, and evidence references.
 
-Admin maintains one parent correlation for the human objective and a unique child correlation for each stage attempt.
-Every child packet includes exact caller, target, Admin return instance, four workflow coordinates, exact revisions,
-bounded authority, prohibited effects, and required evidence. Admin persists enough evidence to resume without relying
-on conversation memory.
-
-## Periodic health supervision
-
-For a long-running Admin-owned workflow, Admin configures one profile/platform-supported periodic heartbeat rather than
-continuously polling agents. The heartbeat reads exact active task IDs from trusted binding state and samples compact
-task status at a bounded interval. It stays quiet while state is healthy or unchanged and reports only actionable stalls.
-
-An actionable stall includes: a pending stage whose task completed an empty turn; no visible `COPY THAT` or terminal
-return for the active correlation; an idle task despite a durable pending packet; a missing/archived task contrary to an
-active receipt; more than one active visible task for one role; or an in-progress turn with no status/revision change for
-the configured stale threshold. A send receipt alone is never progress. The heartbeat reports evidence and a bounded
-recovery to Admin but never creates, replaces, archives, publishes, submits, or schedules by itself. Admin performs any
-authorized recovery transaction and prevents concurrent duplicate recovery.
+For long runs, Admin may configure one supported heartbeat to inspect Router and endpoint health. It stays quiet while
+state is healthy and never dispatches stages, creates or archives endpoints, publishes, submits, or schedules by itself.
