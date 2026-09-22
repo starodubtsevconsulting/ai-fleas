@@ -27,7 +27,7 @@
     "device_map": "cuda",
     "capabilities": ["text-to-image"],
     "benchmark_role": "production-relevant anime and illustrated-story baseline",
-    "intended_use": "commercially usable anime story frames and recurring-character evaluation for the Max workflow",
+    "intended_use": "commercially usable anime story frames and recurring-character evaluation for the Animation Workflow",
     "license_disposition": "CreativeML OpenRAIL-M permits commercial use subject to use restrictions; retain license evidence and assess output/IP obligations separately",
     "production_eligible": true,
     "priority": 2
