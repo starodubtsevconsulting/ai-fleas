@@ -87,3 +87,12 @@ ${AI_COMMANDS_ROOT}/data/local-image-benchmark/local-image-benchmark.command.sh 
 Repository models may be pinned with `--model-revision`. Guidance behavior is explicit and configurable through
 `--guidance-parameter guidance_scale|true_cfg_scale|none`; pipelines such as Qwen-Image that use true CFG may also set
 `--negative-prompt`. These values are passed to the generic service rather than inferred from a model name.
+
+Managed interactive services should configure `IMAGE_DEFAULT_SIZE`, request ceilings (`IMAGE_MAX_WIDTH`,
+`IMAGE_MAX_HEIGHT`, `IMAGE_MAX_PIXELS`, and `IMAGE_MAX_STEPS`), and two host-memory thresholds. Requests are rejected
+before generation below `IMAGE_MIN_AVAILABLE_BYTES`. While CUDA inference is running, the worker samples host
+`MemAvailable`; below `IMAGE_EMERGENCY_AVAILABLE_BYTES` it exits so systemd can release GPU/unified memory and restart
+the isolated worker instead of allowing the host to become unreachable. `IMAGE_EXIT_ON_MEMORY_EMERGENCY=false` is
+available for diagnostics only. Completed and failed requests can run garbage collection and release unused CUDA
+cache. Cache release is controlled by `IMAGE_RELEASE_CACHE_AFTER_GENERATION`; its default is `false` so existing service
+modes keep their prior caching behavior unless they explicitly opt in.
