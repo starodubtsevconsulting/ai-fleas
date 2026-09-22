@@ -9,8 +9,9 @@ platform="${CLOUDFLARE_SERVICE_PLATFORM:-$(uname -s)}"
 service_id="com.aifleas.cloudflare-tunnels"
 profile_id="${AI_WORK_PROFILE_ID:-${WORK_PROFILE_ID:-}}"
 workflow="${AI_FLOW_WORKFLOW:-}"
-config_project="${AI_CONFIG_PROJECT:-$repo_root}"
+config_project="${AI_CONFIG_PROJECT:-}"
 autostart="${CLOUDFLARE_UI_AUTOSTART:-all}"
+service_path="${CLOUDFLARE_SERVICE_PATH:-$PATH}"
 
 fail() { printf 'BLOCKED_CLOUDFLARE_SERVICE: %s\n' "$1" >&2; exit 2; }
 quote_xml() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'; }
@@ -19,7 +20,7 @@ quote_systemd() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
 [[ -n "$profile_id" && -n "$workflow" ]] || fail 'an activated profile and workflow are required'
 [[ "$profile_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail 'profile ID is unsafe'
 [[ "$workflow" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail 'workflow name is unsafe'
-[[ "$config_project" == /* && -d "$config_project" ]] || fail 'AI_CONFIG_PROJECT must be an absolute directory'
+[[ "$config_project" == /* && -d "$config_project" ]] || fail 'AI_CONFIG_PROJECT must be an explicit absolute directory'
 
 render_launchd() {
   local app="$script_dir/app.sh"
@@ -36,6 +37,7 @@ render_launchd() {
     <key>AI_FLOW_WORKFLOW</key><string>$(quote_xml "$workflow")</string>
     <key>CLOUDFLARE_UI_AUTOSTART</key><string>$(quote_xml "$autostart")</string>
     <key>CLOUDFLARE_UI_START_HIDDEN</key><string>true</string>
+    <key>PATH</key><string>$(quote_xml "$service_path")</string>
   </dict>
   <key>RunAtLoad</key><true/><key>KeepAlive</key><true/>
   <key>StandardOutPath</key><string>$(quote_xml "${CLOUDFLARE_SERVICE_LOG_DIR:-$HOME/Library/Logs/AI Fleas}/cloudflare-controller.out.log")</string>
@@ -61,6 +63,7 @@ Environment="AI_CONFIG_PROJECT=$(quote_systemd "$config_project")"
 Environment="AI_WORK_PROFILE_ID=$(quote_systemd "$profile_id")"
 Environment="AI_FLOW_WORKFLOW=$(quote_systemd "$workflow")"
 Environment="CLOUDFLARE_UI_AUTOSTART=$(quote_systemd "$autostart")"
+Environment="PATH=$(quote_systemd "$service_path")"
 ExecStart=$(quote_systemd "$script_dir/service-runner.sh")
 Restart=always
 RestartSec=3

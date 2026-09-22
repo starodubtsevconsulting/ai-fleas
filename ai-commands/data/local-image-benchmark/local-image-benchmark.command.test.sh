@@ -9,10 +9,23 @@ trap 'rm -rf -- "$test_root"' EXIT
 out="$(bash "$command" help)"
 grep -Fq 'files are internal workers' <<<"$out"
 grep -Fq -- '--confirm-model-isolated' <<<"$out"
+grep -Fq -- '--guidance-parameter guidance_scale|true_cfg_scale|none' <<<"$out"
 
 out="$(bash "$command" candidates)"
+grep -Fq 'qwen-image-bf16' <<<"$out"
+grep -Fq 'Qwen/Qwen-Image' <<<"$out"
 grep -Fq 'flux2-dev-bf16' <<<"$out"
 grep -Fq 'evaluation only' <<<"$out"
+
+private_label_pattern='m''ax([ -]anime)? workflow|workflow.{0,20}m''ax'
+if grep -Eiq "$private_label_pattern" \
+  "$dir/../../../notes/benchmarks/README.md" \
+  "$dir/../../../notes/benchmarks/local-image-generation/README.md" \
+  "$dir/../../../notes/benchmarks/local-image-generation/candidates.json" \
+  "$dir/../../../notes/benchmarks/local-image-generation/cases.json"; then
+  printf '%s\n' 'public benchmark metadata contains a private workflow label' >&2
+  exit 1
+fi
 
 cat >"$test_root/results.jsonl" <<'EOF'
 {"candidate_id":"example","case_id":"sample","generation_seconds":2.0,"generation_peak_system_used_bytes":1073741824,"torch_peak_reserved_bytes":536870912}

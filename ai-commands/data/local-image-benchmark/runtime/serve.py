@@ -23,12 +23,17 @@ from pydantic import BaseModel, Field
 
 
 MODEL_ID = os.environ.get("IMAGE_MODEL_ID", "black-forest-labs/FLUX.2-dev")
+MODEL_REVISION = os.environ.get("IMAGE_MODEL_REVISION", "")
 MODEL_FILE = os.environ.get("IMAGE_MODEL_FILE", "")
 PIPELINE_TYPE = os.environ.get("IMAGE_PIPELINE_TYPE", "diffusers-repository")
 MODEL_ALIASES = {MODEL_ID, MODEL_ID.rsplit("/", 1)[-1], "local-image-generator"}
 DTYPE_NAME = os.environ.get("IMAGE_DTYPE", "bfloat16")
 DEFAULT_STEPS = int(os.environ.get("IMAGE_DEFAULT_STEPS", "50"))
 DEFAULT_GUIDANCE = float(os.environ.get("IMAGE_DEFAULT_GUIDANCE", "4.0"))
+GUIDANCE_PARAMETER = os.environ.get("IMAGE_GUIDANCE_PARAMETER", "guidance_scale")
+DEFAULT_NEGATIVE_PROMPT = os.environ.get("IMAGE_DEFAULT_NEGATIVE_PROMPT", "")
+if GUIDANCE_PARAMETER not in {"guidance_scale", "true_cfg_scale", "none"}:
+    raise RuntimeError("IMAGE_GUIDANCE_PARAMETER must be guidance_scale, true_cfg_scale, or none")
 OUTPUT_DIR = Path(os.environ.get("IMAGE_OUTPUT_DIR", "/outputs"))
 PIPELINE = None
 GENERATION_LOCK = asyncio.Lock()
@@ -91,6 +96,8 @@ class GenerationRequest(BaseModel):
     seed: int | None = None
     steps: int | None = Field(default=None, ge=1, le=100)
     guidance_scale: float | None = Field(default=None, ge=0, le=20)
+    true_cfg_scale: float | None = Field(default=None, ge=0, le=20)
+    negative_prompt: str | None = Field(default=None, max_length=8000)
 
 
 def parse_size(value: str) -> tuple[int, int]:
@@ -124,15 +131,26 @@ def chat_prompt(messages: object) -> str:
     raise HTTPException(400, "a non-empty user message is required")
 
 
-async def generate_image(prompt: str, width: int, height: int, steps: int, guidance: float, seed: int):
+async def generate_image(
+    prompt: str,
+    width: int,
+    height: int,
+    steps: int,
+    guidance: float,
+    seed: int,
+    negative_prompt: str | None = None,
+):
     kwargs = {
         "prompt": prompt,
         "width": width,
         "height": height,
         "num_inference_steps": steps,
-        "guidance_scale": guidance,
         "generator": torch.Generator(device="cpu").manual_seed(seed),
     }
+    if GUIDANCE_PARAMETER != "none":
+        kwargs[GUIDANCE_PARAMETER] = guidance
+    if GUIDANCE_PARAMETER == "true_cfg_scale":
+        kwargs["negative_prompt"] = DEFAULT_NEGATIVE_PROMPT if negative_prompt is None else negative_prompt
     async with GENERATION_LOCK:
         started = time.perf_counter()
         image = await asyncio.to_thread(lambda: PIPELINE(**kwargs).images[0])
@@ -140,8 +158,8 @@ async def generate_image(prompt: str, width: int, height: int, steps: int, guida
     return image, elapsed
 
 
-async def generate_chat_content(prompt: str, width: int, height: int, steps: int, guidance: float, seed: int) -> str:
-    image, elapsed = await generate_image(prompt, width, height, steps, guidance, seed)
+async def generate_chat_content(prompt: str, width: int, height: int, steps: int, guidance: float, seed: int, negative_prompt: str | None = None) -> str:
+    image, elapsed = await generate_image(prompt, width, height, steps, guidance, seed, negative_prompt)
     filename = f"{int(time.time())}-{uuid.uuid4().hex}.png"
     output_path = OUTPUT_DIR / filename
     image.save(output_path, format="PNG")
@@ -165,7 +183,10 @@ async def lifespan(_: FastAPI):
             torch_dtype=dtype,
         ).to("cuda")
     else:
-        PIPELINE = DiffusionPipeline.from_pretrained(MODEL_ID, torch_dtype=dtype, device_map="cuda")
+        load_kwargs = {"torch_dtype": dtype, "device_map": "cuda"}
+        if MODEL_REVISION:
+            load_kwargs["revision"] = MODEL_REVISION
+        PIPELINE = DiffusionPipeline.from_pretrained(MODEL_ID, **load_kwargs)
     yield
     PIPELINE = None
     if torch.cuda.is_available():
@@ -203,6 +224,7 @@ def props(model: str | None = None, autoload: bool = False):
                 "size": "1024x1024",
                 "steps": DEFAULT_STEPS,
                 "guidance_scale": DEFAULT_GUIDANCE,
+                "guidance_parameter": GUIDANCE_PARAMETER,
             },
         },
     }
@@ -221,8 +243,9 @@ async def generate(request: GenerationRequest):
         width,
         height,
         request.steps or DEFAULT_STEPS,
-        request.guidance_scale if request.guidance_scale is not None else DEFAULT_GUIDANCE,
+        request.true_cfg_scale if request.true_cfg_scale is not None else request.guidance_scale if request.guidance_scale is not None else DEFAULT_GUIDANCE,
         seed,
+        request.negative_prompt,
     )
     output = io.BytesIO()
     image.save(output, format="PNG")
@@ -241,6 +264,9 @@ async def chat_completions(payload: dict, http_request: Request):
     width, height = parse_size(str(payload.get("size", "1024x1024")))
     steps = int(payload.get("steps", DEFAULT_STEPS))
     guidance = float(payload.get("guidance_scale", DEFAULT_GUIDANCE))
+    if GUIDANCE_PARAMETER == "true_cfg_scale":
+        guidance = float(payload.get("true_cfg_scale", guidance))
+    negative_prompt = payload.get("negative_prompt", DEFAULT_NEGATIVE_PROMPT)
     seed = int(payload.get("seed", int.from_bytes(os.urandom(8), "big")))
     if not 1 <= steps <= 100:
         raise HTTPException(400, "steps must be 1..100")
@@ -249,7 +275,7 @@ async def chat_completions(payload: dict, http_request: Request):
     created = int(time.time())
     completion_id = f"chatcmpl-{uuid.uuid4().hex}"
     if not payload.get("stream"):
-        content = await generate_chat_content(prompt, width, height, steps, guidance, seed)
+        content = await generate_chat_content(prompt, width, height, steps, guidance, seed, negative_prompt)
         return {
             "id": completion_id,
             "object": "chat.completion",
@@ -264,7 +290,7 @@ async def chat_completions(payload: dict, http_request: Request):
     session = STREAM_SESSIONS.get(conversation_id)
 
     async def produce_stream(active_session: StreamSession):
-        generation_task = asyncio.create_task(generate_chat_content(prompt, width, height, steps, guidance, seed))
+        generation_task = asyncio.create_task(generate_chat_content(prompt, width, height, steps, guidance, seed, negative_prompt))
         BACKGROUND_TASKS.add(generation_task)
         generation_task.add_done_callback(BACKGROUND_TASKS.discard)
         while not generation_task.done() and not active_session.cancelled:

@@ -2,7 +2,7 @@
 Description=GX10 local image generator
 After=docker.service network-online.target
 Wants=network-online.target
-Conflicts=qwen3-coder-next.service
+Conflicts=qwen3-coder-next.service gx10-anime-generator.service gx10-qwen-image-generator.service
 
 [Service]
 Type=simple

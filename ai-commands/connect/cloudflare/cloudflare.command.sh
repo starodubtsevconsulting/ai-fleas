@@ -235,8 +235,24 @@ read_tunnel_secret() {
   printf '%s' "$value"
 }
 
+runtime_lock_root() {
+  local lock_root="${AI_FLEAS_RUNTIME_LOCK_DIR:-}"
+  if [[ -z "$lock_root" ]]; then
+    if [[ "$(uname -s)" == Darwin ]]; then
+      lock_root="$HOME/Library/Caches/AI Fleas/runtime-locks"
+    else
+      lock_root="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ai-fleas/runtime-locks"
+    fi
+  fi
+  [[ "$lock_root" == /* ]] || fail 'AI_FLEAS_RUNTIME_LOCK_DIR must be absolute'
+  mkdir -p "$lock_root"
+  chmod 700 "$lock_root"
+  printf '%s' "$lock_root"
+}
+
 connector_status() {
-  local lock_root="${TMPDIR:-/tmp}"
+  local lock_root
+  lock_root="$(runtime_lock_root)"
   local lock_name="${tunnel_name//[^A-Za-z0-9._-]/_}"
   local lock_pid_file="${lock_root%/}/ai-fleas-cloudflare-${lock_name}.lock/pid"
   local existing_pid=''
@@ -249,7 +265,8 @@ connector_status() {
 }
 
 stop_tunnel() {
-  local lock_root="${TMPDIR:-/tmp}"
+  local lock_root
+  lock_root="$(runtime_lock_root)"
   local lock_name="${tunnel_name//[^A-Za-z0-9._-]/_}"
   local lock_pid_file="${lock_root%/}/ai-fleas-cloudflare-${lock_name}.lock/pid"
   local existing_pid=''
@@ -266,7 +283,8 @@ stop_tunnel() {
 
 run_tunnel_exclusive() {
   command -v pgrep >/dev/null 2>&1 || fail 'pgrep is required for duplicate connector prevention'
-  local lock_root="${TMPDIR:-/tmp}"
+  local lock_root
+  lock_root="$(runtime_lock_root)"
   local lock_name="${tunnel_name//[^A-Za-z0-9._-]/_}"
   local lock_dir="${lock_root%/}/ai-fleas-cloudflare-${lock_name}.lock"
   local lock_pid_file="$lock_dir/pid"

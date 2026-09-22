@@ -2,7 +2,14 @@
 
 ## Purpose
 
-Use `local-image-benchmark` as the human-facing interface for selecting, running, serving, validating, and summarizing local image-generation models. The Python files under the benchmark directory are implementation workers, not separate user commands.
+Use `local-image-benchmark` as the human-facing interface for selecting, running, serving, validating, and summarizing
+local image-generation models. Reusable Python/container implementation lives under this command's `runtime/` directory;
+deployable service and environment templates live under `assets/`. Benchmark directories contain catalogs and evidence,
+not executable command implementations.
+
+The command defaults to the repository's local image-generation catalog. Set
+`LOCAL_IMAGE_BENCHMARK_CATALOG_DIR` to another absolute directory containing `candidates.json` and `cases.json` when a
+profile owns a separate catalog; runtime code remains shared.
 
 The command exists to keep measurements reproducible, explain each model's purpose and license disposition, and prevent an operator from casually loading a second large model alongside the active one.
 
@@ -76,3 +83,7 @@ ${AI_COMMANDS_ROOT}/data/local-image-benchmark/local-image-benchmark.command.sh 
 ```
 
 `serve` is an advanced foreground diagnostic. Normal model switching should use the managed model-mode command, which owns stop/start ordering, readiness checks, and the exactly-one-large-model invariant.
+
+Repository models may be pinned with `--model-revision`. Guidance behavior is explicit and configurable through
+`--guidance-parameter guidance_scale|true_cfg_scale|none`; pipelines such as Qwen-Image that use true CFG may also set
+`--negative-prompt`. These values are passed to the generic service rather than inferred from a model name.

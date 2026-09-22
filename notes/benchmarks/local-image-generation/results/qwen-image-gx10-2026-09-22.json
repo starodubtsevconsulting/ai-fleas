@@ -1,0 +1,97 @@
+{
+  "schema_version": "local-image-benchmark-result.v1",
+  "captured_date": "2026-09-22",
+  "machine_label": "gx10-128gb",
+  "candidate_id": "qwen-image-bf16",
+  "model": "Qwen/Qwen-Image",
+  "repository_revision": "75e0b4be04f60ec59a75f475837eced720f823b6",
+  "runtime": {
+    "pipeline": "DiffusionPipeline.from_pretrained",
+    "precision": "bfloat16",
+    "device": "cuda",
+    "architecture": "arm64",
+    "torch": "2.14.0a0+4fdf77b940.nv26.08",
+    "cuda": "13.4"
+  },
+  "license": {
+    "declared": "Apache-2.0",
+    "commercial_model_use": "permitted",
+    "production_note": "Generated-content and third-party intellectual-property review remain independent requirements."
+  },
+  "evidence_scope": {
+    "status": "task-approved early stop",
+    "retained_images": 12,
+    "cases": 4,
+    "repetitions_per_case": 3,
+    "seeds": [20260922, 20260923, 20260924],
+    "excluded_from_claims": "Later runner artifacts are not part of the retained set and are not treated as completed comparative-benchmark evidence."
+  },
+  "lifecycle": {
+    "load_seconds": 349.711,
+    "active_mode_after_switch": "qwen-image",
+    "other_model_modes_active": false,
+    "managed_switch_acceptance": ["local health", "Cloudflare Access boundary", "real image generation"]
+  },
+  "memory": {
+    "load_peak_system_used_bytes": 66539966464,
+    "generation_peak_system_used_bytes": 72453808128,
+    "generation_minimum_system_available_bytes": 58142244864,
+    "torch_peak_allocated_bytes": 62180711424,
+    "torch_peak_reserved_bytes": 65200455680,
+    "measurement_scope": "whole-system and PyTorch measurements captured by the benchmark harness"
+  },
+  "generation_parameters": {
+    "steps": 50,
+    "true_cfg_scale": 4.0,
+    "negative_prompt": "single-space compatibility value"
+  },
+  "generation_summary": {
+    "minimum_seconds": 153.686,
+    "maximum_seconds": 155.674,
+    "mean_seconds": 154.440,
+    "median_seconds": 154.034,
+    "retained_output_bytes": 10535487
+  },
+  "results": [
+    {"case_id": "anime-story-frame-16x9", "repetition": 1, "seed": 20260922, "width": 1344, "height": 768, "generation_seconds": 155.386, "output_bytes": 953754, "output_sha256": "53da0e84df5f49201bcc51555f05520dffb40e494a18cfc569edae1e1f4edf4f"},
+    {"case_id": "anime-story-frame-16x9", "repetition": 2, "seed": 20260923, "width": 1344, "height": 768, "generation_seconds": 153.757, "output_bytes": 976578, "output_sha256": "c4b3157c488603bef6b976be05f6f6ab40c059b9503398685ba23e5983abf535"},
+    {"case_id": "anime-story-frame-16x9", "repetition": 3, "seed": 20260924, "width": 1344, "height": 768, "generation_seconds": 153.949, "output_bytes": 963275, "output_sha256": "8206b7d63fb6f3587c9f7b33a5179acb2af3883712c7b609c0c5683459ff0d11"},
+    {"case_id": "anime-character-portrait", "repetition": 1, "seed": 20260922, "width": 1024, "height": 1024, "generation_seconds": 155.449, "output_bytes": 802915, "output_sha256": "f501182d46a5285e0231e1b68925b3fb1f29bf7c9fbaf4e79e1a19157f9a4f5e"},
+    {"case_id": "anime-character-portrait", "repetition": 2, "seed": 20260923, "width": 1024, "height": 1024, "generation_seconds": 155.540, "output_bytes": 701566, "output_sha256": "699203f8906a95616addfe9c878a923336fbeedb5645039016975735c42ba792"},
+    {"case_id": "anime-character-portrait", "repetition": 3, "seed": 20260924, "width": 1024, "height": 1024, "generation_seconds": 155.674, "output_bytes": 791298, "output_sha256": "ad47d4421bcfedfbef6fb81a179b14e02b346538205dda77ffdf6e428e909d4a"},
+    {"case_id": "anime-character-full-body", "repetition": 1, "seed": 20260922, "width": 768, "height": 1344, "generation_seconds": 153.901, "output_bytes": 740029, "output_sha256": "1b7f7fa9c0a38bc211bc3007c2485870c1ea1217057c79aa24a1e589d06f3777"},
+    {"case_id": "anime-character-full-body", "repetition": 2, "seed": 20260923, "width": 768, "height": 1344, "generation_seconds": 153.735, "output_bytes": 713469, "output_sha256": "0ab5f7fb9213ca6881cbfb8aece439156ad8eb1736d82d1d796f932da84909af"},
+    {"case_id": "anime-character-full-body", "repetition": 3, "seed": 20260924, "width": 768, "height": 1344, "generation_seconds": 153.686, "output_bytes": 739967, "output_sha256": "d911995d6bfb9f8e413d262417d5877cb5b2d164bf7d0d67225efe53fd187d0d"},
+    {"case_id": "anime-character-indoor", "repetition": 1, "seed": 20260922, "width": 1344, "height": 768, "generation_seconds": 154.047, "output_bytes": 1059681, "output_sha256": "ee9914459cc9af53ebd4b28e80449add151ecb1324478a99fd4ea7739ed3d98b"},
+    {"case_id": "anime-character-indoor", "repetition": 2, "seed": 20260923, "width": 1344, "height": 768, "generation_seconds": 154.132, "output_bytes": 1053299, "output_sha256": "92d8009b97c119011bd58d066f8226a25f867c814aac97441c5922b20d6997ac"},
+    {"case_id": "anime-character-indoor", "repetition": 3, "seed": 20260924, "width": 1344, "height": 768, "generation_seconds": 154.021, "output_bytes": 1039656, "output_sha256": "ed55f0abac47111ebe39c50a30b9b16f891877c6e5a94a8ca147e97977c8b60d"}
+  ],
+  "validation": {
+    "count_matches_scope": true,
+    "hashes_match": true,
+    "byte_counts_match": true,
+    "dimensions_match": true,
+    "all_decode_as_rgb_png": true,
+    "obvious_file_corruption": false,
+    "visual_note": "All retained files render cleanly. The third full-body repetition contains an extra floating crescent accessory, so technically valid output must not be equated with perfect semantic adherence."
+  },
+  "qualitative_review": {
+    "strengths": [
+      "strong character identity across the four retained cases",
+      "stable red hair, green eyes, red scarf, dark jacket, and crescent motif",
+      "clean scene composition and consistent anime rendering in the retained story and indoor frames"
+    ],
+    "limitations": [
+      "only four cases were retained, so outdoor, dynamic-pose, interaction, typography, photorealism, and editing claims are not supported",
+      "minor hair and face variation remains across seeds",
+      "one full-body image contains an extra floating crescent accessory"
+    ],
+    "decision": "Promising Animation Workflow candidate on this limited retained set; broader production and comparative acceptance remains unproven."
+  },
+  "privacy": {
+    "public_record_sanitized": true,
+    "retained_pngs": "private benchmark storage",
+    "contains_personal_paths": false,
+    "contains_credentials": false
+  }
+}

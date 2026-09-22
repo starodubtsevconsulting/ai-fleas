@@ -110,9 +110,10 @@ configured private origin. It uses `CLOUDFLARE_ORIGIN_CA_POOL` when set and neve
 - This command does not configure NAT, firewall rules, Cloudflare bypass rules, or public tunnels without Access.
 - The Electron renderer never receives or reads API or tunnel tokens. Connector execution remains in the isolated main
   process, logs are redacted, and the Stop action can terminate only a connector started by that UI process.
-- `run-tunnel` uses an atomic per-tunnel runtime lock and refuses to start while another `cloudflared` process is active.
-  Stale locks are recovered only when their recorded process no longer exists. Signals are forwarded to the connector and
-  the lock is removed on exit, preventing accidental duplicate connectors from concurrent terminals or UI windows.
+- `run-tunnel` uses an atomic per-tunnel lock in a stable per-user runtime directory and refuses to start while another
+  `cloudflared` process is active. `AI_FLEAS_RUNTIME_LOCK_DIR` may override that directory with an absolute path for a
+  supervised or test environment; the lock never depends on a caller-specific `${TMPDIR}`. Stale locks are recovered only
+  when their recorded process no longer exists. Signals are forwarded to the connector and the lock is removed on exit.
 
 ## Deployment architecture
 
@@ -222,6 +223,10 @@ profile/workflow are started.
 
 Run `cloudflare.command.sh install-controller-service --apply` from the activated profile and workflow to install the
 native always-on controller. The installer detects the operating system:
+
+`AI_CONFIG_PROJECT` must be supplied as the exact absolute profile-project root. The installer records that binding and
+an explicit executable `PATH` in the service definition; it does not infer an operational profile from the command
+repository.
 
 - On macOS it installs a per-user LaunchAgent with `RunAtLoad=true` and `KeepAlive=true`. The Electron controller starts
   hidden in the menu bar at login, auto-starts the selected provider tunnels, and reopens when its menu-bar icon is used.

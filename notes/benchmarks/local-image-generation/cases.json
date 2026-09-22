@@ -54,6 +54,24 @@
     "prompt": "masterpiece, best quality, dynamic anime story frame. Mina, young adult woman with short wavy auburn hair, green eyes, small gold crescent hair clip above her left temple, navy cropped jacket with two silver buttons, cream shirt, red scarf, charcoal pleated skirt, black ankle boots. She turns quickly toward the camera while running down stone steps, worn tan sketchbook held securely under her left arm, high camera angle, dramatic evening light, consistent face and outfit, correct limbs and hands, no text, no watermark."
   },
   {
+    "id": "anime-two-character-interaction",
+    "capability": "text-to-image",
+    "width": 1344,
+    "height": 768,
+    "steps": 50,
+    "guidance_scale": 4.0,
+    "prompt": "masterpiece, best quality, anime cinematic story frame, 16:9. Mina, a young adult woman with short wavy auburn hair, green eyes, a small gold crescent hair clip above her left temple, navy cropped jacket, cream shirt, red scarf, charcoal pleated skirt, and black ankle boots, hands a worn tan sketchbook to one other young adult woman named Yuki, who has long straight black hair, brown eyes, a pale blue cardigan, white blouse, dark trousers, and brown shoes. Mina stands on the left and holds the bottom edge with her right hand; Yuki stands on the right and receives the top edge with both hands. Exactly two people, one sketchbook shared between them, eye contact, coherent hands, quiet railway platform at blue hour, warm station lamps, no text, no watermark."
+  },
+  {
+    "id": "anime-spatial-object-composition",
+    "capability": "text-to-image",
+    "width": 1344,
+    "height": 768,
+    "steps": 50,
+    "guidance_scale": 4.0,
+    "prompt": "masterpiece, best quality, anime illustrated-story frame, 16:9. Inside a compact attic studio, Mina sits at a wooden desk facing right. A worn tan sketchbook lies open directly in front of her. A brass desk lamp stands to the left of the sketchbook, a blue ceramic cup stands to its right, and exactly three sharpened red pencils lie parallel between the cup and the front edge of the desk. Behind Mina is one round window showing a crescent moon. Preserve every requested object, count, and left-right relationship; coherent hands and perspective; no extra people, no text, no watermark."
+  },
+  {
     "id": "photoreal-person-animal",
     "capability": "text-to-image",
     "width": 1024,

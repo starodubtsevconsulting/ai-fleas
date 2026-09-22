@@ -15,7 +15,25 @@ boxes:
   lab:
     host: 10.20.30.40
     user: tester
+    model_modes:
+      qwen-image:
+        manager: user
+        service: qwen-image.service
+        health_url: http://127.0.0.1:8000/health
+        health_timeout_seconds: 900
+        verification:
+          public_url: https://images.example.invalid/health
+          public_expected_statuses: [200, 302]
+          generation_url: http://localhost:8000/v1/images/generations
+          generation_timeout_seconds: 900
+          generation_request:
+            prompt: verification
+          generation_response_json_path: data.0.b64_json
 EOF
+encoded_modes="$(node "$dir/resolve-model-modes.mjs" "$test_root/config.yml" lab qwen-image)"
+decoded_modes="$(printf '%s' "$encoded_modes" | base64 --decode)"
+grep -Fq '"public_url":"https://images.example.invalid/health"' <<<"$decoded_modes"
+grep -Fq '"generation_response_json_path":"data.0.b64_json"' <<<"$decoded_modes"
 cat >"$test_root/bin/ssh" <<'EOF'
 #!/usr/bin/env bash
 if [[ "${TEST_SSH_AUTH:-ok}" == fail ]]; then exit 255; fi
