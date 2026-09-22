@@ -140,13 +140,19 @@ def main() -> int:
                 torch_dtype=dtype,
             ).to(candidate["device_map"])
         else:
+            load_kwargs = {
+                "torch_dtype": dtype,
+                "device_map": candidate["device_map"],
+            }
+            if candidate.get("revision"):
+                load_kwargs["revision"] = candidate["revision"]
             pipe = DiffusionPipeline.from_pretrained(
                 candidate["model"],
-                torch_dtype=dtype,
-                device_map=candidate["device_map"],
+                **load_kwargs,
             )
     load_seconds = time.perf_counter() - load_started
-    model_revision = getattr(pipe, "_commit_hash", None)
+    resolved_model_revision = getattr(pipe, "_commit_hash", None)
+    model_revision = resolved_model_revision or candidate.get("revision")
 
     results_path = run_dir / "results.jsonl"
     with results_path.open("a", encoding="utf-8") as results:
@@ -154,14 +160,22 @@ def main() -> int:
             for repetition in range(args.repeat):
                 seed = args.seed + repetition
                 generator = torch.Generator(device="cpu").manual_seed(seed)
+                configured_parameters = candidate.get("generation_parameters", {})
+                steps = configured_parameters.get("steps", case["steps"])
                 kwargs = {
                     "prompt": case["prompt"],
                     "width": case["width"],
                     "height": case["height"],
-                    "num_inference_steps": case["steps"],
-                    "guidance_scale": case["guidance_scale"],
+                    "num_inference_steps": steps,
                     "generator": generator,
                 }
+                if "true_cfg_scale" in configured_parameters:
+                    kwargs["true_cfg_scale"] = configured_parameters["true_cfg_scale"]
+                    kwargs["negative_prompt"] = configured_parameters.get("negative_prompt", " ")
+                else:
+                    kwargs["guidance_scale"] = configured_parameters.get(
+                        "guidance_scale", case["guidance_scale"]
+                    )
                 if case["capability"] == "image-editing":
                     image_path = (ROOT / case["image"]).resolve()
                     if not image_path.is_file():
@@ -194,6 +208,9 @@ def main() -> int:
                     "production_eligible": candidate["production_eligible"],
                     "model": candidate["model"],
                     "model_revision": model_revision,
+                    "model_revision_source": (
+                        "pipeline" if resolved_model_revision else "pinned-candidate-config"
+                    ),
                     "dtype": candidate["dtype"],
                     "case_id": case["id"],
                     "capability": case["capability"],
@@ -201,8 +218,10 @@ def main() -> int:
                     "repetition": repetition + 1,
                     "width": case["width"],
                     "height": case["height"],
-                    "steps": case["steps"],
-                    "guidance_scale": case["guidance_scale"],
+                    "steps": steps,
+                    "guidance_scale": kwargs.get("guidance_scale"),
+                    "true_cfg_scale": kwargs.get("true_cfg_scale"),
+                    "negative_prompt": kwargs.get("negative_prompt"),
                     "load_seconds": load_seconds,
                     "load_peak_system_used_bytes": load_memory.maximum_used,
                     "generation_seconds": latency,

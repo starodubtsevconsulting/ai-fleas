@@ -13,8 +13,10 @@ while IFS= read -r record; do records+=("$record"); done < <(python3 - "$config_
 import json, re, sys
 with open(sys.argv[1], encoding="utf-8") as handle:
     data = json.load(handle)
+import base64
 for mode, item in data.get("modes", {}).items():
-    values = (mode, item.get("manager", ""), item.get("service", ""), item.get("health_url", ""), str(item.get("health_timeout_seconds", "")))
+    verification = base64.b64encode(json.dumps(item.get("verification", {}), separators=(",", ":")).encode()).decode()
+    values = (mode, item.get("manager", ""), item.get("service", ""), item.get("health_url", ""), str(item.get("health_timeout_seconds", "")), verification)
     if any("\t" in value or "\n" in value for value in values):
         raise SystemExit("CONFIGURATION_INVALID: control character in model mode")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", mode):
@@ -30,23 +32,56 @@ health_ready() {
   [[ -z "$health" ]] || curl --fail --silent --max-time 5 "$health" >/dev/null 2>&1
 }
 mode_field() {
-  local wanted="$1" field="$2" record mode manager service health timeout
+  local wanted="$1" field="$2" record mode manager service health timeout verification
   for record in "${records[@]}"; do
-    IFS=$'\t' read -r mode manager service health timeout <<<"$record"
+    IFS=$'\t' read -r mode manager service health timeout verification <<<"$record"
     if [[ "$mode" == "$wanted" ]]; then
-      case "$field" in manager) printf '%s' "$manager";; service) printf '%s' "$service";; health) printf '%s' "$health";; timeout) printf '%s' "$timeout";; esac
+      case "$field" in manager) printf '%s' "$manager";; service) printf '%s' "$service";; health) printf '%s' "$health";; timeout) printf '%s' "$timeout";; verification) printf '%s' "$verification";; esac
       return 0
     fi
   done
   return 1
 }
 
+public_ready() {
+  local verification="$1"
+  python3 - "$verification" <<'PY'
+import base64, json, subprocess, sys
+v = json.loads(base64.b64decode(sys.argv[1]))
+url = v.get("public_url", "")
+if not url:
+    raise SystemExit(0)
+result = subprocess.run(["curl", "--silent", "--show-error", "--output", "/dev/null", "--max-time", "15", "--write-out", "%{http_code}", url], capture_output=True, text=True)
+if result.returncode or not result.stdout.isdigit() or int(result.stdout) not in v.get("public_expected_statuses", [200, 302]):
+    raise SystemExit(1)
+PY
+}
+
+generation_verify() {
+  local verification="$1"
+  python3 - "$verification" <<'PY'
+import base64, json, sys, urllib.request
+v = json.loads(base64.b64decode(sys.argv[1]))
+url = v.get("generation_url", "")
+if not url:
+    raise SystemExit(0)
+payload = json.dumps(v.get("generation_request", {}), separators=(",", ":")).encode()
+request = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+with urllib.request.urlopen(request, timeout=v.get("generation_timeout_seconds", 600)) as response:
+    value = json.load(response)
+for part in v.get("generation_response_json_path", "data.0.url").split("."):
+    value = value[int(part)] if isinstance(value, list) else value[part]
+if value in (None, "", [], {}):
+    raise SystemExit(1)
+PY
+}
+
 active_modes=(); unhealthy_modes=()
 status_report() {
-  local record mode manager service health timeout state readiness
+  local record mode manager service health timeout verification state readiness
   active_modes=(); unhealthy_modes=()
   for record in "${records[@]}"; do
-    IFS=$'\t' read -r mode manager service health timeout <<<"$record"
+    IFS=$'\t' read -r mode manager service health timeout verification <<<"$record"
     state="$(systemctl_for "$manager" is-active "$service" 2>/dev/null || true)"
     readiness="-"
     if [[ "$state" == active ]]; then
@@ -69,18 +104,19 @@ previous_mode=""; status_report >/dev/null
 if ((${#active_modes[@]} == 1)); then previous_mode="${active_modes[0]}"; fi
 if [[ "$action" == switch ]]; then
   target_manager="$(mode_field "$requested_mode" manager)" || { printf 'MODEL_MODE_NOT_FOUND: %s\n' "$requested_mode" >&2; exit 2; }
-  target_service="$(mode_field "$requested_mode" service)"; target_health="$(mode_field "$requested_mode" health)"; target_timeout="$(mode_field "$requested_mode" timeout)"
+  target_service="$(mode_field "$requested_mode" service)"; target_health="$(mode_field "$requested_mode" health)"; target_timeout="$(mode_field "$requested_mode" timeout)"; target_verification="$(mode_field "$requested_mode" verification)"
   target_load_state="$(systemctl_for "$target_manager" show "$target_service" -p LoadState --value 2>/dev/null || true)"
   [[ "$target_load_state" == loaded ]] || { printf 'MODEL_SERVICE_NOT_FOUND: mode %s service %s is not loaded by the %s service manager.\n' "$requested_mode" "$target_service" "$target_manager" >&2; exit 17; }
-  if ((${#active_modes[@]} == 1)) && [[ "${active_modes[0]}" == "$requested_mode" ]] && health_ready "$target_health"; then
-    printf 'SUCCESS: model mode %s was already active and ready; no reload was needed.\n' "$requested_mode"
+  if ((${#active_modes[@]} == 1)) && [[ "${active_modes[0]}" == "$requested_mode" ]] && health_ready "$target_health" && public_ready "$target_verification"; then
+    generation_verify "$target_verification" || { printf 'INFERENCE_VERIFICATION_FAILED: %s\n' "$requested_mode" >&2; exit 18; }
+    printf 'SUCCESS: model mode %s was already active and passed health, public-endpoint, and inference verification; no reload was needed.\n' "$requested_mode"
     exit 0
   fi
 fi
 stop_all() {
-  local record mode manager service health timeout
+  local record mode manager service health timeout verification
   for record in "${records[@]}"; do
-    IFS=$'\t' read -r mode manager service health timeout <<<"$record"
+    IFS=$'\t' read -r mode manager service health timeout verification <<<"$record"
     if systemctl_for "$manager" is-active --quiet "$service" 2>/dev/null; then printf 'UNLOADING: model mode %s (%s).\n' "$mode" "$service"; fi
     systemctl_for "$manager" stop "$service" >/dev/null 2>&1 || true
     systemctl_for "$manager" reset-failed "$service" >/dev/null 2>&1 || true
@@ -105,9 +141,12 @@ deadline=$((SECONDS + target_timeout))
 started_at=$SECONDS; next_progress=$((SECONDS + 15))
 while ((SECONDS < deadline)); do
   if systemctl_for "$target_manager" is-active --quiet "$target_service"; then
-    if health_ready "$target_health"; then
+    if health_ready "$target_health" && public_ready "$target_verification"; then
       status_report >/dev/null
-      if ((${#active_modes[@]} == 1)) && [[ "${active_modes[0]}" == "$requested_mode" ]]; then printf 'SUCCESS: model mode %s is active and verified after %ss.\n' "$requested_mode" "$((SECONDS - started_at))"; exit 0; fi
+      if ((${#active_modes[@]} == 1)) && [[ "${active_modes[0]}" == "$requested_mode" ]]; then
+        if generation_verify "$target_verification"; then printf 'SUCCESS: model mode %s is active and passed health, public-endpoint, and inference verification after %ss.\n' "$requested_mode" "$((SECONDS - started_at))"; exit 0; fi
+        rollback; printf 'INFERENCE_VERIFICATION_FAILED: %s\n' "$requested_mode" >&2; exit 18
+      fi
     fi
   elif systemctl_for "$target_manager" is-failed --quiet "$target_service"; then
     rollback

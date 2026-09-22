@@ -41,12 +41,12 @@ encoded="$(printf '%s' "$config" | base64)"
 out="$(bash "$dir/model-mode-remote.sh" model-status '' "$encoded")"
 grep -Fq $'coding\tactive' <<<"$out"
 out="$(bash "$dir/model-mode-remote.sh" switch image "$encoded")"
-grep -Fq 'SUCCESS: model mode image is active and verified after' <<<"$out"
+grep -Fq 'SUCCESS: model mode image is active and passed health, public-endpoint, and inference verification after' <<<"$out"
 grep -Fxq image.service "$state"; ! grep -Fxq qwen.service "$state"
 
 before="$(cat "$state")"
 out="$(bash "$dir/model-mode-remote.sh" switch image "$encoded")"
-grep -Fq 'already active and ready; no reload was needed' <<<"$out"
+grep -Fq 'already active and passed health, public-endpoint, and inference verification; no reload was needed' <<<"$out"
 [[ "$(cat "$state")" == "$before" ]]
 
 if bash "$dir/model-mode-remote.sh" switch broken "$encoded" >"$test_root/broken.out" 2>&1; then

@@ -9,8 +9,11 @@ trap 'rm -rf -- "$test_root"' EXIT
 out="$(bash "$command" help)"
 grep -Fq 'files are internal workers' <<<"$out"
 grep -Fq -- '--confirm-model-isolated' <<<"$out"
+grep -Fq -- '--guidance-parameter guidance_scale|true_cfg_scale|none' <<<"$out"
 
 out="$(bash "$command" candidates)"
+grep -Fq 'qwen-image-bf16' <<<"$out"
+grep -Fq 'Qwen/Qwen-Image' <<<"$out"
 grep -Fq 'flux2-dev-bf16' <<<"$out"
 grep -Fq 'evaluation only' <<<"$out"
 

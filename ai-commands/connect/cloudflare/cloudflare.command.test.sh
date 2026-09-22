@@ -12,6 +12,7 @@ export AI_PROFILE_FILE="$repository_root/ai-profile/example/example-work-profile
 export AI_WORK_PROFILE_ID=example
 export AI_FLOW_WORKFLOW=dev.workflow.md
 export AI_COMMANDS_ROOT="$commands_root"
+export AI_FLEAS_RUNTIME_LOCK_DIR="$fixture_dir/locks"
 
 if env -u AI_PROFILE_FILE -u AI_WORK_PROFILE_ID -u WORK_PROFILE_ID -u AI_FLOW_WORKFLOW \
   CLOUDFLARE_COMMAND_CONF="$fixture_dir/missing.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
@@ -140,7 +141,7 @@ grep -F 'tunnel --no-autoupdate run --token synthetic-file-tunnel-token' "$fixtu
 
 mkdir -p "$fixture_dir/locks/ai-fleas-cloudflare-example-private-ai.lock"
 printf '%s\n' "$$" >"$fixture_dir/locks/ai-fleas-cloudflare-example-private-ai.lock/pid"
-if TMPDIR="$fixture_dir/locks" PATH="$fixture_dir/fake-bin:$PATH" \
+if AI_FLEAS_RUNTIME_LOCK_DIR="$fixture_dir/locks" PATH="$fixture_dir/fake-bin:$PATH" \
   CLOUDFLARE_FAKE_ARGS="$fixture_dir/cloudflared-duplicate-args" \
   CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
   "$command_path" run-tunnel >"$fixture_dir/out" 2>"$fixture_dir/err"; then

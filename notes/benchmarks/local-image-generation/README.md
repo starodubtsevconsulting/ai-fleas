@@ -51,12 +51,15 @@ The first target is one ASUS Ascent GX10 with NVIDIA GB10 and 128 GB unified mem
 
 Candidate order depends on the intended job:
 
-1. `OnomaAIResearch/Illustrious-XL-v2.0` in BF16 — production-relevant anime and illustrated-story baseline.
-2. `black-forest-labs/FLUX.2-dev` in BF16 — maximum-quality generation/editing baseline.
-3. `black-forest-labs/FLUX.2-dev-NVFP4` — official Blackwell-oriented lower-precision comparison.
-4. `black-forest-labs/FLUX.1-Krea-dev` in BF16 — photographic/aesthetic comparison.
-5. `black-forest-labs/FLUX.1-dev` in BF16 — FLUX.1 baseline.
-6. `black-forest-labs/FLUX.1-Kontext-dev` in BF16 — editing/reference-consistency baseline.
+1. `Qwen/Qwen-Image` in BF16 — production-eligible prompt-adherence, scene-composition, anime, and illustrated-story candidate.
+2. `OnomaAIResearch/Illustrious-XL-v2.0` in BF16 — fast production-relevant anime and illustrated-story baseline.
+3. `black-forest-labs/FLUX.2-dev` in BF16 — maximum-quality generation/editing baseline.
+4. `black-forest-labs/FLUX.2-dev-NVFP4` — official Blackwell-oriented lower-precision comparison.
+5. `black-forest-labs/FLUX.1-Krea-dev` in BF16 — photographic/aesthetic comparison.
+6. `black-forest-labs/FLUX.1-dev` in BF16 — FLUX.1 baseline.
+7. `black-forest-labs/FLUX.1-Kontext-dev` in BF16 — editing/reference-consistency baseline.
+
+Qwen-Image is pinned to repository revision `75e0b4be04f60ec59a75f475837eced720f823b6` and is distributed under Apache 2.0. The production-eligible classification applies to model operation under that license; generated-content and third-party intellectual-property review remain separate acceptance requirements.
 
 Illustrious XL v2.0 is distributed as one 6.94 GB SDXL safetensors checkpoint under CreativeML OpenRAIL-M metadata. That license permits commercial model use subject to its use restrictions, but it does not remove the operator's responsibility for generated content, third-party intellectual property, or separately licensed LoRAs and derivatives. The benchmark pins the official repository revision and checkpoint SHA-256 and does not add a LoRA.
 
@@ -98,8 +101,10 @@ Public results must not contain hostnames, IP addresses, account or personal nam
 - `test_resumable_stream.py` — internal regression worker for replay and duplicate-request suppression.
 - `gx10-image-generator.service` — user-service template used by the profile model-mode switch.
 - `gx10-anime-generator.service` — mutually exclusive Illustrious XL service template.
+- `gx10-qwen-image-generator.service` — dedicated mutually exclusive Qwen-Image service template.
 - `image-generator.env.example` — non-secret selected-model configuration.
 - `anime-generator.env.example` — non-secret single-file SDXL configuration.
+- `qwen-image-generator.env.example` — pinned Qwen configuration with explicit true-CFG and negative-prompt semantics.
 - `qwen-image-mode-conflict.conf` — reciprocal systemd exclusion for direct/manual service starts.
 - `summarize.py` — internal reporting worker that creates a Markdown comparison table.
 - `results/` — sanitized, machine-readable completed benchmark records; generated media remains private unless separately approved.
@@ -188,6 +193,8 @@ The default image-generator worker is selected only after the human review is jo
 
 ## Sources
 
+- [Qwen-Image model card](https://huggingface.co/Qwen/Qwen-Image)
+- [Qwen-Image Apache 2.0 license](https://huggingface.co/Qwen/Qwen-Image/blob/main/LICENSE)
 - [FLUX.2-dev model card](https://huggingface.co/black-forest-labs/FLUX.2-dev)
 - [FLUX Non-Commercial License v2.1](https://huggingface.co/black-forest-labs/FLUX.2-dev/blob/main/LICENSE.md)
 - [Black Forest Labs usage policy](https://bfl.ai/legal/usage-policy)
