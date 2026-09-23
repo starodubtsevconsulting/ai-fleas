@@ -7,3 +7,10 @@ tags:
 entry: writing.workflow.md
 required_commands:
   - writing
+
+optional_capabilities:
+  image_generation:
+    purpose: Generate editorial images when the Writer chooses generation rather than supplied or stock imagery.
+    provider_selection: profile
+    human_override: task
+    required: false
