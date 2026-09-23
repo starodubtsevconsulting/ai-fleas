@@ -106,4 +106,9 @@ policy-owned instructions, but it cannot guarantee the content of generated outp
 pixels or classify generated text. Deployments requiring a stronger guarantee can add output moderation as a separate
 layer without changing this prompt-policy composition contract.
 
+Deterministic policies must declare and test their supported languages. The initial `content-nudity` image policy has
+English, Russian, Ukrainian, Italian, Spanish, French, and German request rules. A passing deterministic check means
+only that no configured expression matched; it is not a semantic safety decision. Multilingual paraphrases,
+transliteration, obfuscation, and unsupported languages require a later semantic moderation layer for stronger coverage.
+
 Policy configuration is trusted operational configuration. It must not be accepted from public inference requests.

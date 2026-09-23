@@ -26,7 +26,7 @@ Use `push` to publish validated local commits to an explicitly authorized remote
 
 | Entry point | Type | Profile-aware invocation |
 |---|---|---|
-| `push/push.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
+| `push/push.command.sh` | Shell executable | Activate the selected profile's `source-control` command and workflow, then invoke through the host's profile-aware command runner. |
 
 Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
 
@@ -37,6 +37,8 @@ Committed configuration template: `push/push.command.example.config`. Copy it in
 #command #ai-command #push #git
 
 - `push` means **commit + push**, not only `git push`
+- `push.command.sh` is an operation of the provider-neutral `source-control` command; its profile guard must validate
+  `source-control`, not require a separately registered `push` command
 - run `ai-commands/push/push.command.sh --check --profile <profile-id> --workflow <workflow-id>` to validate Git
   work-profile selection without pushing
 - `ai-commands/push/push.command.test.sh` verifies macOS Bash syntax and exercises
