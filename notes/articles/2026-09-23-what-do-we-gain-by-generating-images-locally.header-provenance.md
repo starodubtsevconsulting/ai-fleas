@@ -3,7 +3,7 @@
 ## Status
 
 - Candidate count commissioned: **4** (initial attempt, controlled retry, recovery attempt, and fresh routing-test candidate)
-- Original generated asset: `notes/articles/assets/2026-09-23-local-images-header.png`
+- Original generated asset: not retained after the accepted crop; SHA-256 recorded below
 - Accepted cropped header: `notes/articles/assets/2026-09-23-local-images-header-final.png`
 - Disposition: **deterministic crop removed the complete text-bearing strip; cropped derivative accepted by Writer
   visual QA**
@@ -12,8 +12,8 @@
 - Canonical contract: `ai-workflows/writing/guides/header-image-contract.md`
 
 The protected service withheld the initial candidate and the first controlled retry. After the evaluator's stale model
-state was recovered, one further explicitly authorized attempt was released. The original PNG remains preserved as
-evidence. A deterministic editorial crop removed the complete shallow text-bearing top strip without generative
+state was recovered, one further explicitly authorized attempt was released. Its hash and QA findings remain preserved
+as evidence, while the rejected source PNG is not retained. A deterministic editorial crop removed the complete shallow text-bearing top strip without generative
 alteration, and the clean derivative is linked from the unpublished draft.
 
 ## Resolved provider contract
@@ -154,7 +154,7 @@ recovery generation through the unchanged route. The same simple abstract concep
 - Durable health snapshot: `.agent-runtime/writing/image-generation/2026-09-23-local-images-header/health-03.json`
 - Durable bounded response metadata:
   `.agent-runtime/writing/image-generation/2026-09-23-local-images-header/response-metadata-03.json`
-- Released PNG: `notes/articles/assets/2026-09-23-local-images-header.png`
+- Released intermediate PNG: not retained after the accepted crop
 - PNG SHA-256: `ed515ec14f10db45247b2d09446d06489da9280fa0ca5f7489b95b6dc447fb79`
 - Dimensions: `1344x768`, RGB, 8-bit/color, non-interlaced
 
@@ -188,7 +188,7 @@ Defects:
 - Small interface-like details appear on the front of the compute box even though screens and interfaces were excluded.
 
 Verdict: **reject**. The semantic gates allowed release, but the candidate fails the canonical image-text criteria. The
-original asset is preserved as test evidence; it is not selected as the final publishable header.
+original asset's hash and QA record are preserved as test evidence; the rejected PNG itself is not retained.
 
 No further generation was attempted.
 
@@ -197,8 +197,7 @@ No further generation was attempted.
 - Operation: remove the complete text-bearing top strip; no generative alteration
 - Tool operation: `crop=1344:688:0:80`
 - Crop geometry: `x=0`, `y=80`, `width=1344`, `height=688`
-- Original generated PNG:
-  `notes/articles/assets/2026-09-23-local-images-header.png`
+- Original generated PNG: not retained after producing and verifying the accepted crop
 - Original SHA-256: `ed515ec14f10db45247b2d09446d06489da9280fa0ca5f7489b95b6dc447fb79`
 - Original dimensions: `1344x768`
 - Cropped final PNG:
@@ -253,7 +252,7 @@ header remained untouched during generation and evaluation.
 - Durable health snapshot: `.agent-runtime/writing/image-generation/2026-09-23-local-images-header/health-04.json`
 - Durable response metadata:
   `.agent-runtime/writing/image-generation/2026-09-23-local-images-header/response-metadata-04.json`
-- Candidate PNG: `notes/articles/assets/2026-09-23-local-images-header-candidate-04.png`
+- Rejected candidate PNG: not retained; hash and QA findings preserved below
 - Candidate SHA-256: `46a586b07b00c631eb4141338d8b4f6b24044b44d04ff91892ca3e215f46d30c`
 - Dimensions: `1344x768`, RGB, 8-bit/color, non-interlaced
 
