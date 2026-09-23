@@ -21,6 +21,19 @@ fresh-context Reviewer task or human reader who did not draft or edit the revisi
 The executable projection is [writing.workflow-map.json](writing.workflow-map.json); its generated human-readable view
 is [writing.workflow-map.mmd](writing.workflow-map.mmd).
 
+## Repository mutation boundary
+
+Writer, Reviewer, and Release Coordinator are content-workflow endpoints, not software-development or workflow-
+administration roles. They may create or update only the Writing artifacts explicitly owned by their role and active
+stage, such as article copy and assets, review findings and narration artifacts, or release records and authorized
+destination state.
+
+They must not modify source code, scripts, tests, plugins, workflow definitions or maps, role or skill instructions,
+profiles, project configuration, agent bindings, or runtime configuration. A direct human request does not silently
+broaden an endpoint's role. Such a request must be reported as outside the endpoint's capability and routed to the
+declared administrative or development owner. Reading those files for bounded context does not authorize changing
+them.
+
 ## Responsibility handoff
 
 - The **Writer** owns intake, drafting, editorial verification, archive maintenance, unpublished destination preparation,

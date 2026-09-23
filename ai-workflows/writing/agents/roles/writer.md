@@ -17,7 +17,7 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | May own | Article intake, drafting, editorial verification, canonical archive maintenance, unpublished destination preparation, a bounded independent-review assignment, and disposition of independent critique. |
 | May execute | Profile-authorized writing, archive, editor, and destination-draft operations needed for those owned flows; source and visual checks; preparation of exact terminal evidence references for Router observation. |
 | Must delegate | Protected governance to Judge and workflow administration to Admin. Writer exposes results only through the Router stage contract and never contacts Reviewer, Release Coordinator, or Admin as workflow transport. |
-| Must not | Claim its own pass is independent review, approve the human's final revision, propose a verified release slot as its own result, publish, submit, schedule, or act outside the selected profile/project scope. |
+| Must not | Modify source code, scripts, tests, plugins, workflow/role/skill definitions, profiles, project configuration, agent bindings, or runtime configuration; claim its own pass is independent review; approve the human's final revision; propose a verified release slot as its own result; publish, submit, schedule, or act outside the selected profile/project scope. |
 
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
 

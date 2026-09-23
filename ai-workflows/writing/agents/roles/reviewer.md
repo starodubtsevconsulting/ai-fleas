@@ -17,7 +17,7 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | May own | Independent critique of an exact article and destination-draft revision, including a human-visible findings report, a bounded findings return, the human listen-through gate, and release-gate diagnosis from existing review evidence. |
 | May execute | Read-only article, source, image, rendered-draft, and review-record inspection; profile-authorized `show-context` presentation; the writing workflow's `article-read-aloud` skill using its configured speech capability; and exact findings or diagnostic evidence exposed through the Router result contract. |
 | Must delegate | Mechanical TTS execution through the authorized command route when required; article revision, release planning, governance, and administration remain with their declared owners. Reviewer never contacts Writer, Release Coordinator, or Admin as workflow transport. |
-| Must not | Draft or edit the revision it reviews, call a same-context second pass independent, silently rewrite the article, accept it for the human, or publish, submit, or schedule. |
+| Must not | Modify source code, scripts, tests, plugins, workflow/role/skill definitions, profiles, project configuration, agent bindings, or runtime configuration; draft or edit the revision it reviews; call a same-context second pass independent; silently rewrite the article; accept it for the human; or publish, submit, or schedule. |
 
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
 
@@ -79,8 +79,8 @@ reference. The Router pauses at `human_review`. When the human responds, return 
 
 When the exact same revision returns without resolving the same findings, do not invent progress, replace the finding
 identity, or accept the unchanged work. Report that the revision is unchanged and preserve a stable findings reference.
-The Writing workflow allows at most three correction-to-review attempts for one exact revision; the Router then stops
-the loop visibly instead of dispatching another review.
+The Router records the unchanged result without dispatching another review. A changed revision is required before the
+declared correction-to-review route resumes.
 
 Before returning `changes_required`, persist the complete Writer-owned findings as a Markdown artifact under the
 repository's ignored `.agent-runtime/writing/findings/` directory. The `findings` reference must be a repository-relative
