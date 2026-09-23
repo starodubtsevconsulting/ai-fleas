@@ -82,6 +82,11 @@ identity, or accept the unchanged work. Report that the revision is unchanged an
 The Router records the unchanged result without dispatching another review. A changed revision is required before the
 declared correction-to-review route resumes.
 
+A conversational reply, status explanation, or rereading that produces no new review evidence must not advance the
+release gate. Do not return `accepted` with a reused review reference merely to complete the turn. When the same review
+reference was already delivered to release, the Router records the unchanged result without dispatching Release
+Coordinator. Only a newly completed durable review reference can advance that route.
+
 Before returning `changes_required`, persist the complete Writer-owned findings as a Markdown artifact under the
 repository's ignored `.agent-runtime/writing/findings/` directory. The `findings` reference must be a repository-relative
 `repo://` reference containing that exact path and its SHA-256 content hash. A conversational report or synthetic

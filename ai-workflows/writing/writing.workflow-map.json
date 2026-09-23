@@ -28,7 +28,11 @@
       "transitions": {
         "accepted": {
           "to": "release",
-          "requiredReferenceKinds": ["review"]
+          "requiredReferenceKinds": ["review"],
+          "retryPolicy": {
+            "requireChangedProgress": true,
+            "progressReferenceKinds": ["review"]
+          }
         },
         "changes_required": {
           "to": "correction",

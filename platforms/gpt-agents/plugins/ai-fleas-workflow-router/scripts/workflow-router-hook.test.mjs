@@ -47,7 +47,11 @@ function fixture() {
           } } },
           review: { role: 'Reviewer', capability: 'review', transitions: {
             changes_required: { to: 'correction', requiredReferenceKinds: ['findings'] },
-            accepted: { to: 'release', requiredReferenceKinds: ['review'] },
+            accepted: {
+              to: 'release',
+              requiredReferenceKinds: ['review'],
+              retryPolicy: { requireChangedProgress: true, progressReferenceKinds: ['review'] },
+            },
             human_action_required: { to: 'human_review', waitForHuman: true, requiredReferenceKinds: ['human-action'] },
           } },
           human_review: { role: 'Reviewer', capability: 'human_review', transitions: {
@@ -155,6 +159,30 @@ test('dispatches accepted review to release coordinator, not writer', () => {
   assert.deepEqual(output, {});
   const queued = JSON.parse(fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8'));
   assert.equal(queued.thread, 'release');
+});
+
+test('does not re-dispatch release when Reviewer returns the same review evidence', () => {
+  const root = fixture();
+  function acceptedReview(turnId, review) {
+    return run(root, {
+      session_id: 'bound', turn_id: turnId, hook_event_name: 'Stop', stop_hook_active: false,
+      last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
+        acknowledgement: 'COPY THAT', correlationId: `codex:bound:${turnId}`, stage: 'review',
+        role: 'Reviewer', event: 'accepted', references: [{ kind: 'review', ref: review }],
+      })}`,
+    });
+  }
+
+  assert.deepEqual(acceptedReview('accepted-1', 'review://same-evidence'), {});
+  const stopped = acceptedReview('accepted-2', 'review://same-evidence');
+  assert.match(stopped.systemMessage, /progress references are unchanged/);
+  const lines = fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8').trim().split('\n');
+  assert.equal(lines.length, 1);
+  assert.equal(JSON.parse(lines[0]).thread, 'release');
+
+  assert.deepEqual(acceptedReview('accepted-3', 'review://new-evidence'), {});
+  const updatedLines = fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8').trim().split('\n');
+  assert.equal(updatedLines.length, 2);
 });
 
 test('dispatch is idempotent for the same result', () => {
