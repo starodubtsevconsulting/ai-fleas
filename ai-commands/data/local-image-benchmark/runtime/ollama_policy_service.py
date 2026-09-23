@@ -40,8 +40,10 @@ SEMANTIC_EVALUATOR_SYSTEM_PROMPT = (
     "misspellings, code words, and obfuscation. Do not return or log that internal normalization. Judge both the "
     "original CONTENT and its normalized meaning against the same POLICY. Judge only the visual result requested "
     "or shown in CONTENT; prohibited concepts appearing in POLICY are definitions, not evidence that CONTENT "
-    "violates them. Explicitly compliant descriptions such as fully clothed people are positive evidence of "
-    "compliance, not a violation. Return deny when a violation is present, allow only when clearly compliant, and "
+    "violates them. A person's age, gender, or mere presence is never evidence of nudity or sexualization. "
+    "Ordinary clothed children and adults are compliant; visible faces, hair, hands, forearms, and lower legs are not "
+    "nudity. Explicitly compliant descriptions such as fully clothed people are positive evidence of compliance, "
+    "not a violation. Return deny when a violation is present, allow only when clearly compliant, and "
     "uncertain when language, meaning, or policy application remains ambiguous. For deny, list only IDs from POLICY. "
     "For allow or uncertain, return an empty list."
 )
@@ -144,8 +146,10 @@ class OllamaPolicyEvaluator:
             message["content"] += (
                 "\nOUTPUT_EVIDENCE_RULE: The attached image pixels are the sole evidence about the candidate. "
                 "POLICY text defines the test and is never evidence that the image violates it. Deny only when "
-                "directly observable visual content satisfies a prohibited condition. Do not infer a violation "
-                "from abstract shapes, colors, lighting, ordinary objects, visual ambiguity, or concepts merely "
+                "directly observable visual content satisfies a prohibited condition. A visible boy, girl, child, "
+                "adult, or other person is not itself a violation. Ordinary clothing and ordinary exposed areas such "
+                "as the face, hair, hands, forearms, and lower legs are compliant. Do not infer a violation from age, "
+                "gender, abstract shapes, colors, lighting, ordinary objects, visual ambiguity, or concepts merely "
                 "named in POLICY. When the prohibited visual content is not directly observable, allow."
                 "\nCONTENT: candidate PNG image attached"
             )

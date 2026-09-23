@@ -35,6 +35,7 @@ class OllamaPolicyServiceTest(unittest.TestCase):
         self.assertIn("internally normalize", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
         self.assertIn("Judge both the original CONTENT", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
         self.assertIn("Do not return or log", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("age, gender, or mere presence is never evidence", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
 
     def test_requires_profile_selected_model(self):
         with self.assertRaisesRegex(EvaluatorError, "POLICY_SERVICE_MODEL is required"):
@@ -76,6 +77,8 @@ class OllamaPolicyServiceTest(unittest.TestCase):
         self.assertIn("attached image pixels are the sole evidence", prompt)
         self.assertIn("Deny only when directly observable visual content", prompt)
         self.assertIn("When the prohibited visual content is not directly observable, allow", prompt)
+        self.assertIn("A visible boy, girl, child", prompt)
+        self.assertIn("face, hair, hands, forearms, and lower legs are compliant", prompt)
 
     def test_rejects_invalid_request_and_image(self):
         invalid = request()
