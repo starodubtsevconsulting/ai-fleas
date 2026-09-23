@@ -1,0 +1,18 @@
+[Unit]
+Description=Private local semantic policy evaluator
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/ai-fleas/policy-evaluator.env
+ExecStart=/usr/bin/python3 %h/ai-policy-evaluator/ollama_policy_service.py --host ${POLICY_SERVICE_HOST} --port ${POLICY_SERVICE_PORT} --ollama-url ${POLICY_SERVICE_OLLAMA_URL} --model ${POLICY_SERVICE_MODEL} --timeout ${POLICY_SERVICE_OLLAMA_TIMEOUT_SECONDS} --num-gpu-layers ${POLICY_SERVICE_NUM_GPU_LAYERS} --keep-alive ${POLICY_SERVICE_KEEP_ALIVE} --auth-token-file %h/.config/ai-fleas/policy-evaluator.token
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+
+[Install]
+WantedBy=default.target

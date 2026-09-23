@@ -29,8 +29,12 @@ Usage:
   local-image-benchmark.command.sh serve --confirm-model-isolated \
     [--model MODEL_ID] [--model-revision REVISION] [--dtype TYPE] [--steps N] [--guidance N] \
     [--guidance-parameter guidance_scale|true_cfg_scale|none] [--negative-prompt TEXT] \
+    [--policy-preset ID] [--semantic-input true|false] [--semantic-output true|false] \
+    [--moderation-url URL] [--moderation-timeout SECONDS] [--moderation-auth-token-file PATH] \
     [--port N] [--output-dir DIR]
   local-image-benchmark.command.sh test-stream
+  local-image-benchmark.command.sh evaluate-policy --endpoint URL \
+    [--policy ID] [--cases FILE] [--timeout SECONDS] [--auth-token-file FILE]
   local-image-benchmark.command.sh help
 
 Actions:
@@ -40,6 +44,7 @@ Actions:
   summarize    Turn one or more completed results.jsonl files into Markdown.
   serve        Start the OpenAI-compatible image service in the foreground.
   test-stream  Test disconnect/resume behavior without loading model weights.
+  evaluate-policy  Run the public adversarial/benign corpus against a configured semantic decision service.
 
 Safety:
   run and serve load a large model. They require a verified profile/workflow and
@@ -68,7 +73,7 @@ Examples:
   local-image-benchmark.command.sh candidates
   local-image-benchmark.command.sh run --candidate flux2-dev-bf16 \
     --output-root /data/image-benchmarks/runs --repeat 3 \
-    --machine-label gx10-128gb --confirm-model-isolated
+    --machine-label example-image-host --confirm-model-isolated
   local-image-benchmark.command.sh summarize /data/image-benchmarks/runs/*/results.jsonl
 EOF
 }
@@ -174,6 +179,12 @@ case "$action" in
     guidance="4.0"
     guidance_parameter="guidance_scale"
     negative_prompt=""
+    policy_preset="unrestricted"
+    semantic_input="${IMAGE_POLICY_SEMANTIC_INPUT:-false}"
+    semantic_output="${IMAGE_POLICY_SEMANTIC_OUTPUT:-false}"
+    moderation_url="${IMAGE_POLICY_MODERATION_URL:-}"
+    moderation_timeout="${IMAGE_POLICY_MODERATION_TIMEOUT_SECONDS:-5}"
+    moderation_auth_token_file="${IMAGE_POLICY_MODERATION_AUTH_TOKEN_FILE:-}"
     port="8000"
     output_dir="/outputs"
     set -- ${FORWARDED_ARGS[@]+"${FORWARDED_ARGS[@]}"}
@@ -186,6 +197,12 @@ case "$action" in
         --guidance) guidance="${2:-}"; shift 2 ;;
         --guidance-parameter) guidance_parameter="${2:-}"; shift 2 ;;
         --negative-prompt) negative_prompt="${2:-}"; shift 2 ;;
+        --policy-preset) policy_preset="${2:-}"; shift 2 ;;
+        --semantic-input) semantic_input="${2:-}"; shift 2 ;;
+        --semantic-output) semantic_output="${2:-}"; shift 2 ;;
+        --moderation-url) moderation_url="${2:-}"; shift 2 ;;
+        --moderation-timeout) moderation_timeout="${2:-}"; shift 2 ;;
+        --moderation-auth-token-file) moderation_auth_token_file="${2:-}"; shift 2 ;;
         --port) port="${2:-}"; shift 2 ;;
         --output-dir) output_dir="${2:-}"; shift 2 ;;
         *) printf 'ERROR: unknown serve argument: %s\n' "$1" >&2; exit 64 ;;
@@ -194,10 +211,17 @@ case "$action" in
     [[ "$steps" =~ ^[1-9][0-9]*$ ]] || { printf 'ERROR: --steps must be a positive integer.\n' >&2; exit 64; }
     [[ "$port" =~ ^[1-9][0-9]*$ ]] && (( port <= 65535 )) || { printf 'ERROR: --port must be 1..65535.\n' >&2; exit 64; }
     [[ "$guidance_parameter" =~ ^(guidance_scale|true_cfg_scale|none)$ ]] || { printf 'ERROR: --guidance-parameter is invalid.\n' >&2; exit 64; }
+    [[ "$policy_preset" =~ ^[a-z0-9][a-z0-9._-]*$ ]] || { printf 'ERROR: --policy-preset is invalid.\n' >&2; exit 64; }
+    [[ "$semantic_input" =~ ^(true|false)$ ]] || { printf 'ERROR: --semantic-input must be true or false.\n' >&2; exit 64; }
+    [[ "$semantic_output" =~ ^(true|false)$ ]] || { printf 'ERROR: --semantic-output must be true or false.\n' >&2; exit 64; }
     "$PYTHON_BIN" -c 'import uvicorn' >/dev/null 2>&1 || { printf 'ERROR: uvicorn is not installed in the benchmark environment.\n' >&2; exit 69; }
     export IMAGE_MODEL_ID="$model" IMAGE_MODEL_REVISION="$model_revision" IMAGE_DTYPE="$dtype" IMAGE_DEFAULT_STEPS="$steps"
     export IMAGE_DEFAULT_GUIDANCE="$guidance" IMAGE_GUIDANCE_PARAMETER="$guidance_parameter"
     export IMAGE_DEFAULT_NEGATIVE_PROMPT="$negative_prompt" IMAGE_OUTPUT_DIR="$output_dir"
+    export IMAGE_POLICY_PRESET="$policy_preset"
+    export IMAGE_POLICY_SEMANTIC_INPUT="$semantic_input" IMAGE_POLICY_SEMANTIC_OUTPUT="$semantic_output"
+    export IMAGE_POLICY_MODERATION_URL="$moderation_url" IMAGE_POLICY_MODERATION_TIMEOUT_SECONDS="$moderation_timeout"
+    export IMAGE_POLICY_MODERATION_AUTH_TOKEN_FILE="$moderation_auth_token_file"
     cd "$RUNTIME_DIR"
     exec "$PYTHON_BIN" -m uvicorn serve:app --host 0.0.0.0 --port "$port"
     ;;
@@ -205,6 +229,11 @@ case "$action" in
     [[ $# -eq 0 ]] || { printf 'ERROR: test-stream accepts no arguments.\n' >&2; exit 64; }
     require_python
     exec "$PYTHON_BIN" "$RUNTIME_DIR/test_resumable_stream.py"
+    ;;
+  evaluate-policy)
+    require_profile
+    require_python
+    exec "$PYTHON_BIN" "$RUNTIME_DIR/evaluate_policy_moderator.py" "$@"
     ;;
   *)
     printf 'ERROR: unknown action: %s\n\n' "$action" >&2

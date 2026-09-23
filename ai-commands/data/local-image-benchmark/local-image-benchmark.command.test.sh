@@ -10,10 +10,32 @@ out="$(bash "$command" help)"
 grep -Fq 'files are internal workers' <<<"$out"
 grep -Fq -- '--confirm-model-isolated' <<<"$out"
 grep -Fq -- '--guidance-parameter guidance_scale|true_cfg_scale|none' <<<"$out"
+grep -Fq -- '--policy-preset ID' <<<"$out"
+grep -Fq -- '--semantic-input true|false' <<<"$out"
+grep -Fq -- 'evaluate-policy --endpoint URL' <<<"$out"
 python3 "$dir/runtime/test_safety.py"
-grep -Fq 'Restart=on-failure' "$dir/assets/systemd/gx10-qwen-image-generator.service"
-grep -Fq 'IMAGE_EMERGENCY_AVAILABLE_BYTES' "$dir/assets/systemd/gx10-qwen-image-generator.service"
-grep -Fq 'IMAGE_DEFAULT_SIZE=1344x768' "$dir/assets/env/qwen-image-generator.env.example"
+python3 "$dir/runtime/test_generation_policy.py"
+python3 "$dir/runtime/test_policy_moderation.py"
+python3 "$dir/runtime/test_ollama_policy_service.py"
+python3 -m py_compile "$dir/runtime/evaluate_policy_moderator.py"
+grep -Fq 'Restart=on-failure' "$dir/assets/systemd/local-image-generator@.service"
+grep -Fq 'IMAGE_GENERATOR_INSTANCE=%i' "$dir/assets/systemd/local-image-generator@.service"
+grep -Fq 'IMAGE_EMERGENCY_AVAILABLE_BYTES' "$dir/runtime/run_image_generator_container.sh"
+grep -Fq 'IMAGE_POLICY_MODERATION_URL' "$dir/runtime/run_image_generator_container.sh"
+grep -Fq 'IMAGE_ACCELERATOR must be nvidia, rocm, or cpu' "$dir/runtime/run_image_generator_container.sh"
+grep -Fq 'ollama_policy_service.py' "$dir/assets/systemd/ai-policy-evaluator.service"
+grep -Fq 'IMAGE_DEFAULT_SIZE=1344x768' "$dir/assets/env/presets/qwen-image.env.example"
+grep -Fq 'IMAGE_POLICY_PRESET=unrestricted' "$dir/assets/env/presets/qwen-image.env.example"
+grep -Fq 'IMAGE_POLICY_SEMANTIC_INPUT=false' "$dir/assets/env/presets/qwen-image.env.example"
+
+set +e
+out="$(IMAGE_GENERATOR_INSTANCE=test IMAGE_RUNTIME_IMAGE=example/runtime IMAGE_HARNESS_DIR="$test_root" \
+  IMAGE_OUTPUT_DIR="$test_root/outputs" IMAGE_ACCELERATOR=invalid \
+  bash "$dir/runtime/run_image_generator_container.sh" 2>&1)"
+code=$?
+set -e
+[[ $code -eq 64 ]]
+grep -Fq 'IMAGE_ACCELERATOR must be nvidia, rocm, or cpu' <<<"$out"
 
 out="$(bash "$command" candidates)"
 grep -Fq 'qwen-image-bf16' <<<"$out"

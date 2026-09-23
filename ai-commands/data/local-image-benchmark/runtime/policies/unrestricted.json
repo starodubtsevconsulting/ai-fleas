@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "id": "unrestricted",
+  "prompt": {
+    "prefix": "",
+    "suffix": "",
+    "negative_prompt": "",
+    "allow_client_negative_prompt": true
+  },
+  "enforcement": {
+    "input": {
+      "refusal": "This request is not available under the active generation policy."
+    }
+  }
+}

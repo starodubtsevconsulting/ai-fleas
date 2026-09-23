@@ -1,6 +1,6 @@
 #!/bin/bash
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../_runtime/profile" && pwd -P)/command-profile.guard.sh"
-ai_command_require_profile "push" || exit $?
+ai_command_require_profile "source-control" || exit $?
 
 set -euo pipefail
 

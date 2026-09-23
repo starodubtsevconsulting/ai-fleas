@@ -17,7 +17,7 @@ The command exists to keep measurements reproducible, explain each model's purpo
 
 | Input | Required | Source | Description |
 |---|---|---|---|
-| Action | Yes | User | `explain`, `candidates`, `run`, `summarize`, `serve`, or `test-stream`. |
+| Action | Yes | User | `explain`, `candidates`, `run`, `summarize`, `serve`, `test-stream`, or `evaluate-policy`. |
 | Active AI Profile and workflow | For `run` and `serve` | Host activation | Authorizes an operation that loads a large model. |
 | `--confirm-model-isolated` | For `run` and `serve` | User | Confirms the managed model-mode switch has unloaded any conflicting large model. |
 | Candidate and output root | For `run` | User | Candidate ID and private directory where retained evidence is written. |
@@ -48,6 +48,24 @@ Every invocation is profile-aware: the host must verify that the active workflow
 
 Committed configuration template: `local-image-benchmark/local-image-benchmark.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
+Policy deployment is split deliberately:
+
+- `policy_evaluators` defines reusable profile-owned evaluator resources, including the host reference, endpoint, model,
+  credential-file binding, and runtime allocation;
+- `workflow_policy_bindings` makes each workflow opt into an evaluator, policy profile, and input/output gates explicitly;
+- an unlisted workflow inherits no policy binding from another workflow;
+- the profile/platform adapter renders the selected binding into the evaluator and generation-service environments. The
+  portable command supplies the contract and templates, but no deployment host, evaluator model, or policy default.
+
+This permits two workflows in the same profile to reuse one evaluator while selecting different policy profiles and gate
+settings. It also permits a workflow to remain unbound until its owner makes that choice explicitly.
+
+The portable runtime uses `local-image-generator@.service`; the instance name selects a profile-owned environment file
+under `~/.config/ai-fleas/image-generators/`. The unit has no host or model identity. Its launcher selects `nvidia`,
+`rocm`, or `cpu` from `IMAGE_ACCELERATOR`, and the profile supplies the runtime image, model, mounts, output directory,
+and policy binding. Files under `assets/env/presets/` are optional model examples, not services or automatic defaults.
+Large-model conflicts and switch ordering remain responsibilities of the profile's managed model-mode controller.
+
 ## Supported Prompts
 
 - “Explain the local image benchmark.”
@@ -56,6 +74,7 @@ Committed configuration template: `local-image-benchmark/local-image-benchmark.c
 - “Summarize these image benchmark results.”
 - “Start the image service for diagnosis.”
 - “Test whether image generation resumes after a dropped browser stream.”
+- “Evaluate the semantic policy service against the adversarial and benign corpus.”
 
 ## Usage
 
@@ -71,7 +90,7 @@ ${AI_COMMANDS_ROOT}/data/local-image-benchmark/local-image-benchmark.command.sh 
   --candidate flux2-dev-bf16 \
   --output-root /data/image-benchmarks/runs \
   --repeat 3 \
-  --machine-label gx10-128gb \
+  --machine-label example-image-host \
   --confirm-model-isolated
 ```
 
@@ -88,6 +107,18 @@ Repository models may be pinned with `--model-revision`. Guidance behavior is ex
 `--guidance-parameter guidance_scale|true_cfg_scale|none`; pipelines such as Qwen-Image that use true CFG may also set
 `--negative-prompt`. These values are passed to the generic service rather than inferred from a model name.
 
+Interactive services may select a reusable generation policy with `--policy-preset ID` or
+`IMAGE_POLICY_PRESET`; the default `unrestricted` preset preserves prior behavior. Policy files live beside the shared
+runtime in `runtime/policies/` and may compose a prompt prefix/suffix and supply a non-overridable negative prompt.
+Those are steering controls, not validation. `education-child` is the first audience-oriented preset. Semantic input
+is the sole validator for restricted policies; no keyword or regular-expression blocker is maintained. Phase 2 enables semantic input and output decisions with
+`--semantic-input true`, `--semantic-output true`, and `--moderation-url URL` (or the equivalent `IMAGE_POLICY_*`
+environment variables). Both gates consume the same selected profile. A protected service
+with an enabled semantic gate fails startup when its decision endpoint or semantic policy intent is missing, and fails
+closed when a decision is unavailable, malformed, or uncertain. Candidate images remain in memory and are not saved or
+returned until output moderation allows release. Model lifecycle remains owned by
+`install-ai-local-provider`; the selected systemd mode supplies the policy environment at initialization.
+
 Managed interactive services should configure `IMAGE_DEFAULT_SIZE`, request ceilings (`IMAGE_MAX_WIDTH`,
 `IMAGE_MAX_HEIGHT`, `IMAGE_MAX_PIXELS`, and `IMAGE_MAX_STEPS`), and two host-memory thresholds. Requests are rejected
 before generation below `IMAGE_MIN_AVAILABLE_BYTES`. While CUDA inference is running, the worker samples host
@@ -96,3 +127,14 @@ the isolated worker instead of allowing the host to become unreachable. `IMAGE_E
 available for diagnostics only. Completed and failed requests can run garbage collection and release unused CUDA
 cache. Cache release is controlled by `IMAGE_RELEASE_CACHE_AFTER_GENERATION`; its default is `false` so existing service
 modes keep their prior caching behavior unless they explicitly opt in.
+
+`evaluate-policy --endpoint URL` runs `runtime/moderation-cases.json` against a configured semantic decision service.
+For private local deployments, `runtime/ollama_policy_service.py` and the `ai-policy-evaluator.service` template provide
+an authenticated narrow adapter around a loopback-only Ollama model. GPU-layer offload and model retention are explicit
+operator settings; defaults remain CPU-only and unload-after-request so installation does not silently consume GPU
+capacity.
+The public corpus includes explicit requests, paraphrases, euphemisms, misspellings, obfuscation, prompt injection,
+several sampled languages, benign prompts, and sensitive-but-allowed boundary cases. These samples are regression
+coverage, not a language allowlist: the semantic contract accepts original text in any language or mixture. The JSON report contains case IDs,
+decisions, bounded reason codes, and latency but never repeats prompt text. Treat it as input-gate evidence only; image
+output evaluation still requires the live private-candidate matrix documented in `phase2-validation.md`.

@@ -1,0 +1,152 @@
+"""Configurable prompt and enforcement policies for local image generation."""
+
+from __future__ import annotations
+
+import json
+import re
+from dataclasses import dataclass
+from pathlib import Path
+
+
+ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
+
+
+class PolicyConfigurationError(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True)
+class GenerationPolicy:
+    id: str
+    policy_ids: tuple[str, ...]
+    semantic_instructions: tuple[str, ...]
+    prompt_prefix: str
+    prompt_suffix: str
+    negative_prompt: str
+    allow_client_negative_prompt: bool
+    refusal: str
+
+    def prepare_prompt(self, prompt: str, client_negative_prompt: str | None) -> tuple[str, str | None]:
+        normalized = prompt.strip()
+        effective_prompt = "\n\n".join(
+            part.strip() for part in (self.prompt_prefix, normalized, self.prompt_suffix) if part.strip()
+        )
+        if self.allow_client_negative_prompt:
+            negative_parts = (self.negative_prompt, client_negative_prompt or "")
+        else:
+            negative_parts = (self.negative_prompt,)
+        effective_negative = ", ".join(part.strip(" ,") for part in negative_parts if part.strip(" ,"))
+        return effective_prompt, effective_negative or None
+
+
+def unrestricted_policy() -> GenerationPolicy:
+    return GenerationPolicy(
+        id="unrestricted",
+        policy_ids=(),
+        semantic_instructions=(),
+        prompt_prefix="",
+        prompt_suffix="",
+        negative_prompt="",
+        allow_client_negative_prompt=True,
+        refusal="This request is not available under the active generation policy.",
+    )
+
+
+def load_generation_policy(policy_id: str, policy_dir: Path) -> GenerationPolicy:
+    if not ID_PATTERN.fullmatch(policy_id):
+        raise PolicyConfigurationError("IMAGE_POLICY_PRESET must be a safe lowercase policy ID")
+    path = policy_dir / f"{policy_id}.json"
+    if not path.is_file():
+        if policy_id == "unrestricted":
+            return unrestricted_policy()
+        raise PolicyConfigurationError(f"generation policy preset not found: {policy_id}")
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise PolicyConfigurationError(f"generation policy preset is unreadable: {policy_id}") from error
+    if data.get("id") != policy_id:
+        raise PolicyConfigurationError(f"generation policy preset has an invalid identity: {policy_id}")
+    profile_policy_ids: tuple[str, ...] = ()
+    semantic_instructions: tuple[str, ...] = ()
+    if data.get("schema_version") == 2:
+        profile_policy_ids = tuple(data.get("policy_ids", ()))
+        data = _compose_profile(data, policy_dir)
+        semantic_instructions = tuple(data.pop("semantic_instructions", ()))
+    elif data.get("schema_version") != 1:
+        raise PolicyConfigurationError(f"generation policy preset has an unsupported schema: {policy_id}")
+    prompt = data.get("prompt", {})
+    enforcement = data.get("enforcement", {})
+    input_policy = enforcement.get("input", {})
+    if not all(isinstance(value, dict) for value in (prompt, enforcement, input_policy)):
+        raise PolicyConfigurationError(f"generation policy preset has an invalid structure: {policy_id}")
+    return GenerationPolicy(
+        id=policy_id,
+        policy_ids=profile_policy_ids,
+        semantic_instructions=semantic_instructions,
+        prompt_prefix=str(prompt.get("prefix", "")),
+        prompt_suffix=str(prompt.get("suffix", "")),
+        negative_prompt=str(prompt.get("negative_prompt", "")),
+        allow_client_negative_prompt=bool(prompt.get("allow_client_negative_prompt", True)),
+        refusal=str(input_policy.get("refusal", "This request is not available under the active generation policy.")),
+    )
+
+
+def _compose_profile(profile: dict, policy_dir: Path) -> dict:
+    """Resolve a v2 profile into the v1 shape consumed by the image adapter."""
+    policy_ids = profile.get("policy_ids")
+    if not isinstance(policy_ids, list) or not all(
+        isinstance(policy_id, str) and ID_PATTERN.fullmatch(policy_id) for policy_id in policy_ids
+    ):
+        raise PolicyConfigurationError(f"generation policy profile has invalid policy_ids: {profile.get('id', '')}")
+
+    prefixes: list[str] = []
+    suffixes: list[str] = []
+    negative_prompts: list[str] = []
+    allow_client_negative_prompt = True
+    refusal = "This request is not available under the active generation policy."
+    semantic_instructions: list[str] = []
+    rule_dir = policy_dir.parent / "policy-rules"
+
+    for policy_id in policy_ids:
+        rule_path = rule_dir / f"{policy_id}.json"
+        try:
+            rule = json.loads(rule_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise PolicyConfigurationError(f"atomic prompt policy is unreadable: {policy_id}") from error
+        if rule.get("schema_version") != 1 or rule.get("id") != policy_id:
+            raise PolicyConfigurationError(f"atomic prompt policy has an invalid identity: {policy_id}")
+        capabilities = rule.get("capabilities")
+        if not isinstance(capabilities, dict) or not isinstance(capabilities.get("image"), dict):
+            raise PolicyConfigurationError(f"atomic prompt policy does not support image generation: {policy_id}")
+        image = capabilities["image"]
+        prompt = image.get("prompt", {})
+        input_policy = image.get("input", {})
+        if not isinstance(prompt, dict) or not isinstance(input_policy, dict):
+            raise PolicyConfigurationError(f"atomic prompt policy has an invalid image adapter: {policy_id}")
+        prefixes.append(str(prompt.get("prefix", "")))
+        suffixes.append(str(prompt.get("suffix", "")))
+        negative_prompts.append(str(prompt.get("negative_prompt", "")))
+        allow_client_negative_prompt = allow_client_negative_prompt and bool(
+            prompt.get("allow_client_negative_prompt", True)
+        )
+        if input_policy.get("refusal"):
+            refusal = str(input_policy["refusal"])
+        semantic = image.get("semantic", {})
+        if not isinstance(semantic, dict):
+            raise PolicyConfigurationError(f"atomic prompt policy has invalid semantic intent: {policy_id}")
+        instruction = semantic.get("instruction", "")
+        if instruction:
+            semantic_instructions.append(str(instruction))
+
+    return {
+        "schema_version": 1,
+        "id": profile["id"],
+        "prompt": {
+            "prefix": "\n\n".join(part for part in prefixes if part),
+            "suffix": "\n\n".join(part for part in suffixes if part),
+            "negative_prompt": ", ".join(part for part in negative_prompts if part),
+            "allow_client_negative_prompt": allow_client_negative_prompt,
+        },
+        "enforcement": {"input": {"refusal": refusal}},
+        "semantic_instructions": semantic_instructions,
+    }
