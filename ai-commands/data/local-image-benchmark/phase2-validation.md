@@ -98,6 +98,18 @@ reuse, and a second unload/reload. All three protected generations passed both s
 before inference with `semantic_policy_denied`. This is live regression evidence for the observed recovery path; it
 does not establish why the earlier retained model state produced false denials.
 
+## Ordinary clothed-person regression — 2026-09-23
+
+The web UI exposed an overly conservative output decision for benign prompts naming a boy or girl. The policy and
+evaluator contract now state explicitly that age, gender, or the mere presence of a person is not evidence of nudity or
+sexualization. Ordinary clothing and ordinary visible areas such as the face, hair, hands, forearms, and lower legs are
+compliant. The input corpus includes direct boy/girl cases plus clothed soccer and summer-dress boundary cases.
+
+After deploying the evaluator-prompt update, a live protected 512×512 Qwen generation for a boy explicitly wearing a
+blue shirt, jeans, and sneakers passed both semantic gates and returned HTTP 200. The temporary regression image was
+deleted after verification. Prohibited nudity and sexualization remain denied; this change removes age and gender as
+standalone denial signals rather than bypassing the policy.
+
 ## Automated evidence
 
 - 3 runtime-memory/safety tests pass.
