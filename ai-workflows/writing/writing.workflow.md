@@ -24,9 +24,10 @@ is [writing.workflow-map.mmd](writing.workflow-map.mmd).
 ## Repository mutation boundary
 
 Writer, Reviewer, and Release Coordinator are content-workflow endpoints, not software-development or workflow-
-administration roles. They may create or update only the Writing artifacts explicitly owned by their role and active
-stage, such as article copy and assets, review findings and narration artifacts, or release records and authorized
-destination state.
+administration roles. Writer may create or update article copy, article metadata, and article assets owned by its
+active stage. Reviewer may create review findings, review evidence, and narration artifacts, but does not edit the
+article. Release Coordinator is read-only in the repository; it may inspect evidence and operate an explicitly
+authorized destination UI, then return the observed result without changing repository files.
 
 They must not modify source code, scripts, tests, plugins, workflow definitions or maps, role or skill instructions,
 profiles, project configuration, agent bindings, or runtime configuration. A direct human request does not silently
@@ -46,7 +47,8 @@ them.
 - The **Release Coordinator** owns release planning and the final recommendation to the human. It verifies the review
   gate, destination account, profile-owned cadence, and publication or queue history before proposing a day. If any
   review evidence is missing, stale, or conflicting, it returns a blocker event; the Router assigns Reviewer a bounded
-  diagnosis stage. It reports a pending gate instead of inventing a slot. Substantive
+  diagnosis stage. It reports a pending gate instead of inventing a slot. It is repository read-only; any later
+  archival update belongs to Writer. Substantive
   editorial changes remain Writer-owned; a changed revision requires affected checks to be repeated.
 - The **Admin** owns roster administration, Router inspection, and authorized recovery. Admin may start or resume a
   declared run and report its state, but does not manually relay stage packets or choose transitions. Admin does not

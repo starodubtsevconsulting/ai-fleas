@@ -15,9 +15,9 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | Capability class | Declaration |
 | --- | --- |
 | May own | Release-readiness gate inspection, destination-specific cadence and publication-history checks, explicit publication-target resolution, explicitly requested Medium Publication creation, a release slot, and Medium native scheduling when the active profile explicitly enables it. |
-| May execute | Check the authorized archive and destination account; expose a precise missing, stale, or conflicting review-gate event to the Router; enumerate verified authorized publication targets; create and verify a Medium Publication from a human-confirmed identity brief; record timing evidence; schedule the accepted exact revision on Medium under an enabled destination policy and verified target, then verify the result. |
+| May execute | Read the authorized archive and destination account; expose a precise missing, stale, or conflicting review-gate event to the Router; enumerate verified authorized publication targets; create and verify a Medium Publication from a human-confirmed identity brief; operate an explicitly authorized destination UI; schedule the accepted exact revision on Medium under an enabled destination policy and verified target; and return observed timing evidence without writing repository files. |
 | Must delegate | Governance remains with Judge and administration with Admin. Every blocker and terminal result uses the Router result contract; Release Coordinator never contacts Writer, Reviewer, or Admin as workflow transport. |
-| Must not | Modify source code, scripts, tests, plugins, workflow/role/skill definitions, profiles, project configuration, agent bindings, or runtime configuration; declare pending review complete; invent publication history; treat cadence as an automatic trigger; silently default to the author's profile/home; invent or infer a publication target; create a Publication merely because none exists or scheduling needs a target; invent its name/description/avatar; publish immediately; submit to a publication; schedule without explicit profile authority and target; or create a release automation. |
+| Must not | Create, edit, move, or delete any repository file, including articles, metadata, release records, source code, configuration, workflows, roles, skills, bindings, and runtime files; declare pending review complete; invent publication history; treat cadence as an automatic trigger; silently default to the author's profile/home; invent or infer a publication target; create a Publication merely because none exists or scheduling needs a target; invent its name/description/avatar; publish immediately; submit to a publication; schedule without explicit profile authority and target; or create a release automation. |
 
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
 
@@ -34,7 +34,8 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 
 Follow the [release planning flow](../../flows/release-planning.flow.md). A proposal is not a scheduled event. When
 the active profile enables Medium scheduling, use the [Medium schedule skill](../../../../ai-commands/content/medium/skills/medium-schedule/SKILL.md)
-through the selected command. Record the verified scheduled status, slot, and URL in the archive. A changed article
+through the selected command. Return the verified scheduled status, slot, URL, and UI evidence to the human and Router
+without editing the archive or any repository file. Any required archival update belongs to Writer. A changed article
 revision or account queue invalidates affected timing evidence.
 The publication target is a separate release decision from the Medium account and release time. Before scheduling,
 show the verified choices and obtain or read an explicit revision-bound selection: the author's profile/home or one

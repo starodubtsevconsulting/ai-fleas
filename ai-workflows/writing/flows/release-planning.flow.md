@@ -49,15 +49,16 @@ a release-ready recommendation.
    (today, tomorrow, or later), explaining what would change the recommendation. The daily cap is a ceiling; a weekly
    target does not waive review or require filling every open day. Proof: a dated recommendation, candidate-week count,
    and checked constraints.
-6. For a destination or selected publication target without explicit scheduling authority, record the proposed day and status as `proposed` and hand
+6. For a destination or selected publication target without explicit scheduling authority, report the proposed day and status as `proposed` and hand
    the draft, readiness evidence, and timing recommendation to the human. For Medium `draft-and-schedule`, verify the
    workflow override and `release_policy.scheduling` enable `release-coordinator`, require direct exact-revision
    acceptance or a valid session-scoped release mandate, and waive the separate per-item scheduling approval. Match the archive revision
    to the intended Medium draft, verify the signed-in account, and verify the selected publication target is still
    active and supports native scheduling. Select a future slot that obeys the daily cap and
    known queue. Use the [Medium schedule skill](../../../ai-commands/content/medium/skills/medium-schedule/SKILL.md)
-   to schedule through Medium's native UI; read back the scheduled status and exact date/time. Record the verified
-   slot, time zone, draft URL, revision, exact publication target, and evidence in the archive, then report it to the human. If any gate or
+   to schedule through Medium's native UI; read back the scheduled status and exact date/time. Return the verified
+   slot, time zone, draft URL, revision, exact publication target, and UI evidence to the human and Router without
+   writing repository files. Any required archival update belongs to Writer. If any gate or
    read-back fails, leave or report the state as unresolved; do not claim scheduling succeeded. Never publish
    immediately, submit to a publication, silently fall back to profile/home, or create a release automation from this
    flow. If the selected Publication uses submission rather than supported native scheduling, leave the draft
@@ -66,5 +67,6 @@ a release-ready recommendation.
 ## Exit
 
 Hand off a verified scheduled Medium story, an unpublished draft with a justified recommendation, or an explicit
-pending gate. After publication, record the verified publication timestamp and URL in the archive before planning the
-next article. A new publication or queue change invalidates a prior slot recommendation.
+pending gate. Release Coordinator remains repository read-only after publication; it returns the verified timestamp
+and URL so Writer can perform any required archive update. A new publication or queue change invalidates a prior slot
+recommendation.
