@@ -17,7 +17,7 @@ The command exists to keep measurements reproducible, explain each model's purpo
 
 | Input | Required | Source | Description |
 |---|---|---|---|
-| Action | Yes | User | `explain`, `candidates`, `run`, `summarize`, `serve`, or `test-stream`. |
+| Action | Yes | User | `explain`, `candidates`, `run`, `summarize`, `serve`, `test-stream`, or `evaluate-policy`. |
 | Active AI Profile and workflow | For `run` and `serve` | Host activation | Authorizes an operation that loads a large model. |
 | `--confirm-model-isolated` | For `run` and `serve` | User | Confirms the managed model-mode switch has unloaded any conflicting large model. |
 | Candidate and output root | For `run` | User | Candidate ID and private directory where retained evidence is written. |
@@ -56,6 +56,7 @@ Committed configuration template: `local-image-benchmark/local-image-benchmark.c
 - “Summarize these image benchmark results.”
 - “Start the image service for diagnosis.”
 - “Test whether image generation resumes after a dropped browser stream.”
+- “Evaluate the semantic policy service against the adversarial and benign corpus.”
 
 ## Usage
 
@@ -108,3 +109,9 @@ the isolated worker instead of allowing the host to become unreachable. `IMAGE_E
 available for diagnostics only. Completed and failed requests can run garbage collection and release unused CUDA
 cache. Cache release is controlled by `IMAGE_RELEASE_CACHE_AFTER_GENERATION`; its default is `false` so existing service
 modes keep their prior caching behavior unless they explicitly opt in.
+
+`evaluate-policy --endpoint URL` runs `runtime/moderation-cases.json` against a configured semantic decision service.
+The public corpus includes explicit requests, paraphrases, euphemisms, misspellings, obfuscation, prompt injection,
+seven declared languages, benign prompts, and sensitive-but-allowed boundary cases. The JSON report contains case IDs,
+decisions, bounded reason codes, and latency but never repeats prompt text. Treat it as input-gate evidence only; image
+output evaluation still requires the live private-candidate matrix documented in `phase2-validation.md`.

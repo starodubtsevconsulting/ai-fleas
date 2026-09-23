@@ -33,6 +33,8 @@ Usage:
     [--moderation-url URL] [--moderation-timeout SECONDS] [--moderation-auth-token-file PATH] \
     [--port N] [--output-dir DIR]
   local-image-benchmark.command.sh test-stream
+  local-image-benchmark.command.sh evaluate-policy --endpoint URL \
+    [--policy ID] [--cases FILE] [--timeout SECONDS] [--auth-token-file FILE]
   local-image-benchmark.command.sh help
 
 Actions:
@@ -42,6 +44,7 @@ Actions:
   summarize    Turn one or more completed results.jsonl files into Markdown.
   serve        Start the OpenAI-compatible image service in the foreground.
   test-stream  Test disconnect/resume behavior without loading model weights.
+  evaluate-policy  Run the public adversarial/benign corpus against a configured semantic decision service.
 
 Safety:
   run and serve load a large model. They require a verified profile/workflow and
@@ -226,6 +229,11 @@ case "$action" in
     [[ $# -eq 0 ]] || { printf 'ERROR: test-stream accepts no arguments.\n' >&2; exit 64; }
     require_python
     exec "$PYTHON_BIN" "$RUNTIME_DIR/test_resumable_stream.py"
+    ;;
+  evaluate-policy)
+    require_profile
+    require_python
+    exec "$PYTHON_BIN" "$RUNTIME_DIR/evaluate_policy_moderator.py" "$@"
     ;;
   *)
     printf 'ERROR: unknown action: %s\n\n' "$action" >&2

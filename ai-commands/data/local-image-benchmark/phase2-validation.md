@@ -45,3 +45,14 @@ matrix with a representative corpus: paraphrases, euphemisms, misspellings, prom
 harmless sensitive-word contexts, and unsafe image candidates from benign prompts. Measure evaluator latency, false
 positives/negatives, memory impact, timeout behavior, browser/tunnel behavior, and recovery. Until those checks pass,
 Phase 2 is implemented but not active or semantically accepted for the public service.
+
+Run the checked-in input corpus through the profile-aware command:
+
+```bash
+${AI_COMMANDS_ROOT}/data/local-image-benchmark/local-image-benchmark.command.sh evaluate-policy \
+  --endpoint http://127.0.0.1:PORT/v1/policy/decisions \
+  --policy education-child
+```
+
+Use a mounted token file when the endpoint is not strictly loopback/private. Do not commit evaluator credentials or raw
+provider responses containing submitted content.

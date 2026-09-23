@@ -1,5 +1,11 @@
 import base64
+import json
+import os
+import tempfile
+import threading
 import unittest
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 from policy_moderation import (
     ModerationConfigurationError,
@@ -102,6 +108,65 @@ class SemanticModeratorTest(unittest.IsolatedAsyncioTestCase):
     def test_enabled_protected_gate_requires_endpoint(self):
         with self.assertRaises(ModerationConfigurationError):
             SemanticModerator(POLICY, "", input_enabled=True, output_enabled=False)
+
+    @unittest.skipUnless(os.environ.get("POLICY_HTTP_TEST") == "1", "requires loopback socket permission")
+    async def test_real_http_contract_and_bearer_token(self):
+        received = {}
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                received["authorization"] = self.headers.get("Authorization")
+                length = int(self.headers["Content-Length"])
+                received["payload"] = json.loads(self.rfile.read(length))
+                response = {
+                    "request_id": received["payload"]["request_id"],
+                    "decision": "allow",
+                    "reason_code": "policy_allow",
+                }
+                body = json.dumps(response).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *_):
+                pass
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                token_file = Path(directory) / "token"
+                token_file.write_text("test-token\n", encoding="utf-8")
+                moderator = SemanticModerator(
+                    POLICY,
+                    f"http://127.0.0.1:{server.server_port}/decide",
+                    input_enabled=True,
+                    output_enabled=False,
+                    auth_token_file=str(token_file),
+                )
+                await moderator.check_input("a harmless prompt")
+        finally:
+            server.shutdown()
+            thread.join()
+            server.server_close()
+
+        self.assertEqual(received["authorization"], "Bearer test-token")
+        self.assertEqual(received["payload"]["profile"]["policy_ids"], ["content-nudity"])
+        self.assertEqual(received["payload"]["content"]["text"], "a harmless prompt")
+
+    def test_evaluation_corpus_has_required_attack_and_benign_coverage(self):
+        cases = json.loads((Path(__file__).parent / "moderation-cases.json").read_text(encoding="utf-8"))
+        self.assertGreaterEqual(len(cases), 20)
+        self.assertTrue({"allow", "deny"}.issubset({case["expected"] for case in cases}))
+        self.assertTrue(
+            {"paraphrase", "euphemism", "misspelling", "obfuscation", "prompt-injection", "multilingual"}.issubset(
+                {case["kind"] for case in cases}
+            )
+        )
+        self.assertTrue({"en", "ru", "uk", "it", "es", "fr", "de"}.issubset({case["language"] for case in cases}))
 
 
 if __name__ == "__main__":
