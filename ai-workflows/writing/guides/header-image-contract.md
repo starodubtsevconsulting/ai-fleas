@@ -8,8 +8,13 @@ do not replace it.
 
 - Writer owns discovery or generation and supplies a fixed shortlist of no more than three profile-authorized
   candidates with previews and rights evidence. Reviewer does not search or expand it.
-- Candidates may be human-supplied, licensed stock, or at most one image commissioned through a profile-authorized
-  generator such as GPT web. No category wins automatically. Generation is optional and never preselects a winner.
+- Candidates may be human-supplied, licensed stock, or at most one image commissioned through the Writing workflow's
+  profile-authorized `image_generation` capability. The profile selects its default provider; an explicit human
+  instruction for the current task may select another profile-authorized provider without changing that default.
+  No category wins automatically. Generation is optional and never preselects a winner.
+- Publisher-specific stock discovery (for example imagery offered by a publishing destination) remains part of that
+  destination's publishing flow; it is not an image-generation provider. Deterministic asset rendering such as Mermaid
+  conversion is also separate from `image_generation`.
 - Writer exposes the shortlist and this contract's path/hash through the Router result; the Router assigns them to Reviewer. A human-facing
   report is not delivery.
 - Reviewer describes and compares each candidate, then returns exactly one recommendation or `none acceptable`.
