@@ -25,6 +25,9 @@ class GenerationPolicyTest(unittest.TestCase):
         self.assertEqual(policy.id, "education-child")
         self.assertEqual(len(policy.deny_rules), 14)
         self.assertEqual(policy.deny_rules[0].id, "content-nudity-en")
+        self.assertEqual(policy.policy_ids, ("content-nudity",))
+        self.assertEqual(len(policy.semantic_instructions), 1)
+        self.assertIn("multilingual phrasing", policy.semantic_instructions[0])
 
     def test_education_policy_rejects_direct_and_indirect_requests(self):
         policy = load_generation_policy("education-child", POLICY_DIR)

@@ -112,3 +112,27 @@ only that no configured expression matched; it is not a semantic safety decision
 transliteration, obfuscation, and unsupported languages require a later semantic moderation layer for stronger coverage.
 
 Policy configuration is trusted operational configuration. It must not be accepted from public inference requests.
+
+## Layered semantic enforcement
+
+The same selected profile can be enforced by multiple ordered layers. The first layer performs deterministic request
+checks. A protected deployment may then enable semantic input and output gates backed by a separately configured
+policy-decision service. Atomic policies provide the intent used by every layer; enabling Phase 2 does not create a
+second policy selection and cannot weaken or bypass Phase 1.
+
+```text
+selected profile -> atomic policy intent
+                         |
+                         +-> deterministic request rules
+                         +-> semantic input decision
+                         +-> capability-specific output decision
+```
+
+The decision service is an enforcement dependency, not a public assistant. It can be implemented by a reasoning model,
+classifier, provider API, or ensemble behind the same strict decision contract. Public clients cannot modify its
+instructions, thresholds, endpoint, or selected policy. When a semantic layer is enabled, missing configuration,
+timeouts, malformed or uncertain decisions, and unavailable enforcement fail closed.
+
+Candidate outputs remain private until all enabled output gates allow release. An image adapter therefore moderates the
+in-memory candidate before writing a public output file or returning encoded bytes. Text and multimodal adapters must
+provide the equivalent hold-before-release boundary.

@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 
 from safety import available_memory_bytes, env_bool, env_float, env_int, request_limit_error
 from generation_policy import load_generation_policy
+from policy_moderation import PolicyDecisionError, SemanticModerator, SemanticPolicy
 
 
 MODEL_ID = os.environ.get("IMAGE_MODEL_ID", "black-forest-labs/FLUX.2-dev")
@@ -55,6 +56,19 @@ UI_DIR = Path(os.environ.get("IMAGE_UI_DIR", "/benchmark/ui"))
 POLICY_DIR = Path(os.environ.get("IMAGE_POLICY_DIR", str(Path(__file__).parent / "policies")))
 POLICY_ID = os.environ.get("IMAGE_POLICY_PRESET", "unrestricted")
 GENERATION_POLICY = load_generation_policy(POLICY_ID, POLICY_DIR)
+SEMANTIC_MODERATOR = SemanticModerator(
+    SemanticPolicy(
+        profile_id=GENERATION_POLICY.id,
+        policy_ids=GENERATION_POLICY.policy_ids,
+        instructions=GENERATION_POLICY.semantic_instructions,
+        refusal=GENERATION_POLICY.refusal,
+    ),
+    os.environ.get("IMAGE_POLICY_MODERATION_URL", ""),
+    input_enabled=env_bool("IMAGE_POLICY_SEMANTIC_INPUT", False),
+    output_enabled=env_bool("IMAGE_POLICY_SEMANTIC_OUTPUT", False),
+    timeout_seconds=env_float("IMAGE_POLICY_MODERATION_TIMEOUT_SECONDS", 5.0, 0.1),
+    auth_token_file=os.environ.get("IMAGE_POLICY_MODERATION_AUTH_TOKEN_FILE", ""),
+)
 PIPELINE = None
 GENERATION_LOCK = asyncio.Lock()
 BACKGROUND_TASKS: set[asyncio.Task] = set()
@@ -142,6 +156,25 @@ def validated_request(width: int, height: int, steps: int) -> None:
         )
 
 
+def policy_http_exception(error: PolicyDecisionError) -> HTTPException:
+    status = 503 if error.unavailable else 400
+    return HTTPException(status, error.public_message, headers={"X-Policy-Reason-Code": error.reason_code})
+
+
+async def validate_policy_input(prompt: str) -> None:
+    try:
+        GENERATION_POLICY.validate_prompt(prompt)
+        await SEMANTIC_MODERATOR.check_input(prompt)
+    except ValueError as error:
+        raise HTTPException(
+            400,
+            str(error),
+            headers={"X-Policy-Reason-Code": "deterministic_input_denied"},
+        ) from error
+    except PolicyDecisionError as error:
+        raise policy_http_exception(error) from error
+
+
 def release_generation_memory() -> None:
     if not RELEASE_CACHE_AFTER_GENERATION:
         return
@@ -225,6 +258,13 @@ async def generate_image(
         try:
             image = await asyncio.to_thread(lambda: PIPELINE(**kwargs).images[0])
             elapsed = time.perf_counter() - started
+            if SEMANTIC_MODERATOR.output_enabled:
+                candidate = io.BytesIO()
+                image.save(candidate, format="PNG")
+                try:
+                    await SEMANTIC_MODERATOR.check_image_output(candidate.getvalue())
+                except PolicyDecisionError as error:
+                    raise policy_http_exception(error) from error
         finally:
             watchdog_stop.set()
             await watchdog
@@ -282,6 +322,8 @@ def health():
         "status": "ready",
         "model": MODEL_ID,
         "generation_policy": GENERATION_POLICY.id,
+        "semantic_input": SEMANTIC_MODERATOR.input_enabled,
+        "semantic_output": SEMANTIC_MODERATOR.output_enabled,
         "available_memory_bytes": available,
     }
 
@@ -303,6 +345,8 @@ def props(model: str | None = None, autoload: bool = False):
         "modalities": {"vision": False, "audio": False},
         "capabilities": ["image-generation"],
         "generation_policy": GENERATION_POLICY.id,
+        "semantic_input": SEMANTIC_MODERATOR.input_enabled,
+        "semantic_output": SEMANTIC_MODERATOR.output_enabled,
         "default_generation_settings": {
             "id": MODEL_ID,
             "params": {
@@ -322,6 +366,7 @@ async def generate(request: GenerationRequest):
     if request.response_format != "b64_json":
         raise HTTPException(400, "only response_format=b64_json is supported")
     width, height = parse_size(request.size)
+    await validate_policy_input(request.prompt)
     seed = request.seed if request.seed is not None else int.from_bytes(os.urandom(8), "big")
     try:
         image, elapsed = await generate_image(
@@ -349,10 +394,7 @@ async def generate(request: GenerationRequest):
 @app.post("/v1/chat/completions")
 async def chat_completions(payload: dict, http_request: Request):
     prompt = chat_prompt(payload.get("messages"))
-    try:
-        GENERATION_POLICY.validate_prompt(prompt)
-    except ValueError as error:
-        raise HTTPException(400, str(error)) from error
+    await validate_policy_input(prompt)
     width, height = parse_size(str(payload.get("size", DEFAULT_SIZE)))
     steps = int(payload.get("steps", DEFAULT_STEPS))
     guidance = float(payload.get("guidance_scale", DEFAULT_GUIDANCE))
@@ -406,6 +448,17 @@ async def chat_completions(payload: dict, http_request: Request):
             done = dict(chunk)
             done["choices"] = [{"index": 0, "delta": {}, "finish_reason": "stop"}]
             await active_session.append(f"data: {json.dumps(done)}\n\n")
+            await active_session.append("data: [DONE]\n\n")
+        except HTTPException as error:
+            reason_code = (error.headers or {}).get("X-Policy-Reason-Code", "policy_rejected")
+            message = {
+                "error": {
+                    "message": str(error.detail),
+                    "type": "policy_error",
+                    "reason_code": reason_code,
+                }
+            }
+            await active_session.append(f"data: {json.dumps(message)}\n\n")
             await active_session.append("data: [DONE]\n\n")
         except Exception as error:
             message = {"error": {"message": str(error), "type": "generation_error"}}

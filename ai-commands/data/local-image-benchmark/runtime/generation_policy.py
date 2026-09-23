@@ -24,6 +24,8 @@ class DenyRule:
 @dataclass(frozen=True)
 class GenerationPolicy:
     id: str
+    policy_ids: tuple[str, ...]
+    semantic_instructions: tuple[str, ...]
     prompt_prefix: str
     prompt_suffix: str
     negative_prompt: str
@@ -54,6 +56,8 @@ class GenerationPolicy:
 def unrestricted_policy() -> GenerationPolicy:
     return GenerationPolicy(
         id="unrestricted",
+        policy_ids=(),
+        semantic_instructions=(),
         prompt_prefix="",
         prompt_suffix="",
         negative_prompt="",
@@ -77,8 +81,12 @@ def load_generation_policy(policy_id: str, policy_dir: Path) -> GenerationPolicy
         raise PolicyConfigurationError(f"generation policy preset is unreadable: {policy_id}") from error
     if data.get("id") != policy_id:
         raise PolicyConfigurationError(f"generation policy preset has an invalid identity: {policy_id}")
+    profile_policy_ids: tuple[str, ...] = ()
+    semantic_instructions: tuple[str, ...] = ()
     if data.get("schema_version") == 2:
+        profile_policy_ids = tuple(data.get("policy_ids", ()))
         data = _compose_profile(data, policy_dir)
+        semantic_instructions = tuple(data.pop("semantic_instructions", ()))
     elif data.get("schema_version") != 1:
         raise PolicyConfigurationError(f"generation policy preset has an unsupported schema: {policy_id}")
     prompt = data.get("prompt", {})
@@ -100,6 +108,8 @@ def load_generation_policy(policy_id: str, policy_dir: Path) -> GenerationPolicy
         rules.append(DenyRule(id=raw_rule["id"], pattern=pattern))
     return GenerationPolicy(
         id=policy_id,
+        policy_ids=profile_policy_ids,
+        semantic_instructions=semantic_instructions,
         prompt_prefix=str(prompt.get("prefix", "")),
         prompt_suffix=str(prompt.get("suffix", "")),
         negative_prompt=str(prompt.get("negative_prompt", "")),
@@ -123,6 +133,7 @@ def _compose_profile(profile: dict, policy_dir: Path) -> dict:
     allow_client_negative_prompt = True
     refusal = "This request is not available under the active generation policy."
     deny_rules: list[dict] = []
+    semantic_instructions: list[str] = []
     seen_rule_ids: set[str] = set()
     rule_dir = policy_dir.parent / "policy-rules"
 
@@ -159,6 +170,12 @@ def _compose_profile(profile: dict, policy_dir: Path) -> dict:
                 raise PolicyConfigurationError(f"duplicate prompt policy deny rule: {rule_id}")
             seen_rule_ids.add(rule_id)
             deny_rules.append(raw_rule)
+        semantic = image.get("semantic", {})
+        if not isinstance(semantic, dict):
+            raise PolicyConfigurationError(f"atomic prompt policy has invalid semantic intent: {policy_id}")
+        instruction = semantic.get("instruction", "")
+        if instruction:
+            semantic_instructions.append(str(instruction))
 
     return {
         "schema_version": 1,
@@ -170,4 +187,5 @@ def _compose_profile(profile: dict, policy_dir: Path) -> dict:
             "allow_client_negative_prompt": allow_client_negative_prompt,
         },
         "enforcement": {"input": {"refusal": refusal, "deny_rules": deny_rules}},
+        "semantic_instructions": semantic_instructions,
     }

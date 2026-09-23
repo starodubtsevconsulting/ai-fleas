@@ -94,3 +94,97 @@ legacy configuration until the profile records an explicit choice.
 The Qwen image deployment proves the image capability adapter only. The shared composition contract is intended for
 all model runtimes; text and multimodal adapters remain separate acceptance work. Prompt filtering reduces accidental
 or direct misuse but is not a substitute for output moderation where a deployment requires a stronger guarantee.
+
+## Phase 2 semantic moderation
+
+Phase 2 adds optional semantic gates around inference while retaining the deterministic Phase 1 gate as the cheapest
+first check. Both phases consume the same selected profile and its ordered atomic policies. Operators select a policy
+once; they do not maintain separate Phase 1 and Phase 2 policy choices.
+
+```text
+public request
+     |
+     v
+Phase 1 deterministic gate -- deny --> neutral refusal (no inference)
+     |
+    allow
+     v
+Phase 2 semantic input gate -- deny/error/uncertain --> neutral refusal (no inference)
+     |
+    allow
+     v
+model inference -> private candidate -> Phase 2 output gate
+                                      | deny/error/uncertain
+                                      +--------------------> discard; never publish
+                                      |
+                                     allow
+                                      v
+                               encode/save/respond
+```
+
+The serving adapter calls a separately configured policy-decision service over a versioned JSON contract. The
+decision service may use a local reasoning model, classifier, remote moderation provider, or a conservative ensemble;
+the image runtime does not branch on that implementation or on the generated model's name. Hermes or another public
+client may call the protected image service, but is never the enforcement boundary.
+
+Semantic gates are enabled with trusted service configuration, not request fields. Enabling either semantic gate for a
+protected profile requires a decision-service URL. Startup fails when required configuration is missing. At request
+time, timeout, transport failure, malformed JSON, a mismatched request ID, `uncertain`, or an unknown decision all fail
+closed. Explicit `unrestricted` operation bypasses policy gates only when selected at trusted model initialization.
+
+The decision request includes the selected profile ID, atomic policy IDs, stage (`input` or `output`), capability, a
+unique request ID, and stage content. Input content is the original user text. Image output content is the private PNG
+candidate encoded in memory; it is not written to the public output directory before an allow decision. A valid
+decision contains the matching request ID, `allow` or `deny`, and an operator-facing reason code. Public refusals remain
+neutral; logs and response headers may carry bounded reason codes but must not log prohibited prompt or image content.
+
+The runtime emits one structured `policy_moderation_decision` event containing only request ID, profile ID, stage,
+decision, bounded reason code, and latency. It never logs submitted text or candidate bytes. The protected service
+accepts exactly `allow` or `deny`; an evaluator's `uncertain` result is deliberately treated as unavailable enforcement.
+
+Example decision response (the request ID must echo the request exactly):
+
+```json
+{
+  "request_id": "e1f7c02a5f7d4a92b6e936148b53d09a",
+  "decision": "deny",
+  "reason_code": "semantic_nudity"
+}
+```
+
+`reason_code` is limited to lowercase letters, numbers, dots, underscores, and hyphens, with a maximum length of 64.
+The decision endpoint should be network-restricted and authenticated through a mounted token file when it is not
+strictly loopback/private. The adapter sends the token as a bearer credential and never includes it in health output.
+
+Phase 2 does not claim perfect moderation. Its assurance depends on the configured decision service and policy tests.
+Deployment evidence must record evaluator identity/version, bypass corpus, benign false-positive checks, latency, and
+failure-mode results. Output retention is zero for rejected candidates in this adapter because candidates remain
+in-memory and are released without publication.
+
+### Architecture decision and trade-offs
+
+| Option | Accuracy and coverage | Runtime cost | Privacy and availability | Decision |
+|---|---|---|---|---|
+| Generated-model instructions alone | Varies by model; image generators may not provide a reliable reasoning/refusal boundary | Low | Local, but prompt injection and model variance make it unsuitable as the enforcement boundary | May complement enforcement, never sufficient alone |
+| Classifier embedded in each model service | Good for the classifier's fixed taxonomy | Competes for memory and duplicates lifecycle code across text/image runtimes | Local and offline; an embedded failure can affect the generator | Supported behind the generic decision contract, not embedded here |
+| Local decision service | Can use a reasoning model, classifier, or ensemble and evaluate multilingual/obfuscated intent | Adds one input call and, when enabled, one output call | Keeps content local; availability must be managed independently | Preferred for private deployments when hardware permits |
+| Remote decision service | Can use a stronger managed moderation/reasoning model | Network latency and possible usage cost | Content leaves the host; depends on provider/network and requires an explicit privacy decision | Supported but not selected implicitly |
+
+The adapter therefore standardizes the decision boundary rather than hard-coding an evaluator. This keeps policy
+selection model-agnostic and permits local or remote evaluation without exposing a raw generation path. A deployment
+is not Phase 2-protected merely because this adapter exists: both desired gate flags, an authenticated/restricted
+decision endpoint, evaluator identity, and acceptance evidence must be present.
+
+## Phase 2 operations
+
+- `IMAGE_POLICY_SEMANTIC_INPUT=true` enables semantic input decisions after Phase 1 and before inference.
+- `IMAGE_POLICY_SEMANTIC_OUTPUT=true` enables image decisions before encoding, saving, or returning a candidate.
+- `IMAGE_POLICY_MODERATION_URL` selects the trusted decision endpoint.
+- `IMAGE_POLICY_MODERATION_TIMEOUT_SECONDS` bounds each decision call.
+- `IMAGE_POLICY_MODERATION_AUTH_TOKEN_FILE` optionally points to a mounted token file; secrets are never accepted in
+  public request payloads or committed configuration.
+
+Recovery is to restore the decision service and restart the managed model service. Protected modes remain unavailable
+rather than silently bypassing enabled gates. Rollback disables the Phase 2 gate flags in trusted service configuration
+and restarts the service, leaving Phase 1 deterministic enforcement active. Switching to `unrestricted` is a separate,
+explicitly acknowledged deployment decision and is not a recovery mechanism.
