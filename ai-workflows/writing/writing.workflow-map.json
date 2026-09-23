@@ -63,7 +63,7 @@
           "to": "review",
           "requiredReferenceKinds": ["revision", "review-packet"],
           "retryPolicy": {
-            "maxSameProgressAttempts": 3,
+            "requireChangedProgress": true,
             "progressReferenceKinds": ["revision"]
           }
         }
