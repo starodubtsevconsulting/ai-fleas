@@ -170,11 +170,11 @@ in-memory and are released without publication.
 | Local decision service | Can use a reasoning model, classifier, or ensemble and evaluate multilingual/obfuscated intent | Adds one input call and, when enabled, one output call | Keeps content local; availability must be managed independently | Preferred for private deployments when hardware permits |
 | Remote decision service | Can use a stronger managed moderation/reasoning model | Network latency and possible usage cost | Content leaves the host; depends on provider/network and requires an explicit privacy decision | Supported but not selected implicitly |
 
-The initial private deployment uses the separate AMD Threadripper AI host as the failure-isolated decision service.
-Its already-installed `gemma3:4b` Ollama model runs CPU-only so it does not displace the host's active GPU model. GX10
-reaches only the narrow authenticated decision endpoint over the private LAN; Ollama remains loopback-only and neither
-the evaluator nor candidate content traverses a public tunnel. The included `ai-policy-evaluator.service` is a reusable
-systemd user-service template; host addresses, credentials, and profile-specific activation remain private configuration.
+A private profile may select a separate profile-owned AI host as the failure-isolated decision service, or select a
+co-resident evaluator when resource isolation is sufficient. The evaluator host, model, endpoint, credentials, and
+resource allocation are deployment choices; none are defaults of this portable command. The image-generation host
+reaches only the profile-selected decision endpoint. The included `ai-policy-evaluator.service` is a reusable systemd
+user-service template; host addresses, credentials, and profile-specific activation remain private configuration.
 
 The adapter therefore standardizes the decision boundary rather than hard-coding an evaluator. This keeps policy
 selection model-agnostic and permits local or remote evaluation without exposing a raw generation path. A deployment

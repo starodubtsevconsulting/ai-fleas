@@ -96,6 +96,8 @@ class OllamaPolicyEvaluator:
     def __init__(
         self, endpoint: str, model: str, timeout_seconds: float, num_gpu_layers: int = 0, keep_alive: str = "0"
     ):
+        if not model.strip():
+            raise EvaluatorError("POLICY_SERVICE_MODEL is required")
         self.endpoint = endpoint.rstrip("/") + "/api/chat"
         self.model = model
         self.timeout_seconds = timeout_seconds
@@ -247,7 +249,7 @@ def main() -> int:
     parser.add_argument("--host", default=os.environ.get("POLICY_SERVICE_HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=int(os.environ.get("POLICY_SERVICE_PORT", "8091")))
     parser.add_argument("--ollama-url", default=os.environ.get("POLICY_SERVICE_OLLAMA_URL", "http://127.0.0.1:11434"))
-    parser.add_argument("--model", default=os.environ.get("POLICY_SERVICE_MODEL", "gemma3:4b"))
+    parser.add_argument("--model", default=os.environ.get("POLICY_SERVICE_MODEL", ""))
     parser.add_argument(
         "--timeout", type=float, default=float(os.environ.get("POLICY_SERVICE_OLLAMA_TIMEOUT_SECONDS", "120"))
     )

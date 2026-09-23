@@ -23,6 +23,10 @@ def request(stage="input"):
 
 
 class OllamaPolicyServiceTest(unittest.TestCase):
+    def test_requires_profile_selected_model(self):
+        with self.assertRaisesRegex(EvaluatorError, "POLICY_SERVICE_MODEL is required"):
+            OllamaPolicyEvaluator("http://localhost:11434", "", 1)
+
     def test_numeric_keep_alive_is_sent_as_an_integer(self):
         evaluator = OllamaPolicyEvaluator("http://localhost:11434", "model", 1, keep_alive="-1")
         self.assertEqual(evaluator.keep_alive, -1)

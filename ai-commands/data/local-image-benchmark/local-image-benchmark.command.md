@@ -48,6 +48,18 @@ Every invocation is profile-aware: the host must verify that the active workflow
 
 Committed configuration template: `local-image-benchmark/local-image-benchmark.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
+Policy deployment is split deliberately:
+
+- `policy_evaluators` defines reusable profile-owned evaluator resources, including the host reference, endpoint, model,
+  credential-file binding, and runtime allocation;
+- `workflow_policy_bindings` makes each workflow opt into an evaluator, policy profile, and input/output gates explicitly;
+- an unlisted workflow inherits no policy binding from another workflow;
+- the profile/platform adapter renders the selected binding into the evaluator and generation-service environments. The
+  portable command supplies the contract and templates, but no deployment host, evaluator model, or policy default.
+
+This permits two workflows in the same profile to reuse one evaluator while selecting different policy profiles and gate
+settings. It also permits a workflow to remain unbound until its owner makes that choice explicitly.
+
 ## Supported Prompts
 
 - “Explain the local image benchmark.”
