@@ -1,0 +1,5 @@
+{
+  "schema_version": 2,
+  "id": "education-child",
+  "policy_ids": ["content-nudity"]
+}

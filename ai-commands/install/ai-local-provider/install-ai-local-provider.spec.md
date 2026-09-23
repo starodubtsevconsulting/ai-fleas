@@ -54,6 +54,10 @@ The important boundaries are:
 - provider selection supplies inference only and never expands consumer authority;
 - a remote machine may retain multiple models, but its provider runs at most one active model at a time.
 
+Model prompt-policy selection and enforcement are defined by
+[`model-prompt-policy.md`](model-prompt-policy.md). The lifecycle command selects a trusted profile; capability adapters
+apply it at request time. This contract is model-agnostic and applies to text, image, and multimodal modes.
+
 ## Status
 
 BETA. Remote SSH onboarding, preflight, status, plan validation, and Ubuntu 24.04 provisioning are implemented. The

@@ -29,6 +29,7 @@ Usage:
   local-image-benchmark.command.sh serve --confirm-model-isolated \
     [--model MODEL_ID] [--model-revision REVISION] [--dtype TYPE] [--steps N] [--guidance N] \
     [--guidance-parameter guidance_scale|true_cfg_scale|none] [--negative-prompt TEXT] \
+    [--policy-preset ID] \
     [--port N] [--output-dir DIR]
   local-image-benchmark.command.sh test-stream
   local-image-benchmark.command.sh help
@@ -174,6 +175,7 @@ case "$action" in
     guidance="4.0"
     guidance_parameter="guidance_scale"
     negative_prompt=""
+    policy_preset="unrestricted"
     port="8000"
     output_dir="/outputs"
     set -- ${FORWARDED_ARGS[@]+"${FORWARDED_ARGS[@]}"}
@@ -186,6 +188,7 @@ case "$action" in
         --guidance) guidance="${2:-}"; shift 2 ;;
         --guidance-parameter) guidance_parameter="${2:-}"; shift 2 ;;
         --negative-prompt) negative_prompt="${2:-}"; shift 2 ;;
+        --policy-preset) policy_preset="${2:-}"; shift 2 ;;
         --port) port="${2:-}"; shift 2 ;;
         --output-dir) output_dir="${2:-}"; shift 2 ;;
         *) printf 'ERROR: unknown serve argument: %s\n' "$1" >&2; exit 64 ;;
@@ -194,10 +197,12 @@ case "$action" in
     [[ "$steps" =~ ^[1-9][0-9]*$ ]] || { printf 'ERROR: --steps must be a positive integer.\n' >&2; exit 64; }
     [[ "$port" =~ ^[1-9][0-9]*$ ]] && (( port <= 65535 )) || { printf 'ERROR: --port must be 1..65535.\n' >&2; exit 64; }
     [[ "$guidance_parameter" =~ ^(guidance_scale|true_cfg_scale|none)$ ]] || { printf 'ERROR: --guidance-parameter is invalid.\n' >&2; exit 64; }
+    [[ "$policy_preset" =~ ^[a-z0-9][a-z0-9._-]*$ ]] || { printf 'ERROR: --policy-preset is invalid.\n' >&2; exit 64; }
     "$PYTHON_BIN" -c 'import uvicorn' >/dev/null 2>&1 || { printf 'ERROR: uvicorn is not installed in the benchmark environment.\n' >&2; exit 69; }
     export IMAGE_MODEL_ID="$model" IMAGE_MODEL_REVISION="$model_revision" IMAGE_DTYPE="$dtype" IMAGE_DEFAULT_STEPS="$steps"
     export IMAGE_DEFAULT_GUIDANCE="$guidance" IMAGE_GUIDANCE_PARAMETER="$guidance_parameter"
     export IMAGE_DEFAULT_NEGATIVE_PROMPT="$negative_prompt" IMAGE_OUTPUT_DIR="$output_dir"
+    export IMAGE_POLICY_PRESET="$policy_preset"
     cd "$RUNTIME_DIR"
     exec "$PYTHON_BIN" -m uvicorn serve:app --host 0.0.0.0 --port "$port"
     ;;

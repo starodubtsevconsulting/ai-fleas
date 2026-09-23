@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "content-nudity",
+  "capabilities": {
+    "image": {
+      "prompt": {
+        "prefix": "Create an age-appropriate, non-sexual image suitable for a supervised educational setting.",
+        "suffix": "Keep every person fully clothed in ordinary non-revealing clothing. Do not depict nudity, sexualization, fetish content, or intimate body exposure.",
+        "negative_prompt": "nudity, nude, naked, nsfw, sexualized, erotic, fetish, lingerie, revealing clothing, intimate body parts",
+        "allow_client_negative_prompt": false
+      },
+      "input": {
+        "refusal": "I can only create age-appropriate images for this learning environment.",
+        "deny_rules": [
+          {
+            "id": "content-nudity-en",
+            "pattern": "\\b(nude|nudity|naked|nsfw|erotic|sexual(?:ized)?|fetish|lingerie|topless|bottomless|intimate\\s+(?:body\\s+)?parts?)\\b"
+          },
+          {
+            "id": "content-exposure-en",
+            "pattern": "\\b(remove|take\\s+off|without|open)\\b.{0,32}\\b(clothes?|shirt|dress|underwear|bra|pants|skirt)\\b|\\b(expose|show)\\b.{0,32}\\b(breasts?|genitals?|buttocks?|private\\s+parts?)\\b"
+          },
+          {
+            "id": "content-nudity-ru",
+            "pattern": "(?<!\\w)(?:гол(?:ая|ый|ое|ые|ую|ого)|обнаж(?:ённ|енн)(?:ая|ый|ое|ые|ую|ого)|нагишом|эротик\\w*|порнограф\\w*)(?!\\w)"
+          },
+          {
+            "id": "content-exposure-ru",
+            "pattern": "(?<!\\w)(?:сними|снять|убери|убрать|без)(?!\\w).{0,32}(?<!\\w)(?:одежд\\w*|бель\\w*|лифчик\\w*)(?!\\w)|(?<!\\w)(?:покажи|показать|обнажи|обнажить)(?!\\w).{0,32}(?<!\\w)(?:груд\\w*|генитал\\w*|ягодиц\\w*|интимн\\w+\\s+част\\w*)(?!\\w)"
+          },
+          {
+            "id": "content-nudity-uk",
+            "pattern": "(?<!\\w)(?:гол(?:а|ий|е|і|у|ого)|оголен(?:а|ий|е|і|у|ого)|еротичн\\w*|порнограф\\w*)(?!\\w)"
+          },
+          {
+            "id": "content-exposure-uk",
+            "pattern": "(?<!\\w)(?:зніми|зняти|прибери|без)(?!\\w).{0,32}(?<!\\w)(?:одяг\\w*|білизн\\w*|бюстгальтер\\w*)(?!\\w)|(?<!\\w)(?:покажи|показати|оголи|оголити)(?!\\w).{0,32}(?<!\\w)(?:груд\\w*|генітал\\w*|сідниц\\w*|інтимн\\w+\\s+частин\\w*)(?!\\w)"
+          },
+          {
+            "id": "content-nudity-it",
+            "pattern": "\\b(?:nud[oaie]|nudità|erotic[oaie]|pornograf\\w*|senza\\s+vestiti)\\b"
+          },
+          {
+            "id": "content-exposure-it",
+            "pattern": "\\b(?:togli|rimuovi|senza)\\b.{0,32}\\b(?:vestiti|biancheria|reggiseno)\\b|\\b(?:mostra|scopri)\\b.{0,32}\\b(?:seno|genitali|natiche|parti\\s+intime)\\b"
+          },
+          {
+            "id": "content-nudity-es",
+            "pattern": "\\b(?:desnud[oa]s?|desnudez|erótic[oa]s?|pornograf\\w*|sin\\s+ropa)\\b"
+          },
+          {
+            "id": "content-exposure-es",
+            "pattern": "\\b(?:quita|quitar|retira|sin)\\b.{0,32}\\b(?:ropa|vestido|lencería|sujetador)\\b|\\b(?:muestra|mostrar|expón)\\b.{0,32}\\b(?:pechos?|senos?|genitales|nalgas|partes\\s+íntimas)\\b"
+          },
+          {
+            "id": "content-nudity-fr",
+            "pattern": "\\b(?:nu(?:e|es|s)?|nudité|érotique\\w*|pornograph\\w*|sans\\s+vêtements)\\b"
+          },
+          {
+            "id": "content-exposure-fr",
+            "pattern": "\\b(?:enlève|enlever|retire|sans)\\b.{0,32}\\b(?:vêtements|habits|lingerie|soutien-gorge)\\b|\\b(?:montre|montrer|expose)\\b.{0,32}\\b(?:seins?|organes\\s+génitaux|fesses|parties\\s+intimes)\\b"
+          },
+          {
+            "id": "content-nudity-de",
+            "pattern": "(?<!\\w)(?:nackt\\w*|Nacktheit|unbekleidet\\w*|erotisch\\w*|pornograf\\w*|ohne\\s+Kleidung)(?!\\w)"
+          },
+          {
+            "id": "content-exposure-de",
+            "pattern": "(?<!\\w)(?:zieh|ausziehen|entferne|ohne)(?!\\w).{0,32}(?<!\\w)(?:Kleidung|Kleider|Unterwäsche|BH)(?!\\w)|(?<!\\w)(?:zeig|zeige|zeigen|entblöße)(?!\\w).{0,32}(?<!\\w)(?:Brüste|Genitalien|Gesäß|Intimbereich)(?!\\w)"
+          }
+        ]
+      }
+    }
+  }
+}
