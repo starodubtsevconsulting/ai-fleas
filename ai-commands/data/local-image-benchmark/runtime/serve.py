@@ -349,6 +349,10 @@ async def generate(request: GenerationRequest):
 @app.post("/v1/chat/completions")
 async def chat_completions(payload: dict, http_request: Request):
     prompt = chat_prompt(payload.get("messages"))
+    try:
+        GENERATION_POLICY.validate_prompt(prompt)
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
     width, height = parse_size(str(payload.get("size", DEFAULT_SIZE)))
     steps = int(payload.get("steps", DEFAULT_STEPS))
     guidance = float(payload.get("guidance_scale", DEFAULT_GUIDANCE))

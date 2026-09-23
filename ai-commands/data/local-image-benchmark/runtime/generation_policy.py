@@ -31,11 +31,15 @@ class GenerationPolicy:
     refusal: str
     deny_rules: tuple[DenyRule, ...]
 
-    def prepare_prompt(self, prompt: str, client_negative_prompt: str | None) -> tuple[str, str | None]:
+    def validate_prompt(self, prompt: str) -> None:
         normalized = prompt.strip()
         for rule in self.deny_rules:
             if rule.pattern.search(normalized):
                 raise ValueError(self.refusal)
+
+    def prepare_prompt(self, prompt: str, client_negative_prompt: str | None) -> tuple[str, str | None]:
+        normalized = prompt.strip()
+        self.validate_prompt(normalized)
         effective_prompt = "\n\n".join(
             part.strip() for part in (self.prompt_prefix, normalized, self.prompt_suffix) if part.strip()
         )
