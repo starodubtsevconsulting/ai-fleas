@@ -80,6 +80,79 @@ See [`model-prompt-policy.md`](model-prompt-policy.md) for the composition diagr
 automation contract, and limitations. These switches describe the generic contract and are not yet implemented for all
 model modes.
 
+## Protected image-service installation and runtime
+
+The image UI is a client; it is not the enforcement boundary and does not call the evaluator directly. Installation of
+a protected image mode places the request-time enforcement hook in the image-serving backend on the generator host.
+Every browser, API, tunnel, and automated client therefore traverses the same validation path.
+
+```text
+browser
+   |
+   v
+public access/tunnel
+   |
+   v
+generator host: image-serving backend
+   |  1. authenticated semantic input decision
+   +---------------------------------------------> evaluator host: policy service -> local reasoning model
+   |<--------------------------------------------- allow / deny / uncertain
+   |
+   |  2. only allow reaches the image model
+   v
+private in-memory candidate
+   |  3. authenticated semantic output decision
+   +---------------------------------------------> evaluator host
+   |<--------------------------------------------- allow / deny / uncertain
+   |
+   +-- allow: encode/save/respond
+   +-- deny/uncertain/error: discard; never publish
+```
+
+The image-serving backend is a managed process on the generator box (for example, a FastAPI/Uvicorn process inside the
+profile-selected container, owned by a systemd user service). It, not the web UI or tunnel, calls the evaluator over the
+trusted private network. The evaluator exposes only the narrow authenticated decision contract; its underlying model
+runtime may remain loopback-only.
+
+The current generic reference implementation is split deliberately:
+
+| Component | Installed responsibility |
+|---|---|
+| [`serve.py`](../../data/local-image-benchmark/runtime/serve.py) | Generator-host backend: receives client requests, invokes input validation, runs image inference only after `allow`, holds candidates in memory, invokes output validation, and releases only allowed output. |
+| [`policy_moderation.py`](../../data/local-image-benchmark/runtime/policy_moderation.py) | Generator-host authenticated decision client and strict response/failure handling. |
+| [`ollama_policy_service.py`](../../data/local-image-benchmark/runtime/ollama_policy_service.py) | Evaluator-host narrow decision adapter: validates the request, calls the profile-selected local reasoning model, and returns the versioned decision contract. |
+| [`generation_policy.py`](../../data/local-image-benchmark/runtime/generation_policy.py) | Loads the selected policy profile, semantic intent, refusal, and model-steering fields. It contains no mechanical keyword validator. |
+| [`local-image-generator@.service`](../../data/local-image-benchmark/assets/systemd/local-image-generator@.service) | Generic generator service template; the private profile supplies the host/model/runtime instance values. |
+| [`ai-policy-evaluator.service`](../../data/local-image-benchmark/assets/systemd/ai-policy-evaluator.service) | Generic evaluator service template; the private profile supplies endpoint/model/runtime values. |
+
+The private profile selects independently:
+
+- generator host, service instance, runtime image, image model, model parameters, and resource limits;
+- policy profile and required input/output semantic gates;
+- evaluator host, endpoint, evaluator model, timeout, credential-file binding, and runtime allocation.
+
+For a restricted policy, semantic input validation is mandatory. Only `allow` reaches image inference. `deny`,
+`uncertain`, timeout, malformed response, authentication failure, or evaluator unavailability fails closed. Output
+validation occurs before encoding, saving to a public output directory, or returning candidate bytes.
+
+Installation/reconciliation must configure both sides:
+
+```text
+generator host                         evaluator host
+------------------------------         --------------------------------
+local-image-generator@<mode>           ai-policy-evaluator.service
+image-serving backend                  decision-service adapter
+profile-rendered environment           profile-selected reasoning model
+policy definitions                     private bind address
+read-only credential mount             owner-only matching credential
+```
+
+The current reference deployment proves this topology, but it was reconciled manually during acceptance. The public
+templates and private workflow binding are merged. Automatic profile-to-host reconciliation—reading that binding,
+rendering both service configurations, distributing credentials through an authorized secret path, starting in
+dependency order, and running the acceptance gates below—remains installer implementation work. Documentation of the
+contract must not be interpreted as evidence that this automation already exists.
+
 `switch` first validates the target service in the configured system/user manager. If that mode is already the sole active
 and healthy mode, it returns without reloading the model. Otherwise it stops every configured peer service before starting
 the requested mode, reports periodic loading progress, waits for its localhost health endpoint, fails early if the target

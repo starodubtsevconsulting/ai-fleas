@@ -268,6 +268,39 @@ The command MUST:
 
 For remote Ubuntu, the command additionally verifies SSH/sudo, creates/reconciles `/opt/ai-local-provider`, installs the unprivileged service account and systemd service, and exposes the endpoint only to the intended trusted LAN.
 
+### Protected image-mode reconciliation
+
+When the selected profile/workflow binds a protected image mode to a semantic evaluator, installation is a coordinated
+two-service operation even when both services happen to run on one host. The browser UI and public tunnel are not policy
+enforcement components. The image-serving backend on the generator host MUST call the evaluator before image inference
+and again before releasing a generated candidate.
+
+The command MUST:
+
+1. resolve the workflow's generator, policy profile, evaluator reference, and required semantic gates from trusted
+   profile configuration;
+2. resolve generator and evaluator hosts independently without assuming a machine or model name;
+3. validate private reachability and an authorized credential-file binding without exposing credential values;
+4. install/reconcile the evaluator adapter and selected evaluator model, keeping any underlying raw model endpoint no
+   broader than required;
+5. install/reconcile the generic image-serving backend, policy definitions, runtime image, model parameters, resource
+   limits, evaluator endpoint, timeouts, and read-only client credential mount;
+6. start and verify the evaluator before starting the generator service;
+7. verify generator health reports the selected policy and every required semantic gate;
+8. prove a prohibited semantic input is rejected before inference;
+9. prove evaluator unavailability fails closed before inference and recovery restores readiness;
+10. perform one real benign image generation and prove both input and output decisions allow before returning a
+    structurally valid, non-empty image;
+11. verify an output denial is discarded before public persistence or response; and
+12. verify the public boundary remains protected when a public endpoint is configured.
+
+`deny`, `uncertain`, timeout, malformed or mismatched responses, authentication failure, and evaluator unavailability
+MUST NOT fall through to inference or publication. A restricted policy without semantic input validation is invalid and
+MUST fail startup. Prompt prefixes, suffixes, and negative prompts are model steering rather than validation.
+
+Until the installer implements this reconciliation, a manually accepted deployment may demonstrate runtime behavior but
+MUST NOT be reported as automatically profile-reconciled.
+
 ## Post-install verification gate
 
 Installation is not complete when files/packages are merely present.

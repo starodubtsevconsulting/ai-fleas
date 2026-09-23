@@ -12,8 +12,8 @@ but translate the selected rules into the parameters supported by their inferenc
 ## Where enforcement happens
 
 A policy is loaded when the managed service starts, but it is **not** inserted into model weights, fine-tuned into the
-model, or permanently preloaded as model context. The selected profile remains fixed for that service instance. Its
-instructions and request rules are applied by a hook in the serving layer every time inference is requested.
+model, or permanently preloaded as model context. The selected profile remains fixed for that service instance. Model
+steering and semantic validation are applied by the serving layer every time inference is requested.
 
 ```text
 Model service startup
@@ -23,11 +23,12 @@ Model service startup
         +-- Load and validate selected policy profile once
                          |
                          v
-Inference request -> request-time policy hook -> model inference -> response
-                         |
-                         +-- reject matching request text before inference
-                         +-- compose applicable system/positive instructions
-                         +-- compose or lock applicable negative instructions
+Inference request -> semantic input decision -> model inference -> semantic output decision -> response
+                         |                                      |
+                         +-- deny/uncertain/error: reject        +-- deny/uncertain/error: discard
+
+Before inference, the capability adapter may also compose applicable system/positive instructions and compose or lock
+negative instructions. Those are model-steering controls, not validation.
 ```
 
 Placing the hook in the serving layer means browser, API, tunnel, and automated clients use the same path. A public
@@ -50,7 +51,8 @@ atomic policies -> named profile -> capability adapter -> effective model reques
 ```text
                          +-> text adapter  -> system/instruction prompt
 profile -> atomic rules -+-> image adapter -> positive + negative prompt
-                         +-> input hook    -> allow or reject before inference
+                         +-> semantic input decision
+                         +-> semantic output decision
 ```
 
 An atomic policy may support one or several capabilities. A multimodal mode applies every compatible adapter. A required
@@ -80,8 +82,10 @@ Keep every person fully clothed in ordinary non-revealing clothing.
 nudity, sexualization, revealing clothing, intimate body exposure
 ```
 
-If a deny rule matches the original request, the adapter returns a neutral refusal before it allocates an inference job.
-Otherwise, only the composed effective request reaches the model.
+The original request is sent to the selected semantic evaluator before the composed effective request can reach the
+model. Only `allow` proceeds. `deny`, `uncertain`, malformed output, timeout, or evaluator unavailability returns a
+neutral refusal without allocating an image-generation job. Generated candidates remain private until semantic output
+evaluation also returns `allow`.
 
 ## Selection contract
 
