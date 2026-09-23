@@ -101,30 +101,22 @@ active profile ID so operators and acceptance tests can verify the effective con
 
 ## Security boundary and limitations
 
-Prompt policy is a low-cost first enforcement layer. It can reject explicit request text and steer the model with
-policy-owned instructions, but it cannot guarantee the content of generated output. It does not inspect generated image
-pixels or classify generated text. Deployments requiring a stronger guarantee can add output moderation as a separate
-layer without changing this prompt-policy composition contract.
-
-Deterministic policies must declare the finite languages sampled by their expressions. Those samples are never a
-supported-language allowlist. A passing deterministic check means only that no configured expression matched; it is not
-a semantic safety decision. A protected profile can disable this optional blocker and rely on mandatory fail-closed
-semantic input evaluation instead.
+Prompt policy steers the model with policy-owned instructions but is not validation and cannot guarantee the content of
+generated output. Restricted profiles require fail-closed AI semantic input validation. Capability-specific output
+moderation provides the hold-before-release boundary for generated content.
 
 Policy configuration is trusted operational configuration. It must not be accepted from public inference requests.
 
 ## Layered semantic enforcement
 
-The same selected profile can be enforced by multiple ordered layers. An optional first layer performs deterministic
-request checks. A protected deployment enables semantic input and output gates backed by a separately configured
-policy-decision service. Atomic policies provide the intent used by every layer; enabling semantic enforcement does not
-create a second policy selection. When the optional deterministic blocker is disabled, semantic input must remain
-enabled and fail closed.
+The same selected profile supplies model steering and the semantic intent enforced by input and output gates. A
+protected deployment uses a separately configured policy-decision service. Atomic policies provide the intent used by
+every gate; semantic enforcement does not create a second policy selection. Mechanical keyword or regular-expression
+validation is not part of this architecture.
 
 ```text
 selected profile -> atomic policy intent
                          |
-                         +-> deterministic request rules
                          +-> semantic input decision
                          +-> capability-specific output decision
 ```

@@ -14,7 +14,7 @@ minimal compute; the normal configured image size was not changed.
 
 | Case | Expected | Evidence |
 |---|---|---|
-| Semantic input denial using wording not covered by the Phase 1 expressions | Reject before inference | HTTP 400, neutral refusal, `test_denied`; retained-output count unchanged at 7 |
+| Semantic input denial using wording not covered by the former mechanical expressions | Reject before inference | HTTP 400, neutral refusal, `test_denied`; retained-output count unchanged at 7 |
 | Decision service unavailable | Fail closed before inference | HTTP 503, neutral refusal, `moderation_unavailable`; retained-output count unchanged at 7 |
 | Semantic output denial after a benign input | Generate privately, reject before publication | HTTP 400 in 2 seconds, `test_denied`; retained-output count unchanged at 7 |
 | Benign input and output allowed | Publish only after both decisions allow | HTTP 200 in 1 second; retained-output count changed from 7 to 8; the exact test image was deleted after validation |
@@ -26,9 +26,9 @@ exception. The producer now observes task completion without propagating the exc
 The container-side resumable-stream regression covers this failure and passed before the live retry.
 
 After integration testing, the temporary decision service was stopped, its one published benign test image was removed,
-and the live service configuration was restored to `semantic_input: false` and `semantic_output: false`. Phase 1 remains
-active until a real evaluator is selected and accepted. This paragraph records the earlier test-double state; the later
-local-evaluator acceptance supersedes it for the current deployment.
+and the live service configuration was restored to `semantic_input: false` and `semantic_output: false`. This paragraph
+records the earlier test-double state; the later local-evaluator acceptance supersedes it for the current deployment.
+The subsequently removed mechanical validation layer is not part of the accepted architecture.
 
 ## Local evaluator acceptance — 2026-09-23
 
@@ -69,8 +69,8 @@ Both semantic gates are now active for `education-child` against the authenticat
 
 | Case | Evidence |
 |---|---|
-| Health/configuration | `status: ready`, `deterministic_input: false`, `semantic_input: true`, `semantic_output: true`; approximately 67.9 GB host memory available |
-| Phase 2-only input denial | With the deterministic blocker disabled, an euphemistic prohibited request returned HTTP 400 with `semantic_policy_denied` before inference |
+| Health/configuration | `status: ready`, `semantic_input: true`, `semantic_output: true`; approximately 67.9 GB host memory available |
+| Semantic input denial | An euphemistic prohibited request returned HTTP 400 with `semantic_policy_denied` before inference |
 | Real benign generation | 512×512, 10-step Qwen generation returned HTTP 200; PNG verified RGB, non-uniform, 247,074 bytes; input and output decisions allowed |
 | Output ordering | Candidate remained in memory through the output decision; the API response was temporary and deleted after verification |
 | Existing real-image corpus | 2/2 benign allowed; 5/5 policy-violating denied and quarantined outside public outputs |
@@ -85,7 +85,7 @@ to generation or publication.
 ## Automated evidence
 
 - 3 runtime-memory/safety tests pass.
-- 10 policy composition tests pass, including preserving prompt/negative-prompt controls while deterministic blocking is disabled.
+- 6 policy composition tests pass, including proving prompt/negative-prompt steering performs no mechanical validation.
 - 8 semantic decision-contract tests pass, including allow, deny, output payload, unavailable, uncertain, malformed,
   mismatched request ID, disabled, unrestricted, and missing-configuration behavior.
 - 7 local Ollama adapter tests pass, including language-normalization contract, strict request validation, consistent decision normalization, unknown

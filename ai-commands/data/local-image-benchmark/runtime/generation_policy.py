@@ -16,12 +16,6 @@ class PolicyConfigurationError(RuntimeError):
 
 
 @dataclass(frozen=True)
-class DenyRule:
-    id: str
-    pattern: re.Pattern[str]
-
-
-@dataclass(frozen=True)
 class GenerationPolicy:
     id: str
     policy_ids: tuple[str, ...]
@@ -31,20 +25,9 @@ class GenerationPolicy:
     negative_prompt: str
     allow_client_negative_prompt: bool
     refusal: str
-    deny_rules: tuple[DenyRule, ...]
 
-    def validate_prompt(self, prompt: str) -> None:
+    def prepare_prompt(self, prompt: str, client_negative_prompt: str | None) -> tuple[str, str | None]:
         normalized = prompt.strip()
-        for rule in self.deny_rules:
-            if rule.pattern.search(normalized):
-                raise ValueError(self.refusal)
-
-    def prepare_prompt(
-        self, prompt: str, client_negative_prompt: str | None, *, validate_input: bool = True
-    ) -> tuple[str, str | None]:
-        normalized = prompt.strip()
-        if validate_input:
-            self.validate_prompt(normalized)
         effective_prompt = "\n\n".join(
             part.strip() for part in (self.prompt_prefix, normalized, self.prompt_suffix) if part.strip()
         )
@@ -66,7 +49,6 @@ def unrestricted_policy() -> GenerationPolicy:
         negative_prompt="",
         allow_client_negative_prompt=True,
         refusal="This request is not available under the active generation policy.",
-        deny_rules=(),
     )
 
 
@@ -97,18 +79,6 @@ def load_generation_policy(policy_id: str, policy_dir: Path) -> GenerationPolicy
     input_policy = enforcement.get("input", {})
     if not all(isinstance(value, dict) for value in (prompt, enforcement, input_policy)):
         raise PolicyConfigurationError(f"generation policy preset has an invalid structure: {policy_id}")
-    raw_rules = input_policy.get("deny_rules", [])
-    if not isinstance(raw_rules, list):
-        raise PolicyConfigurationError(f"generation policy deny_rules must be a list: {policy_id}")
-    rules = []
-    for raw_rule in raw_rules:
-        if not isinstance(raw_rule, dict) or not ID_PATTERN.fullmatch(str(raw_rule.get("id", ""))):
-            raise PolicyConfigurationError(f"generation policy has an invalid deny rule: {policy_id}")
-        try:
-            pattern = re.compile(str(raw_rule["pattern"]), re.IGNORECASE)
-        except (KeyError, re.error) as error:
-            raise PolicyConfigurationError(f"generation policy has an invalid deny pattern: {policy_id}") from error
-        rules.append(DenyRule(id=raw_rule["id"], pattern=pattern))
     return GenerationPolicy(
         id=policy_id,
         policy_ids=profile_policy_ids,
@@ -118,7 +88,6 @@ def load_generation_policy(policy_id: str, policy_dir: Path) -> GenerationPolicy
         negative_prompt=str(prompt.get("negative_prompt", "")),
         allow_client_negative_prompt=bool(prompt.get("allow_client_negative_prompt", True)),
         refusal=str(input_policy.get("refusal", "This request is not available under the active generation policy.")),
-        deny_rules=tuple(rules),
     )
 
 
@@ -135,9 +104,7 @@ def _compose_profile(profile: dict, policy_dir: Path) -> dict:
     negative_prompts: list[str] = []
     allow_client_negative_prompt = True
     refusal = "This request is not available under the active generation policy."
-    deny_rules: list[dict] = []
     semantic_instructions: list[str] = []
-    seen_rule_ids: set[str] = set()
     rule_dir = policy_dir.parent / "policy-rules"
 
     for policy_id in policy_ids:
@@ -164,15 +131,6 @@ def _compose_profile(profile: dict, policy_dir: Path) -> dict:
         )
         if input_policy.get("refusal"):
             refusal = str(input_policy["refusal"])
-        raw_rules = input_policy.get("deny_rules", [])
-        if not isinstance(raw_rules, list):
-            raise PolicyConfigurationError(f"atomic prompt policy deny_rules must be a list: {policy_id}")
-        for raw_rule in raw_rules:
-            rule_id = str(raw_rule.get("id", "")) if isinstance(raw_rule, dict) else ""
-            if rule_id in seen_rule_ids:
-                raise PolicyConfigurationError(f"duplicate prompt policy deny rule: {rule_id}")
-            seen_rule_ids.add(rule_id)
-            deny_rules.append(raw_rule)
         semantic = image.get("semantic", {})
         if not isinstance(semantic, dict):
             raise PolicyConfigurationError(f"atomic prompt policy has invalid semantic intent: {policy_id}")
@@ -189,6 +147,6 @@ def _compose_profile(profile: dict, policy_dir: Path) -> dict:
             "negative_prompt": ", ".join(part for part in negative_prompts if part),
             "allow_client_negative_prompt": allow_client_negative_prompt,
         },
-        "enforcement": {"input": {"refusal": refusal, "deny_rules": deny_rules}},
+        "enforcement": {"input": {"refusal": refusal}},
         "semantic_instructions": semantic_instructions,
     }

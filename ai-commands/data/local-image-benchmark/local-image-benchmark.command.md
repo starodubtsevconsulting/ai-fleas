@@ -109,12 +109,11 @@ Repository models may be pinned with `--model-revision`. Guidance behavior is ex
 
 Interactive services may select a reusable generation policy with `--policy-preset ID` or
 `IMAGE_POLICY_PRESET`; the default `unrestricted` preset preserves prior behavior. Policy files live beside the shared
-runtime in `runtime/policies/` and may compose a prompt prefix/suffix, supply a non-overridable negative prompt, and
-optionally reject configured request-text patterns before inference. `education-child` is the first audience-oriented
-preset. The deterministic blocker is only a latency optimization and may be disabled with
-`--deterministic-input false` when semantic input is enabled. Phase 2 enables semantic input and output decisions with
+runtime in `runtime/policies/` and may compose a prompt prefix/suffix and supply a non-overridable negative prompt.
+Those are steering controls, not validation. `education-child` is the first audience-oriented preset. Semantic input
+is the sole validator for restricted policies; no keyword or regular-expression blocker is maintained. Phase 2 enables semantic input and output decisions with
 `--semantic-input true`, `--semantic-output true`, and `--moderation-url URL` (or the equivalent `IMAGE_POLICY_*`
-environment variables). Both layers consume the same selected profile. A protected service
+environment variables). Both gates consume the same selected profile. A protected service
 with an enabled semantic gate fails startup when its decision endpoint or semantic policy intent is missing, and fails
 closed when a decision is unavailable, malformed, or uncertain. Candidate images remain in memory and are not saved or
 returned until output moderation allows release. Model lifecycle remains owned by

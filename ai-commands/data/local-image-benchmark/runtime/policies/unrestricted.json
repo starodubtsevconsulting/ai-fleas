@@ -9,8 +9,7 @@
   },
   "enforcement": {
     "input": {
-      "refusal": "This request is not available under the active generation policy.",
-      "deny_rules": []
+      "refusal": "This request is not available under the active generation policy."
     }
   }
 }

@@ -29,8 +29,7 @@ Usage:
   local-image-benchmark.command.sh serve --confirm-model-isolated \
     [--model MODEL_ID] [--model-revision REVISION] [--dtype TYPE] [--steps N] [--guidance N] \
     [--guidance-parameter guidance_scale|true_cfg_scale|none] [--negative-prompt TEXT] \
-    [--policy-preset ID] [--deterministic-input true|false] \
-    [--semantic-input true|false] [--semantic-output true|false] \
+    [--policy-preset ID] [--semantic-input true|false] [--semantic-output true|false] \
     [--moderation-url URL] [--moderation-timeout SECONDS] [--moderation-auth-token-file PATH] \
     [--port N] [--output-dir DIR]
   local-image-benchmark.command.sh test-stream
@@ -181,7 +180,6 @@ case "$action" in
     guidance_parameter="guidance_scale"
     negative_prompt=""
     policy_preset="unrestricted"
-    deterministic_input="${IMAGE_POLICY_DETERMINISTIC_INPUT:-true}"
     semantic_input="${IMAGE_POLICY_SEMANTIC_INPUT:-false}"
     semantic_output="${IMAGE_POLICY_SEMANTIC_OUTPUT:-false}"
     moderation_url="${IMAGE_POLICY_MODERATION_URL:-}"
@@ -200,7 +198,6 @@ case "$action" in
         --guidance-parameter) guidance_parameter="${2:-}"; shift 2 ;;
         --negative-prompt) negative_prompt="${2:-}"; shift 2 ;;
         --policy-preset) policy_preset="${2:-}"; shift 2 ;;
-        --deterministic-input) deterministic_input="${2:-}"; shift 2 ;;
         --semantic-input) semantic_input="${2:-}"; shift 2 ;;
         --semantic-output) semantic_output="${2:-}"; shift 2 ;;
         --moderation-url) moderation_url="${2:-}"; shift 2 ;;
@@ -215,7 +212,6 @@ case "$action" in
     [[ "$port" =~ ^[1-9][0-9]*$ ]] && (( port <= 65535 )) || { printf 'ERROR: --port must be 1..65535.\n' >&2; exit 64; }
     [[ "$guidance_parameter" =~ ^(guidance_scale|true_cfg_scale|none)$ ]] || { printf 'ERROR: --guidance-parameter is invalid.\n' >&2; exit 64; }
     [[ "$policy_preset" =~ ^[a-z0-9][a-z0-9._-]*$ ]] || { printf 'ERROR: --policy-preset is invalid.\n' >&2; exit 64; }
-    [[ "$deterministic_input" =~ ^(true|false)$ ]] || { printf 'ERROR: --deterministic-input must be true or false.\n' >&2; exit 64; }
     [[ "$semantic_input" =~ ^(true|false)$ ]] || { printf 'ERROR: --semantic-input must be true or false.\n' >&2; exit 64; }
     [[ "$semantic_output" =~ ^(true|false)$ ]] || { printf 'ERROR: --semantic-output must be true or false.\n' >&2; exit 64; }
     "$PYTHON_BIN" -c 'import uvicorn' >/dev/null 2>&1 || { printf 'ERROR: uvicorn is not installed in the benchmark environment.\n' >&2; exit 69; }
@@ -223,7 +219,6 @@ case "$action" in
     export IMAGE_DEFAULT_GUIDANCE="$guidance" IMAGE_GUIDANCE_PARAMETER="$guidance_parameter"
     export IMAGE_DEFAULT_NEGATIVE_PROMPT="$negative_prompt" IMAGE_OUTPUT_DIR="$output_dir"
     export IMAGE_POLICY_PRESET="$policy_preset"
-    export IMAGE_POLICY_DETERMINISTIC_INPUT="$deterministic_input"
     export IMAGE_POLICY_SEMANTIC_INPUT="$semantic_input" IMAGE_POLICY_SEMANTIC_OUTPUT="$semantic_output"
     export IMAGE_POLICY_MODERATION_URL="$moderation_url" IMAGE_POLICY_MODERATION_TIMEOUT_SECONDS="$moderation_timeout"
     export IMAGE_POLICY_MODERATION_AUTH_TOKEN_FILE="$moderation_auth_token_file"

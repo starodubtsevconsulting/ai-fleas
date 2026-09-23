@@ -32,8 +32,8 @@ atomic policies -> named profile -> capability adapter -> model request
 Each atomic policy declares the capabilities it affects. Capability adapters translate its generic intent into the
 parameters supported by a runtime:
 
-- text: system/instruction prompt plus request-text rules;
-- image: positive prompt additions, negative prompt additions, and request-text rules;
+- text: system/instruction prompt plus semantic policy intent;
+- image: positive prompt additions, negative prompt additions, and semantic policy intent;
 - multimodal: the union of applicable capability adapters.
 
 Profiles and policies must never branch on a model name. A model mode declares capabilities; the same profile can then
@@ -46,9 +46,7 @@ Version 2 profile JSON files live in `runtime/policies/` and contain `policy_ids
 - `prompt.prefix` and `prompt.suffix`: reusable instructions composed around the user prompt;
 - `prompt.negative_prompt`: policy-owned negative-prompt content;
 - `prompt.allow_client_negative_prompt`: whether a caller may append its own negative prompt;
-- `enforcement.input.deny_rules`: named, case-insensitive regular expressions evaluated before inference;
-- `enforcement.input.refusal`: neutral response text for a rejected request;
-- `enforcement.input.refusal`: the neutral response returned when request text is rejected.
+- `enforcement.input.refusal`: the neutral response returned when semantic validation rejects a request.
 
 Schema version 1 monolithic presets remain readable during migration. The public request schema does not accept a
 policy ID. Callers therefore cannot downgrade the initialized service.
@@ -56,10 +54,10 @@ Changing a policy requires changing the trusted service environment and restarti
 
 ## Scope boundary
 
-The preset operates only on text available before inference: the user's request, the effective positive prompt, the
-negative prompt, and—for text models—the system/instruction prompt. It does not inspect generated image pixels or add an
-image-recognition dependency. Prompt templates and request-text rules provide useful steering and an operator-selected
-restriction layer, but they are not a guarantee that a model can never produce unsuitable output.
+The prompt adapter operates on text available before inference: the user's request, the effective positive prompt, the
+negative prompt, and—for text models—the system/instruction prompt. Semantic input validation evaluates the original
+request before inference; capability-specific output validation evaluates private candidates before release. Prompt
+templates provide steering but are not treated as validation or as a guarantee about generated output.
 
 ## Selection and automation
 
@@ -97,20 +95,14 @@ or direct misuse but is not a substitute for output moderation where a deploymen
 
 ## Phase 2 semantic moderation
 
-Phase 2 adds semantic gates around inference. The deterministic Phase 1 input gate is an optional latency optimization,
-not a security boundary: profiles may disable it when semantic input is enabled. Both gates consume the same selected
-profile and its ordered atomic policies. Operators select a policy once; they do not maintain separate policy choices.
-For a restricted policy, disabling deterministic input without enabling semantic input is an invalid configuration and
-the service fails startup. Prompt prefix/suffix and negative-prompt controls remain active independently of the Phase 1
-blocking switch.
+Phase 2 adds semantic gates around inference and is the only input-validation mechanism. Mechanical keyword and regular-
+expression blocking is deliberately not implemented: it duplicates policy logic, is language-limited, and can create
+false confidence. For a restricted policy, semantic input validation is mandatory and missing configuration fails
+startup. Prompt prefix/suffix and negative-prompt controls remain active as model steering, not validation.
 
 ```text
 public request
      |
-     v
-Optional deterministic gate -- deny --> neutral refusal (no inference)
-     |
-    allow
      v
 Phase 2 semantic input gate -- deny/error/uncertain --> neutral refusal (no inference)
      |
@@ -201,8 +193,6 @@ return `allow`, it must return `uncertain`; the caller rejects the request befor
 
 ## Phase 2 operations
 
-- `IMAGE_POLICY_DETERMINISTIC_INPUT=false` disables the optional deterministic text-pattern blocker. It defaults to
-  `true` for backward compatibility and requires semantic input for every restricted policy.
 - `IMAGE_POLICY_SEMANTIC_INPUT=true` enables semantic input decisions before inference.
 - `IMAGE_POLICY_SEMANTIC_OUTPUT=true` enables image decisions before encoding, saving, or returning a candidate.
 - `IMAGE_POLICY_MODERATION_URL` selects the trusted decision endpoint.
@@ -211,8 +201,8 @@ return `allow`, it must return `uncertain`; the caller rejects the request befor
   public request payloads or committed configuration.
 
 Recovery is to restore the decision service and restart the managed model service. Protected modes remain unavailable
-rather than silently bypassing enabled gates. Disabling semantic input is not a valid rollback when deterministic input
-is disabled; an operator must restore a valid protected configuration. Switching to `unrestricted` is a separate,
+rather than silently bypassing enabled gates. Disabling semantic input is not a valid rollback for a restricted policy;
+an operator must restore a valid protected configuration. Switching to `unrestricted` is a separate,
 explicitly acknowledged deployment decision and is not a recovery mechanism.
 
 Implementation and validation evidence is recorded in [`phase2-validation.md`](phase2-validation.md). Contract tests

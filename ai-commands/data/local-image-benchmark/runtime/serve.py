@@ -56,7 +56,6 @@ UI_DIR = Path(os.environ.get("IMAGE_UI_DIR", "/benchmark/ui"))
 POLICY_DIR = Path(os.environ.get("IMAGE_POLICY_DIR", str(Path(__file__).parent / "policies")))
 POLICY_ID = os.environ.get("IMAGE_POLICY_PRESET", "unrestricted")
 GENERATION_POLICY = load_generation_policy(POLICY_ID, POLICY_DIR)
-DETERMINISTIC_INPUT = env_bool("IMAGE_POLICY_DETERMINISTIC_INPUT", True)
 SEMANTIC_MODERATOR = SemanticModerator(
     SemanticPolicy(
         profile_id=GENERATION_POLICY.id,
@@ -70,10 +69,8 @@ SEMANTIC_MODERATOR = SemanticModerator(
     timeout_seconds=env_float("IMAGE_POLICY_MODERATION_TIMEOUT_SECONDS", 5.0, 0.1),
     auth_token_file=os.environ.get("IMAGE_POLICY_MODERATION_AUTH_TOKEN_FILE", ""),
 )
-if GENERATION_POLICY.id != "unrestricted" and not DETERMINISTIC_INPUT and not SEMANTIC_MODERATOR.input_enabled:
-    raise RuntimeError(
-        "restricted policy requires IMAGE_POLICY_SEMANTIC_INPUT=true when deterministic input is disabled"
-    )
+if GENERATION_POLICY.id != "unrestricted" and not SEMANTIC_MODERATOR.input_enabled:
+    raise RuntimeError("restricted policy requires IMAGE_POLICY_SEMANTIC_INPUT=true")
 PIPELINE = None
 GENERATION_LOCK = asyncio.Lock()
 BACKGROUND_TASKS: set[asyncio.Task] = set()
@@ -168,15 +165,7 @@ def policy_http_exception(error: PolicyDecisionError) -> HTTPException:
 
 async def validate_policy_input(prompt: str) -> None:
     try:
-        if DETERMINISTIC_INPUT:
-            GENERATION_POLICY.validate_prompt(prompt)
         await SEMANTIC_MODERATOR.check_input(prompt)
-    except ValueError as error:
-        raise HTTPException(
-            400,
-            str(error),
-            headers={"X-Policy-Reason-Code": "deterministic_input_denied"},
-        ) from error
     except PolicyDecisionError as error:
         raise policy_http_exception(error) from error
 
@@ -241,12 +230,7 @@ async def generate_image(
     seed: int,
     negative_prompt: str | None = None,
 ):
-    try:
-        prompt, negative_prompt = GENERATION_POLICY.prepare_prompt(
-            prompt, negative_prompt, validate_input=DETERMINISTIC_INPUT
-        )
-    except ValueError as error:
-        raise HTTPException(400, str(error)) from error
+    prompt, negative_prompt = GENERATION_POLICY.prepare_prompt(prompt, negative_prompt)
     validated_request(width, height, steps)
     kwargs = {
         "prompt": prompt,
@@ -330,7 +314,6 @@ def health():
         "status": "ready",
         "model": MODEL_ID,
         "generation_policy": GENERATION_POLICY.id,
-        "deterministic_input": DETERMINISTIC_INPUT,
         "semantic_input": SEMANTIC_MODERATOR.input_enabled,
         "semantic_output": SEMANTIC_MODERATOR.output_enabled,
         "available_memory_bytes": available,
@@ -354,7 +337,6 @@ def props(model: str | None = None, autoload: bool = False):
         "modalities": {"vision": False, "audio": False},
         "capabilities": ["image-generation"],
         "generation_policy": GENERATION_POLICY.id,
-        "deterministic_input": DETERMINISTIC_INPUT,
         "semantic_input": SEMANTIC_MODERATOR.input_enabled,
         "semantic_output": SEMANTIC_MODERATOR.output_enabled,
         "default_generation_settings": {
