@@ -86,6 +86,40 @@ The image UI is a client; it is not the enforcement boundary and does not call t
 a protected image mode places the request-time enforcement hook in the image-serving backend on the generator host.
 Every browser, API, tunnel, and automated client therefore traverses the same validation path.
 
+```mermaid
+flowchart LR
+    User[Browser user] --> Access[Cloudflare Access and tunnel]
+
+    subgraph Generator[Generator host]
+        Backend[Image-serving backend]
+        ImageModel[Private image-model worker]
+        Candidate[Private in-memory candidate]
+        Release[Encode, save, or respond]
+        Reject[Neutral rejection]
+    end
+
+    subgraph Evaluator[Evaluator host]
+        Adapter[Authenticated policy evaluator adapter]
+        Reasoner[Profile-selected generic reasoning model]
+        Adapter --> Reasoner
+        Reasoner --> Adapter
+    end
+
+    Access --> Backend
+    Backend -->|1. Original prompt plus trusted policy intent| Adapter
+    Adapter -->|Allow| Backend
+    Adapter -->|Deny, uncertain, malformed, timeout, or unavailable| Reject
+    Backend -->|2. Only after input allow| ImageModel
+    ImageModel --> Candidate
+    Candidate -->|3. Candidate image plus same policy intent| Adapter
+    Adapter -->|Output allow| Release
+    Adapter -->|Output deny, uncertain, or error| Reject
+```
+
+The arrows to the evaluator are initiated by the generator-host backend. The browser never receives the evaluator's
+private endpoint or credential and cannot address the image worker directly. The same selected policy intent is applied
+to input and output decisions.
+
 ```text
 browser
    |
@@ -177,10 +211,13 @@ The evaluator receives policy intent in every request and can remain resident. R
 
 The desired implementation separates a lightweight policy gateway from the private heavy image worker:
 
-```text
-public clients -> reloadable policy gateway -> private resident image worker
-                         |
-                         +-> resident evaluator adapter -> resident reasoning model
+```mermaid
+flowchart LR
+    Client[Public clients] --> Gateway[Reloadable policy gateway]
+    Gateway -->|Input and output decisions| Evaluator[Resident evaluator adapter]
+    Evaluator --> Reasoner[Resident reasoning model]
+    Gateway -->|Allowed generation only| Worker[Private resident image worker]
+    Config[Trusted profile configuration] -->|Atomic reload| Gateway
 ```
 
 Policy changes would then atomically reload trusted gateway configuration, or restart only that small gateway, without
