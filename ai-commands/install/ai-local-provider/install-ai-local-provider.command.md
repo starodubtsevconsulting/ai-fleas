@@ -8,6 +8,10 @@ The command is interactive and profile-aware. The installed provider belongs to 
 
 Normative behavior is defined by [`install-ai-local-provider.spec.md`](install-ai-local-provider.spec.md).
 
+Generic policy selection and the request-time enforcement architecture are documented in
+[`model-prompt-policy.md`](model-prompt-policy.md). This contract applies to text, image, and multimodal model modes; a
+model-specific serving implementation is only an adapter to that contract.
+
 **Status: BETA — SSH onboarding, machine qualification, fresh-Ubuntu dependency installation, pinned model/runtime provisioning, service setup, and inference verification are runnable.**
 
 The normative, human-readable execution contract is [`PLAN.md`](PLAN.md). Stable
@@ -64,6 +68,17 @@ install-ai-local-provider.sh switch --box <box> --mode coding
 install-ai-local-provider.sh switch --box <box> --mode image
 install-ai-local-provider.sh unload --box <box>
 ```
+
+Policy-aware switching is designed to make the selected profile explicit:
+
+```text
+install-ai-local-provider.sh switch --box <box> --mode image --policy education-child
+install-ai-local-provider.sh switch --box <box> --mode image --policy unrestricted --acknowledge-unrestricted
+```
+
+See [`model-prompt-policy.md`](model-prompt-policy.md) for the composition diagram, request hook, interactive behavior,
+automation contract, and limitations. These switches describe the generic contract and are not yet implemented for all
+model modes.
 
 `switch` first validates the target service in the configured system/user manager. If that mode is already the sole active
 and healthy mode, it returns without reloading the model. Otherwise it stops every configured peer service before starting

@@ -23,6 +23,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from safety import available_memory_bytes, env_bool, env_float, env_int, request_limit_error
+from generation_policy import load_generation_policy
 
 
 MODEL_ID = os.environ.get("IMAGE_MODEL_ID", "black-forest-labs/FLUX.2-dev")
@@ -50,6 +51,10 @@ if EMERGENCY_AVAILABLE_BYTES > MIN_AVAILABLE_BYTES:
 if GUIDANCE_PARAMETER not in {"guidance_scale", "true_cfg_scale", "none"}:
     raise RuntimeError("IMAGE_GUIDANCE_PARAMETER must be guidance_scale, true_cfg_scale, or none")
 OUTPUT_DIR = Path(os.environ.get("IMAGE_OUTPUT_DIR", "/outputs"))
+UI_DIR = Path(os.environ.get("IMAGE_UI_DIR", "/benchmark/ui"))
+POLICY_DIR = Path(os.environ.get("IMAGE_POLICY_DIR", str(Path(__file__).parent / "policies")))
+POLICY_ID = os.environ.get("IMAGE_POLICY_PRESET", "unrestricted")
+GENERATION_POLICY = load_generation_policy(POLICY_ID, POLICY_DIR)
 PIPELINE = None
 GENERATION_LOCK = asyncio.Lock()
 BACKGROUND_TASKS: set[asyncio.Task] = set()
@@ -197,6 +202,10 @@ async def generate_image(
     seed: int,
     negative_prompt: str | None = None,
 ):
+    try:
+        prompt, negative_prompt = GENERATION_POLICY.prepare_prompt(prompt, negative_prompt)
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
     validated_request(width, height, steps)
     kwargs = {
         "prompt": prompt,
@@ -269,7 +278,12 @@ def health():
     available = available_memory_bytes()
     if available < MIN_AVAILABLE_BYTES:
         raise HTTPException(503, f"degraded host memory: {available} bytes available")
-    return {"status": "ready", "model": MODEL_ID, "available_memory_bytes": available}
+    return {
+        "status": "ready",
+        "model": MODEL_ID,
+        "generation_policy": GENERATION_POLICY.id,
+        "available_memory_bytes": available,
+    }
 
 
 @app.get("/v1/models")
@@ -288,6 +302,7 @@ def props(model: str | None = None, autoload: bool = False):
         "total_slots": 1,
         "modalities": {"vision": False, "audio": False},
         "capabilities": ["image-generation"],
+        "generation_policy": GENERATION_POLICY.id,
         "default_generation_settings": {
             "id": MODEL_ID,
             "params": {
@@ -445,6 +460,10 @@ async def stream_delete(conv_id: str):
         session.cancelled = True
         await session.finish()
     return Response(status_code=204)
+
+
+if UI_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=str(UI_DIR), html=True), name="ui")
 
 
 if __name__ == "__main__":

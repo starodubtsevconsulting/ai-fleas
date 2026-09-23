@@ -88,6 +88,14 @@ Repository models may be pinned with `--model-revision`. Guidance behavior is ex
 `--guidance-parameter guidance_scale|true_cfg_scale|none`; pipelines such as Qwen-Image that use true CFG may also set
 `--negative-prompt`. These values are passed to the generic service rather than inferred from a model name.
 
+Interactive services may select a reusable generation policy with `--policy-preset ID` or
+`IMAGE_POLICY_PRESET`; the default `unrestricted` preset preserves prior behavior. Policy files live beside the shared
+runtime in `runtime/policies/` and may compose a prompt prefix/suffix, supply a non-overridable negative prompt, and
+reject configured request-text patterns before inference. `education-child` is the first audience-oriented preset.
+These presets steer and restrict the effective text prompt; they do not inspect or classify generated pixels and must
+not be described as guaranteed content-safety enforcement. Model lifecycle remains owned by
+`install-ai-local-provider`; the selected systemd mode supplies the policy environment at initialization.
+
 Managed interactive services should configure `IMAGE_DEFAULT_SIZE`, request ceilings (`IMAGE_MAX_WIDTH`,
 `IMAGE_MAX_HEIGHT`, `IMAGE_MAX_PIXELS`, and `IMAGE_MAX_STEPS`), and two host-memory thresholds. Requests are rejected
 before generation below `IMAGE_MIN_AVAILABLE_BYTES`. While CUDA inference is running, the worker samples host

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "id": "content-nudity",
+  "capabilities": {
+    "image": {
+      "prompt": {
+        "prefix": "Create an age-appropriate, non-sexual image suitable for a supervised educational setting.",
+        "suffix": "Keep every person fully clothed in ordinary non-revealing clothing. Do not depict nudity, sexualization, fetish content, or intimate body exposure.",
+        "negative_prompt": "nudity, nude, naked, nsfw, sexualized, erotic, fetish, lingerie, revealing clothing, intimate body parts",
+        "allow_client_negative_prompt": false
+      },
+      "input": {
+        "refusal": "I can only create age-appropriate images for this learning environment.",
+        "deny_rules": [
+          {
+            "id": "nudity-or-sexualization",
+            "pattern": "\\b(nude|nudity|naked|nsfw|erotic|sexual(?:ized)?|fetish|lingerie|topless|bottomless|intimate\\s+(?:body\\s+)?parts?)\\b"
+          },
+          {
+            "id": "undressing-or-exposure",
+            "pattern": "\\b(remove|take\\s+off|without|open)\\b.{0,32}\\b(clothes?|shirt|dress|underwear|bra|pants|skirt)\\b|\\b(expose|show)\\b.{0,32}\\b(breasts?|genitals?|buttocks?|private\\s+parts?)\\b"
+          }
+        ]
+      }
+    }
+  }
+}
