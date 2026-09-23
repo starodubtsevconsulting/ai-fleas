@@ -135,6 +135,7 @@ an authenticated narrow adapter around a loopback-only Ollama model. GPU-layer o
 operator settings; defaults remain CPU-only and unload-after-request so installation does not silently consume GPU
 capacity.
 The public corpus includes explicit requests, paraphrases, euphemisms, misspellings, obfuscation, prompt injection,
-seven declared languages, benign prompts, and sensitive-but-allowed boundary cases. The JSON report contains case IDs,
+several sampled languages, benign prompts, and sensitive-but-allowed boundary cases. These samples are regression
+coverage, not a language allowlist: the semantic contract accepts original text in any language or mixture. The JSON report contains case IDs,
 decisions, bounded reason codes, and latency but never repeats prompt text. Treat it as input-gate evidence only; image
 output evaluation still requires the live private-candidate matrix documented in `phase2-validation.md`.

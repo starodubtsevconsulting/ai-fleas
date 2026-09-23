@@ -194,6 +194,11 @@ normalization is neither returned nor logged. If language or meaning remains amb
 caller fails closed. This avoids making a lossy translation the sole policy evidence or doubling latency with a separate
 translation request.
 
+There is no supported-language list in the decision contract and no language may bypass evaluation. Named languages in
+test corpora are finite regression samples only. A prompt in an untested language, mixed languages, transliteration, or
+an invented code is sent to the same semantic evaluator. If the evaluator cannot establish its meaning well enough to
+return `allow`, it must return `uncertain`; the caller rejects the request before model inference.
+
 ## Phase 2 operations
 
 - `IMAGE_POLICY_DETERMINISTIC_INPUT=false` disables the optional deterministic text-pattern blocker. It defaults to

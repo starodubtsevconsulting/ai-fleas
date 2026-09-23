@@ -106,19 +106,20 @@ policy-owned instructions, but it cannot guarantee the content of generated outp
 pixels or classify generated text. Deployments requiring a stronger guarantee can add output moderation as a separate
 layer without changing this prompt-policy composition contract.
 
-Deterministic policies must declare and test their supported languages. The initial `content-nudity` image policy has
-English, Russian, Ukrainian, Italian, Spanish, French, and German request rules. A passing deterministic check means
-only that no configured expression matched; it is not a semantic safety decision. Multilingual paraphrases,
-transliteration, obfuscation, and unsupported languages require a later semantic moderation layer for stronger coverage.
+Deterministic policies must declare the finite languages sampled by their expressions. Those samples are never a
+supported-language allowlist. A passing deterministic check means only that no configured expression matched; it is not
+a semantic safety decision. A protected profile can disable this optional blocker and rely on mandatory fail-closed
+semantic input evaluation instead.
 
 Policy configuration is trusted operational configuration. It must not be accepted from public inference requests.
 
 ## Layered semantic enforcement
 
-The same selected profile can be enforced by multiple ordered layers. The first layer performs deterministic request
-checks. A protected deployment may then enable semantic input and output gates backed by a separately configured
-policy-decision service. Atomic policies provide the intent used by every layer; enabling Phase 2 does not create a
-second policy selection and cannot weaken or bypass Phase 1.
+The same selected profile can be enforced by multiple ordered layers. An optional first layer performs deterministic
+request checks. A protected deployment enables semantic input and output gates backed by a separately configured
+policy-decision service. Atomic policies provide the intent used by every layer; enabling semantic enforcement does not
+create a second policy selection. When the optional deterministic blocker is disabled, semantic input must remain
+enabled and fail closed.
 
 ```text
 selected profile -> atomic policy intent
