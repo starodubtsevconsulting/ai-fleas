@@ -41,6 +41,10 @@ function fixture() {
         scope: { profileId: 'example', workflowId: 'example', logicalProjectId: 'example-project', runtimeScopeId: 'scope-1' },
         endpoints: { Writer: 'writer', Reviewer: 'bound', 'Release Coordinator': 'release' },
         stages: {
+          drafting: { role: 'Writer', transitions: { review_ready: {
+            to: 'review',
+            requiredReferenceKinds: ['revision'],
+          } } },
           review: { role: 'Reviewer', capability: 'review', transitions: {
             changes_required: { to: 'correction', requiredReferenceKinds: ['findings'] },
             accepted: { to: 'release', requiredReferenceKinds: ['review'] },
@@ -53,7 +57,7 @@ function fixture() {
           correction: { role: 'Writer', transitions: { review_ready: {
             to: 'review',
             requiredReferenceKinds: ['revision'],
-            retryPolicy: { maxSameProgressAttempts: 3, progressReferenceKinds: ['revision'] },
+            retryPolicy: { requireChangedProgress: true, progressReferenceKinds: ['revision'] },
           } } },
           release: { role: 'Release Coordinator', transitions: {} },
         },
@@ -168,31 +172,30 @@ test('dispatch is idempotent for the same result', () => {
   assert.equal(lines.length, 1);
 });
 
-test('stops the third correction dispatch for the same revision', () => {
+test('does not re-dispatch review when correction keeps the drafting revision unchanged', () => {
   const root = fixture();
-  function correction(turnId, revision) {
+  function writerResult(turnId, stage, revision) {
     return run(root, {
       session_id: 'writer', turn_id: turnId, hook_event_name: 'Stop', stop_hook_active: false,
       last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
-        acknowledgement: 'COPY THAT', correlationId: `codex:writer:${turnId}`, stage: 'correction',
+        acknowledgement: 'COPY THAT', correlationId: `codex:writer:${turnId}`, stage,
         role: 'Writer', event: 'review_ready', references: [{ kind: 'revision', ref: revision }],
       })}`,
     });
   }
 
-  assert.deepEqual(correction('retry-1', 'article://same-revision'), {});
-  assert.deepEqual(correction('retry-2', 'article://same-revision'), {});
-  const stopped = correction('retry-3', 'article://same-revision');
-  assert.match(stopped.systemMessage, /stopped a non-progress loop after 3 attempts/);
+  assert.deepEqual(writerResult('draft-1', 'drafting', 'article://same-revision'), {});
+  const stopped = writerResult('correction-1', 'correction', 'article://same-revision');
+  assert.match(stopped.systemMessage, /progress references are unchanged/);
   const lines = fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8').trim().split('\n');
-  assert.equal(lines.length, 2);
+  assert.equal(lines.length, 1);
   const receipts = fs.readdirSync(path.join(root, 'dispatches'))
     .map((name) => JSON.parse(fs.readFileSync(path.join(root, 'dispatches', name), 'utf8')));
-  assert.equal(receipts.filter(({ loopBlocked }) => loopBlocked).length, 1);
+  assert.equal(receipts.filter(({ unchangedProgress }) => unchangedProgress).length, 1);
 
-  assert.deepEqual(correction('retry-new', 'article://new-revision'), {});
+  assert.deepEqual(writerResult('correction-2', 'correction', 'article://new-revision'), {});
   const updatedLines = fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8').trim().split('\n');
-  assert.equal(updatedLines.length, 3);
+  assert.equal(updatedLines.length, 2);
 });
 
 test('records a human wait without dispatching an endpoint', () => {

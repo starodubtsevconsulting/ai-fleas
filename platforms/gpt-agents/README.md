@@ -30,3 +30,22 @@ The portable vocabulary maps as follows:
 The host persists all immutable IDs in the activated profile's configured `gpt-agents-binding-state.v1` registry. The
 caller acts only as a mechanical initialization controller: after resolving and verifying the pre-existing project it creates every
 missing roster task directly, including the temporary Admin compatibility role, and initializes them concurrently.
+
+## GPT plugin development
+
+GPT-specific plugins are source-controlled under `platforms/gpt-agents/plugins/`. That directory is authoritative.
+Installed plugin copies, Codex caches, marketplace state, task bindings, and dispatch receipts are local runtime
+artifacts; do not develop against them or copy them back into the repository as source.
+
+Use this sequence for every plugin implementation or hook change:
+
+1. Edit the plugin under `platforms/gpt-agents/plugins/<plugin-id>/`.
+2. Run every test in that plugin's `scripts/` directory.
+3. Validate the tracked plugin manifest with the plugin-creator validator.
+4. Update the tracked manifest's single Codex cachebuster.
+5. Install the tracked plugin through the configured local marketplace.
+6. Start a new Codex task and verify the affected lifecycle path.
+7. Commit the tracked source, tests, documentation, and manifest together.
+
+Workflow maps and runtime bindings are different concerns: portable maps remain under `ai-workflows/`, while exact
+task IDs and runtime receipts remain local and must be reconciled separately on each machine.

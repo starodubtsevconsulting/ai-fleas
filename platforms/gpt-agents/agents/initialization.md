@@ -121,13 +121,13 @@ correction + review_ready -> review -> reviewer
 review + accepted -> release -> release-coordinator
 ```
 
-If a transition declares a progress-reference retry policy, the Router also compares its bounded progress references.
-Writing stops the third `correction -> review` attempt for the same exact revision instead of allowing an endless
-Writer/Reviewer loop. A new revision reference begins a new attempt sequence.
+If a transition declares that changed progress is required, the Router also compares its bounded progress references.
+Writing does not dispatch `correction -> review` when the Writer returns the same exact revision that was already sent
+to review. A new revision reference resumes the declared route.
 
 ```text
-same revision x3 -> stop visibly
-new revision     -> resume declared route
+same revision -> record without dispatch
+new revision  -> resume declared route
 ```
 
 ```text

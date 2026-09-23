@@ -45,7 +45,8 @@ existing proof, a precise stale or conflicting-record diagnosis, or `REVIEW_REQU
 After exact-revision review and the human gates or preserved session-scoped release mandate are complete, the Router
 dispatches Release Coordinator the accepted revision, destination draft, review evidence, explicit publication target,
 timing instruction, applicable account policy, and prohibited effects. Release Coordinator performs release planning
-or authorized Medium scheduling and finishes with terminal evidence references or one precise blocker.
+or authorized Medium scheduling and finishes with terminal evidence references or one precise blocker. It is read-only
+in the repository and returns observed UI evidence without editing article, archive, configuration, or runtime files.
 
 ## Advancement, recovery, and inspection
 

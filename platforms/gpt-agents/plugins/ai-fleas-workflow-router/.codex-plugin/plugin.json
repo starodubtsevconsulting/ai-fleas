@@ -1,6 +1,6 @@
 {
   "name": "ai-fleas-workflow-router",
-  "version": "0.1.0+codex.20260922032123",
+  "version": "0.1.0+codex.20260923225932",
   "description": "Universal hidden Workflow Router lifecycle hooks for initialized AI Fleas endpoints.",
   "author": {
     "name": "Local developer"

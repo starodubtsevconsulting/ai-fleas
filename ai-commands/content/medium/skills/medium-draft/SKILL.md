@@ -18,6 +18,14 @@ published article.
    suits the opening, and native three-dot section breaks at major narrative transitions. Keep meaningful section
    headings; do not add a divider before every heading or use literal ellipses as a substitute. Verify the rendered
    spacing and reading flow.
+   For a native three-dot section break, place the caret in an empty paragraph at the intended boundary and invoke
+   Medium's **Add a new part** action. In the current macOS editor, use `Command+Enter` (`Meta+Return`). Do not type
+   `---`, `***`, literal ellipses, or Unicode dashes into the Medium editor as substitutes; they can become ordinary or
+   malformed text. After insertion, verify that Medium created a real section divider, that subsequent content occupies
+   a new section, and that the divider renders as three centered dots on desktop and narrow layouts. If the shortcut
+   does not work, use the visible **Add a new part** control after confirming the caret is in the intended empty
+   paragraph. The canonical Markdown article may continue to represent the same boundary with `---`; this native-editor
+   rule applies only inside Medium.
 3. Give each draft a relevant lead image near the title. Writer and Reviewer use the single canonical
    [header-image selection contract](../../../../ai-workflows/writing/guides/header-image-contract.md); this provider
    skill does not restate or override it. Record the selected candidate's required provenance/rights metadata, add any

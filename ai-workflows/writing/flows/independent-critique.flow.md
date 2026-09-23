@@ -24,7 +24,8 @@ open editorial decisions. Keep both versions unpublished.
    review the later destination representation.
 2. Reviewer generates a computer-narrated preview with the
    [article read-aloud skill](../skills/article-read-aloud/SKILL.md) and gives the human author a first-pass
-   listen-through. Keep the text available for checking exact claims. Ask what sounds inaccurate, unlike their voice,
+   listen-through. Generate and verify the audio without autoplay, then present a click-to-play/open control so the
+   human chooses when playback begins and can stop it using the player. Keep the text available for checking exact claims. Ask what sounds inaccurate, unlike their voice,
    over-explained, awkward, or missing. Record feedback or `pending human listen-through`; producing or playing audio
    is not itself approval. The author need not read aloud. Proof: a playable narration or verified live read-aloud,
    narrated revision, and feedback tied to that revision.

@@ -82,6 +82,22 @@ The active public output directory contains only the two reviewed benign retaine
 timeout, transport failure, malformed output, request-ID mismatch, unknown decision, and uncertainty never fall through
 to generation or publication.
 
+## Evaluator runtime-state recovery — 2026-09-23
+
+A later writing-workflow test exposed a runtime-state failure in the long-lived `gemma3:4b` evaluator. The same
+previously reviewed benign PNG was falsely denied before the evaluator model was unloaded, then allowed after an
+`ollama stop gemma3:4b` unload/reload cycle. Restarting only the lightweight decision adapter did not correct the live
+failure. The exact underlying model-runtime cause remains unproven; the output-evidence prompt change made during the
+investigation is defense-in-depth hardening, not the demonstrated root-cause fix.
+
+The workflow verifier now supports an explicit live `--runtime-regression` mode. It resolves the configured evaluator
+from the protected writing binding and exercises the same benign request in three phases: cold load after unload, warm
+reuse, and a second unload/reload. All three protected generations passed both semantic gates and returned the same
+176,544-byte PNG with SHA-256
+`d69dad014bc0b59edc200247f4a4f5b2baea473f9f5bbd7d3004c2f802df5d28`. A prohibited-input control continued to fail
+before inference with `semantic_policy_denied`. This is live regression evidence for the observed recovery path; it
+does not establish why the earlier retained model state produced false denials.
+
 ## Automated evidence
 
 - 3 runtime-memory/safety tests pass.

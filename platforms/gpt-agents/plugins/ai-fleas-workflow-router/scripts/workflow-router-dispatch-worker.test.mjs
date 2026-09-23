@@ -8,48 +8,66 @@ import { fileURLToPath } from 'node:url';
 
 const worker = fileURLToPath(new URL('./workflow-router-dispatch-worker.mjs', import.meta.url));
 
-function fixture(fakeEvents) {
+function fixture({
+  exitStatus = 0,
+  stderr = '',
+  initialReceipt = { deliveryStatus: 'pending' },
+  missingExecutable = false,
+} = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-fleas-dispatch-worker-'));
   const receiptFile = path.join(root, 'receipt.json');
   const jobFile = path.join(root, 'job.json');
   const fakeCodex = path.join(root, 'fake-codex');
-  fs.writeFileSync(receiptFile, `${JSON.stringify({ deliveryStatus: 'pending' })}\n`);
-  fs.writeFileSync(fakeCodex, `#!/usr/bin/env node\n${fakeEvents.map((event) =>
-    `process.stdout.write(${JSON.stringify(`${JSON.stringify(event)}\n`)});`).join('\n')}\n`);
+  const invocationFile = path.join(root, 'invocation.json');
+  fs.writeFileSync(receiptFile, `${JSON.stringify(initialReceipt)}\n`);
+  fs.writeFileSync(fakeCodex, `#!/usr/bin/env node
+const fs = require('node:fs');
+fs.writeFileSync(${JSON.stringify(invocationFile)}, JSON.stringify(process.argv.slice(2)));
+if (${JSON.stringify(stderr)}) process.stderr.write(${JSON.stringify(stderr)});
+process.exit(${exitStatus});
+`);
   fs.chmodSync(fakeCodex, 0o755);
   fs.writeFileSync(jobFile, JSON.stringify({
     packet: { correlationId: 'correlation-1' },
     receiptFile,
     targetSessionId: 'writer-task',
-    message: 'WORKFLOW_ROUTER_DISPATCH',
-    codexBin: fakeCodex,
+    codexBin: missingExecutable ? path.join(root, 'missing-codex') : fakeCodex,
   }));
-  return { jobFile, receiptFile };
+  return { jobFile, receiptFile, invocationFile };
 }
 
-test('records delivery only after the exact resumed task emits turn.started', () => {
-  const { jobFile, receiptFile } = fixture([
-    { type: 'thread.started', thread_id: 'writer-task' },
-    { type: 'turn.started' },
-    { type: 'turn.completed' },
-  ]);
+test('queues the packet through the existing host task without resuming a competing writer', () => {
+  const { jobFile, receiptFile, invocationFile } = fixture({
+    initialReceipt: { deliveryStatus: 'failed', deliveryError: 'active writer conflict' },
+  });
   const result = spawnSync(process.execPath, [worker, jobFile], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
+  const invocation = JSON.parse(fs.readFileSync(invocationFile, 'utf8'));
+  assert.deepEqual(invocation.slice(0, 4), [
+    'queue', '--thread', 'writer-task', '--message',
+  ]);
+  assert.match(invocation[4], /^WORKFLOW_ROUTER_DISPATCH\n/);
+  assert.match(invocation[4], /"correlationId":"correlation-1"/);
   const receipt = JSON.parse(fs.readFileSync(receiptFile, 'utf8'));
-  assert.equal(receipt.deliveryStatus, 'completed');
-  assert.equal(receipt.observedThreadId, 'writer-task');
-  assert.ok(receipt.deliveredAt);
-  assert.ok(receipt.completedAt);
+  assert.equal(receipt.deliveryStatus, 'queued');
+  assert.equal(receipt.deliveryError, null);
+  assert.ok(receipt.queuedAt);
 });
 
-test('does not claim delivery when turn.started belongs to no verified target', () => {
-  const { jobFile, receiptFile } = fixture([
-    { type: 'thread.started', thread_id: 'different-task' },
-    { type: 'turn.started' },
-  ]);
+test('records a queue rejection without claiming delivery', () => {
+  const { jobFile, receiptFile } = fixture({ exitStatus: 1, stderr: 'queue rejected' });
   const result = spawnSync(process.execPath, [worker, jobFile], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   const receipt = JSON.parse(fs.readFileSync(receiptFile, 'utf8'));
   assert.equal(receipt.deliveryStatus, 'failed');
-  assert.match(receipt.deliveryError, /before turn.started/);
+  assert.equal(receipt.deliveryError, 'queue rejected');
+});
+
+test('records a process launch failure once without obscuring its cause', () => {
+  const { jobFile, receiptFile } = fixture({ missingExecutable: true });
+  const result = spawnSync(process.execPath, [worker, jobFile], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const receipt = JSON.parse(fs.readFileSync(receiptFile, 'utf8'));
+  assert.equal(receipt.deliveryStatus, 'failed');
+  assert.match(receipt.deliveryError, /ENOENT/);
 });

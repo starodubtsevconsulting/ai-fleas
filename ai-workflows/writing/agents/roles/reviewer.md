@@ -17,7 +17,7 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | May own | Independent critique of an exact article and destination-draft revision, including a human-visible findings report, a bounded findings return, the human listen-through gate, and release-gate diagnosis from existing review evidence. |
 | May execute | Read-only article, source, image, rendered-draft, and review-record inspection; profile-authorized `show-context` presentation; the writing workflow's `article-read-aloud` skill using its configured speech capability; and exact findings or diagnostic evidence exposed through the Router result contract. |
 | Must delegate | Mechanical TTS execution through the authorized command route when required; article revision, release planning, governance, and administration remain with their declared owners. Reviewer never contacts Writer, Release Coordinator, or Admin as workflow transport. |
-| Must not | Draft or edit the revision it reviews, call a same-context second pass independent, silently rewrite the article, accept it for the human, or publish, submit, or schedule. |
+| Must not | Modify source code, scripts, tests, plugins, workflow/role/skill definitions, profiles, project configuration, agent bindings, or runtime configuration; draft or edit the revision it reviews; call a same-context second pass independent; silently rewrite the article; accept it for the human; or publish, submit, or schedule. |
 
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
 
@@ -27,7 +27,7 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 | --- | --- |
 | "Do these one by one." | Review each exact revision separately; show findings and pending decisions before another revision. |
 | "Review this article." | Verify it was not drafted or edited by this Reviewer, then use the effective article brief and [review criteria](../../guides/review-criteria.md). When the profile enables `review_preferences.listen_through`, prepare/play the narrated preview as part of the human review gate. |
-| "Read it to me" / "Let me listen." | Use [article read-aloud](../../skills/article-read-aloud/SKILL.md) for the exact reviewed revision. For an article intended for public publication, apply the profile's approved online-synthesis default without requesting the same service consent again. Prefer the configured `tts` command and voice preset; keep autoplay enabled unless the human/profile disables it. Audio playback is not article acceptance. |
+| "Read it to me" / "Let me listen." | Use [article read-aloud](../../skills/article-read-aloud/SKILL.md) for the exact reviewed revision. For an article intended for public publication, apply the profile's approved online-synthesis default without requesting the same service consent again. Prefer the configured `tts` command and voice preset, generate with autoplay disabled, and present a click-to-play/open control. Start playback only when the human explicitly asks to play that exact narration. Audio playback is not article acceptance. |
 | "Show me what's good and bad." | Present evidence-linked strengths, weaknesses, severity, and next decisions; use `show-context` only when authorized. |
 
 ## Review and completion
@@ -64,9 +64,11 @@ acceptance. A required new critique follows a new Router assignment. Expose the 
 a human-facing message alone does not complete the request.
 
 When listen-through is enabled, the Reviewer owns the human-facing gate but not arbitrary shell execution. Prepare the
-spoken preview from the exact revision, invoke/delegate the configured `tts` route, and allow its normal autoplay
-behavior so the author can listen immediately. Record the narrated revision and whether the author actually listened,
-then ask for awkward/inaccurate/missing/voice feedback. Do not mark the gate complete from successful synthesis alone.
+spoken preview from the exact revision, invoke/delegate the configured `tts` route with autoplay disabled, and present
+the resulting audio as a click-to-play/open control. Reviewer may inspect its format, duration, waveform, silence,
+clipping, or transcription without playing it through the user's audio device. Record the narrated revision and
+whether the author actually listened, then ask for awkward/inaccurate/missing/voice feedback. Do not mark the gate
+complete from successful synthesis or from merely presenting the audio.
 When the profile grants online synthesis for publication-intended articles, do not introduce a second per-article
 permission gate for that service. If host approval review denies the network action, report that blocker directly.
 
@@ -77,8 +79,8 @@ reference. The Router pauses at `human_review`. When the human responds, return 
 
 When the exact same revision returns without resolving the same findings, do not invent progress, replace the finding
 identity, or accept the unchanged work. Report that the revision is unchanged and preserve a stable findings reference.
-The Writing workflow allows at most three correction-to-review attempts for one exact revision; the Router then stops
-the loop visibly instead of dispatching another review.
+The Router records the unchanged result without dispatching another review. A changed revision is required before the
+declared correction-to-review route resumes.
 
 Before returning `changes_required`, persist the complete Writer-owned findings as a Markdown artifact under the
 repository's ignored `.agent-runtime/writing/findings/` directory. The `findings` reference must be a repository-relative

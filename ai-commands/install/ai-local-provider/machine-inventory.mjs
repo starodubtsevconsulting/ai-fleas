@@ -22,7 +22,11 @@ const inventory = {
   gpu: values.gpu_name === 'none' ? null : { name: values.gpu_name || null, vram_mb: integer('gpu_vram_mb'), driver: values.gpu_driver || null },
   access: { sudo: values.sudo || null },
   container: { engine: values.container_engine || null, gpu: values.container_gpu || null },
-  services: { ai_local_provider: values.service || null },
+  services: {
+    ai_local_provider: values.service_ai_local_provider || values.service || null,
+    ollama: values.service_ollama || null,
+    ai_policy_evaluator: values.service_ai_policy_evaluator || null,
+  },
   selection: { requested_preset: preset || null }
 };
 

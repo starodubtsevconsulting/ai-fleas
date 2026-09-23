@@ -3,6 +3,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { WorkflowTransitionPacket } from './workflow-transition-packet.mjs';
 
 const COORDINATES = ['profileId', 'workflowId', 'logicalProjectId', 'runtimeScopeId'];
 const RESULT_FIELDS = new Set(['acknowledgement', 'correlationId', 'stage', 'role', 'event', 'references']);
@@ -158,12 +159,14 @@ function atomicWrite(file, value, exclusive = false) {
 function retryProgress(result, policy) {
   const kinds = policy?.progressReferenceKinds;
   const maximum = policy?.maxSameProgressAttempts;
-  if (!Array.isArray(kinds) || !kinds.length || !Number.isInteger(maximum) || maximum < 1) return null;
+  const requireChangedProgress = policy?.requireChangedProgress === true;
+  const hasAttemptLimit = Number.isInteger(maximum) && maximum > 0;
+  if (!Array.isArray(kinds) || !kinds.length || (!requireChangedProgress && !hasAttemptLimit)) return null;
   const references = result.references.filter(({ kind }) => kinds.includes(kind));
   if (references.length !== kinds.length || kinds.some((kind) => !references.some((reference) => reference.kind === kind))) {
     return null;
   }
-  return { maximum, references };
+  return { maximum: hasAttemptLimit ? maximum : null, requireChangedProgress, references };
 }
 
 function previousProgressAttempts(packet, progress) {
@@ -176,10 +179,9 @@ function previousProgressAttempts(packet, progress) {
     if (!name.endsWith('.json')) continue;
     try {
       const receipt = JSON.parse(fs.readFileSync(path.join(directory, name), 'utf8'));
-      if (!receipt.targetSessionId || receipt.loopBlocked) continue;
-      if (!['started', 'completed'].includes(receipt.deliveryStatus)) continue;
+      if (!receipt.targetSessionId || receipt.loopBlocked || receipt.unchangedProgress) continue;
+      if (!['queued', 'started', 'completed'].includes(receipt.deliveryStatus)) continue;
       if (COORDINATES.some((field) => receipt[field] !== packet[field])) continue;
-      if (receipt.from?.stage !== packet.from.stage || receipt.from?.event !== packet.from.event) continue;
       if (receipt.to?.stage !== packet.to.stage) continue;
       const references = (receipt.references ?? []).filter(({ kind }) =>
         progress.references.some((expected) => expected.kind === kind));
@@ -243,8 +245,21 @@ function dispatch(registry, binding, result) {
   }
   const progress = retryProgress(result, resolved.retryPolicy);
   if (progress) {
-    const attempt = previousProgressAttempts(packet, progress) + 1;
-    if (attempt >= progress.maximum) {
+    const previousAttempts = previousProgressAttempts(packet, progress);
+    if (progress.requireChangedProgress && previousAttempts > 0) {
+      if (receiptFile) {
+        fs.mkdirSync(path.dirname(receiptFile), { recursive: true });
+        fs.writeFileSync(receiptFile, `${JSON.stringify({
+          ...packet,
+          unchangedProgress: true,
+          deliveryStatus: 'not-dispatched',
+          progressReferences: progress.references,
+        })}\n`, { mode: 0o600, flag: 'wx' });
+      }
+      return { ...resolved, unchangedProgress: true, progressReferences: progress.references };
+    }
+    const attempt = previousAttempts + 1;
+    if (progress.maximum && attempt >= progress.maximum) {
       if (receiptFile) {
         fs.mkdirSync(path.dirname(receiptFile), { recursive: true });
         fs.writeFileSync(receiptFile, `${JSON.stringify({
@@ -258,11 +273,7 @@ function dispatch(registry, binding, result) {
       return { ...resolved, loopBlocked: true, attempt, maximum: progress.maximum };
     }
   }
-  const message = [
-    'WORKFLOW_ROUTER_DISPATCH',
-    'Continue the bound workflow stage described by this host-generated packet. Use only its references and your bound workflow instructions.',
-    JSON.stringify(packet),
-  ].join('\n');
+  const message = new WorkflowTransitionPacket(packet).toCodexTaskMessage();
   if (process.env.WORKFLOW_ROUTER_QUEUE_LOG) {
     fs.appendFileSync(process.env.WORKFLOW_ROUTER_QUEUE_LOG, `${JSON.stringify({ thread: resolved.targetSessionId, message })}\n`);
     if (receiptFile) atomicWrite(receiptFile, {
@@ -283,7 +294,6 @@ function dispatch(registry, binding, result) {
       packet,
       receiptFile,
       targetSessionId: resolved.targetSessionId,
-      message,
       codexBin: process.env.CODEX_BIN ?? 'codex',
     });
     try {
@@ -344,6 +354,10 @@ if (!binding) {
       } else if (outcome.loopBlocked) {
         emit({
           systemMessage: `Workflow Router stopped a non-progress loop after ${outcome.attempt} attempts with the same declared progress references. Produce a new revision or request human intervention before routing continues.`,
+        });
+      } else if (outcome.unchangedProgress) {
+        emit({
+          systemMessage: 'Workflow Router did not dispatch the next endpoint because the declared progress references are unchanged.',
         });
       } else if (outcome.deliveryStatus === 'pending') {
         emit({ systemMessage: `Workflow Router started delivery to ${outcome.targetRole}; completion requires an observed turn.started receipt.` });
