@@ -298,6 +298,17 @@ The command MUST:
 MUST NOT fall through to inference or publication. A restricted policy without semantic input validation is invalid and
 MUST fail startup. Prompt prefixes, suffixes, and negative prompts are model steering rather than validation.
 
+Policy intent is request data in the trusted decision contract, not evaluator process identity. Changing only the active
+policy profile or gate selection MUST NOT require restarting the evaluator or reloading its reasoning model. A mature
+implementation SHOULD isolate the public policy gateway from the heavy image-model worker so a trusted policy-only
+change can be applied atomically without reloading the image model. Public inference requests MUST NOT be able to select
+`unrestricted`, disable a gate, or change evaluator configuration.
+
+Restart the evaluator only when its own model, runtime allocation, endpoint/bind, authentication, or implementation
+changes. Restart the image worker only when its image model, pipeline, runtime image, or accelerator allocation changes.
+If the current adapter combines gateway and image worker, the command MUST report that a policy-only change will incur a
+heavy model reload rather than presenting that coupling as an evaluator requirement.
+
 Until the installer implements this reconciliation, a manually accepted deployment may demonstrate runtime behavior but
 MUST NOT be reported as automatically profile-reconciled.
 

@@ -125,6 +125,69 @@ The current generic reference implementation is split deliberately:
 | [`local-image-generator@.service`](../../data/local-image-benchmark/assets/systemd/local-image-generator@.service) | Generic generator service template; the private profile supplies the host/model/runtime instance values. |
 | [`ai-policy-evaluator.service`](../../data/local-image-benchmark/assets/systemd/ai-policy-evaluator.service) | Generic evaluator service template; the private profile supplies endpoint/model/runtime values. |
 
+### What the validator is
+
+The reference deployment does not use a policy-specific classifier or a separately fine-tuned moderation model. Its
+reasoning engine is a generic profile-selected multimodal model served by a local model runtime. The installed
+`ollama_policy_service.py` process is nevertheless an important validator adapter rather than a raw model endpoint. It:
+
+- authenticates the generator-host client;
+- accepts only the versioned decision-request schema;
+- treats policy instructions as trusted and request/candidate content as untrusted;
+- asks the generic model to reason about intent in any language and apply the supplied semantic policies;
+- constrains output to `allow`, `deny`, or `uncertain` plus known policy IDs;
+- validates request IDs and returned policy IDs; and
+- normalizes malformed, ambiguous, or inconsistent model output to fail-closed `uncertain` behavior.
+
+There is no separate evaluator service implementation for nudity, profanity, individual languages, or other policy
+categories. The workflow-selected policy intent travels in each authenticated decision request. Consequently, the same
+running adapter and reasoning model can evaluate a different policy profile on the next request without redeployment.
+
+```text
+generator backend
+   -> authenticated decision request containing selected policy intent
+generic evaluator adapter
+   -> constrained reasoning request
+profile-selected local reasoning model
+   -> candidate structured decision
+generic evaluator adapter
+   -> validated allow / deny / uncertain
+```
+
+### Defaults, switching, and restart boundaries
+
+The portable generic default is `unrestricted` with semantic gates off for backward compatibility. A private workflow
+may instead bind a restricted profile with semantic input/output enabled; the current `sc/dev` binding does so. A
+restricted policy without semantic input validation is invalid and fails startup.
+
+In the current reference implementation, the image-serving backend reads its policy selection and gate settings from
+environment variables at process startup. Because that process also owns the loaded image pipeline, changing those
+settings currently restarts the generator process and reloads the heavy image model. This is a current implementation
+limitation, not a requirement of semantic validation.
+
+Changing the active policy profile or turning enforcement on/off does **not** inherently require restarting the evaluator.
+The evaluator receives policy intent in every request and can remain resident. Restart boundaries are:
+
+| Change | Current required action |
+|---|---|
+| Different policy profile with the same evaluator | Restart combined generator backend today; evaluator remains running. |
+| Restricted ↔ explicitly acknowledged `unrestricted` | Restart combined generator backend today; evaluator remains running. |
+| Evaluator model, GPU/CPU allocation, bind address, authentication, or evaluator code | Restart evaluator service. |
+| Image model, pipeline, runtime image, or accelerator allocation | Restart image-model worker. |
+
+The desired implementation separates a lightweight policy gateway from the private heavy image worker:
+
+```text
+public clients -> reloadable policy gateway -> private resident image worker
+                         |
+                         +-> resident evaluator adapter -> resident reasoning model
+```
+
+Policy changes would then atomically reload trusted gateway configuration, or restart only that small gateway, without
+unloading either model. The public request schema must never expose a per-request bypass. Selecting `unrestricted`
+remains a trusted profile/installer operation requiring explicit acknowledgement. This gateway separation is planned
+installer/runtime work and is not yet implemented.
+
 The private profile selects independently:
 
 - generator host, service instance, runtime image, image model, model parameters, and resource limits;

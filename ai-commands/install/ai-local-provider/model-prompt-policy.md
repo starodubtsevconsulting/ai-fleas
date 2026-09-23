@@ -130,6 +130,11 @@ classifier, provider API, or ensemble behind the same strict decision contract. 
 instructions, thresholds, endpoint, or selected policy. When a semantic layer is enabled, missing configuration,
 timeouts, malformed or uncertain decisions, and unavailable enforcement fail closed.
 
+In the reference local deployment, “validator” means a generic authenticated decision adapter in front of a generic
+multimodal reasoning model—not a separately trained classifier for each policy. Policy intent is supplied in every
+decision request. Switching policy intent therefore does not require restarting the evaluator model; only changes to
+the evaluator's own model/runtime/network/authentication configuration require its restart.
+
 Candidate outputs remain private until all enabled output gates allow release. An image adapter therefore moderates the
 in-memory candidate before writing a public output file or returning encoded bytes. Text and multimodal adapters must
 provide the equivalent hold-before-release boundary.
