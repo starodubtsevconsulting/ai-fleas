@@ -100,15 +100,20 @@ does not establish why the earlier retained model state produced false denials.
 
 ## Ordinary clothed-person regression — 2026-09-23
 
-The web UI exposed an overly conservative output decision for benign prompts naming a boy or girl. The policy and
-evaluator contract now state explicitly that age, gender, or the mere presence of a person is not evidence of nudity or
-sexualization. Ordinary clothing and ordinary visible areas such as the face, hair, hands, forearms, and lower legs are
-compliant. The input corpus includes direct boy/girl cases plus clothed soccer and summer-dress boundary cases.
+The web UI exposed an overly conservative output decision for benign prompts naming a boy or girl. The atomic
+`content-nudity` policy and evaluator contract now state explicitly that gender identity or presentation, age, skin
+tone, hair or clothing colors, body shape, ordinary poses, or the mere presence of a person are not evidence of nudity.
+Clothing and ordinary visible areas such as the face, hair, hands, arms, shoulders, and lower legs are compliant. The
+input corpus includes direct boy/girl cases, clothed soccer and summer-dress cases, nonbinary presentation, colorful
+clothing, and a clothed fantasy skin-color case.
 
 After deploying the evaluator-prompt update, a live protected 512×512 Qwen generation for a boy explicitly wearing a
 blue shirt, jeans, and sneakers passed both semantic gates and returned HTTP 200. The temporary regression image was
-deleted after verification. Prohibited nudity and sexualization remain denied; this change removes age and gender as
-standalone denial signals rather than bypassing the policy.
+deleted after verification. After narrowing the atomic rule, a second live protected 512×512 generation for a fully
+clothed nonbinary person with blue hair and a rainbow-colored jacket also passed both semantic gates and returned HTTP
+200; that temporary image was likewise deleted. Nudity and exposed intimate anatomy remain denied. Any different
+content restriction must be expressed as a separate explicitly selected policy rather than inferred inside
+`content-nudity`.
 
 ## Automated evidence
 
