@@ -73,7 +73,7 @@ Examples:
   local-image-benchmark.command.sh candidates
   local-image-benchmark.command.sh run --candidate flux2-dev-bf16 \
     --output-root /data/image-benchmarks/runs --repeat 3 \
-    --machine-label gx10-128gb --confirm-model-isolated
+    --machine-label example-image-host --confirm-model-isolated
   local-image-benchmark.command.sh summarize /data/image-benchmarks/runs/*/results.jsonl
 EOF
 }

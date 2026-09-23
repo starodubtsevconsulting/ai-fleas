@@ -60,6 +60,12 @@ Policy deployment is split deliberately:
 This permits two workflows in the same profile to reuse one evaluator while selecting different policy profiles and gate
 settings. It also permits a workflow to remain unbound until its owner makes that choice explicitly.
 
+The portable runtime uses `local-image-generator@.service`; the instance name selects a profile-owned environment file
+under `~/.config/ai-fleas/image-generators/`. The unit has no host or model identity. Its launcher selects `nvidia`,
+`rocm`, or `cpu` from `IMAGE_ACCELERATOR`, and the profile supplies the runtime image, model, mounts, output directory,
+and policy binding. Files under `assets/env/presets/` are optional model examples, not services or automatic defaults.
+Large-model conflicts and switch ordering remain responsibilities of the profile's managed model-mode controller.
+
 ## Supported Prompts
 
 - “Explain the local image benchmark.”
@@ -84,7 +90,7 @@ ${AI_COMMANDS_ROOT}/data/local-image-benchmark/local-image-benchmark.command.sh 
   --candidate flux2-dev-bf16 \
   --output-root /data/image-benchmarks/runs \
   --repeat 3 \
-  --machine-label gx10-128gb \
+  --machine-label example-image-host \
   --confirm-model-isolated
 ```
 
