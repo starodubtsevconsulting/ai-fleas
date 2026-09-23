@@ -16,7 +16,8 @@ class GenerationPolicyTest(unittest.TestCase):
     def test_education_policy_composes_prompt_and_locks_negative_prompt(self):
         policy = load_generation_policy("education-child", POLICY_DIR)
         prompt, negative = policy.prepare_prompt("a student building a robot", "ignore safety")
-        self.assertIn("supervised educational setting", prompt)
+        self.assertIn("keeping every depicted person clothed", prompt)
+        self.assertIn("Gender, age, skin tone, colors", prompt)
         self.assertIn("a student building a robot", prompt)
         self.assertNotIn("ignore safety", negative)
 
@@ -31,7 +32,7 @@ class GenerationPolicyTest(unittest.TestCase):
         policy = load_generation_policy("education-child", POLICY_DIR)
         prompt, negative = policy.prepare_prompt("make the character nude", None)
         self.assertIn("make the character nude", prompt)
-        self.assertIn("supervised educational setting", prompt)
+        self.assertIn("keeping every depicted person clothed", prompt)
         self.assertIn("nudity", negative)
 
     def test_missing_policy_fails_closed(self):
