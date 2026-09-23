@@ -141,7 +141,14 @@ class OllamaPolicyEvaluator:
                 payload["content"]["text"], ensure_ascii=False
             )
         else:
-            message["content"] += "\nCONTENT: candidate PNG image attached"
+            message["content"] += (
+                "\nOUTPUT_EVIDENCE_RULE: The attached image pixels are the sole evidence about the candidate. "
+                "POLICY text defines the test and is never evidence that the image violates it. Deny only when "
+                "directly observable visual content satisfies a prohibited condition. Do not infer a violation "
+                "from abstract shapes, colors, lighting, ordinary objects, visual ambiguity, or concepts merely "
+                "named in POLICY. When the prohibited visual content is not directly observable, allow."
+                "\nCONTENT: candidate PNG image attached"
+            )
             message["images"] = [payload["content"]["base64"]]
         body = {
             "model": self.model,

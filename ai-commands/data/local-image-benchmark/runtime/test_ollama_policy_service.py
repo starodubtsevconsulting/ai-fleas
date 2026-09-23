@@ -1,5 +1,7 @@
 import base64
+import json
 import unittest
+from unittest import mock
 
 from ollama_policy_service import (
     EvaluatorError,
@@ -45,6 +47,35 @@ class OllamaPolicyServiceTest(unittest.TestCase):
     def test_validates_text_and_image_requests(self):
         self.assertEqual(validate_request(request())["stage"], "input")
         self.assertEqual(validate_request(request("output"))["stage"], "output")
+
+    def test_output_prompt_makes_attached_pixels_the_only_candidate_evidence(self):
+        captured = {}
+
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+            def read(self, _):
+                return json.dumps(
+                    {"message": {"content": json.dumps({"decision": "allow", "violated_policy_ids": []})}}
+                ).encode()
+
+        def urlopen(url_request, timeout):
+            del timeout
+            captured.update(json.loads(url_request.data.decode()))
+            return Response()
+
+        evaluator = OllamaPolicyEvaluator("http://localhost:11434", "model", 1)
+        with mock.patch("urllib.request.urlopen", side_effect=urlopen):
+            evaluator.decide(request("output"))
+
+        prompt = captured["messages"][1]["content"]
+        self.assertIn("attached image pixels are the sole evidence", prompt)
+        self.assertIn("Deny only when directly observable visual content", prompt)
+        self.assertIn("When the prohibited visual content is not directly observable, allow", prompt)
 
     def test_rejects_invalid_request_and_image(self):
         invalid = request()
