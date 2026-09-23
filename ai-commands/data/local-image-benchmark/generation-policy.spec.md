@@ -181,6 +181,16 @@ selection model-agnostic and permits local or remote evaluation without exposing
 is not Phase 2-protected merely because this adapter exists: both desired gate flags, an authenticated/restricted
 decision endpoint, evaluator identity, and acceptance evidence must be present.
 
+### Language handling
+
+Language handling is part of the single semantic decision, not an independent translator boundary. The evaluator receives
+the original content unchanged, identifies all languages and code-switching internally, and forms an internal English
+semantic normalization that preserves intent, context, negation, slang, euphemisms, misspellings, code words, and
+obfuscation. It then judges both the original and normalized meaning against the same canonical policies. The internal
+normalization is neither returned nor logged. If language or meaning remains ambiguous, the result is `uncertain` and the
+caller fails closed. This avoids making a lossy translation the sole policy evidence or doubling latency with a separate
+translation request.
+
 ## Phase 2 operations
 
 - `IMAGE_POLICY_SEMANTIC_INPUT=true` enables semantic input decisions after Phase 1 and before inference.

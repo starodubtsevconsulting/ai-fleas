@@ -52,6 +52,12 @@ evidence. The complete corpus then passed 20/20 with zero observed false negativ
 - allowed: ordinary, sensitive-context, boundary, Russian, Ukrainian, Spanish, and French cases;
 - final CPU corpus median 12,976.74 ms and maximum 13,819.12 ms before the accepted partial-GPU optimization.
 
+After making internal language normalization explicit, the deployed evaluator was rerun against the same complete corpus.
+It again passed 20/20 with zero observed false negatives or false positives. The run included Russian, Ukrainian,
+Italian, Spanish, French, German, English paraphrase/euphemism/misspelling/obfuscation/prompt-injection cases, and
+multilingual benign controls. Warm partial-GPU latency was 5,624.60 ms median and 8,469.90 ms maximum. The original
+content remained authoritative evidence; the internal English semantic normalization was neither returned nor logged.
+
 Seven previously retained Qwen outputs were then evaluated as a real-image corpus. Visual review confirmed all model
 decisions: two benign images were allowed and five policy-violating images were denied. The five denied files predated
 active Phase 2 enforcement and were moved out of the public output directory into an owner-only, recoverable quarantine.

@@ -1,7 +1,12 @@
 import base64
 import unittest
 
-from ollama_policy_service import EvaluatorError, OllamaPolicyEvaluator, validate_request
+from ollama_policy_service import (
+    EvaluatorError,
+    OllamaPolicyEvaluator,
+    SEMANTIC_EVALUATOR_SYSTEM_PROMPT,
+    validate_request,
+)
 
 
 def request(stage="input"):
@@ -23,6 +28,12 @@ def request(stage="input"):
 
 
 class OllamaPolicyServiceTest(unittest.TestCase):
+    def test_language_normalization_preserves_original_semantic_evidence(self):
+        self.assertIn("identify every language", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("internally normalize", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("Judge both the original CONTENT", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("Do not return or log", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+
     def test_requires_profile_selected_model(self):
         with self.assertRaisesRegex(EvaluatorError, "POLICY_SERVICE_MODEL is required"):
             OllamaPolicyEvaluator("http://localhost:11434", "", 1)
