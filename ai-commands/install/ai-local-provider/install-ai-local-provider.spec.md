@@ -294,6 +294,12 @@ The command MUST:
 11. verify an output denial is discarded before public persistence or response; and
 12. verify the public boundary remains protected when a public endpoint is configured.
 
+When a semantic gate is required, aggregate generator/gateway health MUST include a bounded lightweight check of the
+evaluator dependency and report degraded/unavailable while that dependency cannot be reached or authenticated. The
+public UI MAY remain reachable so it can explain the outage, but generation readiness MUST be false. Dependency health
+is advisory evidence only: each inference request MUST still obtain its own valid policy decision, and cached or stale
+health MUST NOT authorize inference.
+
 `deny`, `uncertain`, timeout, malformed or mismatched responses, authentication failure, and evaluator unavailability
 MUST NOT fall through to inference or publication. A restricted policy without semantic input validation is invalid and
 MUST fail startup. Prompt prefixes, suffixes, and negative prompts are model steering rather than validation.

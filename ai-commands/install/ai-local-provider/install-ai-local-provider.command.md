@@ -225,6 +225,23 @@ unloading either model. The public request schema must never expose a per-reques
 remains a trusted profile/installer operation requiring explicit acknowledgement. This gateway separation is planned
 installer/runtime work and is not yet implemented.
 
+### What happens when validation is enabled but the evaluator is unavailable?
+
+The protected service fails closed. There is no automatic fallback to unchecked generation or to `unrestricted`:
+
+| Failure point | Required behavior |
+|---|---|
+| Evaluator unavailable before input decision | Return a bounded service-unavailable response; do not invoke the image model. |
+| Evaluator returns `uncertain`, malformed output, mismatched IDs, or an authentication error | Reject before inference; do not reinterpret the result as `allow`. |
+| Evaluator becomes unavailable after input approval but before output approval | The model may have produced a private in-memory candidate, but the backend discards it and returns an error; it is never encoded, saved publicly, or returned. |
+| Evaluator recovers | New requests may proceed after dependency health and normal decisions succeed; no image-model reload is inherently required. |
+
+The public page and tunnel can remain reachable during an evaluator outage, but protected generation is unavailable.
+The request path already returns HTTP 503 for an unavailable evaluator. Aggregate generator/gateway health should also
+probe the lightweight evaluator health endpoint and report a degraded/unavailable dependency so the UI can explain the
+problem before accepting a generation request. This dependency-health reporting is an improvement requirement; it does
+not replace request-time validation, and a stale positive health result must never authorize inference.
+
 The private profile selects independently:
 
 - generator host, service instance, runtime image, image model, model parameters, and resource limits;
