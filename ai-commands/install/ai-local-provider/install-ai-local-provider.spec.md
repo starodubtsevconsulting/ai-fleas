@@ -268,6 +268,56 @@ The command MUST:
 
 For remote Ubuntu, the command additionally verifies SSH/sudo, creates/reconciles `/opt/ai-local-provider`, installs the unprivileged service account and systemd service, and exposes the endpoint only to the intended trusted LAN.
 
+### Protected image-mode reconciliation
+
+When the selected profile/workflow binds a protected image mode to a semantic evaluator, installation is a coordinated
+two-service operation even when both services happen to run on one host. The browser UI and public tunnel are not policy
+enforcement components. The image-serving backend on the generator host MUST call the evaluator before image inference
+and again before releasing a generated candidate.
+
+The command MUST:
+
+1. resolve the workflow's generator, policy profile, evaluator reference, and required semantic gates from trusted
+   profile configuration;
+2. resolve generator and evaluator hosts independently without assuming a machine or model name;
+3. validate private reachability and an authorized credential-file binding without exposing credential values;
+4. install/reconcile the evaluator adapter and selected evaluator model, keeping any underlying raw model endpoint no
+   broader than required;
+5. install/reconcile the generic image-serving backend, policy definitions, runtime image, model parameters, resource
+   limits, evaluator endpoint, timeouts, and read-only client credential mount;
+6. start and verify the evaluator before starting the generator service;
+7. verify generator health reports the selected policy and every required semantic gate;
+8. prove a prohibited semantic input is rejected before inference;
+9. prove evaluator unavailability fails closed before inference and recovery restores readiness;
+10. perform one real benign image generation and prove both input and output decisions allow before returning a
+    structurally valid, non-empty image;
+11. verify an output denial is discarded before public persistence or response; and
+12. verify the public boundary remains protected when a public endpoint is configured.
+
+When a semantic gate is required, aggregate generator/gateway health MUST include a bounded lightweight check of the
+evaluator dependency and report degraded/unavailable while that dependency cannot be reached or authenticated. The
+public UI MAY remain reachable so it can explain the outage, but generation readiness MUST be false. Dependency health
+is advisory evidence only: each inference request MUST still obtain its own valid policy decision, and cached or stale
+health MUST NOT authorize inference.
+
+`deny`, `uncertain`, timeout, malformed or mismatched responses, authentication failure, and evaluator unavailability
+MUST NOT fall through to inference or publication. A restricted policy without semantic input validation is invalid and
+MUST fail startup. Prompt prefixes, suffixes, and negative prompts are model steering rather than validation.
+
+Policy intent is request data in the trusted decision contract, not evaluator process identity. Changing only the active
+policy profile or gate selection MUST NOT require restarting the evaluator or reloading its reasoning model. A mature
+implementation SHOULD isolate the public policy gateway from the heavy image-model worker so a trusted policy-only
+change can be applied atomically without reloading the image model. Public inference requests MUST NOT be able to select
+`unrestricted`, disable a gate, or change evaluator configuration.
+
+Restart the evaluator only when its own model, runtime allocation, endpoint/bind, authentication, or implementation
+changes. Restart the image worker only when its image model, pipeline, runtime image, or accelerator allocation changes.
+If the current adapter combines gateway and image worker, the command MUST report that a policy-only change will incur a
+heavy model reload rather than presenting that coupling as an evaluator requirement.
+
+Until the installer implements this reconciliation, a manually accepted deployment may demonstrate runtime behavior but
+MUST NOT be reported as automatically profile-reconciled.
+
 ## Post-install verification gate
 
 Installation is not complete when files/packages are merely present.
