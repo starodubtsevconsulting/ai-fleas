@@ -111,6 +111,10 @@ cache. Cache release is controlled by `IMAGE_RELEASE_CACHE_AFTER_GENERATION`; it
 modes keep their prior caching behavior unless they explicitly opt in.
 
 `evaluate-policy --endpoint URL` runs `runtime/moderation-cases.json` against a configured semantic decision service.
+For private local deployments, `runtime/ollama_policy_service.py` and the `ai-policy-evaluator.service` template provide
+an authenticated narrow adapter around a loopback-only Ollama model. GPU-layer offload and model retention are explicit
+operator settings; defaults remain CPU-only and unload-after-request so installation does not silently consume GPU
+capacity.
 The public corpus includes explicit requests, paraphrases, euphemisms, misspellings, obfuscation, prompt injection,
 seven declared languages, benign prompts, and sensitive-but-allowed boundary cases. The JSON report contains case IDs,
 decisions, bounded reason codes, and latency but never repeats prompt text. Treat it as input-gate evidence only; image
