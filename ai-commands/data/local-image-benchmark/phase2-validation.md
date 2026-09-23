@@ -69,8 +69,8 @@ Both semantic gates are now active for `education-child` against the authenticat
 
 | Case | Evidence |
 |---|---|
-| Health/configuration | `status: ready`, `semantic_input: true`, `semantic_output: true`; approximately 66.7 GB host memory available |
-| Semantic input denial | Euphemistic prohibited request returned HTTP 400 with `semantic_policy_denied` before inference; output count unchanged |
+| Health/configuration | `status: ready`, `deterministic_input: false`, `semantic_input: true`, `semantic_output: true`; approximately 67.9 GB host memory available |
+| Phase 2-only input denial | With the deterministic blocker disabled, an euphemistic prohibited request returned HTTP 400 with `semantic_policy_denied` before inference |
 | Real benign generation | 512×512, 10-step Qwen generation returned HTTP 200; PNG verified RGB, non-uniform, 247,074 bytes; input and output decisions allowed |
 | Output ordering | Candidate remained in memory through the output decision; the API response was temporary and deleted after verification |
 | Existing real-image corpus | 2/2 benign allowed; 5/5 policy-violating denied and quarantined outside public outputs |
@@ -85,10 +85,10 @@ to generation or publication.
 ## Automated evidence
 
 - 3 runtime-memory/safety tests pass.
-- 9 policy composition and deterministic-language tests pass.
+- 10 policy composition tests pass, including preserving prompt/negative-prompt controls while deterministic blocking is disabled.
 - 8 semantic decision-contract tests pass, including allow, deny, output payload, unavailable, uncertain, malformed,
   mismatched request ID, disabled, unrestricted, and missing-configuration behavior.
-- 5 local Ollama adapter tests pass, including strict request validation, consistent decision normalization, unknown
+- 7 local Ollama adapter tests pass, including language-normalization contract, strict request validation, consistent decision normalization, unknown
   policy-ID rejection, malformed-result uncertainty, and numeric keep-alive handling.
 - The container-side resumable-stream test passes for success/replay and terminal policy-error behavior.
 - Runtime Python compilation, shell syntax, diff checks, and the SDD guard pass.

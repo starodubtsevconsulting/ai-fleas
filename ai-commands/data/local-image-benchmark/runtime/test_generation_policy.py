@@ -40,6 +40,13 @@ class GenerationPolicyTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "age-appropriate"):
             policy.validate_prompt("geneerate me naked girl")
 
+    def test_deterministic_gate_can_be_skipped_without_disabling_prompt_policy(self):
+        policy = load_generation_policy("education-child", POLICY_DIR)
+        prompt, negative = policy.prepare_prompt("make the character nude", None, validate_input=False)
+        self.assertIn("make the character nude", prompt)
+        self.assertIn("supervised educational setting", prompt)
+        self.assertIn("nudity", negative)
+
     def test_education_policy_rejects_supported_languages(self):
         policy = load_generation_policy("education-child", POLICY_DIR)
         prompts = {

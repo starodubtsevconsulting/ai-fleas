@@ -97,15 +97,18 @@ or direct misuse but is not a substitute for output moderation where a deploymen
 
 ## Phase 2 semantic moderation
 
-Phase 2 adds optional semantic gates around inference while retaining the deterministic Phase 1 gate as the cheapest
-first check. Both phases consume the same selected profile and its ordered atomic policies. Operators select a policy
-once; they do not maintain separate Phase 1 and Phase 2 policy choices.
+Phase 2 adds semantic gates around inference. The deterministic Phase 1 input gate is an optional latency optimization,
+not a security boundary: profiles may disable it when semantic input is enabled. Both gates consume the same selected
+profile and its ordered atomic policies. Operators select a policy once; they do not maintain separate policy choices.
+For a restricted policy, disabling deterministic input without enabling semantic input is an invalid configuration and
+the service fails startup. Prompt prefix/suffix and negative-prompt controls remain active independently of the Phase 1
+blocking switch.
 
 ```text
 public request
      |
      v
-Phase 1 deterministic gate -- deny --> neutral refusal (no inference)
+Optional deterministic gate -- deny --> neutral refusal (no inference)
      |
     allow
      v
@@ -193,7 +196,9 @@ translation request.
 
 ## Phase 2 operations
 
-- `IMAGE_POLICY_SEMANTIC_INPUT=true` enables semantic input decisions after Phase 1 and before inference.
+- `IMAGE_POLICY_DETERMINISTIC_INPUT=false` disables the optional deterministic text-pattern blocker. It defaults to
+  `true` for backward compatibility and requires semantic input for every restricted policy.
+- `IMAGE_POLICY_SEMANTIC_INPUT=true` enables semantic input decisions before inference.
 - `IMAGE_POLICY_SEMANTIC_OUTPUT=true` enables image decisions before encoding, saving, or returning a candidate.
 - `IMAGE_POLICY_MODERATION_URL` selects the trusted decision endpoint.
 - `IMAGE_POLICY_MODERATION_TIMEOUT_SECONDS` bounds each decision call.
@@ -201,8 +206,8 @@ translation request.
   public request payloads or committed configuration.
 
 Recovery is to restore the decision service and restart the managed model service. Protected modes remain unavailable
-rather than silently bypassing enabled gates. Rollback disables the Phase 2 gate flags in trusted service configuration
-and restarts the service, leaving Phase 1 deterministic enforcement active. Switching to `unrestricted` is a separate,
+rather than silently bypassing enabled gates. Disabling semantic input is not a valid rollback when deterministic input
+is disabled; an operator must restore a valid protected configuration. Switching to `unrestricted` is a separate,
 explicitly acknowledged deployment decision and is not a recovery mechanism.
 
 Implementation and validation evidence is recorded in [`phase2-validation.md`](phase2-validation.md). Contract tests
