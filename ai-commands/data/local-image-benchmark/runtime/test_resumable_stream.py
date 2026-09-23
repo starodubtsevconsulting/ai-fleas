@@ -4,6 +4,7 @@
 import asyncio
 
 from starlette.requests import Request
+from fastapi import HTTPException
 
 import serve
 
@@ -63,6 +64,30 @@ async def main() -> None:
             "completed_at": session.completed_at,
         }
     ]
+
+    serve.STREAM_SESSIONS.clear()
+
+    async def fake_policy_denial(*_args):
+        raise HTTPException(
+            400,
+            "neutral refusal",
+            headers={"X-Policy-Reason-Code": "test_denied"},
+        )
+
+    serve.generate_chat_content = fake_policy_denial
+    try:
+        denied = await serve.chat_completions(
+            {**payload, "seed": 2},
+            request_with_conversation("conversation-policy-denied"),
+        )
+        denied_bytes = b"".join([chunk async for chunk in denied.body_iterator])
+    finally:
+        serve.generate_chat_content = original
+
+    assert b'"type": "policy_error"' in denied_bytes
+    assert b'"reason_code": "test_denied"' in denied_bytes
+    assert denied_bytes.endswith(b"data: [DONE]\n\n")
+    assert serve.STREAM_SESSIONS["conversation-policy-denied"].done
     print("resumable stream tests: PASS")
 
 

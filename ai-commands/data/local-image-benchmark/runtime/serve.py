@@ -428,9 +428,8 @@ async def chat_completions(payload: dict, http_request: Request):
         BACKGROUND_TASKS.add(generation_task)
         generation_task.add_done_callback(BACKGROUND_TASKS.discard)
         while not generation_task.done() and not active_session.cancelled:
-            try:
-                await asyncio.wait_for(asyncio.shield(generation_task), timeout=10)
-            except TimeoutError:
+            done, _ = await asyncio.wait({generation_task}, timeout=10)
+            if not done:
                 await active_session.append(": keep-alive\n\n")
         try:
             if active_session.cancelled:

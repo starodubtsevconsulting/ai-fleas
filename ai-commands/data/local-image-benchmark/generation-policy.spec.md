@@ -188,3 +188,7 @@ Recovery is to restore the decision service and restart the managed model servic
 rather than silently bypassing enabled gates. Rollback disables the Phase 2 gate flags in trusted service configuration
 and restarts the service, leaving Phase 1 deterministic enforcement active. Switching to `unrestricted` is a separate,
 explicitly acknowledged deployment decision and is not a recovery mechanism.
+
+Implementation and validation evidence is recorded in [`phase2-validation.md`](phase2-validation.md). Contract tests
+and a loopback decision-service integration prove enforcement ordering and fail-closed behavior; semantic production
+acceptance remains evaluator-specific and cannot be inferred from adapter conformance.
