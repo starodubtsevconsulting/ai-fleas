@@ -13,5 +13,25 @@ memory:
   config: memory.yml
 
 authorizedProfiles:
-  - id: workflow-profile-example
+  - id: example
     relationship: primary-work-context
+  - id: example-client
+    relationship: external-client-context
+    dataSharing: normalized-commitments-only
+
+# Workflow access is independently and explicitly authorized. Each entry is
+# qualified by profile so identical workflow IDs in different profiles cannot be
+# confused. The example-client profile intentionally has no authorized workflow.
+authorizedWorkflows:
+  - profile: example
+    id: dev
+    path: dev.workflow.md
+  - profile: example
+    id: youtube
+    path: youtube.workflow.md
+  - profile: example
+    id: writing
+    path: writing.workflow.md
+  - profile: example
+    id: financial-insights
+    path: financial-insights.workflow.md
