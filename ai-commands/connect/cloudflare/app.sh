@@ -41,6 +41,7 @@ if [[ "${1:-}" == '--serve-check' ]]; then
   bash -n "$script_dir/controller-service.sh" "$script_dir/service-runner.sh"
   "$script_dir/cloudflare.command.test.sh"
   "$script_dir/controller-service.test.sh"
+  "$script_dir/service-runner.test.sh"
   node --check "$script_dir/launcher/electron/main.cjs"
   grep -q 'requestSingleInstanceLock' "$script_dir/launcher/electron/main.cjs" || {
     printf 'Cloudflare controller must enforce a single application instance.\n' >&2
@@ -55,6 +56,15 @@ const html = fs.readFileSync(process.argv[2], 'utf8');
 if (!html.includes('app-root')) throw new Error('Angular panel root is missing.');
 NODE
   printf 'Cloudflare tunnel UI checks passed.\n'
+  exit 0
+fi
+
+if [[ "${1:-}" == '--prepare' ]]; then
+  [[ -n "$electron_bin" && -x "$electron_bin" ]] || {
+    printf 'Electron preparation failed for the Cloudflare tunnel UI.\n' >&2
+    exit 1
+  }
+  printf 'Cloudflare tunnel UI prepared.\n'
   exit 0
 fi
 

@@ -38,8 +38,9 @@ test("server actions and details retain status bindings", () => {
     path.join(root, "app/components/server-list/server-list.component.html"),
     "utf8",
   );
-  assert.match(list, /\[disabled\]="s.connectorDetected"/);
-  assert.match(list, /\[disabled\]="!s.connectorDetected"/);
+  assert.match(list, /\[disabled\]="s.connectorDetected \|\| s.connectorDesired === true"/);
+  assert.match(list, /\[disabled\]="!s.connectorDetected && s.connectorDesired !== true"/);
+  assert.match(list, /s.connectorDesired === false \? "● Stopped"/);
   const details = fs.readFileSync(
     path.join(
       root,

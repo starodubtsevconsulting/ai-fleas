@@ -55,9 +55,13 @@ as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must nev
 | `create-tunnel --apply --token-output ABSOLUTE_PATH` | Create a remotely managed tunnel, attach ingress, create its proxied DNS CNAME, and save the returned connector token mode `0600`. |
 | `install-connector --apply` | Delegate idempotent `cloudflared` package installation to `install/cloudflare` without reading tunnel credentials or starting a connector. |
 | `run-tunnel` | Run `cloudflared` in the foreground using the remotely managed tunnel token. |
+| `connector-status` | Report whether the selected tunnel has a live AI Fleas connector process. |
+| `controller-state` | Report the persistent desired state for the selected system-managed connector. |
+| `controller-enable --apply` | Persistently request that the Ubuntu controller run the selected connector. |
+| `controller-disable --apply` | Persistently stop and disable the selected Ubuntu controller connector. |
 | `install-service --apply` | Install the remotely managed tunnel as an operating-system service. This is an explicit host mutation. |
 | `verify-access` | Make an unauthenticated request and require a Cloudflare Access login redirect. |
-| `ui` | Open the Electron tunnel controller for status, Access verification, logs, and app-owned start/stop actions. |
+| `ui` | Open the Electron tunnel controller for status, Access verification, logs, and platform-appropriate start/stop actions. |
 
 ## Configuration contract
 
@@ -109,7 +113,8 @@ configured private origin. It uses `CLOUDFLARE_ORIGIN_CA_POOL` when set and neve
   Access login boundary.
 - This command does not configure NAT, firewall rules, Cloudflare bypass rules, or public tunnels without Access.
 - The Electron renderer never receives or reads API or tunnel tokens. Connector execution remains in the isolated main
-  process, logs are redacted, and the Stop action can terminate only a connector started by that UI process.
+  process on macOS or the system runner on Ubuntu, logs are redacted, and UI actions are restricted to validated profile
+  server IDs.
 - `run-tunnel` uses an atomic per-tunnel lock in a stable per-user runtime directory and refuses to start while another
   `cloudflared` process is active. `AI_FLEAS_RUNTIME_LOCK_DIR` may override that directory with an absolute path for a
   supervised or test environment; the lock never depends on a caller-specific `${TMPDIR}`. Stale locks are recovered only
@@ -232,13 +237,20 @@ repository.
   hidden in the menu bar at login, auto-starts the selected provider tunnels, and reopens when its menu-bar icon is used.
   Under supervision, **Quit** causes a restart; intentionally taking it offline requires unloading the LaunchAgent.
 - On Ubuntu it installs a system-level `systemd` unit, starts at boot after networking is ready, and runs the connector
-  manager headlessly with `Restart=always`. No graphical session or Electron runtime is required. The optional UI may be
-  launched separately and reports these connectors as externally managed.
+  manager headlessly with `Restart=always`. It also prepares the Electron UI and installs a GNOME application/autostart
+  entry for the configured service user. A graphical or RDP login shows the controller, while the system service remains
+  the sole connector owner. UI Start/Stop actions update persistent per-server desired state; closing the desktop UI does
+  not stop the service-managed tunnels. No graphical session is required for the connectors themselves.
 
 Both variants pin the currently activated profile and workflow and default to all configured server targets. Set
 `CLOUDFLARE_UI_AUTOSTART` to `all` or a comma-separated provider-ID allowlist before installation. Re-run the install
 command after moving the repository/profile or changing that selection. Tokens are never copied into the supervisor
 definition: use profile-owned `CLOUDFLARE_TUNNEL_TOKEN_FILE` paths with mode `0600` for unattended startup.
+
+Ubuntu desired state is stored under the systemd-managed, mode-`0700`
+`/var/lib/ai-fleas-cloudflare-tunnels` directory. A stopped server remains stopped across controller and host restarts until
+the UI or the explicit `controller-enable --apply` operation enables it again. The UI never receives general sudo or
+systemctl authority and never reads connector tokens; it can change only validated server IDs from the active profile.
 
 An Ubuntu gateway can host every tunnel while the model providers remain on other private-network machines. Configure
 each server target's `CLOUDFLARE_ORIGIN_URL` with that server's reachable private IP and port. The gateway must be
@@ -252,16 +264,19 @@ Closing the controller window hides it to the system tray or macOS menu bar and 
 Click the tray icon or choose **Show Cloudflare Tunnels** to restore the window. Choose **Quit Cloudflare Tunnels** from
 the tray menu to stop connectors managed by the app and exit completely. On macOS the menu-bar item is labeled **CF**
 so it remains visible even when template-icon rendering differs between OS versions.
-**Start connector** runs `run-tunnel` with the activated profile environment. **Stop connector** is enabled only for the
-child process started by the same window; an externally detected connector is intentionally read-only.
+On macOS, **Start connector** runs `run-tunnel` with the activated profile environment and **Stop connector** terminates
+only the child process started by that window. On Ubuntu, those actions change the system controller's persistent desired
+state for that exact configured server; the service runner performs the actual start or stop.
 If more than one connector process is detected despite the command lock, the UI displays a red **Conflict** state and
 disables both lifecycle buttons until the duplicate processes are resolved outside the app.
 
-To acceptance-test the controller, first stop any externally managed test connector. Select **Refresh** and require
-**Connector → Closed** with Start enabled and Stop disabled. Select **Start connector**, require **Open · managed here**
-with Stop enabled, and verify both `/` and `/v1/models` redirect to Cloudflare Access. Select **Stop connector**, require
-**Closed** and no `cloudflared` process, then select **Start connector** once more and repeat the public-boundary check so
-the test finishes with the service online.
+To acceptance-test the controller on macOS, first stop any externally managed test connector. Select **Refresh** and
+require **Connector → Closed** with Start enabled and Stop disabled. Select **Start connector**, require **Open · managed
+here** with Stop enabled, and verify both `/` and `/v1/models` redirect to Cloudflare Access. Select **Stop connector**,
+require **Closed** and no `cloudflared` process, then select **Start connector** once more and repeat the public-boundary
+check so the test finishes with the service online. On Ubuntu, perform the same public-boundary checks but require Stop to
+produce persistent **Stopped** desired state and Start to restore **Open** through the system runner, including after a UI
+restart.
 
 ## Operator runbook
 

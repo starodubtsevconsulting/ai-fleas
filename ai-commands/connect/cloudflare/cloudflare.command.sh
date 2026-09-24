@@ -12,7 +12,8 @@ fail() {
 
 usage() {
   printf '%s\n' \
-    'Usage: cloudflare.command.sh list-targets|validate|token-check|server-status|origin-status|connector-status|run-tunnel|stop-tunnel|verify-access|ui' \
+    'Usage: cloudflare.command.sh list-targets|validate|token-check|server-status|origin-status|connector-status|controller-state|run-tunnel|stop-tunnel|verify-access|ui' \
+    '       cloudflare.command.sh controller-enable|controller-disable --apply' \
     '       cloudflare.command.sh install-connector --apply' \
     '       cloudflare.command.sh create-tunnel --apply --token-output ABSOLUTE_PATH' \
     '       cloudflare.command.sh install-service --apply' \
@@ -255,6 +256,63 @@ runtime_lock_root() {
   printf '%s' "$lock_root"
 }
 
+controller_state_root() {
+  local state_root="${CLOUDFLARE_CONTROLLER_STATE_DIR:-}"
+  if [[ -z "$state_root" ]]; then
+    if [[ "$(uname -s)" == Darwin ]]; then
+      state_root="$HOME/Library/Application Support/AI Fleas/cloudflare-controller"
+    else
+      state_root="${XDG_STATE_HOME:-$HOME/.local/state}/ai-fleas/cloudflare-controller"
+    fi
+  fi
+  [[ "$state_root" == /* ]] || fail 'CLOUDFLARE_CONTROLLER_STATE_DIR must be absolute'
+  mkdir -p "$state_root/disabled"
+  chmod 700 "$state_root" "$state_root/disabled"
+  printf '%s' "$state_root"
+}
+
+controller_disabled_file() {
+  local state_root state_key="${server_id:-${AI_MODEL_PROVIDER_ID:-default}}"
+  [[ "$state_key" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail 'controller state server ID is unsafe'
+  state_root="$(controller_state_root)"
+  printf '%s/disabled/%s' "$state_root" "$state_key"
+}
+
+controller_state() {
+  local disabled_file state_key="${server_id:-${AI_MODEL_PROVIDER_ID:-default}}"
+  disabled_file="$(controller_disabled_file)"
+  if [[ -e "$disabled_file" ]]; then
+    printf 'controller desired: stopped server=%s\n' "$state_key"
+  else
+    printf 'controller desired: running server=%s\n' "$state_key"
+  fi
+}
+
+controller_enable() {
+  local disabled_file state_key="${server_id:-${AI_MODEL_PROVIDER_ID:-default}}"
+  disabled_file="$(controller_disabled_file)"
+  rm -f "$disabled_file"
+  printf 'controller enabled: server=%s\n' "$state_key"
+}
+
+controller_disable() {
+  local disabled_file temp_file lock_root lock_name lock_pid_file existing_pid='' state_key="${server_id:-${AI_MODEL_PROVIDER_ID:-default}}"
+  disabled_file="$(controller_disabled_file)"
+  temp_file="${disabled_file}.tmp.$$"
+  : >"$temp_file"
+  chmod 600 "$temp_file"
+  mv "$temp_file" "$disabled_file"
+
+  lock_root="$(runtime_lock_root)"
+  lock_name="${tunnel_name//[^A-Za-z0-9._-]/_}"
+  lock_pid_file="${lock_root%/}/ai-fleas-cloudflare-${lock_name}.lock/pid"
+  [[ -f "$lock_pid_file" ]] && existing_pid="$(<"$lock_pid_file")"
+  if [[ "$existing_pid" =~ ^[0-9]+$ ]] && kill -0 "$existing_pid" 2>/dev/null; then
+    stop_tunnel
+  fi
+  printf 'controller disabled: server=%s\n' "$state_key"
+}
+
 connector_status() {
   local lock_root
   lock_root="$(runtime_lock_root)"
@@ -472,6 +530,21 @@ print(json.dumps({"config": {"ingress": [
     [[ $# -eq 0 ]] || fail 'connector-status accepts no additional arguments'
     validate_config
     connector_status
+    ;;
+  controller-state)
+    [[ $# -eq 0 ]] || fail 'controller-state accepts no additional arguments'
+    validate_config
+    controller_state
+    ;;
+  controller-enable)
+    [[ "${1:-}" == '--apply' && $# -eq 1 ]] || fail 'controller-enable requires the exact --apply flag'
+    validate_config
+    controller_enable
+    ;;
+  controller-disable)
+    [[ "${1:-}" == '--apply' && $# -eq 1 ]] || fail 'controller-disable requires the exact --apply flag'
+    validate_config
+    controller_disable
     ;;
   server-status)
     [[ $# -eq 0 ]] || fail 'server-status accepts no additional arguments'

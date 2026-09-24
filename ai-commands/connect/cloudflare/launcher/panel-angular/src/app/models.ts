@@ -2,6 +2,7 @@ export type Target = {
   providerId: string;
   configured?: boolean;
   connectorManaged?: boolean;
+  connectorDesired?: boolean;
   connectorDetected?: boolean;
   serverOnline?: boolean;
   originHealthy?: boolean;

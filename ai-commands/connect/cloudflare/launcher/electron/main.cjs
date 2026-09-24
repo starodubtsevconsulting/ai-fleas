@@ -24,7 +24,10 @@ const restartBaseMs = 1000;
 const restartMaxMs = 30000;
 const persistentLogLimit = Math.min(Math.max(Number.parseInt(process.env.CLOUDFLARE_UI_LOG_LIMIT || '10000', 10) || 10000, 1), 1000000);
 const startHidden = /^(1|true|yes)$/i.test(process.env.CLOUDFLARE_UI_START_HIDDEN || '');
-const logDir = process.env.CLOUDFLARE_UI_LOG_DIR || path.join(os.homedir(), 'Library', 'Logs', 'AI Fleas');
+const serviceControlled = process.env.CLOUDFLARE_UI_SERVICE_CONTROL === 'systemd';
+const logDir = process.env.CLOUDFLARE_UI_LOG_DIR || (process.platform === 'darwin'
+  ? path.join(os.homedir(), 'Library', 'Logs', 'AI Fleas')
+  : path.join(process.env.XDG_STATE_HOME || path.join(os.homedir(), '.local', 'state'), 'ai-fleas', 'logs'));
 const logPath = path.join(logDir, 'cloudflare-tunnels.log');
 let writtenSinceTrim = 0;
 
@@ -60,6 +63,7 @@ function historicalLogs() {
 }
 function controllerLog(message) { persistLog(`${new Date().toISOString()} [controller] ${actions.safeLog(message)}`); }
 async function autostartConnectors() {
+  if (serviceControlled) return;
   const configured = String(process.env.CLOUDFLARE_UI_AUTOSTART || '').trim();
   if (!configured) return;
   const available = await targetIds();
@@ -76,7 +80,7 @@ async function targetIds() {
   return result.stdout.trim().split(/\s+/).filter(Boolean);
 }
 async function targetStatus(providerId) {
-  return { providerId, ...(await actions.status({ commandPath, connector: connectorFor(providerId), spawnOptions: () => spawnOptions(providerId) })) };
+  return { providerId, ...(await actions.status({ commandPath, connector: connectorFor(providerId), serviceControlled, spawnOptions: () => spawnOptions(providerId) })) };
 }
 async function allStatuses() {
   return Promise.all((await targetIds()).map(async (providerId) => {
@@ -99,6 +103,13 @@ ipcMain.handle('cloudflare:select-context', async (_event, requested) => {
 });
 async function startConnector(providerId, attempt = 0) {
   await requireTarget(providerId);
+  if (serviceControlled) {
+    const result = await actions.run(commandPath, ['controller-enable', '--apply'], spawnOptions(providerId));
+    if (!result.ok) throw new Error(actions.safeLog(result.stderr));
+    emitLog(providerId, 'Persistent connector start requested.\n');
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    return targetStatus(providerId);
+  }
   const state = connectors.get(providerId);
   const existing = state?.child;
   if (existing && existing.exitCode === null) return targetStatus(providerId);
@@ -130,6 +141,14 @@ ipcMain.handle('cloudflare:start', async (_event, providerId) => {
   return startConnector(providerId);
 });
 ipcMain.handle('cloudflare:stop', async (_event, providerId) => {
+  await requireTarget(providerId);
+  if (serviceControlled) {
+    const result = await actions.run(commandPath, ['controller-disable', '--apply'], spawnOptions(providerId));
+    if (!result.ok) throw new Error(actions.safeLog(result.stderr));
+    emitLog(providerId, 'Persistent connector stop requested.\n');
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    return targetStatus(providerId);
+  }
   const state = connectors.get(providerId);
   const child = state?.child;
   if (state) { state.stopping = true; if (state.restartTimer) clearTimeout(state.restartTimer); }
@@ -169,7 +188,8 @@ function showWindow() {
   mainWindow.focus();
 }
 function createTray() {
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path fill="#000" d="M5.1 14.5a4.1 4.1 0 0 1-.6-8.15A5.35 5.35 0 0 1 14.7 7.8a3.35 3.35 0 0 1-.85 6.7H5.1Zm.1-2h8.55a1.35 1.35 0 1 0-.28-2.67l-1.12.23.08-1.14a3.35 3.35 0 0 0-6.56-1.2l-.24.75-.79-.06a2.1 2.1 0 1 0 .36 4.09Z"/></svg>';
+  const trayColor = process.platform === 'darwin' ? '#000' : '#f6821f';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path fill="${trayColor}" d="M5.1 14.5a4.1 4.1 0 0 1-.6-8.15A5.35 5.35 0 0 1 14.7 7.8a3.35 3.35 0 0 1-.85 6.7H5.1Zm.1-2h8.55a1.35 1.35 0 1 0-.28-2.67l-1.12.23.08-1.14a3.35 3.35 0 0 0-6.56-1.2l-.24.75-.79-.06a2.1 2.1 0 1 0 .36 4.09Z"/></svg>`;
   const icon = nativeImage.createFromDataURL(`data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`);
   const trayIcon = icon.resize({ width: 18, height: 18 });
   if (process.platform === 'darwin') trayIcon.setTemplateImage(true);

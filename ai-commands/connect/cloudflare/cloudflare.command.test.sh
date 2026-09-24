@@ -13,6 +13,7 @@ export AI_WORK_PROFILE_ID=example
 export AI_FLOW_WORKFLOW=dev.workflow.md
 export AI_COMMANDS_ROOT="$commands_root"
 export AI_FLEAS_RUNTIME_LOCK_DIR="$fixture_dir/locks"
+export CLOUDFLARE_CONTROLLER_STATE_DIR="$fixture_dir/controller-state"
 
 if env -u AI_PROFILE_FILE -u AI_WORK_PROFILE_ID -u WORK_PROFILE_ID -u AI_FLOW_WORKFLOW \
   CLOUDFLARE_COMMAND_CONF="$fixture_dir/missing.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
@@ -40,6 +41,15 @@ EOF
 write_config
 output="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate)"
 [[ "$output" == *'configuration valid'* ]]
+
+desired="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" controller-state)"
+[[ "$desired" == *'desired: running server=default'* ]]
+CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" controller-disable --apply >"$fixture_dir/controller-disabled"
+[[ -f "$fixture_dir/controller-state/disabled/default" ]]
+desired="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" controller-state)"
+[[ "$desired" == *'desired: stopped server=default'* ]]
+CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" controller-enable --apply >"$fixture_dir/controller-enabled"
+[[ ! -e "$fixture_dir/controller-state/disabled/default" ]]
 [[ "$output" == *'approved_identities=2'* ]]
 
 grep -F 'run install-connector --apply' "$command_path" >/dev/null

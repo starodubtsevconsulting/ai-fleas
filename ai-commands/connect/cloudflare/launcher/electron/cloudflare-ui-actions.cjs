@@ -43,27 +43,36 @@ function connectorIsOpen(result) {
   return Boolean(result?.ok && /^connector open:/m.test(String(result.stdout || '')));
 }
 
+function controllerWantsRunning(result) {
+  return Boolean(result?.ok && /^controller desired: running\b/m.test(String(result.stdout || '')));
+}
+
 async function status(context) {
   const validate = await run(context.commandPath, ['validate'], context.spawnOptions());
   const unavailable = { ok: false, stdout: '', stderr: 'Configuration validation failed.' };
-  const [access, installed, observed, server, origin] = await Promise.all([
+  const [access, installed, observed, desired, server, origin] = await Promise.all([
     validate.ok ? run(context.commandPath, ['verify-access'], context.spawnOptions()) : unavailable,
     run('cloudflared', ['--version'], context.spawnOptions()),
     validate.ok ? run(context.commandPath, ['connector-status'], context.spawnOptions()) : unavailable,
+    validate.ok && context.serviceControlled
+      ? run(context.commandPath, ['controller-state'], context.spawnOptions())
+      : unavailable,
     ...(validate.ok ? [
       run(context.commandPath, ['server-status'], context.spawnOptions()),
       run(context.commandPath, ['origin-status'], context.spawnOptions())
     ] : [unavailable, unavailable])
   ]);
-  const managed = Boolean(context.connector && context.connector.exitCode === null);
-  const detected = managed || connectorIsOpen(observed);
+  const uiManaged = Boolean(context.connector && context.connector.exitCode === null);
+  const detected = uiManaged || connectorIsOpen(observed);
+  const serviceManaged = Boolean(context.serviceControlled && detected);
   return {
     configured: validate.ok,
     connectorInstalled: installed.ok,
-    connectorManaged: managed,
+    connectorManaged: uiManaged || serviceManaged,
+    connectorDesired: context.serviceControlled && desired.ok ? controllerWantsRunning(desired) : undefined,
     connectorDetected: detected,
     connectorCount: detected ? 1 : 0,
-    connectorConflict: detected && !managed,
+    connectorConflict: detected && !uiManaged && !serviceManaged,
     serverOnline: server.ok,
     originHealthy: origin.ok,
     accessHealthy: access.ok,
@@ -73,4 +82,4 @@ async function status(context) {
   };
 }
 
-module.exports = { connectorIsOpen, countPids, publicUrlFromValidation, run, safeLog, status };
+module.exports = { connectorIsOpen, controllerWantsRunning, countPids, publicUrlFromValidation, run, safeLog, status };

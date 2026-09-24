@@ -23,3 +23,9 @@ test('detects a connector owned by another controller from command status', () =
   assert.equal(actions.connectorIsOpen({ ok: true, stdout: 'connector open: tunnel=example pid=123\n' }), true);
   assert.equal(actions.connectorIsOpen({ ok: true, stdout: 'connector closed: tunnel=example\n' }), false);
 });
+
+test('reads the persistent controller desired state', () => {
+  assert.equal(actions.controllerWantsRunning({ ok: true, stdout: 'controller desired: running server=example\n' }), true);
+  assert.equal(actions.controllerWantsRunning({ ok: true, stdout: 'controller desired: stopped server=example\n' }), false);
+  assert.equal(actions.controllerWantsRunning({ ok: false, stdout: '' }), false);
+});
