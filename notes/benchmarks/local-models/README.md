@@ -45,7 +45,7 @@ Image-generation models use a separate quality-first corpus and retained-output 
 
 ## Main findings
 
-**GX10:** Qwen3-Coder-Next Q5_K_M is currently the preferred worker. Both tested Qwen models passed the Hermes tool-use baseline, but Qwen3-Coder-Next generated about 2.5× faster and completed the tested task about 6.8× faster than Qwen3.5-122B-A10B.
+**GX10:** Qwen3-Coder-Next Q5_K_M remains the preferred worker. Both Qwen candidates and the newly benchmarked compressed DeepSeek V4 Flash 0731 passed the controlled Hermes tool-use fixture. DeepSeek is operational but generated about 3.4× slower than Qwen3-Coder-Next at the 2K measurement point, peaked at 109.91 GiB total used memory, and completed the tool task about 6.1× slower. It remains an optional quality experiment rather than the default.
 
 **RTX 3080 Ti:** the 30B candidates work but are too slow for an interactive Hermes System agent. Qwen3 8B is fast but cannot satisfy Hermes' 64K context requirement. Qwen3.5 9B Q4_K_M provides both full GPU residency and a 65,536-token configured context and is the current candidate.
 
@@ -58,7 +58,8 @@ Image-generation models use a separate quality-first corpus and retained-output 
 - Benchmark the MacBook Pro M5 from ~30B Q6 downward.
 - Benchmark the UM790 Pro from ~14B Q5 downward.
 - Repeat Hermes timing on the RTX 3080 Ti after disabling automatic title generation.
-- Test the higher-capacity single-GX10 candidates documented in the GX10 report.
-- Test DeepSeek V4 Flash on one GX10 and the documented FP8/TP=2 configuration across two GX10-class boxes.
+- Run a coding-quality suite on the single-GX10 DeepSeek V4 Flash build before considering a default-model change.
+- Test the remaining higher-capacity single-GX10 candidates documented in the GX10 report.
+- Test the documented DeepSeek V4 FP8/TP=2 configuration across two GX10-class boxes.
 
 Detailed measurements and historical results remain in the hardware-specific reports rather than this dashboard.

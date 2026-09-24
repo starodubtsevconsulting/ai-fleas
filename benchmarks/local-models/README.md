@@ -22,44 +22,43 @@ flowchart TD
 
 The purpose of these benchmarks is therefore practical: find the strongest local model that can run at an acceptable speed and reliability on the available hardware. The target is not simply the largest model that fits in memory, but a model capable enough to be useful as a real worker while remaining fast enough for sustained or on-demand operation.
 
-## ASUS Ascent GX10 — Qwen worker models
+## ASUS Ascent GX10 — coding-worker models
 
-Benchmarked on a single ASUS Ascent GX10 with NVIDIA GB10 and 128 GB unified memory. Both models were served with `llama.cpp`/CUDA and exercised through Hermes Agent using the same local OpenAI-compatible endpoint and tool-use workflow.
+Benchmarked on a single ASUS Ascent GX10 with NVIDIA GB10 and 128 GB unified memory. The Qwen models use `llama.cpp`/CUDA and DeepSeek uses `ds4`/CUDA. All candidates were exercised through Hermes Agent using the same controlled tool-use fixture.
 
-| Metric | Qwen3-Coder-Next Q5_K_M | Qwen3.5-122B-A10B Q5_K_S |
-|---|---:|---:|
-| Parameters | 79.67B (~3B active) | 124.64B (~10B active) |
-| Model size | 52.81 GiB | 81.40 GiB |
-| Cold-load unified-memory delta | 56.77 GiB | 82.33 GiB |
-| Cold load | 7.29 s | 66.14 s |
-| Prompt processing | 1,435.8 tok/s | 862.9 tok/s |
-| Generation | 55.68 tok/s | 22.16 tok/s |
-| Median TTFT | 202 ms | 438 ms |
-| TTFT range | 179–205 ms | 427–456 ms |
-| Configured context | 65,536 | 65,536 |
-| Native max context | 262,144 | 262,144 |
-| Hermes tool-use test | PASS | PASS |
-| Tool task wall time | 21.94 s | 149.23 s |
-| Model API calls | 9 | 7 |
+| Metric | Qwen3-Coder-Next Q5_K_M | Qwen3.5-122B-A10B Q5_K_S | DeepSeek V4 Flash 0731 IQ2_XXS/Q2_K |
+|---|---:|---:|---:|
+| Model size | 52.81 GiB | 81.40 GiB | 80.76 GiB |
+| Cold-load unified-memory delta | 56.77 GiB | 82.33 GiB | 100.72 GiB |
+| Cold load | 7.29 s | 66.14 s | 25.95 s |
+| Prompt processing | 1,435.8 tok/s | 862.9 tok/s | 387.10 tok/s at 2K |
+| Generation | 55.68 tok/s | 22.16 tok/s | 16.32 tok/s at 2K |
+| Median TTFT | 202 ms | 438 ms | 325 ms |
+| TTFT range | 179–205 ms | 427–456 ms | 283–345 ms |
+| Configured context | 65,536 | 65,536 | 65,536 |
+| Hermes tool-use test | PASS | PASS | PASS |
+| Tool task wall time | 21.94 s | 149.23 s | 133.85 s |
+| Model API calls | 9 | 7 | 4 |
 
 ### Hermes tool-use baseline
 
 The reproducible baseline required the agent to read a file, sort and deduplicate its contents, write two output files, count lines, calculate SHA-256, and verify the outputs. Results were independently checked after the agent completed the task.
 
-For Qwen3-Coder-Next the run used 6,382 input tokens and 620 output tokens and passed independent verification.
+The exact task, input, expected files, and independent verifier are checked into the [Hermes file-tools fixture](fixtures/hermes-file-tools/README.md).
 
 ### Current choice
 
-Both models completed the baseline tool-use task correctly. **Qwen3-Coder-Next Q5_K_M is currently the default single-GX10 worker** because it generated at about 2.5× the speed and completed the tested Hermes task about 6.8× faster. Qwen3.5-122B-A10B remains a useful candidate when additional reasoning quality may justify lower throughput.
+All three models completed the baseline tool-use task correctly. **Qwen3-Coder-Next Q5_K_M remains the default single-GX10 worker.** DeepSeek V4 Flash is operational and Hermes-compatible, but it generated about 3.4× slower at the 2K measurement point, used substantially more memory, and completed the controlled task about 6.1× slower. It remains an optional quality experiment until a coding-quality suite demonstrates enough capability gain to justify that cost.
 
-## Planned experiments
+## DeepSeek result and planned experiments
 
-The next model family planned for this benchmark is **DeepSeek V4**. Two configurations are of particular interest:
+The compressed single-GX10 **DeepSeek V4 Flash 0731** configuration is now benchmarked. It passed the controlled Hermes test and reached 16.32 tok/s generation at 2K context and 12.94 tok/s at 65K. Total used unified memory peaked at 109.91 GiB.
 
-1. A compressed/quantized DeepSeek V4 configuration that can run on a single GX10, if a practical configuration is available.
-2. Full or substantially larger DeepSeek V4 inference distributed across **two GX10-class boxes**, using the combined hardware as a local worker cluster.
+The remaining DeepSeek configuration of interest is:
 
-Those experiments are not benchmarked here yet. When tested, their measurements will be added to this page using the same approach where practical so the results remain useful for comparison.
+1. Full or substantially larger DeepSeek V4 inference distributed across **two GX10-class boxes**, using the combined hardware as a local worker cluster.
+
+That distributed experiment is not benchmarked here yet. When tested, its measurements will be added using the same approach where practical.
 
 The existing Qwen measurements will remain here for historical reference even if a later model becomes the preferred worker.
 
