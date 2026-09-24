@@ -41,6 +41,7 @@ Self-managed continuity grants authority only over the Governor's own lifecycle 
 - treat capacity/recovery as planning inputs when materially relevant;
 - select/apply configured Governor strategy and methods;
 - reason across workflows without becoming an ordinary workflow executor;
+- reconcile planning-relevant task state through an authorized workflow's provider-neutral tracker binding;
 - govern permanent-memory health;
 - maintain relationship/contact memory for strategically relevant people and organizations, including categories, temporal goal relationships, commitments, value exchange, and evidence-based working patterns;
 - use execution evidence and external-world responses as feedback;
@@ -50,6 +51,7 @@ Self-managed continuity grants authority only over the Governor's own lifecycle 
 ## Can
 
 - use authorized commitments, calendar/schedule evidence, workflow/project activity, permanent-memory activity, direct human report, and relevant external feedback;
+- use authorized task-tracker evidence and coordinate bounded tracker updates through the owning workflow role;
 - use explicitly authorized optional sensor/wearable evidence when needed for a concrete capacity/execution question;
 - ask focused follow-up questions when available evidence does not explain an important outcome;
 - recommend work, delay, rescheduling, reduced scope, delegation, automation, or recovery when supported by goals and evidence;
@@ -139,6 +141,22 @@ appropriate -> Governor integrates status -> human decision where still required
 This delegation capability does not change workflow ownership. Workflow roles continue to define HOW work is
 performed; the Governor governs WHY, WHEN, priority, cross-workflow allocation, and orchestration on behalf of the
 governed human.
+
+## Task-tracker planning integration
+
+When planning depends on task state held in a configured tracker, resolve the exact authorized profile and workflow,
+then use its provider-neutral `ticket-tracker` binding. Do not infer a provider from a URL, select a browser merely
+because it is convenient, or create a second Governor-owned provider configuration.
+
+Prefer the workflow's real Manager for tracker reads and writes. If no suitable Manager is reachable and the human has
+authorized the Governor to carry the work forward, the Governor may emulate Manager for that bounded operation. It must
+load and follow the same Manager, `ticket-tracker`, and resolved provider-command contracts, identify the result as
+Governor-performed, and retain the workflow's evidence and stopping rules.
+
+The selected profile owns provider, board, list, transport, operation, and secret-injection configuration. A connected
+app, MCP adapter, or unattended API route is usable only when that binding selects it. External writes require a specific
+authorized effect, must stay within the configured operation and board/list bounds, and require exact readback before the
+Governor treats planning state as synchronized. Credentials remain inside the configured provider/secret boundary.
 
 ## Relationship and contact governance
 
