@@ -43,6 +43,21 @@ flowchart TD
     H --> I[Workflow ready]
 ```
 
+## What if every workflow task is archived?
+
+That is a normal recovery state. `initialize` reads both active and archived catalogs to exhaustion, matches only exact
+trusted task receipts for the requested profile/workflow/logical-project scope, and restores all matching tasks together.
+It does not interpret an empty active catalog as an empty roster and does not create replacements for receipt-backed
+archived tasks. After unarchiving, it rereads the active project catalog, refreshes readiness, and continues normal Router
+registration and smoke tests.
+
+The adapter feeds these inventories to `reconcile-roster.mjs`. Its `restore-all` result is the mechanical proof that every
+declared role has one exact archived receipt in the correct saved project; no title or model judgment participates.
+
+```text
+all exact receipt-backed tasks archived -> batch unarchive -> verify project -> refresh readiness
+```
+
 ## Who knows which agent should go next?
 
 The workflow definition declares the next stage and the role that owns it. The hidden Router executes that declaration;
@@ -88,6 +103,14 @@ to deliver the next assignment.
 ```text
 Codex hooks -> Router JavaScript -> workflow map -> host dispatcher
 ```
+
+Lifecycle initialization is control traffic, not workflow ingress. For an already bound endpoint, the controller uses
+`queue-lifecycle-control.mjs` to atomically register a short-lived one-shot permit containing the exact session ID,
+SHA-256 digest of the complete lifecycle prompt, expected readiness token, and action, then deliver the same prompt with
+daemon-backed `codex queue`. Cross-task tool messages that appear as function-call output do not run `UserPromptSubmit`
+and are not valid lifecycle delivery. The Router consumes the permit only for the matching prompt, supplies lifecycle
+context, and validates the readiness token without requiring `WORKFLOW_ROUTER_RESULT`. A user-written marker or a
+different prompt cannot bypass workflow enforcement.
 
 ## Must Codex be restarted every time the plugin code changes?
 
@@ -207,7 +230,10 @@ Agent -> human_action_required -> PAUSE -> human accepts OR rejects -> declared 
 ## In what order is the workflow initialized?
 
 1. Validate the exact scope, saved project, roots, workflow source, portable map, diagram, and roster.
-2. Create or reconcile one visible Codex task per declared role in the saved project's `local` environment.
+2. Enumerate active and archived tasks to exhaustion. Reuse active exact receipts, batch-unarchive exact receipt-backed
+   archived roles (including a fully archived roster), create only roles that remain genuinely missing, and, for an
+   explicitly authorized roster contraction, recoverably archive every active task in the removed role's exact durable
+   receipt history. Never infer retired tasks from titles.
 3. Reread the host catalog and verify every task under the exact saved-project ID.
 4. Persist active task receipts.
 5. Register the portable map plus private scope/endpoint overlay with `scripts/register-workflow.mjs`.

@@ -24,10 +24,6 @@ role_endpoints:
     title: "🔑 Admin"
     model: gpt-5.6-sol
     reasoning: high
-  - role: judge
-    title: "⚖️ Judge"
-    model: gpt-5.6-terra
-    reasoning: low
   - role: writer
     title: "✍️ Writer"
     model: gpt-5.6-sol
@@ -43,7 +39,6 @@ role_endpoints:
 
 role_contracts:
   admin: ../../../../ai-workflows/writing/agents/roles/admin.md
-  judge: ../../../../ai-workflows/_common/roles/judge.md
   writer: ../../../../ai-workflows/writing/agents/roles/writer.md
   reviewer: ../../../../ai-workflows/writing/agents/roles/reviewer.md
   release-coordinator: ../../../../ai-workflows/writing/agents/roles/release-coordinator.md

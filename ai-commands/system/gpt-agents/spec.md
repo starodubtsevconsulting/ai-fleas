@@ -55,6 +55,15 @@ Verified exact task receipts or a precise no-mutation failure.
   not conflate that scope with a custom sidebar section or with one individual scoped folder.
 - The caller is a mechanical initialization controller, not an implicit roster member. It resolves the complete effective
   roster and directly creates every missing role, including Admin and Manager.
+- `initialize` is idempotent recovery. It enumerates active and archived catalogs to exhaustion, reactivates exact
+  receipt-backed archived roster members in the requested workflow scope, and creates a task only when no valid active or
+  archived receipt exists. A completely archived roster is one batch restoration case, not an empty or ambiguous roster.
+- The exact profile, workflow, and logical-project initialization request authorizes restoration of its receipt-backed
+  archived members without requiring the human to enumerate task IDs. It does not authorize unrecorded, superseded,
+  foreign-scope, or title-matched archived tasks.
+- An explicit human roster contraction supplies the removed role's complete durable task-receipt history to mechanical
+  reconciliation. Every exact active retired receipt is recoverably archived; already archived generations remain
+  archived. Titles never establish retired-role identity.
 - Admin is a temporary compatibility role and never bootstraps, delegates, or serializes roster initialization.
 - The host batches task creation, resolves provisional receipts together, and dispatches canonical initialization messages
   concurrently when supported. Manager-owned governed lifecycle begins only after startup completes.
@@ -86,6 +95,11 @@ Verified exact task receipts or a precise no-mutation failure.
   roles or change authority, lifecycle, readiness, dependencies, communication topology, or workflow pool bounds.
 - Initialization never relies on title, sidebar position, recency, or filesystem sibling discovery.
 - Provisional task creation is awaited and verified before initialization messages are sent.
+- Lifecycle prompts sent to already Router-bound endpoints require a short-lived host permit bound to the exact task ID,
+  prompt digest, action, and readiness token. The Router consumes the permit once and skips workflow-result enforcement
+  only for that turn; prompt text alone cannot request a bypass. The controller atomically registers the permit and uses
+  daemon-backed `codex queue`, because cross-task tool messages represented as function-call output do not run the
+  endpoint's `UserPromptSubmit` hook.
 - Replacement verifies the successor before recoverably archiving the predecessor.
 - `delete-workflow` requires the complete recorded logical saved-project, scoped-folder, and task bindings; it
   recoverably archives the exact bound tasks and preserves the saved project and every scoped folder.

@@ -62,13 +62,14 @@ flowchart TD
     G[Hook validates scope and resolves transition]
     H[Write pending receipt and durable dispatch job]
     I[Start detached dispatch worker]
-    J[Worker calls codex queue for the exact task]
+    J[Worker writes one-shot packet permit]
+    J2[Worker calls codex queue for the exact task]
     K{Desktop app-server accepts queue?}
     L[Receipt becomes queued]
     M[Receipt becomes failed]
     N[Existing task owner starts the next role turn]
 
-    A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> K
+    A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> J2 --> K
     K -->|yes| L --> N
     K -->|no| M
 ```
@@ -76,7 +77,8 @@ flowchart TD
 The three hooks have distinct responsibilities:
 
 - `SessionStart` restores trusted task identity after startup, resume, clear, or compaction.
-- `UserPromptSubmit` allocates the Router-owned correlation and injects the endpoint contract.
+- `UserPromptSubmit` allocates the Router-owned correlation for human ingress. For an exact, host-permitted routed
+  packet it consumes the one-shot permit and preserves the packet's existing correlation.
 - `Stop` validates the terminal result and advances only a declared transition.
 
 ## Why delivery uses `codex queue`
@@ -114,6 +116,7 @@ bindings.json                 exact task bindings and registered workflow projec
 correlations/<task>.json      current Router-owned correlation for a task
 dispatch-jobs/<digest>.json   durable packet and exact destination for asynchronous delivery
 dispatches/<digest>.json      idempotency and delivery receipt
+workflow-dispatch-controls/   expiring prompt-bound permits, grouped by exact destination task
 ```
 
 The dispatch digest is derived from `correlationId`, source stage, and event. Retrying the same terminal result must not
@@ -135,6 +138,8 @@ Every change must preserve these rules:
 9. Human-wait transitions do not dispatch an endpoint.
 10. Queue acceptance and endpoint completion remain different states.
 11. Codex delivery uses the existing app-server owner; it never resumes the same desktop task through a second writer.
+12. A routed transition preserves one correlation across endpoints only when its exact prompt-bound host permit exists;
+    marker text alone never establishes routed identity.
 
 ## Development and regression checklist
 
@@ -148,6 +153,22 @@ Before reinstalling a local change:
 6. Confirm the dispatch receipt becomes `queued` without a stale `deliveryError`.
 7. Confirm the destination task actually starts and produces the expected durable result.
 8. If the destination result has a successor, confirm the next mechanical transition as well.
+
+## Lifecycle control turns
+
+Bound endpoints normally treat every prompt as workflow ingress. Before sending an initialization, reactivation, or
+contract-refresh prompt, the trusted controller registers a one-shot permit:
+
+```text
+PLUGIN_DATA=<plugin-data> node scripts/queue-lifecycle-control.mjs \
+  <session-id> <prompt-file> <EXPECTED_READY_TOKEN> <action>
+```
+
+The helper registers the permit and delivers the exact prompt through daemon-backed `codex queue`; cross-task tool
+messages that become function-call output do not trigger `UserPromptSubmit` and are not valid lifecycle delivery. The
+permit stores only the prompt digest and lifecycle metadata, expires after ten minutes, and is consumed only by an exact
+prompt match. The matching Stop hook requires the exact readiness token and performs no workflow dispatch. A missing,
+expired, or mismatched permit leaves ordinary Router enforcement unchanged.
 
 Tests must cover both queue acceptance and queue rejection. A fake CLI test that only emits `thread.started` or
 `turn.started` events is insufficient because it can hide a desktop thread-store ownership conflict.

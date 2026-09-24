@@ -12,6 +12,7 @@ const adapter = parse(fs.readFileSync(path.join(root, 'platforms/gpt-agents/work
 const writingAdapter = parse(fs.readFileSync(path.join(root, 'platforms/gpt-agents/workflows/writing/agents.yml'), 'utf8'));
 const contract = fs.readFileSync(path.join(commandDir, 'gpt-agents.command.md'), 'utf8');
 const initializationAdapter = fs.readFileSync(path.join(root, 'platforms/gpt-agents/agents/initialization.md'), 'utf8');
+const lifecycle = fs.readFileSync(path.join(root, 'ai-workflows/_common/agents/lifecycle.md'), 'utf8');
 const systemRole = fs.readFileSync(path.join(root, 'ai-workflows/_common/roles/system.md'), 'utf8');
 const systemSchedule = fs.readFileSync(path.join(root, 'ai-workflows/_common/agents/schedules/system-lifecycle-monitor.yml'), 'utf8');
 const exampleConfig = parse(fs.readFileSync(path.join(root, 'ai-profile/example/commands-config/gpt-agents/config.yml'), 'utf8'));
@@ -19,7 +20,7 @@ const exampleProfile = parse(fs.readFileSync(path.join(root, 'ai-profile/example
 const exampleWorkflow = exampleProfile.workflows.find((workflow) => workflow.path === 'dev.workflow.md');
 
 const portableRoles = [portable.initializer.agentId, ...portable.agents.map((agent) => agent.agentId)];
-const adapterRoles = adapter.agents.map((agent) => agent.role);
+const adapterRoles = adapter.role_endpoints.map((agent) => agent.role);
 assert.equal(new Set(portableRoles).size, portableRoles.length, 'portable roles must be unique');
 assert.equal(new Set(adapterRoles).size, adapterRoles.length, 'GPT bindings must be unique');
 assert.deepEqual([...adapterRoles].sort(), [...portableRoles].sort(), 'portable and GPT roles must map one-to-one');
@@ -32,7 +33,7 @@ assert.deepEqual(exampleConfig.binding_state, {
   schema_version: 'gpt-agents-binding-state.v1',
 });
 for (const overrideRole of Object.keys(exampleConfig.role_overrides ?? {})) {
-  assert.ok([...adapter.agents, ...writingAdapter.agents].some(({ role }) => role === overrideRole), `unknown example override role: ${overrideRole}`);
+  assert.ok([...adapter.role_endpoints, ...writingAdapter.role_endpoints].some(({ role }) => role === overrideRole), `unknown example override role: ${overrideRole}`);
 }
 assert.equal(exampleProfile.system_agent.platform_bindings['gpt-agents'].readiness_token, 'SYSTEM_READY');
 assert.equal(exampleProfile.system_agent.platform_bindings['gpt-agents'].title, 'example-system');
@@ -52,7 +53,7 @@ for (const role of portableRoles) {
   const portableAgent = role === portable.initializer.agentId
     ? portable.initializer
     : portable.agents.find((agent) => agent.agentId === role);
-  const binding = adapter.agents.find((agent) => agent.role === role);
+  const binding = adapter.role_endpoints.find((agent) => agent.role === role);
   assert.ok(binding.title && binding.model && binding.reasoning, `${role} GPT realization is incomplete`);
   assert.equal('readiness_token' in binding, false, `${role} must inherit readiness from portable manifest`);
   assert.equal('lifecycle' in binding, false, `${role} must inherit lifecycle from portable manifest`);
@@ -70,7 +71,11 @@ assert.match(contract, /gpt-agents-binding-state\.v1/);
 assert.match(contract, /dispatch all\s+canonical initialization messages concurrently/);
 assert.match(contract, /complete canonical initialization prompt\s+as its non-empty first user message/);
 assert.match(contract, /controller's tool-call input or function-call output is not a child-task user\s+message/);
-assert.match(contract, /Reread the host's task catalog after creation/);
+assert.match(contract, /Read both the active and archived host catalogs to exhaustion/);
+assert.match(contract, /including when the complete roster is archived/);
+assert.match(contract, /Never create a replacement merely because an exact\s+receipt is absent from the active-only catalog/);
+assert.match(contract, /reconcile-roster\.mjs/);
+assert.match(contract, /Reread the host's task catalog after restoration or creation/);
 assert.match(contract, /non-empty user-visible preview, first user message/);
 assert.match(contract, /Direct task access, a\s+readiness response, a locally persisted task record, or a requested project target does not prove saved-project\s+membership/);
 assert.match(contract, /Readiness without catalog and computer-vision-verified sidebar presence is an explicit\s+partial-initialization failure/);
@@ -82,16 +87,16 @@ assert.match(contract, /reread the project catalog, and inspect the rendered exp
 assert.match(contract, /inspect the rendered expanded\s+saved-project sidebar with the host's screenshot\/computer-vision capability/);
 assert.match(contract, /Never ask\s+the human to confirm roster visibility when the host can capture the UI/);
 assert.match(contract, /Additional human-created Admin tasks are\s+permitted but are recorded as extras/);
-assert.match(initializationAdapter, /complete canonical initialization prompt as a real user-visible first message and a\s+non-empty preview/);
-assert.match(initializationAdapter, /controller's create-task tool call\s+or as a function-call output in the child is not sufficient/);
-assert.match(initializationAdapter, /Reread the host catalog immediately after creation/);
-assert.match(initializationAdapter, /canonical absolute\s+directory and include the exact resolved profile-owned binding-registry path/);
-assert.match(initializationAdapter, /exact managed roster is a contiguous ordered\s+sequence/);
-assert.match(initializationAdapter, /inspect the rendered expanded project with the host's screenshot\/computer-vision capability/);
-assert.match(initializationAdapter, /Do not ask the human for visual confirmation when the host can capture its UI/);
-assert.match(initializationAdapter, /including another Admin task, may coexist outside managed\s+lifecycle receipts/);
-assert.match(initializationAdapter, /backend catalog but absent from the computer-vision-verified expanded saved-project sidebar\s+is still incomplete initialization/);
-assert.match(initializationAdapter, /Clear stale same-named custom-section references/);
+assert.match(contract, /`scripts\/queue-lifecycle-control\.mjs`/);
+assert.match(contract, /one-shot permit bound to the exact session ID, full\s+prompt digest, expected readiness token/);
+assert.match(contract, /Cross-task message tools that materialize the\s+prompt as function-call output are not lifecycle delivery/);
+assert.match(contract, /natural-language marker without a matching host permit\s+never bypasses the Router/);
+assert.match(initializationAdapter, /What if every workflow task is archived/);
+assert.match(initializationAdapter, /batch-unarchive exact receipt-backed\s+archived roles/);
+assert.match(initializationAdapter, /`queue-lifecycle-control\.mjs`/);
+assert.match(initializationAdapter, /short-lived one-shot permit containing the exact session ID,\s+SHA-256 digest/);
+assert.match(lifecycle, /`initialize` or `reconcile` request naming the profile, workflow, and logical project authorizes reactivation/);
+assert.match(lifecycle, /Ordinary `initialize` is idempotent recovery, not forced generation rotation/);
 assert.match(contract, /Changes to the roster must come from the portable workflow manifest/);
 assert.match(contract, /public GPT role-binding defaults, then supported profile-owned `role_overrides`/);
 assert.match(contract, /direct-human-only role such as Judge receives its own binding/);

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { WorkflowTransitionPacket } from './workflow-transition-packet.mjs';
 
@@ -19,16 +20,29 @@ class WorkflowTransitionPacketDelivery {
   }
 
   deliverToNextRoleTask() {
+    try {
+      this.deliveryJob.registerDispatchPermit();
+    } catch (error) {
+      this.deliveryReceipt.recordQueueFailure(error.message);
+      return;
+    }
     // Ask the existing Codex desktop owner to enqueue this transition packet
     // for the exact task that represents the workflow's next role.
-    const child = this.spawnProcess(
-      this.deliveryJob.codexExecutable,
-      this.deliveryJob.codexQueueArguments(),
-      {
-        env: process.env,
-        stdio: ['ignore', 'pipe', 'pipe'],
-      },
-    );
+    let child;
+    try {
+      child = this.spawnProcess(
+        this.deliveryJob.codexExecutable,
+        this.deliveryJob.codexQueueArguments(),
+        {
+          env: process.env,
+          stdio: ['ignore', 'pipe', 'pipe'],
+        },
+      );
+    } catch (error) {
+      this.deliveryJob.removeDispatchPermit();
+      this.deliveryReceipt.recordQueueFailure(error.message);
+      return;
+    }
 
     // Keep command output only so a rejected delivery leaves a useful receipt.
     // The packet itself is already stored in the durable dispatch job.
@@ -44,6 +58,7 @@ class WorkflowTransitionPacketDelivery {
     // closes. A process error takes precedence over its exit status or output.
     child.once('close', (exitStatus) => {
       if (spawnError || exitStatus !== 0) {
+        this.deliveryJob.removeDispatchPermit();
         this.deliveryReceipt.recordQueueFailure(
           spawnError?.message
           || stderr.trim()
@@ -104,14 +119,45 @@ class WorkflowTransitionDeliveryJob {
     this.transitionPacket = new WorkflowTransitionPacket(value.packet);
     this.receiptFile = value.receiptFile;
     this.targetTaskId = value.targetSessionId;
+    this.dataRoot = value.dataRoot;
     this.codexExecutable = value.codexBin ?? 'codex';
+  }
+
+  taskMessage() {
+    return this.transitionPacket.toCodexTaskMessage();
+  }
+
+  dispatchPermitFile() {
+    const digest = createHash('sha256').update(this.taskMessage()).digest('hex');
+    return this.dataRoot
+      ? path.join(this.dataRoot, 'workflow-dispatch-controls', this.targetTaskId, `${digest}.json`)
+      : null;
+  }
+
+  registerDispatchPermit() {
+    const file = this.dispatchPermitFile();
+    if (!file) throw new Error('dispatch job has no plugin data root');
+    const issuedAt = new Date();
+    atomicWriteJson(file, {
+      correlationId: this.transitionPacket.toJSON().correlationId,
+      promptSha256: path.basename(file, '.json'),
+      targetStage: this.transitionPacket.toJSON().to?.stage,
+      targetRole: this.transitionPacket.toJSON().to?.role,
+      issuedAt: issuedAt.toISOString(),
+      expiresAt: new Date(issuedAt.getTime() + 10 * 60 * 1000).toISOString(),
+    });
+  }
+
+  removeDispatchPermit() {
+    const file = this.dispatchPermitFile();
+    if (file) fs.rmSync(file, { force: true });
   }
 
   codexQueueArguments() {
     return [
       'queue',
       '--thread', this.targetTaskId,
-      '--message', this.transitionPacket.toCodexTaskMessage(),
+      '--message', this.taskMessage(),
     ];
   }
 }

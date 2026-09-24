@@ -10,15 +10,14 @@ communication graph.
 | Endpoint | Human access | Ownership | Lifecycle |
 | --- | --- | --- | --- |
 | Admin | administration | Roster administration, Router inspection, and authorized recovery | persistent |
-| Judge | oversight | Protected rule governance and compliance | persistent |
 | Writer | primary | Article intake, draft, edit, archive, unpublished destination draft, critique disposition | persistent |
 | Reviewer | primary | Independent critique and human-visible review report | persistent |
 | Release Coordinator | primary | Review-gate check, account-history check, release slot and profile-authorized Medium scheduling | persistent |
 
-Admin and Judge sit outside ordinary workflow execution. Writer, Reviewer, and Release Coordinator are independently
-addressable role endpoints. The Router assigns stages to their exact active task IDs, observes their completed turns,
-and applies only workflow-declared transitions. No endpoint sends workflow messages to another endpoint, and the human
-is never used as a courier.
+Admin sits outside ordinary workflow execution and owns any required local governance validation under the common Admin
+contract. Writer, Reviewer, and Release Coordinator are independently addressable role endpoints. The Router assigns
+stages to their exact active task IDs, observes their completed turns, and applies only workflow-declared transitions.
+No endpoint sends workflow messages to another endpoint, and the human is never used as a courier.
 
 Release Coordinator may use Medium's native future scheduling only when the selected profile explicitly enables it and
 the human has accepted the exact final article revision or supplied a valid session-scoped release mandate.

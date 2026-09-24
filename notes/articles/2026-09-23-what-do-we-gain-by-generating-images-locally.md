@@ -151,3 +151,8 @@ The next question is whether it can explain that “no” well enough to improve
 
 That is the kind of control I actually want from local infrastructure: not guaranteed success, but a failure I can see,
 measure, and own.
+
+---
+
+*This article is part of the [AI Fleas](https://github.com/starodubtsevconsulting/ai-fleas) initiative: a public,
+portable collection of AI workflows, commands, roles, and conventions.*

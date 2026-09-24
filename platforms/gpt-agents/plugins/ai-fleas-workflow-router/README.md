@@ -9,7 +9,10 @@ This Codex plugin supplies workflow-neutral lifecycle hooks for exact, receipt-b
 - The separate host-only workflow registry contains executable transitions and exact role-to-task resolution.
 - After validating a result, `Stop` resolves the declared successor and starts an asynchronous dispatch worker. The
   worker queues the packet through the existing Codex app-server task owner and records whether that queue accepted or
-  rejected it. Dispatch receipts make retries idempotent.
+  rejected it. Before queueing, the worker creates a one-shot permit bound to the exact destination task, packet prompt
+  digest, correlation, stage, role, and expiry. The destination consumes that permit and preserves the workflow
+  correlation; Router-looking prompt text without the permit remains ordinary ingress. Dispatch receipts make retries
+  idempotent.
 - A workflow transition may declare a progress-reference retry policy. The Router counts attempts for the same bounded
   progress references and stops visibly at the declared ceiling instead of creating an endpoint loop.
 
@@ -17,6 +20,12 @@ The plugin is a host adapter, not the authoritative workflow definition. Transit
 
 The lookup is deterministic: `(current stage, endpoint event) -> next stage -> declared role -> exact registered task`.
 The plugin contains no Writing-specific `Reviewer -> Writer` rule.
+
+Initialization or reactivation of an already bound endpoint uses `scripts/queue-lifecycle-control.mjs`. It atomically
+registers the prompt-bound permit and delivers the prompt through daemon-backed `codex queue`, so the existing desktop
+task owner runs `UserPromptSubmit`. The resulting one-shot permit is bound to the exact session, prompt digest, action,
+expiry, and expected readiness token. Only that matching turn bypasses ordinary Router ingress/result enforcement;
+prompt text by itself cannot request a bypass.
 
 The adapter uses the daemon-backed `codex queue` command so delivery goes through the existing desktop task owner. It
 must not use `codex exec resume`: that starts a second writer for a desktop-owned task and fails with a thread-store
