@@ -16,6 +16,7 @@ service_path="${CLOUDFLARE_SERVICE_PATH:-$PATH}"
 fail() { printf 'BLOCKED_CLOUDFLARE_SERVICE: %s\n' "$1" >&2; exit 2; }
 quote_xml() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'; }
 quote_systemd() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+quote_shell() { printf '%q' "$1"; }
 
 [[ -n "$profile_id" && -n "$workflow" ]] || fail 'an activated profile and workflow are required'
 [[ "$profile_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail 'profile ID is unsafe'
@@ -64,6 +65,7 @@ Environment="AI_WORK_PROFILE_ID=$(quote_systemd "$profile_id")"
 Environment="AI_FLOW_WORKFLOW=$(quote_systemd "$workflow")"
 Environment="CLOUDFLARE_UI_AUTOSTART=$(quote_systemd "$autostart")"
 Environment="AI_FLEAS_RUNTIME_LOCK_DIR=/run/ai-fleas-cloudflare-tunnels"
+Environment="CLOUDFLARE_CONTROLLER_STATE_DIR=/var/lib/ai-fleas-cloudflare-tunnels"
 Environment="PATH=$(quote_systemd "$service_path")"
 ExecStart=$(quote_systemd "$script_dir/service-runner.sh")
 Restart=always
@@ -71,10 +73,72 @@ RestartSec=3
 KillMode=control-group
 RuntimeDirectory=ai-fleas-cloudflare-tunnels
 RuntimeDirectoryMode=0700
+StateDirectory=ai-fleas-cloudflare-tunnels
+StateDirectoryMode=0700
 
 [Install]
 WantedBy=multi-user.target
 EOF
+}
+
+install_linux_desktop_controller() {
+  local user_name="$1" user_home user_group bin_dir app_dir autostart_dir launcher desktop_entry autostart_entry temp
+  user_home="${CLOUDFLARE_SERVICE_HOME:-}"
+  if [[ -z "$user_home" ]]; then
+    command -v getent >/dev/null 2>&1 || fail 'getent is required to resolve the Ubuntu desktop user home'
+    user_home="$(getent passwd "$user_name" | awk -F: 'NR==1 {print $6}')"
+  fi
+  [[ "$user_home" == /* && -d "$user_home" ]] || fail 'Ubuntu desktop user home could not be resolved'
+  user_group="$(id -gn "$user_name")"
+  bin_dir="$user_home/.local/bin"
+  app_dir="$user_home/.local/share/applications"
+  autostart_dir="$user_home/.config/autostart"
+  launcher="$bin_dir/ai-fleas-cloudflare-tunnels-ui"
+  desktop_entry="$app_dir/ai-fleas-cloudflare-tunnels.desktop"
+  autostart_entry="$autostart_dir/ai-fleas-cloudflare-tunnels.desktop"
+
+  "$script_dir/app.sh" --prepare
+  if [[ "$(id -u)" -eq 0 ]]; then
+    install -d -m 700 -o "$user_name" -g "$user_group" "$bin_dir" "$autostart_dir"
+    install -d -m 755 -o "$user_name" -g "$user_group" "$app_dir"
+  else
+    mkdir -p "$bin_dir" "$app_dir" "$autostart_dir"
+  fi
+  temp="$(mktemp)"; trap 'rm -f "$temp"' RETURN
+  cat >"$temp" <<EOF
+#!/usr/bin/env bash
+export AI_CONFIG_PROJECT=$(quote_shell "$config_project")
+export AI_WORK_PROFILE_ID=$(quote_shell "$profile_id")
+export AI_FLOW_WORKFLOW=$(quote_shell "$workflow")
+export CLOUDFLARE_UI_AUTOSTART=''
+export CLOUDFLARE_UI_SERVICE_CONTROL=systemd
+export AI_FLEAS_RUNTIME_LOCK_DIR=/run/ai-fleas-cloudflare-tunnels
+export CLOUDFLARE_CONTROLLER_STATE_DIR=/var/lib/ai-fleas-cloudflare-tunnels
+export CLOUDFLARE_UI_LOG_DIR=$(quote_shell "$user_home/.local/state/ai-fleas/logs")
+export PATH=$(quote_shell "$service_path")
+exec $(quote_shell "$script_dir/app.sh")
+EOF
+  install -m 700 "$temp" "$launcher"
+  cat >"$temp" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Cloudflare Tunnels
+Comment=View and control AI Fleas Cloudflare tunnel connectors
+Exec=$(quote_shell "$launcher")
+Icon=network-vpn
+Terminal=false
+Categories=Network;Utility;
+StartupNotify=true
+X-GNOME-Autostart-enabled=true
+EOF
+  install -m 600 "$temp" "$desktop_entry"
+  install -m 600 "$temp" "$autostart_entry"
+  if [[ "$(id -u)" -eq 0 ]]; then
+    chown "$user_name:$user_group" "$launcher" "$desktop_entry" "$autostart_entry"
+  fi
+  trap - RETURN
+  rm -f "$temp"
+  printf 'Installed Ubuntu desktop controller: %s\n' "$desktop_entry"
 }
 
 case "$operation" in
@@ -112,6 +176,7 @@ case "$operation" in
           sudo systemctl daemon-reload
           sudo systemctl enable --now ai-fleas-cloudflare-tunnels.service
         fi
+        install_linux_desktop_controller "$user_name"
         printf 'Installed Ubuntu systemd service: %s\n' "$target"
         ;;
       *) fail "unsupported platform: $platform" ;;

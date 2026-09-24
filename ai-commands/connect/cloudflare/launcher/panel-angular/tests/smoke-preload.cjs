@@ -6,6 +6,7 @@ const targets = [
     originHealthy: true,
     connectorDetected: true,
     connectorManaged: true,
+    connectorDesired: true,
     accessHealthy: true,
     publicUrl: "https://a.example.invalid",
   },
@@ -15,6 +16,7 @@ const targets = [
     originHealthy: false,
     connectorDetected: false,
     connectorManaged: false,
+    connectorDesired: false,
     accessHealthy: false,
   },
 ];

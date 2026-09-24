@@ -24,7 +24,7 @@
         ><strong
           [class.ok]="s.connectorDetected"
           [class.bad]="!s.connectorDetected"
-          >{{ s.connectorDetected ? "● Open" : "● Closed" }}</strong
+          >{{ s.connectorDetected ? "● Open" : s.connectorDesired === false ? "● Stopped" : "● Closed" }}</strong
         >
       </div>
       <div>
@@ -37,10 +37,10 @@
         <button
           class="primary"
           (click)="start(s, $event)"
-          [disabled]="s.connectorDetected"
+          [disabled]="s.connectorDetected || s.connectorDesired === true"
         >
           Start</button
-        ><button (click)="stop(s, $event)" [disabled]="!s.connectorDetected">
+        ><button (click)="stop(s, $event)" [disabled]="!s.connectorDetected && s.connectorDesired !== true">
           Stop
         </button>
       </div></ng-container
