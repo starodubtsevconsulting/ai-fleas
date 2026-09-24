@@ -84,15 +84,23 @@ test('updates, moves, comments and checklists require an in-scope open card', as
   const id = '000000000000000000000010';
   const checklistId = '000000000000000000000011';
   const itemId = '000000000000000000000012';
+  const commentId = '000000000000000000000013';
+  const memberId = '000000000000000000000014';
   const calls = [];
   const fetcher = async (url, options) => {
     calls.push({url, options});
     let data;
-    if (url.includes('/checkItem/')) data = {id: itemId, state: 'complete'};
+    if (options.method === 'DELETE') data = {};
+    else if (url.includes(`/actions/${commentId}?`)) data = {id: commentId, type: 'commentCard',
+      idMemberCreator: memberId, data: {card: {id}, text: 'Note'}};
+    else if (url.includes('/actions?filter=commentCard')) data = [{id: commentId, type: 'commentCard',
+      idMemberCreator: memberId, data: {card: {id}, text: 'Note'}, date: '2026-09-24T00:00:00.000Z'}];
+    else if (url.includes('/members/me?')) data = {id: memberId};
+    else if (url.includes('/checkItem/')) data = {id: itemId, state: 'complete'};
     else if (url.includes('/checkItems') && options.method === 'POST') data = {id: itemId};
     else if (url.includes('/checklists') && options.method === 'POST') data = {id: checklistId, idCard: id};
     else if (url.includes('/checklists?')) data = [{id: checklistId, idCard: id, checkItems: [{id: itemId}]}];
-    else if (url.includes('/actions/comments')) data = {id: '000000000000000000000013'};
+    else if (url.includes('/actions/comments')) data = {id: commentId};
     else if (options.method === 'PUT' && new URLSearchParams(options.body).has('idList')) data =
       {id, idBoard: board, idList: config.lists.done};
     else if (options.method === 'PUT') data = {id, idBoard: board, idList: list, name: 'New'};
@@ -103,14 +111,29 @@ test('updates, moves, comments and checklists require an in-scope open card', as
   assert.equal((await run(['update', id, 'name', 'New'], config, env, fetcher)).name, 'New');
   assert.equal((await run(['move', id, 'done'], config, env, fetcher)).state, 'done');
   assert.equal((await run(['comment', id, 'Note'], config, env, fetcher)).card_id, id);
+  assert.equal((await run(['comments', id], config, env, fetcher)).comments[0].id, commentId);
+  assert.equal((await run(['comment-delete', id, commentId], config, env, fetcher)).deleted, true);
   assert.equal((await run(['checklist-add', id, 'Checks'], config, env, fetcher)).checklist_id, checklistId);
   assert.equal((await run(['checkitem-add', id, checklistId, 'Item'], config, env, fetcher)).item_id, itemId);
   assert.equal((await run(['checkitem-set', id, checklistId, itemId, 'complete'], config, env, fetcher)).state, 'complete');
-  assert.ok(calls.filter(call => call.options.method === 'GET' && call.url.includes(`/cards/${id}?`)).length >= 6);
+  assert.ok(calls.filter(call => call.options.method === 'GET' && call.url.includes(`/cards/${id}?`)).length >= 8);
+  assert.ok(calls.some(call => call.options.method === 'DELETE' &&
+    call.url.includes(`/cards/${id}/actions/${commentId}/comments`)));
   let writes = 0;
   await assert.rejects(run(['comment', id, 'Note'], config, env, async (url, options) => {
     if (options.method !== 'GET') writes++;
     return {status: 200, json: async () => ({id, idBoard: '000000000000000000000099', idList: list})};
   }), /CARD_OUT_OF_SCOPE/);
   assert.equal(writes, 0);
+
+  let deleteWrites = 0;
+  await assert.rejects(run(['comment-delete', id, commentId], config, env, async (url, options) => {
+    if (options.method === 'DELETE') deleteWrites++;
+    if (url.includes(`/cards/${id}?`)) return {status: 200, json: async () =>
+      ({id, idBoard: board, idList: list, closed: false})};
+    if (url.includes('/members/me?')) return {status: 200, json: async () => ({id: memberId})};
+    return {status: 200, json: async () => ({id: commentId, type: 'commentCard',
+      idMemberCreator: '000000000000000000000099', data: {card: {id}, text: 'Foreign'}})};
+  }), /COMMENT_OUT_OF_SCOPE/);
+  assert.equal(deleteWrites, 0);
 });

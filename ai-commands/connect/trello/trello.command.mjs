@@ -72,7 +72,7 @@ async function request(resource, env, fetcher, method = 'GET', fields) {
 export async function run(args, config, env = process.env, fetcher = fetch) {
   validateConfig(config);
   const [operation, target, ...rest] = args;
-  if (!['status', 'read', 'list', 'create', 'update', 'move', 'comment',
+  if (!['status', 'read', 'list', 'create', 'update', 'move', 'comment', 'comments', 'comment-delete',
     'checklist-add', 'checkitem-add', 'checkitem-set'].includes(operation)) blocked('USAGE');
   const state = value => {
     if (!Object.hasOwn(config.lists, value)) blocked('INVALID_STATE');
@@ -144,6 +144,28 @@ export async function run(args, config, env = process.env, fetcher = fetch) {
     const action = await request(`cards/${card.id}/actions/comments`, env, fetcher, 'POST', {text: content(rest[0])});
     if (!idPattern.test(action?.id || '')) blocked('INVALID_PROVIDER_RESPONSE');
     return {card_id: card.id, comment_id: action.id};
+  }
+  if (operation === 'comments') {
+    if (rest.length) blocked('USAGE');
+    const actions = await request(`cards/${card.id}/actions?filter=commentCard&limit=1000&fields=id,idMemberCreator,data,date,type`, env, fetcher);
+    if (!Array.isArray(actions) || actions.length === 1000 || actions.some(action =>
+      !idPattern.test(action?.id || '') || action?.type !== 'commentCard' ||
+      action?.data?.card?.id !== card.id || typeof action?.data?.text !== 'string')) {
+      blocked(actions?.length === 1000 ? 'PAGINATION_REQUIRED' : 'INVALID_PROVIDER_RESPONSE');
+    }
+    return {card_id: card.id, comments: actions.map(action => ({id: action.id,
+      creator_id: action.idMemberCreator, text: action.data.text, date: action.date}))};
+  }
+  if (operation === 'comment-delete') {
+    if (rest.length !== 1) blocked('USAGE');
+    const commentId = exactId(rest[0]);
+    const member = await request('members/me?fields=id', env, fetcher);
+    const action = await request(`actions/${commentId}?fields=id,idMemberCreator,data,type`, env, fetcher);
+    if (!idPattern.test(member?.id || '') || action?.id !== commentId ||
+        action?.type !== 'commentCard' || action?.idMemberCreator !== member.id ||
+        action?.data?.card?.id !== card.id) blocked('COMMENT_OUT_OF_SCOPE');
+    await request(`cards/${card.id}/actions/${commentId}/comments`, env, fetcher, 'DELETE');
+    return {card_id: card.id, comment_id: commentId, deleted: true};
   }
   if (operation === 'checklist-add') {
     if (rest.length !== 1) blocked('USAGE');
