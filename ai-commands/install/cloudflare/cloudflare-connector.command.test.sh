@@ -15,6 +15,8 @@ export AI_COMMANDS_ROOT="$commands_root"
 
 grep -q 'install requires the exact --apply flag' "$script"
 grep -q 'brew install cloudflared' "$script"
+grep -q 'apt-get install -y cloudflared' "$script"
+grep -q 'https://pkg.cloudflare.com/cloudflare-main.gpg' "$script"
 grep -q 'ai_command_require_profile "cloudflare-connector"' "$script"
 grep -q 'Installation does not start a connector' "$command_dir/cloudflare-connector.command.md"
 

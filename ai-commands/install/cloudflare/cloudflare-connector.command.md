@@ -22,6 +22,7 @@ physical package lifecycle; tunnel, DNS, Access, connector-token, and service co
 - `status` reports whether `cloudflared` is on `PATH` and prints its version without changing the host.
 - `install --apply` is idempotent and requires the explicit mutation flag.
 - Homebrew is supported on macOS and other hosts where it is already available.
+- Debian-family hosts with `apt-get` use Cloudflare's official signed package repository.
 - If no supported package manager is detected, the command stops with official-package guidance instead of executing an
   unverified download script.
 - Installation does not start a connector or operating-system service and never reads a tunnel token.
