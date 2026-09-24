@@ -54,7 +54,6 @@ dayPlanning:
 
 calendarAccess:
   command: calendar
-  config: commands-config/calendar/config.yml
   structuredProviderPreferred: true
   browserFallback:
     enabled: true
