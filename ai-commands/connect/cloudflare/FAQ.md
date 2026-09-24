@@ -44,6 +44,17 @@ No secret values are intentionally published as public content. What becomes rea
 
 This still increases the attack surface compared with a LAN-only service, so the remote path must remain explicitly configured, authenticated, encrypted, monitored, and revocable. Cloudflare Access is an additional boundary; it does not replace Infisical authorization.
 
+## Can an existing tunnel also carry SSH administration?
+
+Yes. One connected tunnel may publish a second hostname whose service is `ssh://PRIVATE_HOST:22`; the gateway only needs
+private reachability to that SSH server. Use a dedicated hostname and a separate exact-identity Cloudflare Access
+application so administrative access is independently auditable and revocable. Do not publish router port 22.
+
+The client needs `cloudflared` and an SSH `ProxyCommand` that runs `cloudflared access ssh --hostname %h`. Cloudflare
+Access authorizes entry to the route, while the SSH server still verifies its own host key, account, and SSH key. A
+successful `origin-status` check proves only that the gateway can open the private TCP port; it does not prove the Access
+policy or SSH authentication.
+
 ## Why not use router port forwarding?
 
 A tunnel avoids opening a normal inbound port to the origin, hides the origin address from ordinary public routing, supports an identity-aware Access layer, and makes a remote route easier to disable independently. The connector initiates outbound connections instead of accepting arbitrary inbound Internet connections at the router.

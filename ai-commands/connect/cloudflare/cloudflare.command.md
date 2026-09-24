@@ -55,6 +55,8 @@ as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must nev
 | `create-tunnel --apply --token-output ABSOLUTE_PATH` | Create a remotely managed tunnel, attach ingress, create its proxied DNS CNAME, and save the returned connector token mode `0600`. |
 | `install-connector --apply` | Delegate idempotent `cloudflared` package installation to `install/cloudflare` without reading tunnel credentials or starting a connector. |
 | `run-tunnel` | Run `cloudflared` in the foreground using the remotely managed tunnel token. |
+| `server-status` | Check the selected private server probe host and port from the connector host. |
+| `origin-status` | Verify HTTP(S) health or SSH TCP reachability from the connector host. Container-scoped origins must be checked inside their owning network. |
 | `connector-status` | Report whether the selected tunnel has a live AI Fleas connector process. |
 | `controller-state` | Report the persistent desired state for the selected system-managed connector. |
 | `controller-enable --apply` | Persistently request that the Ubuntu controller run the selected connector. |
@@ -256,6 +258,12 @@ An Ubuntu gateway can host every tunnel while the model providers remain on othe
 each server target's `CLOUDFLARE_ORIGIN_URL` with that server's reachable private IP and port. The gateway must be
 able to reach each origin, and firewall rules should permit the model port only from the gateway. A tunnel does not need
 to run on the model host itself.
+
+An administrative SSH route uses a dedicated public hostname and an `ssh://PRIVATE_HOST:22` origin. Protect that
+hostname with its own Cloudflare Access application and exact-identity policy before enabling the route. End users run
+client-side `cloudflared access ssh` through an SSH `ProxyCommand`; the SSH server still enforces its own user and key
+authentication. `origin-status` proves only TCP reachability from the connector host, not Access authorization, SSH host
+identity, or user authentication. Keep SSH administration independently revocable from model/API access.
 
 The controller displays configuration validity, installed connector version, whether the tunnel is closed, managed by
 this app, or running externally, the unauthenticated Access-gate result, the public URL, and redacted connector logs.
