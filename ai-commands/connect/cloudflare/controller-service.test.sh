@@ -28,8 +28,11 @@ linux_output="$(env "${common_env[@]}" CLOUDFLARE_SERVICE_PLATFORM=Linux CLOUDFL
 [[ "$linux_output" == *'User=example'* ]]
 [[ "$linux_output" == *'ExecStart='*'/service-runner.sh'* ]]
 [[ "$linux_output" == *'Environment="CLOUDFLARE_UI_AUTOSTART=all"'* ]]
+[[ "$linux_output" == *'Environment="AI_FLEAS_RUNTIME_LOCK_DIR=/run/ai-fleas-cloudflare-tunnels"'* ]]
 [[ "$linux_output" == *'Environment="PATH='* ]]
 [[ "$linux_output" == *'Restart=always'* ]]
+[[ "$linux_output" == *'RuntimeDirectory=ai-fleas-cloudflare-tunnels'* ]]
+[[ "$linux_output" == *'RuntimeDirectoryMode=0700'* ]]
 [[ "$linux_output" == *'WantedBy=multi-user.target'* ]]
 
 printf 'Cloudflare controller service checks passed.\n'
