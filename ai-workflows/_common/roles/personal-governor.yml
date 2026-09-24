@@ -51,6 +51,8 @@ bindings:
     required: false
     cardinality: many
     owner: governed-human
+    authorization: explicit-allowlist
+    wildcardAllowed: false
   subject:
     type: human-reference
     required: true
@@ -71,6 +73,9 @@ bindings:
     required: true
     cardinality: many
     owner: profile
+    qualification: profile
+    authorization: explicit-allowlist
+    wildcardAllowed: false
   memory:
     type: memory-reference
     required: false

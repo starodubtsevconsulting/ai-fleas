@@ -144,6 +144,12 @@ context-window settings, and `${AI_COMMANDS_ROOT}` command access without exposi
 project bindings, provider settings, credentials, and platform implementation-root bindings belong in the consuming
 private platform. Run `./ai-profile/validate-example.sh` before publishing the example.
 
+The sanitized human example in `example/profile-human.example.yml` explicitly lists the profiles its Governor may inspect
+and the profile-qualified workflows it may use. `example/profile-governor.example.yml` mirrors those lists in the runtime
+binding. Profile authorization and workflow authorization are independent: access to a profile does not implicitly grant
+access to all workflows in that profile, and wildcard access is not part of the portable contract. When an authorized work
+profile adds or removes a workflow, update both allowlists deliberately and run the example validator.
+
 ## Command override scopes
 
 Profiles activate portable capabilities by referencing real registered commands. Provider-neutral commands own intent and

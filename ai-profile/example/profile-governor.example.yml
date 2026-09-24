@@ -15,6 +15,22 @@ profiles:
     relationship: external-client-context
     dataSharing: normalized-commitments-only
 
+# Keep this binding synchronized with profile-human.example.yml. Profile access
+# does not imply workflow access; workflow authorization remains explicit.
+workflows:
+  - profile: example
+    id: dev
+    path: dev.workflow.md
+  - profile: example
+    id: youtube
+    path: youtube.workflow.md
+  - profile: example
+    id: writing
+    path: writing.workflow.md
+  - profile: example
+    id: financial-insights
+    path: financial-insights.workflow.md
+
 subject:
   id: jonathan-example
   name: Jonathan Example
@@ -62,9 +78,6 @@ calendarAccess:
     externalWhenInternalUnavailableOrUnreliable: true
   # The calendar command loads its command-owned operational skill. This binding only
   # authorizes and tunes access; it does not duplicate the reusable skill instructions.
-
-workflows:
-  - dev
 
 goals:
   - id: improve-ai-tool-proficiency
