@@ -429,4 +429,13 @@ if grep -F "$TEST_API_TOKEN" "$fixture_dir/token-check-args" >/dev/null; then
   exit 1
 fi
 
+if CLOUDFLARE_SERVICE_PLATFORM=synthetic \
+  AI_CONFIG_PROJECT="$repository_root" \
+  CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
+  "$command_path" install-controller-service --apply >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected synthetic controller platform to fail' >&2
+  exit 1
+fi
+grep -F 'unsupported platform: synthetic' "$fixture_dir/err" >/dev/null
+
 echo 'cloudflare.command tests passed'

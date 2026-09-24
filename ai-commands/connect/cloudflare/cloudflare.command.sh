@@ -70,7 +70,10 @@ if [[ "$operation" == 'list-targets' ]]; then
   list_targets
   exit 0
 fi
-[[ "$operation" == 'ui' || "$operation" == 'token-check' ]] || load_server_target
+case "$operation" in
+  ui|token-check|install-connector|install-controller-service) ;;
+  *) load_server_target ;;
+esac
 
 public_url="${CLOUDFLARE_PUBLIC_URL:-}"
 origin_url="${CLOUDFLARE_ORIGIN_URL:-}"
