@@ -52,6 +52,8 @@ as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must nev
 |---|---|
 | `validate` | Validate configuration and secret references without network access or mutation. |
 | `token-check` | Verify the configured Cloudflare API token using Cloudflare's read-only token endpoint. This account-level check does not require selecting a server target. |
+| `access-policy-status` | Resolve the exact Access application destination for the selected public hostname and report its email-based allow policy without mutation. |
+| `sync-access-policy --apply` | Replace only the exact-email rules in the selected hostname's existing email-based allow policy with `CLOUDFLARE_ALLOWED_EMAILS`, preserving other rule types and verifying the result. Reusable policies use the account policy endpoint. |
 | `create-tunnel --apply --token-output ABSOLUTE_PATH` | Create a remotely managed tunnel, attach ingress, create its proxied DNS CNAME, and save the returned connector token mode `0600`. |
 | `install-connector --apply` | Delegate idempotent `cloudflared` package installation to `install/cloudflare` without reading tunnel credentials or starting a connector. |
 | `run-tunnel` | Run `cloudflared` in the foreground using the remotely managed tunnel token. |
@@ -70,14 +72,18 @@ as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must nev
 Copy `cloudflare/cloudflare.command.example.config` into the selected profile and reference it through
 `commands[].config`. Set the operational values there, but keep tokens in a secret store or process environment.
 
-`CLOUDFLARE_ALLOWED_EMAILS` is advisory configuration used to document the exact allowlist that must exist in the
-Cloudflare Access policy. The command rejects `*`, `everyone`, `any`, and empty allowlists. Access application and policy
-creation remain a Cloudflare dashboard/API administration step; `verify-access` proves the resulting public boundary
-before the URL is handed to another person.
+`CLOUDFLARE_ALLOWED_EMAILS` is the desired exact allowlist for an existing Cloudflare Access application and email-based
+allow policy. The command rejects `*`, `everyone`, `any`, and empty allowlists. `access-policy-status` resolves the exact
+public hostname across both legacy application domains and current public destinations. `sync-access-policy --apply`
+fails closed unless exactly one matching application and one email-based allow policy exist; it preserves non-email
+include rules and all supported policy constraints. Access application and policy creation remain a Cloudflare
+dashboard/API administration step; `verify-access` proves the resulting public boundary before the URL is handed to
+another person.
 
 `create-tunnel` requires a scoped API token with Cloudflare Tunnel Write and DNS Write for the configured account and
 zone. The account and zone IDs are non-secret but remain profile-owned operational identifiers. Use the least-privilege
-token scope; a Global API Key is not supported.
+token scope; a Global API Key is not supported. Access policy inspection requires **Access: Apps and Policies Read**;
+policy synchronization requires **Access: Apps and Policies Write**.
 
 For an HTTPS origin reached through a loopback or private service URL, set `CLOUDFLARE_ORIGIN_SERVER_NAME` to the DNS
 name on the origin certificate. If the certificate uses a private CA, also set `CLOUDFLARE_ORIGIN_CA_POOL` to the

@@ -12,8 +12,9 @@ fail() {
 
 usage() {
   printf '%s\n' \
-    'Usage: cloudflare.command.sh list-targets|validate|token-check|server-status|origin-status|connector-status|controller-state|run-tunnel|stop-tunnel|verify-access|ui' \
+    'Usage: cloudflare.command.sh list-targets|validate|token-check|access-policy-status|server-status|origin-status|connector-status|controller-state|run-tunnel|stop-tunnel|verify-access|ui' \
     '       cloudflare.command.sh controller-enable|controller-disable --apply' \
+    '       cloudflare.command.sh sync-access-policy --apply' \
     '       cloudflare.command.sh install-connector --apply' \
     '       cloudflare.command.sh create-tunnel --apply --token-output ABSOLUTE_PATH' \
     '       cloudflare.command.sh install-service --apply' \
@@ -455,11 +456,193 @@ bearer_config() {
 
 api_request() {
   local method="$1" path="$2" payload="$3" token="$4"
-  bearer_config "$token" | curl --config - --silent --show-error --fail-with-body --max-time 20 \
-    --request "$method" \
-    --header 'Content-Type: application/json' \
-    --data "$payload" \
-    "${api_base%/}$path"
+  local -a request_args=(
+    --silent --show-error --fail-with-body --max-time 20
+    --request "$method"
+    --header 'Content-Type: application/json'
+  )
+  [[ -z "$payload" ]] || request_args+=(--data "$payload")
+  bearer_config "$token" | curl --config - "${request_args[@]}" "${api_base%/}$path"
+}
+
+resolve_access_policy() {
+  local api_token="$1" public_host apps_response policies_response
+  public_host="${public_url#https://}"
+  public_host="${public_host%/}"
+  public_host="${public_host%%:*}"
+
+  apps_response="$(api_request GET "/accounts/$account_id/access/apps?per_page=100" '' "$api_token")" ||
+    fail 'Cloudflare Access applications could not be listed'
+  require_api_success <<<"$apps_response" || fail 'Cloudflare rejected the Access application lookup'
+  access_app_id="$(python3 -c '
+import json, sys
+value = json.load(sys.stdin)
+host = sys.argv[1].lower()
+def normalized_host(value):
+    value = str(value or "").strip().lower()
+    if "://" in value:
+        value = value.split("://", 1)[1]
+    value = value.split("/", 1)[0]
+    return value.split(":", 1)[0]
+def app_hosts(app):
+    hosts = [normalized_host(app.get("domain"))]
+    for destination in app.get("destinations", []) or []:
+        if isinstance(destination, dict) and destination.get("type") == "public":
+            hosts.append(normalized_host(destination.get("uri")))
+    for destination in app.get("self_hosted_domains", []) or []:
+        if isinstance(destination, str):
+            hosts.append(normalized_host(destination))
+        elif isinstance(destination, dict):
+            hosts.append(normalized_host(destination.get("hostname") or destination.get("domain")))
+    return {candidate for candidate in hosts if candidate}
+matches = [app for app in value.get("result", []) if host in app_hosts(app)]
+if len(matches) != 1:
+    scopes = ["|".join(sorted(app_hosts(app))) for app in value.get("result", [])]
+    print("Cloudflare Access application scopes: " + ",".join(scopes), file=sys.stderr)
+    raise SystemExit(1)
+print(matches[0].get("id", ""))
+' "$public_host" <<<"$apps_response")" ||
+    fail "expected exactly one Cloudflare Access application for $public_host"
+  [[ "$access_app_id" =~ ^[A-Fa-f0-9-]{32,36}$ ]] || fail 'Cloudflare Access application ID is invalid'
+  access_app_scope="$(python3 -c '
+import json, sys
+value = json.load(sys.stdin)
+app_id = sys.argv[1]
+app = next((item for item in value.get("result", []) if item.get("id") == app_id), None)
+if app is None:
+    raise SystemExit(1)
+scopes = [str(app.get("domain", ""))]
+for destination in app.get("destinations", []) or []:
+    if isinstance(destination, dict) and destination.get("type") == "public":
+        scopes.append(str(destination.get("uri", "")))
+print(",".join(item for item in scopes if item))
+' "$access_app_id" <<<"$apps_response")" || fail 'Cloudflare Access application scope is invalid'
+
+  policies_response="$(api_request GET "/accounts/$account_id/access/apps/$access_app_id/policies?per_page=100" '' "$api_token")" ||
+    fail 'Cloudflare Access policies could not be listed'
+  require_api_success <<<"$policies_response" || fail 'Cloudflare rejected the Access policy lookup'
+  access_policy_id="$(python3 -c '
+import json, sys
+value = json.load(sys.stdin)
+matches = []
+for policy in value.get("result", []):
+    if policy.get("decision") != "allow":
+        continue
+    if any(isinstance(rule, dict) and "email" in rule for rule in policy.get("include", [])):
+        matches.append(policy)
+if len(matches) != 1:
+    raise SystemExit(1)
+print(matches[0].get("id", ""))
+' <<<"$policies_response")" ||
+    fail 'expected exactly one email-based allow policy for the Access application'
+  [[ "$access_policy_id" =~ ^[A-Fa-f0-9-]{32,36}$ ]] || fail 'Cloudflare Access policy ID is invalid'
+  access_policy_reusable="$(python3 -c '
+import json, sys
+value = json.load(sys.stdin)
+policy_id = sys.argv[1]
+policy = next((item for item in value.get("result", []) if item.get("id") == policy_id), None)
+if policy is None:
+    raise SystemExit(1)
+print("true" if policy.get("reusable") is True else "false")
+' "$access_policy_id" <<<"$policies_response")" || fail 'Cloudflare Access policy type is invalid'
+  access_policies_response="$policies_response"
+}
+
+access_policy_status() {
+  local api_token="$1"
+  resolve_access_policy "$api_token"
+  python3 -c '
+import json, sys
+value = json.load(sys.stdin)
+policy_id = sys.argv[1]
+host = sys.argv[2]
+policy = next((item for item in value.get("result", []) if item.get("id") == policy_id), None)
+if policy is None:
+    raise SystemExit(1)
+emails = []
+for rule in policy.get("include", []):
+    entry = rule.get("email") if isinstance(rule, dict) else None
+    if isinstance(entry, dict) and isinstance(entry.get("email"), str):
+        emails.append(entry["email"])
+policy_name = policy.get("name", "unnamed")
+print(f"cloudflare Access policy: host={host} app={sys.argv[3]} policy={policy_id} name={policy_name} scope={sys.argv[4]} reusable={sys.argv[5]}")
+print("approved emails: " + ",".join(emails))
+' "$access_policy_id" "$public_url" "$access_app_id" "$access_app_scope" "$access_policy_reusable" <<<"$access_policies_response" ||
+    fail 'Cloudflare Access policy response was invalid'
+}
+
+sync_access_policy() {
+  local api_token="$1" update_payload update_response update_path desired_emails actual_emails
+  resolve_access_policy "$api_token"
+  update_payload="$(python3 -c '
+import json, sys
+value = json.load(sys.stdin)
+policy_id, configured = sys.argv[1:3]
+policy = next((item for item in value.get("result", []) if item.get("id") == policy_id), None)
+if policy is None:
+    raise SystemExit(1)
+emails = []
+for raw in configured.split(","):
+    email = raw.strip().lower()
+    if email and email not in emails:
+        emails.append(email)
+non_email_rules = [rule for rule in policy.get("include", []) if not (isinstance(rule, dict) and "email" in rule)]
+payload = {
+    "name": policy["name"],
+    "decision": policy["decision"],
+    "include": non_email_rules + [{"email": {"email": email}} for email in emails],
+}
+for key in (
+    "exclude", "require", "session_duration",
+    "purpose_justification_required", "purpose_justification_prompt",
+    "approval_required", "approval_groups", "isolation_required",
+    "mfa_config", "connection_rules",
+):
+    if key in policy and policy[key] is not None:
+        payload[key] = policy[key]
+print(json.dumps(payload, separators=(",", ":")))
+' "$access_policy_id" "$allowed_emails" <<<"$access_policies_response")" ||
+    fail 'could not construct the Cloudflare Access policy update'
+
+  if [[ "$access_policy_reusable" == 'true' ]]; then
+    update_path="/accounts/$account_id/access/policies/$access_policy_id"
+  else
+    update_path="/accounts/$account_id/access/apps/$access_app_id/policies/$access_policy_id"
+  fi
+  if ! update_response="$(api_request PUT "$update_path" "$update_payload" "$api_token")"; then
+    python3 -c '
+import json, sys
+try:
+    value = json.load(sys.stdin)
+except Exception:
+    raise SystemExit(0)
+for error in value.get("errors", []):
+    if isinstance(error, dict) and error.get("message"):
+        print("Cloudflare API error: " + str(error["message"]), file=sys.stderr)
+' <<<"$update_response"
+    fail 'Cloudflare Access policy update failed'
+  fi
+  require_api_success <<<"$update_response" || fail 'Cloudflare rejected the Access policy update'
+
+  resolve_access_policy "$api_token"
+  desired_emails="$(tr ',' '\n' <<<"$allowed_emails" | sed 's/[[:space:]]//g; /^$/d' | tr '[:upper:]' '[:lower:]' | sort -u | paste -sd, -)"
+  actual_emails="$(python3 -c '
+import json, sys
+value = json.load(sys.stdin)
+policy_id = sys.argv[1]
+policy = next((item for item in value.get("result", []) if item.get("id") == policy_id), None)
+if policy is None:
+    raise SystemExit(1)
+emails = []
+for rule in policy.get("include", []):
+    entry = rule.get("email") if isinstance(rule, dict) else None
+    if isinstance(entry, dict) and isinstance(entry.get("email"), str):
+        emails.append(entry["email"].strip().lower())
+print(",".join(sorted(set(emails))))
+' "$access_policy_id" <<<"$access_policies_response")" ||
+    fail 'could not verify the updated Cloudflare Access policy'
+  [[ "$actual_emails" == "$desired_emails" ]] || fail 'Cloudflare Access policy verification did not match the configured allowlist'
+  printf 'cloudflare Access policy synchronized: host=%s approved_emails=%s\n' "$public_url" "$actual_emails"
 }
 
 case "$operation" in
@@ -488,6 +671,22 @@ case "$operation" in
       exit 1
     }
     printf 'cloudflare API token active\n'
+    ;;
+  access-policy-status)
+    [[ $# -eq 0 ]] || fail 'access-policy-status accepts no additional arguments'
+    validate_config
+    command -v curl >/dev/null 2>&1 || fail 'curl is required'
+    command -v python3 >/dev/null 2>&1 || fail 'python3 is required'
+    api_token="$(read_secret "$api_token_env")"
+    access_policy_status "$api_token"
+    ;;
+  sync-access-policy)
+    [[ "${1:-}" == '--apply' && $# -eq 1 ]] || fail 'sync-access-policy requires the exact --apply flag'
+    validate_config
+    command -v curl >/dev/null 2>&1 || fail 'curl is required'
+    command -v python3 >/dev/null 2>&1 || fail 'python3 is required'
+    api_token="$(read_secret "$api_token_env")"
+    sync_access_policy "$api_token"
     ;;
   create-tunnel)
     [[ "${1:-}" == '--apply' && "${2:-}" == '--token-output' && -n "${3:-}" && $# -eq 3 ]] ||

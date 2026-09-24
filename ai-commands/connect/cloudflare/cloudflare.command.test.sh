@@ -386,6 +386,126 @@ assert route == {
 }
 PY
 
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" sync-access-policy >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected sync-access-policy without --apply to fail' >&2
+  exit 1
+fi
+grep -F 'sync-access-policy requires the exact --apply flag' "$fixture_dir/err" >/dev/null
+
+cat >"$fixture_dir/access-server.py" <<'PY'
+import json
+import pathlib
+import sys
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+record = pathlib.Path(sys.argv[1])
+port_file = pathlib.Path(sys.argv[2])
+app_id = "a" * 32
+policy_id = "b" * 32
+service_policy_id = "c" * 32
+policy = {
+    "id": policy_id,
+    "name": "Approved people",
+    "decision": "allow",
+    "reusable": True,
+    "precedence": 1,
+    "session_duration": "24h",
+    "include": [
+        {"group": {"id": "d" * 32}},
+        {"email": {"email": "old@example.invalid"}},
+    ],
+    "exclude": [],
+    "require": [],
+}
+
+class Handler(BaseHTTPRequestHandler):
+    def respond(self, result):
+        payload = json.dumps({"success": True, "errors": [], "result": result}).encode()
+        self.send_response(200)
+        self.send_header("content-type", "application/json")
+        self.send_header("content-length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def do_GET(self):
+        if self.path.endswith("/access/apps?per_page=100"):
+            self.respond([{
+                "id": app_id,
+                "name": "Example AI",
+                "domain": "primary.example.invalid",
+                "destinations": [{"type": "public", "uri": "ai.example.invalid"}],
+            }])
+            return
+        if self.path.endswith(f"/access/apps/{app_id}/policies?per_page=100"):
+            self.respond([
+                policy,
+                {
+                    "id": service_policy_id,
+                    "name": "Automation",
+                    "decision": "non_identity",
+                    "include": [{"service_token": {"token_id": "e" * 32}}],
+                },
+            ])
+            return
+        self.send_error(404)
+
+    def do_PUT(self):
+        expected = f"/accounts/0123456789abcdef0123456789abcdef/access/policies/{policy_id}"
+        if self.path != expected:
+            self.send_error(404)
+            return
+        length = int(self.headers.get("content-length", "0"))
+        body = json.loads(self.rfile.read(length).decode())
+        with record.open("a") as output:
+            output.write(json.dumps({"method": self.command, "path": self.path, "body": body}) + "\n")
+        policy.clear()
+        policy.update({"id": policy_id, **body})
+        self.respond(policy)
+
+    def log_message(self, *_):
+        pass
+
+server = HTTPServer(("127.0.0.1", 0), Handler)
+port_file.write_text(str(server.server_port))
+for _ in range(7):
+    server.handle_request()
+PY
+
+write_config
+python3 "$fixture_dir/access-server.py" "$fixture_dir/access-requests.jsonl" "$fixture_dir/access-port" &
+access_server_pid=$!
+for _ in $(seq 1 50); do
+  [[ -s "$fixture_dir/access-port" ]] && break
+  sleep 0.05
+done
+[[ -s "$fixture_dir/access-port" ]]
+access_output="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
+  CLOUDFLARE_TEST_ORIGIN=1 \
+  CLOUDFLARE_API_BASE_URL="http://127.0.0.1:$(cat "$fixture_dir/access-port")" \
+  "$command_path" sync-access-policy --apply)"
+[[ "$access_output" == *'approved_emails=one@example.invalid,two@example.invalid'* ]]
+access_status="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
+  CLOUDFLARE_TEST_ORIGIN=1 \
+  CLOUDFLARE_API_BASE_URL="http://127.0.0.1:$(cat "$fixture_dir/access-port")" \
+  "$command_path" access-policy-status)"
+wait "$access_server_pid"
+[[ "$access_status" == *'name=Approved people'* ]]
+[[ "$access_status" == *'approved emails: one@example.invalid,two@example.invalid'* ]]
+python3 - "$fixture_dir/access-requests.jsonl" <<'PY'
+import json, pathlib, sys
+requests = [json.loads(line) for line in pathlib.Path(sys.argv[1]).read_text().splitlines()]
+assert len(requests) == 1
+body = requests[0]["body"]
+assert body["decision"] == "allow"
+assert "precedence" not in body
+assert body["session_duration"] == "24h"
+assert body["include"] == [
+    {"group": {"id": "d" * 32}},
+    {"email": {"email": "one@example.invalid"}},
+    {"email": {"email": "two@example.invalid"}},
+]
+PY
+
 cat >"$fixture_dir/tcp-server.py" <<'PY'
 import pathlib
 import socket
