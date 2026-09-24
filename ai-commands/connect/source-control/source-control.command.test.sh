@@ -48,7 +48,6 @@ output="$(
   AI_FLOW_WORKFLOW=dev.workflow.md \
   SOURCE_CONTROL_TEST_ARGS="$fixture_dir/git-args" \
   SOURCE_CONTROL_TEST_REPO="$fixture_dir/repo" \
-  SOURCE_CONTROL_USERNAME=example-user \
   SOURCE_CONTROL_TOKEN=synthetic-secret-token \
   PATH="$fixture_dir/bin:$PATH" \
   "$EXECUTABLE" credential-check --repo "$fixture_dir/repo"

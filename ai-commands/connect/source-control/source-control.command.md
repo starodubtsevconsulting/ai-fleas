@@ -74,12 +74,13 @@ identity_name: Example Developer
 identity_email: developer@example.com
 credential_scope: remote_host
 credential_base_url: https://github.com
+credential_username: example-developer
 allowed_remote_url_patterns:
   - https://github.com/example/*
 ```
 
-Secrets never belong in this configuration. `connect/secrets` may inject `SOURCE_CONTROL_USERNAME` and
-`SOURCE_CONTROL_TOKEN` into the bounded executable for one invocation after the profile, workflow, provider, and remote
+Secrets never belong in this configuration. The non-secret provider login is explicit as `credential_username`.
+`connect/secrets` may inject `SOURCE_CONTROL_TOKEN` into the bounded executable for one invocation after the profile, workflow, provider, and remote
 host have been verified. The executable uses Git AskPass, disables credential helpers for that child process, and never
 writes either value to Git configuration or repository files.
 
@@ -93,7 +94,7 @@ source-control.command.sh pull-ff-only --repo /absolute/repository
 
 All three operations require an HTTPS `origin` matching `credential_base_url` and one
 `allowed_remote_url_patterns` entry. `pull-ff-only` additionally requires a clean, attached worktree. The command prints
-only sanitized host/repository evidence; credentials remain in the authorized child-process environment.
+only sanitized host/repository evidence; the token remains in the authorized child-process environment.
 
 ## Provider implementation boundary
 

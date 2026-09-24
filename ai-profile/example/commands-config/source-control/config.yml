@@ -6,6 +6,7 @@ command_path: connect/git/git.command.sh
 identity_config: commands-config/source-control/identity.config
 credential_scope: remote_host
 credential_base_url: https://github.example.invalid
+credential_username: example-developer
 allowed_remote_url_patterns:
   - https://github.example.invalid/example/*
   - git@github.example.invalid:example/*
