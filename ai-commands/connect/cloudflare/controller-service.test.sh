@@ -40,5 +40,6 @@ linux_output="$(env "${common_env[@]}" CLOUDFLARE_SERVICE_PLATFORM=Linux CLOUDFL
 
 grep -Fq 'X-GNOME-Autostart-enabled=true' "$command_dir/controller-service.sh"
 grep -Fq 'CLOUDFLARE_UI_SERVICE_CONTROL=systemd' "$command_dir/controller-service.sh"
+grep -Fq 'systemctl restart ai-fleas-cloudflare-tunnels.service' "$command_dir/controller-service.sh"
 
 printf 'Cloudflare controller service checks passed.\n'

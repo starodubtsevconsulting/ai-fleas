@@ -174,7 +174,8 @@ case "$operation" in
           command -v sudo >/dev/null 2>&1 || fail 'sudo is required for system service installation'
           sudo install -m 644 "$temp" "$target"
           sudo systemctl daemon-reload
-          sudo systemctl enable --now ai-fleas-cloudflare-tunnels.service
+          sudo systemctl enable ai-fleas-cloudflare-tunnels.service
+          sudo systemctl restart ai-fleas-cloudflare-tunnels.service
         fi
         install_linux_desktop_controller "$user_name"
         printf 'Installed Ubuntu systemd service: %s\n' "$target"
