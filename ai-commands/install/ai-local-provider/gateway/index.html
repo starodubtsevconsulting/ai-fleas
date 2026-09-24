@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local Model Chat</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #090b0d; color: #f4f5f6; }
+    main { width: min(920px, calc(100% - 32px)); margin: 0 auto; padding: 42px 0 36px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+    h1 { margin: 0; font-size: clamp(26px, 5vw, 40px); letter-spacing: -.04em; }
+    .status { display: flex; align-items: center; gap: 8px; color: #a6adb6; font-size: 14px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #e45555; box-shadow: 0 0 14px currentColor; }
+    .ready .dot { background: #4bd082; }
+    select, textarea, button { font: inherit; }
+    select { background: #15191d; color: inherit; border: 1px solid #2d3339; border-radius: 12px; padding: 10px 13px; }
+    #messages { min-height: 54vh; display: flex; flex-direction: column; gap: 14px; padding-bottom: 22px; }
+    .welcome { margin: auto; text-align: center; color: #929aa3; }
+    .welcome strong { display: block; color: #f4f5f6; font-size: 28px; margin-bottom: 8px; }
+    .message { max-width: 86%; border: 1px solid #282e34; border-radius: 18px; padding: 14px 16px; white-space: pre-wrap; line-height: 1.55; overflow-wrap: anywhere; }
+    .user { align-self: flex-end; background: #20252a; }
+    .assistant { align-self: flex-start; background: #101316; }
+    .error { color: #ff8b8b; border-color: #67393d; }
+    form { position: sticky; bottom: 18px; display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 12px; border: 1px solid #2c3238; border-radius: 20px; background: rgba(18,21,24,.96); box-shadow: 0 22px 70px #000; }
+    textarea { min-height: 58px; max-height: 210px; resize: vertical; border: 0; outline: 0; background: transparent; color: inherit; padding: 10px; }
+    button { align-self: end; border: 0; border-radius: 14px; min-width: 86px; padding: 13px 17px; background: #e7eaed; color: #111417; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: .45; cursor: wait; }
+    @media (max-width: 620px) { header { align-items: flex-start; flex-direction: column; } .message { max-width: 94%; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div><h1>Local Model Chat</h1><div id="status" class="status"><span class="dot"></span><span>Checking model…</span></div></div>
+      <select id="model" aria-label="Model"></select>
+    </header>
+    <section id="messages" aria-live="polite"><div class="welcome"><strong>Hello there</strong>The model is loading. This page will become ready automatically.</div></section>
+    <form id="chat-form">
+      <textarea id="prompt" placeholder="Type a message…" aria-label="Message" required></textarea>
+      <button id="send" type="submit" disabled>Send</button>
+    </form>
+  </main>
+  <script>
+    const statusElement = document.querySelector('#status');
+    const modelElement = document.querySelector('#model');
+    const messagesElement = document.querySelector('#messages');
+    const form = document.querySelector('#chat-form');
+    const promptElement = document.querySelector('#prompt');
+    const sendElement = document.querySelector('#send');
+    const conversation = [];
+
+    function setStatus(ready, text) {
+      statusElement.classList.toggle('ready', ready);
+      statusElement.querySelector('span:last-child').textContent = text;
+      sendElement.disabled = !ready;
+    }
+
+    function addMessage(role, text, extraClass = '') {
+      const welcome = messagesElement.querySelector('.welcome');
+      if (welcome) welcome.remove();
+      const message = document.createElement('div');
+      message.className = `message ${role} ${extraClass}`;
+      message.textContent = text;
+      messagesElement.append(message);
+      message.scrollIntoView({ block: 'end', behavior: 'smooth' });
+      return message;
+    }
+
+    async function loadModels() {
+      try {
+        const response = await fetch('/v1/models', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`model endpoint returned ${response.status}`);
+        const payload = await response.json();
+        const models = payload.data ?? [];
+        if (!models.length) throw new Error('no model is available');
+        modelElement.replaceChildren(...models.map((model) => {
+          const option = document.createElement('option');
+          option.value = model.id;
+          option.textContent = model.name || model.id;
+          return option;
+        }));
+        setStatus(true, 'Ready');
+        const welcome = messagesElement.querySelector('.welcome');
+        if (welcome) welcome.innerHTML = '<strong>Hello there</strong>Type a message to start chatting.';
+      } catch (error) {
+        setStatus(false, `Waiting for model: ${error.message}`);
+        window.setTimeout(loadModels, 3000);
+      }
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const content = promptElement.value.trim();
+      if (!content || sendElement.disabled) return;
+      conversation.push({ role: 'user', content });
+      addMessage('user', content);
+      promptElement.value = '';
+      sendElement.disabled = true;
+      const assistant = addMessage('assistant', '');
+      try {
+        const response = await fetch('/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ model: modelElement.value, messages: conversation, stream: true }),
+        });
+        if (!response.ok || !response.body) throw new Error(`request failed: ${response.status}`);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let completeText = '';
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true }).replaceAll('\r\n', '\n');
+          const events = buffer.split('\n\n');
+          buffer = events.pop() ?? '';
+          for (const eventText of events) {
+            for (const line of eventText.split('\n')) {
+              if (!line.startsWith('data:')) continue;
+              const data = line.slice(5).trim();
+              if (!data || data === '[DONE]') continue;
+              const payload = JSON.parse(data);
+              completeText += payload.choices?.[0]?.delta?.content ?? '';
+              assistant.textContent = completeText;
+            }
+          }
+        }
+        conversation.push({ role: 'assistant', content: completeText });
+      } catch (error) {
+        assistant.textContent = error.message;
+        assistant.classList.add('error');
+      } finally {
+        sendElement.disabled = false;
+        promptElement.focus();
+      }
+    });
+
+    promptElement.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); form.requestSubmit(); }
+    });
+    loadModels();
+  </script>
+</body>
+</html>
