@@ -8,29 +8,6 @@ humanFacing: true
 readinessToken: PERSONAL_GOVERNOR_READY
 aiBinding: profile-default
 
-profiles:
-  - id: example
-    relationship: primary-work-context
-  - id: example-client
-    relationship: external-client-context
-    dataSharing: normalized-commitments-only
-
-# Keep this binding synchronized with profile-human.example.yml. Profile access
-# does not imply workflow access; workflow authorization remains explicit.
-workflows:
-  - profile: example
-    id: dev
-    path: dev.workflow.md
-  - profile: example
-    id: youtube
-    path: youtube.workflow.md
-  - profile: example
-    id: writing
-    path: writing.workflow.md
-  - profile: example
-    id: financial-insights
-    path: financial-insights.workflow.md
-
 subject:
   id: jonathan-example
   name: Jonathan Example
