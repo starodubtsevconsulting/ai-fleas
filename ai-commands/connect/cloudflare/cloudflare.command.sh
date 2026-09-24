@@ -310,6 +310,16 @@ run_tunnel_exclusive() {
     [[ -z "${active_lock_pid_file:-}" ]] || rm -f "$active_lock_pid_file"
     [[ -z "${active_lock_dir:-}" ]] || rmdir "$active_lock_dir" 2>/dev/null || true
   }
+  local tunnel_token read_result
+  set +e
+  tunnel_token="$(read_tunnel_secret)"
+  read_result=$?
+  set -e
+  if (( read_result != 0 )); then
+    cleanup_tunnel_lock
+    return "$read_result"
+  fi
+
   local cloudflared_pid=''
   stop_cloudflared_child() {
     [[ -n "$cloudflared_pid" ]] && kill -TERM "$cloudflared_pid" 2>/dev/null || true
@@ -317,8 +327,6 @@ run_tunnel_exclusive() {
   trap stop_cloudflared_child INT TERM
   trap cleanup_tunnel_lock EXIT
 
-  local tunnel_token
-  tunnel_token="$(read_tunnel_secret)"
   cloudflared tunnel --no-autoupdate run --token "$tunnel_token" &
   cloudflared_pid=$!
   set +e
