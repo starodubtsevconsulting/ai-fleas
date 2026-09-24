@@ -33,7 +33,7 @@ The Cloudflare target configuration names the same `EXAMPLE_CLOUDFLARE_API_TOKEN
 
 The same file maps `example.dev.lodgify.api-key` to the Lodgify child's `LODGIFY_API_KEY`. Its [profile-owned config](lodgify/config.example.env) supplies the non-secret rental ID and API origin, with no local API key assignment. After a real key is added to the private provider mapping, `secrets run lodgify -- connection-test` performs a bounded read-only check. The command also accepts a local `API_KEY` in a private config when no secret service is selected; an injected key takes precedence while migrating.
 
-The fictional GitHub username and token mappings demonstrate bounded HTTPS repository access through
+The fictional GitHub token mapping and source-control config's non-secret login demonstrate bounded HTTPS repository access through
 `secrets run source-control -- credential-check --repo /absolute/repository`, `fetch`, or `pull-ff-only`. The
 source-control command validates the configured host and allowed remote pattern, disables Git credential helpers for the
 child process, and supplies the values only through AskPass.

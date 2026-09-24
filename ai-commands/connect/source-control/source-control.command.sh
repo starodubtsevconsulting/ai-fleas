@@ -42,6 +42,8 @@ repo="${2:-}"
 [[ "$(scalar "$config_path" capability)" == 'git' ]] || fail 'only the git capability is supported'
 [[ "$(scalar "$config_path" registered_command)" == 'git' ]] || fail 'registered provider command must be git'
 [[ "$(scalar "$config_path" credential_scope)" == 'remote_host' ]] || fail 'credential scope must be remote_host'
+credential_username="$(scalar "$config_path" credential_username)"
+[[ "$credential_username" =~ ^[A-Za-z0-9][A-Za-z0-9-]{0,38}$ ]] || fail 'credential_username is invalid'
 
 repo="$($git_bin -C "$repo" rev-parse --show-toplevel 2>/dev/null)" || fail 'repository is not a Git worktree'
 [[ "$repo" == /* ]] || fail 'Git returned an unsafe repository path'
@@ -59,12 +61,12 @@ while IFS= read -r pattern; do
 done < <(allowed_patterns "$config_path")
 [[ "$allowed" -eq 1 ]] || fail 'origin remote is outside the allowed profile scope'
 
-[[ -n "${SOURCE_CONTROL_USERNAME:-}" ]] || fail 'SOURCE_CONTROL_USERNAME was not injected'
 [[ -n "${SOURCE_CONTROL_TOKEN:-}" ]] || fail 'SOURCE_CONTROL_TOKEN was not injected'
-[[ "$SOURCE_CONTROL_USERNAME" != *$'\n'* && "$SOURCE_CONTROL_TOKEN" != *$'\n'* ]] || fail 'injected credentials contain an unsafe newline'
+[[ "$SOURCE_CONTROL_TOKEN" != *$'\n'* ]] || fail 'injected credential contains an unsafe newline'
 
 run_authenticated_git() {
-  GIT_ASKPASS="$script_dir/source-control.askpass.sh" \
+  SOURCE_CONTROL_USERNAME="$credential_username" \
+    GIT_ASKPASS="$script_dir/source-control.askpass.sh" \
     GIT_TERMINAL_PROMPT=0 \
     "$git_bin" -c credential.helper= -c credential.useHttpPath=true "$@"
 }
