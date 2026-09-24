@@ -11,10 +11,11 @@ guides execution; it does not install, connect, or activate a provider and does 
 ## Resolve the calendar capability
 
 1. Load the provider-neutral [`calendar` command contract](../../calendar.command.md) and the active profile's resolved
-   command configuration. Obtain the configured provider, account/calendar identity, timezone, and allowed operations
-   from configuration rather than chat history or an open browser tab.
-2. Prefer the configured provider's structured connector, MCP, API, or command adapter. Do not route calendar work
-   through an unrelated provider merely because its tools are available.
+   command configuration. Resolve provider and account/calendar identity from either an explicit profile provider
+   binding or the authorized host connector binding. Resolve timezone, calendar constraints, and allowed operations
+   from the effective profile configuration. Do not infer any of these from chat history or an open browser tab.
+2. Prefer the uniquely resolved calendar provider's structured connector, MCP, API, or command adapter. Do not select
+   a provider by brand or route calendar work through an unrelated provider merely because its tools are available.
 3. Treat a provider that is installed or configured but has no callable tools in the current runtime as unavailable.
    Check whether the active profile or a direct human instruction authorizes browser fallback. Without that authority,
    report `BLOCKED_CALENDAR_PROVIDER_UNAVAILABLE` with the missing capability and the smallest useful recovery action,

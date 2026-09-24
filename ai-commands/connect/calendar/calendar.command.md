@@ -43,8 +43,8 @@ Personal Governor calendar governance continue to own the meaning and authority 
 ```mermaid
 flowchart TD
   Actor["Actor: authorized caller requests calendar semantics"]
-  Actor --> Context{"Decision: exactly one enabled calendar provider binding?"}
-  Context -->|Allowed| Resolve["Allowed: resolve configured provider command"]
+  Actor --> Context{"Decision: exactly one enabled profile or host calendar binding?"}
+  Context -->|Allowed| Resolve["Allowed: resolve authorized provider command or connector"]
   Context -->|Prohibited| Blocked["BLOCKED: no provider, disabled provider, or ambiguous binding"]
   Resolve --> Operation{"Decision: requested operation is allowed and sufficiently bounded?"}
   Operation -->|Allowed| Route["Allowed: invoke configured provider operation"]
@@ -55,7 +55,11 @@ flowchart TD
 
 Callers request semantics such as event search, agenda, free/busy, create, update, or delete. They must not choose a provider by brand name unless the surrounding configuration task is explicitly about provider setup.
 
-The selected profile owns provider binding, account/calendar identity, default calendar, timezone, supported operation names, and command-specific overrides. Provider commands own mechanical interaction with their service or local implementation.
+The effective provider binding may come from an explicit profile command override or an authorized host connected-app
+binding. The result must identify exactly one provider/account context and remain inspectable. The selected profile owns
+calendar constraints, default calendar intent, timezone, supported operation names, and command-specific overrides;
+the host connector may own runtime provider/account identity and authentication. Provider commands/connectors own
+mechanical interaction with their service or local implementation.
 
 A provider may be Google Calendar, Microsoft/Outlook, CalDAV, a local/private calendar service, or another registered implementation. Adding a provider does not change this portable command contract.
 
@@ -69,4 +73,6 @@ Mutations require the caller's existing authority plus any explicit human-author
 
 This reusable command contains no real account identifiers, calendar IDs, endpoints, organization values, credentials, or provider-specific defaults.
 
-Operational values belong to the selected AI Profile and its normal command-override scopes. Credentials remain local according to profile credential rules.
+Operational policy values belong to the selected AI Profile and its normal command-override scopes. A host connector may
+supply provider/account identity when the profile deliberately leaves those runtime-bound. Credentials remain local
+according to profile credential rules.
