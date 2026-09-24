@@ -93,6 +93,8 @@ secrets run trello -- create backlog "Task name" "Description"
 secrets run trello -- update CARD_ID description "Revised description"
 secrets run trello -- move CARD_ID in_progress
 secrets run trello -- comment CARD_ID "Progress note"
+secrets run trello -- comments CARD_ID
+secrets run trello -- comment-delete CARD_ID COMMENT_ID
 secrets run trello -- checklist-add CARD_ID "Acceptance"
 secrets run trello -- checkitem-add CARD_ID CHECKLIST_ID "Verify result"
 secrets run trello -- checkitem-set CARD_ID CHECKLIST_ID ITEM_ID complete
@@ -115,6 +117,8 @@ command does not print the child environment, HTTP Authorization header, or raw 
 | `update` | `update CARD name|description VALUE` | Read the card; require configured board, list, and open state. |
 | `move` | `move CARD STATE` | Check the card and configured destination list. |
 | `comment` | `comment CARD TEXT` | Check the card; return only the new action ID. |
+| `comment_inventory` | `comments CARD` | Check the card; return its bounded comment history with action IDs. |
+| `comment_delete` | `comment-delete CARD COMMENT_ID` | Check the card and exact comment; require the authenticated account to own the comment before deleting it. |
 | `checklist_add` | `checklist-add CARD NAME` | Check the card; return only the new checklist ID. |
 | `checkitem_add` | `checkitem-add CARD CHECKLIST_ID NAME` | Check card and checklist membership before adding. |
 | `checkitem_set` | `checkitem-set CARD CHECKLIST_ID ITEM_ID complete|incomplete` | Check card, checklist, and item membership before updating. |
