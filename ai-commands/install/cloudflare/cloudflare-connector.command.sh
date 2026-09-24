@@ -27,6 +27,31 @@ install_connector() {
 
   if command -v brew >/dev/null 2>&1; then
     brew install cloudflared
+  elif command -v apt-get >/dev/null 2>&1; then
+    command -v curl >/dev/null 2>&1 || {
+      printf 'BLOCKED_CLOUDFLARED_INSTALL: curl is required for the official Cloudflare apt repository\n' >&2
+      return 2
+    }
+    local -a elevate=()
+    if [[ "$(id -u)" -ne 0 ]]; then
+      command -v sudo >/dev/null 2>&1 || {
+        printf 'BLOCKED_CLOUDFLARED_INSTALL: sudo is required for apt installation\n' >&2
+        return 2
+      }
+      elevate=(sudo)
+    fi
+    local key_file
+    key_file="$(mktemp)"
+    trap 'rm -f "$key_file"' RETURN
+    curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg -o "$key_file"
+    "${elevate[@]}" install -d -m 0755 /usr/share/keyrings
+    "${elevate[@]}" install -m 0644 "$key_file" /usr/share/keyrings/cloudflare-main.gpg
+    printf '%s\n' 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' |
+      "${elevate[@]}" tee /etc/apt/sources.list.d/cloudflared.list >/dev/null
+    "${elevate[@]}" apt-get update
+    "${elevate[@]}" apt-get install -y cloudflared
+    trap - RETURN
+    rm -f "$key_file"
   else
     printf '%s\n' \
       'BLOCKED_CLOUDFLARED_INSTALL: no supported package manager was detected' \

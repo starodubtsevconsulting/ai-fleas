@@ -129,6 +129,17 @@ cat >"$fixture_dir/fake-bin/pgrep" <<'SH'
 exit 1
 SH
 chmod +x "$fixture_dir/fake-bin/pgrep"
+cat >"$fixture_dir/fake-bin/uname" <<'SH'
+#!/usr/bin/env bash
+printf 'Linux\n'
+SH
+chmod +x "$fixture_dir/fake-bin/uname"
+cat >"$fixture_dir/fake-bin/stat" <<'SH'
+#!/usr/bin/env bash
+[[ "${1:-}" == '-c' && "${2:-}" == '%a' ]] || exit 64
+printf '%s\n' "${CLOUDFLARE_FAKE_MODE:-600}"
+SH
+chmod +x "$fixture_dir/fake-bin/stat"
 printf '%s' 'synthetic-file-tunnel-token' >"$fixture_dir/file-tunnel-token"
 chmod 600 "$fixture_dir/file-tunnel-token"
 sed -i.bak "s|CLOUDFLARE_TUNNEL_TOKEN_FILE=\"\"|CLOUDFLARE_TUNNEL_TOKEN_FILE=\"$fixture_dir/file-tunnel-token\"|" "$fixture_dir/config.env"
@@ -138,6 +149,21 @@ PATH="$fixture_dir/fake-bin:$PATH" \
   CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
   "$command_path" run-tunnel
 grep -F 'tunnel --no-autoupdate run --token synthetic-file-tunnel-token' "$fixture_dir/cloudflared-args" >/dev/null
+
+if AI_FLEAS_RUNTIME_LOCK_DIR="$fixture_dir/invalid-mode-locks" PATH="$fixture_dir/fake-bin:$PATH" \
+  CLOUDFLARE_FAKE_MODE=644 \
+  CLOUDFLARE_FAKE_ARGS="$fixture_dir/cloudflared-invalid-mode-args" \
+  CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
+  "$command_path" run-tunnel >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  printf 'expected an unsafe Linux token-file mode to fail\n' >&2
+  exit 1
+fi
+grep -F 'CLOUDFLARE_TUNNEL_TOKEN_FILE must have mode 0600' "$fixture_dir/err" >/dev/null
+if grep -F 'unbound variable' "$fixture_dir/err" >/dev/null; then
+  printf 'cleanup trap referenced an out-of-scope lock variable\n' >&2
+  exit 1
+fi
+[[ ! -e "$fixture_dir/invalid-mode-locks/ai-fleas-cloudflare-example-private-ai.lock" ]]
 
 mkdir -p "$fixture_dir/locks/ai-fleas-cloudflare-example-private-ai.lock"
 printf '%s\n' "$$" >"$fixture_dir/locks/ai-fleas-cloudflare-example-private-ai.lock/pid"

@@ -228,7 +228,10 @@ read_tunnel_secret() {
   [[ -n "$tunnel_token_file" && -f "$tunnel_token_file" ]] ||
     fail "required secret environment variable $tunnel_token_env is not set and no tunnel token file is available"
   local mode
-  mode="$(stat -f '%Lp' "$tunnel_token_file" 2>/dev/null || stat -c '%a' "$tunnel_token_file" 2>/dev/null || true)"
+  case "$(uname -s)" in
+    Darwin|FreeBSD) mode="$(stat -f '%Lp' "$tunnel_token_file" 2>/dev/null || true)" ;;
+    *) mode="$(stat -c '%a' "$tunnel_token_file" 2>/dev/null || true)" ;;
+  esac
   [[ "$mode" == '600' ]] || fail 'CLOUDFLARE_TUNNEL_TOKEN_FILE must have mode 0600'
   value="$(<"$tunnel_token_file")"
   [[ -n "$value" ]] || fail 'CLOUDFLARE_TUNNEL_TOKEN_FILE is empty'
@@ -301,9 +304,11 @@ run_tunnel_exclusive() {
   fi
   printf '%s\n' "$$" >"$lock_pid_file"
 
+  active_lock_pid_file="$lock_pid_file"
+  active_lock_dir="$lock_dir"
   cleanup_tunnel_lock() {
-    rm -f "$lock_pid_file"
-    rmdir "$lock_dir" 2>/dev/null || true
+    [[ -z "${active_lock_pid_file:-}" ]] || rm -f "$active_lock_pid_file"
+    [[ -z "${active_lock_dir:-}" ]] || rmdir "$active_lock_dir" 2>/dev/null || true
   }
   local cloudflared_pid=''
   stop_cloudflared_child() {
