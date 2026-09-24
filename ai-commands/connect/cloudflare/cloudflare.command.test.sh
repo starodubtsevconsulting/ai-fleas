@@ -122,6 +122,10 @@ mkdir -p "$fixture_dir/fake-bin"
 cat >"$fixture_dir/fake-bin/cloudflared" <<'SH'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >"$CLOUDFLARE_FAKE_ARGS"
+if [[ "${CLOUDFLARE_FAKE_HOLD:-}" == 1 ]]; then
+  trap 'exit 0' TERM INT
+  while true; do sleep 1; done
+fi
 SH
 chmod +x "$fixture_dir/fake-bin/cloudflared"
 cat >"$fixture_dir/fake-bin/pgrep" <<'SH'
@@ -149,6 +153,24 @@ PATH="$fixture_dir/fake-bin:$PATH" \
   CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
   "$command_path" run-tunnel
 grep -F 'tunnel --no-autoupdate run --token synthetic-file-tunnel-token' "$fixture_dir/cloudflared-args" >/dev/null
+
+AI_FLEAS_RUNTIME_LOCK_DIR="$fixture_dir/live-locks" PATH="$fixture_dir/fake-bin:$PATH" \
+  CLOUDFLARE_FAKE_HOLD=1 \
+  CLOUDFLARE_FAKE_ARGS="$fixture_dir/cloudflared-live-args" \
+  CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
+  "$command_path" run-tunnel &
+live_connector_pid=$!
+for _ in $(seq 1 50); do
+  [[ -s "$fixture_dir/cloudflared-live-args" ]] && break
+  sleep 0.05
+done
+[[ -s "$fixture_dir/cloudflared-live-args" ]]
+live_status="$(AI_FLEAS_RUNTIME_LOCK_DIR="$fixture_dir/live-locks" \
+  CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" connector-status)"
+[[ "$live_status" == *'connector open:'* ]]
+kill -TERM "$live_connector_pid"
+wait "$live_connector_pid" || true
+[[ ! -e "$fixture_dir/live-locks/ai-fleas-cloudflare-example-private-ai.lock" ]]
 
 if AI_FLEAS_RUNTIME_LOCK_DIR="$fixture_dir/invalid-mode-locks" PATH="$fixture_dir/fake-bin:$PATH" \
   CLOUDFLARE_FAKE_MODE=644 \
