@@ -1,0 +1,7 @@
+pear
+apple
+banana
+apple
+orange
+banana
+kiwi

@@ -20,6 +20,12 @@ Where practical, results record:
 - Hermes/tool-use compatibility
 - independent verification of task output
 
+## Controlled Hermes tool-use fixture
+
+Worker-model comparisons use the checked-in [Hermes file-tools fixture](../../../benchmarks/local-models/fixtures/hermes-file-tools/README.md). The model must use shell/filesystem tools to sort and deduplicate a fixed seven-line input, write normalized data and a computed report, and verify both files before completion. A separate script then compares the generated files byte-for-byte with the expected outputs.
+
+The fixture, task text, success check, and timing boundary stay fixed across candidates. The run also retains the Hermes usage summary so input/output token counts and model API-call count can be reported alongside wall time.
+
 ## Benchmark purpose profile
 
 Every hardware/model report should state, before presenting numbers:
