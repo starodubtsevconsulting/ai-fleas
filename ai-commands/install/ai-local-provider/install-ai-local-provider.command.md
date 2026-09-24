@@ -281,6 +281,11 @@ stops all configured model modes while preserving services, configuration, and d
 machine over SSH standard input, authenticates the configured owner-only Hugging Face cache, and never places the token in
 command arguments or logs. Direct invocation without an injected secret fails closed.
 
+API-only model runtimes may use the reusable [local model browser gateway](gateway/README.md). The model remains on a
+loopback-only upstream port while the gateway owns the tunnel-facing port, serves a no-cache chat page, and transparently
+streams the existing `/v1` API. `GET /gateway-health` proves both the gateway and upstream model are ready. The gateway is
+not an authentication boundary; the profile remains responsible for protecting the public origin.
+
 Launching the shell file with no arguments in a terminal opens a deterministic guided menu. It explains the command's
 current capabilities, offers first-run preflight, status, installation-plan validation, help or exit, lists machines from
 the active profile, and collects a one-run target when the profile has none. This interface does not require AI-powered
