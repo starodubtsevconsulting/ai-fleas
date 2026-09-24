@@ -243,6 +243,8 @@ runtime_lock_root() {
   if [[ -z "$lock_root" ]]; then
     if [[ "$(uname -s)" == Darwin ]]; then
       lock_root="$HOME/Library/Caches/AI Fleas/runtime-locks"
+    elif [[ -d /run/ai-fleas-cloudflare-tunnels && -w /run/ai-fleas-cloudflare-tunnels ]]; then
+      lock_root="/run/ai-fleas-cloudflare-tunnels"
     else
       lock_root="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ai-fleas/runtime-locks"
     fi

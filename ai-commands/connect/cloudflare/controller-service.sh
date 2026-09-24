@@ -63,11 +63,14 @@ Environment="AI_CONFIG_PROJECT=$(quote_systemd "$config_project")"
 Environment="AI_WORK_PROFILE_ID=$(quote_systemd "$profile_id")"
 Environment="AI_FLOW_WORKFLOW=$(quote_systemd "$workflow")"
 Environment="CLOUDFLARE_UI_AUTOSTART=$(quote_systemd "$autostart")"
+Environment="AI_FLEAS_RUNTIME_LOCK_DIR=/run/ai-fleas-cloudflare-tunnels"
 Environment="PATH=$(quote_systemd "$service_path")"
 ExecStart=$(quote_systemd "$script_dir/service-runner.sh")
 Restart=always
 RestartSec=3
 KillMode=control-group
+RuntimeDirectory=ai-fleas-cloudflare-tunnels
+RuntimeDirectoryMode=0700
 
 [Install]
 WantedBy=multi-user.target
