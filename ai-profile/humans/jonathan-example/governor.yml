@@ -3,9 +3,19 @@ agentId: personal-governor
 scope: governed-human
 lifecycle: persistent
 humanFacing: true
+readinessToken: PERSONAL_GOVERNOR_READY
+aiBinding: profile-default
 subject:
   id: jonathan-example
   name: Jonathan Example
+
+platformBindings:
+  gpt-agents:
+    utilitySubagents:
+      enabled: true
+      routing:
+        routine: { model: gpt-6-luna, reasoning: low }
+        boundedAnalysis: { model: gpt-6-sol, reasoning: medium }
 memory:
   - name: governor
     uri: profile-memory://governor

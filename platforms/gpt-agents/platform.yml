@@ -19,5 +19,6 @@ capabilities:
   - saved-project-creation
   - model-selection
   - reasoning-selection
+  - utility-subagent-delegation
   - shared-main-checkout
   - stable-update-check

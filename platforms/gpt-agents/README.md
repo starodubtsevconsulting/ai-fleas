@@ -24,6 +24,7 @@ The portable vocabulary maps as follows:
 | activate | create and initialize a task |
 | deactivate | recoverably archive the exact task ID |
 | send/receive | exact task-ID message delivery |
+| bounded utility helper | native GPT subagent, only when the active human binding enables it and the portable utility contract permits the task |
 | check update | trusted host update-channel query; no automatic installation |
 | delete workflow / delete group | recoverably archive its exact bound tasks; preserve the saved Codex project and scoped folders |
 
@@ -49,3 +50,7 @@ Use this sequence for every plugin implementation or hook change:
 
 Workflow maps and runtime bindings are different concerns: portable maps remain under `ai-workflows/`, while exact
 task IDs and runtime receipts remain local and must be reconciled separately on each machine.
+
+The GPT Personal Governor initializer is also the platform-specific owner of opportunistic utility-subagent routing. It
+activates only from an explicit human Governor binding, selects that binding's model/reasoning route per dispatch, and keeps
+Governor judgment and workflow-role independence outside utility helpers.

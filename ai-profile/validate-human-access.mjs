@@ -26,6 +26,13 @@ assert.equal(human.governor?.config, 'governor.yml');
 assert.ok(Array.isArray(human.authorizedProfiles), 'human profile authorization must be a list');
 assert.ok(Array.isArray(human.authorizedWorkflows), 'human workflow authorization must be a list');
 
+const utilitySubagents = governor.platformBindings?.['gpt-agents']?.utilitySubagents;
+assert.equal(utilitySubagents?.enabled, true, 'GPT utility subagents must be explicitly enabled by the human binding');
+assert.deepEqual(utilitySubagents.routing, {
+  routine: { model: 'gpt-6-luna', reasoning: 'low' },
+  boundedAnalysis: { model: 'gpt-6-sol', reasoning: 'medium' },
+});
+
 const authorizedProfileIds = new Set();
 for (const profile of human.authorizedProfiles) {
   assert.equal(typeof profile?.id, 'string', 'every authorized profile must have an id');
