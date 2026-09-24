@@ -12,6 +12,7 @@ workflow="${AI_FLOW_WORKFLOW:-}"
 config_project="${AI_CONFIG_PROJECT:-}"
 autostart="${CLOUDFLARE_UI_AUTOSTART:-all}"
 service_path="${CLOUDFLARE_SERVICE_PATH:-$PATH}"
+os_release="${CLOUDFLARE_OS_RELEASE:-/etc/os-release}"
 
 fail() { printf 'BLOCKED_CLOUDFLARE_SERVICE: %s\n' "$1" >&2; exit 2; }
 quote_xml() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'; }
@@ -161,9 +162,11 @@ case "$operation" in
         printf 'Installed macOS LaunchAgent: %s\n' "$target"
         ;;
       Linux)
-        [[ -r /etc/os-release ]] || fail 'Linux distribution cannot be identified'
+        user_name="${CLOUDFLARE_SERVICE_USER:-${SUDO_USER:-$(id -un)}}"
+        [[ "$user_name" =~ ^[a-z_][a-z0-9_-]*$ ]] || fail 'service user is unsafe'
+        [[ "$os_release" == /* && -r "$os_release" ]] || fail 'Linux distribution cannot be identified'
         # shellcheck disable=SC1091
-        source /etc/os-release
+        source "$os_release"
         [[ "${ID:-}" == ubuntu ]] || fail 'automatic Linux service installation currently supports Ubuntu only'
         target="${CLOUDFLARE_SYSTEMD_DIR:-/etc/systemd/system}/ai-fleas-cloudflare-tunnels.service"
         temp="$(mktemp)"; trap 'rm -f "$temp"' EXIT

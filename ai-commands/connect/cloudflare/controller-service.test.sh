@@ -42,4 +42,17 @@ grep -Fq 'X-GNOME-Autostart-enabled=true' "$command_dir/controller-service.sh"
 grep -Fq 'CLOUDFLARE_UI_SERVICE_CONTROL=systemd' "$command_dir/controller-service.sh"
 grep -Fq 'systemctl restart ai-fleas-cloudflare-tunnels.service' "$command_dir/controller-service.sh"
 
+mkdir -p "$fixture_dir/home"
+printf 'ID=ubuntu\n' >"$fixture_dir/os-release"
+env "${common_env[@]}" \
+  CLOUDFLARE_SERVICE_PLATFORM=Linux \
+  CLOUDFLARE_SERVICE_USER="$(id -un)" \
+  CLOUDFLARE_SERVICE_HOME="$fixture_dir/home" \
+  CLOUDFLARE_OS_RELEASE="$fixture_dir/os-release" \
+  CLOUDFLARE_SYSTEMD_DIR="$fixture_dir/systemd" \
+  "$command_dir/controller-service.sh" install --apply >/dev/null
+[[ -x "$fixture_dir/home/.local/bin/ai-fleas-cloudflare-tunnels-ui" ]]
+grep -Fq 'Name=Cloudflare Tunnels' "$fixture_dir/home/.local/share/applications/ai-fleas-cloudflare-tunnels.desktop"
+grep -Fq 'X-GNOME-Autostart-enabled=true' "$fixture_dir/home/.config/autostart/ai-fleas-cloudflare-tunnels.desktop"
+
 printf 'Cloudflare controller service checks passed.\n'
