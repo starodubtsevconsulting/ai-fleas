@@ -117,7 +117,7 @@ The application must be installed and pass its smoke test before agent initializ
 | `watch-system-group --group LOGICAL_PROJECT_ID` | Add one exact receipt-backed logical project to System's scheduler watch scope and verify the updated schedule. |
 | `unwatch-system-group --group LOGICAL_PROJECT_ID` | Remove one exact logical project from System's scheduler watch scope without changing that workflow group or its agents. |
 | `reinitialize-system --confirm-reinitialize-system` | Explicitly create and verify a successor System task, transfer required lifecycle state, then recoverably archive the predecessor. |
-| `initialize` | Create the exact requested roster, initialize every role, and record exact task receipts. |
+| `initialize` | Idempotently realize the exact requested roster: reuse active receipts, reactivate exact receipt-backed archived tasks, create only genuinely missing roles, initialize every role, and record exact task receipts. |
 | `list` | Return recorded logical-agent-to-task bindings without inferring unbound tasks. |
 | `status` | Verify task existence, project binding, role initialization, and current lifecycle state. |
 | `message` | Deliver a prompt to one exact bound task ID. |
@@ -243,15 +243,26 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
 8. Resolve runtime values in order: public GPT role-binding defaults, then supported profile-owned `role_overrides`.
    Reject unknown roles, unsupported keys, unavailable models, invalid reasoning levels, and pool values outside the
    portable role's declared bounds.
-9. Mechanically create exactly one task for every missing selected role, including Admin and Manager, in one host batch
+9. Read both the active and archived host catalogs to exhaustion, following every pagination cursor. Resolve every
+   receipt-backed role by exact task ID before considering title, recency, or creation. An exact workflow `initialize`
+   request authorizes reactivating the exact archived roster for that profile, workflow, and logical project. Unarchive
+   all matching archived roles in one host batch when supported, including when the complete roster is archived, then
+   reread the active catalog and require the exact saved-project ID. Never create a replacement merely because an exact
+   receipt is absent from the active-only catalog. Unrecorded, superseded, foreign-scope, or same-titled archived tasks
+   remain ineligible. When an explicit human roster contraction removes a role, also supply every exact task ID retained
+   in that role's durable receipt history as `retiredReceipts`; archive every task returned in `archive`, including older
+   active generations, and never discover retired tasks by title alone. Feed the declared roles, trusted receipts, retired
+   receipts, exact project ID, and complete inventories through `platforms/gpt-agents/agents/reconcile-roster.mjs`; honor
+   its `reuse`, `reactivate`, `create`, `archive`, or `blocked` result rather than reclassifying tasks conversationally.
+10. Mechanically create exactly one task for every still-missing selected role, including Admin and Manager, in one host batch
    when the platform supports batching. Every creation request must include the complete canonical initialization prompt
    as its non-empty first user message and the effective non-empty presentation title. Treat `title` only as presentation
    and apply the effective model and reasoning values exactly. Do not wait for one role to initialize before creating the
    next role. A prompt retained only as the controller's tool-call input or function-call output is not a child-task user
    message and does not satisfy creation.
-10. Record every returned task or provisional client ID, resolve all provisional creations together, then dispatch all
+11. Record every returned task or provisional client ID, resolve all provisional creations together, then dispatch all
     canonical initialization messages concurrently. Role authority governs subsequent workflow work, not roster startup.
-11. Reread the host's task catalog after creation and require every exact task ID to be present beneath the exact logical
+12. Reread the host's task catalog after restoration or creation and require every exact task ID to be present beneath the exact logical
     saved-project ID with a non-empty user-visible preview, first user message, and effective presentation title. Direct task access, a
     readiness response, a locally persisted task record, or a requested project target does not prove saved-project
     membership. A task omitted from the project catalog is an invalid provisional creation and must not receive an active
@@ -263,14 +274,20 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
     interrupt the managed roster. A backend catalog result alone does not prove sidebar visibility. Remove stale
     same-named custom-section references through supported presentation operations; a custom section never substitutes
     for the saved-project roster. Do not move a valid project task into a custom section.
-12. Build each initialization message from the portable role definition, team policy, routing and permission policies,
+13. Build each initialization message from the portable role definition, team policy, routing and permission policies,
     complete ordered selected project subset, primary-project binding, logical-project scope, and readiness token. Supply exact peer task-ID bindings only when that role's declared
     communication topology permits peer routing. A direct-human-only role such as Judge receives its own binding and
     governance scope, never a participant-routing roster. Never include System's task ID, routing address, or runtime
     location in any workflow-agent initialization message. Include the selected profile's canonical absolute directory and
     exact resolved binding-registry path; never substitute a public example or a repository-relative profile guess. Do not
     replace contracts with a hand-written role summary.
-13. Wait for every role's exact readiness token, reread the project catalog, and inspect the rendered expanded
+    Send lifecycle control to an endpoint already bound to the Workflow Router only through
+    `scripts/queue-lifecycle-control.mjs`. It registers a short-lived, one-shot permit bound to the exact session ID, full
+    prompt digest, expected readiness token, and lifecycle action, then delivers that same prompt through daemon-backed
+    `codex queue` so `UserPromptSubmit` runs in the existing task owner. Cross-task message tools that materialize the
+    prompt as function-call output are not lifecycle delivery. A natural-language marker without a matching host permit
+    never bypasses the Router.
+14. Wait for every role's exact readiness token, reread the project catalog, and inspect the rendered expanded
     saved-project sidebar with the host's screenshot/computer-vision capability. Automatically expand or scroll the
     project as needed and require visual evidence of every exact managed task title and task count. An accessibility-tree
     or backend-only result is supporting evidence, not a substitute for the rendered check. Record the capture timestamp,

@@ -163,7 +163,7 @@ while IFS= read -r file; do
   fi
 
   case "$file" in
-    ""/*|*.md|.ai-workflow-suite/project.yml|libs/*|docs/specs/*|ai-profile/*|ai-commands/*|ai-workflows/*|scripts/runtime-paths.sh)
+    ""/*|*.md|.ai-workflow-suite/project.yml|libs/*|docs/specs/*|ai-profile/*|ai-commands/*|ai-workflows/*|platforms/*|scripts/runtime-paths.sh)
       ;;
     *)
       echo "SDD guard: potential drift detected: '$file' is outside allowed scope for current session project '$PROJECT_SCOPE_CLEAN'." >&2

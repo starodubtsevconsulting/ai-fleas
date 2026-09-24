@@ -42,20 +42,93 @@ function correlationPath(sessionId) {
   return root && sessionId ? path.join(root, 'correlations', `${sessionId}.json`) : null;
 }
 
+function promptDigest(prompt) {
+  return createHash('sha256').update(String(prompt ?? '')).digest('hex');
+}
+
+function lifecycleControlPath(sessionId) {
+  const root = process.env.PLUGIN_DATA;
+  return root && sessionId ? path.join(root, 'lifecycle-controls', `${sessionId}.json`) : null;
+}
+
+function lifecycleTurnPath(sessionId) {
+  const root = process.env.PLUGIN_DATA;
+  return root && sessionId ? path.join(root, 'lifecycle-turns', `${sessionId}.json`) : null;
+}
+
+function workflowDispatchControlPath(sessionId, digest) {
+  const root = process.env.PLUGIN_DATA;
+  return root && sessionId && digest
+    ? path.join(root, 'workflow-dispatch-controls', sessionId, `${digest}.json`)
+    : null;
+}
+
+function readJson(file) {
+  try {
+    return file && fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
+  } catch {
+    return null;
+  }
+}
+
+function consumeLifecycleControl(input) {
+  const permitFile = lifecycleControlPath(input.session_id);
+  const permit = readJson(permitFile);
+  if (!permit) return null;
+  if (Date.parse(permit.expiresAt) <= Date.now()) {
+    fs.rmSync(permitFile, { force: true });
+    return null;
+  }
+  const digest = promptDigest(input.prompt);
+  if (permit.promptSha256 !== digest) return null;
+  const turn = {
+    action: permit.action,
+    expectedReadiness: permit.expectedReadiness,
+    promptSha256: digest,
+    turnId: input.turn_id ?? null,
+    expiresAt: permit.expiresAt,
+  };
+  const turnFile = lifecycleTurnPath(input.session_id);
+  atomicWrite(turnFile, turn);
+  fs.rmSync(permitFile, { force: true });
+  return turn;
+}
+
+function activeLifecycleTurn(input) {
+  const file = lifecycleTurnPath(input.session_id);
+  const turn = readJson(file);
+  if (!turn) return null;
+  if (Date.parse(turn.expiresAt) <= Date.now()) {
+    fs.rmSync(file, { force: true });
+    return null;
+  }
+  if (turn.turnId && input.turn_id && turn.turnId !== input.turn_id) return null;
+  return turn;
+}
+
+function lifecycleContext(binding, turn) {
+  return [
+    'AI_FLEAS_LIFECYCLE_CONTROL',
+    `This is a host-authorized one-shot ${turn.action} turn for the exact ${binding.role} endpoint at ${scopeText(binding)}.`,
+    'This turn is lifecycle control, not workflow ingress. Do not emit WORKFLOW_ROUTER_RESULT and do not dispatch another endpoint.',
+    `After verifying the requested lifecycle state, return exactly ${turn.expectedReadiness}.`,
+  ].join('\n');
+}
+
+function persistCorrelation(sessionId, value) {
+  if (!sessionId || !value) return null;
+  const file = correlationPath(sessionId);
+  if (file) atomicWrite(file, { correlationId: value });
+  return value;
+}
+
 function allocateCorrelation(input) {
   if (!input.session_id) return null;
-  const promptDigest = createHash('sha256').update(String(input.prompt ?? '')).digest('hex').slice(0, 20);
+  const digest = promptDigest(input.prompt).slice(0, 20);
   const value = input.turn_id
     ? `codex:${input.session_id}:${input.turn_id}`
-    : `codex:${input.session_id}:prompt-${promptDigest}`;
-  const file = correlationPath(input.session_id);
-  if (file) {
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    const temporary = `${file}.${process.pid}.tmp`;
-    fs.writeFileSync(temporary, `${JSON.stringify({ correlationId: value })}\n`, { mode: 0o600 });
-    fs.renameSync(temporary, file);
-  }
-  return value;
+    : `codex:${input.session_id}:prompt-${digest}`;
+  return persistCorrelation(input.session_id, value);
 }
 
 function expectedCorrelation(input) {
@@ -77,7 +150,47 @@ function roleStages(workflow, role) {
     .map(([stageId, stage]) => `${stageId}${stage.capability ? ` (capability: ${stage.capability})` : ''}`);
 }
 
-function context(binding, routerCorrelation, workflow) {
+function parseWorkflowDispatch(prompt) {
+  const lines = String(prompt ?? '').split('\n');
+  if (lines[0] !== 'WORKFLOW_ROUTER_DISPATCH' || lines.length < 3) return null;
+  try {
+    return JSON.parse(lines.slice(2).join('\n'));
+  } catch {
+    return null;
+  }
+}
+
+function validWorkflowDispatchPacket(packet, binding, workflow) {
+  if (!packet || typeof packet.correlationId !== 'string' || !packet.correlationId) return false;
+  if (COORDINATES.some((field) => packet[field] !== binding.scope[field])) return false;
+  if (packet.to?.role !== binding.role || workflow?.stages?.[packet.to?.stage]?.role !== binding.role) return false;
+  if (!packet.from?.stage || !packet.from?.role || !packet.from?.event) return false;
+  if (!Array.isArray(packet.references) || packet.references.some((reference) => {
+    const keys = Object.keys(reference ?? {});
+    return !reference?.kind || !reference?.ref || keys.some((key) => !['kind', 'ref'].includes(key));
+  })) return false;
+  return true;
+}
+
+function consumeWorkflowDispatch(input, binding, workflow) {
+  const digest = promptDigest(input.prompt);
+  const permitFile = workflowDispatchControlPath(input.session_id, digest);
+  const permit = readJson(permitFile);
+  if (!permit) return null;
+  if (Date.parse(permit.expiresAt) <= Date.now()) {
+    fs.rmSync(permitFile, { force: true });
+    return null;
+  }
+  const packet = parseWorkflowDispatch(input.prompt);
+  const validPermit = permit.promptSha256 === digest
+    && permit.correlationId === packet?.correlationId
+    && permit.targetStage === packet?.to?.stage
+    && permit.targetRole === packet?.to?.role;
+  fs.rmSync(permitFile, { force: true });
+  return validPermit && validWorkflowDispatchPacket(packet, binding, workflow) ? packet : null;
+}
+
+function context(binding, routerCorrelation, workflow, dispatchPacket = null) {
   const stages = roleStages(workflow, binding.role);
   return [
     'WORKFLOW_ROUTER_BOUND_TASK',
@@ -85,7 +198,9 @@ function context(binding, routerCorrelation, workflow) {
     `Authoritative workflow: ${binding.workflowSource}.`,
     `Owned capabilities: ${(binding.capabilities ?? []).join(', ') || '(none)'}.`,
     `Registered stage IDs for this role: ${stages.join(', ') || '(none)'}. Return a stage ID, never a capability name.`,
-    'A direct human request is workflow ingress. Perform work only when this endpoint owns the requested capability; otherwise return event "route-required" without doing substitute work.',
+    dispatchPacket
+      ? `This is a host-authorized routed transition to stage "${dispatchPacket.to.stage}". Continue that assigned stage using only the packet's durable references and your bound workflow instructions.`
+      : 'A direct human request is workflow ingress. Perform work only when this endpoint owns the requested capability; otherwise return event "route-required" without doing substitute work.',
     'Do not contact another endpoint. The hidden host Router observes the terminal result and owns every transition and dispatch.',
     routerCorrelation ? `Router-owned correlationId for this turn: ${routerCorrelation}. Preserve it byte-for-byte.` : null,
     'End every completed workflow turn with a WORKFLOW_ROUTER_RESULT JSON object containing only acknowledgement, correlationId, stage, role, event, and references.',
@@ -294,6 +409,7 @@ function dispatch(registry, binding, result) {
       packet,
       receiptFile,
       targetSessionId: resolved.targetSessionId,
+      dataRoot: process.env.PLUGIN_DATA,
       codexBin: process.env.CODEX_BIN ?? 'codex',
     });
     try {
@@ -324,54 +440,90 @@ const registry = readRegistry();
 const binding = registry && readBinding(registry, input.session_id);
 if (!binding) {
   emit();
-} else if (input.hook_event_name === 'SessionStart' || input.hook_event_name === 'UserPromptSubmit') {
-  const routerCorrelation = input.hook_event_name === 'UserPromptSubmit' ? allocateCorrelation(input) : null;
+} else if (input.hook_event_name === 'SessionStart') {
   emit({
     hookSpecificOutput: {
       hookEventName: input.hook_event_name,
-      additionalContext: context(binding, routerCorrelation, registeredWorkflow(registry, binding)),
+      additionalContext: context(binding, null, registeredWorkflow(registry, binding)),
     },
   });
+} else if (input.hook_event_name === 'UserPromptSubmit') {
+  const lifecycleTurn = consumeLifecycleControl(input);
+  if (lifecycleTurn) {
+    emit({
+      hookSpecificOutput: {
+        hookEventName: input.hook_event_name,
+        additionalContext: lifecycleContext(binding, lifecycleTurn),
+      },
+    });
+  } else {
+    const workflow = registeredWorkflow(registry, binding);
+    const dispatchPacket = consumeWorkflowDispatch(input, binding, workflow);
+    const routerCorrelation = dispatchPacket
+      ? persistCorrelation(input.session_id, dispatchPacket.correlationId)
+      : allocateCorrelation(input);
+    emit({
+      hookSpecificOutput: {
+        hookEventName: input.hook_event_name,
+        additionalContext: context(binding, routerCorrelation, workflow, dispatchPacket),
+      },
+    });
+  }
 } else if (input.hook_event_name === 'Stop') {
-  const result = extractResult(input.last_assistant_message);
-  const problem = validateResult(binding, expectedCorrelation(input), result);
-  if (!problem) {
-    const resolved = route(registry, binding, result);
-    if (resolved.error && !input.stop_hook_active) {
-      const stages = roleStages(registeredWorkflow(registry, binding), binding.role).join(', ');
+  const lifecycleTurn = activeLifecycleTurn(input);
+  if (lifecycleTurn) {
+    if (String(input.last_assistant_message ?? '').trim() === lifecycleTurn.expectedReadiness) {
+      fs.rmSync(lifecycleTurnPath(input.session_id), { force: true });
+      emit();
+    } else if (input.stop_hook_active) {
+      emit({ systemMessage: `Lifecycle readiness remains invalid: return exactly ${lifecycleTurn.expectedReadiness}.` });
+    } else {
       emit({
         decision: 'block',
-        reason: `Workflow Router transition is invalid: ${resolved.error}\nReturn one corrected terminal WORKFLOW_ROUTER_RESULT using a registered stage ID (${stages}) and an event declared from that stage.`,
+        reason: `Lifecycle control requires the exact readiness token ${lifecycleTurn.expectedReadiness}. Return only that token now.`,
       });
-    } else if (resolved.error) {
-      emit({ systemMessage: `Workflow Router transition remains invalid: ${resolved.error}` });
-    } else {
-      const outcome = dispatch(registry, binding, result);
-      if (outcome.error) {
-        emit({ systemMessage: `Workflow Router dispatch failed: ${outcome.error}` });
-      } else if (outcome.waitingForHuman) {
-        emit({ systemMessage: `Workflow Router paused at ${outcome.targetStage}; human input is required before routing continues.` });
-      } else if (outcome.loopBlocked) {
-        emit({
-          systemMessage: `Workflow Router stopped a non-progress loop after ${outcome.attempt} attempts with the same declared progress references. Produce a new revision or request human intervention before routing continues.`,
-        });
-      } else if (outcome.unchangedProgress) {
-        emit({
-          systemMessage: 'Workflow Router did not dispatch the next endpoint because the declared progress references are unchanged.',
-        });
-      } else if (outcome.deliveryStatus === 'pending') {
-        emit({ systemMessage: `Workflow Router started delivery to ${outcome.targetRole}; completion requires an observed turn.started receipt.` });
-      } else {
-        emit();
-      }
     }
-  } else if (input.stop_hook_active) {
-    emit({ systemMessage: `Workflow Router result remains invalid: ${problem}` });
   } else {
-    emit({
-      decision: 'block',
-      reason: `${problem}\nReturn one corrected terminal WORKFLOW_ROUTER_RESULT now. Do not contact another endpoint or invent a route; the hidden Router will observe it.`,
-    });
+    const result = extractResult(input.last_assistant_message);
+    const problem = validateResult(binding, expectedCorrelation(input), result);
+    if (!problem) {
+      const resolved = route(registry, binding, result);
+      if (resolved.error && !input.stop_hook_active) {
+        const stages = roleStages(registeredWorkflow(registry, binding), binding.role).join(', ');
+        emit({
+          decision: 'block',
+          reason: `Workflow Router transition is invalid: ${resolved.error}\nReturn one corrected terminal WORKFLOW_ROUTER_RESULT using a registered stage ID (${stages}) and an event declared from that stage.`,
+        });
+      } else if (resolved.error) {
+        emit({ systemMessage: `Workflow Router transition remains invalid: ${resolved.error}` });
+      } else {
+        const outcome = dispatch(registry, binding, result);
+        if (outcome.error) {
+          emit({ systemMessage: `Workflow Router dispatch failed: ${outcome.error}` });
+        } else if (outcome.waitingForHuman) {
+          emit({ systemMessage: `Workflow Router paused at ${outcome.targetStage}; human input is required before routing continues.` });
+        } else if (outcome.loopBlocked) {
+          emit({
+            systemMessage: `Workflow Router stopped a non-progress loop after ${outcome.attempt} attempts with the same declared progress references. Produce a new revision or request human intervention before routing continues.`,
+          });
+        } else if (outcome.unchangedProgress) {
+          emit({
+            systemMessage: 'Workflow Router did not dispatch the next endpoint because the declared progress references are unchanged.',
+          });
+        } else if (outcome.deliveryStatus === 'pending') {
+          emit({ systemMessage: `Workflow Router started delivery to ${outcome.targetRole}; completion requires an observed turn.started receipt.` });
+        } else {
+          emit();
+        }
+      }
+    } else if (input.stop_hook_active) {
+      emit({ systemMessage: `Workflow Router result remains invalid: ${problem}` });
+    } else {
+      emit({
+        decision: 'block',
+        reason: `${problem}\nReturn one corrected terminal WORKFLOW_ROUTER_RESULT now. Do not contact another endpoint or invent a route; the hidden Router will observe it.`,
+      });
+    }
   }
 } else {
   emit();

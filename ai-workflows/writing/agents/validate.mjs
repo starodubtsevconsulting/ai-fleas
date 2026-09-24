@@ -31,7 +31,7 @@ const mediumPublicationSkill = fs.readFileSync(path.join(publicRoot,
   'ai-commands/content/medium/skills/medium-publication/SKILL.md'), 'utf8');
 const roster = [portable.initializer, ...portable.agents];
 const ids = roster.map(({ agentId }) => agentId);
-const expected = ['admin', 'judge', 'writer', 'reviewer', 'release-coordinator'];
+const expected = ['admin', 'writer', 'reviewer', 'release-coordinator'];
 
 assert.equal(portable.workflowId, 'writing');
 assert.equal(gpt.workflow, 'writing');
@@ -52,8 +52,6 @@ assert.equal(roster.find(({ agentId }) => agentId === 'writer')?.communicationMo
   'human-dialogue-and-router-runtime');
 assert.equal(roster.find(({ agentId }) => agentId === 'reviewer')?.communicationMode,
   'human-dialogue-and-router-runtime');
-assert.equal(roster.find(({ agentId }) => agentId === 'judge')?.communicationMode,
-  'direct-human-governance-only');
 assert.equal(roster.find(({ agentId }) => agentId === 'release-coordinator')?.communicationMode,
   'human-dialogue-and-router-runtime');
 assert.equal(portable.initializer.communicationMode, 'direct-human-administration-only');
@@ -91,13 +89,14 @@ for (const [name, cells] of capabilities) {
   assert.ok(cells.every((cell) => ['OWN', 'PROHIBITED'].includes(cell)), `invalid capability: ${name}`);
   assert.ok(cells.filter((cell) => cell === 'OWN').length <= 1, `multiple owners: ${name}`);
 }
-assert.deepEqual(capabilities.get('medium_native_scheduling'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN']);
-assert.deepEqual(capabilities.get('medium_publication_creation'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN']);
-assert.deepEqual(capabilities.get('workflow_orchestration'), ['OWN', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
-assert.deepEqual(capabilities.get('release_gate_diagnosis'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED']);
+assert.deepEqual(capabilities.get('medium_native_scheduling'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN']);
+assert.deepEqual(capabilities.get('medium_publication_creation'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN']);
+assert.deepEqual(capabilities.get('workflow_orchestration'), ['OWN', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
+assert.deepEqual(capabilities.get('governance_rules'), ['OWN', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
+assert.deepEqual(capabilities.get('release_gate_diagnosis'), ['PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED']);
 assert.ok(capabilities.get('immediate_publication_or_submission')?.every((cell) => cell === 'PROHIBITED'));
-assert.deepEqual(capabilities.get('review_assignment'), ['OWN', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
-assert.deepEqual(capabilities.get('review_findings_return'), ['PROHIBITED', 'PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED']);
+assert.deepEqual(capabilities.get('review_assignment'), ['OWN', 'PROHIBITED', 'PROHIBITED', 'PROHIBITED']);
+assert.deepEqual(capabilities.get('review_findings_return'), ['PROHIBITED', 'PROHIBITED', 'OWN', 'PROHIBITED']);
 
 assert.match(destinationFlow, /must immediately expose the[\s\S]*exact archived revision, exact destination draft/);
 assert.match(destinationFlow, /does not\s+require a second human prompt/);

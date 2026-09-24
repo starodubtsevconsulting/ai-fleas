@@ -21,7 +21,7 @@ assert.equal(overlay.schema_version, 'gpt-agents-workflow-runtime.v2');
 assert.equal(overlay.workflow_runtime.visibility, 'hidden');
 assert.equal(overlay.runtime_semantics.peer_delivery, 'prohibited');
 assert.deepEqual(overlay.role_endpoints.map(({ role }) => role),
-  ['admin', 'judge', 'writer', 'reviewer', 'release-coordinator']);
+  ['admin', 'writer', 'reviewer', 'release-coordinator']);
 
 const scope = {
   profileId: 'example-profile-a',

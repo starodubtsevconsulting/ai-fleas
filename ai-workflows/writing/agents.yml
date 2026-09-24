@@ -28,16 +28,6 @@ initializer:
   schedule: { enabled: false }
 
 agents:
-  - agentId: judge
-    matrixColumn: judge
-    roleDefinition: ../_common/roles/judge.md
-    scope: workflow
-    lifecycle: persistent-control
-    humanFacing: oversight-only
-    communicationMode: direct-human-governance-only
-    readinessToken: WORKFLOW_GOVERNANCE_JUDGE_READY
-    aiBinding: profile-default
-    schedule: { enabled: false }
   - agentId: writer
     matrixColumn: writer
     roleDefinition: agents/roles/writer.md

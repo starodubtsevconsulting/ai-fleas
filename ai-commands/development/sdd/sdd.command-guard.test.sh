@@ -7,10 +7,11 @@ fixture="$(cd "$fixture" && pwd -P)"
 cleanup() { rm -rf "$fixture"; }
 trap cleanup EXIT
 
-mkdir -p "$fixture/ai-commands/sdd" "$fixture/ai-profile/example/.local/work-session-state" \
+mkdir -p "$fixture/ai-commands/development/sdd" "$fixture/ai-profile/example/.local/work-session-state" \
   "$fixture/memory" "$fixture/scripts"
-cp "$source_root/sdd/sdd.command-guard.sh" "$fixture/ai-commands/sdd/"
-cp "$source_root/runtime-paths.sh" "$fixture/ai-commands/"
+cp "$source_root/sdd/sdd.command-guard.sh" "$fixture/ai-commands/development/sdd/"
+cp "$source_root/runtime-paths.sh" "$fixture/ai-commands/development/"
+cp "$source_root/../runtime-paths.sh" "$fixture/ai-commands/"
 git -C "$fixture" init -q
 git -C "$fixture" config user.email test@example.invalid
 git -C "$fixture" config user.name test
@@ -37,18 +38,24 @@ STATE
 
 printf 'managed helper\n' > "$fixture/scripts/runtime-paths.sh"
 git -C "$fixture" add scripts/runtime-paths.sh
-CODEX_MEMORY_DIR="$fixture/memory" AI_WORK_PROFILE_ID=example bash "$fixture/ai-commands/sdd/sdd.command-guard.sh" --staged-only >/dev/null
+CODEX_MEMORY_DIR="$fixture/memory" AI_WORK_PROFILE_ID=example bash "$fixture/ai-commands/development/sdd/sdd.command-guard.sh" --staged-only >/dev/null
+
+git -C "$fixture" reset -q
+mkdir -p "$fixture/platforms/example/agents"
+printf 'platform adapter\n' > "$fixture/platforms/example/agents/initializer.md"
+git -C "$fixture" add platforms/example/agents/initializer.md
+CODEX_MEMORY_DIR="$fixture/memory" AI_WORK_PROFILE_ID=example bash "$fixture/ai-commands/development/sdd/sdd.command-guard.sh" --staged-only >/dev/null
 
 git -C "$fixture" reset -q
 printf 'agent governance\n' > "$fixture/AGENTS.md"
 printf 'future integration\n' > "$fixture/IDEA.md"
 git -C "$fixture" add AGENTS.md IDEA.md
-CODEX_MEMORY_DIR="$fixture/memory" AI_WORK_PROFILE_ID=example bash "$fixture/ai-commands/sdd/sdd.command-guard.sh" --staged-only >/dev/null
+CODEX_MEMORY_DIR="$fixture/memory" AI_WORK_PROFILE_ID=example bash "$fixture/ai-commands/development/sdd/sdd.command-guard.sh" --staged-only >/dev/null
 
 git -C "$fixture" reset -q
 printf 'unrelated\n' > "$fixture/scripts/unrelated.sh"
 git -C "$fixture" add scripts/unrelated.sh
-if CODEX_MEMORY_DIR="$fixture/memory" AI_WORK_PROFILE_ID=example bash "$fixture/ai-commands/sdd/sdd.command-guard.sh" --staged-only >"$fixture/out" 2>"$fixture/err"; then
+if CODEX_MEMORY_DIR="$fixture/memory" AI_WORK_PROFILE_ID=example bash "$fixture/ai-commands/development/sdd/sdd.command-guard.sh" --staged-only >"$fixture/out" 2>"$fixture/err"; then
   echo 'expected unrelated root script to be rejected' >&2
   exit 1
 fi

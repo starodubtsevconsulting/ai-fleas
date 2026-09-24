@@ -12,6 +12,20 @@ select a recovery, or replace verified identity, delivery, and communication con
 
 The workflow proceeds through the steps below in order. When one step completes successfully, it continues to the next applicable step without waiting for additional human instruction. A step cannot start until the required evidence from the previous applicable step exists.
 
+## Entry and resume status
+
+Before the first mutation in a new or resumed assignment, the human-facing workflow endpoint reports:
+
+- the verified profile, workflow, logical project, saved-project ID, and operating role;
+- whether execution uses the registered roster or an explicitly authorized emulated mode;
+- the current numbered workflow step or direct-administration phase;
+- the plan or recovery point, including verified completed evidence and unresolved work; and
+- the next applicable gate, owner, and expected proof.
+
+An emulating Admin names the roles it is emulating and never presents emulated work as independent review, Judge
+approval, Command Runner execution, or UI acceptance. Read-only questions may use a compact status. Missing trusted
+identity or scope blocks mutation instead of silently entering an implementation phase.
+
 ## Workflow
 
 1. Manager resolves the work target, ticket when applicable, and required agents.
@@ -29,5 +43,6 @@ The workflow proceeds through the steps below in order. When one step completes 
    the [testing flow](flows/testing.flow.md).
 7. Designer / Reviewer accepts the completed assignment when all required checks pass, including the [demo flow](flows/demo.flow.md) when the plan, human request, acceptance needs, or delivery context calls for demonstration. Demo is an applicability-based acceptance step: common for user-visible/client-facing changes, optional when it adds no useful evidence beyond existing verification.
 8. Command Runner performs delivery or deployment only when explicitly requested and authorized. Use
-   [delivery.md](guides/delivery.md) and the [deployment flow](flows/deployment.flow.md) when applicable.
+   [delivery.md](guides/delivery.md), including its canonical source-control provenance gate, and the
+   [deployment flow](flows/deployment.flow.md) when applicable.
 9. Manager closes the ticket when applicable after all required evidence exists.
