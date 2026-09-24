@@ -106,10 +106,20 @@ validate_env_name() {
 validate_config() {
   [[ "$public_url" =~ ^https://[A-Za-z0-9.-]+(:[0-9]+)?/?$ ]] ||
     fail 'CLOUDFLARE_PUBLIC_URL must be a credential-free HTTPS origin without path, query, or fragment'
-  [[ "$origin_url" =~ ^https?://([^/:]+)(:[0-9]+)?/?$ ]] ||
-    fail 'CLOUDFLARE_ORIGIN_URL must be an HTTP(S) origin without path, query, or fragment'
-
-  local origin_host="${BASH_REMATCH[1]}" origin_scheme="${origin_url%%://*}"
+  local origin_scheme origin_host origin_port=''
+  if [[ "$origin_url" =~ ^(https?)://([^/:]+)(:([0-9]+))?/?$ ]]; then
+    origin_scheme="${BASH_REMATCH[1]}"
+    origin_host="${BASH_REMATCH[2]}"
+    origin_port="${BASH_REMATCH[4]:-}"
+  elif [[ "$origin_url" =~ ^ssh://([^/:]+)(:([0-9]+))?$ ]]; then
+    origin_scheme='ssh'
+    origin_host="${BASH_REMATCH[1]}"
+    origin_port="${BASH_REMATCH[3]:-}"
+    [[ -z "$origin_port" || ( "$origin_port" =~ ^[0-9]+$ && origin_port -ge 1 && origin_port -le 65535 ) ]] ||
+      fail 'SSH origin port must be between 1 and 65535'
+  else
+    fail 'CLOUDFLARE_ORIGIN_URL must be an HTTP(S) or SSH origin without path, query, or fragment'
+  fi
   [[ "$origin_scope" == 'host' || "$origin_scope" == 'container' ]] ||
     fail 'CLOUDFLARE_ORIGIN_SCOPE must be host or container'
   if [[ "$origin_scope" == 'container' ]]; then
@@ -126,14 +136,17 @@ validate_config() {
         [[ "$second_octet" =~ ^[0-9]+$ ]] && (( second_octet >= 16 && second_octet <= 31 )) ||
           fail 'CLOUDFLARE_ORIGIN_URL must use a private or loopback host'
         ;;
-      *) fail 'CLOUDFLARE_ORIGIN_URL must use a private or loopback host' ;;
+      *)
+        [[ "$origin_scheme" == 'ssh' && "$origin_host" =~ ^[A-Za-z0-9][A-Za-z0-9-]{0,62}$ ]] ||
+          fail 'CLOUDFLARE_ORIGIN_URL must use a private or loopback host'
+        ;;
     esac
   fi
   [[ -z "$origin_server_name" || "$origin_server_name" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] ||
     fail 'CLOUDFLARE_ORIGIN_SERVER_NAME must be an origin certificate hostname'
   [[ -z "$origin_ca_pool" || ( "$origin_ca_pool" == /* && "$origin_ca_pool" != *$'\n'* && "$origin_ca_pool" != *'..'* ) ]] ||
     fail 'CLOUDFLARE_ORIGIN_CA_POOL must be empty or an absolute CA bundle path without parent traversal'
-  if [[ "$origin_scheme" == 'http' ]]; then
+  if [[ "$origin_scheme" != 'https' ]]; then
     [[ -z "$origin_server_name" && -z "$origin_ca_pool" ]] ||
       fail 'CLOUDFLARE_ORIGIN_SERVER_NAME and CLOUDFLARE_ORIGIN_CA_POOL require an HTTPS origin'
   fi
@@ -143,6 +156,10 @@ validate_config() {
 
   [[ "$origin_health_path" =~ ^/[A-Za-z0-9._~:/@%+-]*$ ]] ||
     fail 'CLOUDFLARE_ORIGIN_HEALTH_PATH must be an absolute path without a query or fragment'
+  if [[ "$origin_scheme" == 'ssh' ]]; then
+    [[ "$origin_scope" == 'host' ]] || fail 'SSH origins require host scope'
+    [[ "$origin_health_path" == '/' ]] || fail 'SSH origins do not support CLOUDFLARE_ORIGIN_HEALTH_PATH'
+  fi
   [[ -z "$server_probe_host" || "$server_probe_host" =~ ^[A-Za-z0-9.-]+$ ]] ||
     fail 'CLOUDFLARE_SERVER_PROBE_HOST is invalid'
   [[ "$server_probe_port" =~ ^[0-9]+$ ]] && (( server_probe_port >= 1 && server_probe_port <= 65535 )) ||
@@ -192,9 +209,29 @@ PY
 }
 
 origin_status() {
-  command -v curl >/dev/null 2>&1 || fail 'curl is required for origin-status'
   [[ "$origin_scope" != 'container' ]] ||
     fail 'origin-status for a container-scoped origin must run inside the connector network; use the owning service status check'
+  if [[ "$origin_url" =~ ^ssh://([^/:]+)(:([0-9]+))?$ ]]; then
+    local ssh_host="${BASH_REMATCH[1]}" ssh_port="${BASH_REMATCH[3]:-22}"
+    command -v python3 >/dev/null 2>&1 || fail 'python3 is required for SSH origin-status'
+    if python3 - "$ssh_host" "$ssh_port" <<'PY'
+import socket
+import sys
+try:
+    with socket.create_connection((sys.argv[1], int(sys.argv[2])), timeout=2):
+        pass
+except (OSError, ValueError):
+    raise SystemExit(1)
+PY
+    then
+      printf 'origin healthy: url=ssh://%s:%s\n' "$ssh_host" "$ssh_port"
+      return
+    fi
+    printf 'origin unavailable: url=ssh://%s:%s\n' "$ssh_host" "$ssh_port"
+    return 1
+  fi
+
+  command -v curl >/dev/null 2>&1 || fail 'curl is required for origin-status'
   local probe_url="${origin_url%/}${origin_health_path}" status
   local -a curl_args=(--silent --show-error --connect-timeout 2 --max-time 4 --output /dev/null --write-out '%{http_code}')
 
@@ -485,13 +522,16 @@ case "$operation" in
 import json
 import sys
 
-origin_request = {"noTLSVerify": False}
-if sys.argv[3]:
-    origin_request["originServerName"] = sys.argv[3]
-if sys.argv[4]:
-    origin_request["caPool"] = sys.argv[4]
+route = {"hostname": sys.argv[1], "service": sys.argv[2]}
+if not sys.argv[2].startswith("ssh://"):
+    origin_request = {"noTLSVerify": False}
+    if sys.argv[3]:
+        origin_request["originServerName"] = sys.argv[3]
+    if sys.argv[4]:
+        origin_request["caPool"] = sys.argv[4]
+    route["originRequest"] = origin_request
 print(json.dumps({"config": {"ingress": [
-    {"hostname": sys.argv[1], "service": sys.argv[2], "originRequest": origin_request},
+    route,
     {"service": "http_status:404"},
 ]}}, separators=(",", ":")))
 ' "$public_host" "$origin_url" "$origin_server_name" "$origin_ca_pool")"

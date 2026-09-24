@@ -69,6 +69,63 @@ CLOUDFLARE_ORIGIN_CA_POOL="/private/ca/origin-ca.pem"
 EOF
 CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate
 
+write_config 'ssh://192.168.50.10:22'
+CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate
+
+write_config 'ssh://private-host:22'
+CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate
+
+write_config 'ssh://192.168.50.10:22/'
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected an SSH origin with a trailing slash to fail' >&2
+  exit 1
+fi
+grep -F 'without path, query, or fragment' "$fixture_dir/err" >/dev/null
+
+write_config 'ssh://192.168.50.10:70000'
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected an out-of-range SSH origin port to fail' >&2
+  exit 1
+fi
+grep -F 'SSH origin port must be between 1 and 65535' "$fixture_dir/err" >/dev/null
+
+write_config 'ssh://public.example.com:22'
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected a public SSH origin to fail' >&2
+  exit 1
+fi
+grep -F 'private or loopback host' "$fixture_dir/err" >/dev/null
+
+write_config 'ssh://192.168.50.10:22'
+cat >>"$fixture_dir/config.env" <<'EOF'
+CLOUDFLARE_ORIGIN_HEALTH_PATH="/health"
+EOF
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected an SSH origin health path to fail' >&2
+  exit 1
+fi
+grep -F 'SSH origins do not support CLOUDFLARE_ORIGIN_HEALTH_PATH' "$fixture_dir/err" >/dev/null
+
+write_config 'ssh://192.168.50.10:22'
+cat >>"$fixture_dir/config.env" <<'EOF'
+CLOUDFLARE_ORIGIN_SERVER_NAME="ai.example.invalid"
+EOF
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected SSH origin TLS parameters to fail' >&2
+  exit 1
+fi
+grep -F 'require an HTTPS origin' "$fixture_dir/err" >/dev/null
+
+write_config 'ssh://sshbox:22'
+cat >>"$fixture_dir/config.env" <<'EOF'
+CLOUDFLARE_ORIGIN_SCOPE="container"
+EOF
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" validate >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected an SSH origin in container scope to fail' >&2
+  exit 1
+fi
+grep -F 'container-scoped CLOUDFLARE_ORIGIN_URL must use HTTPS' "$fixture_dir/err" >/dev/null
+
 write_config 'https://proxy:8443'
 cat >>"$fixture_dir/config.env" <<'EOF'
 CLOUDFLARE_ORIGIN_SCOPE="container"
@@ -304,6 +361,62 @@ assert origin_request == {
     "caPool": "/private/ca/origin-ca.pem",
 }
 PY
+
+write_config 'ssh://192.168.50.10:22'
+python3 "$fixture_dir/server.py" "$fixture_dir/ssh-requests.jsonl" "$fixture_dir/ssh-port" &
+server_pid=$!
+for _ in $(seq 1 50); do
+  [[ -s "$fixture_dir/ssh-port" ]] && break
+  sleep 0.05
+done
+[[ -s "$fixture_dir/ssh-port" ]]
+create_output="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
+  CLOUDFLARE_TEST_ORIGIN=1 \
+  CLOUDFLARE_API_BASE_URL="http://127.0.0.1:$(cat "$fixture_dir/ssh-port")" \
+  "$command_path" create-tunnel --apply --token-output "$fixture_dir/ssh-tunnel-token")"
+wait "$server_pid"
+[[ "$create_output" == *'cloudflare tunnel created'* ]]
+python3 - "$fixture_dir/ssh-requests.jsonl" <<'PY'
+import json, pathlib, sys
+requests = [json.loads(line) for line in pathlib.Path(sys.argv[1]).read_text().splitlines()]
+route = requests[1]["body"]["config"]["ingress"][0]
+assert route == {
+    "hostname": "ai.example.invalid",
+    "service": "ssh://192.168.50.10:22",
+}
+PY
+
+cat >"$fixture_dir/tcp-server.py" <<'PY'
+import pathlib
+import socket
+import sys
+
+port_file = pathlib.Path(sys.argv[1])
+server = socket.socket()
+server.bind(("127.0.0.1", 0))
+server.listen(1)
+port_file.write_text(str(server.getsockname()[1]))
+connection, _ = server.accept()
+connection.close()
+server.close()
+PY
+python3 "$fixture_dir/tcp-server.py" "$fixture_dir/tcp-port" &
+tcp_server_pid=$!
+for _ in $(seq 1 50); do
+  [[ -s "$fixture_dir/tcp-port" ]] && break
+  sleep 0.05
+done
+[[ -s "$fixture_dir/tcp-port" ]]
+tcp_port="$(cat "$fixture_dir/tcp-port")"
+write_config "ssh://127.0.0.1:$tcp_port"
+origin_output="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" origin-status)"
+[[ "$origin_output" == "origin healthy: url=ssh://127.0.0.1:$tcp_port" ]]
+wait "$tcp_server_pid"
+if CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" "$command_path" origin-status >"$fixture_dir/out" 2>"$fixture_dir/err"; then
+  echo 'expected a closed SSH origin port to fail' >&2
+  exit 1
+fi
+grep -F "origin unavailable: url=ssh://127.0.0.1:$tcp_port" "$fixture_dir/out" >/dev/null
 
 command -v openssl >/dev/null 2>&1 || { echo 'openssl is required for origin TLS tests' >&2; exit 1; }
 mkdir -p "$fixture_dir/certs"
