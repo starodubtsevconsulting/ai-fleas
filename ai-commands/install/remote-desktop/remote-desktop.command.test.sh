@@ -8,9 +8,9 @@ grep -Fq 'rdp enable-port-negotiation' "$install_dir/remote-desktop/remote-login
 grep -Fq 'port 3389:3398 proto tcp' "$install_dir/remote-desktop/remote-login.sh"
 grep -Fq "journalctl -b --since '10 minutes ago'" "$install_dir/remote-desktop/remote-login.sh"
 npm --prefix "$install_dir/remote-desktop/launcher" test
-grep -Fq 'Fullscreen — use client display' "$install_dir/remote-desktop/launcher/renderer/index.html"
+grep -Fq 'Fullscreen — dynamic (experimental)' "$install_dir/remote-desktop/launcher/renderer/index.html"
 grep -Fq 'Window — use selected size' "$install_dir/remote-desktop/launcher/renderer/index.html"
-grep -Fq 'Window size is not applied' "$install_dir/remote-desktop/launcher/renderer/index.html"
+grep -Fq 'SDL3 dynamic fullscreen can mis-map the framebuffer' "$install_dir/remote-desktop/launcher/renderer/index.html"
 
 set +e
 guard_output="$("$install_dir/install.sh" remote-desktop status 2>&1)"
