@@ -39,6 +39,11 @@ configurable:
     type: schedule
     required: false
     owner: profile
+  calendarAccess:
+    type: calendar-access-policy
+    required: false
+    owner: binding
+    providerNeutral: true
 
 bindings:
   profiles:

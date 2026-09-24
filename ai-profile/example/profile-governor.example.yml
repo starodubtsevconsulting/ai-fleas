@@ -52,6 +52,18 @@ dayPlanning:
   # Personal clock times and capacity assumptions belong in the private profile.
   # Example profiles demonstrate the contract without prescribing a universal schedule.
 
+calendarAccess:
+  command: calendar
+  config: commands-config/calendar/config.yml
+  structuredProviderPreferred: true
+  browserFallback:
+    enabled: true
+    command: browser
+    allowExternalBrowser: true
+    externalWhenInternalUnavailableOrUnreliable: true
+  # The calendar command loads its command-owned operational skill. This binding only
+  # authorizes and tunes access; it does not duplicate the reusable skill instructions.
+
 workflows:
   - dev
 
@@ -87,6 +99,7 @@ memory:
 
 commands:
   - calendar
+  - browser
   - messaging
   - email
 

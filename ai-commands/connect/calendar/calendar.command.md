@@ -31,6 +31,13 @@ Adapter layer: `provider-neutral`.
 
 Committed configuration template: `calendar/calendar.command.example.config`. Copy it into the selected profile, set only supported values, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
+## Operational skill
+
+For calendar agenda, availability, conflict, planning-reconciliation, or event-mutation requests, read and follow the
+[Calendar operations skill](skills/calendar-operations/SKILL.md). It owns provider/tool selection, structured-provider
+preference, unavailable-provider behavior, idempotent mutation, and verification. Role-specific policies such as
+Personal Governor calendar governance continue to own the meaning and authority of the requested calendar change.
+
 ## Provider-neutral resolution
 
 ```mermaid
