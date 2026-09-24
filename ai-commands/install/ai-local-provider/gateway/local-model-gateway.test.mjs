@@ -30,6 +30,7 @@ test('serves a no-cache UI and proxies the OpenAI-compatible API', async () => {
     const uiResponse = await fetch(`http://127.0.0.1:${gatewayPort}/`);
     assert.equal(uiResponse.status, 200);
     assert.match(uiResponse.headers.get('cache-control'), /no-store/);
+    assert.equal(uiResponse.headers.get('clear-site-data'), '"cache", "storage"');
     assert.equal(await uiResponse.text(), '<h1>Local Model Chat</h1>');
 
     const modelsResponse = await fetch(`http://127.0.0.1:${gatewayPort}/v1/models`);

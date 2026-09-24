@@ -58,6 +58,7 @@ export function createGateway({ upstreamUrl, uiHtml }) {
     if (request.method === 'GET' && (requestUrl.pathname === '/' || requestUrl.pathname === '/index.html')) {
       response.writeHead(200, {
         'cache-control': 'no-store, no-cache, must-revalidate',
+        'clear-site-data': '"cache", "storage"',
         'content-length': Buffer.byteLength(uiHtml),
         'content-security-policy': "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'",
         'content-type': 'text/html; charset=utf-8',

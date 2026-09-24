@@ -11,7 +11,7 @@ node local-model-gateway.mjs \
   --upstream http://127.0.0.1:8001
 ```
 
-`GET /gateway-health` returns `200` only when the upstream model list is ready. `/`, `/index.html`, and the UI assets are served with no-cache headers so a UI previously hosted on the same origin cannot mask the active runtime. Every other request is streamed to the fixed loopback upstream, including chat completion SSE responses.
+`GET /gateway-health` returns `200` only when the upstream model list is ready. `/`, `/index.html`, and the UI assets are served with no-cache and site-data cleanup headers. The page also unregisters legacy service workers and deletes their caches, so a UI previously hosted on the same origin cannot mask the active runtime. Every other request is streamed to the fixed loopback upstream, including chat completion SSE responses.
 
 The gateway is deliberately not an authentication boundary. Protect its public origin with the profile-selected access layer and keep the model upstream bound to loopback.
 

@@ -51,6 +51,18 @@
     const sendElement = document.querySelector('#send');
     const conversation = [];
 
+    async function retireLegacyUiState() {
+      const work = [];
+      if ('serviceWorker' in navigator) {
+        work.push(navigator.serviceWorker.getRegistrations().then((registrations) =>
+          Promise.all(registrations.map((registration) => registration.unregister()))));
+      }
+      if ('caches' in window) {
+        work.push(caches.keys().then((names) => Promise.all(names.map((name) => caches.delete(name)))));
+      }
+      await Promise.allSettled(work);
+    }
+
     function setStatus(ready, text) {
       statusElement.classList.toggle('ready', ready);
       statusElement.querySelector('span:last-child').textContent = text;
@@ -140,7 +152,7 @@
     promptElement.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); form.requestSubmit(); }
     });
-    loadModels();
+    retireLegacyUiState().finally(loadModels);
   </script>
 </body>
 </html>
