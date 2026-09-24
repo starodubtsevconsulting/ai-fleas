@@ -33,13 +33,18 @@ The Cloudflare target configuration names the same `EXAMPLE_CLOUDFLARE_API_TOKEN
 
 The same file maps `example.dev.lodgify.api-key` to the Lodgify child's `LODGIFY_API_KEY`. Its [profile-owned config](lodgify/config.example.env) supplies the non-secret rental ID and API origin, with no local API key assignment. After a real key is added to the private provider mapping, `secrets run lodgify -- connection-test` performs a bounded read-only check. The command also accepts a local `API_KEY` in a private config when no secret service is selected; an injected key takes precedence while migrating.
 
+The fictional GitHub username and token mappings demonstrate bounded HTTPS repository access through
+`secrets run source-control -- credential-check --repo /absolute/repository`, `fetch`, or `pull-ff-only`. The
+source-control command validates the configured host and allowed remote pattern, disables Git credential helpers for the
+child process, and supplies the values only through AskPass.
+
 `secrets inspect` uses this same profile binding to show the configured logical names, backend paths/keys, environment, and consumer-to-variable mappings as JSON. It does not connect to Infisical or read credential values. Provider-side rotation and expiry dates are unavailable from this configuration.
 
 To reproduce this with a private profile, create an Infisical project and `dev` environment, put the actual API token at the configured path and key, grant a machine identity only the reads it needs, and replace the fictional endpoint, project ID, and paths in the private config. Keep Universal Auth credentials in the owner-only `bootstrap_file` (`INFISICAL_CLIENT_ID` and `INFISICAL_CLIENT_SECRET`). If Cloudflare Access protects the endpoint, keep its service-token pair in a separate owner-only `access_bootstrap_file`. Neither file belongs in Git. Back up existing local credentials to an encrypted, access-controlled location and verify recovery before migration. Remove a local credential assignment only after the secret-backed consumer check succeeds; retain the backup until the normal command path has been verified.
 
 The [migration FAQ](../../../ai-commands/connect/secrets/secrets.command.md#how-do-i-move-an-existing-or-new-secret-into-the-provider) gives the full sequence for adding a new value or moving an existing one.
 
-The [rotation and recovery FAQ](../../../ai-commands/connect/secrets/secrets.command.md#how-do-i-rotate-a-credential-without-interrupting-a-consumer) describes staging a replacement, checking the normal consumer before and after old-credential revocation, and restoring access when a stage fails. A production profile needs its own provider environment, machine identity, Access credential, and bootstrap files; copying this dev example does not authorize production use. Git authentication should follow its actual credential-helper or keyring path unless a separately reviewed command needs runtime injection.
+The [rotation and recovery FAQ](../../../ai-commands/connect/secrets/secrets.command.md#how-do-i-rotate-a-credential-without-interrupting-a-consumer) describes staging a replacement, checking the normal consumer before and after old-credential revocation, and restoring access when a stage fails. A production profile needs its own provider environment, machine identity, Access credential, and bootstrap files; copying this dev example does not authorize production use. Git authentication may use an ordinary credential helper/keyring or the reviewed execution-time `source-control` consumer shown above; neither route stores credentials in the profile.
 
 For a Hermes workflow Agent, the command catalog and generated `SOUL.md` identify the authorized command route.
 For example, an Agent asked for a Cloudflare check uses `secrets run cloudflare -- token-check` after reading both

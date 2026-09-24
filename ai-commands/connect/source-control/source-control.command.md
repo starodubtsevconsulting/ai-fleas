@@ -44,6 +44,7 @@ Adapter layer: `provider-neutral`.
 
 | Entry point | Type | Profile-aware invocation |
 |---|---|---|
+| `source-control/source-control.command.sh` | Shell executable | Runs bounded credential checks, fetches, and fast-forward-only pulls after profile activation and execution-time secret injection. |
 | `source-control/source-control.command.md` | AI-readable contract | The initialized workflow role loads this contract after the host activates the selected profile and workflow. |
 
 Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
@@ -68,7 +69,7 @@ version: 1
 command: source-control
 capability: git
 registered_command: git
-command_path: git/git.command.sh
+command_path: connect/git/git.command.sh
 identity_name: Example Developer
 identity_email: developer@example.com
 credential_scope: remote_host
@@ -77,8 +78,22 @@ allowed_remote_url_patterns:
   - https://github.com/example/*
 ```
 
-Secrets never belong in this configuration. Credentials remain in ignored machine-local storage selected only after the
-profile, workflow, project, provider, identity, and remote host have been verified.
+Secrets never belong in this configuration. `connect/secrets` may inject `SOURCE_CONTROL_USERNAME` and
+`SOURCE_CONTROL_TOKEN` into the bounded executable for one invocation after the profile, workflow, provider, and remote
+host have been verified. The executable uses Git AskPass, disables credential helpers for that child process, and never
+writes either value to Git configuration or repository files.
+
+## Secret-backed operations
+
+```text
+source-control.command.sh credential-check --repo /absolute/repository
+source-control.command.sh fetch --repo /absolute/repository
+source-control.command.sh pull-ff-only --repo /absolute/repository
+```
+
+All three operations require an HTTPS `origin` matching `credential_base_url` and one
+`allowed_remote_url_patterns` entry. `pull-ff-only` additionally requires a clean, attached worktree. The command prints
+only sanitized host/repository evidence; credentials remain in the authorized child-process environment.
 
 ## Provider implementation boundary
 

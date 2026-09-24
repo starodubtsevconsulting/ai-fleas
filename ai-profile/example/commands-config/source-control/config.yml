@@ -2,7 +2,7 @@ version: 1
 command: source-control
 capability: git
 registered_command: git
-command_path: git/git.command.sh
+command_path: connect/git/git.command.sh
 identity_config: commands-config/source-control/identity.config
 credential_scope: remote_host
 credential_base_url: https://github.example.invalid
