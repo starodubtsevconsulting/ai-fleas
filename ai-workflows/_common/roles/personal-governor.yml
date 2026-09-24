@@ -44,6 +44,11 @@ configurable:
     required: false
     owner: binding
     providerNeutral: true
+  taskTrackerAccess:
+    type: task-tracker-access-policy
+    required: false
+    owner: binding
+    providerNeutral: true
 
 bindings:
   profiles:
