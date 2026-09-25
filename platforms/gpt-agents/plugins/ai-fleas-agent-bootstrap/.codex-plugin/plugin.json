@@ -1,6 +1,6 @@
 {
   "name": "ai-fleas-agent-bootstrap",
-  "version": "0.1.0+codex.20260925175500",
+  "version": "0.1.0+codex.20260925184215",
   "description": "Restores trusted AI Fleas agent identity and gates first-time initialization by exact task ID.",
   "author": {
     "name": "Local developer"
@@ -12,6 +12,6 @@
     "developerName": "AI Fleas",
     "category": "Productivity",
     "capabilities": [],
-    "defaultPrompt": "Inspect the trusted AI Fleas agent bootstrap binding for this task."
+    "defaultPrompt": "Check this task's trusted AI Fleas bootstrap binding. If it is unbound, explain that this is expected for a task opened from Try now, do not claim the locally installed plugin is unavailable, and tell me to initialize a Personal Governor explicitly through the GPT Agents controller for an exact human profile."
   }
 }

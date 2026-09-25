@@ -58,6 +58,11 @@ After setup, the Agent Bootstrap plugin page should look like this:
 
 ![AI Fleas Agent Bootstrap plugin page in ChatGPT/Codex](img/gpt-agents/agent-bootstrap-plugin.png)
 
+The **Try now** button opens a diagnostic task. It does not initialize a Personal Governor and an `unbound` result there
+is expected. To initialize the Governor, create a new Codex task and request `Initialize Personal Governor for
+<human-profile-id> using the GPT Agents controller.` The controller creates and binds the dedicated Governor task; an
+ordinary chat cannot grant itself that identity.
+
 If the Finder launcher does not open, open Terminal in the cloned repository and run:
 
 ```sh

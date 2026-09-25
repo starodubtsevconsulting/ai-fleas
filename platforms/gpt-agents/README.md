@@ -17,6 +17,11 @@ Expected Agent Bootstrap plugin page after setup:
 
 ![AI Fleas Agent Bootstrap plugin page in ChatGPT/Codex](../../img/gpt-agents/agent-bootstrap-plugin.png)
 
+The **Try now** button is diagnostic only. It creates an ordinary unbound task, so `No trusted AI Fleas bootstrap binding`
+is the expected result. It does not initialize a Governor or workflow agent. Personal Governor initialization must be an
+explicit `initialize-governor` controller transaction for an exact human profile; the bootstrap then activates only the
+exact task ID registered by that transaction.
+
 Terminal equivalents:
 
 ```sh
