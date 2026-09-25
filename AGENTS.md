@@ -1,5 +1,10 @@
 # AI Fleas Rules
 
+## Visible workspace only
+
+* Never create or use temporary directories or temporary Git worktrees for repository work.
+* Work only in the visible project checkout on a named branch, so the human can always see the active branch and changes.
+* Do not place repository work under `/tmp`, `/private/tmp`, system temporary folders, or another hidden checkout.
 
 ## Admin
 
