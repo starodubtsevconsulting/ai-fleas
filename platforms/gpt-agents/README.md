@@ -1,61 +1,43 @@
-# GPT/Codex App adapter
+# AI Fleas for ChatGPT
 
-## Start on macOS
+This connects AI Fleas to the ChatGPT/Codex desktop app on macOS.
 
-The current launcher supports macOS. Install the ChatGPT desktop application and Codex CLI, then clone this repository.
-The `.command` links on GitHub are source previews and cannot execute in a browser. Open the cloned repository in Finder,
-navigate to `platforms/gpt-agents/macos`, then Control-click `Setup AI Fleas GPT.command`, choose **Open**, and confirm
-**Open** the first time macOS asks. The setup launcher registers the repository's `ai-fleas` plugin marketplace and
-installs one user-facing plugin, **AI Fleas GPT**. Agent Bootstrap and Workflow Router remain separate internal modules.
+## Setup
 
-If ChatGPT was already running during setup, quit it completely with **ChatGPT → Quit ChatGPT** or `⌘Q`; closing a
-window is not sufficient because the process retains its previous plugin snapshot. Then open `AI Fleas GPT.command` from
-that same Finder folder. ChatGPT requires a human to review and trust new or changed plugin hooks. Approve those hooks and
-start a new Codex task. You can drag the daily launcher to the Dock for easier access. It verifies the application, CLI,
-marketplace, and enabled plugin before opening ChatGPT.
+1. Install the ChatGPT desktop app and Codex CLI.
+2. Clone this repository.
+3. Quit ChatGPT.
+4. In Finder, open `platforms/gpt-agents/macos`.
+5. Control-click `Setup AI Fleas GPT.command`, choose **Open**, and approve the **AI Fleas GPT** hooks when ChatGPT asks.
 
-After setup, the Plugins page should show one repository-managed entry named **AI Fleas GPT**. Local Hermes is an
-optional, independent integration and is not installed by this launcher.
+## Daily use
 
-The **Try now** button is diagnostic only. It creates an ordinary unbound task, so `No trusted AI Fleas bootstrap binding`
-is the expected result. It does not initialize a Governor or workflow agent. Personal Governor initialization must be an
-explicit `initialize-governor` controller transaction for an exact human profile; the bootstrap then activates only the
-exact task ID registered by that transaction.
+Open `AI Fleas GPT.command`. You can drag it to the Dock for easier access.
 
-After updating the plugin, fully quit and reopen ChatGPT before testing in a new task. Existing tasks and a still-running
-desktop process may continue using the previous cached plugin version.
+To initialize your Personal Governor, start a new Codex task and ask:
 
-Terminal equivalents:
+> Initialize Personal Governor for `<human-profile-id>` using the GPT Agents controller.
+
+The **Try now** button is only a connection check; it does not create a Personal Governor.
+
+## Terminal
 
 ```sh
-node platforms/gpt-agents/launcher.mjs setup
+platforms/gpt-agents/setup.sh
+```
+
+To record a private work profile at the same time:
+
+```sh
+platforms/gpt-agents/setup.sh --profile /absolute/path/to/work-profile.yml
+```
+
+Diagnostics:
+
+```sh
 node platforms/gpt-agents/launcher.mjs doctor
 node platforms/gpt-agents/launcher.mjs launch
 ```
-
-If `doctor` reports `migration-required`, either the same AI Fleas plugin is still enabled from an older marketplace or
-the `ai-fleas` marketplace points to a different checkout. Review `conflictingPlugins`, `marketplaceRoot`, and
-`expectedMarketplaceRoot`, then migrate explicitly:
-
-```sh
-node platforms/gpt-agents/launcher.mjs setup --migrate
-```
-
-The normal setup and launch paths fail closed when duplicate or legacy plugin names are enabled or the marketplace source
-is not the repository running the launcher. Migration relocates a mismatched marketplace, installs the repository-managed
-plugin, copies legacy plugin data into its new data directory without overwriting conflicts, and only then removes the
-reported older plugin copies. Orphaned legacy data is copied too, so a previously uninstalled marketplace copy does not
-silently lose its identity receipts.
-
-To record an existing private work-profile file during setup:
-
-```sh
-node platforms/gpt-agents/launcher.mjs setup --profile /absolute/path/to/sc-work-profile.yml
-```
-
-The selected profile path is stored locally and is not committed. Agent creation and reconciliation remain operations of
-the profile-aware `gpt-agents` command; the launcher does not duplicate that lifecycle logic. Other operating systems may
-implement the same launcher contract, but this first executable intentionally fails closed outside macOS.
 
 ## What the launcher does
 
@@ -91,49 +73,11 @@ flowchart TD
     S --> W[Admin and other configured roles]
 ```
 
-There are therefore three separate responsibilities:
+There are three separate responsibilities:
 
-1. **Launcher:** validates the local installation and opens ChatGPT.
-2. **Agent Bootstrap:** restores or activates only an exact controller-registered task binding; an unbound task remains
-   unbound.
-3. **Personal Governor and GPT Agents controller:** the Governor is the persistent entry point for one governed human.
-   After explicit initialization, it can help select authorized profiles and workflows; the controller creates and binds
-   their configured agents.
-
-The one-time setup launcher installs the repository marketplace and plugin. The daily launcher only verifies that setup
-and opens ChatGPT. Neither launcher silently creates a Governor, selects a human profile, or starts a workflow.
-
-This built-in adapter maps logical AI Fleas agents to user-visible Codex tasks. It owns Codex-specific task creation,
-project binding, exact task-ID receipts, task messaging, model and reasoning selection, and recoverable archival.
-It also maps the portable read-only `check-update` lifecycle verb to the host application's trusted stable update channel
-when that capability is exposed.
-
-It consumes portable workflow and role contracts from `ai-workflows/`. GPT-specific mechanics and role overlays stay here
-and may narrow, but never broaden, those contracts.
-
-The portable vocabulary maps as follows:
-
-| Portable concept | GPT/Codex App realization |
-| --- | --- |
-| logical agent | configured workflow role binding |
-| agent instance | user-visible Codex task |
-| instance ID | app-returned task/thread ID |
-| logical work scope | non-empty selected subset of project records registered by the selected profile workflow |
-| primary project | first selected workflow project; hosts rules, commands, workflow definitions, and the Codex saved-project agents |
-| associated projects | later selected workflow project entries; unselected registered projects are not required scoped folders |
-| missing saved Codex Project | stop before task mutation; the exact folder-backed Project is a GPT-platform prerequisite |
-| logical project / group | one exact folder-backed Codex saved project containing its agent tasks |
-| project | one profile-registered folder in that saved project's ordered scope |
-| activate | create and initialize a task |
-| deactivate | recoverably archive the exact task ID |
-| send/receive | exact task-ID message delivery |
-| bounded utility helper | native GPT subagent, only when the active human binding enables it and the portable utility contract permits the task |
-| check update | trusted host update-channel query; no automatic installation |
-| delete workflow / delete group | recoverably archive its exact bound tasks; preserve the saved Codex project and scoped folders |
-
-The host persists all immutable IDs in the activated profile's configured `gpt-agents-binding-state.v1` registry. The
-caller acts only as a mechanical initialization controller: after resolving and verifying the pre-existing project it creates every
-missing roster task directly, including the temporary Admin compatibility role, and initializes them concurrently.
+1. **Launcher:** connects AI Fleas to ChatGPT and keeps the installation ready.
+2. **Agent Bootstrap:** restores or activates only an exact controller-registered task binding.
+3. **Personal Governor and GPT Agents controller:** helps select profiles and workflows, then creates and binds their agents.
 
 ## GPT plugin development
 

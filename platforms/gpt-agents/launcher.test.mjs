@@ -7,6 +7,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const launcher = fileURLToPath(new URL('./launcher.mjs', import.meta.url));
+const setupScript = fileURLToPath(new URL('./setup.sh', import.meta.url));
 const repositoryRoot = fs.realpathSync(fileURLToPath(new URL('../..', import.meta.url)));
 
 function fixture({ marketplace = false, plugins = false, legacy = false, staleMarketplace = false } = {}) {
@@ -21,6 +22,9 @@ function fixture({ marketplace = false, plugins = false, legacy = false, staleMa
   const codex = path.join(bin, 'codex');
   const embeddedCodex = path.join(app, 'Contents', 'Resources', 'codex');
   const open = path.join(bin, 'open');
+  const defaults = path.join(bin, 'defaults');
+  const git = path.join(bin, 'git');
+  const gitState = path.join(root, 'git-state');
   fs.writeFileSync(codex, `#!/bin/sh
 printf '%s\\n' "$*" >> "$AI_FLEAS_TEST_LOG"
 case "$*" in
@@ -48,17 +52,44 @@ esac
   fs.mkdirSync(path.dirname(embeddedCodex), { recursive: true });
   fs.copyFileSync(codex, embeddedCodex);
   fs.writeFileSync(open, '#!/bin/sh\nprintf \'open %s\\n\' "$*" >> "$AI_FLEAS_TEST_LOG"\n');
+  fs.writeFileSync(defaults, '#!/bin/sh\nprintf \'defaults %s\\n\' "$*" >> "$AI_FLEAS_TEST_LOG"\n');
+  fs.writeFileSync(git, `#!/bin/sh
+printf 'git %s\\n' "$*" >> "$AI_FLEAS_TEST_LOG"
+case "$*" in
+  *' branch --show-current') echo main ;;
+  *' status --porcelain') if [ "\${AI_FLEAS_TEST_GIT_DIRTY:-0}" = 1 ]; then echo ' M local-change'; fi ;;
+  *' rev-parse HEAD') if [ -f "$AI_FLEAS_TEST_GIT_STATE" ]; then echo updated; else echo original; fi ;;
+  *' fetch origin main') : ;;
+  *' merge-base --is-ancestor HEAD origin/main') : ;;
+  *' merge --ff-only origin/main') touch "$AI_FLEAS_TEST_GIT_STATE" ;;
+  *) echo "unexpected git call: $*" >&2; exit 1 ;;
+esac
+`);
   fs.chmodSync(codex, 0o755);
   fs.chmodSync(embeddedCodex, 0o755);
   fs.chmodSync(open, 0o755);
-  return { root, app, log, state, codex, open };
+  fs.chmodSync(defaults, 0o755);
+  fs.chmodSync(git, 0o755);
+  return { root, app, log, state, codex, open, defaults, git, gitState };
 }
 
 function run(item, args, { finderEnvironment = false } = {}) {
+  const env = testEnvironment(item, { finderEnvironment });
+  return spawnSync(process.execPath, [launcher, ...args], {
+    encoding: 'utf8',
+    env,
+  });
+}
+
+function testEnvironment(item, { finderEnvironment = false, sourceUpdate = false, dirtyCheckout = false } = {}) {
   const env = {
     ...process.env,
     AI_FLEAS_OS: 'darwin',
     AI_FLEAS_OPEN_BIN: item.open,
+    AI_FLEAS_DEFAULTS_BIN: item.defaults,
+    AI_FLEAS_GIT_BIN: item.git,
+    AI_FLEAS_TEST_GIT_STATE: item.gitState,
+    AI_FLEAS_TEST_GIT_DIRTY: dirtyCheckout ? '1' : '0',
     AI_FLEAS_CHATGPT_APP: item.app,
     AI_FLEAS_TEST_LOG: item.log,
     AI_FLEAS_TEST_STATE: item.state,
@@ -66,16 +97,14 @@ function run(item, args, { finderEnvironment = false } = {}) {
     XDG_CONFIG_HOME: path.join(item.root, 'config'),
     CODEX_HOME: path.join(item.root, 'codex-home'),
   };
+  if (!sourceUpdate) env.AI_FLEAS_SKIP_SOURCE_UPDATE = '1';
   if (finderEnvironment) {
     delete env.AI_FLEAS_CODEX_BIN;
     env.PATH = '/usr/bin:/bin';
   } else {
     env.AI_FLEAS_CODEX_BIN = item.codex;
   }
-  return spawnSync(process.execPath, [launcher, ...args], {
-    encoding: 'utf8',
-    env,
-  });
+  return env;
 }
 
 test('doctor reports setup-required when marketplace and plugins are absent', () => {
@@ -94,6 +123,69 @@ test('setup adds marketplace and the single AI Fleas GPT plugin', () => {
   assert.match(calls, /plugin add ai-fleas-gpt@ai-fleas/);
   assert.doesNotMatch(calls, /plugin add ai-fleas-agent-bootstrap/);
   assert.doesNotMatch(calls, /plugin add ai-fleas-workflow-router/);
+});
+
+test('one-step setup migrates, verifies, enables trusted updates, and launches ChatGPT', () => {
+  const item = fixture();
+  const legacyData = path.join(
+    item.root,
+    'codex-home',
+    'plugins',
+    'data',
+    'ai-fleas-agent-bootstrap-personal',
+  );
+  fs.mkdirSync(legacyData, { recursive: true });
+  fs.writeFileSync(path.join(legacyData, 'agent-bindings.json'), '{"instances":{}}');
+  const result = spawnSync('/bin/zsh', [setupScript], {
+    encoding: 'utf8',
+    env: testEnvironment(item),
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  assert.match(calls, /plugin marketplace add/);
+  assert.match(calls, /plugin add ai-fleas-gpt@ai-fleas/);
+  assert.match(calls, /defaults write com\.openai\.codex SUEnableAutomaticChecks -bool true/);
+  assert.match(calls, /defaults write com\.openai\.codex SUAutomaticallyUpdate -bool true/);
+  assert.match(calls, /open -a ChatGPT/);
+  assert.match(result.stdout, /"status": "ready"/);
+  const migratedData = path.join(
+    item.root,
+    'codex-home',
+    'plugins',
+    'data',
+    'ai-fleas-gpt-ai-fleas',
+    'agent-bindings.json',
+  );
+  assert.equal(fs.readFileSync(migratedData, 'utf8'), '{"instances":{}}');
+});
+
+test('one-step setup fast-forwards AI Fleas and re-executes the updated launcher', () => {
+  const item = fixture();
+  const result = spawnSync('/bin/zsh', [setupScript], {
+    encoding: 'utf8',
+    env: testEnvironment(item, { sourceUpdate: true }),
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  assert.match(calls, /git .* fetch origin main/);
+  assert.match(calls, /git .* merge-base --is-ancestor HEAD origin\/main/);
+  assert.match(calls, /git .* merge --ff-only origin\/main/);
+  assert.match(calls, /plugin add ai-fleas-gpt@ai-fleas/);
+  assert.match(calls, /open -a ChatGPT/);
+});
+
+test('one-step setup refuses to update a dirty checkout', () => {
+  const item = fixture();
+  const result = spawnSync('/bin/zsh', [setupScript], {
+    encoding: 'utf8',
+    env: testEnvironment(item, { sourceUpdate: true, dirtyCheckout: true }),
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /require a clean AI Fleas checkout/);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  assert.doesNotMatch(calls, /fetch origin main/);
+  assert.doesNotMatch(calls, /plugin add/);
+  assert.doesNotMatch(calls, /open -a ChatGPT/);
 });
 
 test('launch opens ChatGPT only when setup is ready', () => {
