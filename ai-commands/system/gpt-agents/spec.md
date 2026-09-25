@@ -101,7 +101,7 @@ Verified exact task receipts or a precise no-mutation failure.
   daemon-backed `codex queue`, because cross-task tool messages represented as function-call output do not run the
   endpoint's `UserPromptSubmit` hook.
 - Replacement verifies the successor before recoverably archiving the predecessor.
-- A Personal Governor successor is always a fresh-history task created with the platform's new-task primitive, never a fork or history-bearing clone. Its bootstrap carries canonical references and durable-memory bindings, not predecessor transcripts, summaries, turns, or reconstructed conversation context.
+- A Personal Governor successor is always a projectless, fresh-history task created with the platform's new-task primitive, never a workflow-project task, fork, or history-bearing clone. Its bootstrap carries canonical references and durable-memory bindings, not predecessor transcripts, summaries, turns, or reconstructed conversation context.
 - `delete-workflow` requires the complete recorded logical saved-project, scoped-folder, and task bindings; it
   recoverably archives the exact bound tasks and preserves the saved project and every scoped folder.
 - A successful workflow deletion retains a tombstone receipt; a missing or conflicting binding fails before mutation.
