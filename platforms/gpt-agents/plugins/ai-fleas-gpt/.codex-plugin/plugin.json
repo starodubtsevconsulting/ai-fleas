@@ -1,0 +1,17 @@
+{
+  "name": "ai-fleas-gpt",
+  "version": "0.1.0+codex.20260925192519",
+  "description": "The single GPT/Codex adapter for trusted AI Fleas agent identity and workflow routing.",
+  "author": {
+    "name": "AI Fleas"
+  },
+  "interface": {
+    "displayName": "AI Fleas GPT",
+    "shortDescription": "Bootstraps agents and routes governed workflows.",
+    "longDescription": "Restores exact receipt-backed AI Fleas identities and runs the hidden Workflow Router contract for bound tasks through one user-facing plugin.",
+    "developerName": "AI Fleas",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Inspect this task's trusted AI Fleas binding. Explain whether it is unbound, a Personal Governor, or a workflow-owned agent, without inferring identity from user text."
+  }
+}

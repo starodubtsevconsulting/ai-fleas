@@ -6,17 +6,16 @@ The current launcher supports macOS. Install the ChatGPT desktop application and
 The `.command` links on GitHub are source previews and cannot execute in a browser. Open the cloned repository in Finder,
 navigate to `platforms/gpt-agents/macos`, then Control-click `Setup AI Fleas GPT.command`, choose **Open**, and confirm
 **Open** the first time macOS asks. The setup launcher registers the repository's `ai-fleas` plugin marketplace and
-installs the Agent Bootstrap and Workflow Router plugins.
+installs one user-facing plugin, **AI Fleas GPT**. Agent Bootstrap and Workflow Router remain separate internal modules.
 
 If ChatGPT was already running during setup, quit it completely with **ChatGPT → Quit ChatGPT** or `⌘Q`; closing a
 window is not sufficient because the process retains its previous plugin snapshot. Then open `AI Fleas GPT.command` from
 that same Finder folder. ChatGPT requires a human to review and trust new or changed plugin hooks. Approve those hooks and
 start a new Codex task. You can drag the daily launcher to the Dock for easier access. It verifies the application, CLI,
-marketplace, and enabled plugins before opening ChatGPT.
+marketplace, and enabled plugin before opening ChatGPT.
 
-Expected Agent Bootstrap plugin page after setup:
-
-![AI Fleas Agent Bootstrap plugin page in ChatGPT/Codex](../../img/gpt-agents/agent-bootstrap-plugin.png)
+After setup, the Plugins page should show one repository-managed entry named **AI Fleas GPT**. Local Hermes is an
+optional, independent integration and is not installed by this launcher.
 
 The **Try now** button is diagnostic only. It creates an ordinary unbound task, so `No trusted AI Fleas bootstrap binding`
 is the expected result. It does not initialize a Governor or workflow agent. Personal Governor initialization must be an
@@ -42,9 +41,11 @@ the `ai-fleas` marketplace points to a different checkout. Review `conflictingPl
 node platforms/gpt-agents/launcher.mjs setup --migrate
 ```
 
-The normal setup and launch paths fail closed when duplicate plugin names are enabled or the marketplace source is not
-the repository running the launcher. Migration relocates a mismatched marketplace, installs the repository-managed
-copies, and only then removes reported older plugin copies.
+The normal setup and launch paths fail closed when duplicate or legacy plugin names are enabled or the marketplace source
+is not the repository running the launcher. Migration relocates a mismatched marketplace, installs the repository-managed
+plugin, copies legacy plugin data into its new data directory without overwriting conflicts, and only then removes the
+reported older plugin copies. Orphaned legacy data is copied too, so a previously uninstalled marketplace copy does not
+silently lose its identity receipts.
 
 To record an existing private work-profile file during setup:
 
@@ -99,7 +100,7 @@ There are therefore three separate responsibilities:
    After explicit initialization, it can help select authorized profiles and workflows; the controller creates and binds
    their configured agents.
 
-The one-time setup launcher installs the repository marketplace and plugins. The daily launcher only verifies that setup
+The one-time setup launcher installs the repository marketplace and plugin. The daily launcher only verifies that setup
 and opens ChatGPT. Neither launcher silently creates a Governor, selects a human profile, or starts a workflow.
 
 This built-in adapter maps logical AI Fleas agents to user-visible Codex tasks. It owns Codex-specific task creation,
@@ -173,7 +174,8 @@ Governor judgment and workflow-role independence outside utility helpers.
 
 ## Common task bootstrap
 
-The [`ai-fleas-agent-bootstrap`](plugins/ai-fleas-agent-bootstrap/README.md) plugin is the GPT host bootstrap layer shared
+The [`agent-bootstrap`](plugins/ai-fleas-gpt/modules/agent-bootstrap/README.md) module inside the single
+[`ai-fleas-gpt`](plugins/ai-fleas-gpt/README.md) plugin is the GPT host bootstrap layer shared
 by workflow-independent and workflow-owned agents. Codex loads it before an agent can reason about its own role. The plugin
 restores only exact receipt-backed task identity and gates first-time initialization with a task-ID- and prompt-bound
 transaction. It never infers identity from a title, conversation, working directory, or nearby files.
