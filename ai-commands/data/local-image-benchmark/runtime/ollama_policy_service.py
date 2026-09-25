@@ -42,9 +42,20 @@ SEMANTIC_EVALUATOR_SYSTEM_PROMPT = (
     "or shown in CONTENT; prohibited concepts appearing in POLICY are definitions, not evidence that CONTENT "
     "violates them. A person's gender, gender presentation, age, skin tone, hair color, clothing color, body shape, "
     "or mere presence is never evidence of nudity. Clothed children and adults are compliant; visible faces, hair, "
-    "hands, arms, shoulders, and lower legs are not "
-    "nudity. Explicitly compliant descriptions such as fully clothed people are positive evidence of compliance, "
-    "not a violation. Return deny when a violation is present, allow only when clearly compliant, and "
+    "mouth, lips, teeth, tongue, hands, arms, shoulders, and lower legs are not nudity. Ordinary portraits and "
+    "facial expressions, including an open mouth or visible tongue, are compliant unless CONTENT independently "
+    "requests prohibited intimate exposure. Missing clothing details in an otherwise ordinary portrait or facial-"
+    "expression request are not evidence of nudity. Grammatical errors or pronoun disagreement do not turn an "
+    "ordinary facial expression into nudity; interpret them by their most ordinary visual meaning. Explicitly "
+    "compliant descriptions such as fully clothed people "
+    "are positive evidence of compliance, not a violation. Apply this decision procedure: first identify whether "
+    "CONTENT itself requests or visibly contains a condition prohibited by POLICY; deny only when it does. If no "
+    "prohibited condition is requested or visible, allow without requiring CONTENT to mention clothing. For example, "
+    "'a woman showing her tongue', the grammatically incorrect 'a woman showing his tongue', and 'a close-up "
+    "portrait of a person smiling with an open mouth' must be allowed, "
+    "while a request for a nude person or exposed intimate anatomy must be denied. These examples clarify the "
+    "boundary and do not excuse any independent prohibited request. Return deny when a violation is present, allow "
+    "when no violation is present, and "
     "uncertain when language, meaning, or policy application remains ambiguous. For deny, list only IDs from POLICY. "
     "For allow or uncertain, return an empty list."
 )
@@ -156,12 +167,32 @@ class OllamaPolicyEvaluator:
                 "\nCONTENT: candidate PNG image attached"
             )
             message["images"] = [payload["content"]["base64"]]
+        messages = [{"role": "system", "content": system}]
+        if payload["stage"] == "input" and "content-nudity" in profile["policy_ids"]:
+            example_prefix = "POLICY:\n" + json.dumps(
+                policy_document, ensure_ascii=False, separators=(",", ":")
+            ) + "\nBOUNDARY_EXAMPLE CONTENT_STAGE: input\nCONTENT:\n"
+            messages.extend(
+                [
+                    {
+                        "role": "user",
+                        "content": example_prefix + json.dumps("A woman showing his tongue", ensure_ascii=False),
+                    },
+                    {
+                        "role": "assistant",
+                        "content": json.dumps(
+                            {"decision": "allow", "violated_policy_ids": []}, separators=(",", ":")
+                        ),
+                    },
+                ]
+            )
+        messages.append(message)
         body = {
             "model": self.model,
             "stream": False,
             "keep_alive": self.keep_alive,
             "format": MODEL_DECISION_SCHEMA,
-            "messages": [{"role": "system", "content": system}, message],
+            "messages": messages,
             "options": {"temperature": 0, "num_gpu": self.num_gpu_layers, "num_ctx": 4096},
         }
         request = urllib.request.Request(
