@@ -12,9 +12,7 @@ GPT**. Agent Bootstrap and Workflow Router remain separate internal modules.
 
 ChatGPT requires a human to review and trust new or changed plugin hooks. Approve those hooks and start a new Codex task.
 For later sessions, open `AI Fleas GPT.command` from the same Finder folder. You can drag that daily launcher to the Dock
-for easier access. It safely fast-forwards a clean `main` checkout from `origin/main`, refreshes the repository-managed
-plugin, enables ChatGPT's signed built-in automatic updater, verifies the complete installation, and opens ChatGPT.
-It refuses to overwrite a dirty, non-`main`, locally advanced, or diverged checkout.
+for easier access.
 
 After setup, the Plugins page should show one repository-managed entry named **AI Fleas GPT**. Local Hermes is an
 optional, independent integration and is not installed by this launcher.
@@ -33,9 +31,6 @@ Terminal equivalents:
 platforms/gpt-agents/setup.sh
 ```
 
-The one-step script updates AI Fleas with a safe fast-forward, always uses the launcher's safe `--migrate` path, enables
-the trusted ChatGPT updater, preserves matching data, refuses conflicting data, runs `doctor`, and launches only after
-verification succeeds. ChatGPT application checks run inside the signed app and may relaunch it after applying an update.
 To record a private work profile at the same time:
 
 ```sh
@@ -66,85 +61,6 @@ silently lose its identity receipts.
 The selected profile path is stored locally and is not committed. Agent creation and reconciliation remain operations of
 the profile-aware `gpt-agents` command; the launcher does not duplicate that lifecycle logic. Other operating systems may
 implement the same launcher contract, but this first executable intentionally fails closed outside macOS.
-
-## What the launcher does
-
-The launcher prepares and opens the GPT/Codex platform; it does not assign an agent identity to every new task. Identity
-is receipt-backed so that an arbitrary chat cannot claim to be a Personal Governor, Coder, Writer, or another agent merely
-through its title or prompt.
-
-```mermaid
-flowchart TD
-    A[Double-click AI Fleas GPT launcher] --> B{Environment ready?}
-    B -- No --> C[Stop and report the missing app, CLI, marketplace, or plugin]
-    B -- Yes --> D{Duplicate AI Fleas plugin copies?}
-    D -- Yes --> E[Stop and require explicit migration]
-    D -- No --> F[Open or focus ChatGPT]
-
-    F --> G[Open or create a Codex task]
-    G --> H[Agent Bootstrap hook runs]
-    H --> I{Exact active task binding exists?}
-    I -- Yes --> J[Restore the task's existing agent identity and sources]
-    I -- No --> K{Exact pending initialization transaction exists?}
-    K -- No --> L[Leave the task unbound; inject no agent identity]
-    K -- Yes --> M[Verify task ID, prompt, sources, and readiness token]
-    M --> N[Activate the bound agent identity]
-
-    L --> O[Explicitly request Personal Governor initialization for a human profile]
-    O --> P[GPT Agents controller creates and binds the Personal Governor task]
-    P --> Q[Personal Governor becomes the human-scoped entry point]
-    Q --> R[Select an authorized profile and workflow]
-    R --> S[Controller initializes workflow-owned agents]
-    S --> T[Coder]
-    S --> U[Writer]
-    S --> V[Reviewer]
-    S --> W[Admin and other configured roles]
-```
-
-There are therefore three separate responsibilities:
-
-1. **Launcher:** validates the local installation and opens ChatGPT.
-2. **Agent Bootstrap:** restores or activates only an exact controller-registered task binding; an unbound task remains
-   unbound.
-3. **Personal Governor and GPT Agents controller:** the Governor is the persistent entry point for one governed human.
-   After explicit initialization, it can help select authorized profiles and workflows; the controller creates and binds
-   their configured agents.
-
-The setup and daily launchers use the same idempotent maintenance path: update the clean AI Fleas checkout, refresh the
-repository marketplace and plugin, enable the trusted ChatGPT updater, verify setup, and open ChatGPT. Neither launcher
-silently creates a Governor, selects a human profile, or starts a workflow.
-
-This built-in adapter maps logical AI Fleas agents to user-visible Codex tasks. It owns Codex-specific task creation,
-project binding, exact task-ID receipts, task messaging, model and reasoning selection, and recoverable archival.
-It also maps the portable read-only `check-update` lifecycle verb to the host application's trusted stable update channel
-when that capability is exposed.
-
-It consumes portable workflow and role contracts from `ai-workflows/`. GPT-specific mechanics and role overlays stay here
-and may narrow, but never broaden, those contracts.
-
-The portable vocabulary maps as follows:
-
-| Portable concept | GPT/Codex App realization |
-| --- | --- |
-| logical agent | configured workflow role binding |
-| agent instance | user-visible Codex task |
-| instance ID | app-returned task/thread ID |
-| logical work scope | non-empty selected subset of project records registered by the selected profile workflow |
-| primary project | first selected workflow project; hosts rules, commands, workflow definitions, and the Codex saved-project agents |
-| associated projects | later selected workflow project entries; unselected registered projects are not required scoped folders |
-| missing saved Codex Project | stop before task mutation; the exact folder-backed Project is a GPT-platform prerequisite |
-| logical project / group | one exact folder-backed Codex saved project containing its agent tasks |
-| project | one profile-registered folder in that saved project's ordered scope |
-| activate | create and initialize a task |
-| deactivate | recoverably archive the exact task ID |
-| send/receive | exact task-ID message delivery |
-| bounded utility helper | native GPT subagent, only when the active human binding enables it and the portable utility contract permits the task |
-| check update | trusted host update-channel query; no automatic installation |
-| delete workflow / delete group | recoverably archive its exact bound tasks; preserve the saved Codex project and scoped folders |
-
-The host persists all immutable IDs in the activated profile's configured `gpt-agents-binding-state.v1` registry. The
-caller acts only as a mechanical initialization controller: after resolving and verifying the pre-existing project it creates every
-missing roster task directly, including the temporary Admin compatibility role, and initializes them concurrently.
 
 ## GPT plugin development
 
