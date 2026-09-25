@@ -25,6 +25,8 @@ The Governor may initialize itself because no workflow/profile Admin owns it. Se
 
 Before creating a replacement, discover trusted lifecycle state for an existing active Governor for the same human/platform. Reuse it when appropriate. Reinitialization is transactional: create/reconcile successor, initialize canonical config and memory, verify readiness, pin successor, then archive predecessor. Never archive the predecessor before successor readiness.
 
+A replacement Governor must be a fresh-history task created through the platform's new-task primitive. Never create it by forking, cloning, or otherwise inheriting the predecessor task. Its bootstrap payload may contain only canonical source references, durable-memory bindings, exact lifecycle identifiers, and the minimum initialization instruction. It must not contain or reconstruct the predecessor transcript, conversation summary, inherited turns, or broad conversation context. Conversation history is not Governor memory; continuity comes only from canonical configuration and the declared authoritative memory route. The predecessor task ID may be retained solely for verified cutover and recoverable archival.
+
 ## GPT presentation
 
 After readiness, pin the exact Personal Governor task in the global pinned area when the host supports pinning. Recommended title: `🧭 Personal Governor`. Title and pin state are presentation only, never identity.
