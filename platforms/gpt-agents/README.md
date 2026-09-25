@@ -8,10 +8,11 @@ navigate to `platforms/gpt-agents/macos`, then Control-click `Setup AI Fleas GPT
 **Open** the first time macOS asks. The setup launcher registers the repository's `ai-fleas` plugin marketplace and
 installs the Agent Bootstrap and Workflow Router plugins.
 
-ChatGPT requires a human to review and trust new or changed plugin hooks. Approve those hooks in the application and
-start a new Codex task. Afterwards, open `AI Fleas GPT.command` from that same Finder folder for normal use. You can drag
-it to the Dock for easier access. It verifies the application, CLI, marketplace, and enabled plugins before opening
-ChatGPT.
+If ChatGPT was already running during setup, quit it completely with **ChatGPT → Quit ChatGPT** or `⌘Q`; closing a
+window is not sufficient because the process retains its previous plugin snapshot. Then open `AI Fleas GPT.command` from
+that same Finder folder. ChatGPT requires a human to review and trust new or changed plugin hooks. Approve those hooks and
+start a new Codex task. You can drag the daily launcher to the Dock for easier access. It verifies the application, CLI,
+marketplace, and enabled plugins before opening ChatGPT.
 
 Expected Agent Bootstrap plugin page after setup:
 
@@ -21,6 +22,9 @@ The **Try now** button is diagnostic only. It creates an ordinary unbound task, 
 is the expected result. It does not initialize a Governor or workflow agent. Personal Governor initialization must be an
 explicit `initialize-governor` controller transaction for an exact human profile; the bootstrap then activates only the
 exact task ID registered by that transaction.
+
+After updating the plugin, fully quit and reopen ChatGPT before testing in a new task. Existing tasks and a still-running
+desktop process may continue using the previous cached plugin version.
 
 Terminal equivalents:
 

@@ -132,7 +132,8 @@ function setup(profileArg, migrate) {
   process.stdout.write([
     'AI Fleas GPT setup is installed.',
     profile ? `Selected profile: ${profile}` : 'No private profile selected yet.',
-    'Open ChatGPT, review and trust the AI Fleas plugin hooks, then start a new Codex task.',
+    'If ChatGPT is running, quit it completely so it releases its cached plugin snapshot.',
+    'Run the daily launcher, review and trust the AI Fleas plugin hooks, then start a new Codex task.',
   ].join('\n') + '\n');
 }
 
