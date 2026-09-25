@@ -215,6 +215,35 @@ test('launch opens ChatGPT only when setup is ready', () => {
   assert.match(fs.readFileSync(item.log, 'utf8'), /open -a ChatGPT/);
 });
 
+test('launch queues a read-only status check and opens the trusted Personal Governor', () => {
+  const item = fixture({ marketplace: true, plugins: true });
+  const pluginData = path.join(
+    item.root,
+    'codex-home',
+    'plugins',
+    'data',
+    'ai-fleas-gpt-ai-fleas',
+  );
+  fs.mkdirSync(pluginData, { recursive: true });
+  fs.writeFileSync(path.join(pluginData, 'agent-bindings.json'), JSON.stringify({
+    instances: {
+      'governor-task-id': {
+        agentId: 'personal-governor',
+        scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+        status: 'active',
+      },
+    },
+  }));
+
+  const result = run(item, ['launch']);
+  assert.equal(result.status, 0, result.stderr);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  assert.match(calls, /open -a ChatGPT/);
+  assert.match(calls, /queue --thread governor-task-id --message Check AI Fleas status now\./);
+  assert.match(calls, /open codex:\/\/threads\/governor-task-id/);
+  assert.match(result.stdout, /trusted Personal Governor is checking AI Fleas status/);
+});
+
 test('launch finds the Codex CLI bundled in ChatGPT when Finder PATH is minimal', () => {
   const item = fixture({ marketplace: true, plugins: true });
   const result = run(item, ['launch'], { finderEnvironment: true });

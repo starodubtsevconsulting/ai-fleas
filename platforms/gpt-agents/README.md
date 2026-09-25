@@ -9,7 +9,9 @@ adds it to your Dock, and opens ChatGPT.
 
 ## Daily use
 
-Click **AI Fleas GPT** in the Dock. It prepares AI Fleas and launches ChatGPT.
+Click **AI Fleas GPT** in the Dock. It prepares AI Fleas, launches ChatGPT, asks the trusted Personal Governor for a
+read-only platform and agent status check, and opens that exact Governor task. If no trusted Governor exists, ChatGPT
+opens normally so the AI Fleas GPT plugin can offer the safe onboarding action.
 
 To initialize your Personal Governor, start a new Codex task and ask:
 

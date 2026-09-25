@@ -13,6 +13,12 @@ const legacyPlugins = ['ai-fleas-agent-bootstrap', 'ai-fleas-workflow-router'];
 const codexHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex');
 const openBin = process.env.AI_FLEAS_OPEN_BIN || 'open';
 const platform = process.env.AI_FLEAS_OS || process.platform;
+const agentStatusPrompt = [
+  'Check AI Fleas status now.',
+  'Read-only: verify plugin and platform health, my Personal Governor binding, authorized profiles and workflows,',
+  'and each receipt-backed agent roster. Report ready, degraded, or blocked with safe next actions.',
+  'Do not create, reinitialize, archive, or otherwise mutate agents.',
+].join(' ');
 
 function fail(message) {
   process.stderr.write(`AI_FLEAS_GPT_BLOCKED: ${message}\n`);
@@ -149,6 +155,53 @@ function migratePluginData(pluginIds) {
   for (const source of sources) mergePluginData(source, destination);
 }
 
+class AgentStatusNavigator {
+  constructor(agentBindingsFile) {
+    this.agentBindingsFile = agentBindingsFile;
+  }
+
+  open() {
+    run(openBin, ['-a', 'ChatGPT']);
+    const taskId = this.#activeGovernorTaskId();
+    if (!taskId) return { destination: 'chatgpt-home' };
+
+    let queueResult;
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      queueResult = spawnSync(codexBin, [
+        'queue',
+        '--thread', taskId,
+        '--message', agentStatusPrompt,
+      ], { encoding: 'utf8' });
+      if (!queueResult.error && queueResult.status === 0) break;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
+    }
+
+    if (queueResult?.error || queueResult?.status !== 0) {
+      process.stderr.write('AI_FLEAS_GPT_STATUS_WARNING: ChatGPT opened, but the Governor status request could not be queued.\n');
+      return { destination: 'chatgpt-home' };
+    }
+
+    run(openBin, [`codex://threads/${taskId}`]);
+    return { destination: 'personal-governor', taskId };
+  }
+
+  #activeGovernorTaskId() {
+    if (!fs.existsSync(this.agentBindingsFile)) return null;
+    let registry;
+    try {
+      registry = JSON.parse(fs.readFileSync(this.agentBindingsFile, 'utf8'));
+    } catch {
+      return null;
+    }
+    const activeTaskIds = Object.entries(registry?.instances ?? {})
+      .filter(([, binding]) => binding?.agentId === 'personal-governor' &&
+        binding?.scope?.kind === 'governed-human' &&
+        binding?.status === 'active')
+      .map(([taskId]) => taskId);
+    return activeTaskIds.length === 1 ? activeTaskIds[0] : null;
+  }
+}
+
 function saveProfile(profileArg) {
   if (!profileArg) return null;
   const resolved = fs.realpathSync(profileArg);
@@ -233,8 +286,15 @@ function launch() {
   if (!marketplace || missingPlugins().length) {
     fail(`setup is incomplete; run ${path.join(scriptDir, 'launcher.mjs')} setup first`);
   }
-  run(openBin, ['-a', 'ChatGPT']);
-  process.stdout.write('AI Fleas GPT is ready. If ChatGPT requests hook review, approve the current AI Fleas hook definitions and start a new task.\n');
+  const statusNavigator = new AgentStatusNavigator(path.join(
+    pluginDataDirectory(`ai-fleas-gpt@${marketplaceName}`),
+    'agent-bindings.json',
+  ));
+  const navigation = statusNavigator.open();
+  const destination = navigation.destination === 'personal-governor'
+    ? 'The trusted Personal Governor is checking AI Fleas status.'
+    : 'Open the AI Fleas GPT plugin to create or resume the required Personal Governor.';
+  process.stdout.write(`AI Fleas GPT is ready. ${destination}\n`);
 }
 
 const args = process.argv.slice(2);
