@@ -17,14 +17,20 @@ class TemporaryPolicyBypassTest(unittest.TestCase):
         )
         return manager, now
 
-    def test_valid_code_creates_expiring_session(self):
+    def test_valid_code_creates_expiring_single_use_grant(self):
         manager, now = self.manager()
         token = manager.exchange("open-canvas")
         self.assertEqual(token, "session-one")
         self.assertTrue(manager.active(token))
         self.assertEqual(manager.seconds_remaining(token), 60)
+        self.assertTrue(manager.consume(token))
+        self.assertFalse(manager.active(token))
+        self.assertFalse(manager.consume(token))
+
+        token = manager.exchange("open-canvas")
         now[0] += 60
         self.assertFalse(manager.active(token))
+        self.assertFalse(manager.consume(token))
 
     def test_wrong_or_disabled_code_never_creates_session(self):
         manager, _ = self.manager()

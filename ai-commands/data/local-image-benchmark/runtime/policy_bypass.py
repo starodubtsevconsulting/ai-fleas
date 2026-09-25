@@ -1,4 +1,4 @@
-"""Short-lived in-memory sessions for an explicitly configured policy bypass."""
+"""Short-lived, single-use grants for an explicitly configured policy bypass."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 
 
 class TemporaryPolicyBypass:
-    """Exchange one configured code for revocable, process-local session tokens."""
+    """Exchange one configured code for revocable, process-local one-shot tokens."""
 
     def __init__(
         self,
@@ -60,6 +60,14 @@ class TemporaryPolicyBypass:
     def active(self, token: str) -> bool:
         self._prune()
         return bool(token) and token in self.sessions
+
+    def consume(self, token: str) -> bool:
+        """Use an active token once and revoke it before generation begins."""
+        self._prune()
+        if not token or token not in self.sessions:
+            return False
+        self.sessions.pop(token, None)
+        return True
 
     def seconds_remaining(self, token: str) -> int:
         self._prune()
