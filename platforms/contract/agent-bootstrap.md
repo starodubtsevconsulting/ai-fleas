@@ -19,7 +19,7 @@ binding. The conversational instance never writes its own identity.
 1. The lifecycle controller resolves the intended logical agent and canonical initialization bundle.
 2. The platform creates a fresh instance unless an exact active or recoverable binding must be reused.
 3. The controller records one pending binding against the immutable platform instance ID.
-4. The platform delivers a one-time initialization request bound to that instance, request, expiry, and expected readiness token.
+4. The platform delivers a one-time initialization request bound to that instance, request, expiry, and expected readiness token. Delivery must traverse the platform's real user-input lifecycle; transport artifacts that bypass that lifecycle do not qualify.
 5. The instance loads and verifies the declared sources and returns the exact readiness token.
 6. The adapter atomically activates the binding only after readiness verification.
 7. Subsequent runtime starts restore the active binding idempotently.

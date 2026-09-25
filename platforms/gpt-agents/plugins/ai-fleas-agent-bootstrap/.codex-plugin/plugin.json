@@ -1,6 +1,6 @@
 {
   "name": "ai-fleas-agent-bootstrap",
-  "version": "0.1.0+codex.20260925172637",
+  "version": "0.1.0+codex.20260925175500",
   "description": "Restores trusted AI Fleas agent identity and gates first-time initialization by exact task ID.",
   "author": {
     "name": "Local developer"

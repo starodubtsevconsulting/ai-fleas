@@ -17,14 +17,15 @@ It is the platform bootstrap layer, not an agent and not a workflow Router. Code
 
 1. Resolve the intended agent, exact scope, canonical sources, memory route, and next generation outside the new task.
 2. Create a fresh task without copied conversation history.
-3. Register a pending binding:
+3. Register the pending binding and deliver the exact prompt through the desktop task owner's queue:
 
    ```sh
-   PLUGIN_DATA=/trusted/plugin/data node scripts/register-agent-initialization.mjs \
+   PLUGIN_DATA=/trusted/plugin/data node scripts/queue-agent-initialization.mjs \
      <exact-session-id> binding.json initialization-prompt.txt
    ```
 
-4. Deliver the byte-identical initialization prompt to that exact task.
+4. The helper uses `codex queue`, which causes `UserPromptSubmit` to run in the exact existing task. Cross-task tool
+   messages represented as function-call output are not valid lifecycle delivery and must not be substituted.
 5. The hook requires the configured readiness token and atomically promotes the binding to `active`.
 6. The lifecycle controller may then pin the successor and archive its predecessor.
 

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const hook = fileURLToPath(new URL('./agent-bootstrap-hook.mjs', import.meta.url));
 const register = fileURLToPath(new URL('./register-agent-initialization.mjs', import.meta.url));
+const queue = fileURLToPath(new URL('./queue-agent-initialization.mjs', import.meta.url));
 
 function workspace() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'ai-fleas-agent-bootstrap-'));
@@ -145,6 +146,37 @@ test('readiness without an exact initialization turn cannot activate the task', 
     last_assistant_message: 'PERSONAL_GOVERNOR_READY',
   });
   assert.equal(result.decision, 'block');
+  const registry = JSON.parse(fs.readFileSync(path.join(root, 'agent-bindings.json')));
+  assert.equal(registry.instances['governor-task'].status, 'pending');
+});
+
+test('queue helper registers and delivers the exact prompt through Codex queue semantics', () => {
+  const root = workspace();
+  const bindingFile = path.join(root, 'binding.json');
+  const promptFile = path.join(root, 'prompt.txt');
+  const queueLog = path.join(root, 'queue.log');
+  fs.writeFileSync(bindingFile, JSON.stringify({
+    platformAdapter: 'gpt-agents',
+    agentId: 'personal-governor',
+    generation: 2,
+    scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+    initialization: {
+      readinessToken: 'PERSONAL_GOVERNOR_READY',
+      sources: [{ id: 'portable-role', ref: 'ai-workflows/_common/roles/personal-governor.md' }],
+    },
+  }));
+  fs.writeFileSync(promptFile, 'Initialize Personal Governor for example-human\n');
+
+  const result = spawnSync(process.execPath, [queue, 'governor-task', bindingFile, promptFile], {
+    encoding: 'utf8',
+    env: { ...process.env, PLUGIN_DATA: root, AGENT_BOOTSTRAP_QUEUE_LOG: queueLog },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), { sessionId: 'governor-task', deliveryStatus: 'queued' });
+  assert.deepEqual(JSON.parse(fs.readFileSync(queueLog, 'utf8')), {
+    thread: 'governor-task',
+    message: 'Initialize Personal Governor for example-human',
+  });
   const registry = JSON.parse(fs.readFileSync(path.join(root, 'agent-bindings.json')));
   assert.equal(registry.instances['governor-task'].status, 'pending');
 });

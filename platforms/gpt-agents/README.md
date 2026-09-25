@@ -51,6 +51,20 @@ Use this sequence for every plugin implementation or hook change:
 Workflow maps and runtime bindings are different concerns: portable maps remain under `ai-workflows/`, while exact
 task IDs and runtime receipts remain local and must be reconciled separately on each machine.
 
+Repository ownership is uniform for every GPT integration:
+
+| Concern | Authoritative location |
+| --- | --- |
+| portable role, flow, state machine, and runtime logic | `ai-workflows/` |
+| explicit operator/controller action | `ai-commands/system/gpt-agents/` |
+| automatic GPT/Codex lifecycle hook or delivery adapter | `platforms/gpt-agents/plugins/` |
+| GPT-specific workflow or role mapping | `platforms/gpt-agents/workflows/` and `platforms/gpt-agents/agents/` |
+| installed plugin, cache, task binding, permit, or receipt | local runtime data; never authoritative source |
+
+Apply this split to the whole feature, not one file at a time. For example, the Workflow Router keeps its portable state
+machine under `ai-workflows/_common/runtime/` and its Codex hooks under `platforms/gpt-agents/plugins/`; agent bootstrap
+uses the same split.
+
 The GPT Personal Governor initializer is also the platform-specific owner of opportunistic utility-subagent routing. It
 activates only from an explicit human Governor binding, selects that binding's model/reasoning route per dispatch, and keeps
 Governor judgment and workflow-role independence outside utility helpers.
