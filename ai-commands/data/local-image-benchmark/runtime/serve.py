@@ -73,6 +73,7 @@ SEMANTIC_MODERATOR = SemanticModerator(
 )
 POLICY_BYPASS_COOKIE = "ai_fleas_policy_bypass"
 POLICY_BYPASS_QUERY_PARAMETER = "policy_bypass"
+POLICY_BYPASS_ACTIVE_MARKER = "active"
 POLICY_BYPASS = TemporaryPolicyBypass(
     os.environ.get("IMAGE_POLICY_BYPASS_CODE_SHA256", ""),
     env_int("IMAGE_POLICY_BYPASS_SESSION_TTL_SECONDS", 28_800, 60),
@@ -338,11 +339,8 @@ app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR), check_dir=False), n
 
 @app.middleware("http")
 async def exchange_policy_bypass(request: Request, call_next):
-    if (
-        request.method == "GET"
-        and request.url.path == "/"
-        and POLICY_BYPASS_QUERY_PARAMETER in request.query_params
-    ):
+    if request.method == "GET" and request.url.path == "/":
+        has_bypass_query = POLICY_BYPASS_QUERY_PARAMETER in request.query_params
         code = request.query_params.get(POLICY_BYPASS_QUERY_PARAMETER, "")
         current_token = request.cookies.get(POLICY_BYPASS_COOKIE, "")
         cleaned_query = [
@@ -350,10 +348,27 @@ async def exchange_policy_bypass(request: Request, call_next):
             for key, value in request.query_params.multi_items()
             if key != POLICY_BYPASS_QUERY_PARAMETER
         ]
-        location = request.url.path
+        clean_location = request.url.path
         if cleaned_query:
-            location += "?" + urlencode(cleaned_query)
-        response = RedirectResponse(location, status_code=303)
+            clean_location += "?" + urlencode(cleaned_query)
+
+        if not has_bypass_query:
+            response = await call_next(request)
+            if current_token:
+                POLICY_BYPASS.revoke(current_token)
+                response.delete_cookie(
+                    POLICY_BYPASS_COOKIE,
+                    path="/",
+                    secure=True,
+                    httponly=True,
+                    samesite="strict",
+                )
+            return response
+
+        if code == POLICY_BYPASS_ACTIVE_MARKER and POLICY_BYPASS.active(current_token):
+            return await call_next(request)
+
+        response = RedirectResponse(clean_location, status_code=303)
         response.headers["Cache-Control"] = "no-store"
         response.headers["Referrer-Policy"] = "no-referrer"
         if code == "off":
@@ -365,13 +380,32 @@ async def exchange_policy_bypass(request: Request, call_next):
                 httponly=True,
                 samesite="strict",
             )
+        elif code == POLICY_BYPASS_ACTIVE_MARKER:
+            response.delete_cookie(
+                POLICY_BYPASS_COOKIE,
+                path="/",
+                secure=True,
+                httponly=True,
+                samesite="strict",
+            )
         else:
             token = POLICY_BYPASS.exchange(code)
             if token:
+                active_query = cleaned_query + [(POLICY_BYPASS_QUERY_PARAMETER, POLICY_BYPASS_ACTIVE_MARKER)]
+                response.headers["Location"] = request.url.path + "?" + urlencode(active_query)
                 response.set_cookie(
                     POLICY_BYPASS_COOKIE,
                     token,
                     max_age=POLICY_BYPASS.ttl_seconds,
+                    path="/",
+                    secure=True,
+                    httponly=True,
+                    samesite="strict",
+                )
+            elif current_token:
+                POLICY_BYPASS.revoke(current_token)
+                response.delete_cookie(
+                    POLICY_BYPASS_COOKIE,
                     path="/",
                     secure=True,
                     httponly=True,
