@@ -75,7 +75,6 @@ async def main() -> None:
         assert serve.policy_bypass_status(active_request) == {
             "enabled": True,
             "active": True,
-            "uses_remaining": 1,
             "expires_in_seconds": 300,
         }
 
@@ -94,12 +93,6 @@ async def main() -> None:
         generated = await serve.generate(payload, active_request)
         assert generated["data"][0]["b64_json"]
         assert generation_args[-1][-1] is True
-        assert serve.policy_bypass_status(active_request) == {
-            "enabled": True,
-            "active": False,
-            "uses_remaining": 0,
-            "expires_in_seconds": 0,
-        }
 
         validation_calls = []
 
@@ -107,21 +100,13 @@ async def main() -> None:
             validation_calls.append(prompt)
 
         serve.validate_policy_input = allow_validation
-        await serve.generate(payload, active_request)
+        await serve.generate(payload, request())
         assert validation_calls == ["boundary test"]
         assert generation_args[-1][-1] is False
 
-        second_exchange = await serve.exchange_policy_bypass(
-            request(b"policy_bypass=test-code"),
-            must_not_route,
-        )
-        second_cookie = SimpleCookie()
-        second_cookie.load(second_exchange.headers["set-cookie"])
-        second_token = second_cookie[serve.POLICY_BYPASS_COOKIE].value
-        second_request = request(cookie=f"{serve.POLICY_BYPASS_COOKIE}={second_token}")
-        revoked = serve.policy_bypass_revoke(second_request)
+        revoked = serve.policy_bypass_revoke(active_request)
         assert revoked.status_code == 204
-        assert not manager.active(second_token)
+        assert not manager.active("session-token")
         assert "Max-Age=0" in revoked.headers["set-cookie"]
 
         invalid = await serve.exchange_policy_bypass(

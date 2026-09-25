@@ -178,11 +178,8 @@ async def validate_policy_input(prompt: str) -> None:
         raise policy_http_exception(error) from error
 
 
-def consume_policy_bypass(request: Request, endpoint: str) -> bool:
-    consumed = POLICY_BYPASS.consume(request.cookies.get(POLICY_BYPASS_COOKIE, ""))
-    if consumed:
-        print(json.dumps({"event": "policy_bypass_consumed", "endpoint": endpoint}), flush=True)
-    return consumed
+def policy_bypass_active(request: Request) -> bool:
+    return POLICY_BYPASS.active(request.cookies.get(POLICY_BYPASS_COOKIE, ""))
 
 
 def release_generation_memory() -> None:
@@ -436,7 +433,6 @@ def policy_bypass_status(request: Request):
     return {
         "enabled": POLICY_BYPASS.enabled,
         "active": POLICY_BYPASS.active(token),
-        "uses_remaining": 1 if POLICY_BYPASS.active(token) else 0,
         "expires_in_seconds": POLICY_BYPASS.seconds_remaining(token),
     }
 
@@ -462,7 +458,7 @@ async def generate(request: GenerationRequest, http_request: Request):
     if request.response_format != "b64_json":
         raise HTTPException(400, "only response_format=b64_json is supported")
     width, height = parse_size(request.size)
-    skip_policy_validation = consume_policy_bypass(http_request, "/v1/images/generations")
+    skip_policy_validation = policy_bypass_active(http_request)
     if not skip_policy_validation:
         await validate_policy_input(request.prompt)
     seed = request.seed if request.seed is not None else int.from_bytes(os.urandom(8), "big")
@@ -493,6 +489,9 @@ async def generate(request: GenerationRequest, http_request: Request):
 @app.post("/v1/chat/completions")
 async def chat_completions(payload: dict, http_request: Request):
     prompt = chat_prompt(payload.get("messages"))
+    skip_policy_validation = policy_bypass_active(http_request)
+    if not skip_policy_validation:
+        await validate_policy_input(prompt)
     width, height = parse_size(str(payload.get("size", DEFAULT_SIZE)))
     steps = int(payload.get("steps", DEFAULT_STEPS))
     guidance = float(payload.get("guidance_scale", DEFAULT_GUIDANCE))
@@ -504,9 +503,6 @@ async def chat_completions(payload: dict, http_request: Request):
         raise HTTPException(400, "steps must be 1..100")
     if not 0 <= guidance <= 20:
         raise HTTPException(400, "guidance_scale must be 0..20")
-    skip_policy_validation = consume_policy_bypass(http_request, "/v1/chat/completions")
-    if not skip_policy_validation:
-        await validate_policy_input(prompt)
     created = int(time.time())
     completion_id = f"chatcmpl-{uuid.uuid4().hex}"
     if not payload.get("stream"):

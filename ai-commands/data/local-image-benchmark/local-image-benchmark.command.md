@@ -121,13 +121,11 @@ returned until output moderation allows release. Model lifecycle remains owned b
 
 For a short migration period, a profile may set `IMAGE_POLICY_BYPASS_CODE_SHA256` to the lowercase SHA-256 digest of
 an owner-held code and `IMAGE_POLICY_BYPASS_SESSION_TTL_SECONDS` to 60–86400 seconds. The portable default is disabled.
-An already-authenticated browser may visit `/?policy_bypass=PLAINTEXT_CODE`; the service immediately redirects to a URL
-without the code and issues a Secure, HttpOnly, SameSite=Strict, process-local cookie. The cookie is a single-use grant:
-the next image-generation request skips semantic input and output validation and atomically consumes the grant before
-generation starts. Every later request returns to filtered default behavior. The configured TTL limits how long an
-unused grant may wait; it does not create a multi-request bypass session. Request limits and generation-policy steering
-remain in force. `/?policy_bypass=off` or `DELETE /v1/policy-bypass` revokes an unused grant, and every service restart
-revokes all grants. The initial query can still appear in browser, reverse-proxy, or access logs, so this is a temporary
+An already-authenticated browser may visit `/?policy_bypass=PLAINTEXT_CODE` once; the service immediately redirects to
+a URL without the code and issues a Secure, HttpOnly, SameSite=Strict, process-local cookie. While that cookie is
+active, semantic input and output validation are skipped, but request limits and generation-policy steering remain in
+force. `/?policy_bypass=off` or `DELETE /v1/policy-bypass` revokes the browser session, and every service restart revokes
+all sessions. The initial query can still appear in browser, reverse-proxy, or access logs, so this is a temporary
 owner-access bridge rather than a substitute for identity/role policy.
 
 Managed interactive services should configure `IMAGE_DEFAULT_SIZE`, request ceilings (`IMAGE_MAX_WIDTH`,
