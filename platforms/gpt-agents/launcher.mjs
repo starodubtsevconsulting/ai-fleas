@@ -165,7 +165,7 @@ class AgentStatusNavigator {
   open() {
     run(openBin, ['-a', 'ChatGPT']);
     const taskId = this.#activeGovernorTaskId();
-    if (!taskId) return { destination: 'chatgpt-home' };
+    if (!taskId) return this.#openOnboarding();
 
     let queueResult;
     for (let attempt = 0; attempt < 8; attempt += 1) {
@@ -179,12 +179,36 @@ class AgentStatusNavigator {
     }
 
     if (queueResult?.error || queueResult?.status !== 0) {
-      process.stderr.write('AI_FLEAS_GPT_STATUS_WARNING: ChatGPT opened, but the Governor status request could not be queued.\n');
-      return { destination: 'chatgpt-home' };
+      const detail = queueResult?.error?.message || queueResult?.stderr?.trim() || queueResult?.stdout?.trim() || '';
+      if (/\bis archived\b/i.test(detail)) this.#recordArchivedGovernor(taskId);
+      process.stderr.write('AI_FLEAS_GPT_STATUS_WARNING: The recorded Governor is unavailable; opening Personal Governor onboarding.\n');
+      return this.#openOnboarding();
     }
 
     run(openBin, [`codex://threads/${taskId}`]);
     return { destination: 'personal-governor', taskId };
+  }
+
+  #openOnboarding() {
+    run(openBin, ['codex://threads/new']);
+    return { destination: 'plugin-onboarding' };
+  }
+
+  #recordArchivedGovernor(taskId) {
+    let registry;
+    try {
+      registry = JSON.parse(fs.readFileSync(this.agentBindingsFile, 'utf8'));
+    } catch {
+      return;
+    }
+    const binding = registry?.instances?.[taskId];
+    if (binding?.status !== 'active') return;
+    binding.status = 'archived';
+    binding.archivedAt = new Date().toISOString();
+    binding.archiveObservedBy = 'launcher-queue';
+    const temporary = `${this.agentBindingsFile}.${process.pid}.tmp`;
+    fs.writeFileSync(temporary, `${JSON.stringify(registry, null, 2)}\n`, { mode: 0o600 });
+    fs.renameSync(temporary, this.agentBindingsFile);
   }
 
   #activeGovernorTaskId() {
@@ -295,7 +319,7 @@ function launch() {
   const navigation = statusNavigator.open();
   const destination = navigation.destination === 'personal-governor'
     ? 'The trusted Personal Governor is checking AI Fleas status.'
-    : 'Open the AI Fleas GPT plugin to create or resume the required Personal Governor.';
+    : 'A new onboarding chat is open. Select AI Fleas GPT and use its Personal Governor action.';
   process.stdout.write(`AI Fleas GPT is ready. ${destination}\n`);
 }
 

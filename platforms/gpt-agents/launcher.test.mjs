@@ -10,7 +10,7 @@ const launcher = fileURLToPath(new URL('./launcher.mjs', import.meta.url));
 const setupScript = fileURLToPath(new URL('./setup.sh', import.meta.url));
 const repositoryRoot = fs.realpathSync(fileURLToPath(new URL('../..', import.meta.url)));
 
-function fixture({ marketplace = false, plugins = false, legacy = false, staleMarketplace = false } = {}) {
+function fixture({ marketplace = false, plugins = false, legacy = false, staleMarketplace = false, archivedQueue = false } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-fleas-gpt-launcher-'));
   const bin = path.join(root, 'bin');
   const app = path.join(root, 'ChatGPT.app');
@@ -18,7 +18,7 @@ function fixture({ marketplace = false, plugins = false, legacy = false, staleMa
   const state = path.join(root, 'state');
   fs.mkdirSync(bin);
   fs.mkdirSync(app);
-  fs.writeFileSync(state, `${marketplace ? 'marketplace' : ''}\n${plugins ? 'plugins' : ''}\n${legacy ? 'legacy' : ''}\n${staleMarketplace ? 'stale' : ''}\n`);
+  fs.writeFileSync(state, `${marketplace ? 'marketplace' : ''}\n${plugins ? 'plugins' : ''}\n${legacy ? 'legacy' : ''}\n${staleMarketplace ? 'stale' : ''}\n${archivedQueue ? 'archived-queue' : ''}\n`);
   const codex = path.join(bin, 'codex');
   const embeddedCodex = path.join(app, 'Contents', 'Resources', 'codex-cli', 'bin', 'codex');
   const open = path.join(bin, 'open');
@@ -46,6 +46,12 @@ case "$*" in
     elif grep -q legacy "$AI_FLEAS_TEST_STATE"; then
       echo '{"installed":[{"pluginId":"ai-fleas-agent-bootstrap@ai-fleas","enabled":true},{"pluginId":"ai-fleas-workflow-router@ai-fleas","enabled":true}]}'
     else echo '{"installed":[]}'; fi ;;
+  'queue --thread '*)
+    if grep -q archived-queue "$AI_FLEAS_TEST_STATE"; then
+      echo 'session is archived' >&2
+      exit 1
+    fi
+    echo '{}' ;;
   *) echo '{}' ;;
 esac
 `);
@@ -208,11 +214,14 @@ test('one-step setup launches the checked-out version from a development branch'
   assert.match(calls, /open -a ChatGPT/);
 });
 
-test('launch opens ChatGPT only when setup is ready', () => {
+test('launch opens a new onboarding chat when setup is ready and no Governor exists', () => {
   const item = fixture({ marketplace: true, plugins: true });
   const result = run(item, ['launch']);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(fs.readFileSync(item.log, 'utf8'), /open -a ChatGPT/);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  assert.match(calls, /open -a ChatGPT/);
+  assert.match(calls, /open codex:\/\/threads\/new/);
+  assert.match(result.stdout, /new onboarding chat is open/);
 });
 
 test('launch queues a read-only status check and opens the trusted Personal Governor', () => {
@@ -242,6 +251,38 @@ test('launch queues a read-only status check and opens the trusted Personal Gove
   assert.match(calls, /queue --thread governor-task-id --message Check AI Fleas status now\./);
   assert.match(calls, /open codex:\/\/threads\/governor-task-id/);
   assert.match(result.stdout, /trusted Personal Governor is checking AI Fleas status/);
+});
+
+test('launch treats an archived Governor as unavailable and opens onboarding', () => {
+  const item = fixture({ marketplace: true, plugins: true, archivedQueue: true });
+  const pluginData = path.join(
+    item.root,
+    'codex-home',
+    'plugins',
+    'data',
+    'ai-fleas-gpt-ai-fleas',
+  );
+  fs.mkdirSync(pluginData, { recursive: true });
+  const registryPath = path.join(pluginData, 'agent-bindings.json');
+  fs.writeFileSync(registryPath, JSON.stringify({
+    instances: {
+      'archived-governor': {
+        agentId: 'personal-governor',
+        scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+        status: 'active',
+      },
+    },
+  }));
+
+  const result = run(item, ['launch']);
+  assert.equal(result.status, 0, result.stderr);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  assert.match(calls, /queue --thread archived-governor/);
+  assert.match(calls, /open codex:\/\/threads\/new/);
+  assert.doesNotMatch(calls, /open codex:\/\/threads\/archived-governor/);
+  const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+  assert.equal(registry.instances['archived-governor'].status, 'archived');
+  assert.equal(registry.instances['archived-governor'].archiveObservedBy, 'launcher-queue');
 });
 
 test('launch finds the current Codex CLI bundled in ChatGPT when Finder PATH is minimal', () => {

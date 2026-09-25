@@ -182,13 +182,13 @@ test('exact prompt plus exact readiness activates and SessionStart restores iden
   });
   assert.match(submitted.hookSpecificOutput.additionalContext, /matches the host-authorized one-time initialization/);
 
-  const blocked = runHook(root, {
+  const incomplete = runHook(root, {
     session_id: 'governor-task',
     turn_id: 'init-turn',
     hook_event_name: 'Stop',
     last_assistant_message: 'ready',
   });
-  assert.equal(blocked.decision, 'block');
+  assert.match(incomplete.systemMessage, /initialization remains pending/);
 
   const activated = runHook(root, {
     session_id: 'governor-task',
@@ -219,7 +219,7 @@ test('readiness from a different turn cannot activate the task', () => {
     hook_event_name: 'Stop',
     last_assistant_message: 'PERSONAL_GOVERNOR_READY',
   });
-  assert.equal(result.decision, 'block');
+  assert.match(result.systemMessage, /initialization remains pending/);
   const registry = JSON.parse(fs.readFileSync(path.join(root, 'agent-bindings.json')));
   assert.equal(registry.instances['governor-task'].status, 'pending');
 });
@@ -232,7 +232,7 @@ test('readiness without an exact initialization turn cannot activate the task', 
     hook_event_name: 'Stop',
     last_assistant_message: 'PERSONAL_GOVERNOR_READY',
   });
-  assert.equal(result.decision, 'block');
+  assert.match(result.systemMessage, /initialization remains pending/);
   const registry = JSON.parse(fs.readFileSync(path.join(root, 'agent-bindings.json')));
   assert.equal(registry.instances['governor-task'].status, 'pending');
 });
@@ -266,4 +266,72 @@ test('queue helper registers and delivers the exact prompt through Codex queue s
   });
   const registry = JSON.parse(fs.readFileSync(path.join(root, 'agent-bindings.json')));
   assert.equal(registry.instances['governor-task'].status, 'pending');
+});
+
+test('queue helper rolls back a newly registered receipt when delivery fails', () => {
+  const root = workspace();
+  const bindingFile = path.join(root, 'binding.json');
+  const promptFile = path.join(root, 'prompt.txt');
+  const codex = path.join(root, 'codex-fails');
+  fs.writeFileSync(bindingFile, JSON.stringify({
+    platformAdapter: 'gpt-agents',
+    agentId: 'personal-governor',
+    generation: 2,
+    scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+    initialization: {
+      readinessToken: 'PERSONAL_GOVERNOR_READY',
+      sources: [{ id: 'portable-role', ref: 'ai-workflows/_common/roles/personal-governor.md' }],
+    },
+  }));
+  fs.writeFileSync(promptFile, 'Initialize Personal Governor for example-human\n');
+  fs.writeFileSync(codex, '#!/bin/sh\necho "task is archived" >&2\nexit 1\n', { mode: 0o700 });
+
+  const result = spawnSync(process.execPath, [queue, 'governor-task', bindingFile, promptFile], {
+    encoding: 'utf8',
+    env: { ...process.env, PLUGIN_DATA: root, CODEX_BIN: codex },
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /task is archived/);
+  assert.equal(fs.existsSync(path.join(root, 'agent-bindings.json')), false);
+});
+
+test('queue helper restores the previous registry when replacement delivery fails', () => {
+  const root = workspace();
+  const registryPath = path.join(root, 'agent-bindings.json');
+  const original = {
+    schemaVersion: 1,
+    instances: {
+      existing: {
+        platformAdapter: 'gpt-agents',
+        agentId: 'personal-governor',
+        generation: 1,
+        scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+        initialization: { sources: [] },
+        status: 'active',
+      },
+    },
+  };
+  fs.writeFileSync(registryPath, `${JSON.stringify(original, null, 2)}\n`);
+  const bindingFile = path.join(root, 'binding.json');
+  const promptFile = path.join(root, 'prompt.txt');
+  const codex = path.join(root, 'codex-fails');
+  fs.writeFileSync(bindingFile, JSON.stringify({
+    platformAdapter: 'gpt-agents',
+    agentId: 'personal-governor',
+    generation: 2,
+    scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+    initialization: {
+      readinessToken: 'PERSONAL_GOVERNOR_READY',
+      sources: [{ id: 'portable-role', ref: 'ai-workflows/_common/roles/personal-governor.md' }],
+    },
+  }));
+  fs.writeFileSync(promptFile, 'Initialize Personal Governor for example-human\n');
+  fs.writeFileSync(codex, '#!/bin/sh\nexit 1\n', { mode: 0o700 });
+
+  const result = spawnSync(process.execPath, [queue, 'replacement', bindingFile, promptFile], {
+    encoding: 'utf8',
+    env: { ...process.env, PLUGIN_DATA: root, CODEX_BIN: codex },
+  });
+  assert.equal(result.status, 1);
+  assert.deepEqual(JSON.parse(fs.readFileSync(registryPath, 'utf8')), original);
 });
