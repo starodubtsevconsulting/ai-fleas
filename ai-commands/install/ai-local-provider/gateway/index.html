@@ -22,6 +22,9 @@
     .message { max-width: 86%; border: 1px solid #282e34; border-radius: 18px; padding: 14px 16px; white-space: pre-wrap; line-height: 1.55; overflow-wrap: anywhere; }
     .user { align-self: flex-end; background: #20252a; }
     .assistant { align-self: flex-start; background: #101316; }
+    .assistant pre { margin: 12px 0; overflow-x: auto; border: 1px solid #303840; border-radius: 12px; background: #080a0c; padding: 14px; white-space: pre; }
+    .assistant code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: .92em; }
+    .assistant .code-language { display: block; margin: -4px 0 8px; color: #89939d; font: 11px/1.2 Inter, ui-sans-serif, system-ui, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
     .error { color: #ff8b8b; border-color: #67393d; }
     form { position: sticky; bottom: 18px; display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 12px; border: 1px solid #2c3238; border-radius: 20px; background: rgba(18,21,24,.96); box-shadow: 0 22px 70px #000; }
     textarea { min-height: 58px; max-height: 210px; resize: vertical; border: 0; outline: 0; background: transparent; color: inherit; padding: 10px; }
@@ -80,6 +83,22 @@
       return message;
     }
 
+    function escapeHtml(text) {
+      return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+    }
+
+    function renderAssistantMarkdown(text) {
+      const parts = text.split(/```/);
+      return parts.map((part, index) => {
+        if (index % 2 === 0) return escapeHtml(part);
+        const newline = part.indexOf('\n');
+        const language = newline < 0 ? '' : part.slice(0, newline).trim();
+        const code = newline < 0 ? part : part.slice(newline + 1);
+        const label = language ? `<span class="code-language">${escapeHtml(language)}</span>` : '';
+        return `<pre>${label}<code>${escapeHtml(code.replace(/\n$/, ''))}</code></pre>`;
+      }).join('');
+    }
+
     async function loadModels() {
       try {
         const response = await fetch('/v1/models', { cache: 'no-store' });
@@ -135,7 +154,7 @@
               if (!data || data === '[DONE]') continue;
               const payload = JSON.parse(data);
               completeText += payload.choices?.[0]?.delta?.content ?? '';
-              assistant.textContent = completeText;
+              assistant.innerHTML = renderAssistantMarkdown(completeText);
             }
           }
         }
