@@ -50,8 +50,11 @@ Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes o
 3. Open the cloned `ai-fleas` folder in Finder, then open `platforms` → `gpt-agents` → `macos`.
 4. The links here only preview the scripts on GitHub; they cannot run from the browser. In Finder, Control-click
    `Setup AI Fleas GPT.command`, choose **Open**, then confirm **Open** the first time macOS asks.
-5. In ChatGPT, review and trust the two AI Fleas plugin hooks when prompted, then start a new Codex task.
-6. For later sessions, open `AI Fleas GPT.command` from the same Finder folder. You can drag it to the Dock for easier
+5. If ChatGPT was already running, quit it completely with **ChatGPT → Quit ChatGPT** or `⌘Q`. Closing a window is not
+   sufficient because the running app retains its previous plugin snapshot.
+6. Open `AI Fleas GPT.command` from the same Finder folder. In ChatGPT, review and trust the two AI Fleas plugin hooks
+   when prompted, then start a new Codex task.
+7. For later sessions, use `AI Fleas GPT.command` again. You can drag it to the Dock for easier
    access.
 
 After setup, the Agent Bootstrap plugin page should look like this:
@@ -62,6 +65,9 @@ The **Try now** button opens a diagnostic task. It does not initialize a Persona
 is expected. To initialize the Governor, create a new Codex task and request `Initialize Personal Governor for
 <human-profile-id> using the GPT Agents controller.` The controller creates and binds the dedicated Governor task; an
 ordinary chat cannot grant itself that identity.
+
+After a plugin update, fully quit and reopen ChatGPT before creating the test task. Existing tasks and a still-running app
+may continue using the earlier cached plugin version.
 
 If the Finder launcher does not open, open Terminal in the cloned repository and run:
 
