@@ -1,0 +1,32 @@
+{
+  "name": "ai-fleas",
+  "interface": {
+    "displayName": "AI Fleas"
+  },
+  "plugins": [
+    {
+      "name": "ai-fleas-agent-bootstrap",
+      "source": {
+        "source": "local",
+        "path": "./platforms/gpt-agents/plugins/ai-fleas-agent-bootstrap"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "ai-fleas-workflow-router",
+      "source": {
+        "source": "local",
+        "path": "./platforms/gpt-agents/plugins/ai-fleas-workflow-router"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -12,3 +12,11 @@ Platform-specific lifecycle, messaging, model selection, persistence, UI, naviga
 
 All adapters follow the [portable agent bootstrap contract](contract/agent-bootstrap.md): host startup restores only an
 exact trusted instance binding, while first-time identity assignment remains a lifecycle-controller transaction.
+
+## Supported platforms
+
+| Platform | Runtime | Getting started |
+| --- | --- | --- |
+| [GPT Agents](gpt-agents/) | Codex tasks in the ChatGPT desktop application | macOS setup and one-click launcher available |
+| [Hermes](hermes/) | Hermes agents | Adapter contract and profile-driven initialization |
+| [SC](sc/) | SC platform runtime | Adapter contract |
