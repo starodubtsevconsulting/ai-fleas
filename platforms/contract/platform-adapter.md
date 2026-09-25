@@ -26,3 +26,6 @@ requirements.
 The selected profile names an `agent_platform`. Resolve that exact ID from `platforms/registry.yml` or an explicitly
 provided external registry. Never derive a folder name or scan sibling repositories. An unresolved ID returns
 `BLOCKED_AGENT_PLATFORM_NOT_AVAILABLE` with zero runtime mutation.
+
+Every adapter also implements the [portable agent bootstrap contract](agent-bootstrap.md). Host startup may restore an
+exact trusted identity, but it never grants identity from presentation or conversational state.
