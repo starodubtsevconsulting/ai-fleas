@@ -121,12 +121,14 @@ returned until output moderation allows release. Model lifecycle remains owned b
 
 For a short migration period, a profile may set `IMAGE_POLICY_BYPASS_CODE_SHA256` to the lowercase SHA-256 digest of
 an owner-held code and `IMAGE_POLICY_BYPASS_SESSION_TTL_SECONDS` to 60–86400 seconds. The portable default is disabled.
-An already-authenticated browser may visit `/?policy_bypass=PLAINTEXT_CODE` once; the service immediately redirects to
-a URL without the code and issues a Secure, HttpOnly, SameSite=Strict, process-local cookie. While that cookie is
-active, semantic input and output validation are skipped, but request limits and generation-policy steering remain in
-force. `/?policy_bypass=off` or `DELETE /v1/policy-bypass` revokes the browser session, and every service restart revokes
-all sessions. The initial query can still appear in browser, reverse-proxy, or access logs, so this is a temporary
-owner-access bridge rather than a substitute for identity/role policy.
+An already-authenticated browser may visit `/?policy_bypass=PLAINTEXT_CODE`; the service immediately replaces the code
+with the visible `?policy_bypass=active` marker and issues a Secure, HttpOnly, SameSite=Strict, process-local cookie.
+The marker is not an authorization credential and cannot activate another browser without the matching cookie. While
+both are present, semantic input and output validation are skipped, but request limits and generation-policy steering
+remain in force. Opening `/` without the marker automatically revokes that browser's bypass before the UI handles later
+generation requests. `/?policy_bypass=off` or `DELETE /v1/policy-bypass` also revokes the browser session, and every
+service restart revokes all sessions. The initial code can still appear in browser, reverse-proxy, or access logs, so
+this is a temporary owner-access bridge rather than a substitute for identity/role policy.
 
 Managed interactive services should configure `IMAGE_DEFAULT_SIZE`, request ceilings (`IMAGE_MAX_WIDTH`,
 `IMAGE_MAX_HEIGHT`, `IMAGE_MAX_PIXELS`, and `IMAGE_MAX_STEPS`), and two host-memory thresholds. Requests are rejected

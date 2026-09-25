@@ -6,6 +6,7 @@ import hashlib
 from http.cookies import SimpleCookie
 
 from starlette.requests import Request
+from starlette.responses import Response
 
 import serve
 from policy_bypass import TemporaryPolicyBypass
@@ -61,7 +62,7 @@ async def main() -> None:
             must_not_route,
         )
         assert exchanged.status_code == 303
-        assert exchanged.headers["location"] == "/?keep=value"
+        assert exchanged.headers["location"] == "/?keep=value&policy_bypass=active"
         assert code not in exchanged.headers["location"]
         assert exchanged.headers["cache-control"] == "no-store"
         assert exchanged.headers["referrer-policy"] == "no-referrer"
@@ -77,6 +78,20 @@ async def main() -> None:
             "active": True,
             "expires_in_seconds": 300,
         }
+
+        routed = []
+
+        async def route(_request):
+            routed.append(True)
+            return Response("ui")
+
+        active_page = await serve.exchange_policy_bypass(
+            request(b"policy_bypass=active", cookie=cookie_header),
+            route,
+        )
+        assert active_page.status_code == 200
+        assert routed == [True]
+        assert manager.active("session-token")
 
         generation_args = []
 
@@ -104,9 +119,22 @@ async def main() -> None:
         assert validation_calls == ["boundary test"]
         assert generation_args[-1][-1] is False
 
-        revoked = serve.policy_bypass_revoke(active_request)
-        assert revoked.status_code == 204
+        default_page = await serve.exchange_policy_bypass(active_request, route)
+        assert default_page.status_code == 200
         assert not manager.active("session-token")
+        assert "Max-Age=0" in default_page.headers["set-cookie"]
+
+        second_exchange = await serve.exchange_policy_bypass(
+            request(b"policy_bypass=test-code"),
+            must_not_route,
+        )
+        second_cookie = SimpleCookie()
+        second_cookie.load(second_exchange.headers["set-cookie"])
+        second_token = second_cookie[serve.POLICY_BYPASS_COOKIE].value
+        second_request = request(cookie=f"{serve.POLICY_BYPASS_COOKIE}={second_token}")
+        revoked = serve.policy_bypass_revoke(second_request)
+        assert revoked.status_code == 204
+        assert not manager.active(second_token)
         assert "Max-Age=0" in revoked.headers["set-cookie"]
 
         invalid = await serve.exchange_policy_bypass(
