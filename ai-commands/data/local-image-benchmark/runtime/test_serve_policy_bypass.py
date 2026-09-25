@@ -12,10 +12,12 @@ import serve
 from policy_bypass import TemporaryPolicyBypass
 
 
-def request(query: bytes = b"", cookie: str = "") -> Request:
-    headers = []
+def request(query: bytes = b"", cookie: str = "", referer: str = "") -> Request:
+    headers = [(b"host", b"example.test")]
     if cookie:
         headers.append((b"cookie", cookie.encode("ascii")))
+    if referer:
+        headers.append((b"referer", referer.encode("ascii")))
     return Request(
         {
             "type": "http",
@@ -72,7 +74,10 @@ async def main() -> None:
         assert morsel.value == "session-token"
         assert morsel["secure"] and morsel["httponly"] and morsel["samesite"].lower() == "strict"
         cookie_header = f"{serve.POLICY_BYPASS_COOKIE}={morsel.value}"
-        active_request = request(cookie=cookie_header)
+        active_request = request(
+            cookie=cookie_header,
+            referer="https://example.test/?policy_bypass=active#/chat/test",
+        )
         assert serve.policy_bypass_status(active_request) == {
             "enabled": True,
             "active": True,
@@ -90,6 +95,8 @@ async def main() -> None:
             route,
         )
         assert active_page.status_code == 200
+        assert active_page.headers["cache-control"] == "no-store"
+        assert active_page.headers["referrer-policy"] == "same-origin"
         assert routed == [True]
         assert manager.active("session-token")
 
@@ -115,13 +122,23 @@ async def main() -> None:
             validation_calls.append(prompt)
 
         serve.validate_policy_input = allow_validation
-        await serve.generate(payload, request())
+        stale_cookie_request = request(cookie=cookie_header)
+        await serve.generate(payload, stale_cookie_request)
         assert validation_calls == ["boundary test"]
         assert generation_args[-1][-1] is False
-
-        default_page = await serve.exchange_policy_bypass(active_request, route)
-        assert default_page.status_code == 200
         assert not manager.active("session-token")
+
+        root_exchange = await serve.exchange_policy_bypass(
+            request(b"policy_bypass=test-code"),
+            must_not_route,
+        )
+        root_cookie = SimpleCookie()
+        root_cookie.load(root_exchange.headers["set-cookie"])
+        root_token = root_cookie[serve.POLICY_BYPASS_COOKIE].value
+        root_request = request(cookie=f"{serve.POLICY_BYPASS_COOKIE}={root_token}")
+        default_page = await serve.exchange_policy_bypass(root_request, route)
+        assert default_page.status_code == 200
+        assert not manager.active(root_token)
         assert "Max-Age=0" in default_page.headers["set-cookie"]
 
         second_exchange = await serve.exchange_policy_bypass(
