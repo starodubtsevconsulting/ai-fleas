@@ -1,31 +1,26 @@
-# GPT/Codex App adapter
+# AI Fleas for ChatGPT
 
-## Start on macOS
+This connects AI Fleas to the ChatGPT/Codex desktop app on macOS.
 
-The current launcher supports macOS. Install the ChatGPT desktop application and Codex CLI, then clone this repository.
-The `.command` links on GitHub are source previews and cannot execute in a browser. Open the cloned repository in Finder,
-navigate to `platforms/gpt-agents/macos`, and completely quit ChatGPT with **ChatGPT → Quit ChatGPT** or `⌘Q` so the
-app cannot retain an earlier plugin snapshot. Then Control-click `Setup AI Fleas GPT.command`, choose **Open**, and
-confirm **Open** the first time macOS asks. The setup launcher runs the complete idempotent platform sequence: install or
-update, migrate legacy plugin data, verify health, and reopen ChatGPT. It installs one user-facing plugin, **AI Fleas
-GPT**. Agent Bootstrap and Workflow Router remain separate internal modules.
+## Setup
 
-ChatGPT requires a human to review and trust new or changed plugin hooks. Approve those hooks and start a new Codex task.
-For later sessions, open `AI Fleas GPT.command` from the same Finder folder. You can drag that daily launcher to the Dock
-for easier access.
+1. Install the ChatGPT desktop app and Codex CLI.
+2. Clone this repository.
+3. Quit ChatGPT.
+4. In Finder, open `platforms/gpt-agents/macos`.
+5. Control-click `Setup AI Fleas GPT.command`, choose **Open**, and approve the **AI Fleas GPT** hooks when ChatGPT asks.
 
-After setup, the Plugins page should show one repository-managed entry named **AI Fleas GPT**. Local Hermes is an
-optional, independent integration and is not installed by this launcher.
+## Daily use
 
-The **Try now** button is diagnostic only. It creates an ordinary unbound task, so `No trusted AI Fleas bootstrap binding`
-is the expected result. It does not initialize a Governor or workflow agent. Personal Governor initialization must be an
-explicit `initialize-governor` controller transaction for an exact human profile; the bootstrap then activates only the
-exact task ID registered by that transaction.
+Open `AI Fleas GPT.command`. You can drag it to the Dock for easier access.
 
-After updating the plugin, fully quit and reopen ChatGPT before testing in a new task. Existing tasks and a still-running
-desktop process may continue using the previous cached plugin version.
+To initialize your Personal Governor, start a new Codex task and ask:
 
-Terminal equivalents:
+> Initialize Personal Governor for `<human-profile-id>` using the GPT Agents controller.
+
+The **Try now** button is only a connection check; it does not create a Personal Governor.
+
+## Terminal
 
 ```sh
 platforms/gpt-agents/setup.sh
@@ -37,30 +32,12 @@ To record a private work profile at the same time:
 platforms/gpt-agents/setup.sh --profile /absolute/path/to/work-profile.yml
 ```
 
-The underlying launcher remains available for individual diagnostics and daily launch:
+Diagnostics:
 
 ```sh
 node platforms/gpt-agents/launcher.mjs doctor
 node platforms/gpt-agents/launcher.mjs launch
 ```
-
-If `doctor` reports `migration-required`, either the same AI Fleas plugin is still enabled from an older marketplace or
-the `ai-fleas` marketplace points to a different checkout. Review `conflictingPlugins`, `marketplaceRoot`, and
-`expectedMarketplaceRoot`, then migrate explicitly:
-
-```sh
-node platforms/gpt-agents/launcher.mjs setup --migrate
-```
-
-The normal setup and launch paths fail closed when duplicate or legacy plugin names are enabled or the marketplace source
-is not the repository running the launcher. Migration relocates a mismatched marketplace, installs the repository-managed
-plugin, copies legacy plugin data into its new data directory without overwriting conflicts, and only then removes the
-reported older plugin copies. Orphaned legacy data is copied too, so a previously uninstalled marketplace copy does not
-silently lose its identity receipts.
-
-The selected profile path is stored locally and is not committed. Agent creation and reconciliation remain operations of
-the profile-aware `gpt-agents` command; the launcher does not duplicate that lifecycle logic. Other operating systems may
-implement the same launcher contract, but this first executable intentionally fails closed outside macOS.
 
 ## GPT plugin development
 

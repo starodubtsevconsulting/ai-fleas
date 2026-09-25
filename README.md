@@ -45,38 +45,15 @@ Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes o
 
 ### Start with ChatGPT/Codex on macOS
 
-1. Install the ChatGPT desktop application and Codex CLI.
-2. Clone this repository.
-3. Open the cloned `ai-fleas` folder in Finder, then open `platforms` → `gpt-agents` → `macos`.
-4. Completely quit ChatGPT with **ChatGPT → Quit ChatGPT** or `⌘Q` so it cannot retain an earlier plugin snapshot.
-5. The links here only preview the scripts on GitHub; they cannot run from the browser. In Finder, Control-click
-   `Setup AI Fleas GPT.command`, choose **Open**, then confirm **Open** the first time macOS asks.
-6. The setup performs installation/update, legacy-data migration, health verification, and then opens ChatGPT. Review and
-   trust the **AI Fleas GPT** plugin hooks when prompted, then start a new Codex task.
-7. For later sessions, use `AI Fleas GPT.command`. You can drag it to the Dock for easier access.
+AI Fleas GPT connects this repository to the ChatGPT desktop app.
 
-After setup, the Plugins page should show one repository-managed entry named **AI Fleas GPT**. Agent Bootstrap and
-Workflow Router are internal modules of that plugin, not separate installation choices. Local Hermes remains an optional,
-independent integration.
+1. Install ChatGPT and Codex CLI, then clone this repository.
+2. Quit ChatGPT.
+3. In Finder, open `platforms/gpt-agents/macos` and run `Setup AI Fleas GPT.command`.
+4. Approve the **AI Fleas GPT** hooks when ChatGPT asks.
+5. For daily use, open `AI Fleas GPT.command`.
 
-The **Try now** button opens a diagnostic task. It does not initialize a Personal Governor and an `unbound` result there
-is expected. To initialize the Governor, create a new Codex task and request `Initialize Personal Governor for
-<human-profile-id> using the GPT Agents controller.` The controller creates and binds the dedicated Governor task; an
-ordinary chat cannot grant itself that identity.
-
-After a plugin update, fully quit and reopen ChatGPT before creating the test task. Existing tasks and a still-running app
-may continue using the earlier cached plugin version.
-
-If the Finder launcher does not open, open Terminal in the cloned repository and run:
-
-```sh
-platforms/gpt-agents/setup.sh
-```
-
-The setup registers this repository as a local AI Fleas plugin marketplace and installs the single **AI Fleas GPT** plugin.
-Its Agent Bootstrap and Workflow Router modules remain independently structured and tested inside that package. Hook
-approval remains a deliberate human security step. See the [GPT Agents platform guide](platforms/gpt-agents/)
-for terminal commands, diagnostics, private-profile selection, and a [launcher-to-agent lifecycle diagram](platforms/gpt-agents/#what-the-launcher-does).
+See the [GPT Agents guide](platforms/gpt-agents/) for Personal Governor setup and terminal commands.
 
 ### Configure your AI team
 
