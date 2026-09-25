@@ -123,12 +123,15 @@ For a short migration period, a profile may set `IMAGE_POLICY_BYPASS_CODE_SHA256
 an owner-held code and `IMAGE_POLICY_BYPASS_SESSION_TTL_SECONDS` to 60–86400 seconds. The portable default is disabled.
 An already-authenticated browser may visit `/?policy_bypass=PLAINTEXT_CODE`; the service immediately replaces the code
 with the visible `?policy_bypass=active` marker and issues a Secure, HttpOnly, SameSite=Strict, process-local cookie.
-The marker is not an authorization credential and cannot activate another browser without the matching cookie. While
-both are present, semantic input and output validation are skipped, but request limits and generation-policy steering
-remain in force. Opening `/` without the marker automatically revokes that browser's bypass before the UI handles later
-generation requests. `/?policy_bypass=off` or `DELETE /v1/policy-bypass` also revokes the browser session, and every
-service restart revokes all sessions. The initial code can still appear in browser, reverse-proxy, or access logs, so
-this is a temporary owner-access bridge rather than a substitute for identity/role policy.
+The marker is not an authorization credential and cannot activate another browser without the matching cookie. A
+generation request bypasses semantic input and output validation only when both the cookie and the same-origin active
+page referrer are present. This makes a stale cookie insufficient even when a cached UI prevents a new root request
+from reaching the service. Opening `/` without the marker revokes the browser token when the request reaches the
+service; otherwise, the first generation request without the active referrer revokes it and runs with normal filtering.
+Request limits and generation-policy steering always remain in force. `/?policy_bypass=off` or
+`DELETE /v1/policy-bypass` also revokes the browser session, and every service restart revokes all sessions. The initial
+code can still appear in browser, reverse-proxy, or access logs, so this is a temporary owner-access bridge rather than
+a substitute for identity/role policy.
 
 Managed interactive services should configure `IMAGE_DEFAULT_SIZE`, request ceilings (`IMAGE_MAX_WIDTH`,
 `IMAGE_MAX_HEIGHT`, `IMAGE_MAX_PIXELS`, and `IMAGE_MAX_STEPS`), and two host-memory thresholds. Requests are rejected

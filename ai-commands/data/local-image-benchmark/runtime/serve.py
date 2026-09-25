@@ -14,7 +14,7 @@ import uuid
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 import torch
 from diffusers import DiffusionPipeline, StableDiffusionXLPipeline
@@ -180,7 +180,24 @@ async def validate_policy_input(prompt: str) -> None:
 
 
 def policy_bypass_active(request: Request) -> bool:
-    return POLICY_BYPASS.active(request.cookies.get(POLICY_BYPASS_COOKIE, ""))
+    token = request.cookies.get(POLICY_BYPASS_COOKIE, "")
+    if not POLICY_BYPASS.active(token):
+        return False
+    referrer = urlsplit(request.headers.get("referer", ""))
+    marker_present = (
+        referrer.netloc == request.headers.get("host", "")
+        and referrer.path == "/"
+        and POLICY_BYPASS_ACTIVE_MARKER
+        in parse_qs(referrer.query).get(POLICY_BYPASS_QUERY_PARAMETER, [])
+    )
+    if marker_present:
+        return True
+    POLICY_BYPASS.revoke(token)
+    print(
+        json.dumps({"event": "policy_bypass_revoked", "reason": "missing_active_referrer"}),
+        flush=True,
+    )
+    return False
 
 
 def release_generation_memory() -> None:
@@ -366,7 +383,10 @@ async def exchange_policy_bypass(request: Request, call_next):
             return response
 
         if code == POLICY_BYPASS_ACTIVE_MARKER and POLICY_BYPASS.active(current_token):
-            return await call_next(request)
+            response = await call_next(request)
+            response.headers["Cache-Control"] = "no-store"
+            response.headers["Referrer-Policy"] = "same-origin"
+            return response
 
         response = RedirectResponse(clean_location, status_code=303)
         response.headers["Cache-Control"] = "no-store"
