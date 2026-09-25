@@ -62,7 +62,7 @@ The simplest path is:
 
 The setup registers this repository as a local AI Fleas plugin marketplace and installs the Agent Bootstrap and Workflow
 Router plugins. Hook approval remains a deliberate human security step. See the [GPT Agents platform guide](platforms/gpt-agents/)
-for terminal commands, diagnostics, private-profile selection, and architecture.
+for terminal commands, diagnostics, private-profile selection, and a [launcher-to-agent lifecycle diagram](platforms/gpt-agents/#what-the-launcher-does).
 
 ### What happens during initialization?
 
