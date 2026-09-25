@@ -50,7 +50,8 @@ if [[ "${AI_FLEAS_SKIP_APP_ICON:-0}" != "1" ]]; then
 fi
 
 app_url="file://${app_path// /%20}/"
-if ! "$defaults_bin" read com.apple.dock persistent-apps 2>/dev/null | grep -q 'AI Fleas GPT.app'; then
+dock_apps="$("$defaults_bin" read com.apple.dock persistent-apps 2>/dev/null || true)"
+if [[ "$dock_apps" != *'AI Fleas GPT.app'* && "$dock_apps" != *'AI%20Fleas%20GPT.app'* ]]; then
   "$defaults_bin" write com.apple.dock persistent-apps -array-add \
     "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>$app_url</string><key>_CFURLStringType</key><integer>15</integer></dict><key>file-label</key><string>AI Fleas GPT</string></dict><key>tile-type</key><string>file-tile</string></dict>"
   "$killall_bin" Dock

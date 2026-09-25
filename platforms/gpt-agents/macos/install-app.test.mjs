@@ -83,3 +83,22 @@ test('root installer does not duplicate an existing Dock icon', () => {
   assert.doesNotMatch(calls, /killall Dock/);
   assert.match(calls, /open .*AI Fleas GPT\.app/);
 });
+
+test('root installer recognizes the URL-encoded macOS Dock entry', () => {
+  const item = fixture();
+  const defaults = item.env.AI_FLEAS_DEFAULTS_BIN;
+  fs.writeFileSync(defaults, `#!/bin/sh
+printf 'defaults %s\\n' "$*" >> "$AI_FLEAS_TEST_LOG"
+if [ "$1" = read ]; then
+  echo 'file:///Users/test/Applications/AI%20Fleas%20GPT.app/'
+  i=0
+  while [ "$i" -lt 10000 ]; do echo 'large-dock-output'; i=$((i + 1)); done
+fi
+`);
+  fs.chmodSync(defaults, 0o755);
+  const result = spawnSync('/bin/zsh', [rootInstaller], { encoding: 'utf8', env: item.env });
+  assert.equal(result.status, 0, result.stderr);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  assert.doesNotMatch(calls, /defaults write/);
+  assert.doesNotMatch(calls, /killall Dock/);
+});
