@@ -37,6 +37,14 @@ class OllamaPolicyServiceTest(unittest.TestCase):
         self.assertIn("Do not return or log", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
         self.assertIn("gender presentation, age, skin tone", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
         self.assertIn("clothing color, body shape", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("mouth, lips, teeth, tongue", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("visible tongue", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("Missing clothing details", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("a woman showing her tongue", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("a woman showing his tongue", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("Grammatical errors or pronoun disagreement", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("deny only when it does", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
+        self.assertIn("without requiring CONTENT to mention clothing", SEMANTIC_EVALUATOR_SYSTEM_PROMPT)
 
     def test_requires_profile_selected_model(self):
         with self.assertRaisesRegex(EvaluatorError, "POLICY_SERVICE_MODEL is required"):
@@ -82,6 +90,36 @@ class OllamaPolicyServiceTest(unittest.TestCase):
         self.assertIn("face, hair, hands, arms, shoulders, and lower legs are compliant", prompt)
         self.assertIn("gender identity or presentation", prompt)
         self.assertIn("hair or clothing colors", prompt)
+
+    def test_nudity_input_uses_a_policy_grounded_boundary_example(self):
+        captured = {}
+
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+            def read(self, _):
+                return json.dumps(
+                    {"message": {"content": json.dumps({"decision": "allow", "violated_policy_ids": []})}}
+                ).encode()
+
+        def urlopen(url_request, timeout):
+            del timeout
+            captured.update(json.loads(url_request.data.decode()))
+            return Response()
+
+        evaluator = OllamaPolicyEvaluator("http://localhost:11434", "model", 1)
+        with mock.patch("urllib.request.urlopen", side_effect=urlopen):
+            evaluator.decide(request("input"))
+
+        messages = captured["messages"]
+        self.assertEqual([message["role"] for message in messages], ["system", "user", "assistant", "user"])
+        self.assertIn("A woman showing his tongue", messages[1]["content"])
+        self.assertIn('"policies"', messages[1]["content"])
+        self.assertEqual(json.loads(messages[2]["content"]), {"decision": "allow", "violated_policy_ids": []})
 
     def test_rejects_invalid_request_and_image(self):
         invalid = request()
