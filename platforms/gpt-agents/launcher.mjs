@@ -59,8 +59,10 @@ function codexExecutable() {
     path.join(os.homedir(), 'Applications/ChatGPT.app'),
   ].filter(Boolean);
   const candidates = [
-    ...(process.env.PATH || '').split(path.delimiter).filter(Boolean).map(dir => path.join(dir, 'codex')),
+    ...appCandidates.map(app => path.join(app, 'Contents', 'Resources', 'codex-cli', 'bin', 'codex')),
+    ...appCandidates.map(app => path.join(app, 'Contents', 'Resources', 'codex-cli', 'CodexCLI.app', 'Contents', 'MacOS', 'codex')),
     ...appCandidates.map(app => path.join(app, 'Contents', 'Resources', 'codex')),
+    ...(process.env.PATH || '').split(path.delimiter).filter(Boolean).map(dir => path.join(dir, 'codex')),
     '/opt/homebrew/bin/codex',
     '/usr/local/bin/codex',
   ];

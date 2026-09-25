@@ -20,7 +20,7 @@ function fixture({ marketplace = false, plugins = false, legacy = false, staleMa
   fs.mkdirSync(app);
   fs.writeFileSync(state, `${marketplace ? 'marketplace' : ''}\n${plugins ? 'plugins' : ''}\n${legacy ? 'legacy' : ''}\n${staleMarketplace ? 'stale' : ''}\n`);
   const codex = path.join(bin, 'codex');
-  const embeddedCodex = path.join(app, 'Contents', 'Resources', 'codex');
+  const embeddedCodex = path.join(app, 'Contents', 'Resources', 'codex-cli', 'bin', 'codex');
   const open = path.join(bin, 'open');
   const defaults = path.join(bin, 'defaults');
   const git = path.join(bin, 'git');
@@ -244,7 +244,7 @@ test('launch queues a read-only status check and opens the trusted Personal Gove
   assert.match(result.stdout, /trusted Personal Governor is checking AI Fleas status/);
 });
 
-test('launch finds the Codex CLI bundled in ChatGPT when Finder PATH is minimal', () => {
+test('launch finds the current Codex CLI bundled in ChatGPT when Finder PATH is minimal', () => {
   const item = fixture({ marketplace: true, plugins: true });
   const result = run(item, ['launch'], { finderEnvironment: true });
   assert.equal(result.status, 0, result.stderr);
