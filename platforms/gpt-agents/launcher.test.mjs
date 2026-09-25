@@ -37,10 +37,10 @@ case "$*" in
   'plugin list --json')
     if grep -q plugins "$AI_FLEAS_TEST_STATE"; then
       if grep -q legacy "$AI_FLEAS_TEST_STATE"; then
-        echo '{"installed":[{"pluginId":"ai-fleas-agent-bootstrap@ai-fleas","enabled":true},{"pluginId":"ai-fleas-workflow-router@ai-fleas","enabled":true},{"pluginId":"ai-fleas-agent-bootstrap@personal","enabled":true}]}'
-      else echo '{"installed":[{"pluginId":"ai-fleas-agent-bootstrap@ai-fleas","enabled":true},{"pluginId":"ai-fleas-workflow-router@ai-fleas","enabled":true}]}'; fi
+        echo '{"installed":[{"pluginId":"ai-fleas-gpt@ai-fleas","enabled":true},{"pluginId":"ai-fleas-agent-bootstrap@ai-fleas","enabled":true},{"pluginId":"ai-fleas-workflow-router@ai-fleas","enabled":true},{"pluginId":"ai-fleas-gpt@personal","enabled":true}]}'
+      else echo '{"installed":[{"pluginId":"ai-fleas-gpt@ai-fleas","enabled":true}]}'; fi
     elif grep -q legacy "$AI_FLEAS_TEST_STATE"; then
-      echo '{"installed":[{"pluginId":"ai-fleas-agent-bootstrap@personal","enabled":true}]}'
+      echo '{"installed":[{"pluginId":"ai-fleas-agent-bootstrap@ai-fleas","enabled":true},{"pluginId":"ai-fleas-workflow-router@ai-fleas","enabled":true}]}'
     else echo '{"installed":[]}'; fi ;;
   *) echo '{}' ;;
 esac
@@ -64,6 +64,7 @@ function run(item, args, { finderEnvironment = false } = {}) {
     AI_FLEAS_TEST_STATE: item.state,
     AI_FLEAS_EXPECTED_MARKETPLACE_ROOT: repositoryRoot,
     XDG_CONFIG_HOME: path.join(item.root, 'config'),
+    CODEX_HOME: path.join(item.root, 'codex-home'),
   };
   if (finderEnvironment) {
     delete env.AI_FLEAS_CODEX_BIN;
@@ -84,14 +85,15 @@ test('doctor reports setup-required when marketplace and plugins are absent', ()
   assert.equal(JSON.parse(result.stdout).status, 'setup-required');
 });
 
-test('setup adds marketplace and both plugins', () => {
+test('setup adds marketplace and the single AI Fleas GPT plugin', () => {
   const item = fixture();
   const result = run(item, ['setup']);
   assert.equal(result.status, 0, result.stderr);
   const calls = fs.readFileSync(item.log, 'utf8');
   assert.match(calls, /plugin marketplace add/);
-  assert.match(calls, /plugin add ai-fleas-agent-bootstrap@ai-fleas/);
-  assert.match(calls, /plugin add ai-fleas-workflow-router@ai-fleas/);
+  assert.match(calls, /plugin add ai-fleas-gpt@ai-fleas/);
+  assert.doesNotMatch(calls, /plugin add ai-fleas-agent-bootstrap/);
+  assert.doesNotMatch(calls, /plugin add ai-fleas-workflow-router/);
 });
 
 test('launch opens ChatGPT only when setup is ready', () => {
@@ -108,17 +110,31 @@ test('launch finds the Codex CLI bundled in ChatGPT when Finder PATH is minimal'
   assert.match(fs.readFileSync(item.log, 'utf8'), /open -a ChatGPT/);
 });
 
-test('doctor reports migration-required for a duplicate plugin name', () => {
+test('doctor reports migration-required for legacy and duplicate plugin copies', () => {
   const item = fixture({ marketplace: true, plugins: true, legacy: true });
   const result = run(item, ['doctor']);
   assert.equal(result.status, 2, result.stderr);
   const report = JSON.parse(result.stdout);
   assert.equal(report.status, 'migration-required');
-  assert.deepEqual(report.conflictingPlugins, ['ai-fleas-agent-bootstrap@personal']);
+  assert.deepEqual(report.conflictingPlugins, [
+    'ai-fleas-agent-bootstrap@ai-fleas',
+    'ai-fleas-workflow-router@ai-fleas',
+    'ai-fleas-gpt@personal',
+  ]);
 });
 
-test('setup requires explicit migration before replacing an older marketplace copy', () => {
+test('setup requires explicit migration before replacing legacy or duplicate plugins', () => {
   const item = fixture({ marketplace: true, plugins: true, legacy: true });
+  const bootstrapData = path.join(item.root, 'codex-home', 'plugins', 'data', 'ai-fleas-agent-bootstrap-ai-fleas');
+  const routerData = path.join(item.root, 'codex-home', 'plugins', 'data', 'ai-fleas-workflow-router-ai-fleas');
+  const orphanedPersonalData = path.join(item.root, 'codex-home', 'plugins', 'data', 'ai-fleas-agent-bootstrap-personal');
+  fs.mkdirSync(bootstrapData, { recursive: true });
+  fs.mkdirSync(path.join(routerData, 'correlations'), { recursive: true });
+  fs.mkdirSync(orphanedPersonalData, { recursive: true });
+  fs.writeFileSync(path.join(bootstrapData, 'agent-bindings.json'), '{"bindings":[]}');
+  fs.writeFileSync(path.join(routerData, 'bindings.json'), '{"bindings":[]}');
+  fs.writeFileSync(path.join(routerData, 'correlations', 'task.json'), '{"task":"bound"}');
+  fs.writeFileSync(path.join(orphanedPersonalData, 'legacy-receipt.json'), '{"receipt":"preserved"}');
   const blocked = run(item, ['setup']);
   assert.equal(blocked.status, 1);
   assert.match(blocked.stderr, /--migrate/);
@@ -126,7 +142,16 @@ test('setup requires explicit migration before replacing an older marketplace co
 
   const migrated = run(item, ['setup', '--migrate']);
   assert.equal(migrated.status, 0, migrated.stderr);
-  assert.match(fs.readFileSync(item.log, 'utf8'), /plugin remove ai-fleas-agent-bootstrap@personal/);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  assert.match(calls, /plugin add ai-fleas-gpt@ai-fleas/);
+  assert.match(calls, /plugin remove ai-fleas-agent-bootstrap@ai-fleas/);
+  assert.match(calls, /plugin remove ai-fleas-workflow-router@ai-fleas/);
+  assert.match(calls, /plugin remove ai-fleas-gpt@personal/);
+  const mergedData = path.join(item.root, 'codex-home', 'plugins', 'data', 'ai-fleas-gpt-ai-fleas');
+  assert.equal(fs.readFileSync(path.join(mergedData, 'agent-bindings.json'), 'utf8'), '{"bindings":[]}');
+  assert.equal(fs.readFileSync(path.join(mergedData, 'bindings.json'), 'utf8'), '{"bindings":[]}');
+  assert.equal(fs.readFileSync(path.join(mergedData, 'correlations', 'task.json'), 'utf8'), '{"task":"bound"}');
+  assert.equal(fs.readFileSync(path.join(mergedData, 'legacy-receipt.json'), 'utf8'), '{"receipt":"preserved"}');
 });
 
 test('doctor reports migration-required when marketplace name points to another checkout', () => {

@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [{ "hooks": [
+      { "type": "command", "command": "node ${PLUGIN_ROOT}/modules/agent-bootstrap/scripts/agent-bootstrap-hook.mjs" },
+      { "type": "command", "command": "node ${PLUGIN_ROOT}/modules/workflow-router/scripts/workflow-router-hook.mjs" }
+    ] }],
+    "UserPromptSubmit": [{ "hooks": [
+      { "type": "command", "command": "node ${PLUGIN_ROOT}/modules/agent-bootstrap/scripts/agent-bootstrap-hook.mjs" },
+      { "type": "command", "command": "node ${PLUGIN_ROOT}/modules/workflow-router/scripts/workflow-router-hook.mjs" }
+    ] }],
+    "Stop": [{ "hooks": [
+      { "type": "command", "command": "node ${PLUGIN_ROOT}/modules/agent-bootstrap/scripts/agent-bootstrap-hook.mjs" },
+      { "type": "command", "command": "node ${PLUGIN_ROOT}/modules/workflow-router/scripts/workflow-router-hook.mjs" }
+    ] }]
+  }
+}

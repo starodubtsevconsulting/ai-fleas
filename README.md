@@ -52,14 +52,14 @@ Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes o
    `Setup AI Fleas GPT.command`, choose **Open**, then confirm **Open** the first time macOS asks.
 5. If ChatGPT was already running, quit it completely with **ChatGPT → Quit ChatGPT** or `⌘Q`. Closing a window is not
    sufficient because the running app retains its previous plugin snapshot.
-6. Open `AI Fleas GPT.command` from the same Finder folder. In ChatGPT, review and trust the two AI Fleas plugin hooks
-   when prompted, then start a new Codex task.
+6. Open `AI Fleas GPT.command` from the same Finder folder. In ChatGPT, review and trust the **AI Fleas GPT** plugin
+   hooks when prompted, then start a new Codex task.
 7. For later sessions, use `AI Fleas GPT.command` again. You can drag it to the Dock for easier
    access.
 
-After setup, the Agent Bootstrap plugin page should look like this:
-
-![AI Fleas Agent Bootstrap plugin page in ChatGPT/Codex](img/gpt-agents/agent-bootstrap-plugin.png)
+After setup, the Plugins page should show one repository-managed entry named **AI Fleas GPT**. Agent Bootstrap and
+Workflow Router are internal modules of that plugin, not separate installation choices. Local Hermes remains an optional,
+independent integration.
 
 The **Try now** button opens a diagnostic task. It does not initialize a Personal Governor and an `unbound` result there
 is expected. To initialize the Governor, create a new Codex task and request `Initialize Personal Governor for
@@ -76,8 +76,9 @@ node platforms/gpt-agents/launcher.mjs setup
 node platforms/gpt-agents/launcher.mjs launch
 ```
 
-The setup registers this repository as a local AI Fleas plugin marketplace and installs the Agent Bootstrap and Workflow
-Router plugins. Hook approval remains a deliberate human security step. See the [GPT Agents platform guide](platforms/gpt-agents/)
+The setup registers this repository as a local AI Fleas plugin marketplace and installs the single **AI Fleas GPT** plugin.
+Its Agent Bootstrap and Workflow Router modules remain independently structured and tested inside that package. Hook
+approval remains a deliberate human security step. See the [GPT Agents platform guide](platforms/gpt-agents/)
 for terminal commands, diagnostics, private-profile selection, and a [launcher-to-agent lifecycle diagram](platforms/gpt-agents/#what-the-launcher-does).
 
 ### Configure your AI team

@@ -8,7 +8,9 @@ import { fileURLToPath } from 'node:url';
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = fs.realpathSync(path.resolve(scriptDir, '../..'));
 const marketplaceName = 'ai-fleas';
-const requiredPlugins = ['ai-fleas-agent-bootstrap', 'ai-fleas-workflow-router'];
+const requiredPlugins = ['ai-fleas-gpt'];
+const legacyPlugins = ['ai-fleas-agent-bootstrap', 'ai-fleas-workflow-router'];
+const codexHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex');
 const openBin = process.env.AI_FLEAS_OPEN_BIN || 'open';
 const platform = process.env.AI_FLEAS_OS || process.platform;
 
@@ -104,13 +106,47 @@ function conflictingPlugins(installed = installedPlugins()) {
     .map(item => item.pluginId)
     .filter(pluginId => {
       const [name, marketplace] = pluginId.split('@');
-      return requiredPlugins.includes(name) && marketplace !== marketplaceName;
+      return legacyPlugins.includes(name) || (requiredPlugins.includes(name) && marketplace !== marketplaceName);
     });
 }
 
 function missingPlugins() {
   const installed = new Set(installedPlugins().map(item => item.pluginId));
   return requiredPlugins.filter(name => !installed.has(`${name}@${marketplaceName}`));
+}
+
+function pluginDataDirectory(pluginId) {
+  return path.join(codexHome, 'plugins', 'data', pluginId.replace('@', '-'));
+}
+
+function mergePluginData(source, destination) {
+  if (!fs.existsSync(source)) return;
+  fs.mkdirSync(destination, { recursive: true, mode: 0o700 });
+  for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
+    const from = path.join(source, entry.name);
+    const to = path.join(destination, entry.name);
+    if (entry.isDirectory()) {
+      mergePluginData(from, to);
+    } else if (!fs.existsSync(to)) {
+      fs.copyFileSync(from, to, fs.constants.COPYFILE_EXCL);
+    } else if (!fs.readFileSync(from).equals(fs.readFileSync(to))) {
+      fail(`cannot migrate plugin data because ${to} conflicts with ${from}`);
+    }
+  }
+}
+
+function migratePluginData(pluginIds) {
+  const destination = pluginDataDirectory(`ai-fleas-gpt@${marketplaceName}`);
+  const dataRoot = path.join(codexHome, 'plugins', 'data');
+  const sources = new Set(pluginIds.map(pluginDataDirectory));
+  if (fs.existsSync(dataRoot)) {
+    for (const entry of fs.readdirSync(dataRoot, { withFileTypes: true })) {
+      if (entry.isDirectory() && legacyPlugins.some(name => entry.name.startsWith(`${name}-`))) {
+        sources.add(path.join(dataRoot, entry.name));
+      }
+    }
+  }
+  for (const source of sources) mergePluginData(source, destination);
 }
 
 function saveProfile(profileArg) {
@@ -130,7 +166,7 @@ function setup(profileArg, migrate) {
   let marketplace = marketplaceState();
   const rootMismatch = marketplaceRootMismatch(marketplace);
   if (conflicts.length && !migrate) {
-    fail(`the same plugins are enabled from another marketplace: ${conflicts.join(', ')}; rerun setup with --migrate to replace them`);
+    fail(`legacy or duplicate AI Fleas plugins are enabled: ${conflicts.join(', ')}; rerun setup with --migrate to replace them`);
   }
   if (rootMismatch && !migrate) {
     fail(`marketplace ${marketplaceName} points to ${rootMismatch.configured || 'an unknown path'}, expected ${rootMismatch.expected}; rerun setup with --migrate to relocate it`);
@@ -147,15 +183,16 @@ function setup(profileArg, migrate) {
   }
   const missing = missingPlugins();
   if (missing.length) fail(`required plugins are not enabled: ${missing.join(', ')}`);
+  if (migrate) migratePluginData(conflicts);
   for (const pluginId of conflicts) {
     run(codexBin, ['plugin', 'remove', pluginId]);
   }
   const profile = saveProfile(profileArg);
   process.stdout.write([
-    'AI Fleas GPT setup is installed.',
+    'AI Fleas GPT is installed as one user-facing plugin.',
     profile ? `Selected profile: ${profile}` : 'No private profile selected yet.',
     'If ChatGPT is running, quit it completely so it releases its cached plugin snapshot.',
-    'Run the daily launcher, review and trust the AI Fleas plugin hooks, then start a new Codex task.',
+    'Run the daily launcher, review and trust the AI Fleas GPT hooks, then start a new Codex task.',
   ].join('\n') + '\n');
 }
 
@@ -186,7 +223,7 @@ function launch() {
   const app = prerequisites();
   const conflicts = conflictingPlugins();
   if (conflicts.length) {
-    fail(`duplicate AI Fleas plugins are enabled: ${conflicts.join(', ')}; run setup --migrate first`);
+    fail(`legacy or duplicate AI Fleas plugins are enabled: ${conflicts.join(', ')}; run setup --migrate first`);
   }
   const marketplace = marketplaceState();
   const rootMismatch = marketplaceRootMismatch(marketplace);
