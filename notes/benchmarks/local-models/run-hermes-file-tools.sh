@@ -19,16 +19,20 @@ cp "$fixture_dir/INPUT.txt" "$fixture_dir/TASK.md" "$run_dir/"
 rm -f "$run_dir/NORMALIZED.txt" "$run_dir/REPORT.txt" "$run_dir/usage.json" "$run_dir/wall-time-seconds.txt"
 
 prompt="$(<"$run_dir/TASK.md")"
+time_output="$(mktemp "${TMPDIR:-/tmp}/hermes-file-tools-time.XXXXXX")"
+trap 'rm -f -- "$time_output"' EXIT
 
 /usr/bin/time \
-  -f '%e' \
-  -o "$run_dir/wall-time-seconds.txt" \
+  -p \
+  -o "$time_output" \
   "$hermes_bin" \
     --oneshot "$prompt" \
     --usage-file "$run_dir/usage.json" \
     --model "$model" \
     --provider "$provider" \
     --in "$run_dir"
+
+awk '$1 == "real" { print $2; found=1 } END { if (!found) exit 1 }' "$time_output" >"$run_dir/wall-time-seconds.txt"
 
 "$fixture_dir/verify.sh" "$run_dir"
 

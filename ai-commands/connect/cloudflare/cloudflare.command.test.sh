@@ -397,6 +397,7 @@ import json
 import pathlib
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs, urlsplit
 
 record = pathlib.Path(sys.argv[1])
 port_file = pathlib.Path(sys.argv[2])
@@ -428,6 +429,45 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def do_GET(self):
+        if "/access/logs/access_requests?" in self.path:
+            parsed = urlsplit(self.path)
+            query = parse_qs(parsed.query)
+            if not (
+                query.get("direction") == ["desc"]
+                and query.get("per_page") == ["1000"]
+                and query.get("since")
+                and query.get("until")
+            ):
+                self.send_error(400)
+                return
+            if "email" in query and not (
+                query.get("email") == ["one@example.invalid"]
+                and query.get("emailOp") == ["eq"]
+            ):
+                self.send_error(400)
+                return
+            if "email" not in query and "emailOp" in query:
+                self.send_error(400)
+                return
+            self.respond([
+                {
+                    "user_email": "one@example.invalid",
+                    "app_domain": "ai.example.invalid",
+                    "connection": "onetimepin",
+                    "allowed": True,
+                    "created_at": "2026-09-25T12:00:00Z",
+                    "country": "CA",
+                    "ray_id": "example-ray",
+                },
+                {
+                    "user_email": "other@example.invalid",
+                    "app_domain": "ai.example.invalid",
+                    "connection": "google",
+                    "allowed": False,
+                    "created_at": "2026-09-25T11:00:00Z",
+                },
+            ])
+            return
         if self.path.endswith("/access/apps?per_page=100"):
             self.respond([{
                 "id": app_id,
@@ -467,7 +507,7 @@ class Handler(BaseHTTPRequestHandler):
 
 server = HTTPServer(("127.0.0.1", 0), Handler)
 port_file.write_text(str(server.server_port))
-for _ in range(7):
+for _ in range(9):
     server.handle_request()
 PY
 
@@ -488,9 +528,30 @@ access_status="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
   CLOUDFLARE_TEST_ORIGIN=1 \
   CLOUDFLARE_API_BASE_URL="http://127.0.0.1:$(cat "$fixture_dir/access-port")" \
   "$command_path" access-policy-status)"
+access_logs="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
+  CLOUDFLARE_TEST_ORIGIN=1 \
+  CLOUDFLARE_API_BASE_URL="http://127.0.0.1:$(cat "$fixture_dir/access-port")" \
+  TEST_API_TOKEN='test-api-token' \
+  "$command_path" access-auth-logs --email one@example.invalid --hours 24)"
+all_access_logs="$(CLOUDFLARE_COMMAND_CONF="$fixture_dir/config.env" \
+  CLOUDFLARE_TEST_ORIGIN=1 \
+  CLOUDFLARE_API_BASE_URL="http://127.0.0.1:$(cat "$fixture_dir/access-port")" \
+  TEST_API_TOKEN='test-api-token' \
+  "$command_path" access-auth-logs --hours 24 --format jsonl)"
 wait "$access_server_pid"
 [[ "$access_status" == *'name=Approved people'* ]]
 [[ "$access_status" == *'approved emails: one@example.invalid,two@example.invalid'* ]]
+[[ "$access_logs" == *'## Cloudflare Access authentication events'* ]]
+[[ "$access_logs" == *'- Source: Cloudflare Access API'* ]]
+[[ "$access_logs" == *'- Target: `https://ai.example.invalid`'* ]]
+[[ "$access_logs" == *'- User: `one@example.invalid`'* ]]
+[[ "$access_logs" == *'| Time (UTC) | Decision | User | Application | Method | Country |'* ]]
+[[ "$access_logs" == *'| 2026-09-25T12:00:00Z | allowed | one@example.invalid | ai.example.invalid | onetimepin | CA |'* ]]
+[[ "$access_logs" != *'other@example.invalid'* ]]
+[[ "$all_access_logs" == *'"type":"summary","source":"cloudflare_access_api","target":"https://ai.example.invalid","email":null,"hours":24,"count":1'* ]]
+[[ "$all_access_logs" == *'"type":"event"'* ]]
+[[ "$all_access_logs" != *'other@example.invalid'* ]]
+
 python3 - "$fixture_dir/access-requests.jsonl" <<'PY'
 import json, pathlib, sys
 requests = [json.loads(line) for line in pathlib.Path(sys.argv[1]).read_text().splitlines()]

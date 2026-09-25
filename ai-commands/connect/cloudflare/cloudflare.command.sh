@@ -13,6 +13,7 @@ fail() {
 usage() {
   printf '%s\n' \
     'Usage: cloudflare.command.sh list-targets|validate|token-check|access-policy-status|server-status|origin-status|connector-status|controller-state|run-tunnel|stop-tunnel|verify-access|ui' \
+    '       cloudflare.command.sh access-auth-logs [--email EMAIL] [--hours HOURS] [--format markdown|jsonl]' \
     '       cloudflare.command.sh controller-enable|controller-disable --apply' \
     '       cloudflare.command.sh sync-access-policy --apply' \
     '       cloudflare.command.sh install-connector --apply' \
@@ -645,6 +646,122 @@ print(",".join(sorted(set(emails))))
   printf 'cloudflare Access policy synchronized: host=%s approved_emails=%s\n' "$public_url" "$actual_emails"
 }
 
+parse_access_report_arguments() {
+  report_email=''
+  report_hours=24
+  report_format='markdown'
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --email)
+        [[ -n "${2:-}" ]] || fail "$operation --email requires an exact email address"
+        report_email="$2"
+        shift 2
+        ;;
+      --hours)
+        [[ "${2:-}" =~ ^[0-9]+$ ]] || fail "$operation --hours requires a number"
+        report_hours="$2"
+        shift 2
+        ;;
+      --format)
+        [[ "${2:-}" == 'markdown' || "${2:-}" == 'jsonl' ]] || fail "$operation format must be markdown or jsonl"
+        report_format="$2"
+        shift 2
+        ;;
+      *) fail "$operation accepts only --email EMAIL, --hours HOURS, and --format markdown|jsonl" ;;
+    esac
+  done
+  [[ -z "$report_email" || "$report_email" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]] ||
+    fail "$operation requires an exact email address"
+  (( report_hours >= 1 && report_hours <= 168 )) || fail "$operation hours must be between 1 and 168"
+}
+
+
+access_auth_logs() {
+  local api_token="$1" email="$2" hours="$3" output_format="$4" query_path response
+  query_path="$(python3 -c '
+import datetime, sys, urllib.parse
+hours = int(sys.argv[1])
+until = datetime.datetime.now(datetime.timezone.utc)
+since = until - datetime.timedelta(hours=hours)
+params = {
+    "per_page": "1000",
+    "direction": "desc",
+    "since": since.isoformat(timespec="seconds").replace("+00:00", "Z"),
+    "until": until.isoformat(timespec="seconds").replace("+00:00", "Z"),
+}
+if sys.argv[3]:
+    params["email"] = sys.argv[3]
+    params["emailOp"] = "eq"
+print("/accounts/" + sys.argv[2] + "/access/logs/access_requests?" + urllib.parse.urlencode(params))
+' "$hours" "$account_id" "$email")" || fail 'could not construct the Access authentication log query'
+  if ! response="$(api_request GET "$query_path" '' "$api_token")"; then
+    fail 'Cloudflare Access authentication logs could not be retrieved; the API token may need Access: Audit Logs Read'
+  fi
+  require_api_success <<<"$response" || fail 'Cloudflare rejected the Access authentication log query'
+  python3 -c '
+import json, sys, urllib.parse
+value = json.load(sys.stdin)
+email = sys.argv[1].strip().lower()
+hours = int(sys.argv[2])
+output_format = sys.argv[3]
+target = sys.argv[4]
+target_host = (urllib.parse.urlsplit(target).hostname or "").lower()
+events = [
+    event for event in value.get("result", [])
+    if str(event.get("app_domain", "")).split("/", 1)[0].strip().lower() == target_host
+    and (not email or str(event.get("user_email", "")).strip().lower() == email)
+]
+def normalized_event(event):
+    allowed = event.get("allowed")
+    decision = "allowed" if allowed is True else "blocked" if allowed is False else "unknown"
+    return {
+        "timestamp": event.get("created_at"),
+        "decision": decision,
+        "user": event.get("user_email"),
+        "app": event.get("app_domain"),
+        "identity_provider": event.get("connection"),
+        "country": event.get("country"),
+    }
+rows = [normalized_event(event) for event in events]
+connected_users = sorted({str(row["user"]).strip().lower() for row in rows if row["decision"] == "allowed" and row["user"]})
+allowed_count = sum(row["decision"] == "allowed" for row in rows)
+blocked_count = sum(row["decision"] == "blocked" for row in rows)
+if output_format == "jsonl":
+    print(json.dumps({"type":"summary", "source":"cloudflare_access_api", "target":target,
+                      "email":email or None, "hours":hours, "count":len(rows),
+                      "connected_users":connected_users, "allowed_events":allowed_count,
+                      "blocked_events":blocked_count}, separators=(",", ":"), ensure_ascii=True))
+    for row in rows:
+        print(json.dumps({"type":"event", **row}, separators=(",", ":"), ensure_ascii=True))
+    raise SystemExit(0)
+def cell(value):
+    if value is None or value == "":
+        return "-"
+    return str(value).replace("\\", "\\\\").replace("|", "\\|").replace("\r", " ").replace("\n", " ")
+print("## Cloudflare Access authentication events")
+print()
+print("- Source: Cloudflare Access API")
+print(f"- Target: `{cell(target)}`")
+print(f"- Window: last {hours} hours")
+print(f"- User: `{cell(email)}`" if email else "- User: all identities")
+print(f"- Events: {len(rows)}")
+print(f"- Connected users: {len(connected_users)}")
+print(f"- Allowed events: {allowed_count}")
+print(f"- Blocked events: {blocked_count}")
+if connected_users:
+    print("- Connected identities: " + ", ".join(f"`{cell(user)}`" for user in connected_users))
+if not rows:
+    print()
+    print("No authentication events found.")
+    raise SystemExit(0)
+print()
+print("| Time (UTC) | Decision | User | Application | Method | Country |")
+print("|---|---|---|---|---|---|")
+for row in rows:
+    print("| " + " | ".join(cell(row[key]) for key in ("timestamp", "decision", "user", "app", "identity_provider", "country")) + " |")
+' "$email" "$hours" "$output_format" "$public_url" <<<"$response" || fail 'Cloudflare Access authentication log response was invalid'
+}
+
 case "$operation" in
   ui)
     [[ $# -eq 0 ]] || fail 'ui accepts no additional arguments'
@@ -679,6 +796,14 @@ case "$operation" in
     command -v python3 >/dev/null 2>&1 || fail 'python3 is required'
     api_token="$(read_secret "$api_token_env")"
     access_policy_status "$api_token"
+    ;;
+  access-auth-logs)
+    parse_access_report_arguments "$@"
+    validate_config
+    command -v curl >/dev/null 2>&1 || fail 'curl is required'
+    command -v python3 >/dev/null 2>&1 || fail 'python3 is required'
+    api_token="$(read_secret "$api_token_env")"
+    access_auth_logs "$api_token" "$report_email" "$report_hours" "$report_format"
     ;;
   sync-access-policy)
     [[ "${1:-}" == '--apply' && $# -eq 1 ]] || fail 'sync-access-policy requires the exact --apply flag'
