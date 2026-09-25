@@ -25,8 +25,12 @@ It is the platform bootstrap layer, not an agent and not a workflow Router. Code
    ```
 
 4. The helper uses `codex queue`, which causes `UserPromptSubmit` to run in the exact existing task. Cross-task tool
-   messages represented as function-call output are not valid lifecycle delivery and must not be substituted.
-5. The hook requires the configured readiness token and atomically promotes the binding to `active`.
+   messages represented as function-call output are not valid lifecycle delivery and must not be substituted. If queue
+   delivery fails, the helper transactionally restores the registry state from before registration so an undelivered
+   initialization cannot appear pending.
+5. The hook requires the configured readiness token and atomically promotes the binding to `active`. A blocking report,
+   missing token, wrong token, or token from another turn leaves the receipt pending without forcing the agent into a
+   retry loop. The lifecycle controller must resolve the reported condition and re-dispatch initialization.
 6. The lifecycle controller may then pin the successor and archive its predecessor.
 
 The plugin deliberately does not create tasks, select a human profile, or grant lifecycle authority. Those remain GPT Agents adapter responsibilities.

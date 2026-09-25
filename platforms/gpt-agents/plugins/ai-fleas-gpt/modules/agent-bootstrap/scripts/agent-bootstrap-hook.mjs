@@ -158,12 +158,9 @@ if (!binding) {
     delete binding.initialization.startedAt;
     atomicWrite(registryPath(), registry);
     emit({ systemMessage: `AI Fleas activated the exact ${binding.agentId} task binding for generation ${binding.generation}.` });
-  } else if (input.stop_hook_active) {
-    emit({ systemMessage: `Agent initialization remains incomplete. Return exactly ${binding.initialization.readinessToken} only after verifying every declared source.` });
   } else {
     emit({
-      decision: 'block',
-      reason: `This task has not completed its host-authorized initialization. Verify every declared source and return exactly ${binding.initialization.readinessToken}.`,
+      systemMessage: `Agent initialization remains pending. Re-dispatch the host-authorized initialization after resolving every reported blocking condition; readiness requires exactly ${binding.initialization.readinessToken} from that new initialization turn.`,
     });
   }
 } else {

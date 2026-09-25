@@ -1,6 +1,6 @@
 {
   "name": "ai-fleas-gpt",
-  "version": "0.1.0+codex.20260925192519",
+  "version": "0.1.0+codex.20260925223251",
   "description": "The single GPT/Codex adapter for trusted AI Fleas agent identity and workflow routing.",
   "author": {
     "name": "AI Fleas"
