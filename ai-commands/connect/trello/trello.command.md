@@ -27,10 +27,14 @@ flowchart LR
   G -->|Board-checked result, no credential| A
 ```
 
-The profile selects one transport explicitly. A disconnected MCP session does not trigger an automatic switch to the
-API route. The public command and examples contain no real board identifiers or credentials. A private profile owns
-the exact board/list IDs and logical secret mappings. Infisical's machine bootstrap remains in owner-only local files
-because it cannot be retrieved from Infisical itself.
+The profile selects and authorizes transports explicitly. When more than one authorized route is available, use the
+operator-approved order: dedicated profile-backed API first, host-managed Trello MCP second, and browser only for
+authentication or recovery. A fallback must preserve the configured board/list scope and requested effect, and the
+result must record which route was used and why the preceding route was unavailable. Never silently substitute a
+personal MCP identity for the dedicated automation account in unattended work. The public command and examples
+contain no real board identifiers or credentials. A private profile owns the exact board/list IDs and logical secret
+mappings. Infisical's machine bootstrap remains in owner-only local files because it cannot be retrieved from
+Infisical itself.
 
 ### Choosing a transport
 
@@ -38,7 +42,8 @@ because it cannot be retrieved from Infisical itself.
 | --- | --- | --- | --- |
 | An interactive Codex or ChatGPT task has an authorized Trello connected app | `connected_app` | The host manages the account connection and exposes search, card reads, and board/list inventories. No Trello credential enters the agent's profile. | Availability depends on that host's connection and its signed-in account. |
 | A local Hermes agent, scheduled job, or other harness has no connected Trello adapter | `api` | The same profile can run bounded reads and authorized writes unattended with the dedicated account's key and token injected by `secrets`. It does not depend on an interactive browser session. | Requires Infisical and its machine bootstrap; supports only the operations listed below. |
-| The selected connected app is disconnected | Repair its connection or deliberately change the profile binding to `api` and validate it | The transport choice is an operator-visible configuration decision. | There is no automatic credential fallback. |
+| The primary API route is unavailable in an interactive harness | Use an authorized Trello MCP connection for the same configured board and supported operation; record the fallback | MCP keeps interactive work moving without exposing the API credential. | It may represent a different signed-in account and is not an unattended credential replacement. |
+| Neither API nor MCP is usable | Use the browser only to authenticate, repair, or recover a provider connection | Browser interaction can restore either durable route. | Do not use browser clicking as the routine operational transport. |
 | A task needs to change a card | Use the selected route only if its profile declares that operation and the workflow authorizes that change | The API command checks the configured board and lists before writing. | The token can write across the dedicated account's accessible boards; keep its membership limited. |
 
 ```mermaid
