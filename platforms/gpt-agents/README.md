@@ -38,6 +38,52 @@ The selected profile path is stored locally and is not committed. Agent creation
 the profile-aware `gpt-agents` command; the launcher does not duplicate that lifecycle logic. Other operating systems may
 implement the same launcher contract, but this first executable intentionally fails closed outside macOS.
 
+## What the launcher does
+
+The launcher prepares and opens the GPT/Codex platform; it does not assign an agent identity to every new task. Identity
+is receipt-backed so that an arbitrary chat cannot claim to be a Personal Governor, Coder, Writer, or another agent merely
+through its title or prompt.
+
+```mermaid
+flowchart TD
+    A[Double-click AI Fleas GPT launcher] --> B{Environment ready?}
+    B -- No --> C[Stop and report the missing app, CLI, marketplace, or plugin]
+    B -- Yes --> D{Duplicate AI Fleas plugin copies?}
+    D -- Yes --> E[Stop and require explicit migration]
+    D -- No --> F[Open or focus ChatGPT]
+
+    F --> G[Open or create a Codex task]
+    G --> H[Agent Bootstrap hook runs]
+    H --> I{Exact active task binding exists?}
+    I -- Yes --> J[Restore the task's existing agent identity and sources]
+    I -- No --> K{Exact pending initialization transaction exists?}
+    K -- No --> L[Leave the task unbound; inject no agent identity]
+    K -- Yes --> M[Verify task ID, prompt, sources, and readiness token]
+    M --> N[Activate the bound agent identity]
+
+    L --> O[Explicitly request Personal Governor initialization for a human profile]
+    O --> P[GPT Agents controller creates and binds the Personal Governor task]
+    P --> Q[Personal Governor becomes the human-scoped entry point]
+    Q --> R[Select an authorized profile and workflow]
+    R --> S[Controller initializes workflow-owned agents]
+    S --> T[Coder]
+    S --> U[Writer]
+    S --> V[Reviewer]
+    S --> W[Admin and other configured roles]
+```
+
+There are therefore three separate responsibilities:
+
+1. **Launcher:** validates the local installation and opens ChatGPT.
+2. **Agent Bootstrap:** restores or activates only an exact controller-registered task binding; an unbound task remains
+   unbound.
+3. **Personal Governor and GPT Agents controller:** the Governor is the persistent entry point for one governed human.
+   After explicit initialization, it can help select authorized profiles and workflows; the controller creates and binds
+   their configured agents.
+
+The one-time setup launcher installs the repository marketplace and plugins. The daily launcher only verifies that setup
+and opens ChatGPT. Neither launcher silently creates a Governor, selects a human profile, or starts a workflow.
+
 This built-in adapter maps logical AI Fleas agents to user-visible Codex tasks. It owns Codex-specific task creation,
 project binding, exact task-ID receipts, task messaging, model and reasoning selection, and recoverable archival.
 It also maps the portable read-only `check-update` lifecycle verb to the host application's trusted stable update channel
