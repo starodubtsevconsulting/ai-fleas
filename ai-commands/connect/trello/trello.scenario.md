@@ -53,6 +53,25 @@ revoked. Revoke each superseded token after its replacement passes acceptance. T
 limited to the intended board: a Trello token can access every board that account can access now or later within its
 granted scopes. The command's board check is not a provider-side permission boundary.
 
+### Recover the dedicated account login
+
+The dedicated account's public Trello username is not its login identifier. Keep the owning Atlassian/Google email in
+the operator's approved account record or password manager, never in this repository, a Trello card, or agent chat.
+When the browser is already signed in as a personal account:
+
+1. Open the avatar menu and choose **Switch accounts**, then **Add another account**.
+2. If Google's one-tap prompt offers only the personal account, close it. Enter the dedicated account's email in the
+   Atlassian email field and continue through that email's identity provider. Do not select **Continue as** the
+   personal account merely because it is the only cached Google identity.
+3. Before opening Apps Admin or authorizing a token, verify the avatar menu shows the expected dedicated Trello
+   username and its owning email. A successful Google login is insufficient evidence when it returned to the personal
+   Trello identity.
+4. If the owning email is unknown, stop. Recover it from the approved operator record or Atlassian account-recovery
+   flow; do not infer it from the public username or replace the automation identity with a personal account.
+
+The host-managed Trello MCP connection may remain signed in as the operator's personal account. It is a separate
+interactive fallback and neither identifies nor repairs the dedicated API account.
+
 ```mermaid
 flowchart LR
   A[Dedicated Trello account] --> B[Apps Admin: app → Authorization → Trello Auth]
