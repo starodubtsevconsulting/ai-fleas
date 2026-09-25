@@ -4,15 +4,15 @@
 
 The current launcher supports macOS. Install the ChatGPT desktop application and Codex CLI, then clone this repository.
 The `.command` links on GitHub are source previews and cannot execute in a browser. Open the cloned repository in Finder,
-navigate to `platforms/gpt-agents/macos`, then Control-click `Setup AI Fleas GPT.command`, choose **Open**, and confirm
-**Open** the first time macOS asks. The setup launcher registers the repository's `ai-fleas` plugin marketplace and
-installs one user-facing plugin, **AI Fleas GPT**. Agent Bootstrap and Workflow Router remain separate internal modules.
+navigate to `platforms/gpt-agents/macos`, and completely quit ChatGPT with **ChatGPT → Quit ChatGPT** or `⌘Q` so the
+app cannot retain an earlier plugin snapshot. Then Control-click `Setup AI Fleas GPT.command`, choose **Open**, and
+confirm **Open** the first time macOS asks. The setup launcher runs the complete idempotent platform sequence: install or
+update, migrate legacy plugin data, verify health, and reopen ChatGPT. It installs one user-facing plugin, **AI Fleas
+GPT**. Agent Bootstrap and Workflow Router remain separate internal modules.
 
-If ChatGPT was already running during setup, quit it completely with **ChatGPT → Quit ChatGPT** or `⌘Q`; closing a
-window is not sufficient because the process retains its previous plugin snapshot. Then open `AI Fleas GPT.command` from
-that same Finder folder. ChatGPT requires a human to review and trust new or changed plugin hooks. Approve those hooks and
-start a new Codex task. You can drag the daily launcher to the Dock for easier access. It verifies the application, CLI,
-marketplace, and enabled plugin before opening ChatGPT.
+ChatGPT requires a human to review and trust new or changed plugin hooks. Approve those hooks and start a new Codex task.
+For later sessions, open `AI Fleas GPT.command` from the same Finder folder. You can drag that daily launcher to the Dock
+for easier access. It verifies the application, CLI, marketplace, and enabled plugin before opening ChatGPT.
 
 After setup, the Plugins page should show one repository-managed entry named **AI Fleas GPT**. Local Hermes is an
 optional, independent integration and is not installed by this launcher.
@@ -28,7 +28,19 @@ desktop process may continue using the previous cached plugin version.
 Terminal equivalents:
 
 ```sh
-node platforms/gpt-agents/launcher.mjs setup
+platforms/gpt-agents/setup.sh
+```
+
+The one-step script always uses the launcher's safe `--migrate` path. It preserves matching data, refuses conflicting
+data, runs `doctor`, and launches only after verification succeeds. To record a private work profile at the same time:
+
+```sh
+platforms/gpt-agents/setup.sh --profile /absolute/path/to/work-profile.yml
+```
+
+The underlying launcher remains available for individual diagnostics and daily launch:
+
+```sh
 node platforms/gpt-agents/launcher.mjs doctor
 node platforms/gpt-agents/launcher.mjs launch
 ```
@@ -46,12 +58,6 @@ is not the repository running the launcher. Migration relocates a mismatched mar
 plugin, copies legacy plugin data into its new data directory without overwriting conflicts, and only then removes the
 reported older plugin copies. Orphaned legacy data is copied too, so a previously uninstalled marketplace copy does not
 silently lose its identity receipts.
-
-To record an existing private work-profile file during setup:
-
-```sh
-node platforms/gpt-agents/launcher.mjs setup --profile /absolute/path/to/sc-work-profile.yml
-```
 
 The selected profile path is stored locally and is not committed. Agent creation and reconciliation remain operations of
 the profile-aware `gpt-agents` command; the launcher does not duplicate that lifecycle logic. Other operating systems may

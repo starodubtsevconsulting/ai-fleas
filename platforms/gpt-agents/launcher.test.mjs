@@ -7,6 +7,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const launcher = fileURLToPath(new URL('./launcher.mjs', import.meta.url));
+const setupScript = fileURLToPath(new URL('./setup.sh', import.meta.url));
 const repositoryRoot = fs.realpathSync(fileURLToPath(new URL('../..', import.meta.url)));
 
 function fixture({ marketplace = false, plugins = false, legacy = false, staleMarketplace = false } = {}) {
@@ -55,6 +56,14 @@ esac
 }
 
 function run(item, args, { finderEnvironment = false } = {}) {
+  const env = testEnvironment(item, { finderEnvironment });
+  return spawnSync(process.execPath, [launcher, ...args], {
+    encoding: 'utf8',
+    env,
+  });
+}
+
+function testEnvironment(item, { finderEnvironment = false } = {}) {
   const env = {
     ...process.env,
     AI_FLEAS_OS: 'darwin',
@@ -72,10 +81,7 @@ function run(item, args, { finderEnvironment = false } = {}) {
   } else {
     env.AI_FLEAS_CODEX_BIN = item.codex;
   }
-  return spawnSync(process.execPath, [launcher, ...args], {
-    encoding: 'utf8',
-    env,
-  });
+  return env;
 }
 
 test('doctor reports setup-required when marketplace and plugins are absent', () => {
@@ -94,6 +100,38 @@ test('setup adds marketplace and the single AI Fleas GPT plugin', () => {
   assert.match(calls, /plugin add ai-fleas-gpt@ai-fleas/);
   assert.doesNotMatch(calls, /plugin add ai-fleas-agent-bootstrap/);
   assert.doesNotMatch(calls, /plugin add ai-fleas-workflow-router/);
+});
+
+test('one-step setup migrates, verifies, and launches ChatGPT', () => {
+  const item = fixture();
+  const legacyData = path.join(
+    item.root,
+    'codex-home',
+    'plugins',
+    'data',
+    'ai-fleas-agent-bootstrap-personal',
+  );
+  fs.mkdirSync(legacyData, { recursive: true });
+  fs.writeFileSync(path.join(legacyData, 'agent-bindings.json'), '{"instances":{}}');
+  const result = spawnSync('/bin/zsh', [setupScript], {
+    encoding: 'utf8',
+    env: testEnvironment(item),
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  assert.match(calls, /plugin marketplace add/);
+  assert.match(calls, /plugin add ai-fleas-gpt@ai-fleas/);
+  assert.match(calls, /open -a ChatGPT/);
+  assert.match(result.stdout, /"status": "ready"/);
+  const migratedData = path.join(
+    item.root,
+    'codex-home',
+    'plugins',
+    'data',
+    'ai-fleas-gpt-ai-fleas',
+    'agent-bindings.json',
+  );
+  assert.equal(fs.readFileSync(migratedData, 'utf8'), '{"instances":{}}');
 });
 
 test('launch opens ChatGPT only when setup is ready', () => {

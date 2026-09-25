@@ -48,13 +48,12 @@ Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes o
 1. Install the ChatGPT desktop application and Codex CLI.
 2. Clone this repository.
 3. Open the cloned `ai-fleas` folder in Finder, then open `platforms` → `gpt-agents` → `macos`.
-4. The links here only preview the scripts on GitHub; they cannot run from the browser. In Finder, Control-click
+4. Completely quit ChatGPT with **ChatGPT → Quit ChatGPT** or `⌘Q` so it cannot retain an earlier plugin snapshot.
+5. The links here only preview the scripts on GitHub; they cannot run from the browser. In Finder, Control-click
    `Setup AI Fleas GPT.command`, choose **Open**, then confirm **Open** the first time macOS asks.
-5. If ChatGPT was already running, quit it completely with **ChatGPT → Quit ChatGPT** or `⌘Q`. Closing a window is not
-   sufficient because the running app retains its previous plugin snapshot.
-6. Open `AI Fleas GPT.command` from the same Finder folder. In ChatGPT, review and trust the **AI Fleas GPT** plugin
-   hooks when prompted, then start a new Codex task.
-7. For later sessions, use `AI Fleas GPT.command` again. You can drag it to the Dock for easier
+6. The setup performs installation/update, legacy-data migration, health verification, and then opens ChatGPT. Review and
+   trust the **AI Fleas GPT** plugin hooks when prompted, then start a new Codex task.
+7. For later sessions, use `AI Fleas GPT.command`. You can drag it to the Dock for easier
    access.
 
 After setup, the Plugins page should show one repository-managed entry named **AI Fleas GPT**. Agent Bootstrap and
@@ -72,8 +71,7 @@ may continue using the earlier cached plugin version.
 If the Finder launcher does not open, open Terminal in the cloned repository and run:
 
 ```sh
-node platforms/gpt-agents/launcher.mjs setup
-node platforms/gpt-agents/launcher.mjs launch
+platforms/gpt-agents/setup.sh
 ```
 
 The setup registers this repository as a local AI Fleas plugin marketplace and installs the single **AI Fleas GPT** plugin.
