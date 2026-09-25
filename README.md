@@ -43,15 +43,6 @@ Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes o
 
 ## How do I start?
 
-The simplest path is:
-
-1. **Create a [Profile](https://github.com/starodubtsevconsulting/ai-profile).** Start from the example and adapt it to yourself, your organization or a client.
-2. **Choose a [Workflow](ai-workflows/).** Pick the kind of work you want to do, or create your own.
-3. **Choose a [supported platform](platforms/).** For ChatGPT/Codex on macOS, use the [AI Fleas GPT setup and launcher](platforms/gpt-agents/#start-on-macos).
-4. **Ask it to initialize the workflow for your project.** The AI can use the mappings and rules in these definitions to create the appropriate team for that platform.
-
-`Profile + Workflow + Commands + Platform Skills -> Your AI Team`
-
 ### Start with ChatGPT/Codex on macOS
 
 1. Install the ChatGPT desktop application and Codex CLI.
@@ -73,6 +64,16 @@ node platforms/gpt-agents/launcher.mjs launch
 The setup registers this repository as a local AI Fleas plugin marketplace and installs the Agent Bootstrap and Workflow
 Router plugins. Hook approval remains a deliberate human security step. See the [GPT Agents platform guide](platforms/gpt-agents/)
 for terminal commands, diagnostics, private-profile selection, and a [launcher-to-agent lifecycle diagram](platforms/gpt-agents/#what-the-launcher-does).
+
+### Configure your AI team
+
+After the platform is running, add the context and workflow you want it to use:
+
+1. **Create a [Profile](https://github.com/starodubtsevconsulting/ai-profile).** Start from the example and adapt it to yourself, your organization or a client.
+2. **Choose a [Workflow](ai-workflows/).** Pick the kind of work you want to do, or create your own.
+3. **Ask it to initialize the workflow for your project.** The AI can use the mappings and rules in these definitions to create the appropriate team for that platform.
+
+`Profile + Workflow + Commands + Platform Skills -> Your AI Team`
 
 ### What happens during initialization?
 
