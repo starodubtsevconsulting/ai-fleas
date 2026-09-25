@@ -1,5 +1,33 @@
 # GPT/Codex App adapter
 
+## Start on macOS
+
+The current launcher supports macOS. Install the ChatGPT desktop application and Codex CLI, clone this repository, then
+double-click [`macos/Setup AI Fleas GPT.command`](macos/Setup%20AI%20Fleas%20GPT.command) once. The setup launcher registers
+the repository's `ai-fleas` plugin marketplace and installs the Agent Bootstrap and Workflow Router plugins.
+
+ChatGPT requires a human to review and trust new or changed plugin hooks. Approve those hooks in the application and
+start a new Codex task. Afterwards, double-click [`macos/AI Fleas GPT.command`](macos/AI%20Fleas%20GPT.command) for normal
+use. It verifies the application, CLI, marketplace, and enabled plugins before opening ChatGPT.
+
+Terminal equivalents:
+
+```sh
+node platforms/gpt-agents/launcher.mjs setup
+node platforms/gpt-agents/launcher.mjs doctor
+node platforms/gpt-agents/launcher.mjs launch
+```
+
+To record an existing private work-profile file during setup:
+
+```sh
+node platforms/gpt-agents/launcher.mjs setup --profile /absolute/path/to/sc-work-profile.yml
+```
+
+The selected profile path is stored locally and is not committed. Agent creation and reconciliation remain operations of
+the profile-aware `gpt-agents` command; the launcher does not duplicate that lifecycle logic. Other operating systems may
+implement the same launcher contract, but this first executable intentionally fails closed outside macOS.
+
 This built-in adapter maps logical AI Fleas agents to user-visible Codex tasks. It owns Codex-specific task creation,
 project binding, exact task-ID receipts, task messaging, model and reasoning selection, and recoverable archival.
 It also maps the portable read-only `check-update` lifecycle verb to the host application's trusted stable update channel
