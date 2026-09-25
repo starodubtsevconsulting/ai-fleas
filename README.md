@@ -45,13 +45,10 @@ Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes o
 
 ### Start with ChatGPT/Codex on macOS
 
-AI Fleas GPT connects this repository to the ChatGPT desktop app.
+Open the cloned repository, Control-click **`Install AI Fleas.command`**, and choose **Open**.
 
-1. Install ChatGPT and Codex CLI, then clone this repository.
-2. Quit ChatGPT.
-3. In Finder, open `platforms/gpt-agents/macos` and run `Setup AI Fleas GPT.command`.
-4. Approve the **AI Fleas GPT** hooks when ChatGPT asks.
-5. For daily use, open `AI Fleas GPT.command`.
+That is all. It installs AI Fleas GPT, adds it to your Dock, and opens ChatGPT. Afterward, click **AI Fleas GPT** in the
+Dock whenever you want to use ChatGPT with AI Fleas.
 
 See the [GPT Agents guide](platforms/gpt-agents/) for Personal Governor setup and terminal commands.
 
