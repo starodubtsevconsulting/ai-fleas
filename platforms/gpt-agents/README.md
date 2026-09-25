@@ -39,6 +39,46 @@ node platforms/gpt-agents/launcher.mjs doctor
 node platforms/gpt-agents/launcher.mjs launch
 ```
 
+## What the launcher does
+
+The launcher prepares and opens the GPT/Codex platform; it does not assign an agent identity to every new task. Identity
+is receipt-backed so that an arbitrary chat cannot claim to be a Personal Governor, Coder, Writer, or another agent merely
+through its title or prompt.
+
+```mermaid
+flowchart TD
+    A[Double-click AI Fleas GPT launcher] --> B{Environment ready?}
+    B -- No --> C[Stop and report the missing app, CLI, marketplace, or plugin]
+    B -- Yes --> D{Duplicate AI Fleas plugin copies?}
+    D -- Yes --> E[Stop and require explicit migration]
+    D -- No --> F[Open or focus ChatGPT]
+
+    F --> G[Open or create a Codex task]
+    G --> H[Agent Bootstrap hook runs]
+    H --> I{Exact active task binding exists?}
+    I -- Yes --> J[Restore the task's existing agent identity and sources]
+    I -- No --> K{Exact pending initialization transaction exists?}
+    K -- No --> L[Leave the task unbound; inject no agent identity]
+    K -- Yes --> M[Verify task ID, prompt, sources, and readiness token]
+    M --> N[Activate the bound agent identity]
+
+    L --> O[Explicitly request Personal Governor initialization for a human profile]
+    O --> P[GPT Agents controller creates and binds the Personal Governor task]
+    P --> Q[Personal Governor becomes the human-scoped entry point]
+    Q --> R[Select an authorized profile and workflow]
+    R --> S[Controller initializes workflow-owned agents]
+    S --> T[Coder]
+    S --> U[Writer]
+    S --> V[Reviewer]
+    S --> W[Admin and other configured roles]
+```
+
+There are three separate responsibilities:
+
+1. **Launcher:** connects AI Fleas to ChatGPT and keeps the installation ready.
+2. **Agent Bootstrap:** restores or activates only an exact controller-registered task binding.
+3. **Personal Governor and GPT Agents controller:** helps select profiles and workflows, then creates and binds their agents.
+
 ## GPT plugin development
 
 GPT-specific plugins are source-controlled under `platforms/gpt-agents/plugins/`. That directory is authoritative.
