@@ -14,16 +14,18 @@ import uuid
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import urlencode
 
 import torch
 from diffusers import DiffusionPipeline, StableDiffusionXLPipeline
 from fastapi import FastAPI, HTTPException, Query, Request, Response
-from fastapi.responses import StreamingResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from safety import available_memory_bytes, env_bool, env_float, env_int, request_limit_error
 from generation_policy import load_generation_policy
+from policy_bypass import TemporaryPolicyBypass
 from policy_moderation import PolicyDecisionError, SemanticModerator, SemanticPolicy
 
 
@@ -68,6 +70,12 @@ SEMANTIC_MODERATOR = SemanticModerator(
     output_enabled=env_bool("IMAGE_POLICY_SEMANTIC_OUTPUT", False),
     timeout_seconds=env_float("IMAGE_POLICY_MODERATION_TIMEOUT_SECONDS", 5.0, 0.1),
     auth_token_file=os.environ.get("IMAGE_POLICY_MODERATION_AUTH_TOKEN_FILE", ""),
+)
+POLICY_BYPASS_COOKIE = "ai_fleas_policy_bypass"
+POLICY_BYPASS_QUERY_PARAMETER = "policy_bypass"
+POLICY_BYPASS = TemporaryPolicyBypass(
+    os.environ.get("IMAGE_POLICY_BYPASS_CODE_SHA256", ""),
+    env_int("IMAGE_POLICY_BYPASS_SESSION_TTL_SECONDS", 28_800, 60),
 )
 if GENERATION_POLICY.id != "unrestricted" and not SEMANTIC_MODERATOR.input_enabled:
     raise RuntimeError("restricted policy requires IMAGE_POLICY_SEMANTIC_INPUT=true")
@@ -170,6 +178,10 @@ async def validate_policy_input(prompt: str) -> None:
         raise policy_http_exception(error) from error
 
 
+def policy_bypass_active(request: Request) -> bool:
+    return POLICY_BYPASS.active(request.cookies.get(POLICY_BYPASS_COOKIE, ""))
+
+
 def release_generation_memory() -> None:
     if not RELEASE_CACHE_AFTER_GENERATION:
         return
@@ -229,6 +241,7 @@ async def generate_image(
     guidance: float,
     seed: int,
     negative_prompt: str | None = None,
+    skip_policy_validation: bool = False,
 ):
     prompt, negative_prompt = GENERATION_POLICY.prepare_prompt(prompt, negative_prompt)
     validated_request(width, height, steps)
@@ -250,7 +263,7 @@ async def generate_image(
         try:
             image = await asyncio.to_thread(lambda: PIPELINE(**kwargs).images[0])
             elapsed = time.perf_counter() - started
-            if SEMANTIC_MODERATOR.output_enabled:
+            if SEMANTIC_MODERATOR.output_enabled and not skip_policy_validation:
                 candidate = io.BytesIO()
                 image.save(candidate, format="PNG")
                 try:
@@ -263,9 +276,27 @@ async def generate_image(
     return image, elapsed
 
 
-async def generate_chat_content(prompt: str, width: int, height: int, steps: int, guidance: float, seed: int, negative_prompt: str | None = None) -> str:
+async def generate_chat_content(
+    prompt: str,
+    width: int,
+    height: int,
+    steps: int,
+    guidance: float,
+    seed: int,
+    negative_prompt: str | None = None,
+    skip_policy_validation: bool = False,
+) -> str:
     try:
-        image, elapsed = await generate_image(prompt, width, height, steps, guidance, seed, negative_prompt)
+        image, elapsed = await generate_image(
+            prompt,
+            width,
+            height,
+            steps,
+            guidance,
+            seed,
+            negative_prompt,
+            skip_policy_validation,
+        )
         filename = f"{int(time.time())}-{uuid.uuid4().hex}.png"
         output_path = OUTPUT_DIR / filename
         image.save(output_path, format="PNG")
@@ -303,6 +334,51 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="Local Image Generator", version="1", lifespan=lifespan)
 app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR), check_dir=False), name="outputs")
+
+
+@app.middleware("http")
+async def exchange_policy_bypass(request: Request, call_next):
+    if (
+        request.method == "GET"
+        and request.url.path == "/"
+        and POLICY_BYPASS_QUERY_PARAMETER in request.query_params
+    ):
+        code = request.query_params.get(POLICY_BYPASS_QUERY_PARAMETER, "")
+        current_token = request.cookies.get(POLICY_BYPASS_COOKIE, "")
+        cleaned_query = [
+            (key, value)
+            for key, value in request.query_params.multi_items()
+            if key != POLICY_BYPASS_QUERY_PARAMETER
+        ]
+        location = request.url.path
+        if cleaned_query:
+            location += "?" + urlencode(cleaned_query)
+        response = RedirectResponse(location, status_code=303)
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        if code == "off":
+            POLICY_BYPASS.revoke(current_token)
+            response.delete_cookie(
+                POLICY_BYPASS_COOKIE,
+                path="/",
+                secure=True,
+                httponly=True,
+                samesite="strict",
+            )
+        else:
+            token = POLICY_BYPASS.exchange(code)
+            if token:
+                response.set_cookie(
+                    POLICY_BYPASS_COOKIE,
+                    token,
+                    max_age=POLICY_BYPASS.ttl_seconds,
+                    path="/",
+                    secure=True,
+                    httponly=True,
+                    samesite="strict",
+                )
+        return response
+    return await call_next(request)
 
 
 @app.get("/health")
@@ -351,14 +427,40 @@ def props(model: str | None = None, autoload: bool = False):
     }
 
 
+@app.get("/v1/policy-bypass")
+def policy_bypass_status(request: Request):
+    token = request.cookies.get(POLICY_BYPASS_COOKIE, "")
+    return {
+        "enabled": POLICY_BYPASS.enabled,
+        "active": POLICY_BYPASS.active(token),
+        "expires_in_seconds": POLICY_BYPASS.seconds_remaining(token),
+    }
+
+
+@app.delete("/v1/policy-bypass")
+def policy_bypass_revoke(request: Request):
+    POLICY_BYPASS.revoke(request.cookies.get(POLICY_BYPASS_COOKIE, ""))
+    response = Response(status_code=204)
+    response.delete_cookie(
+        POLICY_BYPASS_COOKIE,
+        path="/",
+        secure=True,
+        httponly=True,
+        samesite="strict",
+    )
+    return response
+
+
 @app.post("/v1/images/generations")
-async def generate(request: GenerationRequest):
+async def generate(request: GenerationRequest, http_request: Request):
     if request.model and request.model not in MODEL_ALIASES:
         raise HTTPException(400, f"model is not active: {request.model}")
     if request.response_format != "b64_json":
         raise HTTPException(400, "only response_format=b64_json is supported")
     width, height = parse_size(request.size)
-    await validate_policy_input(request.prompt)
+    skip_policy_validation = policy_bypass_active(http_request)
+    if not skip_policy_validation:
+        await validate_policy_input(request.prompt)
     seed = request.seed if request.seed is not None else int.from_bytes(os.urandom(8), "big")
     try:
         image, elapsed = await generate_image(
@@ -369,6 +471,7 @@ async def generate(request: GenerationRequest):
             request.true_cfg_scale if request.true_cfg_scale is not None else request.guidance_scale if request.guidance_scale is not None else DEFAULT_GUIDANCE,
             seed,
             request.negative_prompt,
+            skip_policy_validation,
         )
         output = io.BytesIO()
         image.save(output, format="PNG")
@@ -386,7 +489,9 @@ async def generate(request: GenerationRequest):
 @app.post("/v1/chat/completions")
 async def chat_completions(payload: dict, http_request: Request):
     prompt = chat_prompt(payload.get("messages"))
-    await validate_policy_input(prompt)
+    skip_policy_validation = policy_bypass_active(http_request)
+    if not skip_policy_validation:
+        await validate_policy_input(prompt)
     width, height = parse_size(str(payload.get("size", DEFAULT_SIZE)))
     steps = int(payload.get("steps", DEFAULT_STEPS))
     guidance = float(payload.get("guidance_scale", DEFAULT_GUIDANCE))
@@ -401,7 +506,16 @@ async def chat_completions(payload: dict, http_request: Request):
     created = int(time.time())
     completion_id = f"chatcmpl-{uuid.uuid4().hex}"
     if not payload.get("stream"):
-        content = await generate_chat_content(prompt, width, height, steps, guidance, seed, negative_prompt)
+        content = await generate_chat_content(
+            prompt,
+            width,
+            height,
+            steps,
+            guidance,
+            seed,
+            negative_prompt,
+            skip_policy_validation,
+        )
         return {
             "id": completion_id,
             "object": "chat.completion",
@@ -416,7 +530,18 @@ async def chat_completions(payload: dict, http_request: Request):
     session = STREAM_SESSIONS.get(conversation_id)
 
     async def produce_stream(active_session: StreamSession):
-        generation_task = asyncio.create_task(generate_chat_content(prompt, width, height, steps, guidance, seed, negative_prompt))
+        generation_task = asyncio.create_task(
+            generate_chat_content(
+                prompt,
+                width,
+                height,
+                steps,
+                guidance,
+                seed,
+                negative_prompt,
+                skip_policy_validation,
+            )
+        )
         BACKGROUND_TASKS.add(generation_task)
         generation_task.add_done_callback(BACKGROUND_TASKS.discard)
         while not generation_task.done() and not active_session.cancelled:
