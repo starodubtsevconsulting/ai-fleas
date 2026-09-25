@@ -56,9 +56,19 @@ The simplest path is:
 
 1. Install the ChatGPT desktop application and Codex CLI.
 2. Clone this repository.
-3. Double-click [`Setup AI Fleas GPT.command`](platforms/gpt-agents/macos/Setup%20AI%20Fleas%20GPT.command).
-4. In ChatGPT, review and trust the two AI Fleas plugin hooks when prompted, then start a new Codex task.
-5. For later sessions, double-click [`AI Fleas GPT.command`](platforms/gpt-agents/macos/AI%20Fleas%20GPT.command).
+3. Open the cloned `ai-fleas` folder in Finder, then open `platforms` → `gpt-agents` → `macos`.
+4. The links here only preview the scripts on GitHub; they cannot run from the browser. In Finder, Control-click
+   `Setup AI Fleas GPT.command`, choose **Open**, then confirm **Open** the first time macOS asks.
+5. In ChatGPT, review and trust the two AI Fleas plugin hooks when prompted, then start a new Codex task.
+6. For later sessions, open `AI Fleas GPT.command` from the same Finder folder. You can drag it to the Dock for easier
+   access.
+
+If the Finder launcher does not open, open Terminal in the cloned repository and run:
+
+```sh
+node platforms/gpt-agents/launcher.mjs setup
+node platforms/gpt-agents/launcher.mjs launch
+```
 
 The setup registers this repository as a local AI Fleas plugin marketplace and installs the Agent Bootstrap and Workflow
 Router plugins. Hook approval remains a deliberate human security step. See the [GPT Agents platform guide](platforms/gpt-agents/)
