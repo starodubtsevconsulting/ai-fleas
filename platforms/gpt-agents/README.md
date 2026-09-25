@@ -2,13 +2,25 @@
 
 ## Start on macOS
 
-The current launcher supports macOS. Install the ChatGPT desktop application and Codex CLI, clone this repository, then
-double-click [`macos/Setup AI Fleas GPT.command`](macos/Setup%20AI%20Fleas%20GPT.command) once. The setup launcher registers
-the repository's `ai-fleas` plugin marketplace and installs the Agent Bootstrap and Workflow Router plugins.
+The current launcher supports macOS. Install the ChatGPT desktop application and Codex CLI, then clone this repository.
+The `.command` links on GitHub are source previews and cannot execute in a browser. Open the cloned repository in Finder,
+navigate to `platforms/gpt-agents/macos`, then Control-click `Setup AI Fleas GPT.command`, choose **Open**, and confirm
+**Open** the first time macOS asks. The setup launcher registers the repository's `ai-fleas` plugin marketplace and
+installs the Agent Bootstrap and Workflow Router plugins.
 
 ChatGPT requires a human to review and trust new or changed plugin hooks. Approve those hooks in the application and
-start a new Codex task. Afterwards, double-click [`macos/AI Fleas GPT.command`](macos/AI%20Fleas%20GPT.command) for normal
-use. It verifies the application, CLI, marketplace, and enabled plugins before opening ChatGPT.
+start a new Codex task. Afterwards, open `AI Fleas GPT.command` from that same Finder folder for normal use. You can drag
+it to the Dock for easier access. It verifies the application, CLI, marketplace, and enabled plugins before opening
+ChatGPT.
+
+Expected Agent Bootstrap plugin page after setup:
+
+![AI Fleas Agent Bootstrap plugin page in ChatGPT/Codex](../../img/gpt-agents/agent-bootstrap-plugin.png)
+
+The **Try now** button is diagnostic only. It creates an ordinary unbound task, so `No trusted AI Fleas bootstrap binding`
+is the expected result. It does not initialize a Governor or workflow agent. Personal Governor initialization must be an
+explicit `initialize-governor` controller transaction for an exact human profile; the bootstrap then activates only the
+exact task ID registered by that transaction.
 
 Terminal equivalents:
 

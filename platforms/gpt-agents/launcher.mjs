@@ -9,7 +9,6 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = fs.realpathSync(path.resolve(scriptDir, '../..'));
 const marketplaceName = 'ai-fleas';
 const requiredPlugins = ['ai-fleas-agent-bootstrap', 'ai-fleas-workflow-router'];
-const codexBin = process.env.AI_FLEAS_CODEX_BIN || 'codex';
 const openBin = process.env.AI_FLEAS_OPEN_BIN || 'open';
 const platform = process.env.AI_FLEAS_OS || process.platform;
 
@@ -43,6 +42,31 @@ function chatGptApp() {
     : ['/Applications/ChatGPT.app', path.join(os.homedir(), 'Applications/ChatGPT.app')];
   return candidates.find(candidate => fs.existsSync(candidate)) || null;
 }
+
+function codexExecutable() {
+  if (process.env.AI_FLEAS_CODEX_BIN) return process.env.AI_FLEAS_CODEX_BIN;
+  const appCandidates = [
+    process.env.AI_FLEAS_CHATGPT_APP,
+    '/Applications/ChatGPT.app',
+    path.join(os.homedir(), 'Applications/ChatGPT.app'),
+  ].filter(Boolean);
+  const candidates = [
+    ...(process.env.PATH || '').split(path.delimiter).filter(Boolean).map(dir => path.join(dir, 'codex')),
+    ...appCandidates.map(app => path.join(app, 'Contents', 'Resources', 'codex')),
+    '/opt/homebrew/bin/codex',
+    '/usr/local/bin/codex',
+  ];
+  return candidates.find(candidate => {
+    try {
+      fs.accessSync(candidate, fs.constants.X_OK);
+      return true;
+    } catch {
+      return false;
+    }
+  }) || 'codex';
+}
+
+const codexBin = codexExecutable();
 
 function prerequisites() {
   if (platform !== 'darwin') fail('the launcher currently supports macOS only');

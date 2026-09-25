@@ -18,6 +18,7 @@ function fixture({ marketplace = false, plugins = false, legacy = false } = {}) 
   fs.mkdirSync(app);
   fs.writeFileSync(state, `${marketplace ? 'marketplace' : ''}\n${plugins ? 'plugins' : ''}\n${legacy ? 'legacy' : ''}\n`);
   const codex = path.join(bin, 'codex');
+  const embeddedCodex = path.join(app, 'Contents', 'Resources', 'codex');
   const open = path.join(bin, 'open');
   fs.writeFileSync(codex, `#!/bin/sh
 printf '%s\\n' "$*" >> "$AI_FLEAS_TEST_LOG"
@@ -39,25 +40,34 @@ case "$*" in
   *) echo '{}' ;;
 esac
 `);
+  fs.mkdirSync(path.dirname(embeddedCodex), { recursive: true });
+  fs.copyFileSync(codex, embeddedCodex);
   fs.writeFileSync(open, '#!/bin/sh\nprintf \'open %s\\n\' "$*" >> "$AI_FLEAS_TEST_LOG"\n');
   fs.chmodSync(codex, 0o755);
+  fs.chmodSync(embeddedCodex, 0o755);
   fs.chmodSync(open, 0o755);
   return { root, app, log, state, codex, open };
 }
 
-function run(item, args) {
+function run(item, args, { finderEnvironment = false } = {}) {
+  const env = {
+    ...process.env,
+    AI_FLEAS_OS: 'darwin',
+    AI_FLEAS_OPEN_BIN: item.open,
+    AI_FLEAS_CHATGPT_APP: item.app,
+    AI_FLEAS_TEST_LOG: item.log,
+    AI_FLEAS_TEST_STATE: item.state,
+    XDG_CONFIG_HOME: path.join(item.root, 'config'),
+  };
+  if (finderEnvironment) {
+    delete env.AI_FLEAS_CODEX_BIN;
+    env.PATH = '/usr/bin:/bin';
+  } else {
+    env.AI_FLEAS_CODEX_BIN = item.codex;
+  }
   return spawnSync(process.execPath, [launcher, ...args], {
     encoding: 'utf8',
-    env: {
-      ...process.env,
-      AI_FLEAS_OS: 'darwin',
-      AI_FLEAS_CODEX_BIN: item.codex,
-      AI_FLEAS_OPEN_BIN: item.open,
-      AI_FLEAS_CHATGPT_APP: item.app,
-      AI_FLEAS_TEST_LOG: item.log,
-      AI_FLEAS_TEST_STATE: item.state,
-      XDG_CONFIG_HOME: path.join(item.root, 'config'),
-    },
+    env,
   });
 }
 
@@ -81,6 +91,13 @@ test('setup adds marketplace and both plugins', () => {
 test('launch opens ChatGPT only when setup is ready', () => {
   const item = fixture({ marketplace: true, plugins: true });
   const result = run(item, ['launch']);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(fs.readFileSync(item.log, 'utf8'), /open -a ChatGPT/);
+});
+
+test('launch finds the Codex CLI bundled in ChatGPT when Finder PATH is minimal', () => {
+  const item = fixture({ marketplace: true, plugins: true });
+  const result = run(item, ['launch'], { finderEnvironment: true });
   assert.equal(result.status, 0, result.stderr);
   assert.match(fs.readFileSync(item.log, 'utf8'), /open -a ChatGPT/);
 });
