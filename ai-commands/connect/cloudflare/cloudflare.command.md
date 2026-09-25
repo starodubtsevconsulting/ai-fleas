@@ -53,6 +53,7 @@ as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must nev
 | `validate` | Validate configuration and secret references without network access or mutation. |
 | `token-check` | Verify the configured Cloudflare API token using Cloudflare's read-only token endpoint. This account-level check does not require selecting a server target. |
 | `access-policy-status` | Resolve the exact Access application destination for the selected public hostname and report its email-based allow policy without mutation. |
+| `access-auth-logs [--email EMAIL] [--hours HOURS] [--format markdown\|jsonl]` | Retrieve recent Access authentication events without opening the dashboard. Omit `--email` to report all identities. The default window is 24 hours and default output is a chat-ready Markdown summary and table; `jsonl` is available for automation. Supported input is 1–168 hours, subject to the account plan's retention. Output excludes client IP addresses and unknown response fields. |
 | `sync-access-policy --apply` | Replace only the exact-email rules in the selected hostname's existing email-based allow policy with `CLOUDFLARE_ALLOWED_EMAILS`, preserving other rule types and verifying the result. Reusable policies use the account policy endpoint. |
 | `create-tunnel --apply --token-output ABSOLUTE_PATH` | Create a remotely managed tunnel, attach ingress, create its proxied DNS CNAME, and save the returned connector token mode `0600`. |
 | `install-connector --apply` | Delegate idempotent `cloudflared` package installation to `install/cloudflare` without reading tunnel credentials or starting a connector. |
@@ -66,6 +67,63 @@ as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must nev
 | `install-service --apply` | Install the remotely managed tunnel as an operating-system service. This is an explicit host mutation. |
 | `verify-access` | Make an unauthenticated request and require a Cloudflare Access login redirect. |
 | `ui` | Open the Electron tunnel controller for status, Access verification, logs, and platform-appropriate start/stop actions. |
+
+## Execution preference
+
+Cloudflare work is API-first. Use this governed command and its profile-bound API token before opening the Cloudflare
+dashboard. Resolve the token through the configured secrets command and inject it only into the bounded Cloudflare child
+process; never copy the token into chat, a browser form, a repository file, or ordinary logs.
+
+Use an interactive Cloudflare dashboard flow only when the requested operation is not implemented or supported by the
+API, when Cloudflare requires human interaction, or when the API token lacks a required permission and the human has
+approved dashboard fallback. Report the missing permission before falling back. After a dashboard mutation, verify the
+result through the API command whenever the available token permits it. A dashboard session must not become a substitute
+for adding a reusable read-only or narrowly scoped API operation to this command.
+
+## Reporting conventions
+
+Natural-language Cloudflare questions should produce a useful chat report without requiring the human to name an exact
+operation or output format. Interpret common requests as follows:
+
+| Human request | Preferred evidence |
+|---|---|
+| “Who has access?” | Current Access application and policy, including the exact allowed identities. |
+| “Who tried to log in?” or “Did this person authenticate?” | Authentication events, separated into allowed and blocked attempts. |
+| “Who connected?” or “Who used GX10 through Cloudflare?” | Identities with allowed Access events in the requested window; state that this is Cloudflare connection activity. |
+| “Is it working?” | Public Access boundary, connector state, private-origin health, and the active application/model when available. |
+| “What happened recently?” | A combined operational summary using the relevant authentication, usage, connector, and origin evidence. |
+
+Unless the human specifies otherwise, use a 24-hour window, UTC timestamps, all identities, and Markdown. Lead with a
+short conclusion, then show compact totals and an evidence table. Use exact email addresses where identity matters,
+separate allowed from blocked events, identify the application/hostname, and state the observation window and data
+source. Suppress empty columns and implementation noise. Mention errors or abnormal results prominently; do not bury
+them in a raw event list.
+
+When an AI session invokes this command, present the assistant's short interpretation first and then include the
+command's exact standard output in a fenced text block under **Command output**. Do not rewrite, silently omit, or merge
+rows in that block. If output is too long, show an explicitly marked verbatim excerpt and state how many rows were omitted;
+offer `--format jsonl` for complete machine-readable output. Never manufacture command output from remembered results or
+dashboard observations. If the command fails, show its exact redacted error separately and identify any dashboard result
+as fallback evidence rather than command output.
+
+Never merge different meanings into one metric. Distinguish at least:
+
+- configured access: an identity appears in the current allow policy;
+- authentication attempt: Cloudflare evaluated a login or session request;
+- successful Cloudflare connection: Cloudflare allowed the Access event;
+- application-level activity: model requests or actions recorded by the application itself, outside this Cloudflare command;
+- availability: the tunnel, connector, Access boundary, and origin are healthy.
+
+If the exact report is not a named operation, infer the narrowest safe combination of existing read-only API calls and
+local telemetry that answers the question. Prefer totals grouped by user, application, decision, or activity category
+over raw logs. A new read-only endpoint may be added to this command when it follows the same profile binding, API-first
+execution, least-privilege token, redaction, bounded-time-window, Markdown/JSONL, and test requirements. Never infer a
+mutation from a request for information.
+
+Every report must state material limitations. Examples include missing API permission, plan retention, pagination or
+sampling, an undeployed collector, incomplete model-mode coverage, or unavailable identity attribution. Use “no events
+found” only when the query completed successfully; otherwise report that the data is unavailable rather than implying
+zero activity. Browser/dashboard evidence is an explicitly identified fallback, not silently mixed with API results.
 
 ## Configuration contract
 
@@ -83,7 +141,19 @@ another person.
 `create-tunnel` requires a scoped API token with Cloudflare Tunnel Write and DNS Write for the configured account and
 zone. The account and zone IDs are non-secret but remain profile-owned operational identifiers. Use the least-privilege
 token scope; a Global API Key is not supported. Access policy inspection requires **Access: Apps and Policies Read**;
-policy synchronization requires **Access: Apps and Policies Write**.
+policy synchronization requires **Access: Apps and Policies Write**. Authentication-log retrieval requires
+**Access: Audit Logs Read**.
+
+### Cloudflare connection activity
+
+`access-auth-logs` is the source for questions about who connected to or used a protected application through
+Cloudflare. Report identities with allowed events as connected users, while listing blocked attempts separately when
+relevant. An allowed event proves Cloudflare granted access during the requested window; it does not measure prompts,
+tokens, generations, or other application-internal actions.
+
+Detailed model-request activity belongs to a separate application-monitoring capability. The Cloudflare command must not
+open an SSH session, inspect an origin journal, or require an origin-side collector to answer a Cloudflare connection
+question.
 
 For an HTTPS origin reached through a loopback or private service URL, set `CLOUDFLARE_ORIGIN_SERVER_NAME` to the DNS
 name on the origin certificate. If the certificate uses a private CA, also set `CLOUDFLARE_ORIGIN_CA_POOL` to the

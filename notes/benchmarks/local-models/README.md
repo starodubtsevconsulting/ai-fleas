@@ -37,7 +37,7 @@ Image-generation models use a separate quality-first corpus and retained-output 
 
 ## Benchmark reports
 
-- [ASUS Ascent GX10](gx10.md) — Qwen worker comparison, single-GX10 capacity tests and DeepSeek V4 experiments.
+- [ASUS Ascent GX10](gx10.md) — Qwen worker comparison plus DeepSeek V4 and Gemma 4 31B experiments.
 - [RTX 3080 Ti workstation](rtx-3080-ti.md) — System-agent target; 30B Q8/Q4, 8B and 9B experiments plus Hermes overhead.
 - [MacBook Pro M5](macbook-pro-m5.md) — portable local-inference tier; benchmark starts from ~30B Q6 and works downward.
 - [MINISFORUM UM790 Pro](minisforum-um790-pro.md) — compact always-on worker with Ryzen 9 7940HS, Radeon 780M and 32 GB DDR5; benchmark pending.
@@ -45,7 +45,7 @@ Image-generation models use a separate quality-first corpus and retained-output 
 
 ## Main findings
 
-**GX10:** Qwen3-Coder-Next Q5_K_M remains the preferred worker. Both Qwen candidates and the newly benchmarked compressed DeepSeek V4 Flash 0731 passed the controlled Hermes tool-use fixture. DeepSeek is operational but generated about 3.4× slower than Qwen3-Coder-Next at the 2K measurement point, peaked at 109.91 GiB total used memory, and completed the tool task about 6.1× slower. It remains an optional quality experiment rather than the default.
+**GX10:** Qwen3-Coder-Next Q5_K_M remains the preferred worker. Both Qwen candidates and compressed DeepSeek V4 Flash 0731 passed the controlled Hermes tool-use fixture. TrevorJS Gemma 4 31B IT Uncensored Q8_0 is installed as a separate opt-in mode and fits with ample memory headroom, but generated only 6.80 tok/s and failed the fixture by writing correct contents to the wrong directory. It is an uncensored chat/quality experiment, not an accepted worker or default.
 
 **RTX 3080 Ti:** the 30B candidates work but are too slow for an interactive Hermes System agent. Qwen3 8B is fast but cannot satisfy Hermes' 64K context requirement. Qwen3.5 9B Q4_K_M provides both full GPU residency and a 65,536-token configured context and is the current candidate.
 
@@ -60,6 +60,6 @@ Image-generation models use a separate quality-first corpus and retained-output 
 - Repeat Hermes timing on the RTX 3080 Ti after disabling automatic title generation.
 - Run a coding-quality suite on the single-GX10 DeepSeek V4 Flash build before considering a default-model change.
 - Test the remaining higher-capacity single-GX10 candidates documented in the GX10 report.
-- Test the documented DeepSeek V4 FP8/TP=2 configuration across two GX10-class boxes.
+- If a second GX10 becomes available, evaluate the official/high-quality DeepSeek V4 FP8/TP=2 configuration across both boxes. This is distinct from the completed compressed single-GX10 benchmark.
 
 Detailed measurements and historical results remain in the hardware-specific reports rather than this dashboard.
