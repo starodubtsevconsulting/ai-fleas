@@ -9,3 +9,6 @@ selected platform must be available in the profile and registered; the profile i
 Built-in public platform contracts are registered in `registry.yml`. External implementations are resolved only through explicit host configuration; AI Fleas never discovers sibling repositories by name or location.
 
 Platform-specific lifecycle, messaging, model selection, persistence, UI, navigation, and host API behavior belongs to the selected platform implementation. Portable workflow and role contracts must express requirements without assuming those mechanics.
+
+All adapters follow the [portable agent bootstrap contract](contract/agent-bootstrap.md): host startup restores only an
+exact trusted instance binding, while first-time identity assignment remains a lifecycle-controller transaction.
