@@ -57,13 +57,22 @@ function marketplaceInstalled() {
   return state.marketplaces?.some(item => item.name === marketplaceName);
 }
 
-function installedPluginIds() {
+function installedPlugins() {
   const state = json(codexBin, ['plugin', 'list', '--json']);
-  return new Set((state.installed || []).filter(item => item.enabled).map(item => item.pluginId));
+  return (state.installed || []).filter(item => item.enabled);
+}
+
+function conflictingPlugins(installed = installedPlugins()) {
+  return installed
+    .map(item => item.pluginId)
+    .filter(pluginId => {
+      const [name, marketplace] = pluginId.split('@');
+      return requiredPlugins.includes(name) && marketplace !== marketplaceName;
+    });
 }
 
 function missingPlugins() {
-  const installed = installedPluginIds();
+  const installed = new Set(installedPlugins().map(item => item.pluginId));
   return requiredPlugins.filter(name => !installed.has(`${name}@${marketplaceName}`));
 }
 
@@ -78,8 +87,12 @@ function saveProfile(profileArg) {
   return resolved;
 }
 
-function setup(profileArg) {
+function setup(profileArg, migrate) {
   prerequisites();
+  const conflicts = conflictingPlugins();
+  if (conflicts.length && !migrate) {
+    fail(`the same plugins are enabled from another marketplace: ${conflicts.join(', ')}; rerun setup with --migrate to replace them`);
+  }
   if (!marketplaceInstalled()) {
     run(codexBin, ['plugin', 'marketplace', 'add', repoRoot]);
   }
@@ -88,6 +101,9 @@ function setup(profileArg) {
   }
   const missing = missingPlugins();
   if (missing.length) fail(`required plugins are not enabled: ${missing.join(', ')}`);
+  for (const pluginId of conflicts) {
+    run(codexBin, ['plugin', 'remove', pluginId]);
+  }
   const profile = saveProfile(profileArg);
   process.stdout.write([
     'AI Fleas GPT setup is installed.',
@@ -100,13 +116,15 @@ function doctor() {
   const app = prerequisites();
   const marketplace = marketplaceInstalled();
   const missing = marketplace ? missingPlugins() : requiredPlugins;
+  const conflicts = conflictingPlugins();
   const result = {
-    status: marketplace && missing.length === 0 ? 'ready' : 'setup-required',
+    status: conflicts.length ? 'migration-required' : marketplace && missing.length === 0 ? 'ready' : 'setup-required',
     platform: 'gpt-agents',
     operatingSystem: 'macOS',
     chatGptApp: app,
     marketplace: marketplace ? marketplaceName : null,
     missingPlugins: missing,
+    conflictingPlugins: conflicts,
     hookTrust: 'verify-in-chatgpt',
   };
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
@@ -115,6 +133,10 @@ function doctor() {
 
 function launch() {
   const app = prerequisites();
+  const conflicts = conflictingPlugins();
+  if (conflicts.length) {
+    fail(`duplicate AI Fleas plugins are enabled: ${conflicts.join(', ')}; run setup --migrate first`);
+  }
   if (!marketplaceInstalled() || missingPlugins().length) {
     fail(`setup is incomplete; run ${path.join(scriptDir, 'launcher.mjs')} setup first`);
   }
@@ -125,13 +147,15 @@ function launch() {
 const args = process.argv.slice(2);
 const action = args.shift() || 'launch';
 let profile = null;
+let migrate = false;
 while (args.length) {
   const option = args.shift();
   if (option === '--profile' && args.length) profile = args.shift();
+  else if (option === '--migrate') migrate = true;
   else fail(`unknown or incomplete option: ${option}`);
 }
 
-if (action === 'setup') setup(profile);
+if (action === 'setup') setup(profile, migrate);
 else if (action === 'doctor') doctor();
 else if (action === 'launch') launch();
 else fail(`unknown action: ${action}; expected setup, doctor, or launch`);
