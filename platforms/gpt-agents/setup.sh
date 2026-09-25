@@ -14,10 +14,10 @@ update_ai_fleas() {
 
   local branch dirty before after
   branch="$("$git_bin" -C "$repository_root" branch --show-current)"
-  [[ "$branch" == "main" ]] || {
-    print -u2 "AI_FLEAS_GPT_BLOCKED: automatic updates require the main branch; current branch is ${branch:-detached}."
-    exit 1
-  }
+  if [[ "$branch" != "main" ]]; then
+    print "AI Fleas source update skipped on ${branch:-detached checkout}; launching the checked-out version."
+    return
+  fi
 
   dirty="$("$git_bin" -C "$repository_root" status --porcelain)"
   [[ -z "$dirty" ]] || {

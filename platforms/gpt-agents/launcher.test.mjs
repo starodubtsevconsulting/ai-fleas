@@ -56,7 +56,7 @@ esac
   fs.writeFileSync(git, `#!/bin/sh
 printf 'git %s\\n' "$*" >> "$AI_FLEAS_TEST_LOG"
 case "$*" in
-  *' branch --show-current') echo main ;;
+  *' branch --show-current') echo "\${AI_FLEAS_TEST_GIT_BRANCH:-main}" ;;
   *' status --porcelain') if [ "\${AI_FLEAS_TEST_GIT_DIRTY:-0}" = 1 ]; then echo ' M local-change'; fi ;;
   *' rev-parse HEAD') if [ -f "$AI_FLEAS_TEST_GIT_STATE" ]; then echo updated; else echo original; fi ;;
   *' fetch origin main') : ;;
@@ -81,7 +81,12 @@ function run(item, args, { finderEnvironment = false } = {}) {
   });
 }
 
-function testEnvironment(item, { finderEnvironment = false, sourceUpdate = false, dirtyCheckout = false } = {}) {
+function testEnvironment(item, {
+  finderEnvironment = false,
+  sourceUpdate = false,
+  dirtyCheckout = false,
+  gitBranch = 'main',
+} = {}) {
   const env = {
     ...process.env,
     AI_FLEAS_OS: 'darwin',
@@ -90,6 +95,7 @@ function testEnvironment(item, { finderEnvironment = false, sourceUpdate = false
     AI_FLEAS_GIT_BIN: item.git,
     AI_FLEAS_TEST_GIT_STATE: item.gitState,
     AI_FLEAS_TEST_GIT_DIRTY: dirtyCheckout ? '1' : '0',
+    AI_FLEAS_TEST_GIT_BRANCH: gitBranch,
     AI_FLEAS_CHATGPT_APP: item.app,
     AI_FLEAS_TEST_LOG: item.log,
     AI_FLEAS_TEST_STATE: item.state,
@@ -186,6 +192,20 @@ test('one-step setup refuses to update a dirty checkout', () => {
   assert.doesNotMatch(calls, /fetch origin main/);
   assert.doesNotMatch(calls, /plugin add/);
   assert.doesNotMatch(calls, /open -a ChatGPT/);
+});
+
+test('one-step setup launches the checked-out version from a development branch', () => {
+  const item = fixture();
+  const result = spawnSync('/bin/zsh', [setupScript], {
+    encoding: 'utf8',
+    env: testEnvironment(item, { sourceUpdate: true, gitBranch: 'feature/test-launcher' }),
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /source update skipped on feature\/test-launcher/);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  assert.doesNotMatch(calls, /fetch origin main/);
+  assert.match(calls, /plugin add ai-fleas-gpt@ai-fleas/);
+  assert.match(calls, /open -a ChatGPT/);
 });
 
 test('launch opens ChatGPT only when setup is ready', () => {
