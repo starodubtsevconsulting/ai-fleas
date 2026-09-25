@@ -76,9 +76,22 @@ function prerequisites() {
   return app;
 }
 
-function marketplaceInstalled() {
+function marketplaceState() {
   const state = json(codexBin, ['plugin', 'marketplace', 'list', '--json']);
-  return state.marketplaces?.some(item => item.name === marketplaceName);
+  return state.marketplaces?.find(item => item.name === marketplaceName) || null;
+}
+
+function marketplaceRootMismatch(marketplace = marketplaceState()) {
+  if (!marketplace) return null;
+  const configured = marketplace.marketplaceSource?.source || marketplace.root;
+  if (!configured) return { configured: null, expected: repoRoot };
+  let resolved = path.resolve(configured);
+  try {
+    resolved = fs.realpathSync(resolved);
+  } catch {
+    // Preserve the normalized path so a deleted temporary checkout is still diagnosable.
+  }
+  return resolved === repoRoot ? null : { configured: resolved, expected: repoRoot };
 }
 
 function installedPlugins() {
@@ -114,10 +127,19 @@ function saveProfile(profileArg) {
 function setup(profileArg, migrate) {
   prerequisites();
   const conflicts = conflictingPlugins();
+  let marketplace = marketplaceState();
+  const rootMismatch = marketplaceRootMismatch(marketplace);
   if (conflicts.length && !migrate) {
     fail(`the same plugins are enabled from another marketplace: ${conflicts.join(', ')}; rerun setup with --migrate to replace them`);
   }
-  if (!marketplaceInstalled()) {
+  if (rootMismatch && !migrate) {
+    fail(`marketplace ${marketplaceName} points to ${rootMismatch.configured || 'an unknown path'}, expected ${rootMismatch.expected}; rerun setup with --migrate to relocate it`);
+  }
+  if (rootMismatch) {
+    run(codexBin, ['plugin', 'marketplace', 'remove', marketplaceName]);
+    marketplace = null;
+  }
+  if (!marketplace) {
     run(codexBin, ['plugin', 'marketplace', 'add', repoRoot]);
   }
   for (const plugin of requiredPlugins) {
@@ -139,15 +161,19 @@ function setup(profileArg, migrate) {
 
 function doctor() {
   const app = prerequisites();
-  const marketplace = marketplaceInstalled();
+  const marketplace = marketplaceState();
+  const rootMismatch = marketplaceRootMismatch(marketplace);
   const missing = marketplace ? missingPlugins() : requiredPlugins;
   const conflicts = conflictingPlugins();
   const result = {
-    status: conflicts.length ? 'migration-required' : marketplace && missing.length === 0 ? 'ready' : 'setup-required',
+    status: conflicts.length || rootMismatch ? 'migration-required' : marketplace && missing.length === 0 ? 'ready' : 'setup-required',
     platform: 'gpt-agents',
     operatingSystem: 'macOS',
     chatGptApp: app,
     marketplace: marketplace ? marketplaceName : null,
+    marketplaceRoot: marketplace?.marketplaceSource?.source || marketplace?.root || null,
+    expectedMarketplaceRoot: repoRoot,
+    marketplaceRootMismatch: rootMismatch,
     missingPlugins: missing,
     conflictingPlugins: conflicts,
     hookTrust: 'verify-in-chatgpt',
@@ -162,7 +188,12 @@ function launch() {
   if (conflicts.length) {
     fail(`duplicate AI Fleas plugins are enabled: ${conflicts.join(', ')}; run setup --migrate first`);
   }
-  if (!marketplaceInstalled() || missingPlugins().length) {
+  const marketplace = marketplaceState();
+  const rootMismatch = marketplaceRootMismatch(marketplace);
+  if (rootMismatch) {
+    fail(`marketplace ${marketplaceName} points to ${rootMismatch.configured || 'an unknown path'}, expected ${rootMismatch.expected}; run setup --migrate first`);
+  }
+  if (!marketplace || missingPlugins().length) {
     fail(`setup is incomplete; run ${path.join(scriptDir, 'launcher.mjs')} setup first`);
   }
   run(openBin, ['-a', 'ChatGPT']);

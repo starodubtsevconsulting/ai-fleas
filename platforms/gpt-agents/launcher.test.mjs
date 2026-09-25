@@ -7,8 +7,9 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const launcher = fileURLToPath(new URL('./launcher.mjs', import.meta.url));
+const repositoryRoot = fs.realpathSync(fileURLToPath(new URL('../..', import.meta.url)));
 
-function fixture({ marketplace = false, plugins = false, legacy = false } = {}) {
+function fixture({ marketplace = false, plugins = false, legacy = false, staleMarketplace = false } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-fleas-gpt-launcher-'));
   const bin = path.join(root, 'bin');
   const app = path.join(root, 'ChatGPT.app');
@@ -16,7 +17,7 @@ function fixture({ marketplace = false, plugins = false, legacy = false } = {}) 
   const state = path.join(root, 'state');
   fs.mkdirSync(bin);
   fs.mkdirSync(app);
-  fs.writeFileSync(state, `${marketplace ? 'marketplace' : ''}\n${plugins ? 'plugins' : ''}\n${legacy ? 'legacy' : ''}\n`);
+  fs.writeFileSync(state, `${marketplace ? 'marketplace' : ''}\n${plugins ? 'plugins' : ''}\n${legacy ? 'legacy' : ''}\n${staleMarketplace ? 'stale' : ''}\n`);
   const codex = path.join(bin, 'codex');
   const embeddedCodex = path.join(app, 'Contents', 'Resources', 'codex');
   const open = path.join(bin, 'open');
@@ -25,7 +26,11 @@ printf '%s\\n' "$*" >> "$AI_FLEAS_TEST_LOG"
 case "$*" in
   '--version') echo 'codex-test 1.0' ;;
   'plugin marketplace list --json')
-    if grep -q marketplace "$AI_FLEAS_TEST_STATE"; then echo '{"marketplaces":[{"name":"ai-fleas"}]}'; else echo '{"marketplaces":[]}'; fi ;;
+    if grep -q marketplace "$AI_FLEAS_TEST_STATE"; then
+      if grep -q stale "$AI_FLEAS_TEST_STATE"; then echo '{"marketplaces":[{"name":"ai-fleas","root":"/private/tmp/stale-ai-fleas"}]}'
+      else printf '{"marketplaces":[{"name":"ai-fleas","root":"%s"}]}\\n' "$AI_FLEAS_EXPECTED_MARKETPLACE_ROOT"; fi
+    else echo '{"marketplaces":[]}'; fi ;;
+  'plugin marketplace remove ai-fleas') sed -i.bak -e '/marketplace/d' -e '/stale/d' "$AI_FLEAS_TEST_STATE"; echo '{}' ;;
   'plugin marketplace add '*) printf 'marketplace\\n' >> "$AI_FLEAS_TEST_STATE"; echo '{}' ;;
   'plugin add '*) printf 'plugins\\n' >> "$AI_FLEAS_TEST_STATE"; echo '{}' ;;
   'plugin remove '*) sed -i.bak '/legacy/d' "$AI_FLEAS_TEST_STATE"; echo '{}' ;;
@@ -57,6 +62,7 @@ function run(item, args, { finderEnvironment = false } = {}) {
     AI_FLEAS_CHATGPT_APP: item.app,
     AI_FLEAS_TEST_LOG: item.log,
     AI_FLEAS_TEST_STATE: item.state,
+    AI_FLEAS_EXPECTED_MARKETPLACE_ROOT: repositoryRoot,
     XDG_CONFIG_HOME: path.join(item.root, 'config'),
   };
   if (finderEnvironment) {
@@ -121,4 +127,28 @@ test('setup requires explicit migration before replacing an older marketplace co
   const migrated = run(item, ['setup', '--migrate']);
   assert.equal(migrated.status, 0, migrated.stderr);
   assert.match(fs.readFileSync(item.log, 'utf8'), /plugin remove ai-fleas-agent-bootstrap@personal/);
+});
+
+test('doctor reports migration-required when marketplace name points to another checkout', () => {
+  const item = fixture({ marketplace: true, plugins: true, staleMarketplace: true });
+  const result = run(item, ['doctor']);
+  assert.equal(result.status, 2, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.status, 'migration-required');
+  assert.equal(report.marketplaceRootMismatch.configured, '/private/tmp/stale-ai-fleas');
+  assert.equal(report.marketplaceRootMismatch.expected, repositoryRoot);
+});
+
+test('setup requires explicit migration before relocating a marketplace', () => {
+  const item = fixture({ marketplace: true, plugins: true, staleMarketplace: true });
+  const blocked = run(item, ['setup']);
+  assert.equal(blocked.status, 1);
+  assert.match(blocked.stderr, /--migrate to relocate it/);
+  assert.doesNotMatch(fs.readFileSync(item.log, 'utf8'), /plugin marketplace remove/);
+
+  const migrated = run(item, ['setup', '--migrate']);
+  assert.equal(migrated.status, 0, migrated.stderr);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  assert.match(calls, /plugin marketplace remove ai-fleas/);
+  assert.match(calls, /plugin marketplace add/);
 });
