@@ -34,15 +34,17 @@ node platforms/gpt-agents/launcher.mjs doctor
 node platforms/gpt-agents/launcher.mjs launch
 ```
 
-If `doctor` reports `migration-required`, the same AI Fleas plugin is still enabled from an older marketplace. Review
-the reported plugin IDs, then replace those copies explicitly:
+If `doctor` reports `migration-required`, either the same AI Fleas plugin is still enabled from an older marketplace or
+the `ai-fleas` marketplace points to a different checkout. Review `conflictingPlugins`, `marketplaceRoot`, and
+`expectedMarketplaceRoot`, then migrate explicitly:
 
 ```sh
 node platforms/gpt-agents/launcher.mjs setup --migrate
 ```
 
-The normal setup and launch paths fail closed when duplicate plugin names are enabled, preventing hooks from running
-twice. Migration first installs the repository-managed copies and only then removes the reported older copies.
+The normal setup and launch paths fail closed when duplicate plugin names are enabled or the marketplace source is not
+the repository running the launcher. Migration relocates a mismatched marketplace, installs the repository-managed
+copies, and only then removes reported older plugin copies.
 
 To record an existing private work-profile file during setup:
 
