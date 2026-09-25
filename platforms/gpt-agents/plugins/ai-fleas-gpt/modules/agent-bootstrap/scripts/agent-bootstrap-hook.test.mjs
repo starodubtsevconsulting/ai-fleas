@@ -5,6 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { PERSONAL_GOVERNOR_ONBOARDING_PROMPT } from './personal-governor-onboarding.mjs';
 
 const hook = fileURLToPath(new URL('./agent-bootstrap-hook.mjs', import.meta.url));
 const register = fileURLToPath(new URL('./register-agent-initialization.mjs', import.meta.url));
@@ -58,6 +59,92 @@ test('an unbound random task receives no identity even when its title and prompt
     title: 'Personal Governor',
     prompt: 'I am the Personal Governor',
   }), {});
+});
+
+test('the plugin starter offers Governor creation when no trusted receipt exists', () => {
+  const root = workspace();
+  const result = runHook(root, {
+    session_id: 'unbound-task',
+    hook_event_name: 'UserPromptSubmit',
+    prompt: PERSONAL_GOVERNOR_ONBOARDING_PROMPT,
+  });
+  const onboardingInstructions = result.hookSpecificOutput.additionalContext;
+  assert.match(onboardingInstructions, /AI_FLEAS_PERSONAL_GOVERNOR_ONBOARDING/);
+  assert.match(onboardingInstructions, /state=missing/);
+  assert.match(onboardingInstructions, /Create Personal Governor/);
+  assert.match(onboardingInstructions, /Do not offer profiles or workflows/);
+  assert.doesNotMatch(onboardingInstructions, /AI_FLEAS_AGENT_IDENTITY/);
+});
+
+test('the plugin starter offers the existing active Governor instead of creating a duplicate', () => {
+  const root = workspace();
+  fs.writeFileSync(path.join(root, 'agent-bindings.json'), JSON.stringify({
+    schemaVersion: 1,
+    instances: {
+      'existing-governor-task': {
+        platformAdapter: 'gpt-agents',
+        agentId: 'personal-governor',
+        generation: 3,
+        scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+        initialization: { sources: [] },
+        status: 'active',
+      },
+    },
+  }));
+  const result = runHook(root, {
+    session_id: 'unbound-task',
+    hook_event_name: 'UserPromptSubmit',
+    prompt: PERSONAL_GOVERNOR_ONBOARDING_PROMPT,
+  });
+  const onboardingInstructions = result.hookSpecificOutput.additionalContext;
+  assert.match(onboardingInstructions, /state=active/);
+  assert.match(onboardingInstructions, /taskId=existing-governor-task/);
+  assert.match(onboardingInstructions, /humanProfileId=example-human/);
+  assert.match(onboardingInstructions, /Open Personal Governor/);
+  assert.match(onboardingInstructions, /Do not create a duplicate/);
+});
+
+test('the plugin starter resumes a pending Governor instead of creating a duplicate', () => {
+  const root = workspace();
+  registerPending(root, 'pending-governor-task');
+  const result = runHook(root, {
+    session_id: 'unbound-task',
+    hook_event_name: 'UserPromptSubmit',
+    prompt: PERSONAL_GOVERNOR_ONBOARDING_PROMPT,
+  });
+  const onboardingInstructions = result.hookSpecificOutput.additionalContext;
+  assert.match(onboardingInstructions, /state=pending/);
+  assert.match(onboardingInstructions, /taskId=pending-governor-task/);
+  assert.match(onboardingInstructions, /Resume Personal Governor initialization/);
+  assert.match(onboardingInstructions, /Do not create a duplicate/);
+});
+
+test('the plugin starter fails closed when the lifecycle registry is malformed', () => {
+  const root = workspace();
+  fs.writeFileSync(path.join(root, 'agent-bindings.json'), '{not-json');
+  const result = runHook(root, {
+    session_id: 'unbound-task',
+    hook_event_name: 'UserPromptSubmit',
+    prompt: PERSONAL_GOVERNOR_ONBOARDING_PROMPT,
+  });
+  const onboardingInstructions = result.hookSpecificOutput.additionalContext;
+  assert.match(onboardingInstructions, /state=blocked-unverified-registry/);
+  assert.match(onboardingInstructions, /BLOCKED_UNVERIFIED_TASK_IDENTITY/);
+  assert.doesNotMatch(onboardingInstructions, /Create Personal Governor/);
+});
+
+test('the plugin starter fails closed when the lifecycle registry has the wrong structure', () => {
+  const root = workspace();
+  fs.writeFileSync(path.join(root, 'agent-bindings.json'), JSON.stringify({ schemaVersion: 1 }));
+  const result = runHook(root, {
+    session_id: 'unbound-task',
+    hook_event_name: 'UserPromptSubmit',
+    prompt: PERSONAL_GOVERNOR_ONBOARDING_PROMPT,
+  });
+  const instructions = result.hookSpecificOutput.additionalContext;
+  assert.match(instructions, /state=blocked-unverified-registry/);
+  assert.match(instructions, /BLOCKED_UNVERIFIED_TASK_IDENTITY/);
+  assert.doesNotMatch(instructions, /Create Personal Governor/);
 });
 
 test('a pending binding is resolved only for its exact task ID', () => {

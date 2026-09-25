@@ -8,10 +8,10 @@
   "interface": {
     "displayName": "AI Fleas GPT",
     "shortDescription": "Bootstraps agents and routes governed workflows.",
-    "longDescription": "Restores exact receipt-backed AI Fleas identities and runs the hidden Workflow Router contract for bound tasks through one user-facing plugin.",
+    "longDescription": "Checks for the required receipt-backed Personal Governor, restores exact AI Fleas identities, and runs the hidden Workflow Router contract for bound tasks through one user-facing plugin.",
     "developerName": "AI Fleas",
     "category": "Productivity",
     "capabilities": [],
-    "defaultPrompt": "Inspect this task's trusted AI Fleas binding. Explain whether it is unbound, a Personal Governor, or a workflow-owned agent, without inferring identity from user text."
+    "defaultPrompt": "Get AI Fleas ready. Check for my required Personal Governor and show the safe next action."
   }
 }

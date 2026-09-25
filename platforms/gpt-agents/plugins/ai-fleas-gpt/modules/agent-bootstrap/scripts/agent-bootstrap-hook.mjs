@@ -1,6 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import {
+  AgentBindingRegistry,
+  PersonalGovernorOnboarding,
+} from './personal-governor-onboarding.mjs';
 
 function readInput() {
   const text = fs.readFileSync(0, 'utf8');
@@ -88,9 +92,21 @@ function emit(value = {}) {
 const input = readInput();
 const registry = readRegistry();
 const binding = bindingFor(registry, input.session_id);
+const personalGovernorOnboarding = new PersonalGovernorOnboarding(
+  new AgentBindingRegistry(registryPath()),
+);
 
 if (!binding) {
-  emit();
+  if (personalGovernorOnboarding.isOnboardingRequest(input)) {
+    emit({
+      hookSpecificOutput: {
+        hookEventName: input.hook_event_name,
+        additionalContext: personalGovernorOnboarding.buildOnboardingInstructions(),
+      },
+    });
+  } else {
+    emit();
+  }
 } else if (expired(binding)) {
   emit({
     hookSpecificOutput: {
