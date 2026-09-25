@@ -12,7 +12,9 @@ GPT**. Agent Bootstrap and Workflow Router remain separate internal modules.
 
 ChatGPT requires a human to review and trust new or changed plugin hooks. Approve those hooks and start a new Codex task.
 For later sessions, open `AI Fleas GPT.command` from the same Finder folder. You can drag that daily launcher to the Dock
-for easier access. It verifies the application, CLI, marketplace, and enabled plugin before opening ChatGPT.
+for easier access. It safely fast-forwards a clean `main` checkout from `origin/main`, refreshes the repository-managed
+plugin, enables ChatGPT's signed built-in automatic updater, verifies the complete installation, and opens ChatGPT.
+It refuses to overwrite a dirty, non-`main`, locally advanced, or diverged checkout.
 
 After setup, the Plugins page should show one repository-managed entry named **AI Fleas GPT**. Local Hermes is an
 optional, independent integration and is not installed by this launcher.
@@ -31,8 +33,10 @@ Terminal equivalents:
 platforms/gpt-agents/setup.sh
 ```
 
-The one-step script always uses the launcher's safe `--migrate` path. It preserves matching data, refuses conflicting
-data, runs `doctor`, and launches only after verification succeeds. To record a private work profile at the same time:
+The one-step script updates AI Fleas with a safe fast-forward, always uses the launcher's safe `--migrate` path, enables
+the trusted ChatGPT updater, preserves matching data, refuses conflicting data, runs `doctor`, and launches only after
+verification succeeds. ChatGPT application checks run inside the signed app and may relaunch it after applying an update.
+To record a private work profile at the same time:
 
 ```sh
 platforms/gpt-agents/setup.sh --profile /absolute/path/to/work-profile.yml
@@ -106,8 +110,9 @@ There are therefore three separate responsibilities:
    After explicit initialization, it can help select authorized profiles and workflows; the controller creates and binds
    their configured agents.
 
-The one-time setup launcher installs the repository marketplace and plugin. The daily launcher only verifies that setup
-and opens ChatGPT. Neither launcher silently creates a Governor, selects a human profile, or starts a workflow.
+The setup and daily launchers use the same idempotent maintenance path: update the clean AI Fleas checkout, refresh the
+repository marketplace and plugin, enable the trusted ChatGPT updater, verify setup, and open ChatGPT. Neither launcher
+silently creates a Governor, selects a human profile, or starts a workflow.
 
 This built-in adapter maps logical AI Fleas agents to user-visible Codex tasks. It owns Codex-specific task creation,
 project binding, exact task-ID receipts, task messaging, model and reasoning selection, and recoverable archival.

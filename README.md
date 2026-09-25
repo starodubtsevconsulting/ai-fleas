@@ -54,7 +54,8 @@ Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes o
 6. The setup performs installation/update, legacy-data migration, health verification, and then opens ChatGPT. Review and
    trust the **AI Fleas GPT** plugin hooks when prompted, then start a new Codex task.
 7. For later sessions, use `AI Fleas GPT.command`. You can drag it to the Dock for easier
-   access.
+   access. It safely updates a clean `main` checkout, refreshes the plugin, enables ChatGPT's
+   trusted automatic updater, verifies the installation, and then launches ChatGPT.
 
 After setup, the Plugins page should show one repository-managed entry named **AI Fleas GPT**. Agent Bootstrap and
 Workflow Router are internal modules of that plugin, not separate installation choices. Local Hermes remains an optional,
