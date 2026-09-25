@@ -13,6 +13,10 @@ start a new Codex task. Afterwards, open `AI Fleas GPT.command` from that same F
 it to the Dock for easier access. It verifies the application, CLI, marketplace, and enabled plugins before opening
 ChatGPT.
 
+Expected Agent Bootstrap plugin page after setup:
+
+![AI Fleas Agent Bootstrap plugin page in ChatGPT/Codex](../../img/gpt-agents/agent-bootstrap-plugin.png)
+
 Terminal equivalents:
 
 ```sh

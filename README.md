@@ -54,6 +54,10 @@ Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes o
 6. For later sessions, open `AI Fleas GPT.command` from the same Finder folder. You can drag it to the Dock for easier
    access.
 
+After setup, the Agent Bootstrap plugin page should look like this:
+
+![AI Fleas Agent Bootstrap plugin page in ChatGPT/Codex](img/gpt-agents/agent-bootstrap-plugin.png)
+
 If the Finder launcher does not open, open Terminal in the cloned repository and run:
 
 ```sh
