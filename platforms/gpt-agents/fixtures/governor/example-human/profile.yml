@@ -1,0 +1,13 @@
+id: example-human
+type: human
+governor:
+  config: governor.yml
+  role: personal-governor
+  readinessToken: PERSONAL_GOVERNOR_READY
+memory:
+  config: memory.yml
+authorizedProfiles:
+  - id: example-work
+authorizedWorkflows:
+  - profile: example-work
+    id: writing

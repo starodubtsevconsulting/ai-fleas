@@ -1,0 +1,13 @@
+agentId: personal-governor
+roleDefinition: ../../../../../ai-workflows/_common/roles/personal-governor.yml
+subject:
+  id: example-human
+readinessToken: PERSONAL_GOVERNOR_READY
+platformBindings:
+  gpt-agents: {}
+memory:
+  - name: governor
+    uri: profile-memory://governor
+    authority: source-of-truth
+    access: read-write
+    provider: permanent-memory-synology

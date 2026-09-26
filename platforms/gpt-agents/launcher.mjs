@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { ensureQueuedFollowUps } from './desktop-preferences.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = fs.realpathSync(path.resolve(scriptDir, '../..'));
@@ -312,6 +313,7 @@ function launch() {
   if (!marketplace || missingPlugins().length) {
     fail(`setup is incomplete; run ${path.join(scriptDir, 'launcher.mjs')} setup first`);
   }
+  const followUps = ensureQueuedFollowUps(path.join(codexHome, 'config.toml'));
   const statusNavigator = new AgentStatusNavigator(path.join(
     pluginDataDirectory(`ai-fleas-gpt@${marketplaceName}`),
     'agent-bindings.json',
@@ -320,21 +322,35 @@ function launch() {
   const destination = navigation.destination === 'personal-governor'
     ? 'The trusted Personal Governor is checking AI Fleas status.'
     : 'A new onboarding chat is open. Select AI Fleas GPT and use its Personal Governor action.';
-  process.stdout.write(`AI Fleas GPT is ready. ${destination}\n`);
+  process.stdout.write(`AI Fleas GPT is ready. Follow-up behavior: Queue${followUps.changed ? ' (updated)' : ''}. ${destination}\n`);
 }
 
 const args = process.argv.slice(2);
 const action = args.shift() || 'launch';
 let profile = null;
 let migrate = false;
+let human = null;
+let humanDir = null;
+let thread = null;
 while (args.length) {
   const option = args.shift();
   if (option === '--profile' && args.length) profile = args.shift();
   else if (option === '--migrate') migrate = true;
+  else if (option === '--human' && args.length) human = args.shift();
+  else if (option === '--human-dir' && args.length) humanDir = args.shift();
+  else if (option === '--thread' && args.length) thread = args.shift();
   else fail(`unknown or incomplete option: ${option}`);
 }
 
 if (action === 'setup') setup(profile, migrate);
 else if (action === 'doctor') doctor();
 else if (action === 'launch') launch();
-else fail(`unknown action: ${action}; expected setup, doctor, or launch`);
+else if (action === 'initialize-governor') {
+  if (!human || !humanDir || !thread || profile || migrate) {
+    fail('usage: launcher.mjs initialize-governor --human ID --human-dir PATH --thread TASK_ID');
+  }
+  process.stdout.write(run(process.execPath, [
+    path.join(scriptDir, 'initialize-governor.mjs'),
+    '--human', human, '--human-dir', humanDir, '--thread', thread,
+  ]));
+} else fail(`unknown action: ${action}; expected setup, doctor, launch, or initialize-governor`);

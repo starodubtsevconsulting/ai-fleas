@@ -71,7 +71,7 @@ therefore changes profile configuration rather than the portable workflow roster
 
 | Output | Destination | Description |
 |---|---|---|
-| Agent-instance receipts | Profile-owned binding-state registry and caller | Exact logical-agent, role, task ID, host ID, logical saved-project ID, complete ordered scoped-folder bindings, readiness, generation, and creation outcome. |
+| Agent-instance receipts | Host plugin binding and caller | Exact logical-agent, role, task ID, host ID, logical saved-project ID, complete ordered scoped-folder bindings, readiness, generation, and creation outcome. |
 | Lifecycle result | Caller | Verified status, delivery, replacement, reconciliation, or archival result. |
 
 ## Entry Point
@@ -90,12 +90,15 @@ the profile. System lifecycle resolves the profile/platform binding without belo
 
 Committed configuration template: `gpt-agents/gpt-agents.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
-The selected command config must declare `binding_state.owner: profile`, a profile-relative `binding_state.path`, and
-`schema_version: gpt-agents-binding-state.v1`. Resolve that path beneath the activated profile directory; reject absolute
-paths and traversal. The registry is the durable lifecycle authority and records the profile/platform binding, logical
-saved-project ID, ordered scoped-folder roots, every role's logical-agent/task/host IDs,
-readiness and generation, System task/pinning/scheduler/watch receipts, and deletion or replacement tombstones. Runtime
-IDs belong only in this ignored profile-owned state, never in public manifests or title-based discovery.
+Canonical profile and workflow manifests define desired state. The host's active and archived task catalogs define task
+existence. The GPT agent-bootstrap plugin binds exact task IDs to roles and scope during initialization and restores that
+binding on each task turn. The lifecycle controller reads those host plugin bindings as candidates, then verifies each
+exact task in the host catalogs before reuse or a status claim. Host-side deletion can leave a stale plugin binding;
+neither its status nor a stored readiness token proves the task still exists. System watch scopes live in the host
+scheduler receipt. No profile-owned GPT binding-state file is created or read. Compute source drift from canonical files
+on demand rather than storing per-file hashes or source inventories in task receipts.
+The host plugin exposes bounded candidate IDs through `modules/agent-bootstrap/scripts/list-agent-bindings.mjs` with an
+exact `profile` or `human` ID. Its `statusClaim` is advisory; the host catalogs decide whether a candidate exists.
 
 ## Linked Commands
 
@@ -174,10 +177,11 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
 1. Require explicit Personal Governor intent and exact human profile ID. Resolve a configured `type: human` profile; never infer the person from a workflow profile, task title, previous conversation, or nearby files.
 2. Load the complete portable Personal Governor role and calendar/governance policies plus the human profile's Governor, authoritative-memory, resource, and authorized-profile bindings.
 3. Resolve the selected GPT platform realization. The Governor is human-scoped and global/persistent; it is not created inside a workflow saved project and requires no Admin, Manager, or System.
-4. Resolve trusted lifecycle state for this exact human/platform binding. Reuse one exact active Governor. Ambiguous/unrecorded candidates block creation rather than being adopted by title.
+4. Resolve trusted lifecycle state for this exact human/platform binding. Confirm the recorded task exists in the host's active or archived catalog before treating its `active` status as live or reusing it, and verify that the human profile's declared memory provider config still resolves. A stale receipt or stored readiness token is not proof of a live Governor. If absent from both catalogs, reconcile the stale receipt through the platform lifecycle procedure before replacement; ambiguous/unrecorded candidates block title-based adoption.
 5. When absent, create exactly one Governor task with the configured model/reasoning and recommended presentation title `🧭 Personal Governor`. Dispatch the canonical initialization message containing the exact human identity, role/policies, logical permanent-memory route, and authorized profile contexts. Do not embed secret values or provider administrator credentials.
+   For the GPT desktop host, after its new-task operation returns an exact task ID, run `platforms/gpt-agents/launcher.mjs initialize-governor --human HUMAN_PROFILE_ID --human-dir ABSOLUTE_HUMAN_PROFILE_DIRECTORY --thread EXACT_TASK_ID`. This preflights the declared role and provider config, then uses the plugin's register-and-queue transaction; never hand-write a binding record or infer the task ID from a title.
 6. Verify `PERSONAL_GOVERNOR_READY`, including usable authoritative memory resolution. Pin the exact task in global navigation when supported and record task/host/human IDs, readiness, generation, memory binding identity, and pin result in trusted lifecycle state.
-7. `status-governor` verifies the recorded binding and memory route read-only.
+7. `status-governor` verifies the recorded binding, exact host task, and declared memory route read-only. Report a missing host task as stale recorded state, never as an active Governor.
 8. `reinitialize-governor` is successor-first: preflight existing binding, create the successor as a projectless task with the host's fresh-history new-task operation, initialize from canonical configuration and durable memory, verify readiness, pin successor, then recoverably archive predecessor. Never place the successor inside a workflow saved project or use a task-fork, clone-with-history, or equivalent inherited-context operation. The successor bootstrap contains only canonical source references, durable-memory bindings, exact lifecycle identifiers, and the minimum initialization instruction; it must not copy, summarize, reconstruct, or replay the predecessor transcript, conversation summary, turns, or broad context. Conversation history is not Governor memory. The predecessor task ID is used only for cutover and recoverable archival. A failure leaves the predecessor active.
 9. Governor initialization never initializes, reconciles, or mutates workflow rosters. Authorized workflow profiles are context/capability grants, not ownership.
 
@@ -198,10 +202,10 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    never included in a workflow logical-project receipt. If pinning is unavailable, retain the valid System binding and
    report `pinning: unsupported` rather than placing it in a workflow section.
 6. Grant System read access to trusted host-managed workflow lifecycle receipts, not membership in workflow peer rosters.
-   Resolve the selected profile's configured `binding_state.path` to one canonical absolute registry path and include that
-   exact path plus `gpt-agents-binding-state.v1` in both System's initialization message and scheduler prompt. System must
-   read that exact registry; it must not discover receipts by filename search. It may use those receipts to monitor multiple
-   groups and initiate only authorized lifecycle messages to exact task IDs.
+   Supply the selected profile's canonical source and the host plugin's exact task bindings for authorized groups in
+   System's initialization message and scheduler prompt. System must verify each candidate task ID against the host's
+   active and archived catalogs before monitoring or lifecycle contact. The host scheduler receipt owns watch scopes;
+   System never reads a profile-owned GPT task registry or discovers one by filename search.
    Do not publish System's task ID or routing address to workflow agents.
 7. When scheduling is enabled, System requests the selected platform adapter to create or reconcile exactly one scheduler
    bound to its own exact instance, then verifies and returns the platform scheduler receipt. System resolves every
@@ -279,7 +283,7 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
     communication topology permits peer routing. A direct-human-only role such as Judge receives its own binding and
     governance scope, never a participant-routing roster. Never include System's task ID, routing address, or runtime
     location in any workflow-agent initialization message. Include the selected profile's canonical absolute directory and
-    exact resolved binding-registry path; never substitute a public example or a repository-relative profile guess. Do not
+    the host plugin's exact task-binding source; never substitute a public example or a repository-relative profile guess. Do not
     replace contracts with a hand-written role summary.
     Send lifecycle control to an endpoint already bound to the Workflow Router only through
     `scripts/queue-lifecycle-control.mjs`. It registers a short-lived, one-shot permit bound to the exact session ID, full

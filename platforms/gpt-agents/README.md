@@ -15,9 +15,30 @@ opens a fresh onboarding chat so you can select AI Fleas GPT and use its safe Pe
 registry still calls a Governor active but the host reports that its task is archived, the launcher records that exact
 receipt as archived and routes to the same onboarding chat.
 
+The launcher sets the desktop **Follow-up behavior** to **Queue** before opening ChatGPT. Sending a message while a task
+is working then waits for the next turn; use the app's one-message Steer shortcut when you intentionally want to redirect
+the current turn. This is a global Codex desktop preference in `~/.codex/config.toml`, not an isolated setting for AI Fleas
+chats. If ChatGPT was already running when the launcher changed it, restart ChatGPT once to load the new default.
+
 To initialize your Personal Governor, start a new Codex task and ask:
 
 > Initialize Personal Governor for `<human-profile-id>` using the GPT Agents controller.
+
+The controller creates a fresh, projectless task with the host's new-task operation, then runs the checked-in
+initializer with that exact task ID and the selected human profile directory:
+
+```sh
+node platforms/gpt-agents/launcher.mjs initialize-governor \
+  --human <human-profile-id> \
+  --human-dir <absolute-human-profile-directory> \
+  --thread <exact-new-task-id>
+```
+
+The initializer checks the declared Governor role, memory provider, and source files; it then registers a pending
+binding in the GPT plugin's host data and queues the exact initialization prompt. Wait for the task to return only
+`PERSONAL_GOVERNOR_READY`, verify the plugin binding is `active` for that task ID, and pin the task. The command
+does not create, adopt, or pin a task by title. If it reports another active or pending Governor binding, verify that
+exact task in the host catalog and reconcile it before making a replacement.
 
 The **Try now** button is only a connection check; it does not create a Personal Governor.
 
