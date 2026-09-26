@@ -10,9 +10,9 @@ communication graph.
 | Endpoint | Human access | Ownership | Lifecycle |
 | --- | --- | --- | --- |
 | Admin | administration | Roster administration, Router inspection, and authorized recovery | persistent |
-| Writer | primary | Article intake, draft, edit, archive, unpublished destination draft, critique disposition | persistent |
+| Writer | primary | Article intake, draft, edit, archive, selected unpublished destination drafts, critique dispositions | persistent |
 | Reviewer | primary | Independent critique and human-visible review report | persistent |
-| Release Coordinator | primary | Review-gate check, account-history check, release slot and profile-authorized Medium scheduling | persistent |
+| Release Coordinator | primary | Per-destination review-gate/account-history checks, release actions, and profile-authorized scheduling | persistent |
 
 Admin sits outside ordinary workflow execution and owns any required local governance validation under the common Admin
 contract. Writer, Reviewer, and Release Coordinator are independently addressable role endpoints. The Router assigns
