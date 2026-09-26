@@ -67,7 +67,7 @@ them.
 
 ## Workflow
 
-1. Establish the request, source, audience, destination, and authorized archive through the
+1. Establish the request, source, audience, selected destination set, and authorized archive through the
    [intake and planning flow](flows/intake-and-planning.flow.md).
 2. Produce or revise the article through the [drafting flow](flows/drafting.flow.md), using the
    [blogging workflow](../blogging/blogging.workflow.md) for applicable editorial methods.
@@ -75,7 +75,7 @@ them.
    [editorial verification flow](flows/editorial-verification.flow.md). Failed checks return to drafting without
    discarding valid work.
 4. Preserve the canonical Markdown article and initial metadata through the [archive flow](flows/archive.flow.md).
-5. When a destination is selected, prepare its unpublished version through the
+5. For every selected destination, prepare its unpublished representation through the
    [destination preparation flow](flows/destination-preparation.flow.md), then return to the archive flow to record
    the draft URL, status, and topics. Destination preparation never includes publication.
 6. Challenge the finished article through the [independent critique flow](flows/independent-critique.flow.md),
@@ -117,8 +117,7 @@ For a read-only question or a minor revision, run only the applicable flows and 
 
 ## Destination commands
 
-The selected profile explicitly lists editor and destination commands for this workflow. Choose only a configured destination
-that matches the human's request; the generic `writing` command does not choose a platform. A destination command
+The selected profile explicitly lists editor and destination commands for this workflow. Resolve one or more configured destinations from the article selection or profile defaults; the generic `writing` command does not choose a platform. A destination command
 owns its provider-specific editor mechanics and any skill it requires. Preparing a destination draft does not grant
 publication authority. A separately enabled Medium schedule mode grants Release Coordinator future scheduling after
 human article acceptance; the human performs immediate publication or submission.
