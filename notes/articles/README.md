@@ -8,6 +8,7 @@ Keep short engineering/research notes directly under `notes/`; keep article-leng
 
 Newest first:
 
+- [2026-09-26 — Why Hybrid AI Is Worth Considering](2026-09-26-why-hybrid-ai-is-worth-considering.md) — draft
 - [2026-09-21 — Your AI Agents Do Not Need to Talk to Each Other](2026-09-21-your-ai-agents-do-not-need-to-talk-to-each-other.md) — draft
 - [2026-09-20 — Why Explicit Handoffs Make AI Agent Teams More Reliable](2026-09-20-why-explicit-handoffs-make-ai-agent-teams-more-reliable.md) — draft
 - [2026-09-20 — Your AI Already Talks to You. Make It Teach You Something.](2026-09-20-your-ai-already-talks-to-you.md) — draft
