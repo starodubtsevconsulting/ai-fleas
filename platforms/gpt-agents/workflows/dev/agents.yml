@@ -75,4 +75,4 @@ runtime_semantics:
   router_delivery: exact-task-id-message
   result_return: host-observed-task-turn
   peer_delivery: prohibited
-  external_bootstrap: create-project-bound-admin
+  external_bootstrap: create-human-designated-admin
