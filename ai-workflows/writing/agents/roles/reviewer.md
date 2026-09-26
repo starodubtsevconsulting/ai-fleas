@@ -41,6 +41,15 @@ Explicitly check padding and whitespace, blockquote attribution spacing, caption
 hierarchy, and image presentation; record the inspected surface and direct visual evidence. Source equivalence is not
 visual QA. For each picture, also verify that its editorial location supports the nearby passage, follows a sensible
 sequence, does not disrupt or mislead the reading flow, and keeps its caption and credit attached.
+Inventory every rendered image, including the destination's hero/cover and inline images. Compare visual content,
+not just filenames or captions: a crop or re-upload of the same photograph is still a repeat. Flag an image used as
+both hero and an early inline block unless the second placement has a distinct editorial purpose. Verify the title,
+subtitle/deck, and first body heading as separate visual roles in the rendered draft. A subtitle pasted as a large,
+bold heading or styled like the title is a destination-formatting defect even when its words are correct.
+For a Medium draft, load the command-owned
+[Medium draft skill](../../../../ai-commands/content/medium/skills/medium-draft/SKILL.md) for its read-only rendered
+checks. Report duplicate hero/inline imagery and incorrect subtitle typography against the exact saved draft revision;
+do not treat Writer's preparation notes as independent visual evidence.
 Evaluate the header shortlist independently using the canonical
 [header-image selection contract](../../guides/header-image-contract.md). Verify the packet's contract path and exact
 content hash before judging; do not accept copied criteria or a different revision. Reviewer owns comparison and the

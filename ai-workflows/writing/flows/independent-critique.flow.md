@@ -41,6 +41,10 @@ open editorial decisions. Keep both versions unpublished.
    equivalence or metadata read-back cannot substitute for this visual pass. For every picture, Reviewer must judge
    whether it is located beside the passage it supports, appears in a sensible sequence, preserves the reading flow,
    and remains associated with its caption and credit; correct rendering alone does not prove correct placement.
+   Inventory the rendered hero and all inline images by visible content, catching the same image reinserted with a
+   different crop or upload. Inspect the rendered title, subtitle/deck, and first body heading together; report a
+   subtitle that takes heading or body styling instead of the destination's subtitle treatment. Tie each finding to
+   the destination revision and screenshots, then require a fresh rendered review after Writer corrects it.
    For header images, both roles load the canonical
    [header-image selection contract](../guides/header-image-contract.md) using the packet's repository-relative path and
    exact content hash. This flow does not restate its criteria. Reviewer returns its bounded verdict under that exact
