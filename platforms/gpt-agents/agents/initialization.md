@@ -15,6 +15,10 @@ The profile, workflow, authorized project roots, primary work target, and saved 
 The saved project must resolve to the authorized roots by immutable project ID. Initialization does not create a project,
 clone, checkout, or worktree.
 
+This saved-project prerequisite applies to managed roster initialization. A human-designated Admin chat uses the manual
+bootstrap rule in `AGENTS.md`; it may be created from any chat and need not belong to the saved project. Its authority
+still requires an exact configured profile and workflow and an authorized project subset before operational work.
+
 ```text
 Configured profile + workflow + saved project -> initialization
 ```
