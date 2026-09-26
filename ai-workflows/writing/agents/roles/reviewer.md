@@ -48,7 +48,8 @@ subtitle/deck, and first body heading as separate visual roles in the rendered d
 bold heading or styled like the title is a destination-formatting defect even when its words are correct.
 For a Medium draft, load the command-owned
 [Medium draft skill](../../../../ai-commands/content/medium/skills/medium-draft/SKILL.md) for its read-only rendered
-checks. Report duplicate hero/inline imagery and incorrect subtitle typography against the exact saved draft revision;
+checks. Verify the title is the first content block, with no empty editable paragraph or excess blank band above it.
+Report that opening defect, duplicate hero/inline imagery, and incorrect subtitle typography against the exact saved draft revision;
 do not treat Writer's preparation notes as independent visual evidence.
 Evaluate the header shortlist independently using the canonical
 [header-image selection contract](../../guides/header-image-contract.md). Verify the packet's contract path and exact
@@ -91,10 +92,11 @@ Release Coordinator without waiting for human acceptance. When the selected poli
 at `human_review`. When the human responds, return `human_accepted` with `human-acceptance` evidence or
 `human_rejected` with bounded `findings` for Writer.
 
-When the exact same revision returns without resolving the same findings, do not invent progress, replace the finding
-identity, or accept the unchanged work. Report that the revision is unchanged and preserve a stable findings reference.
-The Router records the unchanged result without dispatching another review. A changed revision is required before the
-declared correction-to-review route resumes.
+When the exact same article and destination review packet return without resolving the same findings, do not invent
+progress, replace the finding identity, or accept the unchanged work. Preserve a stable findings reference. A material
+destination-only correction can retain the article text hash; its refreshed review packet must identify the changed
+saved draft and new rendered evidence. The Router suppresses only a repeated article-and-packet pair, then resumes the
+declared correction-to-review route when either evidence reference changes.
 
 A conversational reply, status explanation, or rereading that produces no new review evidence must not advance the
 release gate. Do not return `accepted` with a reused review reference merely to complete the turn. When the same review

@@ -433,6 +433,37 @@ test('does not re-dispatch review when correction keeps the drafting revision un
   assert.equal(updatedLines.length, 2);
 });
 
+test('dispatches review when destination packet changes but article text does not', () => {
+  const root = fixture();
+  const bindingsFile = path.join(root, 'bindings.json');
+  const registry = JSON.parse(fs.readFileSync(bindingsFile, 'utf8'));
+  const transition = registry.workflows['example:example:example-project:scope-1']
+    .stages.correction.transitions.review_ready;
+  transition.requiredReferenceKinds = ['revision', 'review-packet'];
+  transition.retryPolicy.progressReferenceKinds = ['revision', 'review-packet'];
+  fs.writeFileSync(bindingsFile, JSON.stringify(registry));
+
+  function writerResult(turnId, stage, packet) {
+    return run(root, {
+      session_id: 'writer', turn_id: turnId, hook_event_name: 'Stop', stop_hook_active: false,
+      last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
+        acknowledgement: 'COPY THAT', correlationId: `codex:writer:${turnId}`, stage,
+        role: 'Writer', event: 'review_ready', references: [
+          { kind: 'revision', ref: 'article://same-text' },
+          { kind: 'review-packet', ref: packet },
+        ],
+      })}`,
+    });
+  }
+
+  assert.deepEqual(writerResult('draft-destination', 'drafting', 'review://before-formatting'), {});
+  assert.deepEqual(writerResult('correct-destination', 'correction', 'review://after-formatting'), {});
+  const repeated = writerResult('repeat-destination', 'correction', 'review://after-formatting');
+  assert.match(repeated.systemMessage, /progress references are unchanged/);
+  const queued = fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8').trim().split('\n');
+  assert.equal(queued.length, 2);
+});
+
 test('records a human wait without dispatching an endpoint', () => {
   const root = fixture();
   const output = run(root, {
