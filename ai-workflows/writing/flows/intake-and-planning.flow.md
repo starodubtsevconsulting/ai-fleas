@@ -12,7 +12,7 @@ Read-only questions need not start an article-production assignment.
 
 ## Steps
 
-1. The active writing task identifies the article type, audience, intended outcome, language, destination, and
+1. The active writing task identifies the article type, audience, intended outcome, language, destination set, and
    human constraints; proof: a concise brief or explicit inherited source requirements.
 2. The task resolves the exact `article_store.project_ref` and existing archive layout; proof: the authorized
    project reference and canonical local folder path. A vault label, browser tab, or nearby folder is not a substitute.
