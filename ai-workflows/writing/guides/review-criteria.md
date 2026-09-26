@@ -34,9 +34,10 @@ manufacture a personal story to satisfy a method.
    it matters to this reader, and a question or suggested direction. Report strengths and deliberate tradeoffs too.
    Do not use a single aggregate score to conceal a factual or ethical problem.
 
-The Writer dispositions findings and rechecks changed material. The human accepts the final revision directly or
-through a valid session-scoped release mandate. The Reviewer
-does not rewrite the article, mark it release-ready alone, or publish it.
+The Writer dispositions findings and rechecks changed material. Apply the selected destination's acceptance policy:
+a complete independent review may itself authorize future scheduling when the profile explicitly permits it;
+otherwise require direct human acceptance or a valid session-scoped release mandate. The Reviewer does not rewrite,
+publish, submit, or schedule the article.
 
 ## Rendered destination QA
 
@@ -45,6 +46,20 @@ or metadata read-back as proof of presentation quality. Record the destination U
 and direct visual evidence such as screenshots. Check the beginning, middle, and end of the article and inspect every
 special block, including images and credits, blockquotes and attributions, headings, lists, separators, links, embeds,
 captions, and any destination-specific substitution.
+
+Make a rendered-image inventory from the top of the draft to the end, including the cover/hero, inline images, and
+destination-added images. Compare their visible content as well as source asset identity; different crops, sizes,
+uploads, or filenames do not make the same photograph a new visual. Match each occurrence to a distinct editorial
+purpose and source mapping. A hero repeated directly after the title or subtitle is a substantive finding unless
+the second use adds a clear, necessary explanation. Record both locations and screenshots so Writer can remove or
+justify the repeat. Do not clear visual QA from a source-file inventory alone: a destination may insert the cover
+separately and also render the source's lead image inline.
+
+Inspect the rendered title, subtitle or deck, and first body heading together. Confirm that the subtitle uses the
+destination's intended subtitle treatment and reads as secondary to the title, with suitable font, weight, size,
+spacing, and wrapping. A subtitle displayed as a large bold heading or ordinary body paragraph is at least a
+substantive formatting finding. Compare the visible result with any native subtitle field; a populated field does
+not prove the text rendered in the right style or prevent a duplicate subtitle block in the body.
 
 Reconcile every visual reference and label with what is actually rendered. Text such as `Diagram—`, `Figure`,
 `Illustration`, a caption, alt-text fallback, credit, or prose that says “shown below/above” is not evidence that the

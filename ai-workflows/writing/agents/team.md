@@ -19,8 +19,10 @@ contract. Writer, Reviewer, and Release Coordinator are independently addressabl
 stages to their exact active task IDs, observes their completed turns, and applies only workflow-declared transitions.
 No endpoint sends workflow messages to another endpoint, and the human is never used as a courier.
 
-Release Coordinator may use Medium's native future scheduling only when the selected profile explicitly enables it and
-the human has accepted the exact final article revision or supplied a valid session-scoped release mandate.
+Release Coordinator uses Medium's native future scheduling only when the selected profile explicitly enables it and
+the exact article and destination have passed independent review. The profile's
+`requires_human_article_acceptance` policy determines whether direct human acceptance or a valid session-scoped
+release mandate is an additional gate.
 
 Each endpoint is limited to the selected profile's registered project subset, exact logical project, active commands,
 and capability column. Provider account, article archive path, editorial preferences, and release cadence come from the

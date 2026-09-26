@@ -5,9 +5,10 @@ description: Prepare and verify an unpublished Medium article draft from an auth
 
 # Medium draft
 
-Use this skill only through an authorized Medium destination command or an explicit human request to prepare a
-Medium draft. It does not authorize publication, submission to a publication, scheduling, or edits to an already
-published article.
+Use this skill through an authorized Medium destination command, an explicit human request to prepare a Medium draft,
+or the Writing Reviewer's read-only inspection of an authorized draft. Reviewer applies the verification checks but
+does not edit the draft. This skill does not authorize publication, submission to a publication, scheduling, or edits
+to an already published article.
 
 1. Resolve the canonical article and metadata from the configured archive or the human's explicit source. Verify
    the signed-in Medium profile link equals the workflow's `account_profile_url`; stop on a mismatch. Check for an
@@ -27,10 +28,20 @@ published article.
    paragraph. The canonical Markdown article may continue to represent the same boundary with `---`; this native-editor
    rule applies only inside Medium.
 3. Give each draft a relevant lead image near the title. Writer and Reviewer use the single canonical
-   [header-image selection contract](../../../../ai-workflows/writing/guides/header-image-contract.md); this provider
+   [header-image selection contract](../../../../../ai-workflows/writing/guides/header-image-contract.md); this provider
    skill does not restate or override it. Record the selected candidate's required provenance/rights metadata, add any
    required visible credit, and verify its crop in the Medium draft and preview. If no candidate is accepted, leave the
    draft unpublished and report the unresolved header-image gate.
+   Check whether Medium presents that image as a cover/hero separately from the body. Inventory every rendered image
+   from beginning to end and compare visible content, not only filenames: a second upload or crop of the same photo
+   is still a duplicate. Do not leave the hero repeated as an inline image near the opening merely because the source
+   Markdown contains a lead-image reference. Each repeated image needs a distinct editorial purpose and placement;
+   otherwise Writer removes the redundant inline instance and verifies the saved draft again. Preserve the intended
+   caption, credit, and alt text on the remaining image.
+   Inspect the title, subtitle/deck, and first body heading together in the saved rendering. Use the current editor's
+   subtitle treatment when available; do not paste the subtitle as a large bold heading or leave a second copy in the
+   body. Confirm its font, weight, size, spacing, and wrapping keep it visibly secondary to the title on desktop and
+   narrow layouts. Correct text or a populated editor field does not prove correct rendered typography.
 4. For a diagram, keep its editable source in the archive and place a legible rendered image or clean screenshot of
    the rendered diagram in the draft. A fenced Mermaid block must be converted by rendering that exact source through
    an authorized Mermaid-capable renderer, then exporting a Medium-supported image such as PNG (or another format
@@ -52,7 +63,12 @@ published article.
    with `BLOCKED_DIAGRAM_RECONCILIATION`.
 5. Choose topics supported by the article's content and likely reader intent, within Medium's current limit.
    Verify they are attached to the draft and record them in article metadata. Do not add generic tags solely for reach.
-6. Review the draft itself for section order, links, visuals, attribution, and readable layout. Return the draft URL,
+6. Review the draft itself for section order, links, visuals, attribution, and readable layout. Record evidence of the
+   rendered hero and inline-image inventory and the title/subtitle/first-heading hierarchy. If a duplicate image or
+   misstyled subtitle is found, Writer corrects it before proposing destination review, then inspects the saved
+   rendering again.
+   Reviewer independently repeats those read-only checks for the exact draft revision and returns a substantive
+   finding with both locations or visible typography evidence if either defect remains. Return the draft URL,
    selected topics, and unresolved issues; update archive metadata and verify the read-back.
 7. Stop at the unpublished draft. Leave Publish and Submit to the human. Release Coordinator alone may schedule later
    through the separately authorized Medium schedule skill; Writer must not press Schedule even if the editor offers it.

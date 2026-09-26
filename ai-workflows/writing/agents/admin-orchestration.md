@@ -14,7 +14,8 @@ bus between Writer, Reviewer, and Release Coordinator.
    correction stage and advances only from validated terminal evidence references.
 4. **Inspect independent review.** The Router assigns Reviewer an exact revision. `CHANGES_REQUIRED` transitions to a
    Writer correction and then to a new review; an old disposition never covers a changed revision. A source-only pass
-   with pending destination, visual, listen-through, or human gates is still `CHANGES_REQUIRED`, not `accepted`.
+   with pending destination or visual work is not `accepted`; `CHANGES_REQUIRED` applies only to Writer-owned work.
+   A human acceptance gate exists only when the selected profile requires it; that gate uses `HUMAN_ACTION_REQUIRED`.
 5. **Preserve human authorization.** The Router state references the applicable
    [session-scoped release authorization](../guides/session-release-authorization.md). Missing or changed human-owned
    choices block; an already valid in-scope mandate is not requested again.

@@ -56,5 +56,5 @@ start playback immediately for that exact narration. Showing a link or player co
 For a publication-intended article under the approved `online_synthesis` default, any network execution request must
 accurately identify the selected profile setting, exact destination service, and narration-text scope. A host approval
 decision still applies; do not treat a rejection as permission to use another service.
-The Reviewer owns the human-facing review gate; mechanical synthesis may remain delegated to command-runner according
+The Reviewer owns the human-facing narration preview; mechanical synthesis may remain delegated to command-runner according
 to the command execution route.

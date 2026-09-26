@@ -207,7 +207,12 @@ respecting the daily cap and verified queue. An unmet target remains visible; it
 agent to publish. To permit Release Coordinator to schedule an accepted Medium article without a second approval,
 set that workflow destination and its command override to `draft-and-schedule`, and set
 `release_policy.scheduling` with `enabled: true`, `allowed_role: release-coordinator`,
-`requires_human_article_acceptance: true`, and `per_item_approval_required: false`. The profile-wide command default
+`requires_human_article_acceptance: true` or `false`, and `per_item_approval_required: false`. With `false`, a complete
+independent review of the exact destination draft authorizes native future scheduling without a separate article
+acceptance; the publication target, account, eligible slot, and Medium's scheduled-state read-back remain required.
+Set `publication_target: profile-home` in that scheduling policy only when the human has explicitly selected the
+configured author's profile as the standing target. Otherwise resolve the target for each article before scheduling.
+The profile-wide command default
 and other workflows can remain `draft-only`. This permits Medium native future scheduling only; it does not create a
 recurring agent trigger or permit immediate publication or submission.
 The writing workflow may set `review_preferences.default_template` (relative to `ai-workflows/`) and

@@ -26,7 +26,7 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 | Human prompt | Interpretation |
 | --- | --- |
 | "Do these one by one." | Review each exact revision separately; show findings and pending decisions before another revision. |
-| "Review this article." | Verify it was not drafted or edited by this Reviewer, then use the effective article brief and [review criteria](../../guides/review-criteria.md). When the profile enables `review_preferences.listen_through`, prepare/play the narrated preview as part of the human review gate. |
+| "Review this article." | Verify it was not drafted or edited by this Reviewer, then use the effective article brief and [review criteria](../../guides/review-criteria.md). When the profile enables `review_preferences.listen_through`, prepare and offer the narrated preview; play it only on the human's explicit request. The selected release policy determines whether article acceptance is a required gate. |
 | "Read it to me" / "Let me listen." | Use [article read-aloud](../../skills/article-read-aloud/SKILL.md) for the exact reviewed revision. For an article intended for public publication, apply the profile's approved online-synthesis default without requesting the same service consent again. Prefer the configured `tts` command and voice preset, generate with autoplay disabled, and present a click-to-play/open control. Start playback only when the human explicitly asks to play that exact narration. Audio playback is not article acceptance. |
 | "Show me what's good and bad." | Present evidence-linked strengths, weaknesses, severity, and next decisions; use `show-context` only when authorized. |
 
@@ -41,6 +41,15 @@ Explicitly check padding and whitespace, blockquote attribution spacing, caption
 hierarchy, and image presentation; record the inspected surface and direct visual evidence. Source equivalence is not
 visual QA. For each picture, also verify that its editorial location supports the nearby passage, follows a sensible
 sequence, does not disrupt or mislead the reading flow, and keeps its caption and credit attached.
+Inventory every rendered image, including the destination's hero/cover and inline images. Compare visual content,
+not just filenames or captions: a crop or re-upload of the same photograph is still a repeat. Flag an image used as
+both hero and an early inline block unless the second placement has a distinct editorial purpose. Verify the title,
+subtitle/deck, and first body heading as separate visual roles in the rendered draft. A subtitle pasted as a large,
+bold heading or styled like the title is a destination-formatting defect even when its words are correct.
+For a Medium draft, load the command-owned
+[Medium draft skill](../../../../ai-commands/content/medium/skills/medium-draft/SKILL.md) for its read-only rendered
+checks. Report duplicate hero/inline imagery and incorrect subtitle typography against the exact saved draft revision;
+do not treat Writer's preparation notes as independent visual evidence.
 Evaluate the header shortlist independently using the canonical
 [header-image selection contract](../../guides/header-image-contract.md). Verify the packet's contract path and exact
 content hash before judging; do not accept copied criteria or a different revision. Reviewer owns comparison and the
@@ -63,19 +72,24 @@ the missing scope. Do not silently conduct a new critique through this diagnosti
 acceptance. A required new critique follows a new Router assignment. Expose the diagnosis through the Router result;
 a human-facing message alone does not complete the request.
 
-When listen-through is enabled, the Reviewer owns the human-facing gate but not arbitrary shell execution. Prepare the
+When listen-through is enabled, the Reviewer owns the human-facing preview but not arbitrary shell execution. Prepare the
 spoken preview from the exact revision, invoke/delegate the configured `tts` route with autoplay disabled, and present
 the resulting audio as a click-to-play/open control. Reviewer may inspect its format, duration, waveform, silence,
 clipping, or transcription without playing it through the user's audio device. Record the narrated revision and
-whether the author actually listened, then ask for awkward/inaccurate/missing/voice feedback. Do not mark the gate
-complete from successful synthesis or from merely presenting the audio.
+whether the author actually listened, then ask for awkward/inaccurate/missing/voice feedback. When the destination
+policy does not require human article acceptance, offering this preview is not a scheduling gate; a human rejection
+received before scheduling still requires correction and fresh review. Do not claim the author listened from successful
+synthesis or from merely presenting the audio.
 When the profile grants online synthesis for publication-intended articles, do not introduce a second per-article
 permission gate for that service. If host approval review denies the network action, report that blocker directly.
 
 Do not return `changes_required` merely because the human has not listened or accepted yet; Writer cannot satisfy a
-human-only gate. After all Writer-owned findings are resolved, return `human_action_required` with a `human-action`
-reference. The Router pauses at `human_review`. When the human responds, return `human_accepted` with
-`human-acceptance` evidence or `human_rejected` with bounded `findings` for Writer.
+human-only gate. For a Medium destination with `requires_human_article_acceptance: false`, return `accepted` with a
+new `review` reference after the complete independent article and destination review passes. The Router sends it to
+Release Coordinator without waiting for human acceptance. When the selected policy requires acceptance, return
+`human_action_required` with a `human-action` reference after Writer-owned findings are resolved. The Router pauses
+at `human_review`. When the human responds, return `human_accepted` with `human-acceptance` evidence or
+`human_rejected` with bounded `findings` for Writer.
 
 When the exact same revision returns without resolving the same findings, do not invent progress, replace the finding
 identity, or accept the unchanged work. Report that the revision is unchanged and preserve a stable findings reference.
