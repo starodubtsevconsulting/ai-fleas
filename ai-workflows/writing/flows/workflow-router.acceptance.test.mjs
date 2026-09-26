@@ -96,6 +96,54 @@ assert.deepEqual(completed.history.map(({ fromRole, toRole }) => `${fromRole}->$
   'release-coordinator->release-coordinator',
 ]);
 
+// A release blocker with a prepared image shortlist must return to independent
+// review, then to Writer for the selected image and unpublished destination draft.
+const recoveryScope = { ...scope, runtimeScopeId: 'writing-release-recovery' };
+const recoveryDispatches = [];
+const recoveryAdapter = {
+  async resolveRole({ scope: resolvedScope, role }) {
+    return { ...resolvedScope, role, instanceId: `writing:${role}` };
+  },
+  async dispatch(packet) { recoveryDispatches.push(packet); },
+};
+const recovery = createWorkflowRuntime(
+  { ...portableDefinition, scope: recoveryScope },
+  { ...recoveryScope, routerRuntimeId: 'writing-router-recovery' },
+  { stage: 'release' },
+);
+await recovery.route({ scope: recoveryScope, type: 'review_required', expectedStage: 'release', references: [
+  { kind: 'blocker', ref: 'review://missing-visual-and-medium-evidence' },
+] }, recoveryAdapter);
+await recovery.route({ scope: recoveryScope, type: 'review_ready', expectedStage: 'diagnosis', references: [
+  { kind: 'revision', ref: 'article://accepted-text' },
+  { kind: 'review-packet', ref: 'review://header-shortlist-packet' },
+  { kind: 'header-shortlist', ref: 'article://header-shortlist' },
+] }, recoveryAdapter);
+await recovery.route({ scope: recoveryScope, type: 'changes_required', expectedStage: 'review', references: [
+  { kind: 'findings', ref: 'review://selected-header-and-draft-needed' },
+] }, recoveryAdapter);
+await recovery.route({ scope: recoveryScope, type: 'review_ready', expectedStage: 'correction', references: [
+  { kind: 'revision', ref: 'article://accepted-text-with-header' },
+  { kind: 'review-packet', ref: 'review://medium-draft-packet' },
+  { kind: 'destination-draft', ref: 'medium://unpublished-draft' },
+] }, recoveryAdapter);
+assert.deepEqual(recoveryDispatches.map(({ stage, requiredExecutionRole }) =>
+  `${stage}:${requiredExecutionRole}`), [
+  'diagnosis:reviewer', 'review:reviewer', 'correction:writer', 'review:reviewer',
+]);
+assert.equal(recovery.snapshot().currentStage, 'review');
+assert.throws(() => recovery.transition({ scope: recoveryScope, type: 'accepted',
+  expectedStage: 'review', references: [] }), ({ code }) => code === 'BLOCKED_ROUTER_REFERENCE');
+
+const proof = createWorkflowRuntime(
+  { ...portableDefinition, scope: recoveryScope },
+  { ...recoveryScope, routerRuntimeId: 'writing-router-proof' },
+  { stage: 'diagnosis' },
+);
+assert.throws(() => proof.transition({ scope: recoveryScope, type: 'proven',
+  expectedStage: 'diagnosis', references: [{ kind: 'review', ref: 'review://old' }] }),
+({ code }) => code === 'BLOCKED_ROUTER_REFERENCE');
+
 const expectedResult = {
   correlationId: 'writing-run-a:review:attempt-1',
   stage: 'review',

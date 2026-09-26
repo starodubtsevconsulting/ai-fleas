@@ -15,4 +15,6 @@ flowchart LR
     correction -->|review_ready| review
     release -->|released · terminal| complete
     release -->|review_required| diagnosis
+    diagnosis -->|review_ready| review
+    diagnosis -->|changes_required| correction
     diagnosis -->|proven| release

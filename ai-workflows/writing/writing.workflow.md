@@ -50,6 +50,11 @@ them.
   diagnosis stage. It reports a pending gate instead of inventing a slot. It is repository read-only; any later
   archival update belongs to Writer. Substantive
   editorial changes remain Writer-owned; a changed revision requires affected checks to be repeated.
+- In release-gate diagnosis, Reviewer routes an already prepared revision and review packet back to independent
+  `review` with `review_ready`, including the fixed header shortlist when image selection is pending. Reviewer uses
+  `changes_required` with findings when Writer must prepare missing assets or an unpublished destination draft.
+  Reviewer uses `proven` only when a fresh review and separate release-gate evidence establish that the missing
+  gate is resolved. Repeating the same blocker does not dispatch another diagnosis turn.
 - The **Admin** owns roster administration, Router inspection, and authorized recovery. Admin may start or resume a
   declared run and report its state, but does not manually relay stage packets or choose transitions. Admin does not
   inherit editorial verdicts, human acceptance, publication-target choice, or publication authority.

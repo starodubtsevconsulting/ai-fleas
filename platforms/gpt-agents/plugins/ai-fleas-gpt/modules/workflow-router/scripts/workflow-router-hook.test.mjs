@@ -360,6 +360,38 @@ test('does not re-dispatch release when Reviewer returns the same review evidenc
   assert.equal(updatedLines.length, 2);
 });
 
+test('does not repeat release diagnosis for an unchanged blocker', () => {
+  const root = fixture();
+  const bindingsFile = path.join(root, 'bindings.json');
+  const registry = JSON.parse(fs.readFileSync(bindingsFile, 'utf8'));
+  const workflow = registry.workflows['example:example:example-project:scope-1'];
+  workflow.stages.release.transitions.review_required = {
+    to: 'diagnosis', requiredReferenceKinds: ['blocker'],
+    retryPolicy: { requireChangedProgress: true, progressReferenceKinds: ['blocker'] },
+  };
+  workflow.stages.diagnosis = { role: 'Reviewer', transitions: {} };
+  fs.writeFileSync(bindingsFile, JSON.stringify(registry));
+
+  function blockedRelease(turnId, blocker) {
+    return run(root, {
+      session_id: 'release', turn_id: turnId, hook_event_name: 'Stop', stop_hook_active: false,
+      last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
+        acknowledgement: 'COPY THAT', correlationId: `codex:release:${turnId}`,
+        stage: 'release', role: 'Release Coordinator', event: 'review_required',
+        references: [{ kind: 'blocker', ref: blocker }],
+      })}`,
+    });
+  }
+
+  assert.deepEqual(blockedRelease('release-1', 'review://same-blocker'), {});
+  assert.match(blockedRelease('release-2', 'review://same-blocker').systemMessage,
+    /progress references are unchanged/);
+  assert.deepEqual(blockedRelease('release-3', 'review://new-blocker'), {});
+  const queued = fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8').trim().split('\n');
+  assert.equal(queued.length, 2);
+  assert.ok(queued.every((line) => JSON.parse(line).thread === 'bound'));
+});
+
 test('dispatch is idempotent for the same result', () => {
   const root = fixture();
   const input = {

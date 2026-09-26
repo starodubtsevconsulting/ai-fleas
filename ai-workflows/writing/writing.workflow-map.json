@@ -84,7 +84,11 @@
         },
         "review_required": {
           "to": "diagnosis",
-          "requiredReferenceKinds": ["blocker"]
+          "requiredReferenceKinds": ["blocker"],
+          "retryPolicy": {
+            "requireChangedProgress": true,
+            "progressReferenceKinds": ["blocker"]
+          }
         }
       }
     },
@@ -92,9 +96,21 @@
       "role": "reviewer",
       "capability": "release_gate_diagnosis",
       "transitions": {
+        "review_ready": {
+          "to": "review",
+          "requiredReferenceKinds": ["revision", "review-packet"]
+        },
+        "changes_required": {
+          "to": "correction",
+          "requiredReferenceKinds": ["findings"]
+        },
         "proven": {
           "to": "release",
-          "requiredReferenceKinds": ["review"]
+          "requiredReferenceKinds": ["review", "release-gate"],
+          "retryPolicy": {
+            "requireChangedProgress": true,
+            "progressReferenceKinds": ["review", "release-gate"]
+          }
         }
       }
     },
