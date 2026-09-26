@@ -6,7 +6,7 @@
 
 ## Entry
 
-A verified archived article, explicit profile-selected destination, permitted access, and existing draft identity
+A verified archived article, explicit profile-selected destination set, permitted access, and existing draft identities
 if one is already present.
 
 ## Steps
