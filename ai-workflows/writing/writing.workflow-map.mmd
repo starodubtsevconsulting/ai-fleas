@@ -12,7 +12,7 @@ flowchart LR
     review -->|human_action_required: policy requires human| human_review
     human_review -->|human_accepted| release
     human_review -->|human_rejected| correction
-    correction -->|review_ready| review
+    correction -->|review_ready: article or draft evidence changed| review
     release -->|released: schedule or handoff verified| complete
     release -->|review_required: missing release evidence| diagnosis
     diagnosis -->|review_ready: prepared packet| review
