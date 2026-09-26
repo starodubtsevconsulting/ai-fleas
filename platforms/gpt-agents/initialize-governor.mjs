@@ -25,6 +25,45 @@ function declaredFile(base, ref, label) {
   return requireFile(path.resolve(base, ref), label);
 }
 
+function resolveGovernorMemory(dir, permanent, memory, governor, options) {
+  if (permanent.provider === 'git-profile-memory') {
+    const memoryFile = declaredFile(dir, permanent.path, 'authoritative Git memory');
+    const relative = path.relative(dir, memoryFile);
+    if (!relative.startsWith(`memory${path.sep}`) ||
+        permanent.format !== 'markdown' || permanent.humanInterface !== 'git' ||
+        permanent.access !== 'read-write' || permanent.sourceOfTruth !== true ||
+        memory.retrieval?.sourcePermanentMemoryRef !== 'governor' ||
+        memory.retrieval?.writableAuthorityCount !== 1) {
+      throw new Error('authoritative Git memory binding is invalid');
+    }
+    const expectedChain = ['profile-memory://governor', 'git-profile-memory', permanent.path];
+    if (governor.cutover?.authoritativeMemory !== expectedChain[0] ||
+        governor.cutover?.writableAuthorityCount !== 1 ||
+        JSON.stringify(governor.cutover?.resolutionChain) !== JSON.stringify(expectedChain)) {
+      throw new Error('Governor cutover conflicts with authoritative Git memory');
+    }
+    fs.accessSync(memoryFile, fs.constants.R_OK | fs.constants.W_OK);
+    return memoryFile;
+  }
+  if (permanent.provider !== 'permanent-memory-synology') {
+    throw new Error(`unsupported Governor memory provider: ${permanent.provider}`);
+  }
+  const providerFile = declaredFile(dir, permanent.providerConfig, 'memory provider config');
+  const providerScript = requireFile(path.join(repoRoot,
+    'ai-commands/connect/permanent-memory-synology/permanent-memory-synology.command.sh'), 'memory provider command');
+  const check = options.checkProvider
+    ? options.checkProvider(providerFile)
+    : spawnSync('bash', [providerScript, 'check'], {
+      encoding: 'utf8', env: { ...process.env, PERMANENT_MEMORY_SYNOLOGY_CONFIG: providerFile },
+    });
+  if (check.error || check.status !== 0 || !/^provider=synology$/m.test(check.stdout) ||
+      !/^reachable=true$/m.test(check.stdout) || !/^access=read-write$/m.test(check.stdout) ||
+      !/^writable=true$/m.test(check.stdout)) {
+    throw new Error(`Governor memory is not usable: ${check.error?.message || check.stderr?.trim() || check.stdout?.trim()}`);
+  }
+  return providerFile;
+}
+
 export function buildGovernorInitialization(humanDir, humanId, generation, options = {}) {
   if (!/^[a-z][a-z0-9-]*$/.test(humanId)) throw new Error('exact human profile ID required');
   const dir = fs.realpathSync(humanDir);
@@ -56,24 +95,9 @@ export function buildGovernorInitialization(humanDir, humanId, generation, optio
       memory.consumers?.personalGovernor?.permanentMemoryRef !== 'governor') {
     throw new Error('authoritative Governor memory binding conflicts');
   }
-  const providerFile = declaredFile(dir, permanent.providerConfig, 'memory provider config');
-  if (binding.provider !== 'permanent-memory-synology') {
-    throw new Error(`unsupported Governor memory provider: ${binding.provider}`);
-  }
+  const memorySource = resolveGovernorMemory(dir, permanent, memory, governor, options);
   if (!Array.isArray(profile.authorizedProfiles) || !Array.isArray(profile.authorizedWorkflows)) {
     throw new Error('authorized profile and workflow contexts are missing');
-  }
-  const providerScript = requireFile(path.join(repoRoot,
-    'ai-commands/connect/permanent-memory-synology/permanent-memory-synology.command.sh'), 'memory provider command');
-  const check = options.checkProvider
-    ? options.checkProvider(providerFile)
-    : spawnSync('bash', [providerScript, 'check'], {
-      encoding: 'utf8', env: { ...process.env, PERMANENT_MEMORY_SYNOLOGY_CONFIG: providerFile },
-    });
-  if (check.error || check.status !== 0 || !/^provider=synology$/m.test(check.stdout) ||
-      !/^reachable=true$/m.test(check.stdout) || !/^access=read-write$/m.test(check.stdout) ||
-      !/^writable=true$/m.test(check.stdout)) {
-    throw new Error(`Governor memory is not usable: ${check.error?.message || check.stderr?.trim() || check.stdout?.trim()}`);
   }
   const initializerFile = requireFile(path.join(scriptDir, 'agents/personal-governor-initialization.md'), 'GPT initializer');
   return {
@@ -88,7 +112,7 @@ export function buildGovernorInitialization(humanDir, humanId, generation, optio
           { id: 'human-profile', ref: profileFile },
           { id: 'human-governor', ref: governorFile },
           { id: 'human-memory', ref: memoryFile },
-          { id: 'memory-provider', ref: providerFile },
+          { id: 'memory-provider', ref: memorySource },
         ],
       },
     },
