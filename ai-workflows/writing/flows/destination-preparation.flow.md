@@ -11,9 +11,8 @@ if one is already present.
 
 ## Steps
 
-1. The active writing task resolves the exact destination command, mode, and workflow-owned config path from the
-   selected profile's active `destinations[]` binding; proof: the selected binding, registered archive reference,
-   and existing/new draft URL. An open browser tab alone does not select a provider.
+1. Resolve every selected destination independently through the profile's active `destinations[]` bindings. The profile may define one or several default destination IDs; an explicit article choice overrides that default set. Proof: selected destination IDs, bindings, archive reference, and existing/new draft identities. An open browser tab does not select a provider.
+2. Run the remaining preparation and verification steps independently for each selected destination. One destination passing does not clear another; unsupported/unavailable destinations remain explicit pending blockers rather than being silently dropped.
 2. The task invokes that destination command's contract and provider skill. The destination command owns editor
    formatting, visuals, topic/tag entry, and provider-specific verification; proof: a reviewed unpublished draft.
    Writer must inventory source visuals before conversion. When the source contains Mermaid or another non-native
