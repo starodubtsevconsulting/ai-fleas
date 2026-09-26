@@ -33,6 +33,8 @@ For every candidate, Writer must establish and Reviewer must independently verif
 
 ## Image text and subtitles
 
+For article header/hero images, default to **no embedded article title, subtitle, tagline, or other editorial overlay**. The publishing surface normally renders the article title/subtitle separately, so repeating that copy inside the image is redundant and often harms cropping/reuse. Do not ask an image generator to render such text unless the article concept specifically requires visible text as part of the visual evidence or the human explicitly requests it. This default does not prohibit necessary in-scene labels when they are integral to the concept.
+
 Treat every subtitle, tagline, caption, embedded heading, label, and callout associated with the image as editorial
 copy. Writer must propose it from the exact article promise; Reviewer independently verifies that it accurately
 expresses or advances the central idea, uses the article's terminology and tone, and does not introduce a broader,
