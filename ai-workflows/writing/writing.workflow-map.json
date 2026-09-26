@@ -67,10 +67,11 @@
       "transitions": {
         "review_ready": {
           "to": "review",
+          "visualLabel": "review_ready: article or draft evidence changed",
           "requiredReferenceKinds": ["revision", "review-packet"],
           "retryPolicy": {
             "requireChangedProgress": true,
-            "progressReferenceKinds": ["revision"]
+            "progressReferenceKinds": ["revision", "review-packet"]
           }
         }
       }

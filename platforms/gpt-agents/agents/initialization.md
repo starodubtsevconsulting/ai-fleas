@@ -149,12 +149,13 @@ review + accepted -> release -> release-coordinator
 ```
 
 If a transition declares that changed progress is required, the Router also compares its bounded progress references.
-Writing does not dispatch `correction -> review` when the Writer returns the same exact revision that was already sent
-to review. A new revision reference resumes the declared route.
+Writing does not dispatch `correction -> review` when the Writer returns the same article revision and review packet
+already sent to review. A changed article revision or a refreshed packet with new rendered-destination evidence resumes
+the declared route.
 
 ```text
-same revision -> record without dispatch
-new revision  -> resume declared route
+same article + same review packet -> record without dispatch
+changed article or review packet -> resume declared route
 ```
 
 ```text
