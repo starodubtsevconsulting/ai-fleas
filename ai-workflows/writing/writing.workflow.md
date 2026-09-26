@@ -20,6 +20,9 @@ fresh-context Reviewer task or human reader who did not draft or edit the revisi
 
 The executable projection is [writing.workflow-map.json](writing.workflow-map.json); its generated human-readable view
 is [writing.workflow-map.mmd](writing.workflow-map.mmd).
+The generated diagram marks the workflow start in blue, the human wait in amber, and completion in green; its
+diagnosis arrows show the recovery route for prepared review evidence, missing Writer preparation, or a resolved
+release gate. It describes possible states rather than the currently active run.
 
 ## Repository mutation boundary
 

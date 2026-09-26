@@ -38,6 +38,11 @@ assert.equal(
   renderWorkflowMap(portableDefinition),
   'Writing Mermaid companion must be generated from the executable workflow map',
 );
+const visualMap = renderWorkflowMap(portableDefinition);
+assert.match(visualMap, /human_review\["human_review<br\/>reviewer<br\/>WAITING FOR HUMAN"\]/);
+assert.match(visualMap, /complete\["complete<br\/>release-coordinator<br\/>COMPLETE"\]/);
+assert.match(visualMap, /diagnosis -->\|review_ready: prepared packet\| review/);
+assert.match(visualMap, /diagnosis -->\|changes_required: Writer preparation\| correction/);
 
 const dispatched = [];
 const adapter = {

@@ -84,6 +84,7 @@
         },
         "review_required": {
           "to": "diagnosis",
+          "visualLabel": "review_required: missing release evidence",
           "requiredReferenceKinds": ["blocker"],
           "retryPolicy": {
             "requireChangedProgress": true,
@@ -98,14 +99,17 @@
       "transitions": {
         "review_ready": {
           "to": "review",
+          "visualLabel": "review_ready: prepared packet",
           "requiredReferenceKinds": ["revision", "review-packet"]
         },
         "changes_required": {
           "to": "correction",
+          "visualLabel": "changes_required: Writer preparation",
           "requiredReferenceKinds": ["findings"]
         },
         "proven": {
           "to": "release",
+          "visualLabel": "proven: new release-gate proof",
           "requiredReferenceKinds": ["review", "release-gate"],
           "retryPolicy": {
             "requireChangedProgress": true,
