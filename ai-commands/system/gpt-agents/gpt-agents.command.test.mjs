@@ -29,11 +29,7 @@ assert.deepEqual([...adapterRoles].sort(), [...portableRoles].sort(), 'portable 
 assert.equal(exampleConfig.schema_version, 'gpt-agents-command-config.v1');
 assert.equal(exampleConfig.grouping.project_name_template, '{profile}-{workflow}{suffix}');
 assert.equal(exampleConfig.grouping.reuse_requires_recorded_project_id, true);
-assert.deepEqual(exampleConfig.binding_state, {
-  owner: 'profile',
-  path: '.local/gpt-agents/bindings.yml',
-  schema_version: 'gpt-agents-binding-state.v1',
-});
+assert.equal(exampleConfig.binding_state, undefined);
 for (const overrideRole of Object.keys(exampleConfig.role_overrides ?? {})) {
   assert.ok([...adapter.role_endpoints, ...writingAdapter.role_endpoints].some(({ role }) => role === overrideRole), `unknown example override role: ${overrideRole}`);
 }
@@ -69,7 +65,7 @@ for (const role of portableRoles) {
 assert.match(contract, /mechanical initialization controller/);
 assert.match(contract, /including Admin and Manager, in one host batch/);
 assert.match(contract, /Admin is a\s+compatibility role and must not bootstrap, delegate, or orchestrate initialization/);
-assert.match(contract, /gpt-agents-binding-state\.v1/);
+assert.match(contract, /No profile-owned GPT binding-state file is created or read/);
 assert.match(contract, /dispatch all\s+canonical initialization messages concurrently/);
 assert.match(contract, /complete canonical initialization prompt\s+as its non-empty first user message/);
 assert.match(contract, /controller's tool-call input or function-call output is not a child-task user\s+message/);
@@ -81,7 +77,7 @@ assert.match(contract, /Reread the host's task catalog after restoration or crea
 assert.match(contract, /non-empty user-visible preview, first user message/);
 assert.match(contract, /Direct task access, a\s+readiness response, a locally persisted task record, or a requested project target does not prove saved-project\s+membership/);
 assert.match(contract, /Readiness without catalog and computer-vision-verified sidebar presence is an explicit\s+partial-initialization failure/);
-assert.match(contract, /selected profile's canonical absolute directory and\s+exact resolved binding-registry path/);
+assert.match(contract, /selected profile's canonical absolute directory and\s+the host plugin's exact task-binding source/);
 assert.match(contract, /Normalize the saved project's sidebar order so the exact managed roster is a\s+contiguous ordered sequence/);
 assert.match(contract, /backend catalog result alone does not prove sidebar visibility/);
 assert.match(contract, /same-named custom-section references through supported presentation operations/);
@@ -127,8 +123,8 @@ assert.match(contract, /Scheduler ID, interval, active\/pending\s+watch scopes/)
 assert.match(contract, /Pending scope is normal asynchronous state, not System initialization failure/);
 assert.match(contract, /do not create the concrete scheduler on System's behalf/);
 assert.match(contract, /System requests the selected platform adapter to create or reconcile exactly one scheduler/);
-assert.match(contract, /include that\s+exact path plus `gpt-agents-binding-state\.v1` in both System's initialization message and scheduler prompt/);
-assert.match(contract, /must not discover receipts by filename search/);
+assert.match(contract, /host plugin's exact task bindings for authorized groups in\s+System's initialization message and scheduler prompt/);
+assert.match(contract, /never reads a profile-owned GPT task registry or discovers one by filename search/);
 assert.match(systemRole, /## Human prompt interpretation cases/);
 assert.match(systemRole, /Immediately run the same read-only lifecycle and context-health check used by the scheduler/);
 assert.match(systemRole, /If `X` is omitted and exactly one group is watched, use that group/);

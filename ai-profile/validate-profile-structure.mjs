@@ -58,11 +58,7 @@ for (const profileAgent of profile.profile_agents ?? []) {
 const gptCommand = profile.commands.find(({ id }) => id === 'gpt-agents');
 assert.ok(gptCommand, `${profile.name}: gpt-agents command binding`);
 const gptConfig = parse(fs.readFileSync(path.resolve(profileDir, gptCommand.config), 'utf8'));
-assert.deepEqual(gptConfig.binding_state, {
-  owner: 'profile',
-  path: '.local/gpt-agents/bindings.yml',
-  schema_version: 'gpt-agents-binding-state.v1',
-}, `${profile.name}: binding-state contract`);
+assert.equal(gptConfig.binding_state, undefined, `${profile.name}: obsolete profile-owned GPT registry`);
 
 for (const workflow of profile.workflows) {
   assert.ok(workflow.projects?.length, `${profile.name}/${workflow.path}: primary project is missing`);

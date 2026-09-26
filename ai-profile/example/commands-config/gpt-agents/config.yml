@@ -9,10 +9,6 @@ lifecycle:
   preserve_history: true
   require_exact_instance_receipts: true
   archive_is_recoverable: true
-binding_state:
-  owner: profile
-  path: .local/gpt-agents/bindings.yml
-  schema_version: gpt-agents-binding-state.v1
 grouping:
   project_name_template: '{profile}-{workflow}{suffix}'
   suffix_separator: '-'

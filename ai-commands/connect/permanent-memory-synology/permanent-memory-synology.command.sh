@@ -50,6 +50,7 @@ local_path() {
   rel="$(safe_rel "${1:-}")"
   root_real="$(cd "$ROOT" 2>/dev/null && pwd -P)" || { echo "error=memory-root-unavailable" >&2; exit 3; }
   candidate="$root_real${rel:+/$rel}"
+  if [[ -z "$rel" ]]; then printf '%s' "$root_real"; return; fi
   parent_real="$(cd "$(dirname "$candidate")" 2>/dev/null && pwd -P)" || parent_real="$root_real"
   [[ "$parent_real" == "$root_real" || "$parent_real" == "$root_real/"* ]] || {
     echo "error=path-outside-memory-root" >&2; exit 3;

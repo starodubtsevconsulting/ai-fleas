@@ -1,0 +1,9 @@
+permanentMemory:
+  governor:
+    provider: permanent-memory-synology
+    authoritative: true
+    writableAuthority: true
+    providerConfig: provider.example.env
+consumers:
+  personalGovernor:
+    permanentMemoryRef: governor

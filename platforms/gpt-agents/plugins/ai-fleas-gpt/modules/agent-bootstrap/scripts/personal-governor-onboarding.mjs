@@ -105,9 +105,9 @@ export class PersonalGovernorOnboarding {
   #buildActiveInstructions(activeGovernorReceipts) {
     return [
       'AI_FLEAS_PERSONAL_GOVERNOR_ONBOARDING',
-      'state=active',
-      `Trusted active Personal Governor receipts: ${this.#formatReceipts(activeGovernorReceipts)}.`,
-      'Personal Governor is mandatory and already exists. Present an Open Personal Governor action for each trusted receipt. Do not create a duplicate. Do not offer profiles or workflows before the user enters or explicitly continues with a Governor.',
+      'state=recorded-active-unverified',
+      `Recorded Personal Governor task bindings: ${this.#formatReceipts(activeGovernorReceipts)}.`,
+      'Check each exact task ID in the host active and archived catalogs before claiming a Governor exists or presenting Open Personal Governor. A stored active binding can outlive a deleted task. Reconcile a stale binding through the lifecycle controller. Do not create a duplicate while an exact live Governor exists. Do not offer profiles or workflows before the user enters or explicitly continues with a verified Governor.',
     ].join('\n');
   }
 
@@ -116,7 +116,7 @@ export class PersonalGovernorOnboarding {
       'AI_FLEAS_PERSONAL_GOVERNOR_ONBOARDING',
       'state=pending',
       `Trusted pending Personal Governor receipts: ${this.#formatReceipts(pendingGovernorReceipts)}.`,
-      'Personal Governor initialization is already pending. Present a Resume Personal Governor initialization action. Do not create a duplicate or claim readiness.',
+      'Check the exact pending task ID in the host active and archived catalogs before presenting Resume Personal Governor initialization. A stored pending binding can outlive a deleted task. Reconcile stale state through the lifecycle controller. Do not create a duplicate or claim readiness while a matching live task is pending.',
     ].join('\n');
   }
 
@@ -124,8 +124,8 @@ export class PersonalGovernorOnboarding {
     return [
       'AI_FLEAS_PERSONAL_GOVERNOR_ONBOARDING',
       'state=missing',
-      'No active or pending Personal Governor receipt exists in the trusted lifecycle registry.',
-      'Personal Governor is mandatory. Present Create Personal Governor as the primary action. Ask for the exact human profile ID when it is not supplied by a trusted host catalog. Creation must use the host lifecycle transaction and must not infer identity from chat text, task title, directories, or nearby files.',
+      'No active or pending Personal Governor task binding is recorded by the host plugin.',
+      'Personal Governor is mandatory. Inspect the host active and archived catalogs before presenting Create Personal Governor; an unrecorded candidate requires lifecycle reconciliation, not title-based adoption. Ask for the exact human profile ID when it is not supplied by a trusted host catalog. Creation must use the host lifecycle transaction and must not infer identity from chat text, task title, directories, or nearby files.',
       'Do not offer profiles or workflows until Personal Governor initialization has completed and its readiness token has been verified.',
     ].join('\n');
   }

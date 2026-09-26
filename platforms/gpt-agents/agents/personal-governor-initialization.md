@@ -19,11 +19,11 @@ If the human profile is absent, ambiguous, or conflicting, stop read-only.
 
 ## Initialization
 
-Load the portable Personal Governor role/policies, then the selected human profile's Governor and memory bindings. Resolve permanent memory through the declared logical command/provider; do not infer storage from paths or conversation history.
+Load the portable Personal Governor role/policies, then the selected human profile's Governor and memory bindings. Resolve a relative `providerConfig` against the human profile directory, require that file to exist, and verify the declared logical command/provider against it. The provider config owns the physical Synology Drive projection or other memory root; the human profile owns the logical memory binding. A matching file under a workflow profile, an old Git revision, or a readable local folder is diagnostic evidence, not a substitute for the declared provider config. Do not infer storage from paths or conversation history.
 
 The Governor may initialize itself because no workflow/profile Admin owns it. Self-bootstrap grants only the authority declared by the human profile.
 
-Before creating a replacement, discover trusted lifecycle state for an existing active Governor for the same human/platform. Reuse it when appropriate. Reinitialization is transactional: create/reconcile successor, initialize canonical config and memory, verify readiness, pin successor, then archive predecessor. Never archive the predecessor before successor readiness.
+Before creating a replacement, read the human profile for the desired Governor binding and check the host's active and archived task catalogs for the actual task. The GPT host plugin can supply an exact task ID for lookup, but its stored binding does not automatically observe host-side deletion. Confirm the exact task ID with the host and recheck its declared memory route. If the host cannot find it in either catalog, report a stale plugin binding and reconcile it through the platform lifecycle procedure before replacement. Do not call the missing task active, reuse it, or infer another task's identity from its title. Reinitialization is transactional: create/reconcile successor, initialize canonical config and memory, verify readiness, pin successor, then archive a predecessor only when it exists and is eligible for archival. Never archive the predecessor before successor readiness.
 
 A replacement Governor must be a fresh-history, projectless task created through the platform's new-task primitive. Never create it inside a workflow saved project or by forking, cloning, or otherwise inheriting the predecessor task. Its bootstrap payload may contain only canonical source references, durable-memory bindings, exact lifecycle identifiers, and the minimum initialization instruction. It must not contain or reconstruct the predecessor transcript, conversation summary, inherited turns, or broad conversation context. Conversation history is not Governor memory; continuity comes only from canonical configuration and the declared authoritative memory route. The predecessor task ID may be retained solely for verified cutover and recoverable archival.
 
@@ -65,4 +65,4 @@ utility-subagent contracts.
 
 ## Readiness
 
-Do not emit `PERSONAL_GOVERNOR_READY` until the human identity, role, authoritative memory route, and authorized profile contexts are resolved and usable. A conversational claim, task title, or prior chat context is insufficient.
+Do not emit `PERSONAL_GOVERNOR_READY` until the human identity, role, authoritative memory route, and authorized profile contexts are resolved and usable. A stored plugin token, conversational claim, task title, prior chat context, or merely existing sync folder is insufficient.

@@ -89,8 +89,8 @@ Verified exact task receipts or a precise no-mutation failure.
   the host can capture its UI.
 - A stale custom section with the logical-project name is cleared through supported presentation operations. It never
   substitutes for the exact saved-project roster or counts as initialization evidence.
-- Every initialization message carries the canonical absolute selected-profile directory and its exact resolved binding
-  registry path. Private operational profiles are never replaced with public examples or repository-relative guesses.
+- Every initialization message carries the canonical absolute selected-profile directory and the host plugin's exact
+  task-binding source. Private operational profiles are never replaced with public examples or repository-relative guesses.
 - Profile-owned command configuration may override only declared GPT realization fields. It cannot add/remove required
   roles or change authority, lifecycle, readiness, dependencies, communication topology, or workflow pool bounds.
 - Initialization never relies on title, sidebar position, recency, or filesystem sibling discovery.
@@ -107,10 +107,14 @@ Verified exact task receipts or a precise no-mutation failure.
 - A successful workflow deletion retains a tombstone receipt; a missing or conflicting binding fails before mutation.
 - Partial or non-visible rosters, duplicates, missing receipts, and capability mismatches fail closed.
 - A missing, ambiguous, or conflicting saved Project stops before agent mutation.
-- The profile-owned `gpt-agents-binding-state.v1` registry is the durable identity authority for project, task,
-  System scheduler/watch, readiness/generation, and tombstone receipts; titles and transient caller memory are not.
-- System initialization and its scheduler receive the profile-resolved canonical absolute binding-registry path and schema;
-  receipt discovery by generic filename or directory search is prohibited.
+- Canonical profile and workflow manifests are the desired roster; the host's active and archived catalogs are the
+  actual task inventory. The GPT host plugin supplies exact role-to-task/project bindings. Confirm each bound task ID
+  with the host before claiming it is live or reusing it; a stale plugin status, title, or transient caller memory is
+  not identity evidence. The host scheduler receipt owns System watch scopes.
+- No profile-owned GPT task registry or per-file source fingerprint map is maintained. Current drift checks read
+  canonical source files when needed.
+- System initialization and its scheduler receive exact host plugin task bindings for authorized groups and verify
+  them against the host catalogs; filename discovery of an old profile registry is prohibited.
 - Exact peer bindings are distributed only to roles authorized for peer routing; direct-human-only governance roles do
   not receive or acknowledge participant-routing rosters.
 

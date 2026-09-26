@@ -69,5 +69,4 @@ runtime_semantics:
   router_delivery: exact-task-id-message
   result_return: host-observed-task-turn
   peer_delivery: prohibited
-  binding_state_schema: gpt-agents-binding-state.v1
   external_bootstrap: create-project-bound-admin

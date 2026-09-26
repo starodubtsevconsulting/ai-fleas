@@ -97,11 +97,11 @@ test('the plugin starter offers the existing active Governor instead of creating
     prompt: PERSONAL_GOVERNOR_ONBOARDING_PROMPT,
   });
   const onboardingInstructions = result.hookSpecificOutput.additionalContext;
-  assert.match(onboardingInstructions, /state=active/);
+  assert.match(onboardingInstructions, /state=recorded-active-unverified/);
   assert.match(onboardingInstructions, /taskId=existing-governor-task/);
   assert.match(onboardingInstructions, /humanProfileId=example-human/);
-  assert.match(onboardingInstructions, /Open Personal Governor/);
-  assert.match(onboardingInstructions, /Do not create a duplicate/);
+  assert.match(onboardingInstructions, /Check each exact task ID in the host active and archived catalogs/);
+  assert.match(onboardingInstructions, /Do not create a duplicate while an exact live Governor exists/);
 });
 
 test('the plugin starter resumes a pending Governor instead of creating a duplicate', () => {
@@ -115,8 +115,8 @@ test('the plugin starter resumes a pending Governor instead of creating a duplic
   const onboardingInstructions = result.hookSpecificOutput.additionalContext;
   assert.match(onboardingInstructions, /state=pending/);
   assert.match(onboardingInstructions, /taskId=pending-governor-task/);
-  assert.match(onboardingInstructions, /Resume Personal Governor initialization/);
-  assert.match(onboardingInstructions, /Do not create a duplicate/);
+  assert.match(onboardingInstructions, /Check the exact pending task ID in the host active and archived catalogs/);
+  assert.match(onboardingInstructions, /Do not create a duplicate or claim readiness while a matching live task is pending/);
 });
 
 test('the plugin starter fails closed when the lifecycle registry is malformed', () => {
