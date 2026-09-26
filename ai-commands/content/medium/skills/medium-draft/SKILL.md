@@ -42,6 +42,10 @@ to an already published article.
    subtitle treatment when available; do not paste the subtitle as a large bold heading or leave a second copy in the
    body. Confirm its font, weight, size, spacing, and wrapping keep it visibly secondary to the title on desktop and
    narrow layouts. Correct text or a populated editor field does not prove correct rendered typography.
+   Inspect the very start of the saved editor and preview, including whitespace above the title. The title must be
+   the first content block: remove empty paragraphs, stray line breaks, or other editable blocks before it. Do not
+   mistake a caret in a blank block or a large blank band for Medium's normal title spacing. Reopen the saved draft
+   and confirm the first visible content is the title on desktop and narrow layouts.
 4. For a diagram, keep its editable source in the archive and place a legible rendered image or clean screenshot of
    the rendered diagram in the draft. A fenced Mermaid block must be converted by rendering that exact source through
    an authorized Mermaid-capable renderer, then exporting a Medium-supported image such as PNG (or another format
@@ -64,11 +68,12 @@ to an already published article.
 5. Choose topics supported by the article's content and likely reader intent, within Medium's current limit.
    Verify they are attached to the draft and record them in article metadata. Do not add generic tags solely for reach.
 6. Review the draft itself for section order, links, visuals, attribution, and readable layout. Record evidence of the
-   rendered hero and inline-image inventory and the title/subtitle/first-heading hierarchy. If a duplicate image or
-   misstyled subtitle is found, Writer corrects it before proposing destination review, then inspects the saved
+   opening block order, rendered hero and inline-image inventory, and title/subtitle/first-heading hierarchy. If an
+   empty block precedes the title, an image is duplicated, or the subtitle is misstyled, Writer corrects it before
+   proposing destination review, then inspects the saved
    rendering again.
    Reviewer independently repeats those read-only checks for the exact draft revision and returns a substantive
-   finding with both locations or visible typography evidence if either defect remains. Return the draft URL,
+   finding with visible opening, image-location, or typography evidence if a defect remains. Return the draft URL,
    selected topics, and unresolved issues; update archive metadata and verify the read-back.
 7. Stop at the unpublished draft. Leave Publish and Submit to the human. Release Coordinator alone may schedule later
    through the separately authorized Medium schedule skill; Writer must not press Schedule even if the editor offers it.

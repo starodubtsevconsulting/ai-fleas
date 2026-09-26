@@ -48,7 +48,8 @@ subtitle/deck, and first body heading as separate visual roles in the rendered d
 bold heading or styled like the title is a destination-formatting defect even when its words are correct.
 For a Medium draft, load the command-owned
 [Medium draft skill](../../../../ai-commands/content/medium/skills/medium-draft/SKILL.md) for its read-only rendered
-checks. Report duplicate hero/inline imagery and incorrect subtitle typography against the exact saved draft revision;
+checks. Verify the title is the first content block, with no empty editable paragraph or excess blank band above it.
+Report that opening defect, duplicate hero/inline imagery, and incorrect subtitle typography against the exact saved draft revision;
 do not treat Writer's preparation notes as independent visual evidence.
 Evaluate the header shortlist independently using the canonical
 [header-image selection contract](../../guides/header-image-contract.md). Verify the packet's contract path and exact
