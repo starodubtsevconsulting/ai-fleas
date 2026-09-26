@@ -14,7 +14,7 @@ This role composes the [common agent contract](../../../agents.md) within one in
 
 | Capability class | Declaration |
 | --- | --- |
-| May own | Independent critique of an exact article and destination-draft revision, including a human-visible findings report, a bounded findings return, the human listen-through gate, and release-gate diagnosis from existing review evidence. |
+| May own | Independent critique of an exact article and one or more selected destination-draft revisions, including a human-visible findings report, a bounded findings return, the human listen-through gate, and release-gate diagnosis from existing review evidence. |
 | May execute | Read-only article, source, image, rendered-draft, and review-record inspection; profile-authorized `show-context` presentation; the writing workflow's `article-read-aloud` skill using its configured speech capability; and exact findings or diagnostic evidence exposed through the Router result contract. |
 | Must delegate | Mechanical TTS execution through the authorized command route when required; article revision, release planning, governance, and administration remain with their declared owners. Reviewer never contacts Writer, Release Coordinator, or Admin as workflow transport. |
 | Must not | Modify source code, scripts, tests, plugins, workflow/role/skill definitions, profiles, project configuration, agent bindings, or runtime configuration; draft or edit the revision it reviews; call a same-context second pass independent; silently rewrite the article; accept it for the human; or publish, submit, or schedule. |
@@ -36,7 +36,7 @@ Follow the [independent critique flow](../../flows/independent-critique.flow.md)
 independence: inspect the revision's provenance and stop if this same task drafted or edited it. Apply the selected
 template and method emphasis proportionately, check facts and repetition separately, present passage-specific findings
 to the human, and expose the terminal result for host observation under the accepted Router stage correlation.
-When a rendered destination draft exists, visually inspect its beginning, middle, end, and every special block.
+For every selected rendered destination draft, visually inspect its beginning, middle, end, and every special block. Record a separate disposition tied to that destination ID and revision; never reuse one destination's rendering verdict for another.
 Explicitly check padding and whitespace, blockquote attribution spacing, captions and credits, wrapping, indentation,
 hierarchy, and image presentation; record the inspected surface and direct visual evidence. Source equivalence is not
 visual QA. For each picture, also verify that its editorial location supports the nearby passage, follows a sensible

@@ -7,7 +7,7 @@ whether to publish. This is a release-readiness check, separate from the drafter
 
 ## Entry
 
-The exact archived article revision and its rendered destination draft, if any; intended reader, source trail, and
+The exact archived article revision and its selected rendered destination drafts, if any; intended reader, source trail, and
 open editorial decisions. Keep both versions unpublished.
 
 ## Steps
@@ -18,7 +18,7 @@ open editorial decisions. Keep both versions unpublished.
    and the minimum sources needed to check claims. Reviewer verifies it did not draft or edit this revision. A
    separate fresh-context AI task or a human reader may do this only when separately authorized; the drafter's own
    second pass does not count as independent. Proof: exact reviewer identity, revision, packet correlation, and scope.
-   When a destination draft was created or materially changed after an earlier article-only review, Writer must return
+   When any selected destination draft was created or materially changed after an earlier article-only review, Writer must return
    a new proposed assignment through the Router automatically and include the exact destination URL, state, destination revision, formatting and
    visual substitutions, topics/tags, and the canonical article revision. A prior article-only disposition does not
    review the later destination representation.

@@ -11,7 +11,7 @@ memory, and nearby files are never endpoint identity.
 
 ## Writer stage
 
-The Router dispatches the human brief, exact source or revision, destination, authorized archive, visual requirements,
+The Router dispatches the human brief, exact source or revision, selected destination set, authorized archive, visual requirements,
 open findings, permitted effects, prohibited publication effects, and required evidence to Writer. Writer acknowledges
 with `COPY THAT`, performs only Writer-owned work, and finishes with source, archive, destination-draft, verification,
 and provenance references plus a proposed review-packet reference. The host observes that result; Writer does not send
@@ -43,7 +43,7 @@ existing proof, a precise stale or conflicting-record diagnosis, or `REVIEW_REQU
 ## Release Coordinator stage
 
 After exact-revision review and the human gates or preserved session-scoped release mandate are complete, the Router
-dispatches Release Coordinator the accepted revision, destination draft, review evidence, explicit publication target,
+dispatches Release Coordinator the accepted revision, selected destination drafts and per-destination review evidence/targets,
 timing instruction, applicable account policy, and prohibited effects. Release Coordinator performs release planning
 or authorized Medium scheduling and finishes with terminal evidence references or one precise blocker. It is read-only
 in the repository and returns observed UI evidence without editing article, archive, configuration, or runtime files.

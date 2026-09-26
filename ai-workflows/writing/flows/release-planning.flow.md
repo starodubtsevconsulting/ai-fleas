@@ -8,9 +8,7 @@ separate scheduling approval. Other destinations remain recommendation and human
 
 ## Entry
 
-The Router's release-stage envelope: exact archived article and unpublished destination-draft revisions, source and visual credits,
-review evidence, outstanding issues, and selected destination. Resolve that destination through the selected profile's
-binding, then inspect publication history for its account. A missing review gate permits a pending-status handoff, not
+The Router's release-stage envelope: exact archived article, selected destination set and each destination draft/revision, source and visual credits, review evidence, and outstanding issues. Resolve and gate each selected destination independently through the selected profile's binding, then inspect publication history for each account. A missing review gate permits a pending-status handoff, not
 a release-ready recommendation.
 
 ## Steps

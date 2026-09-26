@@ -44,6 +44,15 @@ assert.match(visualMap, /complete\["complete<br\/>release-coordinator<br\/>COMPL
 assert.match(visualMap, /diagnosis -->\|review_ready: prepared packet\| review/);
 assert.match(visualMap, /diagnosis -->\|changes_required: Writer preparation\| correction/);
 
+
+// Multi-destination contract guard: selected representations remain independently identifiable.
+const destinationPreparation = fs.readFileSync(path.join(workflowRoot, 'flows/destination-preparation.flow.md'), 'utf8');
+const reviewRole = fs.readFileSync(path.join(workflowRoot, 'agents/roles/reviewer.md'), 'utf8');
+const releaseFlow = fs.readFileSync(path.join(workflowRoot, 'flows/release-planning.flow.md'), 'utf8');
+assert.match(destinationPreparation, /every selected destination independently/i);
+assert.match(reviewRole, /separate disposition tied to that destination ID and revision/i);
+assert.match(releaseFlow, /selected destination set/i);
+
 const dispatched = [];
 const adapter = {
   async resolveRole({ scope: resolvedScope, role }) {

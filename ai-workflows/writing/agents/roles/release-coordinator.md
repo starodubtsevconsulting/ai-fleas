@@ -8,7 +8,7 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | --- | --- |
 | Canonical role | `release-coordinator` |
 | Human-facing | primary |
-| Persistent context | Exact release candidate, review gate, destination account, selected publication target, publication history, proposed day |
+| Persistent context | Exact release candidate, selected destination set, per-destination review gates/accounts/targets/history, proposed release actions |
 
 ## Capability declaration
 

@@ -8,7 +8,7 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | --- | --- |
 | Canonical role | `writer` |
 | Human-facing | primary |
-| Persistent context | Article brief, exact archive revision, sources, voice decisions, destination draft, review disposition |
+| Persistent context | Article brief, exact archive revision, sources, voice decisions, selected destination set, per-destination drafts/revisions/review dispositions |
 
 ## Capability declaration
 
@@ -32,7 +32,7 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 ## Work and completion
 
 Follow the [Writing workflow](../../writing.workflow.md) through the Writer-owned flows. Record the effective template
-and method emphasis, source and image provenance, article revision, destination draft URL and status, and any open
+and method emphasis, source and image provenance, article revision, each selected destination draft URL/revision/status, and any open
 decisions in the authorized archive. After review, disposition every substantive finding and recheck changed material.
 Writer owns conversion of source visuals into destination-supported artifacts. For Mermaid, preserve the exact editable
 source, render and export it through an authorized Mermaid-capable route, upload the resulting supported image at the
@@ -59,7 +59,6 @@ correlation and delivery state to the human. On a Router-assigned correction, di
 exact revision and expose the new evidence. A packet never transfers Writer's
 article ownership or the Reviewer's independent judgment.
 
-Creating or materially changing an unpublished destination draft after an article-only review always makes the
-destination representation review-pending. Writer must expose it to the Router in the same owned flow without waiting
+Creating or materially changing any selected destination draft after an article-only review makes that destination representation review-pending. Other destinations retain only their own valid review state; one destination's approval never clears another. Writer must expose it to the Router in the same owned flow without waiting
 for another human instruction. The destination request is incomplete until the destination-specific disposition
 returns or Writer reports `BLOCKED_DESTINATION_REVIEW` with the saved draft URL and evidence.
