@@ -43,7 +43,6 @@ gpt_config = yaml.safe_load((root / 'commands-config/gpt-agents/config.yml').rea
 binding = ((gpt_config.get('execution_delegates') or {}).get(workflow_id) or {}).get('coder') or {}
 required = {
     'platform': 'hermes',
-    'transport': 'cli-oneshot',
     'route': 'admin-to-real-coder',
     'preferred': True,
     'authorization': 'direct-delegation-or-admin-dev-run',
@@ -53,9 +52,23 @@ if any(binding.get(key) != value for key, value in required.items()) or binding.
     raise SystemExit('HERMES_CODER_BLOCKED: declared Coder route is missing or invalid.')
 if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', str(binding.get('id') or '')):
     raise SystemExit('HERMES_CODER_BLOCKED: delegate ID is invalid.')
+transport = binding.get('transport')
+if transport not in ('cli-oneshot', 'a2a'):
+    raise SystemExit('HERMES_CODER_BLOCKED: transport must be cli-oneshot or a2a.')
 profile_id = binding.get('profile')
 if not isinstance(profile_id, str) or not re.fullmatch(r'[a-z0-9][a-z0-9-]*-coder', profile_id):
     raise SystemExit('HERMES_CODER_BLOCKED: Hermes Coder profile ID is invalid.')
+if transport == 'a2a':
+    if not isinstance(binding.get('a2a'), dict):
+        raise SystemExit('HERMES_CODER_BLOCKED: a2a binding must be a dict.')
+    endpoint = binding['a2a'].get('endpoint')
+    agent_name = binding['a2a'].get('agent_name')
+    if not isinstance(endpoint, str) or not endpoint:
+        raise SystemExit('HERMES_CODER_BLOCKED: a2a endpoint must be a nonempty string.')
+    if not isinstance(agent_name, str) or not agent_name:
+        raise SystemExit('HERMES_CODER_BLOCKED: a2a agent_name must be a nonempty string.')
+if transport == 'a2a' and agent_name != profile_id:
+    raise SystemExit('HERMES_CODER_BLOCKED: a2a agent_name must equal profile_id.')
 workflow = [item for item in work_profile.get('workflows', []) if item.get('path') == f'{workflow_id}.workflow.md']
 if len(workflow) != 1:
     raise SystemExit('HERMES_CODER_BLOCKED: selected workflow is missing or ambiguous.')
@@ -109,6 +122,9 @@ print(workspace)
 print(branch.stdout.strip())
 print(project_id)
 print(binding['id'])
+print(transport)
+print(endpoint if transport == 'a2a' else '')
+print(agent_name if transport == 'a2a' else '')
 PY
 )"
 
@@ -117,11 +133,27 @@ workspace="$(printf '%s\n' "${resolved}" | sed -n '2p')"
 branch="$(printf '%s\n' "${resolved}" | sed -n '3p')"
 project_id="$(printf '%s\n' "${resolved}" | sed -n '4p')"
 delegate_id="$(printf '%s\n' "${resolved}" | sed -n '5p')"
+transport="$(printf '%s\n' "${resolved}" | sed -n '6p')"
+endpoint="$(printf '%s\n' "${resolved}" | sed -n '7p')"
+agent_name="$(printf '%s\n' "${resolved}" | sed -n '8p')"
+
+if [[ "${transport}" == a2a && "${mode}" == check ]]; then
+  if ! node "$(dirname "$0")/a2a-client.mjs" check "${endpoint}" "${agent_name}"; then exit 1; fi
+  printf 'HERMES_CODER_READY: id=%s profile=%s project=%s branch=%s\n' "${delegate_id}" "${profile_id}" "${project_id}" "${branch}"
+  exit 0
+fi
+
 printf 'HERMES_CODER_READY: id=%s profile=%s project=%s branch=%s\n' "${delegate_id}" "${profile_id}" "${project_id}" "${branch}"
 
 if [[ "${mode}" == check ]]; then exit 0; fi
 
 prompt="You are the declared Coder endpoint for a human-authorized ${work_profile} ${workflow} Admin-run assignment. Admin is emulating other roles, but your Coder work is real delegation. Work only in ${workspace} on the current named branch ${branch}; use no temporary directories or worktrees. Follow the Coder role and repository rules. Implement only this bounded assignment: ${assignment}
 
-Do not commit, push, run builds or tests, manage tickets, edit governance rules or ai-commands, or claim independent review or acceptance. Return changed files, implementation evidence, blockers, and checks that remain for Command Runner or independent review."
+Do not commit, push, run builds or tests, manage tickets, edit governance rules, or claim independent review or acceptance. Edit ai-commands only when this bounded assignment explicitly names files in ai-commands/system/hermes-agents; otherwise do not edit ai-commands. Return changed files, implementation evidence, blockers, and checks that remain for Command Runner or independent review."
+
+if [[ "${transport}" == a2a ]]; then
+  printf '%s\n' "${prompt}" | node "$(dirname "$0")/a2a-client.mjs" run "${endpoint}" "${agent_name}"
+  exit $?
+fi
+
 exec hermes -p "${profile_id}" -t file -z "${prompt}" --in "${workspace}"
