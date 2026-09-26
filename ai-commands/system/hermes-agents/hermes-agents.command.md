@@ -157,6 +157,8 @@ for tunnel/application ownership, service-token creation, naming, policy attachm
 | `delete PROFILE --confirm-delete` | Delete one exact non-default profile after explicit confirmation. |
 | `delete-workflow --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] --confirm-delete` | Resolve the exact workflow roster, remove every declared role profile, and tombstone its Hermes group so it cannot be reconstructed from profile metadata. |
 
+When the human asks for a **new group alongside existing numbered groups**, select an unused explicit `--instance` (for example, `--instance 5` after instances 2–4), run `initialize --preflight-only` with that instance, then run `initialize` with the same instance. `reconcile` without `--instance` updates the base group; it does not create a new numbered group. Verify the new group receipt and that its member profiles carry the expected model and group metadata.
+
 Human wording such as “re-init” or “reinitialize” routes to `reinitialize`, not `initialize` or `reconcile`. The explicit
 request supplies replacement intent; the executable still requires `--confirm-reinitialize` before deleting runtime data.
 Replacement preflight happens before deletion. The operation then holds a short synchronization barrier between deletion

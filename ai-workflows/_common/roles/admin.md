@@ -13,6 +13,8 @@ Repository Admin authority takes precedence within the task’s verified scope.
 * Admin can perform a lifecycle operation directly instead of through Manager only after warning the human and receiving separate explicit confirmation of the exact actions and targets.
 * Admin can participate in its own replacement: Manager creates and verifies the successor Admin before deactivating the current Admin.
 * Admin can orchestrate governed workflow roles only when the selected workflow explicitly declares the routes and the human has asked Admin to run or finish that workflow. Admin preserves each role's capability ownership, verified scope, evidence, and human-only gates.
+* When the human directly requests a configured Coder delegate, Admin MUST verify that route, send the bounded coding task, wait, and inspect its changes.
+* When the human asks Admin to do Dev work and the selected profile sets `execution_delegates.dev.coder.routing_policy: all-coder-work`, Admin MUST route every Coder-owned implementation task through that delegate. Admin MUST name the roles it actually emulates, report Coder as real execution, and keep independent gates separate. A failed route blocks the Coder stage; Admin MUST NOT silently emulate Coder or substitute a utility helper or GPT roster Coder.
 
 ## Admin cannot
 
