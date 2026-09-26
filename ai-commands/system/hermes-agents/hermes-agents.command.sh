@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Initialization and reconciliation are profile bootstrap operations, so expose their explicit
 # selections to the common command guard before normal argument processing.
-if [[ "${1:-}" == initialize || "${1:-}" == initialize-system || "${1:-}" == reinitialize-system || "${1:-}" == status-system || "${1:-}" == reinitialize || "${1:-}" == re-init || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow ]]; then
+if [[ "${1:-}" == initialize || "${1:-}" == initialize-system || "${1:-}" == reinitialize-system || "${1:-}" == status-system || "${1:-}" == reinitialize || "${1:-}" == re-init || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow || "${1:-}" == connection ]]; then
   bootstrap_args=("$@")
   for ((bootstrap_index=1; bootstrap_index<${#bootstrap_args[@]}; bootstrap_index++)); do
     case "${bootstrap_args[bootstrap_index]}" in
@@ -58,6 +58,7 @@ usage() {
     '       hermes-agents.command.sh list' \
     '       hermes-agents.command.sh show PROFILE' \
     '       hermes-agents.command.sh status PROFILE' \
+    '       hermes-agents.command.sh connection status|check|switch --work-profile ID --workflow ID [--instance SLUG] [--connection NAME]' \
     '       hermes-agents.command.sh delete PROFILE --confirm-delete' \
     '       hermes-agents.command.sh initialize-system --work-profile ID [--instance SLUG] [--connection NAME] [--watch-group ID]... [--every DURATION]' \
     '       hermes-agents.command.sh reinitialize-system --work-profile ID [--instance SLUG] --confirm-reinitialize [--connection NAME] [--watch-group ID]... [--every DURATION]' \
@@ -93,6 +94,19 @@ action="${1:-}"
 shift
 
 case "${action}" in
+  connection)
+    connection_action="${1:-}"
+    [[ -n "${connection_action}" ]] || { usage >&2; exit 2; }
+    shift
+    connection_args=()
+    while (($#)); do
+      case "$1" in
+        --work-profile|--workflow) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; shift 2 ;;
+        *) connection_args+=("$1"); shift ;;
+      esac
+    done
+    exec "${COMMAND_DIR}/hermes-connection.command.sh" "${connection_action}" "${connection_args[@]}"
+    ;;
   reinitialize-system)
     confirmed=false
     initialize_args=()
