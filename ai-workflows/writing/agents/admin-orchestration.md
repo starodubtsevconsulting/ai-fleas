@@ -18,8 +18,7 @@ bus between Writer, Reviewer, and Release Coordinator.
 5. **Preserve human authorization.** The Router state references the applicable
    [session-scoped release authorization](../guides/session-release-authorization.md). Missing or changed human-owned
    choices block; an already valid in-scope mandate is not requested again.
-6. **Inspect release execution.** The Router assigns Release Coordinator the accepted revision, destination draft,
-   review evidence, explicit target, timing instruction, and enabled destination policy.
+6. **Inspect release execution.** The Router assigns Release Coordinator the accepted revision, selected destination drafts, per-destination review evidence/targets, timing instructions, and enabled destination policies.
 7. **Recover declared exceptions.** Blocked, depleted, or unclear stages enter a declared exception state. Admin may
    diagnose bindings and perform authorized lifecycle repair, then explicitly resume the preserved stage.
 8. **Finish.** The Router reaches a terminal stage only from declared transitions with required evidence references.
