@@ -37,7 +37,7 @@ Image-generation models use a separate quality-first corpus and retained-output 
 
 ## Benchmark reports
 
-- [ASUS Ascent GX10](gx10.md) — Qwen worker comparison plus DeepSeek V4 and Gemma 4 31B experiments.
+- [ASUS Ascent GX10](gx10.md) — Qwen worker comparison plus DeepSeek V4, Gemma 4 31B, and dual-loaded Qwen3.6 35B experiments.
 - [RTX 3080 Ti workstation](rtx-3080-ti.md) — System-agent target; 30B Q8/Q4, 8B and 9B experiments plus Hermes overhead.
 - [MacBook Pro M5](macbook-pro-m5.md) — portable local-inference tier; benchmark starts from ~30B Q6 and works downward.
 - [MINISFORUM UM790 Pro](minisforum-um790-pro.md) — compact always-on worker with Ryzen 9 7940HS, Radeon 780M and 32 GB DDR5; benchmark pending.
@@ -45,7 +45,7 @@ Image-generation models use a separate quality-first corpus and retained-output 
 
 ## Main findings
 
-**GX10:** Qwen3-Coder-Next Q5_K_M remains the preferred worker. Both Qwen candidates and compressed DeepSeek V4 Flash 0731 passed the controlled Hermes tool-use fixture, but DeepSeek is unsuitable for our worker use case: 133.85 seconds for the fixture versus 21.94 seconds for the default, with much higher memory use. TrevorJS Gemma 4 31B IT Uncensored Q8_0 is installed as a separate opt-in mode and fits with ample memory headroom, but generated only 6.80 tok/s and failed the fixture by writing correct contents to the wrong directory. It is an uncensored chat/quality experiment, not an accepted worker or default.
+**GX10:** Qwen3-Coder-Next Q5_K_M remains the preferred worker. Both earlier Qwen candidates and compressed DeepSeek V4 Flash 0731 passed the controlled Hermes tool-use fixture, but DeepSeek is unsuitable for our worker use case: 133.85 seconds for the fixture versus 21.94 seconds for the default, with much higher memory use. TrevorJS Gemma 4 31B IT Uncensored Q8_0 is installed as a separate opt-in mode and fits with ample memory headroom, but generated only 6.80 tok/s and failed the fixture by writing correct contents to the wrong directory. It is an uncensored chat/quality experiment, not an accepted worker or default. Qwen3.6 35B NVFP4 showed promising short direct-API speed while loaded beside Q5, but its current served 32K context falls below Hermes's 64K minimum; a sequential 6K-prompt request also caused swap-out. Hermes use needs further investigation and is not accepted in this configuration.
 
 **RTX 3080 Ti:** the 30B candidates work but are too slow for an interactive Hermes System agent. Qwen3 8B is fast but cannot satisfy Hermes' 64K context requirement. Qwen3.5 9B Q4_K_M provides both full GPU residency and a 65,536-token configured context and is the current candidate.
 
@@ -59,6 +59,7 @@ Image-generation models use a separate quality-first corpus and retained-output 
 - Benchmark the UM790 Pro from ~14B Q5 downward.
 - Repeat Hermes timing on the RTX 3080 Ti after disabling automatic title generation.
 - Keep Qwen3-Coder-Next Q5_K_M as the GX10 default. An external [head-to-head coding test](https://www.damenknight.com/mi300x-quant-ladder/) found no measurable quality gain from Q6_K or Q8_0 over Q5_K_M; test a larger quant on GX10 only if a specific coding failure gives a reason to investigate quantization.
+- Investigate whether dual-loaded Qwen3.6 35B NVFP4 can serve a real 64K context without material swapping, or whether Q5 can coordinate bounded direct 35B calls. Keep it outside the accepted Hermes worker roster until the chosen route passes a matching tool-use acceptance test; do not infer coding quality from short direct-API speed.
 - Revisit Qwen3.5-122B-A10B Q6_K only if quality evidence can justify its already slower Q5_K_S baseline; measure end-to-end Hermes performance and memory headroom.
 - Keep dual-GX10 DeepSeek V4 FP8/TP=2 as a deferred reference, requiring a new performance case before spending time on it.
 
