@@ -93,6 +93,13 @@ If listen-through or article acceptance is required, return `human_action_requir
 resolved. When the human asks to play the narration, play the exact revision without treating playback as confirmation;
 return `listen_pending` with the existing `human-action` reference until the author confirms listening. For a review-only
 policy, that confirmation permits `human_listened` with the exact `review` and new `human-listen` evidence references.
+For a clearly labeled, nonconfidential test article only, the human may explicitly authorize a simulated listening
+agreement and scheduling of that exact test article. First offer the exact narration and return
+`human_action_required` so the Router records the human wait. On a later direct human-authorized test continuation,
+return `test_listen_simulated` with the exact `review` and a durable `test-listen-simulation` reference. That artifact
+must bind the article revision, narration, test request, destination draft, and intended scheduling target, and state
+plainly that the human did not confirm actually listening. Never use `human_listened` or a `human-listen` reference for
+the simulation. The test transition grants no listening waiver to a production article or another revision.
 If article acceptance is also required, wait for explicit acceptance and return `human_accepted` with its evidence only
 after the required listening. A rejection returns `human_rejected` with bounded `findings` for Writer.
 

@@ -36,6 +36,9 @@ destination acceptance policy. When listen-through is enabled, Reviewer must off
 listening to that exact revision. A request to play returns `listen_pending` and remains in the wait state. When Medium
 does not require article acceptance, `human_listened` with exact `review` and `human-listen` evidence advances to Release
 Coordinator. When acceptance is also required, `human_accepted` requires the separate decision after listening.
+For an explicitly human-authorized test article, Reviewer may instead return `test_listen_simulated` after the
+human wait, with exact `review` and `test-listen-simulation` references. This is a separately labeled test route;
+it never asserts actual listening or changes the production `human_listened` gate.
 With listen-through disabled and `requires_human_article_acceptance: false`, a successful review may return `accepted`
 directly. “Source accepted” while destination rendering or visual review remains pending is not `accepted`.
 Use `changes_required` only for work Writer can perform; a human rejection returns findings to Writer.
@@ -50,6 +53,8 @@ dispatches Release Coordinator the accepted revision, selected destination draft
 timing instruction, applicable account policy, and prohibited effects. Release Coordinator performs release planning
 or authorized Medium scheduling and finishes with terminal evidence references or one precise blocker. It is read-only
 in the repository and returns observed UI evidence without editing article, archive, configuration, or runtime files.
+After `released`, Router assigns Writer `archive_update` with the release record. Writer verifies the scheduled
+destination and updates the canonical article metadata; `archived` with `archive-record` is the terminal event.
 
 ## Advancement, recovery, and inspection
 

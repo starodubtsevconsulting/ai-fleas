@@ -244,20 +244,20 @@ function validateResult(binding, routerCorrelation, result) {
   return null;
 }
 
+function dispatchIdentity(result) {
+  return createHash('sha256')
+    .update(JSON.stringify([result.correlationId, result.stage, result.event, result.references]))
+    .digest('hex');
+}
+
 function dispatchReceiptPath(result) {
   const root = process.env.PLUGIN_DATA;
-  const digest = createHash('sha256')
-    .update(`${result.correlationId}\0${result.stage}\0${result.event}`)
-    .digest('hex');
-  return root ? path.join(root, 'dispatches', `${digest}.json`) : null;
+  return root ? path.join(root, 'dispatches', `${dispatchIdentity(result)}.json`) : null;
 }
 
 function dispatchJobPath(result) {
   const root = process.env.PLUGIN_DATA;
-  const digest = createHash('sha256')
-    .update(`${result.correlationId}\0${result.stage}\0${result.event}`)
-    .digest('hex');
-  return root ? path.join(root, 'dispatch-jobs', `${digest}.json`) : null;
+  return root ? path.join(root, 'dispatch-jobs', `${dispatchIdentity(result)}.json`) : null;
 }
 
 function atomicWrite(file, value, exclusive = false) {
@@ -341,6 +341,14 @@ function dispatch(registry, binding, result) {
   if (resolved.error || resolved.terminal) return resolved;
   const receiptFile = dispatchReceiptPath(result);
   if (receiptFile && fs.existsSync(receiptFile)) return { ...resolved, duplicate: true };
+  const legacyDigest = createHash('sha256')
+    .update(`${result.correlationId}\0${result.stage}\0${result.event}`)
+    .digest('hex');
+  const legacyReceipt = readJson(process.env.PLUGIN_DATA
+    ? path.join(process.env.PLUGIN_DATA, 'dispatches', `${legacyDigest}.json`) : null);
+  if (legacyReceipt && JSON.stringify(legacyReceipt.references) === JSON.stringify(result.references)) {
+    return { ...resolved, duplicate: true };
+  }
   const packet = {
     correlationId: result.correlationId,
     profileId: binding.scope.profileId,

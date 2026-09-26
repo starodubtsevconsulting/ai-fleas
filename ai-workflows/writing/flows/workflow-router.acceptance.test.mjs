@@ -44,7 +44,11 @@ assert.deepEqual(portableDefinition.stages.correction.transitions.review_ready.r
 assert.match(visualMap, /human_review\["human_review<br\/>reviewer<br\/>WAITING FOR HUMAN"\]/);
 assert.match(visualMap, /human_review -->\|listen_pending: wait for confirmation\| human_review/);
 assert.match(visualMap, /human_review -->\|human_listened: review passed\| release/);
-assert.match(visualMap, /complete\["complete<br\/>release-coordinator<br\/>COMPLETE"\]/);
+assert.match(visualMap, /human_review -->\|test_listen_simulated: test release only\| release/);
+assert.deepEqual(portableDefinition.stages.human_review.transitions.test_listen_simulated.requiredReferenceKinds,
+  ['review', 'test-listen-simulation']);
+assert.match(visualMap, /complete\["complete<br\/>writer<br\/>COMPLETE"\]/);
+assert.match(visualMap, /release -->\|released: schedule verified; archive status\| archive_update/);
 assert.match(visualMap, /diagnosis -->\|review_ready: prepared packet\| review/);
 assert.match(visualMap, /diagnosis -->\|changes_required: Writer preparation\| correction/);
 
@@ -93,14 +97,41 @@ await router.route({ scope, type: 'review_ready', expectedStage: 'correction', r
 await router.route({ scope, type: 'accepted', expectedStage: 'review', references: [
   { kind: 'review', ref: 'review://accepted-revision-3' },
 ] }, adapter);
-const completed = await router.route({ scope, type: 'released', expectedStage: 'release', references: [
+const archivePending = await router.route({ scope, type: 'released', expectedStage: 'release', references: [
   { kind: 'release-record', ref: 'medium://scheduled-item-1' },
+] }, adapter);
+assert.equal(archivePending.currentStage, 'archive_update');
+const completed = await router.route({ scope, type: 'archived', expectedStage: 'archive_update', references: [
+  { kind: 'archive-record', ref: 'article://scheduled-metadata-1' },
 ] }, adapter);
 
 assert.equal(completed.status, 'completed');
 assert.equal(completed.currentStage, 'complete');
+
+const testDispatches = [];
+const testAdapter = {
+  async resolveRole({ scope: resolvedScope, role }) {
+    return { ...resolvedScope, role, instanceId: `writing:${role}` };
+  },
+  async dispatch(packet) { testDispatches.push(packet); },
+};
+const testRouter = createWorkflowRuntime(definition, { ...scope, routerRuntimeId: 'writing-router-test' });
+await testRouter.route({ scope, type: 'review_ready', expectedStage: 'drafting', references: [
+  { kind: 'revision', ref: 'article://test-revision' },
+  { kind: 'review-packet', ref: 'review://test-packet' },
+] }, testAdapter);
+await testRouter.route({ scope, type: 'human_action_required', expectedStage: 'review', references: [
+  { kind: 'human-action', ref: 'human-action://test-wait' },
+] }, testAdapter);
+const simulated = await testRouter.route({ scope, type: 'test_listen_simulated', expectedStage: 'human_review', references: [
+  { kind: 'review', ref: 'review://test-pass' },
+  { kind: 'test-listen-simulation', ref: 'test://explicit-simulation' },
+] }, testAdapter);
+assert.equal(simulated.currentStage, 'release');
+assert.deepEqual(testDispatches.map(({ requiredExecutionRole }) => requiredExecutionRole),
+  ['reviewer', 'release-coordinator']);
 assert.deepEqual(dispatched.map(({ requiredExecutionRole }) => requiredExecutionRole),
-  ['reviewer', 'writer', 'reviewer', 'writer', 'reviewer', 'release-coordinator', 'release-coordinator']);
+  ['reviewer', 'writer', 'reviewer', 'writer', 'reviewer', 'release-coordinator', 'writer', 'writer']);
 assert.ok(dispatched.every(({ targetInstanceId, requiredExecutionRole }) =>
   targetInstanceId === `writing:${requiredExecutionRole}`));
 assert.deepEqual(completed.history.map(({ fromRole, toRole }) => `${fromRole}->${toRole}`), [
@@ -111,7 +142,8 @@ assert.deepEqual(completed.history.map(({ fromRole, toRole }) => `${fromRole}->$
   'reviewer->writer',
   'writer->reviewer',
   'reviewer->release-coordinator',
-  'release-coordinator->release-coordinator',
+  'release-coordinator->writer',
+  'writer->writer',
 ]);
 
 // A passing review can require an actual human listen-through before release,

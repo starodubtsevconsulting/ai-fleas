@@ -43,6 +43,9 @@ them.
 - The **Writer** owns intake, drafting, editorial verification, archive maintenance, unpublished destination preparation,
   and resolution of independent critique. Writer returns its clean copy, exact revisions, evidence, and proposed review
   result for host observation. The Router validates it and dispatches the next declared stage.
+  After verified scheduling, Router assigns Writer `archive_update` with the exact release record. Writer checks the
+  destination state and updates article metadata to the scheduled URL, local slot, time zone, and test/real listening
+  classification; it returns an `archive-record` reference. An unchanged draft status is not completion.
 - The **Reviewer** owns the independent reading and critique within that flow. It must not have drafted or edited the
   revision it reviews. It applies the article-specific template and method emphasis resolved from profile preferences
   and the human's brief, using the [review criteria](guides/review-criteria.md). It returns evidence-linked findings to
@@ -89,6 +92,10 @@ them.
    `human_listened` advances to release without treating listening as editorial acceptance. When acceptance is also
    required, Reviewer waits for that separate decision. With listen-through disabled and no acceptance requirement,
    a complete successful review returns `accepted` directly.
+   A separately authorized, clearly labeled test article may use `test_listen_simulated` after the narration offer and
+   recorded human wait when the human explicitly authorized both simulation and live scheduling of that exact test
+   article. Its distinct evidence must say the author did not confirm listening. It never satisfies a production
+   listen-through gate.
 7. The Router assigns the accepted exact revision and review record to Release Coordinator, which resolves the
    publication target from an explicit article selection or a human-authorized profile policy, then selects a
    destination-specific slot through the [release planning flow](flows/release-planning.flow.md), using profile-owned
@@ -97,6 +104,8 @@ them.
    without a second per-item timing approval. An unresolved target or failed gate pauses with a precise blocker.
 8. Hand the status and any remaining decisions to the human. The human performs immediate publication or submission.
    Pending review or timing must be visible in the handoff, not silently treated as approval.
+   For scheduled releases, Router first assigns Writer the archive update and marks the run complete only after the
+   scheduled metadata is saved and verified.
 
 For a source-to-destination conversion, preserve the source in the archive even if import or editor work fails.
 For a read-only question or a minor revision, run only the applicable flows and explain any skipped gate.

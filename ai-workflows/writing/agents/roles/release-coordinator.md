@@ -37,12 +37,21 @@ the active profile enables Medium scheduling, use the [Medium schedule skill](..
 through the selected command. Return the verified scheduled status, slot, URL, and UI evidence to the human and Router
 without editing the archive or any repository file. Any required archival update belongs to Writer. A changed article
 revision or account queue invalidates affected timing evidence.
+Return the observed scheduled URL and slot as the `release-record` reference; Router assigns Writer `archive_update`
+before terminal completion. Do not mark the archive updated from a Medium UI read-back alone.
 On an accepted Router release assignment, complete the scheduling attempt in the same owned stage once the exact
 review, confirmed listen-through when enabled, policy-required acceptance, publication target, account, and eligible slot verify. Do not return only a
 proposed slot or generic pending status when those gates pass. If a gate fails, return its exact blocker and missing
 evidence; never claim `released` until Medium confirms the scheduled state and time.
+The configured scheduling grant covers Medium's final **Schedule to publish** action for the verified draft, target,
+and slot. Do not turn that final button into another approval request when the human already authorized scheduling.
 An `accepted` review reference without revision-bound `human-listen` evidence does not clear an enabled listen-through
 gate. If that evidence is absent, do not schedule; return a precise review-gate blocker to the Router.
+For `test_listen_simulated`, accept the distinct `test-listen-simulation` evidence only when the exact article and
+Medium draft are clearly labeled as a test, the human explicitly authorized both simulation and live scheduling of
+that exact test article, and the artifact binds the reviewed revision, offered audio, and profile-home target. Describe
+the release as a simulated-listening test, never as a completed human listen-through. Any missing or mismatched field
+blocks scheduling. This exception does not apply to `human_listened`, `accepted`, or production articles.
 The publication target is a separate release decision from the Medium account and release time. Before scheduling,
 show the verified choices and obtain or read an explicit revision-bound selection: the author's profile/home or one
 named authorized Publication, unless the selected profile records the human-authorized standing target
