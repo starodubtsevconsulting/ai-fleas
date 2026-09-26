@@ -407,6 +407,29 @@ test('dispatch is idempotent for the same result', () => {
   assert.equal(lines.length, 1);
 });
 
+test('dispatches a later correction with new findings in the same run', () => {
+  const root = fixture();
+  function reviewResult(turnId, findings) {
+    return run(root, {
+      session_id: 'bound', turn_id: turnId, hook_event_name: 'Stop', stop_hook_active: false,
+      last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
+        acknowledgement: 'COPY THAT', correlationId: 'codex:bound:review-1', stage: 'review',
+        role: 'Reviewer', event: 'changes_required', references: [{ kind: 'findings', ref: findings }],
+      })}`,
+    });
+  }
+
+  assert.deepEqual(reviewResult('review-1', 'artifact://missing-image'), {});
+  fs.mkdirSync(path.join(root, 'correlations'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'correlations', 'bound.json'),
+    JSON.stringify({ correlationId: 'codex:bound:review-1' }));
+  assert.deepEqual(reviewResult('review-2', 'artifact://selected-image'), {});
+  assert.deepEqual(reviewResult('review-2', 'artifact://selected-image'), {});
+  const lines = fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8').trim().split('\n');
+  assert.equal(lines.length, 2);
+  assert.deepEqual(lines.map((line) => JSON.parse(line).thread), ['writer', 'writer']);
+});
+
 test('does not re-dispatch review when correction keeps the drafting revision unchanged', () => {
   const root = fixture();
   function writerResult(turnId, stage, revision) {

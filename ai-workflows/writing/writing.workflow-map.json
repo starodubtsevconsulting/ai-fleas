@@ -62,6 +62,11 @@
           "visualLabel": "human_listened: review passed",
           "requiredReferenceKinds": ["review", "human-listen"]
         },
+        "test_listen_simulated": {
+          "to": "release",
+          "visualLabel": "test_listen_simulated: test release only",
+          "requiredReferenceKinds": ["review", "test-listen-simulation"]
+        },
         "human_accepted": {
           "to": "release",
           "requiredReferenceKinds": ["human-acceptance"]
@@ -92,9 +97,8 @@
       "capability": "release_planning",
       "transitions": {
         "released": {
-          "to": "complete",
-          "visualLabel": "released: schedule or handoff verified",
-          "terminal": true,
+          "to": "archive_update",
+          "visualLabel": "released: schedule verified; archive status",
           "requiredReferenceKinds": ["release-record"]
         },
         "review_required": {
@@ -105,6 +109,18 @@
             "requireChangedProgress": true,
             "progressReferenceKinds": ["blocker"]
           }
+        }
+      }
+    },
+    "archive_update": {
+      "role": "writer",
+      "capability": "article_drafting",
+      "transitions": {
+        "archived": {
+          "to": "complete",
+          "visualLabel": "archived: release record verified",
+          "terminal": true,
+          "requiredReferenceKinds": ["archive-record"]
         }
       }
     },
@@ -134,8 +150,8 @@
       }
     },
     "complete": {
-      "role": "release-coordinator",
-      "capability": "release_planning",
+      "role": "writer",
+      "capability": "article_drafting",
       "transitions": {}
     }
   }

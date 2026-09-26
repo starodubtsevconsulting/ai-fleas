@@ -63,6 +63,14 @@ correlation and delivery state to the human. On a Router-assigned correction, di
 exact revision and expose the new evidence. A packet never transfers Writer's
 article ownership or the Reviewer's independent judgment.
 
+On a Router-assigned `archive_update` after `released`, verify the exact story is scheduled in the configured Medium
+account. Update only its canonical archive metadata with the final status, URL, local slot and time zone, reviewed
+revision, and whether listening was actual or an explicitly labeled test simulation. Read the metadata back and return
+`archived` with a durable `archive-record` reference. Do not perform another scheduling action or change article copy
+in this stage. If Medium's story list shows an unlabeled clock time that differs from the scheduling dialog, use the
+dialog's explicitly labeled time zone for the configured local slot and record the list display separately. Do not
+assign the configured time zone to an unlabeled list time.
+
 Creating or materially changing any selected destination draft after an article-only review makes that destination representation review-pending. Other destinations retain only their own valid review state; one destination's approval never clears another. Writer must expose it to the Router in the same owned flow without waiting
 for another human instruction. The destination request is incomplete until the destination-specific disposition
 returns or Writer reports `BLOCKED_DESTINATION_REVIEW` with the saved draft URL and evidence.

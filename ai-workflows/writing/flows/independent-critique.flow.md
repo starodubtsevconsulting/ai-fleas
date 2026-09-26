@@ -79,6 +79,9 @@ open editorial decisions. Keep both versions unpublished.
    records `waiting-human`. The author's request to play keeps the gate pending. After the author confirms listening
    to that revision, Reviewer returns `human_listened` with the review and listening evidence when article acceptance
    is not required. If acceptance is required, wait for that separate explicit decision and return `human_accepted`.
+   For a clearly labeled test article with explicit human authorization for simulated agreement and live scheduling,
+   a later test continuation may return `test_listen_simulated` with distinct revision-bound simulation evidence after
+   the narration offer and human wait. Never describe this as actual listening.
    With listen-through disabled and no acceptance requirement, `accepted` may route directly to release. Proof: exact
    review record, selected policy, and revision-bound listening or acceptance evidence where required.
 
