@@ -209,7 +209,8 @@ set that workflow destination and its command override to `draft-and-schedule`, 
 `release_policy.scheduling` with `enabled: true`, `allowed_role: release-coordinator`,
 `requires_human_article_acceptance: true` or `false`, and `per_item_approval_required: false`. With `false`, a complete
 independent review of the exact destination draft authorizes native future scheduling without a separate article
-acceptance; the publication target, account, eligible slot, and Medium's scheduled-state read-back remain required.
+acceptance; any enabled listen-through, the publication target, account, eligible slot, and Medium's scheduled-state
+read-back remain required.
 Set `publication_target: profile-home` in that scheduling policy only when the human has explicitly selected the
 configured author's profile as the standing target. Otherwise resolve the target for each article before scheduling.
 The profile-wide command default
@@ -222,7 +223,10 @@ its emphasis for the actual article type. The Reviewer uses the selected templat
 rubric or an aggregate score. These preferences do not grant an agent role or publication authority.
 The same `review_preferences` mapping may independently set `listen_through` with `enabled`, an authorized `tts`
 command, a catalog `voice_profile`, and `autoplay`. A listen-through setting does not require editorial template or
-method defaults. The profile-owned `tts` command config may select an `article_audio_subdirectory` and
+method defaults. When enabled, Reviewer must offer the exact narrated revision and wait for the author's confirmation
+that they listened before release. This is separate from `requires_human_article_acceptance`: a profile may require
+listening while allowing a successful independent review to authorize scheduling without editorial acceptance.
+The profile-owned `tts` command config may select an `article_audio_subdirectory` and
 `article_audio_filename_prefix`. The caller supplies the exact archived article with `--article-file`; each run saves
 a distinct WAV under that article's `audio` folder. `default_output_dir` remains optional
 for non-article runs.

@@ -27,7 +27,7 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 | --- | --- |
 | "Do these one by one." | Check one exact release candidate and account at a time; present gates and recommendation before the next. |
 | "When should this go out?" | Read the active account's profile policy and verified history, then propose a day or state the missing evidence. |
-| "Release it." | Verify the reviewed exact revision, any policy-required acceptance, account, queue, and publication target. Use an explicit article target or a human-authorized profile `publication_target: profile-home`; otherwise ask for the target. If Medium scheduling is enabled and the target supports it, select an eligible future slot and schedule without a second timing approval; otherwise present the exact blocker. Never publish immediately or submit to a publication. |
+| "Release it." | Verify the reviewed exact revision, any enabled listen-through and policy-required acceptance, account, queue, and publication target. Use an explicit article target or a human-authorized profile `publication_target: profile-home`; otherwise ask for the target. If Medium scheduling is enabled and the target supports it, select an eligible future slot and schedule without a second timing approval; otherwise present the exact blocker. Never publish immediately or submit to a publication. |
 | "Help me create a Medium Publication." | Use the Medium Publication skill. Verify membership and account, collect the exact human-approved name, description, and avatar, show the final identity before creation, create it through the web UI, and verify the resulting URL and owner state. Do not add stories or select it as a release target implicitly. |
 
 ## Planning and completion
@@ -38,9 +38,11 @@ through the selected command. Return the verified scheduled status, slot, URL, a
 without editing the archive or any repository file. Any required archival update belongs to Writer. A changed article
 revision or account queue invalidates affected timing evidence.
 On an accepted Router release assignment, complete the scheduling attempt in the same owned stage once the exact
-review and policy-required acceptance, publication target, account, and eligible slot verify. Do not return only a
+review, confirmed listen-through when enabled, policy-required acceptance, publication target, account, and eligible slot verify. Do not return only a
 proposed slot or generic pending status when those gates pass. If a gate fails, return its exact blocker and missing
 evidence; never claim `released` until Medium confirms the scheduled state and time.
+An `accepted` review reference without revision-bound `human-listen` evidence does not clear an enabled listen-through
+gate. If that evidence is absent, do not schedule; return a precise review-gate blocker to the Router.
 The publication target is a separate release decision from the Medium account and release time. Before scheduling,
 show the verified choices and obtain or read an explicit revision-bound selection: the author's profile/home or one
 named authorized Publication, unless the selected profile records the human-authorized standing target

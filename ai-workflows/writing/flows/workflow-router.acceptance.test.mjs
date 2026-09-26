@@ -42,6 +42,8 @@ const visualMap = renderWorkflowMap(portableDefinition);
 assert.deepEqual(portableDefinition.stages.correction.transitions.review_ready.retryPolicy.progressReferenceKinds,
   ['revision', 'review-packet'], 'destination-only corrections must count changed review evidence');
 assert.match(visualMap, /human_review\["human_review<br\/>reviewer<br\/>WAITING FOR HUMAN"\]/);
+assert.match(visualMap, /human_review -->\|listen_pending: wait for confirmation\| human_review/);
+assert.match(visualMap, /human_review -->\|human_listened: review passed\| release/);
 assert.match(visualMap, /complete\["complete<br\/>release-coordinator<br\/>COMPLETE"\]/);
 assert.match(visualMap, /diagnosis -->\|review_ready: prepared packet\| review/);
 assert.match(visualMap, /diagnosis -->\|changes_required: Writer preparation\| correction/);
@@ -111,6 +113,39 @@ assert.deepEqual(completed.history.map(({ fromRole, toRole }) => `${fromRole}->$
   'reviewer->release-coordinator',
   'release-coordinator->release-coordinator',
 ]);
+
+// A passing review can require an actual human listen-through before release,
+// without requiring the human to accept the article editorially.
+const listenScope = { ...scope, runtimeScopeId: 'writing-listen-required' };
+const listenDispatches = [];
+const listenAdapter = {
+  async resolveRole({ scope: resolvedScope, role }) {
+    return { ...resolvedScope, role, instanceId: `writing:${role}` };
+  },
+  async dispatch(packet) { listenDispatches.push(packet); },
+};
+const listening = createWorkflowRuntime(
+  { ...portableDefinition, scope: listenScope },
+  { ...listenScope, routerRuntimeId: 'writing-router-listen' },
+  { stage: 'review' },
+);
+await listening.route({ scope: listenScope, type: 'human_action_required', expectedStage: 'review', references: [
+  { kind: 'human-action', ref: 'human-action://audio-offered-revision-1' },
+] }, listenAdapter);
+const pending = await listening.route({ scope: listenScope, type: 'listen_pending', expectedStage: 'human_review', references: [
+  { kind: 'human-action', ref: 'human-action://audio-offered-revision-1' },
+] }, listenAdapter);
+assert.equal(pending.status, 'waiting-human');
+assert.equal(listenDispatches.length, 0);
+assert.throws(() => listening.transition({ scope: listenScope, type: 'human_listened',
+  expectedStage: 'human_review', references: [{ kind: 'review', ref: 'review://revision-1' }] }),
+({ code }) => code === 'BLOCKED_ROUTER_REFERENCE');
+await listening.route({ scope: listenScope, type: 'human_listened', expectedStage: 'human_review', references: [
+  { kind: 'review', ref: 'review://revision-1' },
+  { kind: 'human-listen', ref: 'human-listen://confirmed-revision-1' },
+] }, listenAdapter);
+assert.deepEqual(listenDispatches.map(({ requiredExecutionRole }) => requiredExecutionRole),
+  ['release-coordinator']);
 
 // A release blocker with a prepared image shortlist must return to independent
 // review, then to Writer for the selected image and unpublished destination draft.

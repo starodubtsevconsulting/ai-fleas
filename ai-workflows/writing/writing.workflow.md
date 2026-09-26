@@ -83,10 +83,12 @@ them.
    addressing substantive findings before calling it release-ready. The computer offers a spoken preview when enabled;
    a fresh-context reviewer checks the exact article and destination rendering. A source-only pass is not the workflow
    event `accepted` while destination rendering or visual preparation remains pending. Reviewer returns
-   `changes_required` only for remaining Writer-owned preparation. When the selected Medium policy sets
-   `requires_human_article_acceptance: false`, a complete successful independent review returns `accepted` directly.
-   When acceptance is required and only that human decision remains, Reviewer returns `human_action_required`; the
-   Router waits until the human accepts or rejects the exact revision.
+   `changes_required` only for remaining Writer-owned preparation. When listen-through is enabled, a passing review
+   returns `human_action_required` and the Router waits for the author to listen and confirm the exact narration.
+   That listening requirement remains even when Medium sets `requires_human_article_acceptance: false`; in that case
+   `human_listened` advances to release without treating listening as editorial acceptance. When acceptance is also
+   required, Reviewer waits for that separate decision. With listen-through disabled and no acceptance requirement,
+   a complete successful review returns `accepted` directly.
 7. The Router assigns the accepted exact revision and review record to Release Coordinator, which resolves the
    publication target from an explicit article selection or a human-authorized profile policy, then selects a
    destination-specific slot through the [release planning flow](flows/release-planning.flow.md), using profile-owned

@@ -17,9 +17,11 @@ may remain `draft-only`. Never infer this grant from a human request to plan a r
 target.
 
 1. Verify the complete independent review and Writer disposition for the exact final article and intended unpublished
-   Medium draft. If `requires_human_article_acceptance` is true, also read direct acceptance of that revision or a
+   Medium draft. If profile `review_preferences.listen_through.enabled` is true, require revision-bound evidence that
+   the author explicitly confirmed listening to the offered narration. A generated file, presented player, playback
+   request, or review pass alone does not satisfy that gate. If `requires_human_article_acceptance` is true, also read direct acceptance of that revision or a
    preserved valid session-scoped release mandate. If false, the successful independent review itself authorizes
-   future scheduling; do not wait for another article-acceptance or timing reply. Resolve the canonical archive article
+   future scheduling after any enabled listen-through; do not wait for another article-acceptance or timing reply. Resolve the canonical archive article
    and verify that the draft reflects the reviewed revision, including title, body, links, visuals, and topics. Stop on a mismatch or
    any material change. Medium may publish edits to a scheduled story automatically at the scheduled time.
 2. Verify the signed-in Medium account's profile link against the workflow's `account_profile_url`. Inspect published

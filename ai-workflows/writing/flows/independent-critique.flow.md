@@ -22,13 +22,14 @@ open editorial decisions. Keep both versions unpublished.
    a new proposed assignment through the Router automatically and include the exact destination URL, state, destination revision, formatting and
    visual substitutions, topics/tags, and the canonical article revision. A prior article-only disposition does not
    review the later destination representation.
-2. Reviewer generates a computer-narrated preview with the
+2. When the selected profile enables listen-through, Reviewer generates a computer-narrated preview with the
    [article read-aloud skill](../skills/article-read-aloud/SKILL.md) and gives the human author a first-pass
    listen-through. Generate and verify the audio without autoplay, then present a click-to-play/open control so the
    human chooses when playback begins and can stop it using the player. Keep the text available for checking exact claims. Ask what sounds inaccurate, unlike their voice,
    over-explained, awkward, or missing. Record feedback or `pending human listen-through`; producing or playing audio
    is not itself approval. The author need not read aloud. Proof: a playable narration or verified live read-aloud,
-   narrated revision, and feedback tied to that revision.
+   narrated revision, and feedback or explicit pending-listen status tied to that revision. Present the verified
+   playback control before requesting a human listen-through; merely intending to prepare audio is not an offer.
 3. The Reviewer follows the [review criteria](../guides/review-criteria.md), reads as a skeptical intended reader,
    and identifies specific, prioritized weaknesses: unclear promise or title, unsupported or overstated claims,
    missing counterpoints, weak logic, confusing structure, unearned emotional beats, tone drift, visual problems, and
@@ -71,13 +72,15 @@ open editorial decisions. Keep both versions unpublished.
    validates and sends consequential Writer-owned findings to Writer. Writer resolves each point by revising, checking a source, or recording why it remains
    unresolved or is an intentional choice. Recheck any changed claim or destination formatting. Proof: a disposition
    list tied to the resulting article and draft revisions. A materially changed revision requires a new review request.
-6. When Writer-owned work is complete, apply the selected destination's release policy. If Medium scheduling has
-   `requires_human_article_acceptance: false`, Reviewer returns `accepted` with a fresh, durable review reference only
-   after independently verifying the exact article and rendered Medium draft with no unresolved blocking findings.
-   The Router immediately assigns Release Coordinator; offering the narration does not create a human wait state.
-   If acceptance is required, Reviewer returns `human_action_required`; the Router records `waiting-human` and
-   dispatches no agent until the author accepts or rejects the exact revision. Proof: exact review record and policy,
-   plus author feedback or an explicit pending state when required.
+6. When Writer-owned work is complete, apply the selected destination's release policy and listen-through preference.
+   A complete successful independent review does not advance to Release Coordinator while enabled listen-through is
+   pending, even if Medium sets `requires_human_article_acceptance: false`. Reviewer presents the verified narration,
+   records the exact review and audio in a `human-action` artifact, and returns `human_action_required`; the Router
+   records `waiting-human`. The author's request to play keeps the gate pending. After the author confirms listening
+   to that revision, Reviewer returns `human_listened` with the review and listening evidence when article acceptance
+   is not required. If acceptance is required, wait for that separate explicit decision and return `human_accepted`.
+   With listen-through disabled and no acceptance requirement, `accepted` may route directly to release. Proof: exact
+   review record, selected policy, and revision-bound listening or acceptance evidence where required.
 
 ## Exit
 

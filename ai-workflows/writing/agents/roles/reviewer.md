@@ -77,20 +77,24 @@ When listen-through is enabled, the Reviewer owns the human-facing preview but n
 spoken preview from the exact revision, invoke/delegate the configured `tts` route with autoplay disabled, and present
 the resulting audio as a click-to-play/open control. Reviewer may inspect its format, duration, waveform, silence,
 clipping, or transcription without playing it through the user's audio device. Record the narrated revision and
-whether the author actually listened, then ask for awkward/inaccurate/missing/voice feedback. When the destination
-policy does not require human article acceptance, offering this preview is not a scheduling gate; a human rejection
-received before scheduling still requires correction and fresh review. Do not claim the author listened from successful
-synthesis or from merely presenting the audio.
+whether the author actually listened, then ask for awkward/inaccurate/missing/voice feedback. A plan to synthesize,
+an unplayed file that was never presented, or a later explanation is not an offer. After a passing independent review,
+return `human_action_required` with a durable `human-action` reference containing the exact review, audio location,
+and pending listen-through. The Router must wait at `human_review`; `requires_human_article_acceptance: false` does not
+waive this listen-through gate. Do not claim the author listened from successful synthesis, presenting a player, or
+starting playback. Require the author's explicit confirmation that they listened to this exact narration.
 When the profile grants online synthesis for publication-intended articles, do not introduce a second per-article
 permission gate for that service. If host approval review denies the network action, report that blocker directly.
 
 Do not return `changes_required` merely because the human has not listened or accepted yet; Writer cannot satisfy a
-human-only gate. For a Medium destination with `requires_human_article_acceptance: false`, return `accepted` with a
-new `review` reference after the complete independent article and destination review passes. The Router sends it to
-Release Coordinator without waiting for human acceptance. When the selected policy requires acceptance, return
-`human_action_required` with a `human-action` reference after Writer-owned findings are resolved. The Router pauses
-at `human_review`. When the human responds, return `human_accepted` with `human-acceptance` evidence or
-`human_rejected` with bounded `findings` for Writer.
+human-only gate. If listen-through is disabled and Medium has `requires_human_article_acceptance: false`, return
+`accepted` with a new `review` reference after the complete independent article and destination review passes.
+If listen-through or article acceptance is required, return `human_action_required` after Writer-owned findings are
+resolved. When the human asks to play the narration, play the exact revision without treating playback as confirmation;
+return `listen_pending` with the existing `human-action` reference until the author confirms listening. For a review-only
+policy, that confirmation permits `human_listened` with the exact `review` and new `human-listen` evidence references.
+If article acceptance is also required, wait for explicit acceptance and return `human_accepted` with its evidence only
+after the required listening. A rejection returns `human_rejected` with bounded `findings` for Writer.
 
 When the exact same article and destination review packet return without resolving the same findings, do not invent
 progress, replace the finding identity, or accept the unchanged work. Preserve a stable findings reference. A material
@@ -101,7 +105,8 @@ declared correction-to-review route when either evidence reference changes.
 A conversational reply, status explanation, or rereading that produces no new review evidence must not advance the
 release gate. Do not return `accepted` with a reused review reference merely to complete the turn. When the same review
 reference was already delivered to release, the Router records the unchanged result without dispatching Release
-Coordinator. Only a newly completed durable review reference can advance that route.
+Coordinator. In particular, answering why a preview was missed must not restate the old `accepted` Router result.
+Only a newly completed durable review reference can advance that route.
 
 Before returning `changes_required`, persist the complete Writer-owned findings as a Markdown artifact under the
 repository's ignored `.agent-runtime/writing/findings/` directory. The `findings` reference must be a repository-relative
