@@ -22,6 +22,8 @@ Compose an article from independent reusable layers rather than treating one wri
 
 - [short experience + educational article](templates/short-experience-educational.md) for a concise 2–3 minute public
   article that combines a real personal experience with one useful educational idea.
+- [scripted Q&A / podcast-style article](templates/scripted-qa-podcast.md) for a concise fictional/framed interviewer
+  dialogue that develops one idea through natural questions and answers.
 
 ### Methods
 
