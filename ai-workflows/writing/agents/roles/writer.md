@@ -39,6 +39,10 @@ source, render and export it through an authorized Mermaid-capable route, upload
 intended passage, add useful alt text/caption, and visually verify the diagram itself on desktop and narrow layouts.
 Raw Mermaid, a `Diagram—` paragraph, alt text, or a caption is not a successful transfer. If the asset cannot be
 rendered, uploaded, and verified, leave the draft unpublished and report `BLOCKED_DIAGRAM_RENDERING`.
+For a Medium destination, follow the command-owned
+[Medium draft skill](../../../../ai-commands/content/medium/skills/medium-draft/SKILL.md). Before requesting review,
+inspect the saved hero and all inline images for repeated visual content, and verify the subtitle's rendered type
+hierarchy rather than relying on editor fields or source Markdown.
 Before conversion, inventory every Mermaid fence and diagram placeholder using stable IDs, source locations, intended
 positions, and revisions. Convert all inventory items, attach rendered evidence to each ID, and re-scan the entire
 destination draft for residual arrow-chain prose (`A → B → C`), `Diagram—` descriptions, Mermaid syntax, caption-only
