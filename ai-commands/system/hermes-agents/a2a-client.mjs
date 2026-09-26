@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { randomUUID } from 'node:crypto';
 
+// Handles local A2A HTTP requests and validates JSON-RPC responses.
 class A2aTransport {
   constructor(endpoint) {
     let url;
@@ -39,6 +40,7 @@ class A2aTransport {
   }
 }
 
+// Verifies the Hermes Coder identity and follows an assignment to its final task result.
 class HermesCoderA2aClient {
   constructor(transport, expectedName) {
     this.transport = transport;
