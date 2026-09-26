@@ -1,11 +1,11 @@
 flowchart LR
-    drafting["drafting<br/>writer"]
+    drafting["drafting<br/>writer<br/>START"]
     review["review<br/>reviewer"]
-    human_review["human_review<br/>reviewer"]
+    human_review["human_review<br/>reviewer<br/>WAITING FOR HUMAN"]
     correction["correction<br/>writer"]
     release["release<br/>release-coordinator"]
     diagnosis["diagnosis<br/>reviewer"]
-    complete["complete<br/>release-coordinator"]
+    complete["complete<br/>release-coordinator<br/>COMPLETE"]
     drafting -->|review_ready| review
     review -->|accepted| release
     review -->|changes_required| correction
@@ -14,5 +14,13 @@ flowchart LR
     human_review -->|human_rejected| correction
     correction -->|review_ready| review
     release -->|released · terminal| complete
-    release -->|review_required| diagnosis
-    diagnosis -->|proven| release
+    release -->|review_required: missing release evidence| diagnosis
+    diagnosis -->|review_ready: prepared packet| review
+    diagnosis -->|changes_required: Writer preparation| correction
+    diagnosis -->|proven: new release-gate proof| release
+    classDef start fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef waiting fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class drafting start
+    class human_review waiting
+    class complete done

@@ -84,7 +84,12 @@
         },
         "review_required": {
           "to": "diagnosis",
-          "requiredReferenceKinds": ["blocker"]
+          "visualLabel": "review_required: missing release evidence",
+          "requiredReferenceKinds": ["blocker"],
+          "retryPolicy": {
+            "requireChangedProgress": true,
+            "progressReferenceKinds": ["blocker"]
+          }
         }
       }
     },
@@ -92,9 +97,24 @@
       "role": "reviewer",
       "capability": "release_gate_diagnosis",
       "transitions": {
+        "review_ready": {
+          "to": "review",
+          "visualLabel": "review_ready: prepared packet",
+          "requiredReferenceKinds": ["revision", "review-packet"]
+        },
+        "changes_required": {
+          "to": "correction",
+          "visualLabel": "changes_required: Writer preparation",
+          "requiredReferenceKinds": ["findings"]
+        },
         "proven": {
           "to": "release",
-          "requiredReferenceKinds": ["review"]
+          "visualLabel": "proven: new release-gate proof",
+          "requiredReferenceKinds": ["review", "release-gate"],
+          "retryPolicy": {
+            "requireChangedProgress": true,
+            "progressReferenceKinds": ["review", "release-gate"]
+          }
         }
       }
     },
