@@ -46,9 +46,9 @@ them.
 - The **Reviewer** owns the independent reading and critique within that flow. It must not have drafted or edited the
   revision it reviews. It applies the article-specific template and method emphasis resolved from profile preferences
   and the human's brief, using the [review criteria](guides/review-criteria.md). It returns evidence-linked findings to
-  the Router-observed stage result and the human, not an edited replacement draft or publication approval.
-- The **Release Coordinator** owns release planning and the final recommendation to the human. It verifies the review
-  gate, destination account, profile-owned cadence, and publication or queue history before proposing a day. If any
+  the Router-observed stage result and the human, not an edited replacement draft or immediate-publication approval.
+- The **Release Coordinator** owns release planning and authorized future scheduling. It verifies the review
+  gate, destination account, profile-owned cadence, and publication or queue history before choosing a day. If any
   review evidence is missing, stale, or conflicting, it returns a blocker event; the Router assigns Reviewer a bounded
   diagnosis stage. It reports a pending gate instead of inventing a slot. It is repository read-only; any later
   archival update belongs to Writer. Substantive
@@ -61,9 +61,10 @@ them.
 - The **Admin** owns roster administration, Router inspection, and authorized recovery. Admin may start or resume a
   declared run and report its state, but does not manually relay stage packets or choose transitions. Admin does not
   inherit editorial verdicts, human acceptance, publication-target choice, or publication authority.
-- The human author alone accepts the final revision and performs any Publish, Submit, or Schedule action. These
-  responsibilities do not imply autonomous publishing. A Reviewer title or emulated role switch alone does not make a
-  critique independent.
+- The human author may accept or reject a final revision. When the selected profile explicitly permits review-only
+  Medium scheduling, a successful independent review authorizes Release Coordinator to schedule a future slot without
+  another article-acceptance decision. The human performs immediate Publish or Submit actions. A Reviewer title or
+  emulated role switch alone does not make a critique independent.
 
 ## Workflow
 
@@ -79,20 +80,19 @@ them.
    [destination preparation flow](flows/destination-preparation.flow.md), then return to the archive flow to record
    the draft URL, status, and topics. Destination preparation never includes publication.
 6. Challenge the finished article through the [independent critique flow](flows/independent-critique.flow.md),
-   addressing substantive findings before calling it release-ready. The computer prepares a spoken preview for the
-   human author's first listen-through when available or required; a fresh-context reviewer checks the work; the human
-   accepts the exact final revision directly or through a bounded session-scoped release mandate. A source-only pass
-   is not the workflow event `accepted` while required destination rendering, visual preparation, listen-through, or
-   human acceptance remains pending. Reviewer returns `changes_required` only for remaining Writer-owned preparation.
-   When only human listen-through or acceptance remains, Reviewer returns `human_action_required`; the Router pauses
-   without dispatching an agent until the human accepts or rejects the exact revision.
-7. The Router assigns the accepted exact revision and review record to Release Coordinator, which first resolves the explicit
-   publication target (such as Medium profile/home versus a named authorized Publication), then selects a
+   addressing substantive findings before calling it release-ready. The computer offers a spoken preview when enabled;
+   a fresh-context reviewer checks the exact article and destination rendering. A source-only pass is not the workflow
+   event `accepted` while destination rendering or visual preparation remains pending. Reviewer returns
+   `changes_required` only for remaining Writer-owned preparation. When the selected Medium policy sets
+   `requires_human_article_acceptance: false`, a complete successful independent review returns `accepted` directly.
+   When acceptance is required and only that human decision remains, Reviewer returns `human_action_required`; the
+   Router waits until the human accepts or rejects the exact revision.
+7. The Router assigns the accepted exact revision and review record to Release Coordinator, which resolves the
+   publication target from an explicit article selection or a human-authorized profile policy, then selects a
    destination-specific slot through the [release planning flow](flows/release-planning.flow.md), using profile-owned
-   cadence settings and verified publication history. After direct human acceptance or a valid session-scoped mandate, Release
-   Coordinator may schedule on Medium only when the selected profile explicitly enables it and the selected target
-   supports it, without a second per-item timing approval. Publication-target selection is still required and must
-   never default silently.
+   cadence settings and verified publication history. When the selected profile enables Medium scheduling and every
+   gate passes, Release Coordinator schedules the future slot and verifies Medium's scheduled state in that stage,
+   without a second per-item timing approval. An unresolved target or failed gate pauses with a precise blocker.
 8. Hand the status and any remaining decisions to the human. The human performs immediate publication or submission.
    Pending review or timing must be visible in the handoff, not silently treated as approval.
 
@@ -120,7 +120,7 @@ For a read-only question or a minor revision, run only the applicable flows and 
 The selected profile explicitly lists editor and destination commands for this workflow. Resolve one or more configured destinations from the article selection or profile defaults; the generic `writing` command does not choose a platform. A destination command
 owns its provider-specific editor mechanics and any skill it requires. Preparing a destination draft does not grant
 publication authority. A separately enabled Medium schedule mode grants Release Coordinator future scheduling after
-human article acceptance; the human performs immediate publication or submission.
+the active review and acceptance policy passes; the human performs immediate publication or submission.
 
 Each `destinations[]` binding may hold a `release_policy` for that account and workflow, such as a local time zone
 and maximum posts per local day. These are profile-owned strategy settings, not universal Medium rules and not

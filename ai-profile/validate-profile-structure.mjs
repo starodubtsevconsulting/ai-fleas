@@ -146,8 +146,10 @@ for (const workflow of profile.workflows) {
     if (binding.release_policy) {
       const policy = binding.release_policy;
       assert.ok((workflow.destinations ?? []).includes(binding), `${scope}/${binding.id}: release policy belongs to a destination`);
-      assert.ok(Number.isInteger(policy.max_posts_per_local_day) && policy.max_posts_per_local_day > 0,
-        `${scope}/${binding.id}: release daily cap must be a positive integer`);
+      if (policy.max_posts_per_local_day !== undefined || policy.scheduling?.enabled === true) {
+        assert.ok(Number.isInteger(policy.max_posts_per_local_day) && policy.max_posts_per_local_day > 0,
+          `${scope}/${binding.id}: release daily cap must be a positive integer`);
+      }
       assert.ok(typeof policy.time_zone === 'string' && policy.time_zone.length > 0,
         `${scope}/${binding.id}: release time zone is missing`);
       assert.doesNotThrow(() => new Intl.DateTimeFormat('en', { timeZone: policy.time_zone }),
@@ -174,7 +176,10 @@ for (const workflow of profile.workflows) {
         const scheduling = binding.release_policy?.scheduling;
         assert.equal(scheduling?.enabled, true, `${scope}/medium: scheduling must be enabled`);
         assert.equal(scheduling.allowed_role, 'release-coordinator', `${scope}/medium: scheduling role`);
-        assert.equal(scheduling.requires_human_article_acceptance, true, `${scope}/medium: article acceptance gate`);
+        assert.equal(typeof scheduling.requires_human_article_acceptance, 'boolean',
+          `${scope}/medium: article acceptance policy must be boolean`);
+        assert.ok(scheduling.publication_target === undefined || scheduling.publication_target === 'profile-home',
+          `${scope}/medium: unsupported publication target`);
         assert.equal(scheduling.per_item_approval_required, false, `${scope}/medium: scheduling approval policy`);
       } else {
         assert.notEqual(binding.release_policy?.scheduling?.enabled, true,

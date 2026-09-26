@@ -28,6 +28,7 @@
       "transitions": {
         "accepted": {
           "to": "release",
+          "visualLabel": "accepted: review passes policy",
           "requiredReferenceKinds": ["review"],
           "retryPolicy": {
             "requireChangedProgress": true,
@@ -40,6 +41,7 @@
         },
         "human_action_required": {
           "to": "human_review",
+          "visualLabel": "human_action_required: policy requires human",
           "waitForHuman": true,
           "requiredReferenceKinds": ["human-action"]
         }
@@ -79,6 +81,7 @@
       "transitions": {
         "released": {
           "to": "complete",
+          "visualLabel": "released: schedule or handoff verified",
           "terminal": true,
           "requiredReferenceKinds": ["release-record"]
         },

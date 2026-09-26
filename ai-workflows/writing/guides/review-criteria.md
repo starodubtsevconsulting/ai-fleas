@@ -34,9 +34,10 @@ manufacture a personal story to satisfy a method.
    it matters to this reader, and a question or suggested direction. Report strengths and deliberate tradeoffs too.
    Do not use a single aggregate score to conceal a factual or ethical problem.
 
-The Writer dispositions findings and rechecks changed material. The human accepts the final revision directly or
-through a valid session-scoped release mandate. The Reviewer
-does not rewrite the article, mark it release-ready alone, or publish it.
+The Writer dispositions findings and rechecks changed material. Apply the selected destination's acceptance policy:
+a complete independent review may itself authorize future scheduling when the profile explicitly permits it;
+otherwise require direct human acceptance or a valid session-scoped release mandate. The Reviewer does not rewrite,
+publish, submit, or schedule the article.
 
 ## Rendered destination QA
 

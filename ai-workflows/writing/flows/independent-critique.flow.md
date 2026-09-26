@@ -67,16 +67,18 @@ open editorial decisions. Keep both versions unpublished.
    validates and sends consequential Writer-owned findings to Writer. Writer resolves each point by revising, checking a source, or recording why it remains
    unresolved or is an intentional choice. Recheck any changed claim or destination formatting. Proof: a disposition
    list tied to the resulting article and draft revisions. A materially changed revision requires a new review request.
-6. When Writer-owned work is complete, Reviewer returns `human_action_required`; the Router records `waiting-human` and
-   dispatches no agent. Hand the resulting draft and remaining risks to the human author for a final read or
-   computer-narrated listen. The author decides whether the piece sounds like them and is ready to release. Acceptance
-   advances to release planning; rejection returns bounded findings to Writer. Silence leaves the workflow paused.
-   Proof: author feedback or an explicit `pending human review` state.
+6. When Writer-owned work is complete, apply the selected destination's release policy. If Medium scheduling has
+   `requires_human_article_acceptance: false`, Reviewer returns `accepted` with a fresh, durable review reference only
+   after independently verifying the exact article and rendered Medium draft with no unresolved blocking findings.
+   The Router immediately assigns Release Coordinator; offering the narration does not create a human wait state.
+   If acceptance is required, Reviewer returns `human_action_required`; the Router records `waiting-human` and
+   dispatches no agent until the author accepts or rejects the exact revision. Proof: exact review record and policy,
+   plus author feedback or an explicit pending state when required.
 
 ## Exit
 
-Mark release review complete only when the independent critique is addressed and the human has directly reviewed and
-accepted the exact final revision, or when a valid session-scoped release mandate delegates final selection to the
-completed review loop; then continue to [release planning](release-planning.flow.md). Otherwise hand off the
+Mark release review complete only when the independent critique is addressed and the active destination policy's
+acceptance requirement is satisfied: either review alone when explicitly configured, direct human acceptance, or a
+valid session-scoped release mandate. Then continue to [release planning](release-planning.flow.md). Otherwise hand off the
 unpublished draft with the pending gate and next action. Any later material edit invalidates the affected review
 evidence. This flow never publishes, submits, or schedules.

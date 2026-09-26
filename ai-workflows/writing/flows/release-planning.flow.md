@@ -3,8 +3,9 @@
 ## Purpose
 
 [Writing](../writing.workflow.md), step 7. Select an appropriate release slot after the article has passed review.
-An explicitly enabled Medium destination permits Release Coordinator to schedule an accepted article without a
-separate scheduling approval. Other destinations remain recommendation and human handoff flows.
+An explicitly enabled Medium destination requires Release Coordinator to attempt native future scheduling as soon as
+the exact article has a complete release gate, a resolved publication target, and a verified eligible slot. No separate
+per-item scheduling approval is required. Other destinations remain recommendation and human handoff flows.
 
 ## Entry
 
@@ -13,16 +14,19 @@ a release-ready recommendation.
 
 ## Steps
 
-1. Verify that independent critique is addressed and the human accepted the exact final revision directly or through
-   a valid [session-scoped release mandate](../guides/session-release-authorization.md). When review evidence
+1. Verify that independent critique is addressed for the exact article and rendered destination revision. Apply the
+   active `requires_human_article_acceptance` policy: when true, also require direct human acceptance or a valid
+   [session-scoped release mandate](../guides/session-release-authorization.md); when false, a complete successful
+   independent review is the release gate. When review evidence
    is missing, stale, conflicting, or ambiguous, expose one precise blocker event to the Router; do not contact Reviewer or
    make the human relay the question. The Router assigns diagnosis or revision work to the proper owner and may send a verified
    continuation packet back. If acceptance or review still is not proven, record the missing gate and do not mark the
    article release-ready. Proof: review record and exact revision identifiers, Router continuation when used, or status.
 2. Resolve the exact publication target separately from the provider account and schedule: for Medium, either the
-   author's profile/home or one named Publication that the signed-in account is verified and authorized to use. Present
-   the verified choices and ask the human where this exact revision should be published unless that exact target is
-   already explicitly recorded or validly resolved under the session-scoped release mandate. A destination account,
+   author's profile/home or one named Publication that the signed-in account is verified and authorized to use. Use an
+   explicit article selection or a human-authorized `publication_target: profile-home` in the selected workflow policy.
+   For that standing profile/home target, verify the signed-in profile matches the configured account before acting.
+   Otherwise present the verified choices and ask the human where this exact revision should be published. A destination account,
    existing draft, previous article target, UI default, or absence of a response alone does not select profile/home.
    The sole-target resolution in the authorization contract applies only after the human was shown that limitation.
    If target choices cannot be verified, record
@@ -49,12 +53,13 @@ a release-ready recommendation.
    and checked constraints.
 6. For a destination or selected publication target without explicit scheduling authority, report the proposed day and status as `proposed` and hand
    the draft, readiness evidence, and timing recommendation to the human. For Medium `draft-and-schedule`, verify the
-   workflow override and `release_policy.scheduling` enable `release-coordinator`, require direct exact-revision
-   acceptance or a valid session-scoped release mandate, and waive the separate per-item scheduling approval. Match the archive revision
+   workflow override and `release_policy.scheduling` enable `release-coordinator`, apply the configured article
+   acceptance policy, and waive the separate per-item scheduling approval. Match the archive revision
    to the intended Medium draft, verify the signed-in account, and verify the selected publication target is still
    active and supports native scheduling. Select a future slot that obeys the daily cap and
    known queue. Use the [Medium schedule skill](../../../ai-commands/content/medium/skills/medium-schedule/SKILL.md)
-   to schedule through Medium's native UI; read back the scheduled status and exact date/time. Return the verified
+   to schedule through Medium's native UI; read back the scheduled status and exact date/time. Do not stop at a slot
+   proposal or ask for another timing approval when every gate passes. Return the verified
    slot, time zone, draft URL, revision, exact publication target, and UI evidence to the human and Router without
    writing repository files. Any required archival update belongs to Writer. If any gate or
    read-back fails, leave or report the state as unresolved; do not claim scheduling succeeded. Never publish

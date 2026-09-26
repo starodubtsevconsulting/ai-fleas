@@ -29,20 +29,22 @@ Writer-owned findings must resolve to a durable Markdown artifact under the repo
 `.agent-runtime/writing/findings/` directory and include its exact content hash. A conversation-only report or synthetic
 `findings://` identifier is not a valid cross-endpoint reference.
 
-`accepted` means the complete review gate is satisfied for the exact revision: required destination rendering and
-visual review are complete, required listen-through evidence exists, and direct human acceptance or a valid bounded
-release mandate is present. “Source accepted” with any of those gates still pending is `changes_required`, not
-`accepted`. Use `changes_required` only for work Writer can perform. When Writer-owned preparation is complete and only
-the human listen-through or acceptance decision remains, return `human_action_required` with a `human-action`
-reference. The Router enters `human_review`, records `waiting-human`, and dispatches nobody. Human acceptance advances
-to Release Coordinator; human rejection returns bounded findings to Writer.
+`accepted` means the complete independent review gate is satisfied for the exact article and every selected rendered
+destination revision, with no unresolved Writer-owned findings. Apply the active destination's acceptance policy:
+when Medium declares `requires_human_article_acceptance: false`, a successful review is sufficient and `accepted`
+routes directly to Release Coordinator. When it is true, direct human acceptance or a valid bounded release mandate
+is also required. “Source accepted” while destination rendering or visual review remains pending is not `accepted`.
+Use `changes_required` only for work Writer can perform. When acceptance is required and only a human decision remains,
+return `human_action_required` with a `human-action` reference. The Router enters `human_review`, records
+`waiting-human`, and dispatches nobody. Human acceptance advances to Release Coordinator; rejection returns findings
+to Writer.
 
 For a release-gate diagnosis, the Router assigns Reviewer the exact review record and discrepancy. Reviewer returns
 existing proof, a precise stale or conflicting-record diagnosis, or `REVIEW_REQUIRED`; it never routes the result.
 
 ## Release Coordinator stage
 
-After exact-revision review and the human gates or preserved session-scoped release mandate are complete, the Router
+After exact-revision review and any acceptance gate required by the selected policy are complete, the Router
 dispatches Release Coordinator the accepted revision, selected destination drafts and per-destination review evidence/targets,
 timing instruction, applicable account policy, and prohibited effects. Release Coordinator performs release planning
 or authorized Medium scheduling and finishes with terminal evidence references or one precise blocker. It is read-only
