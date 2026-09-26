@@ -11,6 +11,9 @@ tags:
   - local-models
   - hermes
   - hybrid-ai
+lead_image: "assets/2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes-header.jpg"
+lead_image_alt: "A control room contains rows of switches, gauges, electronic panels, and a long operating console."
+lead_image_credit: "Photo by Dmitrijs Safrans on Unsplash."
 ---
 
 # Should Your Hybrid AI Start in ChatGPT or Hermes?
@@ -31,7 +34,7 @@ So I connected ChatGPT to a local Hermes agent.
 
 **Anna:** Technically, it worked.
 
-ChatGPT could send coding work to Hermes. Hermes could run a local model on my own hardware. I even replaced a crude process call with Agent2Agent, or A2A, so the two systems had a proper communication boundary.
+ChatGPT could send coding work to Hermes. Hermes could run a local model on my own hardware. I even replaced a crude process call with [Agent2Agent, or A2A](https://github.com/a2aproject/A2A/blob/main/docs/specification.md), so the two systems had a proper communication boundary.
 
 Then I discovered that communication was not really the problem.
 
@@ -49,7 +52,7 @@ I had built delegation, but the expensive model was still supervising every move
 
 A local model can be free per token and still be expensive if another model has to babysit it.
 
-That matters to me because I already spent real money on the local side. The machine cost me around $6,000 with taxes when I bought it. Similar hardware became considerably more expensive afterward.
+That matters to me because I already spent real money on the local side. The machine cost me around $6,000 with taxes when I bought it.
 
 So naturally I keep asking: what am I actually getting back?
 
@@ -99,7 +102,7 @@ That is not an insult. Linux can be less immediately pleasant, but when you want
 
 **Host:** What does Hermes give you that changes the hybrid setup?
 
-**Anna:** Native delegation.
+**Anna:** [Native delegation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/delegation.md).
 
 A strong hosted model can be the main model inside Hermes. It can keep the larger problem, use tools, and delegate a focused goal to another model.
 
@@ -173,4 +176,4 @@ The real question is whether each part is doing something useful enough to justi
 
 ## Sources and provenance
 
-This scripted dialogue uses fictional Host and Anna voices to explain the author's real hybrid-AI experiments; it is not a transcript of an actual interview. Product behavior and implementation details should be independently verified during the Writing workflow's editorial-verification stage before publication. The public AI Fleas project contains the implementation notes and workflow material; profile-specific configuration remains private.
+This scripted dialogue uses fictional Host and Anna voices to explain the author's real hybrid-AI experiments; it is not a transcript of an actual interview. The hardware purchase price and observations about repeated correction are the author's firsthand experience, not general benchmarks. Hermes delegation behavior was checked against the current [Hermes Agent delegation documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/delegation.md), which describes isolated child agents with fresh conversations and final-result return. A2A behavior was checked against the current [Agent2Agent specification](https://github.com/a2aproject/A2A/blob/main/docs/specification.md). The public [AI Fleas project](https://github.com/starodubtsevconsulting/ai-fleas) contains the implementation notes and workflow material; profile-specific configuration remains private. No claim is made that Hermes, ChatGPT, or local models will produce the same cost or quality outcome for another user.
