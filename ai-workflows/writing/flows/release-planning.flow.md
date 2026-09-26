@@ -17,7 +17,9 @@ a release-ready recommendation.
 1. Verify that independent critique is addressed for the exact article and rendered destination revision. Apply the
    active `requires_human_article_acceptance` policy: when true, also require direct human acceptance or a valid
    [session-scoped release mandate](../guides/session-release-authorization.md); when false, a complete successful
-   independent review is the release gate. When review evidence
+   independent review satisfies the editorial decision. If profile `review_preferences.listen_through.enabled` is true,
+   separately require the author's revision-bound confirmation of listening before release; an offered or played audio
+   file alone is insufficient. When review or listening evidence
    is missing, stale, conflicting, or ambiguous, expose one precise blocker event to the Router; do not contact Reviewer or
    make the human relay the question. The Router assigns diagnosis or revision work to the proper owner and may send a verified
    continuation packet back. If acceptance or review still is not proven, record the missing gate and do not mark the
@@ -54,7 +56,7 @@ a release-ready recommendation.
 6. For a destination or selected publication target without explicit scheduling authority, report the proposed day and status as `proposed` and hand
    the draft, readiness evidence, and timing recommendation to the human. For Medium `draft-and-schedule`, verify the
    workflow override and `release_policy.scheduling` enable `release-coordinator`, apply the configured article
-   acceptance policy, and waive the separate per-item scheduling approval. Match the archive revision
+   acceptance and listen-through policies, and waive the separate per-item scheduling approval. Match the archive revision
    to the intended Medium draft, verify the signed-in account, and verify the selected publication target is still
    active and supports native scheduling. Select a future slot that obeys the daily cap and
    known queue. Use the [Medium schedule skill](../../../ai-commands/content/medium/skills/medium-schedule/SKILL.md)

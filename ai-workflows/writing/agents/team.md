@@ -22,7 +22,8 @@ No endpoint sends workflow messages to another endpoint, and the human is never 
 Release Coordinator uses Medium's native future scheduling only when the selected profile explicitly enables it and
 the exact article and destination have passed independent review. The profile's
 `requires_human_article_acceptance` policy determines whether direct human acceptance or a valid session-scoped
-release mandate is an additional gate.
+release mandate is an additional gate. When profile listen-through is enabled, the author's confirmed listening to
+the exact narration is a separate gate even when article acceptance is not required.
 
 Each endpoint is limited to the selected profile's registered project subset, exact logical project, active commands,
 and capability column. Provider account, article archive path, editorial preferences, and release cadence come from the

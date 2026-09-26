@@ -39,9 +39,11 @@ The computer narrates the article. The author listens and gives feedback; they a
    only in direct response to an explicit human request to play that exact narration. For live read-aloud, verify the
    correct article is available, but do not invoke it until the human explicitly requests playback; record the tool and
    revision. Do not invent an audio artifact. Flag meaningful differences from the destination draft.
-6. Ask what sounds awkward, inaccurate, missing, or unlike the author. Audio generation and playback establish an
-   available review aid, not that the author listened or approved it. Keep the author review pending until feedback
-   or acceptance is explicit. Never publish, submit, or schedule.
+6. Ask what sounds awkward, inaccurate, missing, or unlike the author. Audio generation, presenting a player, and
+   starting playback do not establish that the author listened or approved the article. When listen-through is enabled,
+   keep the listening gate pending until the author explicitly confirms listening to the exact narrated revision.
+   Record that confirmation separately from article acceptance; a review-only scheduling policy waives acceptance,
+   not listening. Never publish, submit, or schedule.
 
 ## TTS execution note
 

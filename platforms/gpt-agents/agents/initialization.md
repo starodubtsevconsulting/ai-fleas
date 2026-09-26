@@ -223,13 +223,16 @@ successor. Agents never message one another, and Admin is not routine transport.
 Agent result -> Stop hook -> Router validation -> declared successor
 ```
 
-## What happens when the workflow needs a human decision?
+## What happens when the workflow needs a human listen-through or decision?
 
 The endpoint returns `human_action_required`. The Router records a `waiting-human` stage and dispatches no agent. Human
-acceptance follows the declared release route; human rejection returns bounded findings to the declared correction role.
+listening to the exact narration is required when profile listen-through is enabled, even if article acceptance is not.
+A playback request keeps the stage waiting; explicit confirmation of listening follows `human_listened` to release when
+review alone authorizes scheduling. A separate required acceptance follows `human_accepted`; rejection returns bounded
+findings to the declared correction role.
 
 ```text
-Agent -> human_action_required -> PAUSE -> human accepts OR rejects -> declared route
+Agent -> human_action_required -> PAUSE -> listen_pending OR human_listened / human_accepted / human_rejected
 ```
 
 ## In what order is the workflow initialized?

@@ -41,7 +41,7 @@
         },
         "human_action_required": {
           "to": "human_review",
-          "visualLabel": "human_action_required: policy requires human",
+          "visualLabel": "human_action_required: listen or acceptance pending",
           "waitForHuman": true,
           "requiredReferenceKinds": ["human-action"]
         }
@@ -51,6 +51,17 @@
       "role": "reviewer",
       "capability": "human_listen_through",
       "transitions": {
+        "listen_pending": {
+          "to": "human_review",
+          "visualLabel": "listen_pending: wait for confirmation",
+          "waitForHuman": true,
+          "requiredReferenceKinds": ["human-action"]
+        },
+        "human_listened": {
+          "to": "release",
+          "visualLabel": "human_listened: review passed",
+          "requiredReferenceKinds": ["review", "human-listen"]
+        },
         "human_accepted": {
           "to": "release",
           "requiredReferenceKinds": ["human-acceptance"]
