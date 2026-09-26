@@ -9,6 +9,12 @@ team_policy: ../../../../ai-workflows/dev/agents/team.md
 
 # This file contains GPT/Codex realization only. The Router is hidden host
 # infrastructure; each task is an independent role endpoint, not a peer.
+# Optional `utility_delegates` in the profile-owned GPT command config are
+# hidden, read-only helpers governed by the portable utility-subagents contract.
+# They do not add role endpoints, saved-project tasks, or Router authority.
+# For direct Hermes Coder requests and Admin-run Dev with `all-coder-work`,
+# MUST use profile-owned `execution_delegates.dev.coder` as the real endpoint. MUST block on
+# failed verification or delivery; MUST NOT emulate Coder or create a GPT task.
 workflow_runtime:
   id: workflow-router
   visibility: hidden

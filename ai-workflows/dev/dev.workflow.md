@@ -17,7 +17,7 @@ The workflow proceeds through the steps below in order. When one step completes 
 Before the first mutation in a new or resumed assignment, the human-facing workflow endpoint reports:
 
 - the verified profile, workflow, logical project, saved-project ID, and operating role;
-- whether execution uses the registered roster or an explicitly authorized emulated mode;
+- which roles use the registered roster, which Admin emulates, and which use real execution delegates;
 - the current numbered workflow step or direct-administration phase;
 - the plan or recovery point, including verified completed evidence and unresolved work; and
 - the next applicable gate, owner, and expected proof.
@@ -25,6 +25,28 @@ Before the first mutation in a new or resumed assignment, the human-facing workf
 An emulating Admin names the roles it is emulating and never presents emulated work as independent review, Judge
 approval, Command Runner execution, or UI acceptance. Read-only questions may use a compact status. Missing trusted
 identity or scope blocks mutation instead of silently entering an implementation phase.
+
+## Admin execution with a real Coder delegate
+
+Apply this route in either case: the human directly asks Admin to delegate a coding task to Hermes coder, or the human
+asks Admin to do Dev work and the selected profile sets `execution_delegates.dev.coder.routing_policy: all-coder-work`.
+Under that policy, route every Coder-owned implementation task, including small tasks, until the profile policy changes.
+
+For each routed task:
+
+1. Admin MUST state which roles it emulates and identify any real delegate before the first mutation.
+2. Before step 3, Admin MUST settle the authorized project, work target, requirements, file scope, allowed effects, and
+   completion evidence.
+3. Admin MUST resolve preferred `execution_delegates.dev.coder` and run its declared launcher with
+   `check --project <authorized-project-id>`. A failed
+   check blocks the Coder task. Admin MUST NOT fall back to local Coder emulation or a GPT roster Coder.
+4. Admin MUST send the bounded implementation assignment with that launcher's
+   `run --project <same-project-id> "<assignment>"` action and wait for its terminal
+   result. Admin MUST NOT edit the same assigned files while Coder is working.
+5. Admin MUST inspect the returned diff and evidence, name Coder as real delegated execution, and keep testing,
+   independent review, UI acceptance, and delivery as separate gates. A failed or missing result blocks progression.
+
+This Admin-to-Coder route is neither Router dispatch nor utility-subagent work. It grants no peer route to workflow Agents.
 
 ## Workflow
 
