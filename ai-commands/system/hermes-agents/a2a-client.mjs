@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 import { randomUUID } from 'node:crypto';
+import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
 // Handles local A2A HTTP requests and validates JSON-RPC responses.
-class A2aTransport {
+export class A2aTransport {
   constructor(endpoint) {
     let url;
     try { url = new URL(endpoint); } catch { /* validated below */ }
@@ -41,7 +44,7 @@ class A2aTransport {
 }
 
 // Verifies the Hermes Coder identity and follows an assignment to its final task result.
-class HermesCoderA2aClient {
+export class HermesCoderA2aClient {
   constructor(transport, expectedName) {
     this.transport = transport;
     this.expectedName = expectedName;
@@ -69,11 +72,35 @@ class HermesCoderA2aClient {
       if (Date.now() >= deadline) throw new Error(`A2A task ${task.id} timed out`);
       await new Promise(resolve => setTimeout(resolve, 2_000));
       const previousId = task.id;
-      task = await this.transport.call('GetTask', { id: previousId },
-        Math.min(10_000, this.#remaining(deadline)));
+      task = await this.#getTask(previousId, Math.min(10_000, this.#remaining(deadline)));
       if (task?.id !== previousId) throw new Error('A2A GetTask returned a different task ID');
     }
     return this.#completedResult(task);
+  }
+
+  async getTask(id, timeoutMs = 10_000) {
+    if (typeof id !== 'string' || !id.trim()) throw new Error('Task ID is required');
+    await this.check();
+    return this.#getTask(id, timeoutMs);
+  }
+
+  async listTasks() {
+    await this.check();
+    return this.transport.call('ListTasks', {}, 10_000);
+  }
+
+  async #getTask(id, timeoutMs) {
+    const task = await this.transport.call('GetTask', { id }, timeoutMs);
+    if (task?.id !== id) throw new Error('A2A GetTask returned a different task ID');
+    return task;
+  }
+
+  async cancelTask(id) {
+    if (typeof id !== 'string' || !id.trim()) throw new Error('Task ID is required');
+    await this.check();
+    const task = await this.transport.call('CancelTask', { id }, 10_000);
+    if (task?.id !== id) throw new Error('A2A CancelTask returned a different task ID');
+    return { task, underlyingTurnStopped: false };
   }
 
   #remaining(deadline) {
@@ -103,23 +130,70 @@ class HermesCoderA2aClient {
   }
 }
 
+// Gateway lifecycle is scoped to a named Hermes profile, never --all.
+export class HermesGatewayLifecycle {
+  constructor(profile, command = 'hermes') {
+    if (typeof profile !== 'string' || !/^[a-z0-9][a-z0-9-]*-coder$/.test(profile)) {
+      throw new Error('An exact Hermes Coder profile ID is required');
+    }
+    this.profile = profile;
+    this.command = command;
+  }
+
+  async status() { return this.#invoke('status'); }
+  async start() { return this.#invoke('start'); }
+  async stop() { return this.#invoke('stop'); }
+
+  #invoke(action) {
+    return new Promise((resolve, reject) => {
+      const child = spawn(this.command, ['-p', this.profile, 'gateway', action], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      let stdout = '';
+      let stderr = '';
+      child.stdout.on('data', chunk => { stdout += chunk; });
+      child.stderr.on('data', chunk => { stderr += chunk; });
+      child.on('error', reject);
+      child.on('close', code => {
+        if (code === 0) resolve({ profile: this.profile, action, stdout: stdout.trim(), stderr: stderr.trim() });
+        else reject(new Error(`Hermes gateway ${action} failed (${code}): ${stderr.trim()}`));
+      });
+    });
+  }
+}
+
 async function assignmentFromStdin() {
   let assignment = '';
   for await (const chunk of process.stdin) assignment += chunk;
   return assignment;
 }
 
-const [action, endpoint, expectedName] = process.argv.slice(2);
-if (!['check', 'run'].includes(action) || !endpoint || !expectedName || process.argv.length !== 5) {
-  console.error('Usage: a2a-client.mjs <check|run> <local-endpoint> <agent-name>');
-  process.exit(1);
-}
-
-try {
-  const client = new HermesCoderA2aClient(new A2aTransport(endpoint), expectedName);
-  const result = action === 'check' ? await client.check() : await client.run(await assignmentFromStdin());
-  console.log(JSON.stringify(result));
-} catch (error) {
-  console.error(`A2A ${action} failed: ${error.message}`);
-  process.exitCode = 1;
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+  const [action, endpoint, expectedName] = process.argv.slice(2);
+  if (!['check', 'run', 'list', 'status', 'cancel', 'gateway-status', 'gateway-start', 'gateway-stop'].includes(action)) {
+    console.error('Usage: a2a-client.mjs <check|run|list|status|cancel> <local-endpoint> <agent-name> [task-id] | <gateway-status|gateway-start|gateway-stop> <coder-profile>');
+    process.exitCode = 1;
+  } else {
+    try {
+      let result;
+      if (action.startsWith('gateway-')) {
+        if (!endpoint || process.argv.length !== 4) throw new Error('Exact Coder profile ID required');
+        const gateway = new HermesGatewayLifecycle(endpoint);
+        result = await gateway[action.slice('gateway-'.length)]();
+      } else {
+        const expectedCount = ['status', 'cancel'].includes(action) ? 6 : 5;
+        if (!endpoint || !expectedName || process.argv.length !== expectedCount) throw new Error('A2A endpoint, agent name, and applicable task ID required');
+        const client = new HermesCoderA2aClient(new A2aTransport(endpoint), expectedName);
+        if (action === 'check') result = await client.check();
+        if (action === 'run') result = await client.run(await assignmentFromStdin());
+        if (action === 'list') result = await client.listTasks();
+        if (action === 'status') result = await client.getTask(process.argv[5]);
+        if (action === 'cancel') result = await client.cancelTask(process.argv[5]);
+      }
+      console.log(JSON.stringify(result));
+    } catch (error) {
+      console.error(`Hermes ${action} failed: ${error.message}`);
+      process.exitCode = 1;
+    }
+  }
 }

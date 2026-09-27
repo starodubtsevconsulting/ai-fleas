@@ -73,6 +73,8 @@ Both routes receive the same bounded assignment prompt, which names the selected
 | Interruption | Stop the exact one-shot process, verify it and descendants have exited, then inspect the diff. | A failed or timed-out task does not prove the gateway turn stopped. Check task state, stop the exact gateway when needed, verify no continuing session writes, then inspect the diff. |
 | Current limit | The launcher has no enforced wall-clock timeout. | The client has a 30-minute deadline; a gateway message may fail earlier. Terminal A2A state is not a process-stop guarantee. |
 
+The [JavaScript adapter](a2a-client.mjs) exposes A2A `ListTasks`, `GetTask`, and `CancelTask`, plus named-profile gateway status, start, and stop through Hermes CLI. `CancelTask` does not abort a live in-flight turn. The [external coordinator contract](external-coordinator.md) defines when a GPT coordinator may call these operations directly and how to verify recovery; the Dev workflow's internal Manager route is not the transport control path for that external caller.
+
 Do not overlap assignments that may edit the same files. After a transport failure, inspect the visible checkout and process or session state before retrying. The [CLI strategy](../../../ai-workflows/dev/agents/delegation-strategies/transports/hermes-cli-oneshot.strategy.yml) and [A2A strategy](../../../ai-workflows/dev/agents/delegation-strategies/transports/hermes-a2a.strategy.yml) hold the current recovery rules and observed limits. The [model strategy index](../../../ai-workflows/dev/agents/delegation-strategies/model-profiles/README.md) separately describes model-specific delegation behavior.
 
 ## Where to change behavior

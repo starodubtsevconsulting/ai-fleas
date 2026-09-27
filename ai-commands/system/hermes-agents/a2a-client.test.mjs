@@ -28,8 +28,10 @@ async function scenario(t, reply) {
   };
 }
 
-async function invoke(url, action, input = '') {
-  const child = spawn(process.execPath, [client, action, url, 'test-agent'], { stdio: ['pipe', 'pipe', 'pipe'] });
+async function invoke(url, action, input = '', taskId) {
+  const args = [client, action, url, 'test-agent'];
+  if (taskId) args.push(taskId);
+  const child = spawn(process.execPath, args, { stdio: ['pipe', 'pipe', 'pipe'] });
   child.stdin.end(input);
   let stdout = '';
   let stderr = '';
@@ -73,4 +75,34 @@ test('run polls GetTask and rejects a failed task', async t => {
   assert.equal(result.code, 1);
   assert.match(result.stderr, /TASK_STATE_FAILED/);
   assert.deepEqual(mock.seen, ['AgentCard', 'SendMessage', 'GetTask']);
+});
+
+test('status looks up the exact A2A task ID', async t => {
+  const mock = await scenario(t, (message, url) => message
+    ? { jsonrpc: '2.0', result: task('TASK_STATE_WORKING') }
+    : { name: 'test-agent', url });
+  const result = await invoke(mock.url, 'status', '', 'task-1');
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).id, 'task-1');
+  assert.deepEqual(mock.seen, ['AgentCard', 'GetTask']);
+});
+
+test('list returns tasks from the verified agent', async t => {
+  const mock = await scenario(t, (message, url) => message
+    ? { jsonrpc: '2.0', result: { tasks: [task('TASK_STATE_WORKING')] } }
+    : { name: 'test-agent', url });
+  const result = await invoke(mock.url, 'list');
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).tasks[0].id, 'task-1');
+  assert.deepEqual(mock.seen, ['AgentCard', 'ListTasks']);
+});
+
+test('cancel reports that task cancellation does not prove the turn stopped', async t => {
+  const mock = await scenario(t, (message, url) => message
+    ? { jsonrpc: '2.0', result: task('TASK_STATE_CANCELED') }
+    : { name: 'test-agent', url });
+  const result = await invoke(mock.url, 'cancel', '', 'task-1');
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).underlyingTurnStopped, false);
+  assert.deepEqual(mock.seen, ['AgentCard', 'CancelTask']);
 });
