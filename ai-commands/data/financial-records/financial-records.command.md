@@ -14,6 +14,13 @@ display review results, but must not maintain a separate copy of those rules. Pr
 storage and document drivers. A caller must not treat an unsupported document section as processed merely because the
 contract defines its result shape.
 
+The backend should become a thin caller: verify the selected profile, project, period, section, and caller authority;
+pass bounded source and destination context to the command; then present its structured result. The command owns PDF
+recognition, field extraction, naming proposals, collision checks, and any authorized normalization or sidecar write.
+Read-only preparation and mutating apply must be distinct operations so the same command can serve review in the UI
+and no-UI workflows. Porting the current backend's `In`-specific implementation does not establish `Out` support;
+vendor invoices need their own recognized, tested rules before they can be applied.
+
 ## Operations
 
 ### recognize
