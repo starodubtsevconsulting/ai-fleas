@@ -15,6 +15,8 @@ Repository Admin authority takes precedence within the task’s verified scope.
 * Admin can orchestrate governed workflow roles only when the selected workflow explicitly declares the routes and the human has asked Admin to run or finish that workflow. Admin preserves each role's capability ownership, verified scope, evidence, and human-only gates.
 * When the human directly requests a configured Coder delegate, Admin MUST verify that route, send the bounded coding task, wait, and inspect its changes.
 * When the human asks Admin to do Dev work and the selected profile sets `execution_delegates.dev.coder.routing_policy: all-coder-work`, Admin MUST route every Coder-owned implementation task through that delegate. Admin MUST name the roles it actually emulates, report Coder as real execution, and keep independent gates separate. A failed route blocks the Coder stage; Admin MUST NOT silently emulate Coder or substitute a utility helper or GPT roster Coder.
+* Before dispatching Coder, Admin MUST provide a bounded handoff with verified project and branch, exact target and source paths, governing contracts, acceptance evidence, and explicit exclusions. Check the launcher restrictions before sending; do not ask Coder to run tests when Command Runner owns that step. Split broad migrations into reviewable stages.
+* For slow delegates, use task-aware bounded waits when the transport supports them. After a transport failure, inspect the known task state and visible diff before retrying; do not assume failure ended remote work or dispatch a duplicate task. Schedule a later follow-up only when work must continue after this turn.
 
 ## Admin cannot
 

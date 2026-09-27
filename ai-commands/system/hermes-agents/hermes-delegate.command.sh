@@ -149,7 +149,7 @@ if [[ "${mode}" == check ]]; then exit 0; fi
 
 prompt="You are the declared Coder endpoint for a human-authorized ${work_profile} ${workflow} Admin-run assignment. Admin is emulating other roles, but your Coder work is real delegation. Work only in ${workspace} on the current named branch ${branch}; use no temporary directories or worktrees. Follow the Coder role and repository rules. Implement only this bounded assignment: ${assignment}
 
-Do not commit, push, run builds or tests, manage tickets, edit governance rules, or claim independent review or acceptance. Edit ai-commands only when this bounded assignment explicitly names files in ai-commands/system/hermes-agents; otherwise do not edit ai-commands. Return changed files, implementation evidence, blockers, and checks that remain for Command Runner or independent review."
+Do not commit, push, run builds or tests, manage tickets, edit governance rules, or claim independent review or acceptance. Edit ai-commands only when this bounded assignment explicitly names its target path in ai-commands; otherwise do not edit ai-commands. Return changed files, implementation evidence, blockers, and checks that remain for Command Runner or independent review."
 
 if [[ "${transport}" == a2a ]]; then
   printf '%s\n' "${prompt}" | node "$(dirname "$0")/a2a-client.mjs" run "${endpoint}" "${agent_name}"
