@@ -39,6 +39,12 @@ assert.equal(
   'Writing Mermaid companion must be generated from the executable workflow map',
 );
 const visualMap = renderWorkflowMap(portableDefinition);
+assert.equal(portableDefinition.stages.administration.role, 'admin');
+assert.equal(portableDefinition.stages.administration.transitions['route-required'].to, 'drafting');
+assert.deepEqual(portableDefinition.stages.administration.transitions['route-required'].requiredReferenceKinds,
+  ['revision']);
+assert.equal(portableDefinition.stages.administration.transitions.handled.terminal, true);
+assert.match(visualMap, /administration -->\|route-required: send article request to Writer\| drafting/);
 assert.deepEqual(portableDefinition.stages.correction.transitions.review_ready.retryPolicy.progressReferenceKinds,
   ['revision', 'review-packet'], 'destination-only corrections must count changed review evidence');
 assert.match(visualMap, /human_review\["human_review<br\/>reviewer<br\/>WAITING FOR HUMAN"\]/);
