@@ -76,6 +76,58 @@ command.publisher = { publish() { throw new Error('PUBLICATION_COLLISION'); } };
 await assert.rejects(apply(), /PUBLICATION_COLLISION/);
 console.log('financial-records apply-from-source wiring: PASS');
 
+const reportsRoot = path.join(root, 'reports-root');
+const separateDestination = path.join(reportsRoot, '2026', 'chalet', 'q3', 'in');
+const separateCommand = new FinancialRecordsCommand();
+let separatePublication;
+separateCommand.publisher = { publish(input) {
+  separatePublication = input;
+  return { status: 'applied', sha256: sourcePreview.sourceEvidence.sha256, stagingCleanupRequired: false };
+} };
+const separateArgs = [
+  '--source-root', root, '--reports-root', reportsRoot,
+  '--source', path.join(root, 'booking-in.pdf'), '--destination', separateDestination,
+  '--branch', 'chalet', '--year', '2026', '--quarter', 'q3', '--section', 'in',
+  '--expected-sha256', sourcePreview.sourceEvidence.sha256,
+  '--expected-filename', sourcePreview.proposedFilename,
+];
+const separatePrepared = await separateCommand.run(['prepare-from-source',
+  '--source-root', root, '--reports-root', reportsRoot, '--source', path.join(root, 'booking-in.pdf'),
+  '--branch', 'chalet', '--year', '2026', '--quarter', 'q3', '--section', 'in',
+]);
+assert.equal(separatePrepared.status, 'eligible');
+assert.equal((await separateCommand.run(['apply-from-source', ...separateArgs])).status, 'applied');
+assert.equal(separatePublication.pdfPath, path.join(separateDestination, sourcePreview.proposedFilename));
+await assert.rejects(separateCommand.run(['apply-from-source', ...separateArgs,
+  '--root', root]), /USAGE/);
+await assert.rejects(separateCommand.run(['apply-from-source', ...separateArgs.slice(2)]), /USAGE/);
+await assert.rejects(separateCommand.run(['apply-from-source', ...separateArgs.map((value) =>
+  value === separateDestination ? destination : value)]), /DESTINATION_OUTSIDE_ROOT/);
+await assert.rejects(separateCommand.run(['apply-from-source', ...separateArgs.map((value) =>
+  value === root ? path.join(root, '2026', 'chalet', 'q3', 'in') : value)]), /SOURCE_OUTSIDE_ROOT/);
+await assert.rejects(separateCommand.run(['apply-from-source', ...separateArgs.map((value) =>
+  value === reportsRoot ? path.join(root, 'booking-in.pdf') : value)]), /INVALID_ROOT_NOT_DIRECTORY/);
+await assert.rejects(separateCommand.run(['apply-from-source', ...separateArgs.map((value) =>
+  value === sourcePreview.sourceEvidence.sha256 ? '0'.repeat(64) : value)]), /PREVIEW_MISMATCH/);
+
+const sourceLink = path.join(destination, 'linked-booking-in.pdf');
+assert.equal(fs.existsSync(sourceLink), false);
+fs.symlinkSync(path.join(root, 'booking-in.pdf'), sourceLink);
+const sourceLinkStat = fs.lstatSync(sourceLink);
+try {
+  await assert.rejects(separateCommand.run(['prepare-from-source',
+    '--source-root', destination, '--reports-root', reportsRoot, '--source', sourceLink,
+    '--branch', 'chalet', '--year', '2026', '--quarter', 'q3', '--section', 'in',
+  ]), /SOURCE_OUTSIDE_ROOT/);
+} finally {
+  const current = fs.lstatSync(sourceLink);
+  assert.equal(current.dev, sourceLinkStat.dev);
+  assert.equal(current.ino, sourceLinkStat.ino);
+  assert.equal(fs.readlinkSync(sourceLink), path.join(root, 'booking-in.pdf'));
+  fs.unlinkSync(sourceLink);
+}
+console.log('financial-records separate roots and escapes: PASS');
+
 const realCommand = new FinancialRecordsCommand();
 const source = path.join(root, 'booking-in.pdf');
 const pdfPath = path.join(destination, sourcePreview.proposedFilename);

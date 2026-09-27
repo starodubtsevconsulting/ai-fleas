@@ -51,6 +51,26 @@ export class FinancialRecordsCommand {
     this.publisher = new ReviewPublisher();
   }
 
+  resolveSourceAndReportsRoots(options) {
+    if (options.root && (options['source-root'] || options['reports-root'])) throw new Error('USAGE');
+    const sourceRootOption = options.root || options['source-root'];
+    const reportsRootOption = options.root || options['reports-root'];
+    if (!sourceRootOption || !reportsRootOption) throw new Error('USAGE');
+    if (!path.isAbsolute(sourceRootOption) || !path.isAbsolute(reportsRootOption)) {
+      throw new Error('INVALID_ROOT_NOT_ABSOLUTE');
+    }
+    let sourceRoot;
+    let reportsRoot;
+    try {
+      sourceRoot = fs.realpathSync(sourceRootOption);
+      reportsRoot = fs.realpathSync(reportsRootOption);
+    } catch { throw new Error('PATH_RESOLVE_FAILED'); }
+    if (!fs.statSync(sourceRoot).isDirectory() || !fs.statSync(reportsRoot).isDirectory()) {
+      throw new Error('INVALID_ROOT_NOT_DIRECTORY');
+    }
+    return { sourceRoot, reportsRoot };
+  }
+
   async run(argv) {
     const args = argv || [];
 
@@ -236,7 +256,7 @@ export class FinancialRecordsCommand {
 
   async prepareFromSource(args) {
     const options = {};
-    const allowed = new Set(['root', 'source', 'branch', 'year', 'quarter', 'section']);
+    const allowed = new Set(['root', 'source-root', 'reports-root', 'source', 'branch', 'year', 'quarter', 'section']);
     for (let i = 0; i < args.length; i++) {
       const separator = args[i].indexOf('=');
       const key = separator < 0 ? args[i] : args[i].slice(0, separator);
@@ -247,17 +267,14 @@ export class FinancialRecordsCommand {
       if (!value || value.startsWith('--')) throw new Error('MISSING_VALUE');
       options[name] = value;
     }
-    if ([...allowed].some((name) => !options[name])) throw new Error('USAGE');
-    if (!path.isAbsolute(options.root)) throw new Error('INVALID_ROOT_NOT_ABSOLUTE');
+    if (['source', 'branch', 'year', 'quarter', 'section'].some((name) => !options[name])) throw new Error('USAGE');
+    const { sourceRoot } = this.resolveSourceAndReportsRoots(options);
     if (!path.isAbsolute(options.source)) throw new Error('INVALID_SOURCE_NOT_ABSOLUTE');
-    let root;
     let source;
     try {
-      root = fs.realpathSync(options.root);
       source = fs.realpathSync(options.source);
     } catch { throw new Error('PATH_RESOLVE_FAILED'); }
-    if (!fs.statSync(root).isDirectory()) throw new Error('INVALID_ROOT_NOT_DIRECTORY');
-    const relative = path.relative(root, source);
+    const relative = path.relative(sourceRoot, source);
     if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
       throw new Error('SOURCE_OUTSIDE_ROOT');
     }
@@ -290,51 +307,49 @@ export class FinancialRecordsCommand {
   }
 
   async applyFromSource(args) {
-    const required = ['root', 'source', 'destination', 'branch', 'year', 'quarter', 'section', 'expected-sha256', 'expected-filename'];
+    const required = ['source', 'destination', 'branch', 'year', 'quarter', 'section', 'expected-sha256', 'expected-filename'];
+    const allowed = new Set([...required, 'root', 'source-root', 'reports-root']);
     const options = {};
     for (let i = 0; i < args.length; i++) {
       const separator = args[i].indexOf('=');
       const key = separator < 0 ? args[i] : args[i].slice(0, separator);
       const name = key.startsWith('--') ? key.slice(2) : '';
-      if (!required.includes(name)) throw new Error('UNKNOWN_OPTION');
+      if (!allowed.has(name)) throw new Error('UNKNOWN_OPTION');
       if (Object.hasOwn(options, name)) throw new Error('DUPLICATE_OPTION');
       const value = separator < 0 ? args[++i] : args[i].slice(separator + 1);
       if (!value || value.startsWith('--')) throw new Error('MISSING_VALUE');
       options[name] = value;
     }
     if (required.some((name) => !options[name])) throw new Error('USAGE');
+    const { sourceRoot, reportsRoot } = this.resolveSourceAndReportsRoots(options);
     if (options.section !== 'in' || !/^\d{4}$/.test(options.year) || !/^q[1-4]$/.test(options.quarter) ||
         !/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(options.branch) ||
         !/^[a-f0-9]{64}$/.test(options['expected-sha256']) ||
         !/^\d{4}-\d{2}-\d{2}_booking_marketplace-reservation\.pdf$/.test(options['expected-filename'])) {
       throw new Error('INVALID_EXPECTATION');
     }
-    if (!path.isAbsolute(options.root)) throw new Error('INVALID_ROOT_NOT_ABSOLUTE');
     if (!path.isAbsolute(options.source)) throw new Error('INVALID_SOURCE_NOT_ABSOLUTE');
     if (!path.isAbsolute(options.destination)) throw new Error('INVALID_DESTINATION_NOT_ABSOLUTE');
-    let root;
     let source;
     let destination;
     try {
-      root = fs.realpathSync(options.root);
       source = fs.realpathSync(options.source);
       destination = fs.realpathSync(options.destination);
     } catch { throw new Error('PATH_RESOLVE_FAILED'); }
-    if (!fs.statSync(root).isDirectory()) throw new Error('INVALID_ROOT_NOT_DIRECTORY');
     if (!fs.statSync(source).isFile()) throw new Error('INVALID_SOURCE_NOT_FILE');
     if (!fs.statSync(destination).isDirectory() || fs.lstatSync(options.destination).isSymbolicLink()) {
       throw new Error('INVALID_DESTINATION_NOT_DIRECTORY');
     }
-    const inside = (pathname) => {
+    const inside = (root, pathname) => {
       const relative = path.relative(root, pathname);
       return relative && relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
     };
-    if (!inside(source)) throw new Error('SOURCE_OUTSIDE_ROOT');
-    if (!inside(destination) || destination !== path.join(root, options.year, options.branch, options.quarter, 'in')) {
+    if (!inside(sourceRoot, source)) throw new Error('SOURCE_OUTSIDE_ROOT');
+    if (!inside(reportsRoot, destination) || destination !== path.join(reportsRoot, options.year, options.branch, options.quarter, 'in')) {
       throw new Error('DESTINATION_OUTSIDE_ROOT');
     }
     const prepared = await this.prepareFromSource([
-      '--root', root, '--source', source, '--branch', options.branch, '--year', options.year,
+      '--source-root', sourceRoot, '--reports-root', reportsRoot, '--source', source, '--branch', options.branch, '--year', options.year,
       '--quarter', options.quarter, '--section', options.section,
     ]);
     if (prepared.status !== 'eligible') return {
