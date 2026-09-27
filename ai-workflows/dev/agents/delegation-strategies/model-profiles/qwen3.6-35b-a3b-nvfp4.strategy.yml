@@ -25,4 +25,4 @@ verification:
     - reject-model-self-review-as-verification-evidence
     - inspect-visible-diff
   completion_text_alone_is_sufficient: false
-evidence_notes: The 32K served window cannot initialize as a Hermes agent. On a matched amount-parser task, Q5 alone passed 8/13 independent cases and Q5 with this route passed 7/13; both failed required examples despite plausible prose. Use the route for bounded proposals and verify behavior independently.
+evidence_notes: The 32K served window cannot initialize as a Hermes agent. On a matched amount-parser task with the original temperature-0 route, Q5 alone passed 8/13 cases and Q5 with this route passed 7/13. Official non-thinking sampling in the profile raised two launcher trials to 12/13 and 10/13 and one Hermes trial to 11/13, still variable and incomplete. Use bounded proposals and verify behavior independently.

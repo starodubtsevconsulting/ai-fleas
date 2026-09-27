@@ -69,6 +69,20 @@ met. These scores are observations from one task, not a general model ranking.
 For parsing, arithmetic, and other correctness-sensitive Coder work, run the
 same explicit cases through Command Runner before accepting either proposal.
 
+The initial route used temperature 0. The [Qwen3.6 model card](https://huggingface.co/Qwen/Qwen3.6-35B-A3B)
+recommends temperature 0.7, top-p 0.8, top-k 20, and presence penalty 1.5
+for non-thinking mode. Two direct, read-only trials with those parameters on
+the same parser prompt passed 11/13 and 12/13 cases in about 12 and 5 seconds.
+Neither passed the maximum-safe-value case. Sampling is now a bounded,
+profile-owned route setting; this observation motivates a launcher-level
+retest and does not by itself prove an improvement through Hermes. With those
+settings applied to the real launcher, two further proposals passed 12/13 and
+10/13 cases. A subsequent Hermes Admin call through the reconfigured MCP
+tool produced a reviewed answer passing 11/13 in about 49 seconds; the raw
+35B tool response in that turn was not executable JavaScript. The results
+vary and still fall short of correctness, so retain the proposal-only boundary
+and independent executable verification.
+
 `bounded-model.command.mjs ask` reads one prompt from standard input.
 `serve-mcp` provides the same model through one MCP tool, `bounded_coder`.
 `bounded-model.delegate.mjs check|run --project ID` resolves the selected Dev

@@ -4,6 +4,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { parseDocument } from 'yaml';
+import { BoundedModelSampling } from './bounded-model.sampling.mjs';
 
 class BoundedRouteConfigurator {
   constructor(profileDirectory, groupId) {
@@ -24,6 +25,7 @@ class BoundedRouteConfigurator {
     if (!binding) return;
     const runner = command.command_runner_route;
     if (!Array.isArray(binding.callers) || !binding.callers.length) throw new Error('Invalid bounded_coder callers');
+    const sampling = new BoundedModelSampling(binding.sampling);
     for (const [name, value, ceiling] of [['max_input_chars', binding.max_input_chars, 24000], ['max_output_tokens', binding.max_output_tokens, 4096], ['timeout_ms', binding.timeout_ms, 120000]]) {
       if (!Number.isSafeInteger(value) || value < 1 || value > ceiling) throw new Error(`Invalid bounded_coder ${name}`);
     }
@@ -60,7 +62,7 @@ class BoundedRouteConfigurator {
     const server = {
       command: process.execPath,
       args: [executable, 'serve-mcp', '--endpoint', endpoint, '--model', model[0].provider_model,
-        '--max-input-chars', String(binding.max_input_chars), '--max-output-tokens', String(binding.max_output_tokens), '--timeout-ms', String(binding.timeout_ms)],
+        '--max-input-chars', String(binding.max_input_chars), '--max-output-tokens', String(binding.max_output_tokens), '--timeout-ms', String(binding.timeout_ms), ...sampling.commandArguments()],
     };
     const hermesHome = process.env.HERMES_HOME || path.join(process.env.HOME, '.hermes');
     const updates = [];
@@ -69,7 +71,8 @@ class BoundedRouteConfigurator {
       const file = path.join(hermesHome, 'profiles', `${this.groupId}-${role}`, 'config.yaml');
       const document = this.read(file);
       const existing = document.getIn(['mcp_servers', 'bounded-coder']);
-      if (existing && JSON.stringify(existing.toJSON()) !== JSON.stringify(server)) throw new Error(`Conflicting bounded Coder server in ${file}`);
+      const prior = existing?.toJSON();
+      if (prior && (prior.command !== process.execPath || prior.args?.[0] !== executable || prior.args?.[1] !== 'serve-mcp')) throw new Error(`Conflicting bounded Coder server in ${file}`);
       document.setIn(['mcp_servers', 'bounded-coder'], server);
       if (runner?.callers.includes(role)) document.setIn(['mcp_servers', 'command-runner-route'], {
         command: process.execPath,

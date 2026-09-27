@@ -5,6 +5,7 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { parseDocument } from 'yaml';
 import { fileURLToPath } from 'node:url';
+import { BoundedModelSampling } from './bounded-model.sampling.mjs';
 
 class BoundedCoderDelegate {
   constructor() {
@@ -20,6 +21,7 @@ class BoundedCoderDelegate {
     const commandConfig = this.read(path.join(this.profileDir, 'commands-config/hermes-agents/config.yml'));
     this.binding = commandConfig.bounded_coder;
     if (!this.binding) throw new Error('Bounded Coder is not configured');
+    this.sampling = new BoundedModelSampling(this.binding.sampling);
     const gptConfig = this.read(path.join(this.profileDir, 'commands-config/gpt-agents/config.yml'));
     this.route = gptConfig.execution_delegates?.dev?.coder;
     if (this.route?.platform !== 'bounded-model' || this.route?.transport !== 'direct-model' || this.route?.output !== 'proposal-only' || this.route?.model !== this.binding.model || this.route?.launcher !== 'bounded-coder-delegate.sh') throw new Error('GPT Coder route does not match this bounded model');
@@ -54,13 +56,13 @@ class BoundedCoderDelegate {
     const project = this.project(projectId);
     const target = this.model();
     if (operation === 'check') {
-      const response = spawnSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'bounded-model.command.mjs'), 'ask', '--endpoint', target.endpoint, '--model', target.model, '--max-output-tokens', '4'], { input: 'Reply READY.', encoding: 'utf8', timeout: 30000 });
+      const response = spawnSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'bounded-model.command.mjs'), 'ask', '--endpoint', target.endpoint, '--model', target.model, '--max-output-tokens', '4', ...this.sampling.commandArguments()], { input: 'Reply READY.', encoding: 'utf8', timeout: 30000 });
       if (response.status !== 0) throw new Error(`Model check failed: ${response.stderr.trim()}`);
       process.stdout.write(`BOUNDED_CODER_READY: project=${projectId} branch=${project.branch} model=${target.model}\n`);
       return;
     }
     if (operation !== 'run' || !assignment?.trim()) throw new Error('A bounded assignment is required');
-    const response = spawnSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'bounded-model.command.mjs'), 'ask', '--endpoint', target.endpoint, '--model', target.model, '--max-input-chars', String(this.binding.max_input_chars), '--max-output-tokens', String(this.binding.max_output_tokens), '--timeout-ms', String(this.binding.timeout_ms)], { input: assignment, encoding: 'utf8', timeout: this.binding.timeout_ms + 5000 });
+    const response = spawnSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'bounded-model.command.mjs'), 'ask', '--endpoint', target.endpoint, '--model', target.model, '--max-input-chars', String(this.binding.max_input_chars), '--max-output-tokens', String(this.binding.max_output_tokens), '--timeout-ms', String(this.binding.timeout_ms), ...this.sampling.commandArguments()], { input: assignment, encoding: 'utf8', timeout: this.binding.timeout_ms + 5000 });
     if (response.status !== 0) throw new Error(`Model run failed: ${response.stderr.trim()}`);
     process.stdout.write(response.stdout);
   }

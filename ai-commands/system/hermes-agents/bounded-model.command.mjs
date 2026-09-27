@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import process from 'node:process';
 import readline from 'node:readline';
+import { BoundedModelSampling } from './bounded-model.sampling.mjs';
 
 class BoundedModelClient {
-  constructor({ endpoint, model, maxInputChars = 12000, maxOutputTokens = 2048, timeoutMs = 60000 }) {
+  constructor({ endpoint, model, maxInputChars = 12000, maxOutputTokens = 2048, timeoutMs = 60000, sampling }) {
     const url = new URL(endpoint);
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) throw new Error('Invalid model endpoint');
     if (!/^[A-Za-z0-9._:/+-]+$/.test(model)) throw new Error('Invalid model ID');
@@ -15,6 +16,7 @@ class BoundedModelClient {
     this.maxInputChars = maxInputChars;
     this.maxOutputTokens = maxOutputTokens;
     this.timeoutMs = timeoutMs;
+    this.sampling = new BoundedModelSampling(sampling);
   }
   async ask(prompt) {
     if (!prompt.trim() || prompt.length > this.maxInputChars) throw new Error('Prompt is empty or exceeds the input limit');
@@ -23,7 +25,7 @@ class BoundedModelClient {
       body: JSON.stringify({ model: this.model, messages: [
         { role: 'system', content: 'You are a bounded coding assistant. Answer using only the supplied context. Return proposed code or a patch when requested. You cannot inspect files or run commands.' },
         { role: 'user', content: prompt },
-      ], temperature: 0, max_tokens: this.maxOutputTokens, chat_template_kwargs: { enable_thinking: false } }),
+      ], ...this.sampling.requestFields(), max_tokens: this.maxOutputTokens, chat_template_kwargs: { enable_thinking: false } }),
     });
     if (!response.ok) throw new Error(`Model endpoint returned HTTP ${response.status}`);
     const choice = (await response.json())?.choices?.[0];
@@ -41,18 +43,21 @@ class BoundedModelClient {
 
 function options(argv) {
   const mode = argv.shift();
-  if (!['ask', 'serve-mcp'].includes(mode)) throw new Error('Usage: bounded-model.command.mjs ask|serve-mcp --endpoint URL --model ID [--max-input-chars N] [--max-output-tokens N] [--timeout-ms N]');
+  if (!['ask', 'serve-mcp'].includes(mode)) throw new Error('Usage: bounded-model.command.mjs ask|serve-mcp --endpoint URL --model ID [--max-input-chars N] [--max-output-tokens N] [--timeout-ms N] [sampling flags]');
   const values = {};
   while (argv.length) {
     const flag = argv.shift(), value = argv.shift();
-    if (!['--endpoint', '--model', '--max-input-chars', '--max-output-tokens', '--timeout-ms'].includes(flag) || !value || values[flag]) throw new Error('Invalid command options');
+    if (!['--endpoint', '--model', '--max-input-chars', '--max-output-tokens', '--timeout-ms', '--temperature', '--top-p', '--top-k', '--presence-penalty'].includes(flag) || !value || values[flag]) throw new Error('Invalid command options');
     values[flag] = value;
   }
   if (!values['--endpoint'] || !values['--model']) throw new Error('Endpoint and model are required');
   return { mode, endpoint: values['--endpoint'], model: values['--model'],
     maxInputChars: values['--max-input-chars'] === undefined ? undefined : Number(values['--max-input-chars']),
     maxOutputTokens: values['--max-output-tokens'] === undefined ? undefined : Number(values['--max-output-tokens']),
-    timeoutMs: values['--timeout-ms'] === undefined ? undefined : Number(values['--timeout-ms']) };
+    timeoutMs: values['--timeout-ms'] === undefined ? undefined : Number(values['--timeout-ms']),
+    sampling: Object.fromEntries([
+      ['temperature', '--temperature'], ['top_p', '--top-p'], ['top_k', '--top-k'], ['presence_penalty', '--presence-penalty'],
+    ].filter(([, flag]) => values[flag] !== undefined).map(([key, flag]) => [key, Number(values[flag])])) };
 }
 
 class BoundedCoderMcpServer {
