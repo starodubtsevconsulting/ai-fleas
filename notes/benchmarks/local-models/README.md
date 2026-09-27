@@ -45,6 +45,8 @@ Image-generation models use a separate quality-first corpus and retained-output 
 
 ## Main findings
 
+**GX10 selection goal:** improve independently accepted coding work over Qwen3-Coder-Next Q5_K_M. Qwen3.8 and MiniMax fit the tested context and passed file-tool checks, but neither established that improvement in the bounded coding task. RAM fit is only an operating check. MiniMax's [license](https://huggingface.co/MiniMaxAI/MiniMax-M2.7/blob/main/LICENSE) disqualifies it for the intended business deployment without prior written authorization.
+
 **GX10:** Qwen3-Coder-Next Q5_K_M remains the preferred worker and current SC Dev `all-coder-work` route. Both earlier Qwen candidates and compressed DeepSeek V4 Flash 0731 passed the controlled Hermes tool-use fixture, but DeepSeek is unsuitable for our worker use case: 133.85 seconds for the fixture versus 21.94 seconds for the default, with much higher memory use. TrevorJS Gemma 4 31B IT Uncensored Q8_0 is installed as a separate opt-in mode and fits with ample memory headroom, but generated only 6.80 tok/s and failed the fixture by writing correct contents to the wrong directory. It is an uncensored chat/quality experiment, not an accepted worker or default. Qwen3.6 35B NVFP4 showed promising short direct-API speed while loaded beside Q5, but its current served 32K context falls below Hermes's 64K minimum; a sequential 6K-prompt request also caused swap-out. The later bounded coding pilot did not establish a consistent quality or end-to-end speed advantage. Keep 35B optional for targeted comparisons. Qwen3.8-27B Q4_K_M passed the same-day Hermes fixture but took 128.04 seconds versus Q5's 35.67 seconds. MiniMax M2.7 UD-IQ4_XS served 65,536 tokens with Q4_0 KV and about 9–11 GiB available during testing; its fixture passed in 116.73 seconds, but its bounded coding task did not produce accepted code, and commercial deployment requires separate written authorization.
 
 **RTX 3080 Ti:** the 30B candidates work but are too slow for an interactive Hermes System agent. Qwen3 8B is fast but cannot satisfy Hermes' 64K context requirement. Qwen3.5 9B Q4_K_M provides both full GPU residency and a 65,536-token configured context and is the current candidate.
@@ -55,6 +57,7 @@ Image-generation models use a separate quality-first corpus and retained-output 
 
 ## Next experiments
 
+- Check a candidate's license against the intended use before downloading or installing it. For GX10 coding-worker selection, require better independently accepted coding work than Q5 before considering a route change.
 - Benchmark the MacBook Pro M5 from ~30B Q6 downward.
 - Benchmark the UM790 Pro from ~14B Q5 downward.
 - Repeat Hermes timing on the RTX 3080 Ti after disabling automatic title generation.
