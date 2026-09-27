@@ -25,6 +25,18 @@ Entries beginning with `_` are reserved/private by convention and are not discov
 sources. Profiles map this logical structure to their authorized storage; the public workflow never prescribes real
 organization names or machine paths.
 
+## Record lookup
+
+For a request to find an existing invoice, receipt, bill, or statement, first resolve the selected project and its
+canonical storage from the active profile. Search that storage using the requested period, entity, record direction,
+and topic, allowing for the project's actual folder layout and synonymous filenames. When the year is omitted, search
+the current year first, then broaden the search; report the year of any match rather than assuming it. Inspect the
+candidate document when its content is available, and return its exact location with any unresolved ambiguity.
+
+Admin follows this lookup route when handling an authorized Financial Insights request directly or emulating a
+configured workflow role. A saved-project label or visible folder alone does not establish workflow scope; use the
+verified profile and project binding.
+
 ## Document intake
 
 Evidence-preserving intake follows:
