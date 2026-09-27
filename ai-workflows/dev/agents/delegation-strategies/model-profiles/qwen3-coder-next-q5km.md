@@ -49,10 +49,28 @@ benchmark or evidence that CLI produces better code. The CLI completion prose in
 contract result "supported"; review the result object and diff rather than trusting that prose on either route.
 
 CLI one-shot provides a directly observable process exit and avoids the A2A message deadline for this assignment.
-The current launcher still has no hard wall-clock timeout, and interrupted-process descendant cleanup has not been
-tested. A2A remains available for later session-oriented work, but its current task status must not be treated as a
+The current launcher still has no hard wall-clock timeout; the later trial below exercised direct termination once.
+A2A remains available for later session-oriented work, but its current task status must not be treated as a
 process-stop guarantee. Select the transport in the profile binding and load its matching transport strategy; do not
 change the model strategy when switching between these two routes.
+
+A second, harder matched assignment asked for a one-file amount extractor with duplicate-label and integer-cent
+validation. The starting target was absent for both runs, the same assignment text was used, and the runs were
+sequential. A2A hit its 300-second orphan deadline: the client returned `fetch failed`, the task later became
+`TASK_STATE_FAILED`, and gateway logs showed another model call and `write_file` **after** that failure. It wrote the
+requested parser plus an unrequested test file. The coordinator directly stopped the exact Coder gateway, confirmed
+the turn stopped, and only then removed the artifacts. Its partial parser passed 7 of 8 independent synthetic cases;
+it rejected a valid case where GST and QST had equal amounts.
+
+CLI one-shot ran past the same five-minute point without an A2A deadline, but was still active at seven minutes and
+had created three unrequested test/helper files. The coordinator sent SIGTERM to that exact one-shot process; it
+exited with status 143 and no Coder one-shot or separate worker remained. Its partial parser passed 8 of 8 cases,
+but the assignment did not complete cleanly, and the files were removed. This is one observation of direct process
+termination, not proof that every descendant or interruption mode is handled. The two partial scores are not a model
+quality ranking because the runs ended under different conditions. The useful distinction is lifecycle control:
+CLI can be terminated as a local process, whereas A2A task failure did not stop the gateway turn. Neither transport
+prevented out-of-scope writes; require an enforced CLI wall-clock limit and independent scope review before unattended
+use on larger assignments.
 
 ## External usage evidence
 
@@ -81,8 +99,10 @@ For launcher or protocol changes, spell out both sides of the command boundary w
 each input is read (argument or stdin). Require the Coder to inspect existing callers and tests before editing. Ask
 for concise changed-file and blocker evidence; do not rely on a prose claim of completion.
 
-Admin waits for the real task result. On timeout or disconnect, inspect the A2A task state and visible diff before any
-retry. Command Runner runs focused existing and new tests, plus shell syntax checks where applicable. Admin reviews
+Admin waits for the real task result. On timeout or disconnect, inspect task and process state plus the visible diff before any
+retry. When authorized for the exact Coder profile, Admin can stop its gateway or one-shot process directly and verify
+that the turn and descendants have exited; another model role is not required for routine lifecycle control. Command
+Runner runs focused existing and new tests, plus shell syntax checks where applicable. Admin reviews
 whether tests actually assert the contract. Do not accept a change that breaks the delegate launcher; restore the last
 working version if routing becomes unusable and report the blocked Coder stage.
 

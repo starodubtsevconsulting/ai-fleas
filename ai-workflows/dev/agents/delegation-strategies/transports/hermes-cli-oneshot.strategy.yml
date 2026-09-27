@@ -13,7 +13,8 @@ timing:
     - inspect-visible-diff-before-retry
     - never-overlap-assignments-that-write-the-same-files
   successful_process_exit_observed: true
-  interrupted_process_descendant_cleanup: unverified
+  interrupted_process_descendant_cleanup: observed-on-one-directly-terminated-run
+  unattended_use: requires-enforced-wall-clock-limit-and-scope-review
 scratch:
   temporary_directories: forbidden
   files: only-exact-visible-paths-authorized-in-assignment
