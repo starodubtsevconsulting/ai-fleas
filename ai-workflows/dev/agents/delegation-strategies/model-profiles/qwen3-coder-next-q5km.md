@@ -16,6 +16,9 @@ Hermes A2A. Review this profile if either value changes.
   Its added tests initially passed while one had no assertion; a later correction broke existing tests.
 - Completion text was sometimes more confident than the actual file state. The visible diff and independent checks
   were more reliable evidence.
+- Two recognizer assignments created unrequested test/scratch files despite an exact one-file write scope. A correction
+  also repeated date and context parsing mistakes. Require concrete input/output examples and explicitly authorize
+  any adjacent test file; stop and rescope after one unsuccessful correction instead of repeated long retries.
 
 These are observations from the financial-records and Hermes delegation work in September 2026. They guide the next
 assignment; they do not claim that every run or other deployment of the model behaves this way.

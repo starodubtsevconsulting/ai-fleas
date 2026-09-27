@@ -1,8 +1,6 @@
 schema_version: local-coder-strategy.v1
 applies_to:
   provider_model: qwen3-coder-next-q5km
-  platform: hermes
-  transport: a2a
 strategy:
   default: focused-implementation
   task_routes:
@@ -17,24 +15,20 @@ strategy:
   goal_backed_continuation: disabled-unverified
 assignment:
   preferred_scope: one-cohesive-change
+  correction_limit_per_stage: 1
   require:
     - exact-project-and-branch
     - allowed-write-roots-and-read-only-reference-roots
     - exact-output-paths-for-new-files
     - existing-interface-and-callers-to-preserve
     - concrete-completion-evidence-and-stop-condition
+    - exact-input-output-example-for-parsers-and-recognizers
+    - explicit-list-of-allowed-test-files-if-tests-are-to-be-written
   for_protocol_changes:
     require:
       - example-invocations-at-each-command-boundary
       - location-of-each-input-argument-or-stdin
       - existing-callers-and-tests-to-inspect
-transport:
-  observed_server_message_timeout_seconds: 300
-  context_reuse: unavailable-through-current-launcher
-  on_disconnect:
-    - query-remote-task-status
-    - inspect-visible-diff
-    - do-not-retry-until-prior-task-is-terminal
 verification:
   owner: command-runner-and-admin
   require:
@@ -43,5 +37,6 @@ verification:
     - run-focused-existing-and-new-tests
     - inspect-tests-for-real-assertions
     - run-shell-syntax-checks-when-applicable
+    - remove-unrequested-scratch-files-after-task-is-terminal
   completion_text_alone_is_sufficient: false
 evidence_notes: qwen3-coder-next-q5km.md

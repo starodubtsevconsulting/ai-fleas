@@ -1,0 +1,23 @@
+schema_version: local-coder-transport-strategy.v1
+applies_to:
+  platform: hermes
+  transport: a2a
+session:
+  current_launcher: fresh-context-per-run
+  context_reuse: unavailable-through-current-launcher
+  context_capacity_signal: not-exposed-by-a2a-get-task
+  default_max_inbound_messages_per_context: 5
+  policy: start-new-context-for-each-bounded-assignment
+  future_resume_rule: resume-only-after-launcher-support-and-capacity-signal-are-verified
+timing:
+  observed_server_message_timeout_seconds: 300
+  wait_policy: wait-for-terminal-result-or-transport-deadline
+  after_disconnect:
+    - get-task-status
+    - inspect-visible-diff
+    - wait-until-prior-task-terminal-before-retry
+    - never-infer-failure-from-client-fetch-error-alone
+scratch:
+  temporary_directories: forbidden
+  files: only-exact-visible-paths-authorized-in-assignment
+  unrequested_files: inspect-and-remove-after-task-is-terminal
