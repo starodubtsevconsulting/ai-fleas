@@ -28,6 +28,10 @@ Hermes A2A. Review this profile if either value changes.
   window. Three subsequent one-file corrections completed in roughly one to two minutes each, and independent checks
   confirmed a working read-only CLI against the real PDF. These settings help bound ordinary turns but have not proven
   a hard wall-clock limit or repaired A2A cancellation.
+- A one-file monetary extractor parsed a synthetic example and the real contract, but its single correction for
+  duplicate labels removed the real tax amounts. The draft was rejected. For numeric parsers, require an independent
+  real-layout check after each edit and stop this model stage after one failed correction; do not publish a parser
+  merely because its synthetic example passes.
 
 These are observations from the financial-records and Hermes delegation work in September 2026. They guide the next
 assignment; they do not claim that every run or other deployment of the model behaves this way.

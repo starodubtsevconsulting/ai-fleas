@@ -12,6 +12,10 @@ strategy:
     transitive_port:
       strategy: bounded-exploration
       condition: stage-fits-verified-transport-timeout
+    numeric_extraction:
+      strategy: focused-implementation
+      acceptance: independent-real-layout-and-ambiguity-checks
+      after_failed_correction: stop-stage-and-choose-another-implementation-route
   goal_backed_continuation: disabled-unverified
 assignment:
   preferred_scope: one-cohesive-change
