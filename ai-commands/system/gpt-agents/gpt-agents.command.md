@@ -242,9 +242,11 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
 6. Join `initializer.agentId` and every portable `agents[].agentId` to exactly one GPT `role_endpoints[].role` or
    `role_routes[].role` binding. Reject missing, duplicate, or additional roles before creating anything. Only
    `role_endpoints` enter the managed task roster. Resolve each route's declared profile key and project-scoped launcher;
-   a missing route fails before agent creation. A route has no task ID for Workflow Router dispatch, so automatic stages
-   requiring that role fail closed until the Router supports route dispatch. Admin and Designer Reviewer may invoke their
-   declared routes directly.
+   a missing route fails before agent creation. A route has no task ID. For automatic stages, register a runtime route
+   mapping with the exact route ID, one selected authorized project ID, and one authorized caller role that has a verified task endpoint in the same scope.
+   The Router queues that caller with a prompt-bound proxy permit; the caller invokes the profile route and returns
+   the route role's result only after its work and evidence are complete. Missing or mismatched route mappings fail closed.
+   Admin and Designer Reviewer may also invoke their declared routes directly.
 7. Treat the caller as the mechanical initialization controller. It is never a workflow roster member merely because it
    invoked this command. Resolve the complete effective roster, including Admin, before creating any task. Admin is a
    compatibility role and must not bootstrap, delegate, or orchestrate initialization.
