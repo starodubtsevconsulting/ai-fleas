@@ -21,3 +21,26 @@ role_overrides:
   writer: { model: gpt-5.6-sol, reasoning: low }
   reviewer: { model: gpt-5.6-sol, reasoning: low }
   release-coordinator: { model: gpt-5.6-sol, reasoning: low }
+
+# Optional example only. A real profile must select its own Coder profile,
+# authorized projects, routing policy, transport, and matching strategy.
+# This example does not establish a command-level or platform-wide default.
+execution_delegates:
+  dev:
+    coder:
+      id: example-hermes-coder
+      platform: hermes
+      profile: example-dev-coder
+      transport: cli-oneshot
+      strategy_transport_config: dev/agents/delegation-strategies/transports/hermes-cli-oneshot.strategy.yml
+      a2a:
+        endpoint: http://127.0.0.1:9901/
+        agent_name: example-dev-coder
+      launcher: example-hermes-coder-delegate.sh
+      projects: [example-service]
+      default_project: example-service
+      route: admin-to-real-coder
+      preferred: true
+      routing_policy: explicit-only
+      authorization: direct-delegation-or-admin-dev-run
+      toolsets: [file]

@@ -39,7 +39,41 @@ work_profile_id = os.environ['HERMES_DELEGATE_WORK_PROFILE']
 workflow_id = os.environ['HERMES_DELEGATE_WORKFLOW'].removesuffix('.workflow.md')
 root = Path(os.environ['HERMES_DELEGATE_PROFILE_ROOT']) / work_profile_id
 work_profile = yaml.safe_load((root / f'{work_profile_id}-work-profile.yml').read_text()) or {}
-gpt_config = yaml.safe_load((root / 'commands-config/gpt-agents/config.yml').read_text()) or {}
+
+# Find exactly one gpt-agents command entry in work_profile.commands
+gpt_commands = [cmd for cmd in work_profile.get('commands', []) if isinstance(cmd, dict) and cmd.get('id') == 'gpt-agents']
+if len(gpt_commands) != 1:
+    raise SystemExit('HERMES_CODER_BLOCKED: exactly one gpt-agents command entry is required.')
+gpt_command = gpt_commands[0]
+config_path = gpt_command.get('config')
+if not isinstance(config_path, str) or not config_path:
+    raise SystemExit('HERMES_CODER_BLOCKED: gpt-agents config path must be a nonempty string.')
+
+# Validate config path is relative and safe
+path_parts = Path(config_path).parts
+if Path(config_path).is_absolute():
+    raise SystemExit('HERMES_CODER_BLOCKED: gpt-agents config path must be relative.')
+if '..' in path_parts:
+    raise SystemExit('HERMES_CODER_BLOCKED: gpt-agents config path must not escape profile root.')
+
+# Resolve profile root and config target to real paths to detect symlink escapes
+try:
+    real_profile_root = root.resolve()
+    resolved_config_path = (root / config_path).resolve()
+except (OSError, RuntimeError) as e:
+    raise SystemExit('HERMES_CODER_BLOCKED: failed to resolve paths for config validation.')
+
+# Ensure config file is inside the real profile root (not the root itself)
+if real_profile_root == resolved_config_path:
+    raise SystemExit('HERMES_CODER_BLOCKED: gpt-agents config path must point to a file, not the profile root.')
+if not str(resolved_config_path).startswith(str(real_profile_root) + os.sep):
+    raise SystemExit('HERMES_CODER_BLOCKED: gpt-agents config path escapes profile root via symlink or other path manipulation.')
+
+# Verify the resolved path is a regular file
+if not resolved_config_path.is_file():
+    raise SystemExit('HERMES_CODER_BLOCKED: gpt-agents config file does not exist or is not a regular file.')
+
+gpt_config = yaml.safe_load(resolved_config_path.read_text()) or {}
 binding = ((gpt_config.get('execution_delegates') or {}).get(workflow_id) or {}).get('coder') or {}
 required = {
     'platform': 'hermes',
