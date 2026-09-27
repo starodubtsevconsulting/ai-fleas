@@ -1,0 +1,53 @@
+flowchart LR
+    target_resolution["target_resolution<br/>manager<br/>START"]
+    planning["planning<br/>designer-reviewer<br/>WAITING FOR HUMAN"]
+    implementation["implementation<br/>coder"]
+    verification["verification<br/>designer-reviewer"]
+    test_execution["test_execution<br/>command-runner"]
+    debugging["debugging<br/>designer-reviewer"]
+    independent_review["independent_review<br/>designer-reviewer"]
+    ui_acceptance["ui_acceptance<br/>ui-acceptance-tester"]
+    final_acceptance["final_acceptance<br/>designer-reviewer"]
+    demo["demo<br/>designer-reviewer<br/>WAITING FOR HUMAN"]
+    delivery["delivery<br/>command-runner"]
+    deployment_verification["deployment_verification<br/>designer-reviewer"]
+    deployment_debugging["deployment_debugging<br/>designer-reviewer"]
+    closure["closure<br/>manager"]
+    complete["complete<br/>manager<br/>COMPLETE"]
+    recovery["recovery<br/>manager"]
+    target_resolution -->|target_ready| planning
+    planning -->|plan_ready| implementation
+    planning -->|ticket_lookup_required| target_resolution
+    planning -->|human_action_required · wait for human| planning
+    implementation -->|implemented| verification
+    verification -->|checks_selected| test_execution
+    verification -->|checks_not_applicable| independent_review
+    test_execution -->|checks_passed| independent_review
+    test_execution -->|checks_failed| debugging
+    debugging -->|correction_ready| implementation
+    independent_review -->|changes_required| implementation
+    independent_review -->|ui_required| ui_acceptance
+    independent_review -->|ui_not_applicable| final_acceptance
+    ui_acceptance -->|ui_accepted| final_acceptance
+    ui_acceptance -->|changes_required| implementation
+    final_acceptance -->|demo_required| demo
+    final_acceptance -->|delivery_authorized| delivery
+    final_acceptance -->|accepted_no_delivery| closure
+    demo -->|demonstrated| final_acceptance
+    demo -->|human_action_required · wait for human| demo
+    demo -->|changes_required| implementation
+    delivery -->|delivered| closure
+    delivery -->|deployment_dispatched| deployment_verification
+    deployment_verification -->|runtime_verified| closure
+    deployment_verification -->|runtime_failed| deployment_debugging
+    deployment_debugging -->|correction_ready| implementation
+    closure -->|closed · terminal| complete
+    closure -->|not_applicable · terminal| complete
+    recovery -->|resumed| $resumeStage
+    classDef start fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef waiting fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class target_resolution start
+    class planning waiting
+    class demo waiting
+    class complete done

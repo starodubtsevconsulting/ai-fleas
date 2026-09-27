@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "workflow-router-map.v1",
+  "workflowId": "dev",
+  "source": "dev.workflow.md",
+  "initialStage": "target_resolution",
+  "capabilityOwners": {
+    "target_resolution": "manager",
+    "requirements": "designer-reviewer",
+    "implementation": "coder",
+    "verification_coordination": "designer-reviewer",
+    "mechanical_execution": "command-runner",
+    "debugging_diagnosis": "designer-reviewer",
+    "technical_review": "designer-reviewer",
+    "visible_ui_acceptance": "ui-acceptance-tester",
+    "final_acceptance": "designer-reviewer",
+    "demo_coordination": "designer-reviewer",
+    "source_control_mechanics": "command-runner",
+    "deployment_verification": "designer-reviewer",
+    "deployment_debugging": "designer-reviewer",
+    "ticket_closure": "manager",
+    "completion_record": "manager",
+    "recovery_coordination": "manager"
+  },
+  "exceptionTransitions": {
+    "blocked": { "to": "recovery", "requiredReferenceKinds": ["blocker"] },
+    "depleted": { "to": "recovery", "requiredReferenceKinds": ["blocker"] },
+    "unclear": { "to": "recovery", "requiredReferenceKinds": ["blocker"] }
+  },
+  "stages": {
+    "target_resolution": {
+      "role": "manager", "capability": "target_resolution",
+      "transitions": {
+        "target_ready": { "to": "planning", "requiredReferenceKinds": ["work-target"] }
+      }
+    },
+    "planning": {
+      "role": "designer-reviewer", "capability": "requirements",
+      "transitions": {
+        "plan_ready": { "to": "implementation", "requiredReferenceKinds": ["plan"] },
+        "ticket_lookup_required": { "to": "target_resolution", "requiredReferenceKinds": ["work-request"] },
+        "human_action_required": { "to": "planning", "waitForHuman": true, "requiredReferenceKinds": ["human-action"] }
+      }
+    },
+    "implementation": {
+      "role": "coder", "capability": "implementation",
+      "transitions": {
+        "implemented": { "to": "verification", "requiredReferenceKinds": ["candidate"] }
+      }
+    },
+    "verification": {
+      "role": "designer-reviewer", "capability": "verification_coordination",
+      "transitions": {
+        "checks_selected": { "to": "test_execution", "requiredReferenceKinds": ["test-plan"] },
+        "checks_not_applicable": { "to": "independent_review", "requiredReferenceKinds": ["test-exclusion"] }
+      }
+    },
+    "test_execution": {
+      "role": "command-runner", "capability": "mechanical_execution",
+      "transitions": {
+        "checks_passed": { "to": "independent_review", "requiredReferenceKinds": ["test-result"] },
+        "checks_failed": { "to": "debugging", "requiredReferenceKinds": ["failure"] }
+      }
+    },
+    "debugging": {
+      "role": "designer-reviewer", "capability": "debugging_diagnosis",
+      "transitions": {
+        "correction_ready": { "to": "implementation", "requiredReferenceKinds": ["diagnosis"] }
+      }
+    },
+    "independent_review": {
+      "role": "designer-reviewer", "capability": "technical_review",
+      "transitions": {
+        "changes_required": { "to": "implementation", "requiredReferenceKinds": ["findings"] },
+        "ui_required": { "to": "ui_acceptance", "requiredReferenceKinds": ["review"] },
+        "ui_not_applicable": { "to": "final_acceptance", "requiredReferenceKinds": ["review"] }
+      }
+    },
+    "ui_acceptance": {
+      "role": "ui-acceptance-tester", "capability": "visible_ui_acceptance",
+      "transitions": {
+        "ui_accepted": { "to": "final_acceptance", "requiredReferenceKinds": ["ui-acceptance"] },
+        "changes_required": { "to": "implementation", "requiredReferenceKinds": ["findings"] }
+      }
+    },
+    "final_acceptance": {
+      "role": "designer-reviewer", "capability": "final_acceptance",
+      "transitions": {
+        "demo_required": { "to": "demo", "requiredReferenceKinds": ["demo-plan"] },
+        "delivery_authorized": { "to": "delivery", "requiredReferenceKinds": ["authorization", "acceptance"] },
+        "accepted_no_delivery": { "to": "closure", "requiredReferenceKinds": ["acceptance"] }
+      }
+    },
+    "demo": {
+      "role": "designer-reviewer", "capability": "demo_coordination",
+      "transitions": {
+        "demonstrated": { "to": "final_acceptance", "requiredReferenceKinds": ["demo"] },
+        "human_action_required": { "to": "demo", "waitForHuman": true, "requiredReferenceKinds": ["human-action"] },
+        "changes_required": { "to": "implementation", "requiredReferenceKinds": ["findings"] }
+      }
+    },
+    "delivery": {
+      "role": "command-runner", "capability": "source_control_mechanics",
+      "transitions": {
+        "delivered": { "to": "closure", "requiredReferenceKinds": ["delivery-record"] },
+        "deployment_dispatched": { "to": "deployment_verification", "requiredReferenceKinds": ["deployment-run"] }
+      }
+    },
+    "deployment_verification": {
+      "role": "designer-reviewer", "capability": "deployment_verification",
+      "transitions": {
+        "runtime_verified": { "to": "closure", "requiredReferenceKinds": ["runtime-proof"] },
+        "runtime_failed": { "to": "deployment_debugging", "requiredReferenceKinds": ["failure"] }
+      }
+    },
+    "deployment_debugging": {
+      "role": "designer-reviewer", "capability": "deployment_debugging",
+      "transitions": {
+        "correction_ready": { "to": "implementation", "requiredReferenceKinds": ["diagnosis"] }
+      }
+    },
+    "closure": {
+      "role": "manager", "capability": "ticket_closure",
+      "transitions": {
+        "closed": { "to": "complete", "terminal": true, "requiredReferenceKinds": ["closure-record"] },
+        "not_applicable": { "to": "complete", "terminal": true, "requiredReferenceKinds": ["closure-exclusion"] }
+      }
+    },
+    "complete": { "role": "manager", "capability": "completion_record", "transitions": {} },
+    "recovery": {
+      "role": "manager", "capability": "recovery_coordination",
+      "transitions": {
+        "resumed": { "to": "$resumeStage", "requiredReferenceKinds": ["recovery"] }
+      }
+    }
+  }
+}

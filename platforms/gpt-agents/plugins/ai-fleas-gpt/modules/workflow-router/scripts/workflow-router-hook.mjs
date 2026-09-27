@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { WorkflowTransitionPacket } from './workflow-transition-packet.mjs';
 
 const COORDINATES = ['profileId', 'workflowId', 'logicalProjectId', 'runtimeScopeId'];
+const EXCEPTION_EVENTS = new Set(['blocked', 'depleted', 'unclear']);
 const RESULT_FIELDS = new Set(['acknowledgement', 'correlationId', 'stage', 'role', 'event', 'references']);
 
 function readInput() {
@@ -121,6 +122,8 @@ function persistCorrelation(sessionId, value, dispatchPacket = null, turnId = nu
   if (file) atomicWrite(file, {
     correlationId: value,
     ...(dispatchPacket?.route ? { routeRole: dispatchPacket.to.role, routeStage: dispatchPacket.to.stage, turnId } : {}),
+    ...(dispatchPacket && EXCEPTION_EVENTS.has(dispatchPacket.from?.event)
+      ? { resumeStage: dispatchPacket.from.stage, recoveryStage: dispatchPacket.to.stage } : {}),
   });
   return value;
 }
@@ -333,29 +336,34 @@ function previousProgressAttempts(packet, progress) {
   return attempts;
 }
 
-function route(registry, binding, result) {
+function route(registry, binding, result, sessionId) {
   const workflow = registry.workflows?.[workflowKey(binding.scope)];
   if (!workflow) return { error: `No host Router workflow registration exists for ${workflowKey(binding.scope)}.` };
   const stage = workflow.stages?.[result.stage];
   if (!stage || stage.role !== binding.role) {
     return { error: `Stage "${result.stage}" is not owned by role "${binding.role}" in the host Router registry.` };
   }
-  const transition = stage.transitions?.[result.event];
+  const transition = EXCEPTION_EVENTS.has(result.event)
+    ? workflow.exceptionTransitions?.[result.event] : stage.transitions?.[result.event];
   if (!transition) return { error: `Event "${result.event}" is not declared from stage "${result.stage}".` };
   const referenceKinds = new Set(result.references.map(({ kind }) => kind));
   const missing = (transition.requiredReferenceKinds ?? []).filter((kind) => !referenceKinds.has(kind));
   if (missing.length) return { error: `Transition ${result.stage}/${result.event} requires references: ${missing.join(', ')}.` };
   if (transition.terminal) return { terminal: true };
-  const targetStage = workflow.stages?.[transition.to];
+  const recovery = transition.to === '$resumeStage' ? readJson(correlationPath(sessionId)) : null;
+  const destination = transition.to === '$resumeStage'
+    && recovery?.correlationId === result.correlationId && recovery.recoveryStage === result.stage
+    ? recovery.resumeStage : transition.to;
+  const targetStage = workflow.stages?.[destination];
   const targetRole = targetStage?.role;
   if (!targetStage || !targetRole) {
     return { error: `Transition target "${transition.to}" has no declared owner.` };
   }
   if (transition.waitForHuman) {
-    return { waitingForHuman: true, targetStage: transition.to, targetRole, retryPolicy: transition.retryPolicy };
+    return { waitingForHuman: true, targetStage: destination, targetRole, retryPolicy: transition.retryPolicy };
   }
   const targetSessionId = targetRole && workflow.endpoints?.[targetRole];
-  if (targetSessionId) return { targetStage: transition.to, targetRole, targetSessionId, retryPolicy: transition.retryPolicy };
+  if (targetSessionId) return { targetStage: destination, targetRole, targetSessionId, retryPolicy: transition.retryPolicy };
   const routeTarget = workflow.routes?.[targetRole];
   const proxySessionId = routeTarget && workflow.endpoints?.[routeTarget.callerRole];
   const proxyBinding = proxySessionId && registry.sessions?.[proxySessionId];
@@ -364,14 +372,14 @@ function route(registry, binding, result) {
     || typeof proxySessionId !== 'string' || !proxySessionId || proxyBinding?.status !== 'active'
     || proxyBinding.role !== routeTarget.callerRole
     || COORDINATES.some((field) => proxyBinding.scope?.[field] !== binding.scope[field])) {
-    return { error: `Transition target "${transition.to}" has no registered role endpoint or authorized route caller.` };
+    return { error: `Transition target "${destination}" has no registered role endpoint or authorized route caller.` };
   }
-  return { targetStage: transition.to, targetRole, targetSessionId: proxySessionId,
+  return { targetStage: destination, targetRole, targetSessionId: proxySessionId,
     routeTarget, retryPolicy: transition.retryPolicy };
 }
 
-function dispatch(registry, binding, result) {
-  const resolved = route(registry, binding, result);
+function dispatch(registry, binding, result, sessionId) {
+  const resolved = route(registry, binding, result, sessionId);
   if (resolved.error || resolved.terminal) return resolved;
   const receiptFile = dispatchReceiptPath(result);
   if (receiptFile && fs.existsSync(receiptFile)) return { ...resolved, duplicate: true };
@@ -532,7 +540,7 @@ if (!binding) {
     const effectiveBinding = resultBinding(binding, input);
     const problem = validateResult(effectiveBinding, expectedCorrelation(input), result);
     if (!problem) {
-      const resolved = route(registry, effectiveBinding, result);
+      const resolved = route(registry, effectiveBinding, result, input.session_id);
       if (resolved.error && !input.stop_hook_active) {
         const stages = roleStages(registeredWorkflow(registry, binding), effectiveBinding.role).join(', ');
         emit({
@@ -542,7 +550,7 @@ if (!binding) {
       } else if (resolved.error) {
         emit({ systemMessage: `Workflow Router transition remains invalid: ${resolved.error}` });
       } else {
-        const outcome = dispatch(registry, effectiveBinding, result);
+        const outcome = dispatch(registry, effectiveBinding, result, input.session_id);
         if (outcome.error) {
           emit({ systemMessage: `Workflow Router dispatch failed: ${outcome.error}` });
         } else if (outcome.waitingForHuman) {

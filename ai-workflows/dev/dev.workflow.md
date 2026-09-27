@@ -4,6 +4,29 @@ The development workflow follows the common [agent rules](../agents.md), the wor
 
 This file owns orchestration only: workflow order, applicable gates, and the supporting guides used by each step. Role permissions, responsibility ownership, communication boundaries, and lifecycle rules remain in their authoritative agent and team contracts and are not repeated here.
 
+The executable projection is [dev.workflow-map.json](dev.workflow-map.json), with a generated [Mermaid view](dev.workflow-map.mmd). Map events represent the completion evidence and applicability decisions owned by the numbered steps and linked flow exits. Manager recovery returns to the recorded interrupted stage; a human planning or demo decision remains pending until explicitly resolved.
+
+The Router uses these stage-specific capability IDs to select one entry stage and one owner. They refine the numbered steps and linked flows; they do not expand the permissions in the [role capability matrix](agents/role-capability-ownership.csv).
+
+| Stage | Capability ID | Owner |
+| --- | --- | --- |
+| `target_resolution` | `target_resolution` | Manager |
+| `planning` | `requirements` | Designer / Reviewer |
+| `implementation` | `implementation` | Coder |
+| `verification` | `verification_coordination` | Designer / Reviewer |
+| `test_execution` | `mechanical_execution` | Command Runner |
+| `debugging` | `debugging_diagnosis` | Designer / Reviewer |
+| `independent_review` | `technical_review` | Designer / Reviewer |
+| `ui_acceptance` | `visible_ui_acceptance` | UI Acceptance Tester |
+| `final_acceptance` | `final_acceptance` | Designer / Reviewer |
+| `demo` | `demo_coordination` | Designer / Reviewer |
+| `delivery` | `source_control_mechanics` | Command Runner |
+| `deployment_verification` | `deployment_verification` | Designer / Reviewer |
+| `deployment_debugging` | `deployment_debugging` | Designer / Reviewer |
+| `closure` | `ticket_closure` | Manager |
+| `complete` | `completion_record` | Manager |
+| `recovery` | `recovery_coordination` | Manager |
+
 The common [Workflow Router runtime](../_common/runtime/workflow-router.md) may execute these ordered steps. This file is
 the authoritative program: each step declares the role that performs it, and applicable flows declare finer-grained
 role assignments. The Router resolves each declared role to an exact runtime instance, dispatches the next step, and

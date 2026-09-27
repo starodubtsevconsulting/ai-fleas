@@ -116,7 +116,9 @@ export function createWorkflowRuntime(definition, identity, entry = {}) {
     const rule = exception
       ? definition.exceptionTransitions?.[event.type]
       : definition.stages[fromStage].transitions?.[event.type];
-    if (!rule || !definition.stages[rule.to]) {
+    const to = rule?.to === '$resumeStage' && !exception && state.status === 'exception'
+      ? state.resumeStage : rule?.to;
+    if (!rule || !to || !definition.stages[to] || (rule.to === '$resumeStage' && to === rule.to)) {
       fail('BLOCKED_ROUTER_TRANSITION', `No declared ${event.type} transition from ${fromStage}`);
     }
 
@@ -127,8 +129,8 @@ export function createWorkflowRuntime(definition, identity, entry = {}) {
       }
     }
 
-    state.currentStage = rule.to;
-    state.assignedRole = validateStage(definition, rule.to).role;
+    state.currentStage = to;
+    state.assignedRole = validateStage(definition, to).role;
     state.status = exception
       ? 'exception'
       : (rule.terminal ? 'completed' : (rule.waitForHuman ? 'waiting-human' : 'active'));

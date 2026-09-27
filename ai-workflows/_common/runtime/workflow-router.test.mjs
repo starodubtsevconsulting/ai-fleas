@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   createHumanEntryRuntime,
+  createWorkflowRuntime,
   validateEndpointResult,
 } from './workflow-router.mjs';
 
@@ -43,6 +44,34 @@ function definition(overrides = {}) {
 function endpoint(role, instanceId = `task-${role}`) {
   return { ...scope, role, instanceId };
 }
+
+test('exception recovery resumes only the recorded interrupted stage', () => {
+  const recoveryDefinition = definition({
+    exceptionTransitions: { blocked: { to: 'recovery', requiredReferenceKinds: ['blocker'] } },
+    stages: {
+      ...definition().stages,
+      recovery: {
+        role: 'manager', capability: 'recovery',
+        transitions: { resumed: { to: '$resumeStage', requiredReferenceKinds: ['recovery'] } },
+      },
+    },
+    capabilityOwners: { ...definition().capabilityOwners, recovery: 'manager' },
+  });
+  const fresh = createWorkflowRuntime(recoveryDefinition, { ...scope, routerRuntimeId: 'fresh' }, { stage: 'recovery' });
+  assert.throws(() => fresh.transition({ scope, type: 'resumed', expectedStage: 'recovery', references: [] }),
+    { code: 'BLOCKED_ROUTER_TRANSITION' });
+  assert.equal(fresh.snapshot().currentStage, 'recovery');
+
+  const runtime = createWorkflowRuntime(recoveryDefinition, { ...scope, routerRuntimeId: 'recovery' });
+  const blocked = runtime.transition({ scope, type: 'blocked', expectedStage: 'drafting',
+    references: [{ kind: 'blocker', ref: 'diagnosis://blocked' }] });
+  assert.equal(blocked.currentStage, 'recovery');
+  assert.equal(blocked.resumeStage, 'drafting');
+  const resumed = runtime.transition({ scope, type: 'resumed', expectedStage: 'recovery',
+    references: [{ kind: 'recovery', ref: 'decision://resume' }] });
+  assert.equal(resumed.currentStage, 'drafting');
+  assert.equal(resumed.resumeStage, null);
+});
 
 test('a directly addressed owner becomes the entry endpoint without another dispatch', async () => {
   let dispatched = false;
