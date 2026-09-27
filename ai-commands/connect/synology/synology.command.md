@@ -25,6 +25,9 @@ the selected private profile or operator record.
 | Produce a value-free reconciliation plan | `synology.command.sh share plan <share-id>` |
 | Create a named, least-privilege agent share | `synology.command.sh share apply <share-id> --apply` |
 
+File removal from a writable Synology Drive sync folder follows the reversible staging rule below. The CLI does not
+currently expose a file-removal operation.
+
 See [Troubleshooting](troubleshooting.md) for deterministic handling of DSM API errors, including the DSM 7.3.2
 create-share `403` compatibility case.
 
@@ -90,6 +93,24 @@ Use `mutation: direct` only for a purpose-built writable share such as a downloa
 Declare that as a separate share and credential boundary rather than widening an existing memory identity.
 
 ## Safety
+
+### Reversible removal from a synced folder
+
+For an authorized, writable Synology Drive folder, treat a request to remove a file or folder as a move to
+`<sync-root>/recycle-bin/<path-relative-to-sync-root>` by default. Keep the move inside the same sync root and retain
+the original directory path so the item can be identified and restored. Before moving, verify the source belongs to
+that sync root, the destination is outside the source subtree, and no item already occupies the destination. Resolve a
+collision with a distinct name rather than overwriting either item. After moving, verify the source is absent and the
+staged item is present; check again after synchronization has had time to settle. A move is staging, not proof of
+permanent deletion or reclaimed storage.
+
+Do not send synced items to the operating system Trash as a substitute: moving an item out of a sync root can be
+interpreted as a deletion and may cause the remote copy to return. Never empty or purge the sync-root recycle bin
+implicitly. Permanent removal is a separate, explicitly requested operation after verifying the authoritative NAS
+state and any retained copy.
+
+This rule does not change the source-control contract for read-only memory projections. Those changes go through the
+mapped Git checkout and publisher, not through the Synology Drive projection.
 
 - Never place a DSM, SMB, or share password in Git, command arguments, terminal history, documentation, or agent text.
 - Use a dedicated non-admin Synology identity for each independently revocable share or trust boundary.
