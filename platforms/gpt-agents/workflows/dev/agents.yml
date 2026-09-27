@@ -44,18 +44,20 @@ role_endpoints:
     title: "🤖 Manager"
     model: gpt-5.6-luna
     reasoning: medium
-  - role: coder
-    title: "🔀 Coder"
-    model: gpt-5.6-terra
-    reasoning: medium
-  - role: command-runner
-    title: "⚙️ Command Runner"
-    model: gpt-5.6-terra
-    reasoning: low
   - role: ui-acceptance-tester
     title: "🖥️ UI Acceptance Tester"
     model: gpt-5.6-terra
     reasoning: low
+
+# These portable roles are fulfilled by profile-owned execution routes. They
+# have no Codex task identity, readiness token, or visible roster entry.
+role_routes:
+  - role: coder
+    profile_key: execution_delegates.dev.coder
+    caller_roles: [admin, designer-reviewer]
+  - role: command-runner
+    profile_key: execution_delegates.dev.command_runner
+    caller_roles: [admin, designer-reviewer]
 
 role_contracts:
   admin: ../../../../ai-workflows/_common/roles/admin.md

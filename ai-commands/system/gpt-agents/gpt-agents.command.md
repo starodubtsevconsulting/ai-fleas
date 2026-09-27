@@ -239,8 +239,12 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    project, name-only match, unauthorized or mismatched selected folder, or ambiguous result fails with zero agent mutation.
 5. Do not create a custom sidebar section for the logical project. The folder-backed saved project is the logical
    project/group's GPT container; all verified roster tasks appear beneath it.
-6. Join `initializer.agentId` and every portable `agents[].agentId` to exactly one GPT `agents[].role` binding. Reject
-   missing, duplicate, or additional roles before creating anything.
+6. Join `initializer.agentId` and every portable `agents[].agentId` to exactly one GPT `role_endpoints[].role` or
+   `role_routes[].role` binding. Reject missing, duplicate, or additional roles before creating anything. Only
+   `role_endpoints` enter the managed task roster. Resolve each route's declared profile key and project-scoped launcher;
+   a missing route fails before agent creation. A route has no task ID for Workflow Router dispatch, so automatic stages
+   requiring that role fail closed until the Router supports route dispatch. Admin and Designer Reviewer may invoke their
+   declared routes directly.
 7. Treat the caller as the mechanical initialization controller. It is never a workflow roster member merely because it
    invoked this command. Resolve the complete effective roster, including Admin, before creating any task. Admin is a
    compatibility role and must not bootstrap, delegate, or orchestrate initialization.
@@ -322,9 +326,12 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
     partial-initialization failure.
 
 For the current Dev roster, the mechanical controller directly creates or reconciles Admin, Manager, Designer Reviewer,
-Judge, Coder, Command Runner, and UI Acceptance Tester. Admin remains temporarily for compatibility but has no special
-initialization responsibility. Changes to the roster must come from the portable workflow manifest and corresponding GPT
-bindings—not from edits to this command.
+Judge, and UI Acceptance Tester. Coder and Command Runner are `role_routes` in the GPT Dev adapter, resolved through the
+selected profile's `execution_delegates.dev` configuration. The controller must verify both route keys and their launchers
+for the selected project, but must not create tasks, readiness receipts, or sidebar entries for those routes. Existing
+exact Coder and Command Runner task receipts are retired through the roster reconciliation step; do not identify them by
+title. Admin remains temporarily for compatibility but has no special initialization responsibility.
+Changes to the roster must come from the portable workflow manifest and corresponding GPT bindings, not from edits to this command.
 
 Workflow initialization is complete when that workflow roster is ready; it does not wait for, locate, create, or register
 System. If System exists, the trusted host lifecycle registry makes the new group receipts available to System separately.
