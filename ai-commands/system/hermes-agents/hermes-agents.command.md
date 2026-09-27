@@ -76,6 +76,7 @@ without changing this command, the workflow contract, or the bot lifecycle.
 
 The [delegation architecture](delegation-architecture.md) diagrams the profile binding, CLI and A2A communication, result handling, and interruption boundaries.
 For a profile-selected 32K model used as a proposal-only Coder route, see the [bounded Coder route](bounded-coder.md).
+For a route that executes exact registered commands without a Command Runner bot, see the [Command Runner route](command-runner-route.md).
 GPT agents coordinating Hermes from outside its workflow use the [external coordinator contract](external-coordinator.md) and its JavaScript adapter for direct transport lifecycle operations.
 
 Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide the selected profile root as `AI_PROFILE_ROOT` before this entry point is used.

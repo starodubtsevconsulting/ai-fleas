@@ -264,6 +264,9 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    returns code or guidance without modifying files; Admin reviews the proposal, applies accepted work in the visible
    checkout, and inspects the diff. A failed or unusable response blocks step 3. Testing and independent review remain
    separate gates. A direct human instruction to code locally for the current task overrides the configured route.
+   For a configured `execution_delegates.dev.command_runner`, a Command Runner-owned step uses its launcher to check
+   the exact selected project and run one exact registered command with an argument vector. A profile-selected model
+   may suggest the command, but only the wrapper's exit status and terminal output count as execution evidence.
 9. Read both the active and archived host catalogs to exhaustion, following every pagination cursor. Resolve every
    receipt-backed role by exact task ID before considering title, recency, or creation. An exact workflow `initialize`
    request authorizes reactivating the exact archived roster for that profile, workflow, and logical project. Unarchive

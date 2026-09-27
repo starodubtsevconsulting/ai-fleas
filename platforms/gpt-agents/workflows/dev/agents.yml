@@ -15,6 +15,8 @@ team_policy: ../../../../ai-workflows/dev/agents/team.md
 # For Admin-run Dev with `all-coder-work`, use profile-owned
 # `execution_delegates.dev.coder` as the route. A proposal-only route has no
 # visible Coder task and returns text for Admin to review and apply.
+# `execution_delegates.dev.command_runner` may likewise execute registered
+# commands directly without a visible Command Runner task.
 workflow_runtime:
   id: workflow-router
   visibility: hidden

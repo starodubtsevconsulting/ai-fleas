@@ -14,7 +14,8 @@ For workflow initialization, resolve the exact profile, workflow, complete logic
 profile-owned catalog. Never infer a nearby machine, endpoint, model, launcher, or companion repository.
 
 Each logical workflow agent realized as a Hermes profile maps to one exact Hermes profile ID. A profile may declare
-Coder as a bounded model route; that role has no Hermes profile and returns proposals to its authorized callers.
+Coder as a bounded model route or Command Runner as a registered-command route. Those roles have no Hermes profile;
+Coder returns proposals, while Command Runner returns real command evidence through the configured wrapper.
 Reconcile profile-bound roles through
 `ai-commands/system/hermes-agents/hermes-agents.command.sh initialize`; preserve conversations and memory by default. The generated profile must
 reference the selected workflow contract, allowed commands, project workspace, and applicable repository instructions.

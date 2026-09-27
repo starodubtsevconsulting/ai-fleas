@@ -27,7 +27,8 @@ transition absent from the workflow.
 | Command Runner       | no              | disposable |
 | UI Acceptance Tester | no              | disposable |
 
-These are the workflow roles. Platform configuration may change how they are instantiated, but not their responsibilities or communication boundaries.
+These are the workflow roles. Platform configuration may realize Coder and Command Runner as routes rather than visible bots;
+the caller still owns review of the returned proposal or terminal evidence. The role's responsibility and command boundaries remain.
 
 System is not a Dev team role or peer. The team can initialize and operate without a System instance and receives no
 System instance ID or direct route. An independently initialized System may contact exact team instances through the

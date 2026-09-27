@@ -174,7 +174,7 @@ const roleBindings = roleDefinitions.flatMap((definition) => {
   if (bindingKey) usedAgentProviderBindings.add(bindingKey);
   if (configuredBinding !== undefined && (!configuredBinding || typeof configuredBinding !== 'object' || Array.isArray(configuredBinding))) fail(`agent provider binding for '${role}' must be a mapping.`);
   if (configuredBinding?.realization === 'bounded-route') {
-    if (role !== 'coder') fail(`only Coder may use bounded-route realization; received '${role}'.`);
+    if (!['coder', 'command-runner'].includes(role)) fail(`only Coder or Command Runner may use bounded-route realization; received '${role}'.`);
     if (role === String(logicalAgents.initializer?.agentId || '')) fail('the workflow initializer cannot use bounded-route realization.');
     return [];
   }
