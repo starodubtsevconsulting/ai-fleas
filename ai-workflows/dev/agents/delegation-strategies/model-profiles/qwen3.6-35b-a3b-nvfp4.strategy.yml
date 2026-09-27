@@ -15,7 +15,7 @@ assignment:
     - output-format-and-stop-condition
   limits:
     max_input_chars: 12000
-    max_output_tokens: 2048
+    max_output_tokens: 4096
 verification:
   owner: caller-and-independent-reviewer
   require:

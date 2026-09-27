@@ -6,12 +6,22 @@ evidence, and a stop condition. Starting files are leads, not a complete invento
 read scope and iterate on its own implementation within the write scope; Admin waits for the declared result or blocker
 instead of approving each small step.
 
-Before selection, resolve the workflow's configured local model and any registered
-[strategy config](model-profiles/README.md). Apply its route for that exact model and transport, or record why the task
-needs another strategy. Its evidence notes explain the settings; they do not replace the config or these strategy rules.
+Before selection, resolve the selected **delegate target model** and its registered
+[strategy config](model-profiles/README.md). A workflow's `local_ai.model` selects the caller's Hermes model; it does
+not select the strategy for a distinct Coder target. In the configured Dev route, `qwen-coder` resolves
+`qwen3-coder-next-q5km` for the Hermes Admin caller, while `execution_delegates.dev.coder.model: qwen-bounded-coder`
+resolves `qwen3.6-35b-a3b-nvfp4` and that model entry's `delegation.strategy_config`. GPT Admin invokes the bounded
+model launcher directly, with no Q5 hop. Hermes Q5 callers use the same target strategy when invoking that route.
+GPT Admin must load and apply the target strategy before a handoff; the launcher's `check` reports its validated path.
+The launcher does not inject strategy prose into the model prompt. Its evidence notes explain the settings; they do
+not replace the profile binding or these strategy rules.
 
-The execution delegate selects its Hermes transport through `transport` in the profile's `gpt-agents` command config.
-When a GPT coordinator operates this delegate from outside the Hermes workflow, use the
+For Hermes agent delegates, the profile's `gpt-agents` command config selects the Hermes transport. A bounded-model
+delegate instead uses its declared direct-model route; its target model strategy and runtime timeout are separate
+settings. The observed bounded route uses a 120-second profile timeout and a 4,096-token output cap; the strategy's
+output limit records the same cap, while the live launcher reads the profile binding. The strategy does not change
+the target model, transport, or sampling.
+When a GPT coordinator operates a Hermes delegate from outside the Hermes workflow, use the
 [external coordinator contract](../../../../ai-commands/system/hermes-agents/external-coordinator.md) for transport
 lifecycle calls. Its direct adapter operations take precedence over internal Manager handoffs for that external
 transport control; they do not change workflow role ownership or project authorization.

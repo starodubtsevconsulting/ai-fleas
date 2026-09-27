@@ -50,7 +50,25 @@ class BoundedCoderDelegate {
     if (models.length !== 1) throw new Error('Bounded Coder model is missing or ambiguous');
     const connection = providers[0].endpoint.connections?.[this.binding.connection || providers[0].endpoint.default];
     if (!connection?.url || connection.headers) throw new Error('Bounded Coder endpoint is unavailable');
-    return { endpoint: connection.url, model: models[0].provider_model };
+    const strategyRef = models[0].delegation?.strategy_config;
+    const workflowsRef = this.profile.ai_workflows_root;
+    if (typeof strategyRef !== 'string' || !strategyRef || path.isAbsolute(strategyRef) ||
+        strategyRef.split(/[\\/]/).includes('..') || typeof workflowsRef !== 'string' || !workflowsRef) {
+      throw new Error('Bounded Coder target strategy is missing or unsafe');
+    }
+    const workflowsRoot = fs.realpathSync(path.resolve(this.profileDir, workflowsRef));
+    const strategyPath = fs.realpathSync(path.resolve(workflowsRoot, strategyRef));
+    const relative = path.relative(workflowsRoot, strategyPath);
+    if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative) ||
+        !fs.statSync(strategyPath).isFile()) throw new Error('Bounded Coder strategy is outside the workflow catalog');
+    const strategy = this.read(strategyPath);
+    if (strategy.applies_to?.provider_model !== models[0].provider_model ||
+        strategy.strategy?.transport !== 'bounded-model' || strategy.strategy?.output !== 'proposal-only' ||
+        strategy.assignment?.limits?.max_input_chars !== this.binding.max_input_chars ||
+        strategy.assignment?.limits?.max_output_tokens !== this.binding.max_output_tokens) {
+      throw new Error('Bounded Coder target strategy does not match the route');
+    }
+    return { endpoint: connection.url, model: models[0].provider_model, strategyPath };
   }
   execute(operation, projectId, assignment) {
     const project = this.project(projectId);
@@ -58,7 +76,7 @@ class BoundedCoderDelegate {
     if (operation === 'check') {
       const response = spawnSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'bounded-model.command.mjs'), 'ask', '--endpoint', target.endpoint, '--model', target.model, '--max-output-tokens', '4', ...this.sampling.commandArguments()], { input: 'Reply READY.', encoding: 'utf8', timeout: 30000 });
       if (response.status !== 0) throw new Error(`Model check failed: ${response.stderr.trim()}`);
-      process.stdout.write(`BOUNDED_CODER_READY: project=${projectId} branch=${project.branch} model=${target.model}\n`);
+      process.stdout.write(`BOUNDED_CODER_READY: project=${projectId} branch=${project.branch} model=${target.model} strategy=${target.strategyPath}\n`);
       return;
     }
     if (operation !== 'run' || !assignment?.trim()) throw new Error('A bounded assignment is required');

@@ -1,8 +1,12 @@
 # Local Coder strategy configs
 
-The selected workflow's `local_ai.provider` and `local_ai.model` resolve an exact entry in its declared
-`providers_config`. A model entry may declare `delegation.strategy_config`, a YAML path relative to
-`ai_workflows_root`. Admin loads that config before assigning work to a local Coder and verifies its model. The
+The selected workflow's `local_ai.provider` and `local_ai.model` resolve the caller's model. When an execution
+delegate selects a different target, resolve its configured provider and model ID in the declared `providers_config`
+instead. That target model entry may declare `delegation.strategy_config`, a YAML path relative to
+`ai_workflows_root`. Admin loads that config before assigning work to a local Coder and verifies its
+`applies_to.provider_model` against the selected target. The bounded-model launcher validates the target strategy
+path under the workflow catalog, checks the declared input/output limits against the live route binding, and reports
+the path on `check`; it does not read the strategy prose into its prompt. The
 execution delegate may separately declare `strategy_transport_config` for session, timeout, and status rules tied to
 its platform and transport. The delegate binding still selects the actual Coder, route, project, and tools; these
 configs only guide the handoff and verification.
