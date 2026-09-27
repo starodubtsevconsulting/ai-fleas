@@ -45,6 +45,6 @@ verification:
     - run-focused-existing-and-new-tests
     - inspect-tests-for-real-assertions
     - run-shell-syntax-checks-when-applicable
-    - remove-unrequested-scratch-files-after-task-is-terminal
+    - remove-unrequested-scratch-files-after-hermes-session-stops
   completion_text_alone_is_sufficient: false
 evidence_notes: qwen3-coder-next-q5km.md

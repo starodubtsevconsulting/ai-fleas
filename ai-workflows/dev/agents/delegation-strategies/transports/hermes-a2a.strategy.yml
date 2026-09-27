@@ -15,9 +15,11 @@ timing:
   after_disconnect:
     - get-task-status
     - inspect-visible-diff
-    - wait-until-prior-task-terminal-before-retry
+    - verify-corresponding-hermes-session-has-stopped-before-retry
+    - never-overlap-assignments-that-write-the-same-files
     - never-infer-failure-from-client-fetch-error-alone
+  a2a_terminal_status_cancels_gateway_turn: false
 scratch:
   temporary_directories: forbidden
   files: only-exact-visible-paths-authorized-in-assignment
-  unrequested_files: inspect-and-remove-after-task-is-terminal
+  unrequested_files: inspect-and-remove-after-hermes-session-stops
