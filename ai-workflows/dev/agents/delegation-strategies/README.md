@@ -6,6 +6,10 @@ evidence, and a stop condition. Starting files are leads, not a complete invento
 read scope and iterate on its own implementation within the write scope; Admin waits for the declared result or blocker
 instead of approving each small step.
 
+Before selection, resolve the workflow's configured local model and any registered
+[model profile](model-profiles/README.md). Apply its default for that exact model and transport, or record why the task
+needs another strategy. Model observations refine the packet and checks; they do not replace these strategy rules.
+
 - [Focused implementation](focused-implementation.md): the code path and expected change are known.
 - [Bounded exploration and implementation](bounded-exploration.md): Coder must trace related code before editing.
 - [Goal-backed continuation](goal-backed-continuation.md): several Coder turns are useful and the transport has a
