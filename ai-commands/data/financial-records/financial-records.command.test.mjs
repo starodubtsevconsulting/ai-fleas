@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { FinancialRecordsCommand } from './financial-records.command.mjs';
@@ -73,3 +75,40 @@ assert.equal(published, undefined);
 command.publisher = { publish() { throw new Error('PUBLICATION_COLLISION'); } };
 await assert.rejects(apply(), /PUBLICATION_COLLISION/);
 console.log('financial-records apply-from-source wiring: PASS');
+
+const realCommand = new FinancialRecordsCommand();
+const source = path.join(root, 'booking-in.pdf');
+const pdfPath = path.join(destination, sourcePreview.proposedFilename);
+const sidecarPath = `${pdfPath}.json`;
+const fingerprint = (file) => {
+  const stat = fs.lstatSync(file);
+  return { dev: stat.dev, ino: stat.ino, sha256: createHash('sha256').update(fs.readFileSync(file)).digest('hex') };
+};
+assert.equal(fs.existsSync(pdfPath), false, 'synthetic PDF target must start absent');
+assert.equal(fs.existsSync(sidecarPath), false, 'synthetic sidecar target must start absent');
+const created = new Map();
+try {
+  const realApply = () => realCommand.run([
+    'apply-from-source', '--root', root, '--source', source,
+    '--destination', destination, '--branch', 'chalet', '--year', '2026',
+    '--quarter', 'q3', '--section', 'in',
+    '--expected-sha256', sourcePreview.sourceEvidence.sha256,
+    '--expected-filename', sourcePreview.proposedFilename,
+  ]);
+  const result = await realApply();
+  for (const file of [pdfPath, sidecarPath]) created.set(file, fingerprint(file));
+  assert.equal(result.status, 'applied');
+  assert.equal(result.stagingCleanupRequired, false);
+  assert.deepEqual(fs.readFileSync(pdfPath), fs.readFileSync(source));
+  assert.deepEqual(JSON.parse(fs.readFileSync(sidecarPath, 'utf8')), sourcePreview.extraction);
+  await assert.rejects(realApply(), /PUBLICATION_COLLISION/);
+  for (const [file, original] of created) assert.deepEqual(fingerprint(file), original);
+  console.log('financial-records apply-from-source real publisher: PASS');
+} finally {
+  for (const file of [sidecarPath, pdfPath]) {
+    const original = created.get(file);
+    if (!original) continue;
+    assert.deepEqual(fingerprint(file), original, `refusing to remove changed fixture output: ${file}`);
+    fs.unlinkSync(file);
+  }
+}
