@@ -48,6 +48,15 @@ about 1.4 seconds but exposed unauthorized command syntax, so Admin rejected
 that part. The accepted implementation was verified with the real Command
 Runner wrapper.
 
+A later matched one-line change included the selected project and branch in a
+validated command plan. The Q5-only Hermes run took about 26 seconds and
+returned the correct expression. With Hermes restricted to the `bounded-coder`
+toolset, Q5 actually called the 35B MCP tool and returned the same correct
+expression in about 24 seconds. We applied it and verified the real planner
+output. For this small task, delegation showed no meaningful time or quality
+advantage. The `-t bounded-coder` server-name toolset is the reproducible way
+used here to prevent unrelated Hermes tools from consuming the trial.
+
 `bounded-model.command.mjs ask` reads one prompt from standard input.
 `serve-mcp` provides the same model through one MCP tool, `bounded_coder`.
 `bounded-model.delegate.mjs check|run --project ID` resolves the selected Dev

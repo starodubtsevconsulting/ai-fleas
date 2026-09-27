@@ -107,7 +107,7 @@ class CommandRunnerRoute {
     try { suggestion = JSON.parse(result.stdout.trim()); }
     catch { throw new Error('Planner returned no JSON command proposal'); }
     if (!this.validatePlan(suggestion, project)) throw new Error('Planner proposal does not match an authorized command for this project');
-    return JSON.stringify({ commandId: suggestion.commandId, argv: suggestion.argv, advisory: true });
+    return JSON.stringify({ projectId, branch: project.branch, commandId: suggestion.commandId, argv: suggestion.argv, advisory: true });
   }
 }
 

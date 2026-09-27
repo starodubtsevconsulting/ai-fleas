@@ -17,7 +17,8 @@ flowchart TD
 asks the profile-selected model for a suggestion for one exact project ID and
 has no effects. It uses that project's available test interface when building
 syntax hints and rejects suggestions outside the reviewed argument forms. A
-suggestion still needs review before execution.
+suggestion returns the selected project ID and branch and still needs review
+before execution.
 `run_registered_command` executes a command registered to the selected Dev
 workflow. It accepts an exact project ID, command ID, and argument vector,
 checks the project's named branch, and invokes the existing wrapper without a

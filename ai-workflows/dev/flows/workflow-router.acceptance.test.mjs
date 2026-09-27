@@ -21,7 +21,8 @@ assert.equal(gptOverlay.schema_version, 'gpt-agents-workflow-runtime.v2');
 assert.equal(gptOverlay.workflow_runtime.visibility, 'hidden');
 assert.equal(gptOverlay.runtime_semantics.peer_delivery, 'prohibited');
 assert.deepEqual(gptOverlay.role_endpoints.map(({ role }) => role),
-  ['admin', 'designer-reviewer', 'judge', 'manager', 'coder', 'command-runner', 'ui-acceptance-tester']);
+  ['admin', 'designer-reviewer', 'judge', 'manager', 'ui-acceptance-tester']);
+assert.deepEqual(gptOverlay.role_routes.map(({ role }) => role), ['coder', 'command-runner']);
 assert.ok(!gptPlatform.capabilities.includes('peer-messaging'));
 assert.ok(gptPlatform.capabilities.includes('workflow-runtime-dispatch'));
 
