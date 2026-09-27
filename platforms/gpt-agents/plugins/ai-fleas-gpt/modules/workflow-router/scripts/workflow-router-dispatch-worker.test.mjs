@@ -75,6 +75,24 @@ test('queues the packet through the existing host task with a prompt-bound dispa
   assert.ok(Date.parse(permit.expiresAt) > Date.parse(permit.issuedAt));
 });
 
+test('queues a route packet to its caller with exact role and project', () => {
+  const { root, jobFile, invocationFile } = fixture();
+  const job = JSON.parse(fs.readFileSync(jobFile, 'utf8'));
+  job.packet.to = { stage: 'implementation', role: 'Coder' };
+  job.packet.route = { id: 'bounded-coder', callerRole: 'Admin', projectId: 'example-service' };
+  job.targetSessionId = 'admin-task';
+  fs.writeFileSync(jobFile, JSON.stringify(job));
+  const result = spawnSync(process.execPath, [worker, jobFile], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const invocation = JSON.parse(fs.readFileSync(invocationFile, 'utf8'));
+  assert.equal(invocation[2], 'admin-task');
+  assert.match(invocation[4], /route "bounded-coder".*role "Coder".*project "example-service"/);
+  const digest = createHash('sha256').update(invocation[4]).digest('hex');
+  const permit = JSON.parse(fs.readFileSync(path.join(root, 'workflow-dispatch-controls', 'admin-task', `${digest}.json`), 'utf8'));
+  assert.equal(permit.targetRole, 'Coder');
+  assert.equal(permit.targetStage, 'implementation');
+});
+
 test('records a queue rejection without claiming delivery or retaining its permit', () => {
   const { root, jobFile, receiptFile } = fixture({ exitStatus: 1, stderr: 'queue rejected' });
   const result = spawnSync(process.execPath, [worker, jobFile], { encoding: 'utf8' });
