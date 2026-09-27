@@ -164,7 +164,7 @@ if (agentProvidersConfig) {
 }
 
 const usedAgentProviderBindings = new Set();
-const roleBindings = roleDefinitions.map((definition) => {
+const roleBindings = roleDefinitions.flatMap((definition) => {
   if (!definition || typeof definition !== 'object' || Array.isArray(definition)) fail('workflow role configuration must be a mapping.');
   const role = safeId(String(definition.agentId || ''), 'workflow role');
   if (Object.hasOwn(definition, 'aiProvider')) fail(`workflow Agent '${role}' uses retired property 'aiProvider'; rename it to 'aiBinding' because the value selects a profile-owned provider/model binding.`);
@@ -173,6 +173,12 @@ const roleBindings = roleDefinitions.map((definition) => {
   const configuredBinding = bindingKey ? agentProviderBindings[bindingKey] : undefined;
   if (bindingKey) usedAgentProviderBindings.add(bindingKey);
   if (configuredBinding !== undefined && (!configuredBinding || typeof configuredBinding !== 'object' || Array.isArray(configuredBinding))) fail(`agent provider binding for '${role}' must be a mapping.`);
+  if (configuredBinding?.realization === 'bounded-route') {
+    if (role !== 'coder') fail(`only Coder may use bounded-route realization; received '${role}'.`);
+    if (role === String(logicalAgents.initializer?.agentId || '')) fail('the workflow initializer cannot use bounded-route realization.');
+    return [];
+  }
+  if (configuredBinding?.realization && configuredBinding.realization !== 'profile') fail(`unknown realization for '${role}'.`);
   const configuredProvider = String(configuredBinding?.provider || declaredBinding);
   const resolvedProvider = configuredProvider === 'profile-default' ? defaultProviderAlias : safeId(configuredProvider, `AI provider for ${role}`);
   const resolved = resolveProvider(resolvedProvider);
@@ -187,7 +193,7 @@ const roleBindings = roleDefinitions.map((definition) => {
   if (flowPath && !flowPath.startsWith(`${path.resolve(workflowsRoot)}${path.sep}`)) fail(`flow for '${role}' escapes the workflow catalog.`);
   if (flowPath && !fs.statSync(flowPath, { throwIfNoEntry: false })?.isFile()) fail(`flow for '${role}' is not readable.`);
   const encode = (value) => Buffer.from(value, 'utf8').toString('base64');
-  return [role, role, resolvedProvider, encode(String(resolved.provider.label || resolvedProvider)), encode(resolved.endpoint), encode(JSON.stringify(resolved.headers)), encode(JSON.stringify(resolved.storedHeaders)), roleModel.providerModel, roleModel.contextWindow, roleModel.compressionThreshold, roleModel.compressionTarget, roleModel.protectLastMessages, encode(rolePath), encode(flowPath)].join('|');
+  return [[role, role, resolvedProvider, encode(String(resolved.provider.label || resolvedProvider)), encode(resolved.endpoint), encode(JSON.stringify(resolved.headers)), encode(JSON.stringify(resolved.storedHeaders)), roleModel.providerModel, roleModel.contextWindow, roleModel.compressionThreshold, roleModel.compressionTarget, roleModel.protectLastMessages, encode(rolePath), encode(flowPath)].join('|')];
 });
 for (const bindingKey of Object.keys(agentProviderBindings)) if (!usedAgentProviderBindings.has(bindingKey)) fail(`agent provider binding '${bindingKey}' is not referenced by the workflow roster.`);
 if (roleBindings.length === 0 || new Set(roleBindings).size !== roleBindings.length) fail(`workflow '${workflowId}' role roster is empty or contains duplicates.`);

@@ -1,0 +1,26 @@
+schema_version: local-coder-strategy.v1
+applies_to:
+  provider_model: qwen3.6-35b-a3b-nvfp4
+strategy:
+  default: focused-implementation
+  transport: bounded-model
+  output: proposal-only
+assignment:
+  preferred_scope: one-function-or-small-cohesive-change
+  correction_limit_per_stage: 1
+  require:
+    - self-contained-relevant-code-excerpts
+    - interfaces-and-callers-to-preserve
+    - exact-input-output-and-rejection-examples
+    - output-format-and-stop-condition
+  limits:
+    max_input_chars: 12000
+    max_output_tokens: 2048
+verification:
+  owner: caller-and-independent-reviewer
+  require:
+    - inspect-code-against-every-example
+    - run-focused-checks-on-accepted-code
+    - inspect-visible-diff
+  completion_text_alone_is_sufficient: false
+evidence_notes: The 32K served window cannot initialize as a Hermes agent. A small currency-parser probe missed a required example on the first answer and contained a grouping bug after one correction.

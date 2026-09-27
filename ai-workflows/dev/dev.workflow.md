@@ -26,27 +26,29 @@ An emulating Admin names the roles it is emulating and never presents emulated w
 approval, Command Runner execution, or UI acceptance. Read-only questions may use a compact status. Missing trusted
 identity or scope blocks mutation instead of silently entering an implementation phase.
 
-## Admin execution with a real Coder delegate
+## Admin execution through the configured Coder route
 
-Apply this route in either case: the human directly asks Admin to delegate a coding task to Hermes coder, or the human
+Apply this route in either case: the human directly asks Admin to delegate a coding task, or the human
 asks Admin to do Dev work and the selected profile sets `execution_delegates.dev.coder.routing_policy: all-coder-work`.
 Under that policy, route every Coder-owned implementation task, including small tasks, until the profile policy changes.
 
 For each routed task:
 
-1. Admin MUST state which roles it emulates and identify any real delegate before the first mutation.
+1. Admin MUST state which roles it emulates and identify the selected Coder route before the first mutation.
 2. Before step 3, Admin MUST settle the authorized project, work target, requirements, file scope, allowed effects, and
    completion evidence.
 3. Admin MUST resolve preferred `execution_delegates.dev.coder` and run its declared launcher with
    `check --project <authorized-project-id>`. A failed
-   check blocks the Coder task. Admin MUST NOT fall back to local Coder emulation or a GPT roster Coder.
+   check blocks the Coder task. Admin MUST NOT fall back to a GPT roster Coder.
 4. Admin MUST send the bounded implementation assignment with that launcher's
    `run --project <same-project-id> "<assignment>"` action and wait for its terminal
    result. Admin MUST NOT edit the same assigned files while Coder is working.
-5. Admin MUST inspect the returned diff and evidence, name Coder as real delegated execution, and keep testing,
-   independent review, UI acceptance, and delivery as separate gates. A failed or missing result blocks progression.
+5. Admin MUST inspect the returned work and evidence. For a proposal-only route, Admin applies accepted code to the
+   visible checkout and inspects the resulting diff. Testing, independent review, UI acceptance, and delivery remain
+   separate gates. A failed or missing result blocks progression.
 
-This Admin-to-Coder route is neither Router dispatch nor utility-subagent work. It grants no peer route to workflow Agents.
+This route is neither Router dispatch nor utility-subagent work. A profile may authorize Designer / Reviewer to use
+the same bounded Coder route while retaining ownership of design and independent review.
 
 ## Workflow
 

@@ -450,10 +450,14 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
       --binding-registry "${binding_registry}" \
       --project-scope "${resolved_project_scope}"
     )
+    node "${COMMAND_DIR}/configure-bounded-coder.mjs" "${PROFILE_ROOT}/${resolved_profile}" "${derived_group}" --preflight-only
     if [[ "${preflight_only}" == true ]]; then realizer_args+=(--preflight-only); fi
     "${HERMES_WORKFLOW_REALIZER_PYTHON_BIN:-python3}" "${WORKFLOW_REALIZER}" \
       "${realizer_args[@]}" \
       -- ${setup_args[@]+"${setup_args[@]}"}
+    if [[ "${preflight_only}" != true ]]; then
+      node "${COMMAND_DIR}/configure-bounded-coder.mjs" "${PROFILE_ROOT}/${resolved_profile}" "${derived_group}"
+    fi
     ;;
   list)
     [[ $# -eq 0 ]] || { usage >&2; exit 2; }

@@ -255,16 +255,15 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    only relevant read-only inputs; it cannot edit files, receive unnecessary secrets, contact workflow Agents, issue
    role receipts, or make decisions for the caller. Verify its findings against the current checkout. It creates no GPT
    task and gains no Router authority.
-   Separately from utility helpers, Admin MUST use `execution_delegates.dev.coder` when the human directly asks for
-   Hermes coder or when Admin does Dev work and its `routing_policy` is `all-coder-work`. Admin MUST resolve the entry
-   from the selected profile's GPT command config. Use its stable `id` and aliases for human reference; use `profile` only as the replaceable Hermes
-   runtime address. Resolve `launcher` relative to the selected profile root. Select one ID from its `projects` list for
-   the task. Run `launcher check --project <id>` before Coder step 3; it MUST verify the exact Hermes workflow binding,
-   role, provider/model, selected project root, and named branch. After requirements and file scope are settled, run
-   `launcher run --project <same-id> "<bounded Coder assignment>"` and wait for completion.
-   Inspect the resulting diff and evidence before proceeding. If either call fails or returns no usable result, stop
-   step 3 and report the blocker. Admin MUST NOT silently emulate Coder, substitute a utility helper, create a GPT task,
-   or claim Router completion. Testing and independent review remain separate gates.
+   Separately from utility helpers, Admin MUST use `execution_delegates.dev.coder` when the human requests the configured
+   Coder route or Admin does Dev work and its `routing_policy` is `all-coder-work`. Resolve the entry from the selected
+   profile's GPT command config, and resolve `launcher` relative to that profile root. Select one ID from `projects`.
+   Run `launcher check --project <id>` before Coder step 3; it verifies the selected project, named branch, and the
+   route-specific provider/model or agent binding. After requirements and file scope are settled, run
+   `launcher run --project <same-id> "<bounded Coder assignment>"` and wait for completion. A `proposal-only` route
+   returns code or guidance without modifying files; Admin reviews the proposal, applies accepted work in the visible
+   checkout, and inspects the diff. A failed or unusable response blocks step 3. Testing and independent review remain
+   separate gates. A direct human instruction to code locally for the current task overrides the configured route.
 9. Read both the active and archived host catalogs to exhaustion, following every pagination cursor. Resolve every
    receipt-backed role by exact task ID before considering title, recency, or creation. An exact workflow `initialize`
    request authorizes reactivating the exact archived roster for that profile, workflow, and logical project. Unarchive
