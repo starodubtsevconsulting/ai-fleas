@@ -61,6 +61,9 @@ failed, text-only, or orphaned visuals with direct rendered evidence and their e
 Also reconcile article-wide provenance and inventory sentences against the complete visual and quotation inventory.
 An individually valid, credited image still makes a statement such as “no third-party visuals are used” false; this
 cross-document contradiction is a substantive release defect and must block an acceptable disposition until corrected.
+Read the ending and provenance as they will appear after scheduling and publication. Flag draft-only status claims
+(for example, “this draft has not had a publication decision”) that become false or misleading at release; require
+Writer to correct the archive and saved destination, then review and narrate the changed exact revision again.
 Independently inventory every source Mermaid fence and diagram placeholder, then reconcile stable IDs and counts against
 the entire rendered destination. Explicitly search for residual arrow-chain prose (`A → B → C`), `Diagram—` text,
 Mermaid syntax, captions/alt text without visuals, duplicates, and placeholders. Never infer completeness from one
