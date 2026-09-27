@@ -5,8 +5,10 @@ import path from 'node:path';
 import { requireCommandProfile } from '../../_runtime/profile/command-profile.guard.mjs';
 import { PdfReader } from './pdf-reader.mjs';
 import { SnowRemovalContractRecognizer } from './recognizers/snow-removal-contract-recognizer.mjs';
+import { canonicalAccountingPdfBasename } from './naming/accounting-recognition-naming-policy.mjs';
+import { buildPendingAccountingExtraction, validPendingAccountingExtraction } from './extraction/pending-accounting-extraction.mjs';
 
-const VALID_COMMANDS = new Set(['recognize']);
+const VALID_COMMANDS = new Set(['recognize', 'prepare-review']);
 
 const FIXED_COMMAND_ERRORS = new Set([
   'DUPLICATE_OPTION',
@@ -22,6 +24,11 @@ const FIXED_COMMAND_ERRORS = new Set([
   'INVALID_SOURCE_NOT_PDF',
   'PDF_READ_FAILED',
   'INVALID_OPERATION',
+  'INVALID_RECOGNITION_NOT_ABSOLUTE',
+  'INVALID_RECOGNITION_NOT_FILE',
+  'RECOGNITION_OUTSIDE_ROOT',
+  'INVALID_RECOGNITION',
+  'REVIEW_REQUIRED',
   'INTERNAL_ERROR',
 ]);
 
@@ -42,6 +49,7 @@ export class FinancialRecordsCommand {
     if (!VALID_COMMANDS.has(command)) {
       throw new Error('INVALID_OPERATION');
     }
+    if (command === 'prepare-review') return this.prepareReview(args.slice(1));
 
     const options = { root: undefined, source: undefined };
     const seen = new Set();
@@ -165,6 +173,50 @@ export class FinancialRecordsCommand {
     }
 
     return result;
+  }
+
+  prepareReview(args) {
+    const options = {};
+    for (let i = 0; i < args.length; i++) {
+      const separator = args[i].indexOf('=');
+      const key = separator < 0 ? args[i] : args[i].slice(0, separator);
+      const inline = separator < 0 ? undefined : args[i].slice(separator + 1);
+      if (key !== '--root' && key !== '--recognition') throw new Error('UNKNOWN_OPTION');
+      const name = key.slice(2);
+      if (Object.hasOwn(options, name)) throw new Error('DUPLICATE_OPTION');
+      const value = inline === undefined ? args[++i] : inline;
+      if (!value || value.startsWith('--')) throw new Error('MISSING_VALUE');
+      options[name] = value;
+    }
+    if (!options.root || !options.recognition) throw new Error('USAGE');
+    if (!path.isAbsolute(options.root)) throw new Error('INVALID_ROOT_NOT_ABSOLUTE');
+    if (!path.isAbsolute(options.recognition)) throw new Error('INVALID_RECOGNITION_NOT_ABSOLUTE');
+    let root;
+    let recognitionPath;
+    try {
+      root = fs.realpathSync(options.root);
+      recognitionPath = fs.realpathSync(options.recognition);
+    } catch { throw new Error('PATH_RESOLVE_FAILED'); }
+    if (!fs.statSync(root).isDirectory()) throw new Error('INVALID_ROOT_NOT_DIRECTORY');
+    const relative = path.relative(root, recognitionPath);
+    if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+      throw new Error('RECOGNITION_OUTSIDE_ROOT');
+    }
+    const stat = fs.statSync(recognitionPath);
+    if (!stat.isFile() || !recognitionPath.endsWith('.json')) throw new Error('INVALID_RECOGNITION_NOT_FILE');
+    if (stat.size > 16 * 1024) throw new Error('INVALID_RECOGNITION');
+    let recognition;
+    try {
+      const input = fs.readFileSync(recognitionPath);
+      if (input.length > 16 * 1024) throw new Error('INVALID_RECOGNITION');
+      recognition = JSON.parse(input.toString('utf8'));
+    }
+    catch { throw new Error('INVALID_RECOGNITION'); }
+    const proposedFilename = canonicalAccountingPdfBasename(recognition);
+    const extraction = buildPendingAccountingExtraction(recognition);
+    if (!proposedFilename || !extraction || !validPendingAccountingExtraction(extraction) ||
+        Buffer.byteLength(JSON.stringify(extraction)) > 16 * 1024) throw new Error('REVIEW_REQUIRED');
+    return { schemaVersion: 1, operation: 'prepare-review', proposedFilename, extraction };
   }
 
   _isPdfFile(pathname) {

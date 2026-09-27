@@ -7,10 +7,17 @@ but callers receive the same bounded result shapes. The command does not make st
 
 ## Shared execution target
 
-This file defines the full capability contract. A read-only `recognize` executable now handles snow-removal service
-contracts as review-pending evidence; it does not support `extract`, `reconcile`, `completeness`, normalization, or
-sidecar publication. Invoke it through the selected profile with
+This file defines the full capability contract. A read-only `recognize` executable handles snow-removal service
+contracts as review-pending evidence. A read-only `prepare-review` operation derives a bounded Booking reservation
+filename and extraction preview from an existing eligible `In` recognition artifact. Neither operation supports
+`reconcile`, `completeness`, normalization, or sidecar publication. Invoke recognition through the selected profile with
 `node financial-records.command.mjs recognize --root ABSOLUTE_ROOT --source ABSOLUTE_PDF`.
+
+Invoke the preview with `node financial-records.command.mjs prepare-review --root ABSOLUTE_ROOT --recognition ABSOLUTE_JSON`.
+The recognition file must be a regular JSON file inside the real root and at most 16 KiB. The command returns
+`proposedFilename` and a validated `extraction` without source paths, raw document text, or writes. Unsupported,
+uncertain, and `Out` documents remain review pending. A caller must still check destination collisions and use an
+explicit, separately authorized apply step before writing a sidecar or renaming a PDF.
 
 The intended full implementation is one
 executable command for both no-UI workflow callers and the platform backend. Keep recognition, canonical naming,
