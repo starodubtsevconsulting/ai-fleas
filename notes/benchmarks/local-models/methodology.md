@@ -51,4 +51,6 @@ Direct tests primarily measure the model/runtime/hardware path. Hermes tests add
 
 Operational tests using existing conversations are identified as such because their prompt size and history differ from controlled synthetic tests.
 
+Cross-agent delegation exercises are recorded separately from the controlled fixture. They assess routing, task completion, scope compliance, timeout behavior, and independent review across the coordinator, transport, Hermes harness, model, and serving runtime. A failure in that chain should not be attributed to the model without diagnostic evidence. Report the exact transport and task boundary, distinguish observed behavior from recommendations, and do not add variable-task wall times to the controlled benchmark table.
+
 All numbers should be treated as empirical baselines for the stated hardware, runtime, model, quantization, and configuration rather than general model-performance claims.
