@@ -147,9 +147,9 @@ printf 'HERMES_CODER_READY: id=%s profile=%s project=%s branch=%s\n' "${delegate
 
 if [[ "${mode}" == check ]]; then exit 0; fi
 
-prompt="You are the declared Coder endpoint for a human-authorized ${work_profile} ${workflow} Admin-run assignment. Admin is emulating other roles, but your Coder work is real delegation. Work only in ${workspace} on the current named branch ${branch}; use no temporary directories or worktrees. Follow the Coder role and repository rules. Implement only this bounded assignment: ${assignment}
+prompt="You are the declared Coder endpoint for a human-authorized ${work_profile} ${workflow} Admin-run assignment. Admin is emulating other roles, but your Coder work is real delegation. Write only in ${workspace} on the current named branch ${branch}; you may inspect explicitly authorized read-only reference roots named in the assignment. Use no temporary directories or worktrees. Follow the Coder role and repository rules. Investigate related files within the assignment's read scope and implement only within its write scope: ${assignment}
 
-Do not commit, push, run builds or tests, manage tickets, edit governance rules, or claim independent review or acceptance. Edit ai-commands only when this bounded assignment explicitly names its target path in ai-commands; otherwise do not edit ai-commands. Return changed files, implementation evidence, blockers, and checks that remain for Command Runner or independent review."
+Do not commit, push, run builds or tests, manage tickets, edit governance rules, or claim independent review or acceptance. Edit ai-commands only when the assignment explicitly includes its target directory in the allowed write scope; otherwise do not edit ai-commands. If another write root is needed, report it instead of expanding scope. Return changed files, implementation evidence, blockers, and checks that remain for Command Runner or independent review."
 
 if [[ "${transport}" == a2a ]]; then
   printf '%s\n' "${prompt}" | node "$(dirname "$0")/a2a-client.mjs" run "${endpoint}" "${agent_name}"
