@@ -21,6 +21,8 @@ verification:
   require:
     - inspect-code-against-every-example
     - run-focused-checks-on-accepted-code
+    - execute-positive-and-negative-examples-through-command-runner-before-acceptance
+    - reject-model-self-review-as-verification-evidence
     - inspect-visible-diff
   completion_text_alone_is_sufficient: false
-evidence_notes: The 32K served window cannot initialize as a Hermes agent. A small currency-parser probe missed a required example on the first answer and contained a grouping bug after one correction.
+evidence_notes: The 32K served window cannot initialize as a Hermes agent. On a matched amount-parser task, Q5 alone passed 8/13 independent cases and Q5 with this route passed 7/13; both failed required examples despite plausible prose. Use the route for bounded proposals and verify behavior independently.

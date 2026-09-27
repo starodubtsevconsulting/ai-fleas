@@ -57,6 +57,18 @@ output. For this small task, delegation showed no meaningful time or quality
 advantage. The `-t bounded-coder` server-name toolset is the reproducible way
 used here to prevent unrelated Hermes tools from consuming the trial.
 
+A matched, more representative amount-parser task produced a different result.
+Both Hermes runs received the same acceptance cases and returned JavaScript for
+`parseAmountCents`; the routed run used the actual `bounded_coder` MCP tool.
+Q5 alone took about 41 seconds and passed 8 of 13 independent in-memory cases.
+Q5 plus 35B took about 49 seconds and passed 7 of 13. The direct answer
+converted comma-grouped amounts incorrectly and accepted an explicitly
+forbidden suffix. The routed answer rejected valid amounts such as `0.05` and
+`$1,234.56`; Q5's written review nevertheless claimed the requirements were
+met. These scores are observations from one task, not a general model ranking.
+For parsing, arithmetic, and other correctness-sensitive Coder work, run the
+same explicit cases through Command Runner before accepting either proposal.
+
 `bounded-model.command.mjs ask` reads one prompt from standard input.
 `serve-mcp` provides the same model through one MCP tool, `bounded_coder`.
 `bounded-model.delegate.mjs check|run --project ID` resolves the selected Dev
