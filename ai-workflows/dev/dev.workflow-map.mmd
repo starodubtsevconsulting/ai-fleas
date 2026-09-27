@@ -1,5 +1,5 @@
 flowchart LR
-    target_resolution["target_resolution<br/>manager<br/>START"]
+    target_resolution["target_resolution<br/>admin<br/>START"]
     planning["planning<br/>designer-reviewer<br/>WAITING FOR HUMAN"]
     implementation["implementation<br/>coder"]
     verification["verification<br/>designer-reviewer"]
@@ -12,9 +12,9 @@ flowchart LR
     delivery["delivery<br/>command-runner"]
     deployment_verification["deployment_verification<br/>designer-reviewer"]
     deployment_debugging["deployment_debugging<br/>designer-reviewer"]
-    closure["closure<br/>manager"]
-    complete["complete<br/>manager<br/>COMPLETE"]
-    recovery["recovery<br/>manager"]
+    closure["closure<br/>admin"]
+    complete["complete<br/>admin<br/>COMPLETE"]
+    recovery["recovery<br/>admin"]
     target_resolution -->|target_ready| planning
     planning -->|plan_ready| implementation
     planning -->|ticket_lookup_required| target_resolution

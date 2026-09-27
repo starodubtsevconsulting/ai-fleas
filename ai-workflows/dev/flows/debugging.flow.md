@@ -22,4 +22,4 @@ Diagnosis alone does not authorize a fix, instrumentation, new ticket, or deploy
 
 Return verified proof to the exact failed checkpoint, or preserve observations and the next diagnostic question with an
 owner/action. Non-reproduction is not resolution, and an opened log link is not read evidence. Missing routes block capture;
-materially different scope returns to [planning](planning.flow.md). Manager owns any authorized tracker update/follow-up.
+materially different scope returns to [planning](planning.flow.md). Admin owns any authorized tracker update/follow-up.

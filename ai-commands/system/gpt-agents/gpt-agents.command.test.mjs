@@ -48,7 +48,7 @@ assert.deepEqual(exampleProfile.system_agent.schedule, {
 
 const nonAdmin = portable.agents.map((agent) => agent.agentId);
 assert.deepEqual(nonAdmin, [
-  'designer-reviewer', 'judge', 'manager', 'coder', 'command-runner', 'ui-acceptance-tester',
+  'designer-reviewer', 'judge', 'coder', 'command-runner', 'ui-acceptance-tester',
 ]);
 for (const role of portableRoles) {
   const portableAgent = role === portable.initializer.agentId
@@ -73,8 +73,8 @@ for (const role of portableRoles) {
 }
 
 assert.match(contract, /mechanical initialization controller/);
-assert.match(contract, /including Admin and Manager, in one host batch/);
-assert.match(contract, /Admin is a\s+compatibility role and must not bootstrap, delegate, or orchestrate initialization/);
+assert.match(contract, /including Admin and any Manager actually declared by the selected manifest, in one host batch/);
+assert.match(contract, /Admin owns its declared Dev responsibilities after startup but has no special roster-initialization responsibility/);
 assert.match(contract, /No profile-owned GPT binding-state file is created or read/);
 assert.match(contract, /dispatch all\s+canonical initialization messages concurrently/);
 assert.match(contract, /complete canonical initialization prompt\s+as its non-empty first user message/);

@@ -54,7 +54,7 @@ Verified exact task receipts or a precise no-mutation failure.
 - Human-facing `group`, `workflow group`, and `logical project` may select the same lifecycle scope, but the command must
   not conflate that scope with a custom sidebar section or with one individual scoped folder.
 - The caller is a mechanical initialization controller, not an implicit roster member. It resolves the complete effective
-  roster and directly creates every missing role, including Admin and Manager.
+  roster and directly creates every missing manifest-declared role, including Admin and Manager only when declared.
 - `initialize` is idempotent recovery. It enumerates active and archived catalogs to exhaustion, reactivates exact
   receipt-backed archived roster members in the requested workflow scope, and creates a task only when no valid active or
   archived receipt exists. A completely archived roster is one batch restoration case, not an empty or ambiguous roster.
@@ -64,9 +64,9 @@ Verified exact task receipts or a precise no-mutation failure.
 - An explicit human roster contraction supplies the removed role's complete durable task-receipt history to mechanical
   reconciliation. Every exact active retired receipt is recoverably archived; already archived generations remain
   archived. Titles never establish retired-role identity.
-- Admin is a temporary compatibility role and never bootstraps, delegates, or serializes roster initialization.
+- Admin is a workflow role when declared, and never bootstraps, delegates, or serializes roster initialization.
 - The host batches task creation, resolves provisional receipts together, and dispatches canonical initialization messages
-  concurrently when supported. Manager-owned governed lifecycle begins only after startup completes.
+  concurrently when supported. The workflow-declared lifecycle owner begins governed work only after startup completes.
 - Portable agent IDs and GPT role bindings form an exact one-to-one set before any task creation.
 - Titles are presentation only; model, reasoning, readiness token, lifecycle, and role contract resolve from the GPT and
   portable manifests.

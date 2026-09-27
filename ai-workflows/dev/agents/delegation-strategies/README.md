@@ -13,7 +13,7 @@ needs another strategy. Its evidence notes explain the settings; they do not rep
 The execution delegate selects its Hermes transport through `transport` in the profile's `gpt-agents` command config.
 When a GPT coordinator operates this delegate from outside the Hermes workflow, use the
 [external coordinator contract](../../../../ai-commands/system/hermes-agents/external-coordinator.md) for transport
-lifecycle calls. Its direct adapter operations take precedence over internal Manager handoffs for that external
+lifecycle calls. Its direct adapter operations take precedence over internal Router handoffs for that external
 transport control; they do not change workflow role ownership or project authorization.
 Use `cli-oneshot` with [its transport strategy](transports/hermes-cli-oneshot.strategy.yml) for one bounded process per
 assignment, or `a2a` with [its transport strategy](transports/hermes-a2a.strategy.yml) for protocol task IDs and future

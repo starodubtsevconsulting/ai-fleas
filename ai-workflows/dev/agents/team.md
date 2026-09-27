@@ -22,7 +22,6 @@ transition absent from the workflow.
 | Admin                | administration  | persistent |
 | Designer / Reviewer  | primary         | persistent |
 | Judge                | governance only | persistent |
-| Manager              | no              | persistent |
 | Coder                | no              | disposable |
 | Command Runner       | no              | disposable |
 | UI Acceptance Tester | no              | disposable |
@@ -38,15 +37,18 @@ platform's trusted lifecycle channel, but team agents do not initiate direct Sys
 
 | Agent                | Owns                                                                              |
 | -------------------- | --------------------------------------------------------------------------------- |
-| Admin                | Human-requested workflow administration                                           |
+| Admin                | Workflow administration, tickets, target resolution, exception recovery, closure, agent lifecycle, and continuity |
 | Designer / Reviewer  | Requirements, architecture, design, review, acceptance, and workflow coordination |
 | Judge                | Human-seeded governance-rule maintenance and publication                          |
-| Manager              | Tickets, staffing, agent lifecycle, and continuity                                |
 | Coder                | Product, configuration, and test-source implementation                            |
 | Command Runner       | Commands, Git, builds, tests, delivery, and deployment mechanics                  |
 | UI Acceptance Tester | Independent visible UI acceptance                                                 |
 
 The capability-ownership matrix is authoritative when this summary and a matrix cell disagree.
+
+In Dev, responsibilities assigned to Manager by common role examples belong to Admin under this workflow's matrix; no
+Manager is bootstrapped or contacted. The Router retains endpoint dispatch, Admin uses the real configured Coder and
+Command Runner routes, and Judge governance remains separate.
 
 Agents do not request work from or return work to one another. Each Agent receives its assigned stage from the Router and
 returns a declared event to that same workflow runtime. The workflow determines the next role; ownership remains with the
@@ -67,9 +69,9 @@ boundaries. Helpers are not workflow Agents or matrix columns and do not acquire
 
 ## Lifecycle
 
-Manager owns workflow-agent lifecycle and applies the common [agent continuity](../../_common/agents/continuity.md) policy when an agent needs to continue across runtime instances.
+Admin owns workflow-agent lifecycle and applies the common [agent continuity](../../_common/agents/continuity.md) policy when an agent needs to continue across runtime instances.
 
-Agent scheduling follows the common [agent scheduling](../../_common/agents/scheduling.md) policy. The Dev Manager runs its configured continuity reconciliation instruction on schedule; other agent schedules are declared independently in `agents.yml`.
+Agent scheduling follows the common [agent scheduling](../../_common/agents/scheduling.md) policy. Scheduled roles are declared in `agents.yml`; Admin retains continuity ownership without a Manager schedule.
 
 Coder can have up to 3 active instances and Command Runner up to 4. All other workflow roles can have only one active instance.
 

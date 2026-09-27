@@ -4,13 +4,13 @@ The development workflow follows the common [agent rules](../agents.md), the wor
 
 This file owns orchestration only: workflow order, applicable gates, and the supporting guides used by each step. Role permissions, responsibility ownership, communication boundaries, and lifecycle rules remain in their authoritative agent and team contracts and are not repeated here.
 
-The executable projection is [dev.workflow-map.json](dev.workflow-map.json), with a generated [Mermaid view](dev.workflow-map.mmd). Map events represent the completion evidence and applicability decisions owned by the numbered steps and linked flow exits. Manager recovery returns to the recorded interrupted stage; a human planning or demo decision remains pending until explicitly resolved.
+The executable projection is [dev.workflow-map.json](dev.workflow-map.json), with a generated [Mermaid view](dev.workflow-map.mmd). Map events represent the completion evidence and applicability decisions owned by the numbered steps and linked flow exits. Admin recovery returns to the recorded interrupted stage; a human planning or demo decision remains pending until explicitly resolved.
 
 The Router uses these stage-specific capability IDs to select one entry stage and one owner. They refine the numbered steps and linked flows; they do not expand the permissions in the [role capability matrix](agents/role-capability-ownership.csv).
 
 | Stage | Capability ID | Owner |
 | --- | --- | --- |
-| `target_resolution` | `target_resolution` | Manager |
+| `target_resolution` | `target_resolution` | Admin |
 | `planning` | `requirements` | Designer / Reviewer |
 | `implementation` | `implementation` | Coder |
 | `verification` | `verification_coordination` | Designer / Reviewer |
@@ -23,14 +23,14 @@ The Router uses these stage-specific capability IDs to select one entry stage an
 | `delivery` | `source_control_mechanics` | Command Runner |
 | `deployment_verification` | `deployment_verification` | Designer / Reviewer |
 | `deployment_debugging` | `deployment_debugging` | Designer / Reviewer |
-| `closure` | `ticket_closure` | Manager |
-| `complete` | `completion_record` | Manager |
-| `recovery` | `recovery_coordination` | Manager |
+| `closure` | `ticket_closure` | Admin |
+| `complete` | `completion_record` | Admin |
+| `recovery` | `recovery_coordination` | Admin |
 
 The common [Workflow Router runtime](../_common/runtime/workflow-router.md) may execute these ordered steps. This file is
 the authoritative program: each step declares the role that performs it, and applicable flows declare finer-grained
 role assignments. The Router resolves each declared role to an exact runtime instance, dispatches the next step, and
-routes `blocked`, `depleted`, or `unclear` to Manager with the interrupted step preserved. It does not review work,
+routes `blocked`, `depleted`, or `unclear` to Admin with the interrupted step preserved. It does not review work,
 select a recovery, or replace verified identity, delivery, and communication contracts.
 
 The workflow proceeds through the steps below in order. When one step completes successfully, it continues to the next applicable step without waiting for additional human instruction. A step cannot start until the required evidence from the previous applicable step exists.
@@ -75,7 +75,7 @@ the same bounded Coder route while retaining ownership of design and independent
 
 ## Workflow
 
-1. Manager resolves the work target, ticket when applicable, and required agents.
+1. Admin resolves the work target, ticket when applicable, and required agents.
 2. Designer / Reviewer defines requirements, acceptance criteria, and implementation design through the
    [planning flow](flows/planning.flow.md).
 3. Coder implements the product and test changes. Use the:
@@ -92,4 +92,4 @@ the same bounded Coder route while retaining ownership of design and independent
 8. Command Runner performs delivery or deployment only when explicitly requested and authorized. Use
    [delivery.md](guides/delivery.md), including its canonical source-control provenance gate, and the
    [deployment flow](flows/deployment.flow.md) when applicable.
-9. Manager closes the ticket when applicable after all required evidence exists.
+9. Admin closes the ticket when applicable after all required evidence exists.

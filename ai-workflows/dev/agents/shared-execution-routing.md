@@ -42,14 +42,15 @@ Ticket discovery, implementation, deterministic commands, review, and visible ac
 than peer requests. For example:
 
 1. an intake stage assigned to Designer/Reviewer may emit `ticket-lookup-required` with bounded request references;
-2. the workflow transitions to a ticket-discovery stage assigned to Manager;
-3. Manager returns `completed`, `blocked`, or `unclear` to the Router with tracker evidence references;
+2. the workflow transitions to a ticket-discovery stage assigned to Admin;
+3. Admin returns `completed`, `blocked`, or `unclear` to the Router with tracker evidence references;
 4. the workflow determines the next stage; and
 5. when a registered mechanical operation is required, the workflow transitions to a Command Runner stage and later
    returns its evidence to the Router before resuming a decision stage.
 
-Manager never contacts Command Runner, Designer/Reviewer never contacts Coder, and workers never contact Manager. The
-same workflow run and Router state connect those stages without creating peer authority.
+No workflow endpoint contacts another endpoint. Admin may invoke the configured Command Runner route for an exact
+authorized mechanic; Designer/Reviewer may likewise invoke its configured routes. The same workflow run and Router
+state connect stages without creating peer authority.
 
 Evidence capture times must come from an observed clock or provider receipt. Use `capturedAt: null` with an explicit
 unavailable reason when no capture time exists. A later transition time must not be presented as the time of an earlier

@@ -15,7 +15,7 @@ PR/build success does not authorize deployment; production follows its selected 
 2. Command Runner verifies required terminal checks for that candidate/artifact using [delivery guidance](../guides/delivery.md).
 3. Command Runner dispatches through the profile-selected route; returns run identity, candidate, target, terminal result, and evidence.
 4. Designer/Reviewer invokes [testing](testing.flow.md) for proof the intended candidate is active and behaves correctly in the target.
-5. Manager records the verified outcome through authorized configured tracker persistence when applicable.
+5. Admin records the verified outcome through authorized configured tracker persistence when applicable.
 
 ## Exit
 
