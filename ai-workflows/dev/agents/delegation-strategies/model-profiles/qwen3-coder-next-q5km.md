@@ -47,6 +47,12 @@ was stopped, so this probe did not measure A2A. It suggests that the multi-minut
 of prompt processing, model turns, tool calls, and retries rather than attributing the delay to transport overhead alone.
 The earlier matched coding run below is the available transport comparison.
 
+In a separate visual probe, the Hermes desktop app was switched to the same `sc-dev-5-coder` profile and
+`qwen3-coder-next-q5km` model. A fresh session's first no-tool `READY` reply appeared in about 23 seconds; the same
+prompt in that session completed in about 2.5 seconds. The first-turn delay is consistent with startup or session
+initialization, but two turns do not isolate its cause. This visual route is distinct from the A2A gateway route, which
+was not restarted for this probe.
+
 On one visible branch, the same one-file task asked the Coder to recognize the English phrase `SNOW REMOVAL CONTRACT`
 with `PAYMENT` while retaining the French path. The same profile, model, project, assignment text, and four independent
 behavior checks were used. The recognizer was restored to the same starting revision between runs; the two runs were
