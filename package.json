@@ -5,6 +5,10 @@
   "description": "Public AI Fleas commands, workflow rules, and profile contracts",
   "license": "MIT",
   "dependencies": {
+    "@napi-rs/canvas": "0.1.80",
+    "@tesseract.js-data/eng": "1.0.0",
+    "pdfjs-dist": "2.16.105",
+    "tesseract.js": "7.0.0",
     "yaml": "2.9.0"
   }
 }
