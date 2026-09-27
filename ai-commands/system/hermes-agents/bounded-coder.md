@@ -83,6 +83,14 @@ tool produced a reviewed answer passing 11/13 in about 49 seconds; the raw
 vary and still fall short of correctness, so retain the proposal-only boundary
 and independent executable verification.
 
+We also tried the model card's precise-coding thinking settings without
+changing the live route: temperature 0.6, top-p 0.95, top-k 20, no presence
+penalty, and a 4,096-token output cap. Both identical parser trials ended with
+`finish_reason=length` and no answer content after about 54 seconds. The
+current service and output cap therefore do not make thinking mode a useful
+drop-in setting for this route; keep the configured non-thinking mode until a
+larger, measured serving budget can return a final answer.
+
 `bounded-model.command.mjs ask` reads one prompt from standard input.
 `serve-mcp` provides the same model through one MCP tool, `bounded_coder`.
 `bounded-model.delegate.mjs check|run --project ID` resolves the selected Dev
