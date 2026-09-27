@@ -37,6 +37,14 @@ Admin follows this lookup route when handling an authorized Financial Insights r
 configured workflow role. A saved-project label or visible folder alone does not establish workflow scope; use the
 verified profile and project binding.
 
+Finding a record does not finish its processing. For a PDF already present in canonical storage, check whether it has
+a valid structured sidecar. If not, use the authorized `financial-records` reconciliation route: recognize its content
+and period, propose a canonical name and destination, extract schema-versioned fields with provenance, and review the
+proposal and extracted values. Normalize the file and publish its JSON sidecar only through the profile-authorized
+persistence path after eligibility and collision checks. Skip an already canonical PDF with a valid sidecar. Leave
+uncertain, incompatible, or colliding records unchanged and report what needs review. The UI's staged intake currently
+supports open-quarter `In` PDFs; do not assume its Add flow applies to an existing `Out` record.
+
 ## Document intake
 
 Evidence-preserving intake follows:
