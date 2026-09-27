@@ -5,6 +5,11 @@ project. The capability matrix and hidden Router contract remain the mechanical 
 
 ## Writing orchestration responsibility
 
+The Router registers Admin at the `administration` stage. For a direct human request concerning an article that
+belongs with Writer, return `route-required` from `administration` with an exact, durable `revision` reference to the
+article. The Router then dispatches Writer at `drafting`. For completed Admin-owned work that needs no editorial
+handoff, return `handled` from `administration`. Never claim a Writer-owned stage in an Admin result.
+
 When the human asks Admin to run or finish a Writing workflow, Admin verifies and starts or resumes the hidden Router
 from the current durable state. The Router identifies the next declared stage, dispatches it to the exact active
 endpoint, observes its completed turn, validates evidence references, and selects the next declared transition. Admin

@@ -4,6 +4,7 @@
   "source": "writing.workflow.md",
   "initialStage": "drafting",
   "capabilityOwners": {
+    "workflow_orchestration": "admin",
     "article_drafting": "writer",
     "independent_critique": "reviewer",
     "critique_disposition": "writer",
@@ -12,6 +13,28 @@
     "release_gate_diagnosis": "reviewer"
   },
   "stages": {
+    "administration": {
+      "role": "admin",
+      "capability": "workflow_orchestration",
+      "transitions": {
+        "route-required": {
+          "to": "drafting",
+          "visualLabel": "route-required: send article request to Writer",
+          "requiredReferenceKinds": ["revision"]
+        },
+        "handled": {
+          "to": "administration_complete",
+          "visualLabel": "handled: administration complete",
+          "terminal": true,
+          "requiredReferenceKinds": []
+        }
+      }
+    },
+    "administration_complete": {
+      "role": "admin",
+      "capability": "workflow_orchestration",
+      "transitions": {}
+    },
     "drafting": {
       "role": "writer",
       "capability": "article_drafting",

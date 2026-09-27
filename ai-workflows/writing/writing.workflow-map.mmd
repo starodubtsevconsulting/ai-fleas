@@ -1,4 +1,6 @@
 flowchart LR
+    administration["administration<br/>admin"]
+    administration_complete["administration_complete<br/>admin<br/>COMPLETE"]
     drafting["drafting<br/>writer<br/>START"]
     review["review<br/>reviewer"]
     human_review["human_review<br/>reviewer<br/>WAITING FOR HUMAN"]
@@ -7,6 +9,8 @@ flowchart LR
     archive_update["archive_update<br/>writer"]
     diagnosis["diagnosis<br/>reviewer"]
     complete["complete<br/>writer<br/>COMPLETE"]
+    administration -->|route-required: send article request to Writer| drafting
+    administration -->|handled: administration complete| administration_complete
     drafting -->|review_ready| review
     review -->|accepted: review passes policy| release
     review -->|changes_required| correction
@@ -28,4 +32,5 @@ flowchart LR
     classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
     class drafting start
     class human_review waiting
+    class administration_complete done
     class complete done
