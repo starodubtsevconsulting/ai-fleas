@@ -1,0 +1,47 @@
+schema_version: local-coder-strategy.v1
+applies_to:
+  provider_model: qwen3-coder-next-q5km
+  platform: hermes
+  transport: a2a
+strategy:
+  default: focused-implementation
+  task_routes:
+    known_code_path:
+      strategy: focused-implementation
+    unknown_code_path:
+      preflight: read-only-discovery
+      strategy: focused-implementation
+    transitive_port:
+      strategy: bounded-exploration
+      condition: stage-fits-verified-transport-timeout
+  goal_backed_continuation: disabled-unverified
+assignment:
+  preferred_scope: one-cohesive-change
+  require:
+    - exact-project-and-branch
+    - allowed-write-roots-and-read-only-reference-roots
+    - exact-output-paths-for-new-files
+    - existing-interface-and-callers-to-preserve
+    - concrete-completion-evidence-and-stop-condition
+  for_protocol_changes:
+    require:
+      - example-invocations-at-each-command-boundary
+      - location-of-each-input-argument-or-stdin
+      - existing-callers-and-tests-to-inspect
+transport:
+  observed_server_message_timeout_seconds: 300
+  context_reuse: unavailable-through-current-launcher
+  on_disconnect:
+    - query-remote-task-status
+    - inspect-visible-diff
+    - do-not-retry-until-prior-task-is-terminal
+verification:
+  owner: command-runner-and-admin
+  require:
+    - compare-visible-files-with-requested-paths
+    - review-diff-against-source-and-interface-contract
+    - run-focused-existing-and-new-tests
+    - inspect-tests-for-real-assertions
+    - run-shell-syntax-checks-when-applicable
+  completion_text_alone_is_sufficient: false
+evidence_notes: qwen3-coder-next-q5km.md

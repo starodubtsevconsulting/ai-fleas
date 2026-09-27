@@ -1,5 +1,8 @@
 # qwen3-coder-next-q5km through Hermes A2A
 
+The actionable settings are in [qwen3-coder-next-q5km.strategy.yml](qwen3-coder-next-q5km.strategy.yml). This file
+records the observations behind them.
+
 Applies when the configured `provider_model` is exactly `qwen3-coder-next-q5km` and the selected delegate uses
 Hermes A2A. Review this profile if either value changes.
 

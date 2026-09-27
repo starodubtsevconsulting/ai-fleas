@@ -54,7 +54,7 @@ providers:
       - id: qwen-coder
         provider_model: qwen3-coder-next-q5km
         delegation:
-          strategy_profile: dev/agents/delegation-strategies/model-profiles/qwen3-coder-next-q5km.md
+          strategy_config: dev/agents/delegation-strategies/model-profiles/qwen3-coder-next-q5km.strategy.yml
         hermes:
           context_window_tokens: 65536
           compression_threshold: 0.25
