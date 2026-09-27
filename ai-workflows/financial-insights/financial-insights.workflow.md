@@ -38,12 +38,14 @@ configured workflow role. A saved-project label or visible folder alone does not
 verified profile and project binding.
 
 Finding a record does not finish its processing. For a PDF already present in canonical storage, check whether it has
-a valid structured sidecar. If not, use the authorized `financial-records` reconciliation route: recognize its content
-and period, propose a canonical name and destination, extract schema-versioned fields with provenance, and review the
-proposal and extracted values. Normalize the file and publish its JSON sidecar only through the profile-authorized
-persistence path after eligibility and collision checks. Skip an already canonical PDF with a valid sidecar. Leave
-uncertain, incompatible, or colliding records unchanged and report what needs review. The UI's staged intake currently
-supports open-quarter `In` PDFs; do not assume its Add flow applies to an existing `Out` record.
+a valid structured sidecar. If not, use a profile-authorized implementation of the `financial-records` contract to
+recognize its content and period, propose a canonical name and destination, extract schema-versioned fields with
+provenance, and review the proposal and extracted values. Normalize the file and publish its JSON sidecar only through
+the authorized persistence path after eligibility and collision checks. Skip an already canonical PDF with a valid
+sidecar. Leave uncertain, incompatible, or colliding records unchanged and report what needs review. The portable
+command contract alone is not an executable processor. The current UI staged intake supports open-quarter `In` PDFs;
+do not assume its Add or normalization path supports an existing `Out` record. If no authorized processor supports the
+record's section, report processing as pending rather than rename or extract it ad hoc.
 
 ## Document intake
 
