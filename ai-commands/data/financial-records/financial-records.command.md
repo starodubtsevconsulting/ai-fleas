@@ -19,6 +19,26 @@ The recognition file must be a regular JSON file inside the real root and at mos
 uncertain, and `Out` documents remain review pending. A caller must still check destination collisions and use an
 explicit, separately authorized apply step before writing a sidecar or renaming a PDF.
 
+### Apply-review safety gate
+
+`apply-review` is not executable yet. The current preview validates recognition fields but cannot prove that the
+recognition artifact belongs to the supplied PDF. Matching an artifact filename to a PDF filename is insufficient:
+either file can change between review and apply. The public Booking recognizer is a pure text recognizer; the backend
+also uses bounded visual total evidence when text extraction is insufficient. A PDF header check alone cannot replace
+that document validation.
+
+Before adding an apply operation, the shared command must independently validate the PDF and its monetary evidence,
+bind a versioned preview to the exact PDF bytes, recognition artifact, selected `In` section and period, and recheck
+that binding immediately before writing. The caller must supply an authorized root, source PDF, recognition artifact,
+selected section root, and destination directory; real paths for all inputs must stay within the root, and the
+destination must stay within that selected section. `Out` invoices remain unsupported.
+
+Publication must reject existing canonical PDF, recognition, and extraction-sidecar paths, including concurrent
+creations. It must preserve original PDF and recognition evidence until a complete canonical PDF plus validated
+sidecar exists. Because two filesystem entries cannot be published as one atomic operation, the command must define
+an observable partial state and a retry/recovery rule before any write path is enabled. A failed write must never
+silently overwrite, discard, or claim a completed extraction.
+
 The intended full implementation is one
 executable command for both no-UI workflow callers and the platform backend. Keep recognition, canonical naming,
 structured extraction, and reconciliation in that shared implementation; the backend may provide UI context and
