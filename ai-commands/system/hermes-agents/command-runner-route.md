@@ -22,8 +22,8 @@ shell. The selected profile gives each caller an explicit command allowlist.
 The wrapper keeps its own authorization, credential, and effect checks.
 The current SC profile allows Admin to call `test` and `source-control`;
 Designer / Reviewer may call `test`. Other registered
-commands remain outside this route until that profile explicitly authorizes
-them.
+commands remain outside this route until their arguments receive a reviewed
+route adapter and the profile explicitly authorizes them.
 
 The GPT launcher offers the same deterministic route through `check --project
 ID` and `run --project ID --command ID -- ARGS...`. A caller must inspect a

@@ -58,6 +58,9 @@ class CommandRunnerRoute {
     const project = this.project(projectId);
     const executable = this.command(commandId);
     if (!Array.isArray(argv) || argv.length > 32 || argv.some((value) => typeof value !== 'string' || value.length > 512 || /[\0\r\n]/.test(value))) throw new Error('Invalid command arguments');
+    if (commandId === 'test' && argv.includes('--project-dir')) throw new Error('Test project override is not allowed');
+    if (commandId === 'source-control' && (argv.length !== 3 || argv[1] !== '--repo' || !fs.existsSync(argv[2]) || fs.realpathSync(argv[2]) !== project.root)) throw new Error('Source-control repository must match the selected project');
+    if (!['test', 'source-control'].includes(commandId)) throw new Error('Command needs a reviewed route adapter');
     const env = { ...process.env, AI_CONFIG_PROJECT: path.dirname(path.dirname(this.profileDirectory)), AI_WORK_PROFILE_ID: this.profileId, AI_FLOW_WORKFLOW: 'dev.workflow.md', AI_FLOW_PROJECT_DIR: project.root };
     const command = executable.endsWith('.mjs') ? process.execPath : '/bin/bash';
     const result = spawnSync(command, [executable, ...argv], { cwd: project.root, env, encoding: 'utf8', timeout: this.config.timeout_ms, maxBuffer: 1024 * 1024 });
