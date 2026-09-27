@@ -1,10 +1,11 @@
-# qwen3-coder-next-q5km through Hermes A2A
+# qwen3-coder-next-q5km through Hermes
 
 The actionable settings are in [qwen3-coder-next-q5km.strategy.yml](qwen3-coder-next-q5km.strategy.yml). This file
 records the observations behind them.
 
 Applies when the configured `provider_model` is exactly `qwen3-coder-next-q5km` and the selected delegate uses
-Hermes A2A. Review this profile if either value changes.
+Hermes. Review this profile if the model changes. Combine it with the strategy for the selected transport: A2A or
+CLI one-shot.
 
 ## Observed behavior
 
@@ -35,6 +36,23 @@ Hermes A2A. Review this profile if either value changes.
 
 These are observations from the financial-records and Hermes delegation work in September 2026. They guide the next
 assignment; they do not claim that every run or other deployment of the model behaves this way.
+
+## A2A versus CLI one-shot comparison
+
+On one visible branch, the same one-file task asked the Coder to recognize the English phrase `SNOW REMOVAL CONTRACT`
+with `PAYMENT` while retaining the French path. The same profile, model, project, assignment text, and four independent
+behavior checks were used. The recognizer was restored to the same starting revision between runs; the two runs were
+sequential. A2A completed in roughly 90 seconds and passed all four checks, but its diff had two trailing-whitespace
+errors. CLI one-shot completed in roughly 100 seconds, passed the same checks and `git diff --check`, and left no
+one-shot process after exit. These approximate times are observations from one run per transport, not a speed
+benchmark or evidence that CLI produces better code. The CLI completion prose incorrectly called the unsupported
+contract result "supported"; review the result object and diff rather than trusting that prose on either route.
+
+CLI one-shot provides a directly observable process exit and avoids the A2A message deadline for this assignment.
+The current launcher still has no hard wall-clock timeout, and interrupted-process descendant cleanup has not been
+tested. A2A remains available for later session-oriented work, but its current task status must not be treated as a
+process-stop guarantee. Select the transport in the profile binding and load its matching transport strategy; do not
+change the model strategy when switching between these two routes.
 
 ## External usage evidence
 
@@ -68,7 +86,7 @@ retry. Command Runner runs focused existing and new tests, plus shell syntax che
 whether tests actually assert the contract. Do not accept a change that breaks the delegate launcher; restore the last
 working version if routing becomes unusable and report the blocked Coder stage.
 
-The current launcher starts a new A2A context for each run. The adapter can resume a context, but the launcher has
-no accepted `--context-id` route yet. Do not describe separate runs as one persistent Coder session. Do not choose
-[goal-backed continuation](../goal-backed-continuation.md) until persistent goals, status, and resume are verified
-through this delegate route.
+The A2A launcher starts a new context for each run. The adapter can resume a context, but the launcher has no
+accepted `--context-id` route yet. CLI one-shot starts a separate process and session for each run by default. Do
+not describe separate runs as one persistent Coder session. Do not choose [goal-backed continuation](../goal-backed-continuation.md)
+until persistent goals, status, and resume are verified through the selected delegate route.
