@@ -53,6 +53,14 @@ prompt in that session completed in about 2.5 seconds. The first-turn delay is c
 initialization, but two turns do not isolate its cause. This visual route is distinct from the A2A gateway route, which
 was not restarted for this probe.
 
+A more substantial read-only desktop task traced the delegate launcher's profile binding and both transport branches,
+then asked for three concrete ways a caller might mistake task state for stopped work, with file and line references.
+It explored six files and completed in about 60 seconds without editing the checkout. Its answer correctly flagged
+`CancelTask` as not proving that an in-flight Hermes turn stopped, but two points repeated an unsupported inference
+about writes after a *completed* A2A task and introduced an unverified `fsync` explanation. The observed failure/cancel
+case should not be generalized to every completed task. This is one UI task with different work from the earlier
+implementation runs; it measures neither GPT overhead nor code-implementation speed.
+
 On one visible branch, the same one-file task asked the Coder to recognize the English phrase `SNOW REMOVAL CONTRACT`
 with `PAYMENT` while retaining the French path. The same profile, model, project, assignment text, and four independent
 behavior checks were used. The recognizer was restored to the same starting revision between runs; the two runs were
