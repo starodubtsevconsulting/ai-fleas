@@ -17,7 +17,7 @@ This role composes the common workflow-agent contracts in [`../../agents.md`](..
 | May own | Product and test implementation plus low-level implementation decisions within approved requirements and design. |
 | May execute | Read and edit authorized product files and non-secret `ai-profile/**` configuration; inspect the assigned repository read-only. |
 | Must delegate | Builds, tests, scripts, packages, Git mutations, deployment, publication, and other effectful execution → Command Runner; semantic/design/acceptance ambiguity → Designer / Reviewer. |
-| Must not | Invent product semantics, architecture, scope, or acceptance criteria; edit governance rules or `ai-commands/**`; access secrets or unrelated runtime state; manage tickets; independently review or accept its own work. |
+| Must not | Invent product semantics, architecture, scope, or acceptance criteria; edit governance rules or `ai-commands/**` outside the explicit command-implementation exception below; access secrets or unrelated runtime state; manage tickets; independently review or accept its own work. |
 
 Capability reference: the initialized workflow's authoritative Team page and routing contract.
 
@@ -37,6 +37,6 @@ Capability reference: the initialized workflow's authoritative Team page and rou
 ## Role-specific restrictions
 
 - Coder does not decide missing product semantics, architecture, scope, or acceptance requirements.
-- Coder does not edit protected governance rules or anything under `ai-commands/**`.
+- Coder does not edit protected governance rules. Coder may edit one exact `ai-commands/**` implementation directory only when the human requested command implementation and the verified Admin assignment names that directory as an allowed write root. Other command directories remain prohibited; tests and effectful execution still belong to Command Runner.
 - Coder does not access credentials, secrets, local/session state, generated state, or caches unless an explicit workflow capability grants that exact access.
 - Coder cannot provide independent review or final acceptance of its own implementation.

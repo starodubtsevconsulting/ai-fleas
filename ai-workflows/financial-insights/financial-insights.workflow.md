@@ -25,6 +25,36 @@ Entries beginning with `_` are reserved/private by convention and are not discov
 sources. Profiles map this logical structure to their authorized storage; the public workflow never prescribes real
 organization names or machine paths.
 
+## Record lookup
+
+For a request to find an existing invoice, receipt, bill, or statement, first resolve the selected project and its
+canonical storage from the active profile. Search that storage using the requested period, entity, record direction,
+and topic, allowing for the project's actual folder layout and synonymous filenames. When the year is omitted, search
+the current year first, then broaden the search; report the year of any match rather than assuming it. Inspect the
+candidate document when its content is available, and return its exact location with any unresolved ambiguity.
+
+Admin follows this lookup route when handling an authorized Financial Insights request directly or emulating a
+configured workflow role. A saved-project label or visible folder alone does not establish workflow scope; use the
+verified profile and project binding.
+
+Finding a record does not finish its processing. For a PDF already present in canonical storage, check whether it has
+a valid structured sidecar. If not, use a profile-authorized implementation of the `financial-records` contract to
+recognize its content and period, propose a canonical name and destination, extract schema-versioned fields with
+provenance, and review the proposal and extracted values. Normalize the file and publish its JSON sidecar only through
+the authorized persistence path after eligibility and collision checks. Skip an already canonical PDF with a valid
+sidecar. Leave uncertain, incompatible, or colliding records unchanged and report what needs review. The portable
+command contract alone is not an executable processor. The current UI staged intake supports open-quarter `In` PDFs;
+do not assume its Add or normalization path supports an existing `Out` record. If no authorized processor supports the
+record's section, report processing as pending rather than rename or extract it ad hoc.
+
+The current portable executable can recognize a snow-removal service contract from a PDF and return bounded,
+review-pending evidence. It does not establish `Out` normalization or a valid extraction sidecar; leave the source
+unchanged after that result. The target execution boundary for recognition, normalization, extraction, and reconciliation is one executable
+`financial-records` command with profile-authorized adapters. Both no-UI agents and the platform backend should call
+that command so they use the same classification, naming, extraction, and collision rules. Until that implementation
+and backend integration exist, the portable contract describes the desired behavior; it does not grant access to the
+platform's private driver or make unsupported sections processable.
+
 ## Document intake
 
 Evidence-preserving intake follows:

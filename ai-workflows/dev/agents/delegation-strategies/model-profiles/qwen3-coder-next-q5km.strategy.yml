@@ -1,0 +1,64 @@
+schema_version: local-coder-strategy.v1
+applies_to:
+  provider_model: qwen3-coder-next-q5km
+strategy:
+  default: focused-implementation
+  task_routes:
+    known_code_path:
+      strategy: focused-implementation
+    unknown_code_path:
+      preflight: read-only-discovery
+      strategy: focused-implementation
+    transitive_port:
+      strategy: bounded-exploration
+      condition: stage-fits-verified-transport-timeout
+    numeric_extraction:
+      strategy: focused-implementation
+      acceptance: independent-real-layout-and-ambiguity-checks
+      after_failed_correction: stop-stage-and-choose-another-implementation-route
+  goal_backed_continuation: disabled-unverified
+assignment:
+  preferred_scope: one-cohesive-change
+  correction_limit_per_stage: 1
+  require:
+    - exact-project-and-branch
+    - allowed-write-roots-and-read-only-reference-roots
+    - exact-output-paths-for-new-files
+    - existing-interface-and-callers-to-preserve
+    - concrete-completion-evidence-and-stop-condition
+    - exact-input-output-example-for-parsers-and-recognizers
+    - explicit-list-of-allowed-test-files-if-tests-are-to-be-written
+  for_protocol_changes:
+    require:
+      - example-invocations-at-each-command-boundary
+      - location-of-each-input-argument-or-stdin
+      - existing-callers-and-tests-to-inspect
+runtime_diagnostics:
+  on_repeated_tool_or_completion_failures:
+    - confirm-served-model-and-quantization
+    - confirm-serving-backend-and-qwen3-coder-tool-parser
+    - inspect-effective-per-slot-context-and-compression-logs
+    - inspect-output-cap-and-finish-reason
+    - compare-a-small-identical-task-in-a-second-harness-before-changing-prompt-rules
+  setting_changes: require-measured-local-evidence
+measured_unattended_profile_guards:
+  status: experimental
+  agent_max_turns: 20
+  agent_run_budget_seconds: 240
+  tool_loop_guardrails_hard_stop_enabled: true
+  agent_gateway_auto_continue_freshness_seconds: 1
+  limits:
+    - run-budget-is-a-wrap-up-notice-not-a-hard-timeout
+    - tool-loop-hard-stop-does-not-catch-successful-repeated-writes
+    - a2a-terminal-status-does-not-cancel-hermes-gateway-turn
+verification:
+  owner: command-runner-and-admin
+  require:
+    - compare-visible-files-with-requested-paths
+    - review-diff-against-source-and-interface-contract
+    - run-focused-existing-and-new-tests
+    - inspect-tests-for-real-assertions
+    - run-shell-syntax-checks-when-applicable
+    - remove-unrequested-scratch-files-after-hermes-session-stops
+  completion_text_alone_is_sufficient: false
+evidence_notes: qwen3-coder-next-q5km.md

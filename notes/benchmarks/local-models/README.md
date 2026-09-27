@@ -37,7 +37,7 @@ Image-generation models use a separate quality-first corpus and retained-output 
 
 ## Benchmark reports
 
-- [ASUS Ascent GX10](gx10.md) — Qwen worker comparison plus DeepSeek V4, Gemma 4 31B, and dual-loaded Qwen3.6 35B experiments.
+- [ASUS Ascent GX10](gx10.md) — Qwen worker comparison, GPT-to-Hermes A2A delegation findings, and DeepSeek V4, Gemma 4 31B, and dual-loaded Qwen3.6 35B experiments.
 - [RTX 3080 Ti workstation](rtx-3080-ti.md) — System-agent target; 30B Q8/Q4, 8B and 9B experiments plus Hermes overhead.
 - [MacBook Pro M5](macbook-pro-m5.md) — portable local-inference tier; benchmark starts from ~30B Q6 and works downward.
 - [MINISFORUM UM790 Pro](minisforum-um790-pro.md) — compact always-on worker with Ryzen 9 7940HS, Radeon 780M and 32 GB DDR5; benchmark pending.

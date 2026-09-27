@@ -5,6 +5,27 @@ Portable command contract for evidence-preserving Financial Insights record oper
 Implementations may use filesystem/NAS/cloud storage, PDF text extraction, OCR, vision, or provider-specific adapters,
 but callers receive the same bounded result shapes. The command does not make strategic financial decisions.
 
+## Shared execution target
+
+This file defines the full capability contract. A read-only `recognize` executable now handles snow-removal service
+contracts as review-pending evidence; it does not support `extract`, `reconcile`, `completeness`, normalization, or
+sidecar publication. Invoke it through the selected profile with
+`node financial-records.command.mjs recognize --root ABSOLUTE_ROOT --source ABSOLUTE_PDF`.
+
+The intended full implementation is one
+executable command for both no-UI workflow callers and the platform backend. Keep recognition, canonical naming,
+structured extraction, and reconciliation in that shared implementation; the backend may provide UI context and
+display review results, but must not maintain a separate copy of those rules. Profile-authorized adapters select the
+storage and document drivers. A caller must not treat an unsupported document section as processed merely because the
+contract defines its result shape.
+
+The backend should become a thin caller: verify the selected profile, project, period, section, and caller authority;
+pass bounded source and destination context to the command; then present its structured result. The command owns PDF
+recognition, field extraction, naming proposals, collision checks, and any authorized normalization or sidecar write.
+Read-only preparation and mutating apply must be distinct operations so the same command can serve review in the UI
+and no-UI workflows. Porting the current backend's `In`-specific implementation does not establish `Out` support;
+vendor invoices need their own recognized, tested rules before they can be applied.
+
 ## Operations
 
 ### recognize
