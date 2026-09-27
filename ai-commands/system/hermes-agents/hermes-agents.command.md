@@ -158,7 +158,7 @@ for tunnel/application ownership, service-token creation, naming, policy attachm
 | `reinitialize-system --confirm-reinitialize [--instance SLUG] [--connection NAME] [options]` | Preflight the complete canonical or test System replacement, including the selected local or remote provider route, delete and verify that exact instance, then sequentially create its fresh profile, scheduler, gateway, and receipt. |
 | `status-system --work-profile ID [--instance SLUG]` | Verify the exact canonical or test-instance System receipt. |
 | `reinitialize` / `re-init` | After `--confirm-reinitialize`, preflight the complete replacement, delete the exact active workflow group and role profiles only when that preflight succeeds, then create a fresh complete generation. Existing conversations and memory for those profiles are removed. |
-| `reconcile` | Reapply the resolved role-profile and group configuration while preserving conversations and memory. |
+| `reconcile` | Reapply the resolved role-profile and group configuration, remove retired receipt-backed roles from group membership, and preserve their profiles, conversations, and memory. |
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
 | `list` | List existing Hermes profiles. |
 | `show PROFILE` | Inspect one exact profile. |
