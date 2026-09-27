@@ -1,0 +1,21 @@
+schema_version: local-coder-transport-strategy.v1
+applies_to:
+  platform: hermes
+  transport: cli-oneshot
+session:
+  policy: one-process-per-bounded-assignment
+  context_reuse: disabled-by-default
+  future_resume_rule: resume-only-after-profile-and-session-identity-are-verified
+timing:
+  wait_policy: wait-for-process-exit-and-inspect-result
+  after_interruption:
+    - verify-the-exact-process-and-descendants-have-stopped
+    - inspect-visible-diff-before-retry
+    - never-overlap-assignments-that-write-the-same-files
+  successful_process_exit_observed: true
+  interrupted_process_descendant_cleanup: observed-on-one-directly-terminated-run
+  unattended_use: requires-enforced-wall-clock-limit-and-scope-review
+scratch:
+  temporary_directories: forbidden
+  files: only-exact-visible-paths-authorized-in-assignment
+  unrequested_files: inspect-and-remove-after-process-exits

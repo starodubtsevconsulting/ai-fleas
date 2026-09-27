@@ -8,7 +8,7 @@ export class SnowRemovalContractRecognizer {
     const compact = String(input.compactText || '');
     const context = input.context || {};
 
-    // Check for both CONTRAT and DÉNEIGEMENT/DENEIGEMENT
+    // Check for French phrases: CONTRAT DE DÉNEIGEMENT and VERSEMENT/PAIEMENT
     const hasContrat = /\bcontrat\b/i.test(text) || compact.includes('contrat');
     const hasDenigement = /\b[dé]neigement\b/i.test(text) || compact.includes('denigement') || compact.includes('deneigement');
 
@@ -16,8 +16,16 @@ export class SnowRemovalContractRecognizer {
     const hasVersement = /\bversement\b/i.test(text) || compact.includes('versement');
     const hasPaiement = /\bpaiement\b/i.test(text) || compact.includes('paiement');
 
-    // All three conditions must be present
-    if (!hasContrat || !hasDenigement || !(hasVersement || hasPaiement)) {
+    // Check for English phrase: SNOW REMOVAL CONTRACT and PAYMENT
+    const hasSnowRemovalContract = /\bsnow\s+removal\s+contract\b/i.test(text);
+    const hasPayment = /\bpayment\b/i.test(text);
+
+    // All three conditions must be present (French: contrat + denigement + versement/paiement)
+    // or (English: snow removal contract + payment)
+    const isFrenchMatch = hasContrat && hasDenigement && (hasVersement || hasPaiement);
+    const isEnglishMatch = hasSnowRemovalContract && hasPayment;
+
+    if (!isFrenchMatch && !isEnglishMatch) {
       return { recognizedFamily: false };
     }
 
@@ -27,6 +35,8 @@ export class SnowRemovalContractRecognizer {
       hasDenigement && 'denigement-keyword',
       hasVersement && 'versement-keyword',
       hasPaiement && 'paiement-keyword',
+      hasSnowRemovalContract && 'snow-removal-contract-keyword',
+      hasPayment && 'payment-keyword',
     ].filter(Boolean);
 
     return {

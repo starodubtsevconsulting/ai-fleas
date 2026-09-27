@@ -21,7 +21,7 @@ timing:
   a2a_terminal_status_cancels_gateway_turn: false
   restart_risk: recent-interrupted-sessions-may-auto-resume-on-gateway-start
   recovery:
-    - route-gateway-lifecycle-through-authorized-manager
+    - coordinator-stops-the-exact-coder-gateway-directly-when-authorized
     - verify-gateway-turn-and-any-separate-session-worker-have-stopped
     - verify-write-count-stays-stable-before-cleanup-or-retry
 scratch:

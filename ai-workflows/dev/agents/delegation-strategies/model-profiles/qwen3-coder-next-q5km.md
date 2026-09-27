@@ -1,10 +1,11 @@
-# qwen3-coder-next-q5km through Hermes A2A
+# qwen3-coder-next-q5km through Hermes
 
 The actionable settings are in [qwen3-coder-next-q5km.strategy.yml](qwen3-coder-next-q5km.strategy.yml). This file
 records the observations behind them.
 
 Applies when the configured `provider_model` is exactly `qwen3-coder-next-q5km` and the selected delegate uses
-Hermes A2A. Review this profile if either value changes.
+Hermes. Review this profile if the model changes. Combine it with the strategy for the selected transport: A2A or
+CLI one-shot.
 
 ## Observed behavior
 
@@ -36,6 +37,63 @@ Hermes A2A. Review this profile if either value changes.
 These are observations from the financial-records and Hermes delegation work in September 2026. They guide the next
 assignment; they do not claim that every run or other deployment of the model behaves this way.
 
+## A2A versus CLI one-shot comparison
+
+A later read-only, no-tool `READY` probe separated basic response latency from coding-task behavior. The local model API
+returned in about 0.4 seconds; the first Hermes CLI call took about 8.6 seconds, a repeated CLI call about 2.4 seconds,
+and the profile delegate launcher completed `check` in about 0.1 seconds and `run` in about 2.9 seconds. These are single
+warm/cold observations with slightly different system prompts, not a controlled throughput benchmark. The A2A gateway
+was stopped, so this probe did not measure A2A. It suggests that the multi-minute coding runs need phase-level diagnosis
+of prompt processing, model turns, tool calls, and retries rather than attributing the delay to transport overhead alone.
+The earlier matched coding run below is the available transport comparison.
+
+In a separate visual probe, the Hermes desktop app was switched to the same `sc-dev-5-coder` profile and
+`qwen3-coder-next-q5km` model. A fresh session's first no-tool `READY` reply appeared in about 23 seconds; the same
+prompt in that session completed in about 2.5 seconds. The first-turn delay is consistent with startup or session
+initialization, but two turns do not isolate its cause. This visual route is distinct from the A2A gateway route, which
+was not restarted for this probe.
+
+A more substantial read-only desktop task traced the delegate launcher's profile binding and both transport branches,
+then asked for three concrete ways a caller might mistake task state for stopped work, with file and line references.
+It explored six files and completed in about 60 seconds without editing the checkout. Its answer correctly flagged
+`CancelTask` as not proving that an in-flight Hermes turn stopped, but two points repeated an unsupported inference
+about writes after a *completed* A2A task and introduced an unverified `fsync` explanation. The observed failure/cancel
+case should not be generalized to every completed task. This is one UI task with different work from the earlier
+implementation runs; it measures neither GPT overhead nor code-implementation speed.
+
+On one visible branch, the same one-file task asked the Coder to recognize the English phrase `SNOW REMOVAL CONTRACT`
+with `PAYMENT` while retaining the French path. The same profile, model, project, assignment text, and four independent
+behavior checks were used. The recognizer was restored to the same starting revision between runs; the two runs were
+sequential. A2A completed in roughly 90 seconds and passed all four checks, but its diff had two trailing-whitespace
+errors. CLI one-shot completed in roughly 100 seconds, passed the same checks and `git diff --check`, and left no
+one-shot process after exit. These approximate times are observations from one run per transport, not a speed
+benchmark or evidence that CLI produces better code. The CLI completion prose incorrectly called the unsupported
+contract result "supported"; review the result object and diff rather than trusting that prose on either route.
+
+CLI one-shot provides a directly observable process exit and avoids the A2A message deadline for this assignment.
+The current launcher still has no hard wall-clock timeout; the later trial below exercised direct termination once.
+A2A remains available for later session-oriented work, but its current task status must not be treated as a
+process-stop guarantee. Select the transport in the profile binding and load its matching transport strategy; do not
+change the model strategy when switching between these two routes.
+
+A second, harder matched assignment asked for a one-file amount extractor with duplicate-label and integer-cent
+validation. The starting target was absent for both runs, the same assignment text was used, and the runs were
+sequential. A2A hit its 300-second orphan deadline: the client returned `fetch failed`, the task later became
+`TASK_STATE_FAILED`, and gateway logs showed another model call and `write_file` **after** that failure. It wrote the
+requested parser plus an unrequested test file. The coordinator directly stopped the exact Coder gateway, confirmed
+the turn stopped, and only then removed the artifacts. Its partial parser passed 7 of 8 independent synthetic cases;
+it rejected a valid case where GST and QST had equal amounts.
+
+CLI one-shot ran past the same five-minute point without an A2A deadline, but was still active at seven minutes and
+had created three unrequested test/helper files. The coordinator sent SIGTERM to that exact one-shot process; it
+exited with status 143 and no Coder one-shot or separate worker remained. Its partial parser passed 8 of 8 cases,
+but the assignment did not complete cleanly, and the files were removed. This is one observation of direct process
+termination, not proof that every descendant or interruption mode is handled. The two partial scores are not a model
+quality ranking because the runs ended under different conditions. The useful distinction is lifecycle control:
+CLI can be terminated as a local process, whereas A2A task failure did not stop the gateway turn. Neither transport
+prevented out-of-scope writes; require an enforced CLI wall-clock limit and independent scope review before unattended
+use on larger assignments.
+
 ## External usage evidence
 
 Qwen's [model card](https://huggingface.co/Qwen/Qwen3-Coder-Next) documents agentic tool use, recommends the
@@ -63,12 +121,14 @@ For launcher or protocol changes, spell out both sides of the command boundary w
 each input is read (argument or stdin). Require the Coder to inspect existing callers and tests before editing. Ask
 for concise changed-file and blocker evidence; do not rely on a prose claim of completion.
 
-Admin waits for the real task result. On timeout or disconnect, inspect the A2A task state and visible diff before any
-retry. Command Runner runs focused existing and new tests, plus shell syntax checks where applicable. Admin reviews
+Admin waits for the real task result. On timeout or disconnect, inspect task and process state plus the visible diff before any
+retry. When authorized for the exact Coder profile, Admin can stop its gateway or one-shot process directly and verify
+that the turn and descendants have exited; another model role is not required for routine lifecycle control. Command
+Runner runs focused existing and new tests, plus shell syntax checks where applicable. Admin reviews
 whether tests actually assert the contract. Do not accept a change that breaks the delegate launcher; restore the last
 working version if routing becomes unusable and report the blocked Coder stage.
 
-The current launcher starts a new A2A context for each run. The adapter can resume a context, but the launcher has
-no accepted `--context-id` route yet. Do not describe separate runs as one persistent Coder session. Do not choose
-[goal-backed continuation](../goal-backed-continuation.md) until persistent goals, status, and resume are verified
-through this delegate route.
+The A2A launcher starts a new context for each run. The adapter can resume a context, but the launcher has no
+accepted `--context-id` route yet. CLI one-shot starts a separate process and session for each run by default. Do
+not describe separate runs as one persistent Coder session. Do not choose [goal-backed continuation](../goal-backed-continuation.md)
+until persistent goals, status, and resume are verified through the selected delegate route.
