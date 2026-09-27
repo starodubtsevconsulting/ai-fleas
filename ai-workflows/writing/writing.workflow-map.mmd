@@ -3,6 +3,7 @@ flowchart LR
     administration_complete["administration_complete<br/>admin<br/>COMPLETE"]
     drafting["drafting<br/>writer<br/>START"]
     review["review<br/>reviewer"]
+    source_complete["source_complete<br/>reviewer<br/>COMPLETE"]
     human_review["human_review<br/>reviewer<br/>WAITING FOR HUMAN"]
     correction["correction<br/>writer"]
     release["release<br/>release-coordinator"]
@@ -12,6 +13,7 @@ flowchart LR
     administration -->|route-required: send article request to Writer| drafting
     administration -->|handled: administration complete| administration_complete
     drafting -->|review_ready| review
+    review -->|source_accepted: source-only review complete| source_complete
     review -->|accepted: review passes policy| release
     review -->|changes_required| correction
     review -->|human_action_required: listen or acceptance pending| human_review
@@ -33,4 +35,5 @@ flowchart LR
     class drafting start
     class human_review waiting
     class administration_complete done
+    class source_complete done
     class complete done
