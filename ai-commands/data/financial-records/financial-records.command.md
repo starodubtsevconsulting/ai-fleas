@@ -48,6 +48,15 @@ sidecar exists. Because two filesystem entries cannot be published as one atomic
 an observable partial state and a retry/recovery rule before any write path is enabled. A failed write must never
 silently overwrite, discard, or claim a completed extraction.
 
+The internal `ReviewPublisher` primitive is a building block, not an exposed apply operation. Given already validated
+PDF bytes, extraction, and canonical target paths, it stages both files with exclusive creation in the destination
+directory, verifies the staged PDF hash, and publishes each target with an exclusive hard link. A collision leaves
+existing targets intact. If sidecar publication fails after the PDF link, rollback removes that PDF only when its
+device and inode still match the primitive's own staged file; a changed target is retained and reported as partial.
+Staging entries are removed when still owned by this invocation. A process crash between the two links can leave a
+canonical PDF without its sidecar and owned staging entries. A future apply caller must detect that state and require
+review before retrying; it must not overwrite or silently infer completion from the PDF alone.
+
 The intended full implementation is one
 executable command for both no-UI workflow callers and the platform backend. Keep recognition, canonical naming,
 structured extraction, and reconciliation in that shared implementation; the backend may provide UI context and
