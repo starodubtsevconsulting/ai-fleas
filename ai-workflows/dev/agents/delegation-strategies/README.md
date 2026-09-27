@@ -9,9 +9,10 @@ instead of approving each small step.
 Before selection, resolve the selected **delegate target model** and its registered
 [strategy config](model-profiles/README.md). A workflow's `local_ai.model` selects the caller's Hermes model; it does
 not select the strategy for a distinct Coder target. In the configured Dev route, `qwen-coder` resolves
-`qwen3-coder-next-q5km` for the Hermes Admin caller, while `execution_delegates.dev.coder.model: qwen-bounded-coder`
-resolves `qwen3.6-35b-a3b-nvfp4` and that model entry's `delegation.strategy_config`. GPT Admin invokes the bounded
-model launcher directly, with no Q5 hop. Hermes Q5 callers use the same target strategy when invoking that route.
+`qwen3-coder-next-q5km` for the Hermes Admin caller, while `execution_delegates.dev.coder.model: qwen-coder-bounded`
+resolves the same provider model through its separate proposal-only strategy. The `qwen-bounded-coder` catalog entry
+retains Qwen3.6 35B for targeted comparison. GPT Admin invokes the bounded model launcher directly, with no Hermes
+caller hop. Hermes Q5 callers use the same target strategy when invoking that route.
 GPT Admin must load and apply the target strategy before a handoff; the launcher's `check` reports its validated path.
 The launcher does not inject strategy prose into the model prompt. Its evidence notes explain the settings; they do
 not replace the profile binding or these strategy rules.
