@@ -98,7 +98,6 @@ assert.deepEqual(dispatched.map(({ requiredExecutionRole, targetInstanceId }) =>
   ({ requiredExecutionRole, targetInstanceId })), [
   { requiredExecutionRole: 'coder', targetInstanceId: 'instance:coder' },
   { requiredExecutionRole: 'designer-reviewer', targetInstanceId: 'instance:designer-reviewer' },
-  { requiredExecutionRole: 'designer-reviewer', targetInstanceId: 'instance:designer-reviewer' },
 ]);
 
 state = router.transition({

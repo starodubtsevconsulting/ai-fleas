@@ -31,7 +31,8 @@ Writer-owned findings must resolve to a durable Markdown artifact under the repo
 
 `accepted` means the complete independent review gate is satisfied for the exact article and every selected rendered
 destination revision, with no unresolved Writer-owned findings. Apply both the selected listen-through preference and
-destination acceptance policy. When listen-through is enabled, Reviewer must offer verified narration and return
+destination acceptance policy. Every release-bound result includes a `destination-review` reference to durable evidence
+for the exact selected rendered draft; a source-only record cannot satisfy that reference. When listen-through is enabled, Reviewer must offer verified narration and return
 `human_action_required` with a `human-action` reference; the Router waits in `human_review` until the author confirms
 listening to that exact revision. A request to play returns `listen_pending` and remains in the wait state. When Medium
 does not require article acceptance, `human_listened` with exact `review` and `human-listen` evidence advances to Release
@@ -40,7 +41,9 @@ For an explicitly human-authorized test article, Reviewer may instead return `te
 human wait, with exact `review` and `test-listen-simulation` references. This is a separately labeled test route;
 it never asserts actual listening or changes the production `human_listened` gate.
 With listen-through disabled and `requires_human_article_acceptance: false`, a successful review may return `accepted`
-directly. “Source accepted” while destination rendering or visual review remains pending is not `accepted`.
+directly. For a source-only request with no authorized publication destination, a passing review returns terminal
+`source_accepted` with its exact `review` reference. It never routes to Release Coordinator. When publication is
+intended, “source accepted” while destination rendering or visual review remains pending is not `accepted`.
 Use `changes_required` only for work Writer can perform; a human rejection returns findings to Writer.
 
 For a release-gate diagnosis, the Router assigns Reviewer the exact review record and discrepancy. Reviewer returns

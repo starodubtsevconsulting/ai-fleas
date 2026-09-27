@@ -159,6 +159,10 @@ export function createWorkflowRuntime(definition, identity, entry = {}) {
     }
     const previous = snapshot();
     const advanced = transition(event);
+    if (advanced.status === 'completed') {
+      state.assignedInstanceId = null;
+      return snapshot();
+    }
     if (advanced.status === 'waiting-human') {
       state.assignedInstanceId = null;
       return snapshot();

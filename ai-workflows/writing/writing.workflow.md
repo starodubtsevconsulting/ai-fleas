@@ -87,8 +87,10 @@ them.
    the draft URL, status, and topics. Destination preparation never includes publication.
 6. Challenge the finished article through the [independent critique flow](flows/independent-critique.flow.md),
    addressing substantive findings before calling it release-ready. The computer offers a spoken preview when enabled;
-   a fresh-context reviewer checks the exact article and destination rendering. A source-only pass is not the workflow
-   event `accepted` while destination rendering or visual preparation remains pending. Reviewer returns
+   a fresh-context reviewer checks the exact article and destination rendering. If the human requested only an article
+   source and no publication destination was authorized, a passing source review returns terminal `source_accepted`;
+   no release stage runs. If publication is intended, a source-only pass is not the workflow event `accepted` while
+   destination rendering or visual preparation remains pending. Reviewer returns
    `changes_required` only for remaining Writer-owned preparation. When listen-through is enabled, a passing review
    returns `human_action_required` and the Router waits for the author to listen and confirm the exact narration.
    That listening requirement remains even when Medium sets `requires_human_article_acceptance: false`; in that case

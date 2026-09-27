@@ -45,6 +45,10 @@ assert.deepEqual(portableDefinition.stages.administration.transitions['route-req
   ['revision']);
 assert.equal(portableDefinition.stages.administration.transitions.handled.terminal, true);
 assert.match(visualMap, /administration -->\|route-required: send article request to Writer\| drafting/);
+assert.equal(portableDefinition.stages.review.transitions.source_accepted.to, 'source_complete');
+assert.equal(portableDefinition.stages.review.transitions.source_accepted.terminal, true);
+assert.deepEqual(portableDefinition.stages.review.transitions.source_accepted.requiredReferenceKinds, ['review']);
+assert.match(visualMap, /review -->\|source_accepted: source-only review complete\| source_complete/);
 assert.deepEqual(portableDefinition.stages.correction.transitions.review_ready.retryPolicy.progressReferenceKinds,
   ['revision', 'review-packet'], 'destination-only corrections must count changed review evidence');
 assert.match(visualMap, /human_review\["human_review<br\/>reviewer<br\/>WAITING FOR HUMAN"\]/);
@@ -52,7 +56,7 @@ assert.match(visualMap, /human_review -->\|listen_pending: wait for confirmation
 assert.match(visualMap, /human_review -->\|human_listened: review passed\| release/);
 assert.match(visualMap, /human_review -->\|test_listen_simulated: test release only\| release/);
 assert.deepEqual(portableDefinition.stages.human_review.transitions.test_listen_simulated.requiredReferenceKinds,
-  ['review', 'test-listen-simulation']);
+  ['review', 'destination-review', 'test-listen-simulation']);
 assert.match(visualMap, /complete\["complete<br\/>writer<br\/>COMPLETE"\]/);
 assert.match(visualMap, /release -->\|released: schedule verified; archive status\| archive_update/);
 assert.match(visualMap, /diagnosis -->\|review_ready: prepared packet\| review/);
@@ -75,6 +79,28 @@ const adapter = {
   async dispatch(packet) { dispatched.push(packet); },
 };
 const router = createWorkflowRuntime(definition, { ...scope, routerRuntimeId: 'writing-router-a' });
+
+const sourceDispatches = [];
+const sourceRouter = createWorkflowRuntime(definition, { ...scope, routerRuntimeId: 'writing-source-only' });
+const sourceAdapter = {
+  resolveRole: adapter.resolveRole,
+  async dispatch(packet) { sourceDispatches.push(packet); },
+};
+await sourceRouter.route({ scope, type: 'review_ready', expectedStage: 'drafting', references: [
+  { kind: 'revision', ref: 'article://source-only' },
+  { kind: 'review-packet', ref: 'review://source-only-packet' },
+] }, sourceAdapter);
+const sourceComplete = await sourceRouter.route({ scope, type: 'source_accepted', expectedStage: 'review', references: [
+  { kind: 'review', ref: 'review://source-only-pass' },
+] }, sourceAdapter);
+assert.equal(sourceComplete.status, 'completed');
+assert.equal(sourceComplete.currentStage, 'source_complete');
+assert.equal(sourceDispatches.length, 1, 'source-only acceptance must not dispatch release');
+const sourceReleaseGuard = createWorkflowRuntime(definition,
+  { ...scope, routerRuntimeId: 'writing-source-release-guard' }, { stage: 'review' });
+assert.throws(() => sourceReleaseGuard.transition({ scope, type: 'accepted', expectedStage: 'review', references: [
+  { kind: 'review', ref: 'review://source-only-pass' },
+] }), ({ code }) => code === 'BLOCKED_ROUTER_REFERENCE');
 
 await router.route({ scope, type: 'review_ready', expectedStage: 'drafting', references: [
   { kind: 'revision', ref: 'article://revision-1' },
@@ -102,6 +128,7 @@ await router.route({ scope, type: 'review_ready', expectedStage: 'correction', r
 ] }, adapter);
 await router.route({ scope, type: 'accepted', expectedStage: 'review', references: [
   { kind: 'review', ref: 'review://accepted-revision-3' },
+  { kind: 'destination-review', ref: 'review://medium-draft-revision-3' },
 ] }, adapter);
 const archivePending = await router.route({ scope, type: 'released', expectedStage: 'release', references: [
   { kind: 'release-record', ref: 'medium://scheduled-item-1' },
@@ -131,13 +158,14 @@ await testRouter.route({ scope, type: 'human_action_required', expectedStage: 'r
 ] }, testAdapter);
 const simulated = await testRouter.route({ scope, type: 'test_listen_simulated', expectedStage: 'human_review', references: [
   { kind: 'review', ref: 'review://test-pass' },
+  { kind: 'destination-review', ref: 'review://test-draft-pass' },
   { kind: 'test-listen-simulation', ref: 'test://explicit-simulation' },
 ] }, testAdapter);
 assert.equal(simulated.currentStage, 'release');
 assert.deepEqual(testDispatches.map(({ requiredExecutionRole }) => requiredExecutionRole),
   ['reviewer', 'release-coordinator']);
 assert.deepEqual(dispatched.map(({ requiredExecutionRole }) => requiredExecutionRole),
-  ['reviewer', 'writer', 'reviewer', 'writer', 'reviewer', 'release-coordinator', 'writer', 'writer']);
+  ['reviewer', 'writer', 'reviewer', 'writer', 'reviewer', 'release-coordinator', 'writer']);
 assert.ok(dispatched.every(({ targetInstanceId, requiredExecutionRole }) =>
   targetInstanceId === `writing:${requiredExecutionRole}`));
 assert.deepEqual(completed.history.map(({ fromRole, toRole }) => `${fromRole}->${toRole}`), [
@@ -180,6 +208,7 @@ assert.throws(() => listening.transition({ scope: listenScope, type: 'human_list
 ({ code }) => code === 'BLOCKED_ROUTER_REFERENCE');
 await listening.route({ scope: listenScope, type: 'human_listened', expectedStage: 'human_review', references: [
   { kind: 'review', ref: 'review://revision-1' },
+  { kind: 'destination-review', ref: 'review://destination-revision-1' },
   { kind: 'human-listen', ref: 'human-listen://confirmed-revision-1' },
 ] }, listenAdapter);
 assert.deepEqual(listenDispatches.map(({ requiredExecutionRole }) => requiredExecutionRole),

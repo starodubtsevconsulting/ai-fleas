@@ -49,10 +49,16 @@
       "role": "reviewer",
       "capability": "independent_critique",
       "transitions": {
+        "source_accepted": {
+          "to": "source_complete",
+          "visualLabel": "source_accepted: source-only review complete",
+          "terminal": true,
+          "requiredReferenceKinds": ["review"]
+        },
         "accepted": {
           "to": "release",
           "visualLabel": "accepted: review passes policy",
-          "requiredReferenceKinds": ["review"],
+          "requiredReferenceKinds": ["review", "destination-review"],
           "retryPolicy": {
             "requireChangedProgress": true,
             "progressReferenceKinds": ["review"]
@@ -70,6 +76,11 @@
         }
       }
     },
+    "source_complete": {
+      "role": "reviewer",
+      "capability": "independent_critique",
+      "transitions": {}
+    },
     "human_review": {
       "role": "reviewer",
       "capability": "human_listen_through",
@@ -83,16 +94,16 @@
         "human_listened": {
           "to": "release",
           "visualLabel": "human_listened: review passed",
-          "requiredReferenceKinds": ["review", "human-listen"]
+          "requiredReferenceKinds": ["review", "destination-review", "human-listen"]
         },
         "test_listen_simulated": {
           "to": "release",
           "visualLabel": "test_listen_simulated: test release only",
-          "requiredReferenceKinds": ["review", "test-listen-simulation"]
+          "requiredReferenceKinds": ["review", "destination-review", "test-listen-simulation"]
         },
         "human_accepted": {
           "to": "release",
-          "requiredReferenceKinds": ["human-acceptance"]
+          "requiredReferenceKinds": ["human-acceptance", "destination-review"]
         },
         "human_rejected": {
           "to": "correction",
@@ -164,7 +175,7 @@
         "proven": {
           "to": "release",
           "visualLabel": "proven: new release-gate proof",
-          "requiredReferenceKinds": ["review", "release-gate"],
+          "requiredReferenceKinds": ["review", "destination-review", "release-gate"],
           "retryPolicy": {
             "requireChangedProgress": true,
             "progressReferenceKinds": ["review", "release-gate"]

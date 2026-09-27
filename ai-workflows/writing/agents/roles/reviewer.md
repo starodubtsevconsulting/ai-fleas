@@ -89,6 +89,14 @@ starting playback. Require the author's explicit confirmation that they listened
 When the profile grants online synthesis for publication-intended articles, do not introduce a second per-article
 permission gate for that service. If host approval review denies the network action, report that blocker directly.
 
+For an explicitly source-only article with no authorized publication destination, a passing independent source review
+returns `source_accepted` with the exact durable `review` reference. This is terminal for the requested source scope;
+it does not enter release, select a destination, or claim rendered-draft or listening evidence. Reserve `accepted` for
+a complete destination review when its release policy permits that transition.
+Every result that advances to `release` must also include a `destination-review` reference to durable evidence naming
+the selected destination, its exact rendered draft revision, and the independent disposition. A source-only review
+cannot supply that reference. Do not relabel a source-only record as destination evidence.
+
 Do not return `changes_required` merely because the human has not listened or accepted yet; Writer cannot satisfy a
 human-only gate. If listen-through is disabled and Medium has `requires_human_article_acceptance: false`, return
 `accepted` with a new `review` reference after the complete independent article and destination review passes.
