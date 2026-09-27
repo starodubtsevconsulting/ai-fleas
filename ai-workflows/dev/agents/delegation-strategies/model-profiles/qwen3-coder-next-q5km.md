@@ -39,6 +39,14 @@ assignment; they do not claim that every run or other deployment of the model be
 
 ## A2A versus CLI one-shot comparison
 
+A later read-only, no-tool `READY` probe separated basic response latency from coding-task behavior. The local model API
+returned in about 0.4 seconds; the first Hermes CLI call took about 8.6 seconds, a repeated CLI call about 2.4 seconds,
+and the profile delegate launcher completed `check` in about 0.1 seconds and `run` in about 2.9 seconds. These are single
+warm/cold observations with slightly different system prompts, not a controlled throughput benchmark. The A2A gateway
+was stopped, so this probe did not measure A2A. It suggests that the multi-minute coding runs need phase-level diagnosis
+of prompt processing, model turns, tool calls, and retries rather than attributing the delay to transport overhead alone.
+The earlier matched coding run below is the available transport comparison.
+
 On one visible branch, the same one-file task asked the Coder to recognize the English phrase `SNOW REMOVAL CONTRACT`
 with `PAYMENT` while retaining the French path. The same profile, model, project, assignment text, and four independent
 behavior checks were used. The recognizer was restored to the same starting revision between runs; the two runs were
