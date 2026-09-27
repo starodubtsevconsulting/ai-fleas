@@ -5,7 +5,7 @@ This document describes the current direct Admin-to-Hermes Coder route. The sele
 ## Configuration and trust boundary
 
 ```mermaid
-flowchart LR
+flowchart TB
   H[Human assignment] --> A[Workflow Admin / coordinator]
   P[Selected work profile] -->|commands: gpt-agents config path| G[Profile GPT command config]
   G -->|execution_delegates.workflow.coder| L[Hermes delegate launcher]
