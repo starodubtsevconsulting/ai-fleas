@@ -59,3 +59,14 @@ test('recognizes total without separator (unlabeled-space-only) for plain-space 
   const result = recognizeBookingReservation(input(parts)).result;
   assert.deepEqual(result.primaryTotal, { amount: 1475.76, currency: 'CAD', label: 'total-price' });
 });
+
+test('reads a complete ungrouped amount and rejects partial malformed totals', async () => {
+  const { recognizeBookingReservation } = await recognizer();
+  const prefix = 'Booking.com Reservation Details Accommodation: Chalet Reservation Number: BK-1475 '
+    + 'Check-in: Aug 14 2026 Check-out: Aug 18 2026 4 nights 1 room '
+    + 'Booking.com facilitated guest payment Commissionable amount CAD 1200.00 ';
+  assert.deepEqual(recognizeBookingReservation(input([prefix, 'Total room price CAD 1475.76'])).result.primaryTotal,
+    { amount: 1475.76, currency: 'CAD', label: 'total-room-price' });
+  assert.equal(recognizeBookingReservation(input([prefix, 'Total room price CAD 1475.7'])).result.primaryTotal, undefined);
+  assert.equal(recognizeBookingReservation(input([prefix, 'Total room price CAD 1,47'])).result.primaryTotal, undefined);
+});

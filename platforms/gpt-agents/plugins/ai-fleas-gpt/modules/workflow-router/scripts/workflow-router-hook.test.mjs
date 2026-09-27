@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 const hook = fileURLToPath(new URL('./workflow-router-hook.mjs', import.meta.url));
 const lifecycleControl = fileURLToPath(new URL('./register-lifecycle-control.mjs', import.meta.url));
 const lifecycleQueue = fileURLToPath(new URL('./queue-lifecycle-control.mjs', import.meta.url));
+const registerWorkflow = fileURLToPath(new URL('./register-workflow.mjs', import.meta.url));
 
 function fixture() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-fleas-router-hook-'));
@@ -191,6 +192,58 @@ test('preserves one correlation across a permitted routed transition and its nex
   assert.equal(JSON.parse(queued.message.split('\n').slice(2).join('\n')).correlationId, packet.correlationId);
 });
 
+test('exception recovery resumes the exact interrupted stage only with its permitted correlation', () => {
+  const root = fixture();
+  const file = path.join(root, 'bindings.json');
+  const registry = JSON.parse(fs.readFileSync(file, 'utf8'));
+  registry.sessions.manager = { ...registry.sessions.bound, role: 'Manager', capabilities: ['recovery'] };
+  const workflow = registry.workflows['example:example:example-project:scope-1'];
+  workflow.endpoints.Manager = 'manager';
+  workflow.exceptionTransitions = { blocked: { to: 'recovery', requiredReferenceKinds: ['blocker'] } };
+  workflow.stages.recovery = { role: 'Manager', capability: 'recovery', transitions: {
+    resumed: { to: '$resumeStage', requiredReferenceKinds: ['recovery'] },
+  } };
+  fs.writeFileSync(file, JSON.stringify(registry));
+
+  run(root, { session_id: 'bound', turn_id: 'review-start', hook_event_name: 'UserPromptSubmit', prompt: 'review' });
+  const correlationId = 'codex:bound:review-start';
+  run(root, { session_id: 'bound', turn_id: 'review-start', hook_event_name: 'Stop',
+    last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
+      acknowledgement: 'COPY THAT', correlationId, stage: 'review', role: 'Reviewer', event: 'blocked',
+      references: [{ kind: 'blocker', ref: 'artifact://review-blocker' }],
+    })}` });
+  const queued = JSON.parse(fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8'));
+  assert.equal(queued.thread, 'manager');
+  const packet = JSON.parse(queued.message.split('\n').slice(2).join('\n'));
+  assert.equal(packet.from.stage, 'review');
+  assert.equal(packet.to.stage, 'recovery');
+
+  permitWorkflowDispatch(root, 'manager', queued.message, packet);
+  run(root, { session_id: 'manager', turn_id: 'manager-recovery', hook_event_name: 'UserPromptSubmit',
+    prompt: queued.message });
+  const receipt = JSON.parse(fs.readFileSync(path.join(root, 'correlations', 'manager.json'), 'utf8'));
+  assert.equal(receipt.resumeStage, 'review');
+  assert.equal(receipt.recoveryStage, 'recovery');
+  run(root, { session_id: 'manager', turn_id: 'manager-recovery', hook_event_name: 'Stop',
+    last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
+      acknowledgement: 'COPY THAT', correlationId, stage: 'recovery', role: 'Manager', event: 'resumed',
+      references: [{ kind: 'recovery', ref: 'decision://resume-review' }],
+    })}` });
+  const lines = fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8').trim().split('\n');
+  const resumed = JSON.parse(lines[1]);
+  assert.equal(resumed.thread, 'bound');
+  assert.equal(JSON.parse(resumed.message.split('\n').slice(2).join('\n')).to.stage, 'review');
+
+  run(root, { session_id: 'manager', turn_id: 'direct-human', hook_event_name: 'UserPromptSubmit', prompt: 'resume' });
+  const rejected = run(root, { session_id: 'manager', turn_id: 'direct-human', hook_event_name: 'Stop',
+    last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
+      acknowledgement: 'COPY THAT', correlationId: 'codex:manager:direct-human', stage: 'recovery',
+      role: 'Manager', event: 'resumed', references: [{ kind: 'recovery', ref: 'decision://spoofed' }],
+    })}` });
+  assert.equal(rejected.decision, 'block');
+  assert.match(rejected.reason, /Transition target "\$resumeStage" has no declared owner/);
+});
+
 test('does not trust Router-looking prompt text without its exact host permit', () => {
   const root = fixture();
   const packet = {
@@ -334,6 +387,101 @@ test('dispatches accepted review to release coordinator, not writer', () => {
   assert.deepEqual(output, {});
   const queued = JSON.parse(fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8'));
   assert.equal(queued.thread, 'release');
+});
+
+test('dispatches a route stage to its exact caller and accepts only a permitted proxy result', () => {
+  const root = fixture();
+  const file = path.join(root, 'bindings.json');
+  const registry = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const workflow = registry.workflows['example:example:example-project:scope-1'];
+  registry.sessions.admin = {
+    status: 'active', role: 'Admin', workflowSource: 'ai-workflows/example/example.workflow.md',
+    capabilities: ['implementation-proxy'], scope: workflow.scope,
+  };
+  workflow.endpoints.Admin = 'admin';
+  workflow.routes = { Coder: { id: 'bounded-coder', callerRole: 'Admin', projectId: 'example-service' } };
+  workflow.stages.review.transitions.needs_implementation = {
+    to: 'implementation', requiredReferenceKinds: ['plan'],
+  };
+  workflow.stages.implementation = { role: 'Coder', transitions: {
+    implemented: { to: 'review', requiredReferenceKinds: ['revision'] },
+  } };
+  fs.writeFileSync(file, JSON.stringify(registry));
+
+  assert.deepEqual(run(root, {
+    session_id: 'bound', turn_id: 'review-to-coder', hook_event_name: 'Stop',
+    last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
+      acknowledgement: 'COPY THAT', correlationId: 'codex:bound:review-to-coder',
+      stage: 'review', role: 'Reviewer', event: 'needs_implementation',
+      references: [{ kind: 'plan', ref: 'artifact://plan-1' }],
+    })}`,
+  }), {});
+  const queued = JSON.parse(fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8'));
+  assert.equal(queued.thread, 'admin');
+  const packet = JSON.parse(queued.message.split('\n').slice(2).join('\n'));
+  assert.deepEqual(packet.route, { id: 'bounded-coder', callerRole: 'Admin', projectId: 'example-service' });
+  const unpermitted = run(root, {
+    session_id: 'admin', turn_id: 'unpermitted', hook_event_name: 'UserPromptSubmit', prompt: queued.message,
+  });
+  assert.doesNotMatch(unpermitted.hookSpecificOutput.additionalContext, /proxy for route/);
+  const unpermittedResult = run(root, {
+    session_id: 'admin', turn_id: 'unpermitted', hook_event_name: 'Stop',
+    last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
+      acknowledgement: 'COPY THAT', correlationId: 'codex:admin:unpermitted',
+      stage: 'implementation', role: 'Coder', event: 'implemented', references: [],
+    })}`,
+  });
+  assert.equal(unpermittedResult.decision, 'block');
+  permitWorkflowDispatch(root, 'admin', queued.message, packet);
+  const submitted = run(root, {
+    session_id: 'admin', turn_id: 'proxy-turn', hook_event_name: 'UserPromptSubmit', prompt: queued.message,
+  });
+  assert.match(submitted.hookSpecificOutput.additionalContext, /proxy for route "bounded-coder".*project "example-service"/);
+  const wrongStage = run(root, {
+    session_id: 'admin', turn_id: 'proxy-turn', hook_event_name: 'Stop',
+    last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
+      acknowledgement: 'COPY THAT', correlationId: packet.correlationId,
+      stage: 'review', role: 'Coder', event: 'implemented', references: [],
+    })}`,
+  });
+  assert.equal(wrongStage.decision, 'block');
+  assert.match(wrongStage.reason, /preserve stage "implementation"/);
+  assert.deepEqual(run(root, {
+    session_id: 'admin', turn_id: 'proxy-turn', hook_event_name: 'Stop',
+    last_assistant_message: `WORKFLOW_ROUTER_RESULT ${JSON.stringify({
+      acknowledgement: 'COPY THAT', correlationId: packet.correlationId,
+      stage: 'implementation', role: 'Coder', event: 'implemented',
+      references: [{ kind: 'revision', ref: 'git://revision-1' }],
+    })}`,
+  }), {});
+  const deliveries = fs.readFileSync(path.join(root, 'queue.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
+  assert.equal(deliveries[1].thread, 'bound');
+});
+
+test('workflow registration requires an explicit project and endpoint-backed route caller', () => {
+  const root = fixture();
+  const projectionFile = path.join(root, 'projection.json');
+  const runtimeFile = path.join(root, 'runtime.json');
+  fs.writeFileSync(projectionFile, JSON.stringify({
+    stages: { implementation: { role: 'Coder', transitions: {} } },
+  }));
+  const runtime = {
+    scope: { profileId: 'example', workflowId: 'example', logicalProjectId: 'example-project', runtimeScopeId: 'scope-1' },
+    endpoints: { Admin: 'admin' },
+    routes: { Coder: { id: 'bounded-coder', callerRole: 'Admin', projectId: 'example-service' } },
+  };
+  fs.writeFileSync(runtimeFile, JSON.stringify(runtime));
+  const execute = () => spawnSync(process.execPath, [registerWorkflow, projectionFile, runtimeFile], {
+    env: { ...process.env, PLUGIN_DATA: root }, encoding: 'utf8',
+  });
+  assert.equal(execute().status, 0);
+  const registered = JSON.parse(fs.readFileSync(path.join(root, 'bindings.json'), 'utf8'));
+  assert.deepEqual(registered.workflows['example:example:example-project:scope-1'].routes, runtime.routes);
+  delete runtime.routes.Coder.projectId;
+  fs.writeFileSync(runtimeFile, JSON.stringify(runtime));
+  const rejected = execute();
+  assert.notEqual(rejected.status, 0);
+  assert.match(rejected.stderr, /route Coder requires/);
 });
 
 test('does not re-dispatch release when Reviewer returns the same review evidence', () => {

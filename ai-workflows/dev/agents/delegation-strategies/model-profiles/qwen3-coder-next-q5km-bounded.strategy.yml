@@ -1,0 +1,29 @@
+schema_version: local-coder-strategy.v1
+applies_to:
+  provider_model: qwen3-coder-next-q5km
+strategy:
+  default: focused-implementation
+  transport: bounded-model
+  output: proposal-only
+assignment:
+  preferred_scope: one-function-or-small-cohesive-change
+  correction_limit_per_stage: 1
+  require:
+    - self-contained-relevant-code-excerpts
+    - interfaces-and-callers-to-preserve
+    - exact-input-output-and-rejection-examples
+    - output-format-and-stop-condition
+  limits:
+    max_input_chars: 12000
+    max_output_tokens: 4096
+verification:
+  owner: caller-and-independent-reviewer
+  require:
+    - inspect-code-against-every-example
+    - run-focused-checks-on-accepted-code
+    - execute-positive-and-negative-examples-through-command-runner-before-acceptance
+    - reject-model-self-review-as-verification-evidence
+    - inspect-visible-diff
+  completion_text_alone_is_sufficient: false
+evidence_notes: >-
+  This is the bounded proposal-only route for the Q5 provider model, separate from its Hermes file-tool strategy. The caller applies reviewed proposals and verifies the resulting code independently. The controlled Hermes worker result does not by itself establish autonomous success for this direct-model route.

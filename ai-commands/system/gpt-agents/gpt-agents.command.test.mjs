@@ -23,9 +23,12 @@ const exampleWorkflow = exampleProfile.workflows.find((workflow) => workflow.pat
 
 const portableRoles = [portable.initializer.agentId, ...portable.agents.map((agent) => agent.agentId)];
 const adapterRoles = adapter.role_endpoints.map((agent) => agent.role);
+const routeRoles = adapter.role_routes.map((route) => route.role);
 assert.equal(new Set(portableRoles).size, portableRoles.length, 'portable roles must be unique');
 assert.equal(new Set(adapterRoles).size, adapterRoles.length, 'GPT bindings must be unique');
-assert.deepEqual([...adapterRoles].sort(), [...portableRoles].sort(), 'portable and GPT roles must map one-to-one');
+assert.equal(new Set(routeRoles).size, routeRoles.length, 'GPT routes must be unique');
+assert.deepEqual([...adapterRoles, ...routeRoles].sort(), [...portableRoles].sort(), 'portable roles must map to one GPT endpoint or route');
+assert.deepEqual(routeRoles.sort(), ['coder', 'command-runner']);
 assert.equal(exampleConfig.schema_version, 'gpt-agents-command-config.v1');
 assert.equal(exampleConfig.grouping.project_name_template, '{profile}-{workflow}{suffix}');
 assert.equal(exampleConfig.grouping.reuse_requires_recorded_project_id, true);
@@ -52,6 +55,13 @@ for (const role of portableRoles) {
     ? portable.initializer
     : portable.agents.find((agent) => agent.agentId === role);
   const binding = adapter.role_endpoints.find((agent) => agent.role === role);
+  const route = adapter.role_routes.find((entry) => entry.role === role);
+  if (route) {
+    assert.equal(route.profile_key, `execution_delegates.dev.${role.replaceAll('-', '_')}`);
+    assert.deepEqual(route.caller_roles, ['admin', 'designer-reviewer']);
+    assert.ok(adapter.role_contracts[role], `${role} role contract is missing`);
+    continue;
+  }
   assert.ok(binding.title && binding.model && binding.reasoning, `${role} GPT realization is incomplete`);
   assert.equal('readiness_token' in binding, false, `${role} must inherit readiness from portable manifest`);
   assert.equal('lifecycle' in binding, false, `${role} must inherit lifecycle from portable manifest`);

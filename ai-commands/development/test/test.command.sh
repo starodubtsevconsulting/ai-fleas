@@ -4,6 +4,7 @@ ai_command_require_profile "test" || exit $?
 set -euo pipefail
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"
+AUTHORIZED_PROJECT_DIR="$AI_FLOW_PROJECT_DIR"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POMODORO_PRELUDE_SH="$SCRIPT_DIR/../pomodoro/pomodoro.prelude.sh"
 if [[ -x "$POMODORO_PRELUDE_SH" ]]; then
@@ -13,6 +14,7 @@ fi
 PROJECT_DIR="$AI_FLOW_PROJECT_DIR"
 PROJECT_NAME=""
 TEST_FILE=""
+TEST_SCRIPT=""
 TEST_NAME=""
 BASE_REF=""
 HEAD_REF=""
@@ -47,6 +49,14 @@ while [ $# -gt 0 ]; do
         exit 2
       fi
       TEST_FILE="$2"
+      shift 2
+      ;;
+    --script)
+      if [ $# -lt 2 ]; then
+        echo "Missing value for --script" >&2
+        exit 2
+      fi
+      TEST_SCRIPT="$2"
       shift 2
       ;;
     --name)
@@ -120,7 +130,19 @@ if [ ! -d "$PROJECT_DIR" ]; then
   exit 1
 fi
 
+if [ -n "$TEST_SCRIPT" ]; then
+  if [ -n "$PROJECT_NAME$TEST_FILE$TEST_NAME$BASE_REF$HEAD_REF$GREP_PATTERN" ] || [ "$RUN_LIST" -eq 1 ] || [ "$RUN_AFFECTED" -eq 1 ] || [ "$RUN_E2E_DEV" -eq 1 ] || [ ${#extra_args[@]} -gt 0 ]; then
+    echo "--script cannot be combined with other test selectors or extra arguments" >&2
+    exit 2
+  fi
+  if [ -n "$AUTHORIZED_PROJECT_DIR" ] && [ "$(cd "$PROJECT_DIR" && pwd -P)" != "$(cd "$AUTHORIZED_PROJECT_DIR" && pwd -P)" ]; then
+    echo "Test script project differs from authorized project" >&2
+    exit 2
+  fi
+fi
+
 cd "$PROJECT_DIR"
+PROJECT_DIR="$(pwd -P)"
 
 TIMEOUT_BIN=""
 if command -v timeout >/dev/null 2>&1; then
@@ -147,6 +169,36 @@ run_with_timeout() {
   fi
   return "$status"
 }
+
+if [ -n "$TEST_SCRIPT" ]; then
+  case "$TEST_SCRIPT" in
+    /*|*..*) echo "Test script must be a repository-relative path" >&2; exit 2 ;;
+    *.test.sh|*.test.mjs) ;;
+    *) echo "Test script must end in .test.sh or .test.mjs" >&2; exit 2 ;;
+  esac
+  [ -f "$PROJECT_DIR/$TEST_SCRIPT" ] || { echo "Test script not found" >&2; exit 2; }
+  resolved_script="$(realpath "$PROJECT_DIR/$TEST_SCRIPT")"
+  [[ "$resolved_script" == "$PROJECT_DIR"/* ]] || { echo "Test script escapes project" >&2; exit 2; }
+  [[ "$TEST_TIMEOUT_SEC" =~ ^[0-9]+$ ]] && [ "$TEST_TIMEOUT_SEC" -gt 0 ] || { echo "Invalid test timeout" >&2; exit 2; }
+  if [[ "$resolved_script" == *.test.sh ]]; then test_bin=/bin/bash; else test_bin="$(command -v node)"; fi
+  python3 - "$TEST_TIMEOUT_SEC" "$test_bin" "$resolved_script" <<'PY'
+import os
+import signal
+import subprocess
+import sys
+
+process = subprocess.Popen(sys.argv[2:], start_new_session=True)
+try:
+    status = process.wait(timeout=int(sys.argv[1]))
+except subprocess.TimeoutExpired:
+    os.killpg(process.pid, signal.SIGKILL)
+    process.wait()
+    print(f"Test script exceeded {sys.argv[1]} seconds", file=sys.stderr)
+    raise SystemExit(124)
+raise SystemExit(status)
+PY
+  exit $?
+fi
 
 if [ "$RUN_LIST" -eq 1 ]; then
   exec npx nx show projects

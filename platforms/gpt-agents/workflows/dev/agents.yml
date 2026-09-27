@@ -12,9 +12,11 @@ team_policy: ../../../../ai-workflows/dev/agents/team.md
 # Optional `utility_delegates` in the profile-owned GPT command config are
 # hidden, read-only helpers governed by the portable utility-subagents contract.
 # They do not add role endpoints, saved-project tasks, or Router authority.
-# For direct Hermes Coder requests and Admin-run Dev with `all-coder-work`,
-# MUST use profile-owned `execution_delegates.dev.coder` as the real endpoint. MUST block on
-# failed verification or delivery; MUST NOT emulate Coder or create a GPT task.
+# For Admin-run Dev with `all-coder-work`, use profile-owned
+# `execution_delegates.dev.coder` as the route. A proposal-only route has no
+# visible Coder task and returns text for Admin to review and apply.
+# `execution_delegates.dev.command_runner` may likewise execute registered
+# commands directly without a visible Command Runner task.
 workflow_runtime:
   id: workflow-router
   visibility: hidden
@@ -42,18 +44,20 @@ role_endpoints:
     title: "🤖 Manager"
     model: gpt-5.6-luna
     reasoning: medium
-  - role: coder
-    title: "🔀 Coder"
-    model: gpt-5.6-terra
-    reasoning: medium
-  - role: command-runner
-    title: "⚙️ Command Runner"
-    model: gpt-5.6-terra
-    reasoning: low
   - role: ui-acceptance-tester
     title: "🖥️ UI Acceptance Tester"
     model: gpt-5.6-terra
     reasoning: low
+
+# These portable roles are fulfilled by profile-owned execution routes. They
+# have no Codex task identity, readiness token, or visible roster entry.
+role_routes:
+  - role: coder
+    profile_key: execution_delegates.dev.coder
+    caller_roles: [admin, designer-reviewer]
+  - role: command-runner
+    profile_key: execution_delegates.dev.command_runner
+    caller_roles: [admin, designer-reviewer]
 
 role_contracts:
   admin: ../../../../ai-workflows/_common/roles/admin.md

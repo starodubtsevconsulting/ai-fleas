@@ -17,7 +17,9 @@ export class WorkflowTransitionPacket {
   toCodexTaskMessage() {
     return [
       'WORKFLOW_ROUTER_DISPATCH',
-      ROUTED_TASK_INSTRUCTION,
+      this.value.route
+        ? `Act as the authorized caller for route "${this.value.route.id}" in role "${this.value.to.role}" for exact project "${this.value.route.projectId}". Use the bound workflow instructions and durable references. A proposal alone does not complete the stage.`
+        : ROUTED_TASK_INSTRUCTION,
       JSON.stringify(this.value),
     ].join('\n');
   }

@@ -25,7 +25,7 @@ flowchart TD
 
 | Report | Practical purpose | Current model or target | Status |
 |---|---|---|---|
-| [ASUS Ascent GX10](local-models/gx10.md) | Heavyweight local coding and agent worker with long context and reliable Hermes tool use | Qwen3-Coder-Next Q5_K_M is the current practical choice; larger and higher-quality candidates remain under test | Controlled throughput, latency, memory, and tool-use evidence recorded |
+| [ASUS Ascent GX10](local-models/gx10.md) | Heavyweight local coding and agent worker with long context and reliable Hermes tool use | Qwen3-Coder-Next Q5_K_M is the default; Qwen3.6 35B remains an optional bounded comparison route | Controlled throughput, latency, memory, tool-use, and proposal-only pilot evidence recorded |
 | [RTX 3080 Ti workstation](local-models/rtx-3080-ti.md) | Responsive local System agent and frequent micro-command worker | Qwen3.5 9B Q4_K_M is the current fully GPU-resident Hermes-compatible candidate | Direct inference and operational Hermes evidence recorded |
 | [MacBook Pro M5](local-models/macbook-pro-m5.md) | Portable local inference without consuming larger worker capacity | Start near a 30B Q6 class and step down until normal laptop headroom and responsiveness are preserved | Controlled benchmark pending |
 | [MINISFORUM UM790 Pro](local-models/minisforum-um790-pro.md) | Compact always-on worker for small background, scheduled, and classification tasks | Determine the strongest practical CPU/integrated-GPU configuration | Controlled benchmark pending |

@@ -13,7 +13,10 @@ For workflow initialization, resolve the exact profile, workflow, complete logic
 `local_ai.providers_config`, `local_ai.provider`, and `local_ai.model` references must resolve exactly once through the
 profile-owned catalog. Never infer a nearby machine, endpoint, model, launcher, or companion repository.
 
-One logical workflow agent maps to one exact Hermes profile ID. Reconcile it through
+Each logical workflow agent realized as a Hermes profile maps to one exact Hermes profile ID. A profile may declare
+Coder as a bounded model route or Command Runner as a registered-command route. Those roles have no Hermes profile;
+Coder returns proposals, while Command Runner returns real command evidence through the configured wrapper.
+Reconcile profile-bound roles through
 `ai-commands/system/hermes-agents/hermes-agents.command.sh initialize`; preserve conversations and memory by default. The generated profile must
 reference the selected workflow contract, allowed commands, project workspace, and applicable repository instructions.
 Verify provider, concrete model, endpoint reachability, context settings, and workspace after setup. A plain `initialize` is workflow-scoped and never initializes System.
@@ -31,7 +34,8 @@ gateway ticker before returning `SYSTEM_READY`. Deliver scheduled output into Sy
 Provider endpoints, authentication references, concrete model IDs, and machine labels remain in the operational profile.
 They are configuration of this adapter, not part of its public contract. Workflow deletion requires exact workflow identities and must leave System unchanged.
 
-Hermes workflow profiles remain distinct agent identities. Cross-agent transport is adapter capability, not a portable
+Hermes workflow profiles remain distinct agent identities. A bounded Coder route is a tool, not a merged agent identity.
+Cross-agent transport is adapter capability, not a portable
 workflow assumption. If an authorized Hermes A2A/peer transport is configured, route bounded workflow packets through
 it while preserving exact sender/receiver identities and review independence. If direct transport is unavailable, use
 the selected platform orchestrator or human-visible bounded handoff and report the transport limitation. Never collapse

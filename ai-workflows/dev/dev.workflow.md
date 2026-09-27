@@ -4,6 +4,29 @@ The development workflow follows the common [agent rules](../agents.md), the wor
 
 This file owns orchestration only: workflow order, applicable gates, and the supporting guides used by each step. Role permissions, responsibility ownership, communication boundaries, and lifecycle rules remain in their authoritative agent and team contracts and are not repeated here.
 
+The executable projection is [dev.workflow-map.json](dev.workflow-map.json), with a generated [Mermaid view](dev.workflow-map.mmd). Map events represent the completion evidence and applicability decisions owned by the numbered steps and linked flow exits. Manager recovery returns to the recorded interrupted stage; a human planning or demo decision remains pending until explicitly resolved.
+
+The Router uses these stage-specific capability IDs to select one entry stage and one owner. They refine the numbered steps and linked flows; they do not expand the permissions in the [role capability matrix](agents/role-capability-ownership.csv).
+
+| Stage | Capability ID | Owner |
+| --- | --- | --- |
+| `target_resolution` | `target_resolution` | Manager |
+| `planning` | `requirements` | Designer / Reviewer |
+| `implementation` | `implementation` | Coder |
+| `verification` | `verification_coordination` | Designer / Reviewer |
+| `test_execution` | `mechanical_execution` | Command Runner |
+| `debugging` | `debugging_diagnosis` | Designer / Reviewer |
+| `independent_review` | `technical_review` | Designer / Reviewer |
+| `ui_acceptance` | `visible_ui_acceptance` | UI Acceptance Tester |
+| `final_acceptance` | `final_acceptance` | Designer / Reviewer |
+| `demo` | `demo_coordination` | Designer / Reviewer |
+| `delivery` | `source_control_mechanics` | Command Runner |
+| `deployment_verification` | `deployment_verification` | Designer / Reviewer |
+| `deployment_debugging` | `deployment_debugging` | Designer / Reviewer |
+| `closure` | `ticket_closure` | Manager |
+| `complete` | `completion_record` | Manager |
+| `recovery` | `recovery_coordination` | Manager |
+
 The common [Workflow Router runtime](../_common/runtime/workflow-router.md) may execute these ordered steps. This file is
 the authoritative program: each step declares the role that performs it, and applicable flows declare finer-grained
 role assignments. The Router resolves each declared role to an exact runtime instance, dispatches the next step, and
@@ -26,27 +49,29 @@ An emulating Admin names the roles it is emulating and never presents emulated w
 approval, Command Runner execution, or UI acceptance. Read-only questions may use a compact status. Missing trusted
 identity or scope blocks mutation instead of silently entering an implementation phase.
 
-## Admin execution with a real Coder delegate
+## Admin execution through the configured Coder route
 
-Apply this route in either case: the human directly asks Admin to delegate a coding task to Hermes coder, or the human
+Apply this route in either case: the human directly asks Admin to delegate a coding task, or the human
 asks Admin to do Dev work and the selected profile sets `execution_delegates.dev.coder.routing_policy: all-coder-work`.
 Under that policy, route every Coder-owned implementation task, including small tasks, until the profile policy changes.
 
 For each routed task:
 
-1. Admin MUST state which roles it emulates and identify any real delegate before the first mutation.
+1. Admin MUST state which roles it emulates and identify the selected Coder route before the first mutation.
 2. Before step 3, Admin MUST settle the authorized project, work target, requirements, file scope, allowed effects, and
    completion evidence.
 3. Admin MUST resolve preferred `execution_delegates.dev.coder` and run its declared launcher with
    `check --project <authorized-project-id>`. A failed
-   check blocks the Coder task. Admin MUST NOT fall back to local Coder emulation or a GPT roster Coder.
+   check blocks the Coder task. Admin MUST NOT fall back to a GPT roster Coder.
 4. Admin MUST send the bounded implementation assignment with that launcher's
    `run --project <same-project-id> "<assignment>"` action and wait for its terminal
    result. Admin MUST NOT edit the same assigned files while Coder is working.
-5. Admin MUST inspect the returned diff and evidence, name Coder as real delegated execution, and keep testing,
-   independent review, UI acceptance, and delivery as separate gates. A failed or missing result blocks progression.
+5. Admin MUST inspect the returned work and evidence. For a proposal-only route, Admin applies accepted code to the
+   visible checkout and inspects the resulting diff. Testing, independent review, UI acceptance, and delivery remain
+   separate gates. A failed or missing result blocks progression.
 
-This Admin-to-Coder route is neither Router dispatch nor utility-subagent work. It grants no peer route to workflow Agents.
+This route is neither Router dispatch nor utility-subagent work. A profile may authorize Designer / Reviewer to use
+the same bounded Coder route while retaining ownership of design and independent review.
 
 ## Workflow
 

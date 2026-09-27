@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { WorkflowTransitionPacket } from './workflow-transition-packet.mjs';
 
 const COORDINATES = ['profileId', 'workflowId', 'logicalProjectId', 'runtimeScopeId'];
+const EXCEPTION_EVENTS = new Set(['blocked', 'depleted', 'unclear']);
 const RESULT_FIELDS = new Set(['acknowledgement', 'correlationId', 'stage', 'role', 'event', 'references']);
 
 function readInput() {
@@ -115,10 +116,15 @@ function lifecycleContext(binding, turn) {
   ].join('\n');
 }
 
-function persistCorrelation(sessionId, value) {
+function persistCorrelation(sessionId, value, dispatchPacket = null, turnId = null) {
   if (!sessionId || !value) return null;
   const file = correlationPath(sessionId);
-  if (file) atomicWrite(file, { correlationId: value });
+  if (file) atomicWrite(file, {
+    correlationId: value,
+    ...(dispatchPacket?.route ? { routeRole: dispatchPacket.to.role, routeStage: dispatchPacket.to.stage, turnId } : {}),
+    ...(dispatchPacket && EXCEPTION_EVENTS.has(dispatchPacket.from?.event)
+      ? { resumeStage: dispatchPacket.from.stage, recoveryStage: dispatchPacket.to.stage } : {}),
+  });
   return value;
 }
 
@@ -138,6 +144,12 @@ function expectedCorrelation(input) {
     if (value) return value;
   }
   return input.turn_id ? `codex:${input.session_id}:${input.turn_id}` : null;
+}
+
+function resultBinding(binding, input) {
+  const correlation = readJson(correlationPath(input.session_id));
+  if (!correlation?.routeRole || (correlation.turnId && input.turn_id !== correlation.turnId)) return binding;
+  return { ...binding, role: correlation.routeRole, proxyStage: correlation.routeStage };
 }
 
 function registeredWorkflow(registry, binding) {
@@ -160,10 +172,19 @@ function parseWorkflowDispatch(prompt) {
   }
 }
 
-function validWorkflowDispatchPacket(packet, binding, workflow) {
+function validWorkflowDispatchPacket(packet, binding, workflow, sessionId) {
   if (!packet || typeof packet.correlationId !== 'string' || !packet.correlationId) return false;
   if (COORDINATES.some((field) => packet[field] !== binding.scope[field])) return false;
-  if (packet.to?.role !== binding.role || workflow?.stages?.[packet.to?.stage]?.role !== binding.role) return false;
+  const stageRole = workflow?.stages?.[packet.to?.stage]?.role;
+  if (packet.to?.role !== stageRole) return false;
+  if (packet.route) {
+    const registered = workflow.routes?.[stageRole];
+    if (typeof packet.route !== 'object' || Array.isArray(packet.route)
+      || Object.keys(packet.route).some((key) => !['id', 'callerRole', 'projectId'].includes(key))
+      || !registered || packet.route.id !== registered.id || packet.route.projectId !== registered.projectId
+      || packet.route.callerRole !== binding.role
+      || registered.callerRole !== binding.role || workflow.endpoints?.[binding.role] !== sessionId) return false;
+  } else if (stageRole !== binding.role) return false;
   if (!packet.from?.stage || !packet.from?.role || !packet.from?.event) return false;
   if (!Array.isArray(packet.references) || packet.references.some((reference) => {
     const keys = Object.keys(reference ?? {});
@@ -187,11 +208,12 @@ function consumeWorkflowDispatch(input, binding, workflow) {
     && permit.targetStage === packet?.to?.stage
     && permit.targetRole === packet?.to?.role;
   fs.rmSync(permitFile, { force: true });
-  return validPermit && validWorkflowDispatchPacket(packet, binding, workflow) ? packet : null;
+  return validPermit && validWorkflowDispatchPacket(packet, binding, workflow, input.session_id) ? packet : null;
 }
 
 function context(binding, routerCorrelation, workflow, dispatchPacket = null) {
-  const stages = roleStages(workflow, binding.role);
+  const effectiveRole = dispatchPacket?.route ? dispatchPacket.to.role : binding.role;
+  const stages = roleStages(workflow, effectiveRole);
   return [
     'WORKFLOW_ROUTER_BOUND_TASK',
     `This task is the exact ${binding.role} endpoint for ${scopeText(binding)}.`,
@@ -201,10 +223,13 @@ function context(binding, routerCorrelation, workflow, dispatchPacket = null) {
     dispatchPacket
       ? `This is a host-authorized routed transition to stage "${dispatchPacket.to.stage}". Continue that assigned stage using only the packet's durable references and your bound workflow instructions.`
       : 'A direct human request is workflow ingress. Perform work only when this endpoint owns the requested capability; otherwise return event "route-required" without doing substitute work.',
+    dispatchPacket?.route
+      ? `This turn is a proxy for route "${dispatchPacket.route.id}" and role "${effectiveRole}" in project "${dispatchPacket.route.projectId}". Invoke the profile-authorized route for that exact project, review its real result, and return role "${effectiveRole}" only after its required work and evidence are complete. A Coder proposal alone is not completion.`
+      : null,
     'Do not contact another endpoint. The hidden host Router observes the terminal result and owns every transition and dispatch.',
     routerCorrelation ? `Router-owned correlationId for this turn: ${routerCorrelation}. Preserve it byte-for-byte.` : null,
     'End every completed workflow turn with a WORKFLOW_ROUTER_RESULT JSON object containing only acknowledgement, correlationId, stage, role, event, and references.',
-    'The acknowledgement must be exactly "COPY THAT"; preserve Router-supplied correlationId, stage, and role byte-for-byte. References contain only {"kind","ref"}.',
+    `The acknowledgement must be exactly "COPY THAT"; preserve Router-supplied correlationId and return stage "${dispatchPacket?.to.stage ?? '(owned stage)'}" and role "${effectiveRole}". References contain only {"kind","ref"}.`,
     'Every cross-endpoint reference must resolve to a durable artifact the recipient can open without reading this task history. Conversation-only reports and synthetic identifiers are invalid.',
   ].filter(Boolean).join('\n');
 }
@@ -236,6 +261,9 @@ function validateResult(binding, routerCorrelation, result) {
   }
   if (!result.correlationId || !result.stage || result.role !== binding.role || !result.event) {
     return `The result must contain a nonempty correlationId, stage, event, and role exactly "${binding.role}".`;
+  }
+  if (binding.proxyStage && result.stage !== binding.proxyStage) {
+    return `The proxy result must preserve stage "${binding.proxyStage}".`;
   }
   if (!Array.isArray(result.references) || result.references.some((reference) => {
     const keys = Object.keys(reference ?? {});
@@ -308,36 +336,50 @@ function previousProgressAttempts(packet, progress) {
   return attempts;
 }
 
-function route(registry, binding, result) {
+function route(registry, binding, result, sessionId) {
   const workflow = registry.workflows?.[workflowKey(binding.scope)];
   if (!workflow) return { error: `No host Router workflow registration exists for ${workflowKey(binding.scope)}.` };
   const stage = workflow.stages?.[result.stage];
   if (!stage || stage.role !== binding.role) {
     return { error: `Stage "${result.stage}" is not owned by role "${binding.role}" in the host Router registry.` };
   }
-  const transition = stage.transitions?.[result.event];
+  const transition = EXCEPTION_EVENTS.has(result.event)
+    ? workflow.exceptionTransitions?.[result.event] : stage.transitions?.[result.event];
   if (!transition) return { error: `Event "${result.event}" is not declared from stage "${result.stage}".` };
   const referenceKinds = new Set(result.references.map(({ kind }) => kind));
   const missing = (transition.requiredReferenceKinds ?? []).filter((kind) => !referenceKinds.has(kind));
   if (missing.length) return { error: `Transition ${result.stage}/${result.event} requires references: ${missing.join(', ')}.` };
   if (transition.terminal) return { terminal: true };
-  const targetStage = workflow.stages?.[transition.to];
+  const recovery = transition.to === '$resumeStage' ? readJson(correlationPath(sessionId)) : null;
+  const destination = transition.to === '$resumeStage'
+    && recovery?.correlationId === result.correlationId && recovery.recoveryStage === result.stage
+    ? recovery.resumeStage : transition.to;
+  const targetStage = workflow.stages?.[destination];
   const targetRole = targetStage?.role;
   if (!targetStage || !targetRole) {
     return { error: `Transition target "${transition.to}" has no declared owner.` };
   }
   if (transition.waitForHuman) {
-    return { waitingForHuman: true, targetStage: transition.to, targetRole, retryPolicy: transition.retryPolicy };
+    return { waitingForHuman: true, targetStage: destination, targetRole, retryPolicy: transition.retryPolicy };
   }
   const targetSessionId = targetRole && workflow.endpoints?.[targetRole];
-  if (!targetSessionId) {
-    return { error: `Transition target "${transition.to}" has no registered role endpoint.` };
+  if (targetSessionId) return { targetStage: destination, targetRole, targetSessionId, retryPolicy: transition.retryPolicy };
+  const routeTarget = workflow.routes?.[targetRole];
+  const proxySessionId = routeTarget && workflow.endpoints?.[routeTarget.callerRole];
+  const proxyBinding = proxySessionId && registry.sessions?.[proxySessionId];
+  if (typeof routeTarget?.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(routeTarget.id)
+    || !/^[a-z0-9][a-z0-9-]*$/.test(routeTarget.projectId ?? '')
+    || typeof proxySessionId !== 'string' || !proxySessionId || proxyBinding?.status !== 'active'
+    || proxyBinding.role !== routeTarget.callerRole
+    || COORDINATES.some((field) => proxyBinding.scope?.[field] !== binding.scope[field])) {
+    return { error: `Transition target "${destination}" has no registered role endpoint or authorized route caller.` };
   }
-  return { targetStage: transition.to, targetRole, targetSessionId, retryPolicy: transition.retryPolicy };
+  return { targetStage: destination, targetRole, targetSessionId: proxySessionId,
+    routeTarget, retryPolicy: transition.retryPolicy };
 }
 
-function dispatch(registry, binding, result) {
-  const resolved = route(registry, binding, result);
+function dispatch(registry, binding, result, sessionId) {
+  const resolved = route(registry, binding, result, sessionId);
   if (resolved.error || resolved.terminal) return resolved;
   const receiptFile = dispatchReceiptPath(result);
   if (receiptFile && fs.existsSync(receiptFile)) return { ...resolved, duplicate: true };
@@ -357,6 +399,8 @@ function dispatch(registry, binding, result) {
     runtimeScopeId: binding.scope.runtimeScopeId,
     from: { stage: result.stage, role: result.role, event: result.event },
     to: { stage: resolved.targetStage, role: resolved.targetRole },
+    ...(resolved.routeTarget ? { route: { id: resolved.routeTarget.id, callerRole: resolved.routeTarget.callerRole,
+      projectId: resolved.routeTarget.projectId } } : {}),
     references: result.references,
   };
   if (resolved.waitingForHuman) {
@@ -468,7 +512,7 @@ if (!binding) {
     const workflow = registeredWorkflow(registry, binding);
     const dispatchPacket = consumeWorkflowDispatch(input, binding, workflow);
     const routerCorrelation = dispatchPacket
-      ? persistCorrelation(input.session_id, dispatchPacket.correlationId)
+      ? persistCorrelation(input.session_id, dispatchPacket.correlationId, dispatchPacket, input.turn_id ?? null)
       : allocateCorrelation(input);
     emit({
       hookSpecificOutput: {
@@ -493,11 +537,12 @@ if (!binding) {
     }
   } else {
     const result = extractResult(input.last_assistant_message);
-    const problem = validateResult(binding, expectedCorrelation(input), result);
+    const effectiveBinding = resultBinding(binding, input);
+    const problem = validateResult(effectiveBinding, expectedCorrelation(input), result);
     if (!problem) {
-      const resolved = route(registry, binding, result);
+      const resolved = route(registry, effectiveBinding, result, input.session_id);
       if (resolved.error && !input.stop_hook_active) {
-        const stages = roleStages(registeredWorkflow(registry, binding), binding.role).join(', ');
+        const stages = roleStages(registeredWorkflow(registry, binding), effectiveBinding.role).join(', ');
         emit({
           decision: 'block',
           reason: `Workflow Router transition is invalid: ${resolved.error}\nReturn one corrected terminal WORKFLOW_ROUTER_RESULT using a registered stage ID (${stages}) and an event declared from that stage.`,
@@ -505,7 +550,7 @@ if (!binding) {
       } else if (resolved.error) {
         emit({ systemMessage: `Workflow Router transition remains invalid: ${resolved.error}` });
       } else {
-        const outcome = dispatch(registry, binding, result);
+        const outcome = dispatch(registry, effectiveBinding, result, input.session_id);
         if (outcome.error) {
           emit({ systemMessage: `Workflow Router dispatch failed: ${outcome.error}` });
         } else if (outcome.waitingForHuman) {

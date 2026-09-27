@@ -48,6 +48,7 @@ alongside this file (e.g., `test.command-nx.md`).
 
 - `${AI_COMMANDS_ROOT}/test/test.command.sh` (prints the generic guidance)
 - `AI_FLOW_TEST_TIMEOUT_SEC=10 ${AI_COMMANDS_ROOT}/test/test.command.sh --project <name>` (default timeout is 10s)
+- `${AI_COMMANDS_ROOT}/test/test.command.sh --script path/to/example.test.sh` runs one existing repository-relative `.test.sh` or `.test.mjs` file inside the selected project. The wrapper rejects paths outside that project and stops the test at the configured timeout.
 
 ## Variations
 

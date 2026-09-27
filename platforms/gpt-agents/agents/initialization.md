@@ -245,6 +245,13 @@ Agent -> human_action_required -> PAUSE -> listen_pending OR human_listened / hu
 3. Reread the host catalog and verify every task under the exact saved-project ID.
 4. Persist active task receipts.
 5. Register the portable map plus private scope/endpoint overlay with `scripts/register-workflow.mjs`.
+   For each adapter `role_routes` entry, verify its profile-owned execution delegate, selected project launcher,
+   route ID, and an authorized caller role with an exact active endpoint in this scope. The overlay may include
+   `routes: { "coder": { "id": "bounded-coder", "callerRole": "admin", "projectId": "example-service" } }`;
+   those values are illustrative and
+   must be resolved from the selected profile. Do not register an executable path or infer a route from a title.
+   A route stage is queued to that caller with a prompt-bound permit. The caller must actually invoke the route,
+   review its result, and produce the stage evidence; a Coder proposal by itself does not complete implementation.
 6. Register each peer-free endpoint binding with `scripts/register-binding.mjs`.
 7. Verify the installed plugin version and trust for the current hook definition.
 8. Test one forward transition and one correction/review loop.

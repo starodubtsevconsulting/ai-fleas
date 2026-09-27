@@ -22,6 +22,19 @@ if (!workflow.stages || !workflow.endpoints) fail('workflow requires stages and 
 for (const [stageId, stage] of Object.entries(workflow.stages)) {
   if (!stage.role || !stage.transitions) fail(`stage ${stageId} requires role and transitions`);
 }
+for (const [role, route] of Object.entries(workflow.routes ?? {})) {
+  if (!Object.values(workflow.stages).some((stage) => stage.role === role)
+    || workflow.endpoints[role]
+    || !route || typeof route !== 'object' || Array.isArray(route)
+    || Object.keys(route).some((key) => !['id', 'callerRole', 'projectId'].includes(key))
+    || !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(route.id ?? '')
+    || !/^[a-z0-9][a-z0-9-]*$/.test(route.projectId ?? '')
+    || typeof route.callerRole !== 'string'
+    || typeof workflow.endpoints[route.callerRole] !== 'string'
+    || !workflow.endpoints[route.callerRole]) {
+    fail(`workflow route ${role} requires a declared stage, route and project IDs, and endpoint-backed caller`);
+  }
+}
 
 fs.mkdirSync(dataRoot, { recursive: true });
 const registryPath = path.join(dataRoot, 'bindings.json');

@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import argparse
 import base64
+import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -122,6 +124,8 @@ def main() -> int:
     parser.add_argument("--binding-writer", type=Path, required=True)
     parser.add_argument("--binding-python", required=True)
     parser.add_argument("--binding-registry", type=Path, required=True)
+    parser.add_argument("--group-configurator", type=Path, required=True)
+    parser.add_argument("--hermes-home", type=Path, required=True)
     parser.add_argument("--project-scope", required=True)
     parser.add_argument("--preflight-only", action="store_true")
     parser.add_argument("setup_args", nargs=argparse.REMAINDER)
@@ -135,6 +139,27 @@ def main() -> int:
     setup_args = args.setup_args[1:] if args.setup_args[:1] == ["--"] else args.setup_args
     bindings = parse_bindings(args.role_bindings, args.group)
     environments = [(binding, role_environment(dict(os.environ), binding)) for binding in bindings]
+    existing_profiles: list[str] = []
+    if args.binding_registry.is_file():
+        reader = subprocess.run(
+            [args.binding_python, "-c", "import json,sys,yaml; d=yaml.safe_load(open(sys.argv[1])) or {}; "
+             "g=d.get('workflow_groups',{}).get(sys.argv[2],{}); print(json.dumps(g.get('profiles',[])))",
+             str(args.binding_registry), args.group], capture_output=True, text=True, check=False,
+        )
+        if reader.returncode:
+            fail("HERMES_WORKFLOW_PREFLIGHT_FAILED", "existing group receipt could not be read")
+        try:
+            existing_profiles = json.loads(reader.stdout)
+        except json.JSONDecodeError:
+            fail("HERMES_WORKFLOW_PREFLIGHT_FAILED", "existing group receipt is malformed")
+        if not isinstance(existing_profiles, list) or any(
+            not isinstance(profile, str) or not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", profile)
+            or not profile.startswith(args.group + "-")
+            for profile in existing_profiles
+        ):
+            fail("HERMES_WORKFLOW_PREFLIGHT_FAILED", "existing group receipt has invalid member IDs")
+    desired_profiles = {binding["profile"] for binding in bindings}
+    retired_profiles = sorted(set(existing_profiles) - desired_profiles)
 
     print(f"HERMES_WORKFLOW_PREFLIGHT: group={args.group} agents={len(bindings)}", flush=True)
     failed_profiles: list[str] = []
@@ -173,6 +198,16 @@ def main() -> int:
             )
             return status
         completed.append(binding["profile"])
+
+    for profile in retired_profiles:
+        removed = subprocess.run(
+            [args.binding_python, str(args.group_configurator), "--hermes-home", str(args.hermes_home),
+             "--group", args.group, "--member", profile, "--remove-member"], check=False,
+        )
+        if removed.returncode:
+            print(f"HERMES_WORKFLOW_PARTIAL_FAILURE: group={args.group} failed_retired_profile={profile}; "
+                  "binding receipt was not written.", file=sys.stderr, flush=True)
+            return removed.returncode
 
     writer_command = [
         args.binding_python,

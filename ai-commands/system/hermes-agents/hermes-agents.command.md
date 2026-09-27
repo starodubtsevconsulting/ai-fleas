@@ -75,6 +75,8 @@ without changing this command, the workflow contract, or the bot lifecycle.
 `hermes-delegate.command.sh check [--project ID]` and `hermes-delegate.command.sh run [--project ID] "assignment"` provide a synchronous Coder delegation endpoint. The caller selects the profile catalog root with `AI_PROFILE_ROOT`, then `AI_WORK_PROFILE_ID` and `AI_FLOW_WORKFLOW`; the command resolves the selected profile's `gpt-agents` `commands[].config` reference and reads `execution_delegates.<workflow>.coder` there. It verifies the authorized project, named branch, workflow receipt, live Hermes profile, provider, model, and endpoint before running the bounded assignment. Profile-owned wrappers may supply those selections, but should not duplicate the transport or validation logic. The public example config illustrates a possible transport binding; each operational profile selects its own values.
 
 The [delegation architecture](delegation-architecture.md) diagrams the profile binding, CLI and A2A communication, result handling, and interruption boundaries.
+For a profile-selected 32K model used as a proposal-only Coder route, see the [bounded Coder route](bounded-coder.md).
+For a route that executes exact registered commands without a Command Runner bot, see the [Command Runner route](command-runner-route.md).
 GPT agents coordinating Hermes from outside its workflow use the [external coordinator contract](external-coordinator.md) and its JavaScript adapter for direct transport lifecycle operations.
 
 Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide the selected profile root as `AI_PROFILE_ROOT` before this entry point is used.
@@ -156,7 +158,7 @@ for tunnel/application ownership, service-token creation, naming, policy attachm
 | `reinitialize-system --confirm-reinitialize [--instance SLUG] [--connection NAME] [options]` | Preflight the complete canonical or test System replacement, including the selected local or remote provider route, delete and verify that exact instance, then sequentially create its fresh profile, scheduler, gateway, and receipt. |
 | `status-system --work-profile ID [--instance SLUG]` | Verify the exact canonical or test-instance System receipt. |
 | `reinitialize` / `re-init` | After `--confirm-reinitialize`, preflight the complete replacement, delete the exact active workflow group and role profiles only when that preflight succeeds, then create a fresh complete generation. Existing conversations and memory for those profiles are removed. |
-| `reconcile` | Reapply the resolved role-profile and group configuration while preserving conversations and memory. |
+| `reconcile` | Reapply the resolved role-profile and group configuration, remove retired receipt-backed roles from group membership, and preserve their profiles, conversations, and memory. |
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
 | `list` | List existing Hermes profiles. |
 | `show PROFILE` | Inspect one exact profile. |

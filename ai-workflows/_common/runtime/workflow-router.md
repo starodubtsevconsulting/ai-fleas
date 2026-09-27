@@ -52,6 +52,13 @@ The Router therefore runs the workflow and routes execution from one assigned ro
 separate worker-to-worker topology: the workflow declares who owns each stage, while the platform binding resolves that
 role to an exact instance at runtime.
 
+When a platform realizes a role as a route instead of a task, its adapter may dispatch the stage to one exact,
+profile-authorized caller task as a proxy. The durable dispatch packet keeps the declared stage owner role and names
+the exact route ID, selected project ID, and caller role. The host verifies the caller's active task binding and matching workflow scope,
+uses a prompt-bound delivery permit, and accepts a result under the route role only for that permitted turn. The
+caller invokes the route and supplies the stage's real evidence. A model proposal alone does not complete a Coder
+stage; planning output is never Command Runner execution evidence.
+
 Operationally, the reusable runtime performs one deterministic lookup chain:
 
 ```text

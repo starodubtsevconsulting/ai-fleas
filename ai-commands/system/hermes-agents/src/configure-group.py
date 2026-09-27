@@ -193,10 +193,14 @@ def main() -> None:
     parser.add_argument("--title")
     parser.add_argument("--hide-only", action="store_true")
     parser.add_argument("--delete-group", action="store_true")
+    parser.add_argument("--remove-member", action="store_true")
     parser.add_argument("--global-pinned", action="store_true")
     args = parser.parse_args()
 
-    if args.delete_group:
+    if args.remove_member:
+        if not args.group or len(args.member or []) != 1 or args.delete_group:
+            raise SystemExit("--remove-member requires --group and exactly one --member")
+    elif args.delete_group:
         if not args.group or not args.member:
             raise SystemExit("--delete-group requires --group and at least one --member")
     elif not args.hide_only and not args.global_pinned and not args.group:
@@ -206,6 +210,10 @@ def main() -> None:
             continue
         if not SAFE_ID.fullmatch(value):
             raise SystemExit(f"Unsafe Hermes {label} ID: {value}")
+    if args.remove_member:
+        remove_membership(profile_dir(args.hermes_home, args.member[0]), args.group)
+        print(f"Hermes group member removed: {args.group} ({args.member[0]})")
+        return
     if args.delete_group:
         for member in args.member:
             remove_membership(profile_dir(args.hermes_home, member), args.group)

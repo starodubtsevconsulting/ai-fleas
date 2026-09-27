@@ -7,10 +7,63 @@ but callers receive the same bounded result shapes. The command does not make st
 
 ## Shared execution target
 
-This file defines the full capability contract. A read-only `recognize` executable now handles snow-removal service
-contracts as review-pending evidence; it does not support `extract`, `reconcile`, `completeness`, normalization, or
-sidecar publication. Invoke it through the selected profile with
+This file defines the full capability contract. A read-only `recognize` executable handles snow-removal service
+contracts as review-pending evidence. A read-only `prepare-review` operation derives a bounded Booking reservation
+filename and extraction preview from an existing eligible `In` recognition artifact. `prepare-from-source` derives
+the same preview from PDF text and explicit selected context. `apply-from-source` can publish that currently supported
+Booking `In` PDF and extraction sidecar after a fresh source-backed check. These operations do not support
+`reconcile` or `completeness`. Invoke recognition through the selected profile with
 `node financial-records.command.mjs recognize --root ABSOLUTE_ROOT --source ABSOLUTE_PDF`.
+
+Invoke the preview with `node financial-records.command.mjs prepare-review --root ABSOLUTE_ROOT --recognition ABSOLUTE_JSON`.
+The recognition file must be a regular JSON file inside the real root and at most 16 KiB. The command returns
+`proposedFilename` and a validated `extraction` without source paths, raw document text, or writes. Unsupported,
+uncertain, and `Out` documents remain review pending. This artifact-based preview is advisory and cannot authorize
+publication.
+
+Invoke source-backed preparation with `node financial-records.command.mjs prepare-from-source --root ABSOLUTE_ROOT
+--source ABSOLUTE_PDF --branch BRANCH_ID --year YYYY --quarter q1..q4 --section in`. The command checks PDF magic,
+size, and real-path containment, reads bounded text, and requires Booking reservation evidence, a labelled visible
+monetary total, and an exact branch and period match. It returns a canonical filename, validated extraction, and a
+source SHA-256 fingerprint without raw text or paths. Missing text totals that need visual evidence remain review
+required. The artifact-based `prepare-review` result is advisory and cannot authorize apply.
+
+Invoke `apply-from-source` with `--root ABSOLUTE_REPORTS_ROOT --source ABSOLUTE_PDF --destination ABSOLUTE_DIRECTORY
+--branch BRANCH_ID --year YYYY --quarter q1..q4 --section in --expected-sha256 SHA256 --expected-filename CANONICAL_PDF`.
+The caller must select an authorized reports root and an existing destination exactly at
+`root/year/branch/quarter/in`; the command creates no directory. It recomputes source-backed preparation, compares
+both expected values, rehashes the source bytes, and publishes the canonical PDF copy and validated `.pdf.json`
+sidecar exclusively. It leaves the original source untouched, returns no raw text or machine path, and rejects
+existing targets. `Out` invoices and records requiring visual total evidence remain review required.
+
+### Apply-review safety gate
+
+Artifact-based preparation validates recognition fields but cannot prove that
+the artifact belongs to the supplied PDF. Matching an artifact filename to a PDF filename is insufficient: either
+file can change between review and apply. Source-backed preparation independently reads the PDF, and
+`apply-from-source` recomputes it immediately before writing. The backend also uses bounded visual total evidence when text extraction
+is insufficient; that case remains review required in the shared command. A PDF header check alone cannot replace
+document validation.
+
+The caller supplies the authorized reports root, source PDF, selected `In` section and period, and existing destination.
+The command checks real-path containment and the exact `root/year/branch/quarter/in` layout. The supplied fingerprint
+and canonical filename must match a freshly computed eligible preview. The recognition JSON artifact is never used
+as apply evidence. `Out` invoices remain unsupported.
+
+Publication rejects existing canonical PDF and extraction-sidecar paths, including concurrent
+creations. It preserves the original source PDF until a complete canonical PDF plus validated
+sidecar exists. Because two filesystem entries cannot be published as one atomic operation, the command must define
+an observable partial state and a retry/recovery rule before any write path is enabled. A failed write must never
+silently overwrite, discard, or claim a completed extraction.
+
+The internal `ReviewPublisher` primitive backs `apply-from-source`. Given freshly validated
+PDF bytes, extraction, and canonical target paths, it stages both files with exclusive creation in the destination
+directory, verifies the staged PDF hash, and publishes each target with an exclusive hard link. A collision leaves
+existing targets intact. If sidecar publication fails after the PDF link, rollback removes that PDF only when its
+device and inode still match the primitive's own staged file; a changed target is retained and reported as partial.
+Staging entries are removed when still owned by this invocation. A process crash between the two links can leave a
+canonical PDF without its sidecar and owned staging entries. A future apply caller must detect that state and require
+review before retrying; it must not overwrite or silently infer completion from the PDF alone.
 
 The intended full implementation is one
 executable command for both no-UI workflow callers and the platform backend. Keep recognition, canonical naming,
