@@ -12,7 +12,7 @@ export class BoundedModelSampling {
     this.values = { temperature, ...(top_p === undefined ? {} : { top_p }),
       ...(top_k === undefined ? {} : { top_k }),
       ...(presence_penalty === undefined ? {} : { presence_penalty }) };
-    this.configured = values;
+    this.configured = { ...values };
   }
   requestFields() { return { ...this.values }; }
   commandArguments() {
