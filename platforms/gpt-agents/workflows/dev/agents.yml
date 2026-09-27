@@ -40,6 +40,10 @@ role_endpoints:
     title: "⚖️ Judge"
     model: gpt-5.6-terra
     reasoning: low
+  - role: manager
+    title: "🤖 Manager"
+    model: gpt-5.6-luna
+    reasoning: medium
   - role: ui-acceptance-tester
     title: "🖥️ UI Acceptance Tester"
     model: gpt-5.6-terra
@@ -59,6 +63,7 @@ role_contracts:
   admin: ../../../../ai-workflows/_common/roles/admin.md
   designer-reviewer: ../../../../ai-workflows/_common/roles/designer-reviewer.md
   judge: ../../../../ai-workflows/_common/roles/judge.md
+  manager: ../../../../ai-workflows/_common/roles/manager.md
   coder: ../../../../ai-workflows/_common/roles/coder.md
   command-runner: ../../../../ai-workflows/_common/roles/command-runner.md
   ui-acceptance-tester: ../../../../ai-workflows/_common/roles/ui-acceptance-tester.md

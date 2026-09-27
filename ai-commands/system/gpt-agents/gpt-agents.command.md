@@ -36,7 +36,7 @@ flowchart LR
   ProjectSet --> Initialize
   Overrides --> Initialize
   Initialize --> Mapping["Portable roles → Codex tasks"]
-  Mapping --> Tasks["Exact manifest-declared roster"]
+  Mapping --> Tasks["Admin + Manager + governed roster"]
   Tasks --> Receipts["Exact task IDs + role bindings"]
   Receipts --> Inspect
   Receipts --> Operate
@@ -248,8 +248,8 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    the route role's result only after its work and evidence are complete. Missing or mismatched route mappings fail closed.
    Admin and Designer Reviewer may also invoke their declared routes directly.
 7. Treat the caller as the mechanical initialization controller. It is never a workflow roster member merely because it
-   invoked this command. Resolve the complete effective roster, including Admin when declared, before creating any task.
-   Admin must not bootstrap, delegate, or orchestrate initialization.
+   invoked this command. Resolve the complete effective roster, including Admin, before creating any task. Admin is a
+   compatibility role and must not bootstrap, delegate, or orchestrate initialization.
 8. Resolve runtime values in order: public GPT role-binding defaults, then supported profile-owned `role_overrides`.
    Reject unknown roles, unsupported keys, unavailable models, invalid reasoning levels, and pool values outside the
    portable role's declared bounds.
@@ -284,7 +284,7 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    active generations, and never discover retired tasks by title alone. Feed the declared roles, trusted receipts, retired
    receipts, exact project ID, and complete inventories through `platforms/gpt-agents/agents/reconcile-roster.mjs`; honor
    its `reuse`, `reactivate`, `create`, `archive`, or `blocked` result rather than reclassifying tasks conversationally.
-10. Mechanically create exactly one task for every still-missing selected role, including Admin and any Manager actually declared by the selected manifest, in one host batch
+10. Mechanically create exactly one task for every still-missing selected role, including Admin and Manager, in one host batch
    when the platform supports batching. Every creation request must include the complete canonical initialization prompt
    as its non-empty first user message and the effective non-empty presentation title. Treat `title` only as presentation
    and apply the effective model and reasoning values exactly. Do not wait for one role to initialize before creating the
@@ -327,12 +327,12 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
     receipts. Readiness without catalog and computer-vision-verified sidebar presence is an explicit
     partial-initialization failure.
 
-For the current Dev roster, the mechanical controller directly creates or reconciles Admin, Designer Reviewer,
+For the current Dev roster, the mechanical controller directly creates or reconciles Admin, Manager, Designer Reviewer,
 Judge, and UI Acceptance Tester. Coder and Command Runner are `role_routes` in the GPT Dev adapter, resolved through the
 selected profile's `execution_delegates.dev` configuration. The controller must verify both route keys and their launchers
 for the selected project, but must not create tasks, readiness receipts, or sidebar entries for those routes. Existing
 exact Coder and Command Runner task receipts are retired through the roster reconciliation step; do not identify them by
-title. Admin owns its declared Dev responsibilities after startup but has no special roster-initialization responsibility.
+title. Admin remains temporarily for compatibility but has no special initialization responsibility.
 Changes to the roster must come from the portable workflow manifest and corresponding GPT bindings, not from edits to this command.
 
 Workflow initialization is complete when that workflow roster is ready; it does not wait for, locate, create, or register

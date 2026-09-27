@@ -4,7 +4,7 @@
   "source": "dev.workflow.md",
   "initialStage": "target_resolution",
   "capabilityOwners": {
-    "target_resolution": "admin",
+    "target_resolution": "manager",
     "requirements": "designer-reviewer",
     "implementation": "coder",
     "verification_coordination": "designer-reviewer",
@@ -17,9 +17,9 @@
     "source_control_mechanics": "command-runner",
     "deployment_verification": "designer-reviewer",
     "deployment_debugging": "designer-reviewer",
-    "ticket_closure": "admin",
-    "completion_record": "admin",
-    "recovery_coordination": "admin"
+    "ticket_closure": "manager",
+    "completion_record": "manager",
+    "recovery_coordination": "manager"
   },
   "exceptionTransitions": {
     "blocked": { "to": "recovery", "requiredReferenceKinds": ["blocker"] },
@@ -28,7 +28,7 @@
   },
   "stages": {
     "target_resolution": {
-      "role": "admin", "capability": "target_resolution",
+      "role": "manager", "capability": "target_resolution",
       "transitions": {
         "target_ready": { "to": "planning", "requiredReferenceKinds": ["work-target"] }
       }
@@ -119,15 +119,15 @@
       }
     },
     "closure": {
-      "role": "admin", "capability": "ticket_closure",
+      "role": "manager", "capability": "ticket_closure",
       "transitions": {
         "closed": { "to": "complete", "terminal": true, "requiredReferenceKinds": ["closure-record"] },
         "not_applicable": { "to": "complete", "terminal": true, "requiredReferenceKinds": ["closure-exclusion"] }
       }
     },
-    "complete": { "role": "admin", "capability": "completion_record", "transitions": {} },
+    "complete": { "role": "manager", "capability": "completion_record", "transitions": {} },
     "recovery": {
-      "role": "admin", "capability": "recovery_coordination",
+      "role": "manager", "capability": "recovery_coordination",
       "transitions": {
         "resumed": { "to": "$resumeStage", "requiredReferenceKinds": ["recovery"] }
       }

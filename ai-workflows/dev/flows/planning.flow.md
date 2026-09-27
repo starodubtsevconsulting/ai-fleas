@@ -7,7 +7,7 @@ Read-only questions and direct administration do not require product planning.
 
 ## Entry
 
-Known authorized target, requested outcome, and existing source/plan evidence. Admin resolves tickets and staffing
+Known authorized target, requested outcome, and existing source/plan evidence. Manager resolves tickets and staffing
 when applicable. Role authority remains with the [Team](../agents/team.md); protected governance remains Judge-owned.
 
 ## Steps
@@ -17,7 +17,7 @@ when applicable. Role authority remains with the [Team](../agents/team.md); prot
 3. Designer/Reviewer presents the plan and resolves material decisions with the human; approval follows existing policy.
 4. Designer/Reviewer preserves the plan and next unfinished step through the selected recovery mechanism; the existing
    [plan command](../../../ai-commands/utility/plan/plan.command.md) applies when enabled.
-5. Admin synchronizes tracker-facing content when configured, applicable, and authorized through
+5. Manager synchronizes tracker-facing content when configured, applicable, and authorized through
    [ticket-tracker](../../../ai-commands/connect/ticket-tracker/ticket-tracker.command.md), preserving component groups,
    verifying readback, and leaving unrelated human-authored content intact.
 

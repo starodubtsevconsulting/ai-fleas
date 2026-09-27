@@ -34,7 +34,7 @@ initializer:
   humanFacing: human-owned
   communicationMode: direct-human-administration-only
   readinessToken: ADMIN_READY
-  governedRosterOwner: admin
+  governedRosterOwner: manager
   aiBinding: profile-default
   schedule: { enabled: false }
   utilitySubagents:
@@ -69,6 +69,19 @@ agents:
     aiBinding: profile-default
     continuity: { maxDuration: 24h }
     schedule: { enabled: true, every: 10m, instruction: agents/schedules/judge-governance-audit.yml }
+  - agentId: manager
+    matrixColumn: manager
+    roleDefinition: ../_common/roles/manager.md
+    scope: workflow
+    aliases: [manager, ask manager]
+    lifecycle: persistent-control
+    humanFacing: false
+    communicationMode: router-runtime-only
+    readinessToken: MANAGER_READY
+    requiresTicket: false
+    aiBinding: profile-default
+    continuity: { maxDuration: 24h }
+    schedule: { enabled: true, every: 10m, instruction: agents/schedules/manager-continuity.yml }
   - agentId: coder
     matrixColumn: coder
     roleDefinition: ../_common/roles/coder.md

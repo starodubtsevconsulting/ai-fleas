@@ -22,7 +22,7 @@ assert.equal(gptOverlay.schema_version, 'gpt-agents-workflow-runtime.v2');
 assert.equal(gptOverlay.workflow_runtime.visibility, 'hidden');
 assert.equal(gptOverlay.runtime_semantics.peer_delivery, 'prohibited');
 assert.deepEqual(gptOverlay.role_endpoints.map(({ role }) => role),
-  ['admin', 'designer-reviewer', 'judge', 'ui-acceptance-tester']);
+  ['admin', 'designer-reviewer', 'judge', 'manager', 'ui-acceptance-tester']);
 assert.deepEqual(gptOverlay.role_routes.map(({ role }) => role), ['coder', 'command-runner']);
 assert.ok(!gptPlatform.capabilities.includes('peer-messaging'));
 assert.ok(gptPlatform.capabilities.includes('workflow-runtime-dispatch'));
@@ -41,14 +41,14 @@ const definition = {
     requirements: 'designer-reviewer',
     implementation: 'coder',
     technical_review: 'designer-reviewer',
-    staffing_and_continuity: 'admin',
+    staffing_and_continuity: 'manager',
     final_acceptance: 'designer-reviewer',
   },
   stages: {
     planning: { role: 'designer-reviewer', capability: 'requirements', transitions: { accepted: { to: 'implementation', requiredReferenceKinds: ['plan'] } } },
     implementation: { role: 'coder', capability: 'implementation', transitions: { implemented: { to: 'verification', requiredReferenceKinds: ['revision'] } } },
     verification: { role: 'designer-reviewer', capability: 'technical_review', transitions: { accepted: { to: 'complete', terminal: true, requiredReferenceKinds: ['evidence'] } } },
-    exception: { role: 'admin', capability: 'staffing_and_continuity', transitions: {} },
+    exception: { role: 'manager', capability: 'staffing_and_continuity', transitions: {} },
     complete: { role: 'designer-reviewer', capability: 'final_acceptance', transitions: {} },
   },
   exceptionTransitions: {
@@ -105,7 +105,7 @@ state = router.transition({
   scope, type: 'blocked', expectedStage: 'implementation', references: [{ kind: 'blocker', ref: 'issue://7' }],
 });
 assert.equal(state.currentStage, 'exception');
-assert.equal(state.assignedRole, 'admin');
+assert.equal(state.assignedRole, 'manager');
 assert.equal(state.resumeStage, 'implementation');
 assert.deepEqual(state.history.map(({ event, fromStage, toStage, exception }) =>
   ({ event, fromStage, toStage, exception })), [
@@ -143,10 +143,6 @@ console.log('Workflow Router acceptance: PASS');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const map = JSON.parse(fs.readFileSync(path.join(root, 'dev.workflow-map.json'), 'utf8'));
 assert.equal(fs.readFileSync(path.join(root, 'dev.workflow-map.mmd'), 'utf8'), renderWorkflowMap(map));
-assert.equal(Object.values(map.capabilityOwners).includes('manager'), false);
-for (const stage of ['target_resolution', 'closure', 'complete', 'recovery']) {
-  assert.equal(map.stages[stage].role, 'admin');
-}
 
 const scope = { profileId: 'example', workflowId: 'dev', logicalProjectId: 'example-dev', runtimeScopeId: 'run-a' };
 const definition = { ...map, scope };
