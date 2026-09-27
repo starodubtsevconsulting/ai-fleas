@@ -23,6 +23,20 @@ Hermes A2A. Review this profile if either value changes.
 These are observations from the financial-records and Hermes delegation work in September 2026. They guide the next
 assignment; they do not claim that every run or other deployment of the model behaves this way.
 
+## External usage evidence
+
+Qwen's [model card](https://huggingface.co/Qwen/Qwen3-Coder-Next) documents agentic tool use, recommends the
+`qwen3_coder` tool-call parser for vLLM/SGLang, and gives sampling defaults of temperature 1.0, top-p 0.95, and
+top-k 40. Those are deployment checks, not proof that this local llama.cpp server uses the same settings.
+[Hermes's provider guide](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/integrations/providers.md)
+notes that the effective context must be configured at the serving layer and may be split across parallel slots.
+Firsthand [llama.cpp issue reports](https://github.com/ggml-org/llama.cpp/issues/19513) describe occasional premature
+end-of-turn behavior with Qwen3-Coder-Next tool calls; another [issue](https://github.com/ggml-org/llama.cpp/issues/20164)
+describes tool-call failures under long context. These reports are diagnostic leads only. Check the live backend,
+effective context, parser, output cap, and logs before attributing our Coder failures to the model or changing
+serving settings. The current endpoint identifies this model as llama.cpp, but its `/v1/models` response does not
+report an effective context length.
+
 ## Default handoff
 
 Use [focused implementation](../focused-implementation.md) for one cohesive, reviewable change. Give the exact

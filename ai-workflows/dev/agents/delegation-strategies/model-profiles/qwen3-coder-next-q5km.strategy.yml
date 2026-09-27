@@ -29,6 +29,14 @@ assignment:
       - example-invocations-at-each-command-boundary
       - location-of-each-input-argument-or-stdin
       - existing-callers-and-tests-to-inspect
+runtime_diagnostics:
+  on_repeated_tool_or_completion_failures:
+    - confirm-served-model-and-quantization
+    - confirm-serving-backend-and-qwen3-coder-tool-parser
+    - inspect-effective-per-slot-context-and-compression-logs
+    - inspect-output-cap-and-finish-reason
+    - compare-a-small-identical-task-in-a-second-harness-before-changing-prompt-rules
+  setting_changes: require-measured-local-evidence
 verification:
   owner: command-runner-and-admin
   require:
