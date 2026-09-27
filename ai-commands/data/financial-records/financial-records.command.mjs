@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { requireCommandProfile } from '../../_runtime/profile/command-profile.guard.mjs';
 import { PdfReader } from './pdf-reader.mjs';
 import { SnowRemovalContractRecognizer } from './recognizers/snow-removal-contract-recognizer.mjs';
+import { BookingSourceRecognition } from './recognizers/booking-source-recognition.mjs';
 import { canonicalAccountingPdfBasename } from './naming/accounting-recognition-naming-policy.mjs';
 import { buildPendingAccountingExtraction, validPendingAccountingExtraction } from './extraction/pending-accounting-extraction.mjs';
 
-const VALID_COMMANDS = new Set(['recognize', 'prepare-review']);
+const VALID_COMMANDS = new Set(['recognize', 'prepare-review', 'prepare-from-source']);
 
 const FIXED_COMMAND_ERRORS = new Set([
   'DUPLICATE_OPTION',
@@ -50,6 +52,7 @@ export class FinancialRecordsCommand {
       throw new Error('INVALID_OPERATION');
     }
     if (command === 'prepare-review') return this.prepareReview(args.slice(1));
+    if (command === 'prepare-from-source') return this.prepareFromSource(args.slice(1));
 
     const options = { root: undefined, source: undefined };
     const seen = new Set();
@@ -217,6 +220,61 @@ export class FinancialRecordsCommand {
     if (!proposedFilename || !extraction || !validPendingAccountingExtraction(extraction) ||
         Buffer.byteLength(JSON.stringify(extraction)) > 16 * 1024) throw new Error('REVIEW_REQUIRED');
     return { schemaVersion: 1, operation: 'prepare-review', proposedFilename, extraction };
+  }
+
+  async prepareFromSource(args) {
+    const options = {};
+    const allowed = new Set(['root', 'source', 'branch', 'year', 'quarter', 'section']);
+    for (let i = 0; i < args.length; i++) {
+      const separator = args[i].indexOf('=');
+      const key = separator < 0 ? args[i] : args[i].slice(0, separator);
+      const name = key.startsWith('--') ? key.slice(2) : '';
+      if (!allowed.has(name)) throw new Error('UNKNOWN_OPTION');
+      if (Object.hasOwn(options, name)) throw new Error('DUPLICATE_OPTION');
+      const value = separator < 0 ? args[++i] : args[i].slice(separator + 1);
+      if (!value || value.startsWith('--')) throw new Error('MISSING_VALUE');
+      options[name] = value;
+    }
+    if ([...allowed].some((name) => !options[name])) throw new Error('USAGE');
+    if (!path.isAbsolute(options.root)) throw new Error('INVALID_ROOT_NOT_ABSOLUTE');
+    if (!path.isAbsolute(options.source)) throw new Error('INVALID_SOURCE_NOT_ABSOLUTE');
+    let root;
+    let source;
+    try {
+      root = fs.realpathSync(options.root);
+      source = fs.realpathSync(options.source);
+    } catch { throw new Error('PATH_RESOLVE_FAILED'); }
+    if (!fs.statSync(root).isDirectory()) throw new Error('INVALID_ROOT_NOT_DIRECTORY');
+    const relative = path.relative(root, source);
+    if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+      throw new Error('SOURCE_OUTSIDE_ROOT');
+    }
+    const stat = fs.statSync(source);
+    if (!stat.isFile() || stat.size > 25 * 1024 * 1024) throw new Error('INVALID_SOURCE_NOT_FILE');
+    if (!this._isPdfFile(source)) throw new Error('INVALID_SOURCE_NOT_PDF');
+    const sourceSha256 = createHash('sha256').update(fs.readFileSync(source)).digest('hex');
+    let pdf;
+    try { pdf = await this.pdfReader.read(source); }
+    catch { throw new Error('PDF_READ_FAILED'); }
+    const recognition = new BookingSourceRecognition().evaluate(pdf, {
+      branchId: options.branch, year: options.year, quarter: options.quarter, section: options.section,
+    });
+    if (recognition.status !== 'eligible') return {
+      schemaVersion: 1, operation: 'prepare-from-source', status: 'review-required', reason: recognition.reason,
+    };
+    const proposedFilename = canonicalAccountingPdfBasename(recognition);
+    const extraction = buildPendingAccountingExtraction(recognition);
+    if (!proposedFilename || !extraction || !validPendingAccountingExtraction(extraction) ||
+        Buffer.byteLength(JSON.stringify(extraction)) > 16 * 1024) return {
+      schemaVersion: 1, operation: 'prepare-from-source', status: 'review-required', reason: 'invalid-extraction',
+    };
+    if (sourceSha256 !== createHash('sha256').update(fs.readFileSync(source)).digest('hex')) return {
+      schemaVersion: 1, operation: 'prepare-from-source', status: 'review-required', reason: 'source-changed',
+    };
+    return {
+      schemaVersion: 1, operation: 'prepare-from-source', status: 'eligible', proposedFilename, extraction,
+      sourceEvidence: { sha256: sourceSha256, pageCount: pdf.pageCount, provenance: 'visible-pdf-text-total' },
+    };
   }
 
   _isPdfFile(pathname) {

@@ -55,7 +55,7 @@ function visiblePrimaryTotal(text) {
   // PDF text items are joined with spaces by understand-pdf.  Keep this
   // narrow to labelled totals, but accept the Unicode dashes emitted by the
   // real Booking layout (for example: "Total price — CAD 1,475.76").
-  const match = text.match(/\b(total(?:\s+(?:room\s+)?price)?|amount\s+(?:received|paid)|paid\s+amount|payment\s+received)\s*[:\-\u2010-\u2015]?\s*(?:(CAD|USD|EUR|GBP)\s*)?(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)(?:\s*(CAD|USD|EUR|GBP))?/i);
+  const match = text.match(/\b(total(?:\s+(?:room\s+)?price)?|amount\s+(?:received|paid)|paid\s+amount|payment\s+received)\s*[:\-\u2010-\u2015]?\s*(?:(CAD|USD|EUR|GBP)\s*)?((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{2})?)(?![\d,.])(?:\s*(CAD|USD|EUR|GBP))?/i);
   if (!match) return undefined;
   const amount = Number(match[3].replace(/,/g, ''));
   const currency = String(match[2] || match[4] || '').toUpperCase();

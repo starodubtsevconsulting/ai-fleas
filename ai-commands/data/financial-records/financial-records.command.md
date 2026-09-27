@@ -9,7 +9,8 @@ but callers receive the same bounded result shapes. The command does not make st
 
 This file defines the full capability contract. A read-only `recognize` executable handles snow-removal service
 contracts as review-pending evidence. A read-only `prepare-review` operation derives a bounded Booking reservation
-filename and extraction preview from an existing eligible `In` recognition artifact. Neither operation supports
+filename and extraction preview from an existing eligible `In` recognition artifact. `prepare-from-source` derives
+the same preview from PDF text and explicit selected context. These operations do not support
 `reconcile`, `completeness`, normalization, or sidecar publication. Invoke recognition through the selected profile with
 `node financial-records.command.mjs recognize --root ABSOLUTE_ROOT --source ABSOLUTE_PDF`.
 
@@ -19,13 +20,21 @@ The recognition file must be a regular JSON file inside the real root and at mos
 uncertain, and `Out` documents remain review pending. A caller must still check destination collisions and use an
 explicit, separately authorized apply step before writing a sidecar or renaming a PDF.
 
+Invoke source-backed preparation with `node financial-records.command.mjs prepare-from-source --root ABSOLUTE_ROOT
+--source ABSOLUTE_PDF --branch BRANCH_ID --year YYYY --quarter q1..q4 --section in`. The command checks PDF magic,
+size, and real-path containment, reads bounded text, and requires Booking reservation evidence, a labelled visible
+monetary total, and an exact branch and period match. It returns a canonical filename, validated extraction, and a
+source SHA-256 fingerprint without raw text or paths. Missing text totals that need visual evidence remain review
+required. The artifact-based `prepare-review` result is advisory and cannot authorize apply.
+
 ### Apply-review safety gate
 
-`apply-review` is not executable yet. The current preview validates recognition fields but cannot prove that the
-recognition artifact belongs to the supplied PDF. Matching an artifact filename to a PDF filename is insufficient:
-either file can change between review and apply. The public Booking recognizer is a pure text recognizer; the backend
-also uses bounded visual total evidence when text extraction is insufficient. A PDF header check alone cannot replace
-that document validation.
+`apply-review` is not executable yet. Artifact-based preparation validates recognition fields but cannot prove that
+the artifact belongs to the supplied PDF. Matching an artifact filename to a PDF filename is insufficient: either
+file can change between review and apply. Source-backed preparation independently reads the PDF, but is advisory
+until recomputed immediately before a write. The backend also uses bounded visual total evidence when text extraction
+is insufficient; that case remains review required in the shared command. A PDF header check alone cannot replace
+document validation.
 
 Before adding an apply operation, the shared command must independently validate the PDF and its monetary evidence,
 bind a versioned preview to the exact PDF bytes, recognition artifact, selected `In` section and period, and recheck
