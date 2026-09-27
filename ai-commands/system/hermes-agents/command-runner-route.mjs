@@ -66,8 +66,24 @@ class CommandRunnerRoute {
     const result = spawnSync(command, [executable, ...argv], { cwd: project.root, env, encoding: 'utf8', timeout: this.config.timeout_ms, maxBuffer: 1024 * 1024 });
     return { project: projectId, branch: project.branch, commandId, argv, exitCode: result.status, signal: result.signal, stdout: (result.stdout || '').slice(0, 12000), stderr: (result.stderr || '').slice(0, 12000), error: result.error?.message || null };
   }
-  plan(task) {
+  validatePlan(plan, project) {
+    if (!plan || typeof plan !== 'object' || Array.isArray(plan) || !this.allowedCommands.includes(plan.commandId) || !Array.isArray(plan.argv)) return false;
+    const argv = plan.argv;
+    if (argv.some((value) => typeof value !== 'string' || !value || value.length > 512)) return false;
+    if (plan.commandId === 'test') {
+      if (argv.length === 1 && argv[0] === '--list') return fs.existsSync(path.join(project.root, 'nx.json'));
+      if (argv.length !== 2 || argv[0] !== '--script' || !/\.test\.(sh|mjs)$/.test(argv[1]) || path.isAbsolute(argv[1])) return false;
+      const candidate = path.resolve(project.root, argv[1]);
+      return fs.existsSync(candidate) && fs.realpathSync(candidate).startsWith(`${project.root}${path.sep}`);
+    }
+    if (plan.commandId === 'source-control') return argv.length === 3
+      && ['credential-check', 'fetch', 'pull-ff-only'].includes(argv[0])
+      && argv[1] === '--repo' && argv[2] === project.root;
+    return false;
+  }
+  plan(projectId, task) {
     if (typeof task !== 'string' || !task.trim() || task.length > 12000) throw new Error('Invalid planning task');
+    const project = this.project(projectId);
     const catalog = this.read(path.join(this.profileDirectory, this.workflow.local_ai.providers_config));
     const providers = catalog.providers.filter((item) => item.id === this.config.provider);
     if (providers.length !== 1) throw new Error('Planner provider is missing or ambiguous');
@@ -76,10 +92,22 @@ class CommandRunnerRoute {
     const connection = providers[0].endpoint.connections?.[this.config.connection || providers[0].endpoint.default];
     if (!connection?.url || connection.headers) throw new Error('Planner endpoint is unavailable');
     const helper = path.join(path.dirname(fileURLToPath(import.meta.url)), 'bounded-model.command.mjs');
-    const input = `Suggest one exact registered command ID and argument vector for this task. Allowed IDs: ${this.allowedCommands.join(', ')}. Do not claim execution. Task: ${task}`;
+    const syntax = {
+      test: fs.existsSync(path.join(project.root, 'nx.json'))
+        ? 'argv: ["--list"] to list Nx tests, or ["--script", "repo-relative/path.test.mjs"] for a focused script'
+        : 'argv: ["--script", "repo-relative/path.test.mjs"] for a focused script; this project has no Nx workspace, so do not use --list',
+      'source-control': `argv: ["credential-check" | "fetch" | "pull-ff-only", "--repo", "${project.root}"]`,
+    };
+    if (this.allowedCommands.some((id) => !syntax[id])) throw new Error('Command needs a reviewed planning adapter');
+    const hints = this.allowedCommands.map((id) => `${id}: ${syntax[id]}`).join('\n');
+    const input = `Suggest one exact registered command ID and argument vector for this task. Return only JSON with keys commandId and argv. Allowed syntax:\n${hints}\nDo not claim execution. Task: ${task}`;
     const result = spawnSync(process.execPath, [helper, 'ask', '--endpoint', connection.url, '--model', models[0].provider_model, '--max-input-chars', '12000', '--max-output-tokens', '1024', '--timeout-ms', '60000'], { input, encoding: 'utf8', timeout: 65000 });
     if (result.status !== 0) throw new Error(`Planner failed: ${result.stderr.trim()}`);
-    return result.stdout.trim();
+    let suggestion;
+    try { suggestion = JSON.parse(result.stdout.trim()); }
+    catch { throw new Error('Planner returned no JSON command proposal'); }
+    if (!this.validatePlan(suggestion, project)) throw new Error('Planner proposal does not match an authorized command for this project');
+    return JSON.stringify({ commandId: suggestion.commandId, argv: suggestion.argv, advisory: true });
   }
 }
 
@@ -97,12 +125,12 @@ class CommandRunnerMcpServer {
         case 'initialize': this.reply(request.id, { protocolVersion: params.protocolVersion || '2025-03-26', capabilities: { tools: {} }, serverInfo: { name: 'command-runner-route', version: '1.0.0' } }); break;
         case 'ping': this.reply(request.id, {}); break;
         case 'tools/list': this.reply(request.id, { tools: [
-          { name: 'plan_registered_command', description: 'Ask the selected local model to suggest a command. This never executes it.', inputSchema: { type: 'object', properties: { task: { type: 'string' } }, required: ['task'], additionalProperties: false } },
+          { name: 'plan_registered_command', description: 'Ask the selected local model to suggest a command for one authorized project. This never executes it.', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, task: { type: 'string' } }, required: ['projectId', 'task'], additionalProperties: false } },
           { name: 'run_registered_command', description: 'Execute one exact profile-authorized registered command with an argument vector; returns real exit status and terminal evidence. Inspect the command and its effects before calling.', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, commandId: { type: 'string' }, argv: { type: 'array', items: { type: 'string' } } }, required: ['projectId', 'commandId', 'argv'], additionalProperties: false } },
         ] }); break;
         case 'tools/call': {
           try {
-            if (params.name === 'plan_registered_command') this.reply(request.id, { content: [{ type: 'text', text: this.route.plan(args.task) }] });
+            if (params.name === 'plan_registered_command') this.reply(request.id, { content: [{ type: 'text', text: this.route.plan(args.projectId, args.task) }] });
             else if (params.name === 'run_registered_command') {
               const result = this.route.run(args.projectId, args.commandId, args.argv);
               this.reply(request.id, { isError: result.exitCode !== 0, content: [{ type: 'text', text: JSON.stringify(result) }] });
@@ -123,6 +151,6 @@ try {
   if (mode === 'serve-mcp' && args.length === 0) await new CommandRunnerMcpServer(route).serve();
   else if (mode === 'check' && args.length === 1) { const project = route.project(args[0]); process.stdout.write(`COMMAND_RUNNER_ROUTE_READY: project=${args[0]} branch=${project.branch} allowed=${route.allowedCommands.join(',')}\n`); }
   else if (mode === 'run' && args.length >= 2) { const result = route.run(args[0], args[1], args.slice(2)); process.stdout.write(`${JSON.stringify(result)}\n`); if (result.exitCode !== 0) process.exitCode = result.exitCode || 1; }
-  else if (mode === 'plan' && args.length === 1) process.stdout.write(`${route.plan(args[0])}\n`);
+  else if (mode === 'plan' && args.length === 2) process.stdout.write(`${route.plan(args[0], args[1])}\n`);
   else throw new Error('Usage: command-runner-route.mjs serve-mcp|check|run|plan PROFILE_DIRECTORY CALLER_ROLE ...');
 } catch (error) { process.stderr.write(`COMMAND_RUNNER_ROUTE_BLOCKED: ${error.message}\n`); process.exitCode = 1; }

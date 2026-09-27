@@ -14,7 +14,10 @@ flowchart TD
 ```
 
 `command-runner-route.mjs` exposes two MCP tools. `plan_registered_command`
-asks the profile-selected model for a suggestion and has no effects.
+asks the profile-selected model for a suggestion for one exact project ID and
+has no effects. It uses that project's available test interface when building
+syntax hints and rejects suggestions outside the reviewed argument forms. A
+suggestion still needs review before execution.
 `run_registered_command` executes a command registered to the selected Dev
 workflow. It accepts an exact project ID, command ID, and argument vector,
 checks the project's named branch, and invokes the existing wrapper without a
@@ -25,8 +28,8 @@ Designer / Reviewer may call `test`. Other registered
 commands remain outside this route until their arguments receive a reviewed
 route adapter and the profile explicitly authorizes them.
 
-The GPT launcher offers the same deterministic route through `check --project
-ID` and `run --project ID --command ID -- ARGS...`. A caller must inspect a
+The GPT launcher offers `check --project ID`, `plan --project ID TASK`, and
+`run --project ID --command ID -- ARGS...`. A caller must inspect a
 model proposal against the command's real interface before execution. The
 route returns the command's actual exit status, output, and signal; a model
 answer is never execution evidence. It does not replace independent review or

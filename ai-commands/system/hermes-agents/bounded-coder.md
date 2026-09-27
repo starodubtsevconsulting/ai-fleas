@@ -37,6 +37,17 @@ strict string validation and claimed a risk that optional chaining already addre
 The prompts and tool availability differed slightly, so this is directional evidence,
 not a controlled speed or quality ranking. The routed answer still requires Admin review.
 
+A second Hermes Admin trial asked for a command-planning patch. Q5 alone took about
+60 seconds, spending five turns searching for files and returning an incomplete
+proposal. The run instructed to use `bounded_coder` took about 36 seconds, but Q5
+spent its five turns on file search and never called the MCP tool. This is a
+handoff-compliance failure, not a 35B result. For this profile, provide a
+self-contained excerpt and verify an actual MCP call before counting a run as
+Q5 plus 35B. A direct 35B proposal for the same narrow code path returned in
+about 1.4 seconds but exposed unauthorized command syntax, so Admin rejected
+that part. The accepted implementation was verified with the real Command
+Runner wrapper.
+
 `bounded-model.command.mjs ask` reads one prompt from standard input.
 `serve-mcp` provides the same model through one MCP tool, `bounded_coder`.
 `bounded-model.delegate.mjs check|run --project ID` resolves the selected Dev
