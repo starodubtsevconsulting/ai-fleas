@@ -4,6 +4,7 @@ ai_command_require_profile "test" || exit $?
 set -euo pipefail
 
 AI_FLOW_PROJECT_DIR="${AI_FLOW_PROJECT_DIR:-}"
+AUTHORIZED_PROJECT_DIR="$AI_FLOW_PROJECT_DIR"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POMODORO_PRELUDE_SH="$SCRIPT_DIR/../pomodoro/pomodoro.prelude.sh"
 if [[ -x "$POMODORO_PRELUDE_SH" ]]; then
@@ -127,6 +128,17 @@ fi
 if [ ! -d "$PROJECT_DIR" ]; then
   echo "Project dir not found: $PROJECT_DIR" >&2
   exit 1
+fi
+
+if [ -n "$TEST_SCRIPT" ]; then
+  if [ -n "$PROJECT_NAME$TEST_FILE$TEST_NAME$BASE_REF$HEAD_REF$GREP_PATTERN" ] || [ "$RUN_LIST" -eq 1 ] || [ "$RUN_AFFECTED" -eq 1 ] || [ "$RUN_E2E_DEV" -eq 1 ] || [ ${#extra_args[@]} -gt 0 ]; then
+    echo "--script cannot be combined with other test selectors or extra arguments" >&2
+    exit 2
+  fi
+  if [ -n "$AUTHORIZED_PROJECT_DIR" ] && [ "$(cd "$PROJECT_DIR" && pwd -P)" != "$(cd "$AUTHORIZED_PROJECT_DIR" && pwd -P)" ]; then
+    echo "Test script project differs from authorized project" >&2
+    exit 2
+  fi
 fi
 
 cd "$PROJECT_DIR"
