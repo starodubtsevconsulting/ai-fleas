@@ -41,3 +41,35 @@ assert.equal((await fromSource('booking-in.pdf', { section: 'out' })).reason, 'i
 await assert.rejects(fromSource('booking-in.pdf', {}, path.join(path.dirname(root), 'extraction')), /SOURCE_OUTSIDE_ROOT/);
 await assert.rejects(fromSource('invalid.json'), /INVALID_SOURCE_NOT_PDF/);
 console.log('financial-records prepare-from-source: PASS');
+
+const destination = path.join(root, '2026', 'chalet', 'q3', 'in');
+let published;
+command.publisher = { publish(input) {
+  published = input;
+  return { status: 'applied', sha256: sourcePreview.sourceEvidence.sha256, stagingCleanupRequired: false };
+} };
+const apply = (name = 'booking-in.pdf', overrides = {}) => command.run([
+  'apply-from-source', '--root', root, '--source', path.join(root, name),
+  '--destination', overrides.destination || destination, '--branch', overrides.branch || 'chalet',
+  '--year', overrides.year || '2026', '--quarter', overrides.quarter || 'q3',
+  '--section', overrides.section || 'in',
+  '--expected-sha256', overrides.sha256 || sourcePreview.sourceEvidence.sha256,
+  '--expected-filename', overrides.filename || sourcePreview.proposedFilename,
+]);
+const applied = await apply();
+assert.equal(applied.status, 'applied');
+assert.equal(applied.proposedFilename, sourcePreview.proposedFilename);
+assert.equal(published.extraction.totals.primary.amount, 1475.76);
+assert.equal(published.pdfPath, path.join(destination, sourcePreview.proposedFilename));
+assert.equal(published.sidecarPath, `${published.pdfPath}.json`);
+assert.match(published.sourceBytes.toString('ascii', 0, 4), /%PDF/);
+published = undefined;
+await assert.rejects(apply('booking-in.pdf', { sha256: '0'.repeat(64) }), /PREVIEW_MISMATCH/);
+await assert.rejects(apply('booking-in.pdf', { filename: '2026-08-15_booking_marketplace-reservation.pdf' }), /PREVIEW_MISMATCH/);
+await assert.rejects(apply('booking-in.pdf', { destination: path.join(path.dirname(root), 'extraction') }), /DESTINATION_OUTSIDE_ROOT/);
+await assert.rejects(apply('booking-in.pdf', { year: '2025' }), /DESTINATION_OUTSIDE_ROOT/);
+assert.equal((await apply('booking-no-visible-total.pdf')).reason, 'no-visible-labelled-total');
+assert.equal(published, undefined);
+command.publisher = { publish() { throw new Error('PUBLICATION_COLLISION'); } };
+await assert.rejects(apply(), /PUBLICATION_COLLISION/);
+console.log('financial-records apply-from-source wiring: PASS');

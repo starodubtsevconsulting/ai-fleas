@@ -10,15 +10,16 @@ but callers receive the same bounded result shapes. The command does not make st
 This file defines the full capability contract. A read-only `recognize` executable handles snow-removal service
 contracts as review-pending evidence. A read-only `prepare-review` operation derives a bounded Booking reservation
 filename and extraction preview from an existing eligible `In` recognition artifact. `prepare-from-source` derives
-the same preview from PDF text and explicit selected context. These operations do not support
-`reconcile`, `completeness`, normalization, or sidecar publication. Invoke recognition through the selected profile with
+the same preview from PDF text and explicit selected context. `apply-from-source` can publish that currently supported
+Booking `In` PDF and extraction sidecar after a fresh source-backed check. These operations do not support
+`reconcile` or `completeness`. Invoke recognition through the selected profile with
 `node financial-records.command.mjs recognize --root ABSOLUTE_ROOT --source ABSOLUTE_PDF`.
 
 Invoke the preview with `node financial-records.command.mjs prepare-review --root ABSOLUTE_ROOT --recognition ABSOLUTE_JSON`.
 The recognition file must be a regular JSON file inside the real root and at most 16 KiB. The command returns
 `proposedFilename` and a validated `extraction` without source paths, raw document text, or writes. Unsupported,
-uncertain, and `Out` documents remain review pending. A caller must still check destination collisions and use an
-explicit, separately authorized apply step before writing a sidecar or renaming a PDF.
+uncertain, and `Out` documents remain review pending. This artifact-based preview is advisory and cannot authorize
+publication.
 
 Invoke source-backed preparation with `node financial-records.command.mjs prepare-from-source --root ABSOLUTE_ROOT
 --source ABSOLUTE_PDF --branch BRANCH_ID --year YYYY --quarter q1..q4 --section in`. The command checks PDF magic,
@@ -27,28 +28,35 @@ monetary total, and an exact branch and period match. It returns a canonical fil
 source SHA-256 fingerprint without raw text or paths. Missing text totals that need visual evidence remain review
 required. The artifact-based `prepare-review` result is advisory and cannot authorize apply.
 
+Invoke `apply-from-source` with `--root ABSOLUTE_REPORTS_ROOT --source ABSOLUTE_PDF --destination ABSOLUTE_DIRECTORY
+--branch BRANCH_ID --year YYYY --quarter q1..q4 --section in --expected-sha256 SHA256 --expected-filename CANONICAL_PDF`.
+The caller must select an authorized reports root and an existing destination exactly at
+`root/year/branch/quarter/in`; the command creates no directory. It recomputes source-backed preparation, compares
+both expected values, rehashes the source bytes, and publishes the canonical PDF copy and validated `.pdf.json`
+sidecar exclusively. It leaves the original source untouched, returns no raw text or machine path, and rejects
+existing targets. `Out` invoices and records requiring visual total evidence remain review required.
+
 ### Apply-review safety gate
 
-`apply-review` is not executable yet. Artifact-based preparation validates recognition fields but cannot prove that
+Artifact-based preparation validates recognition fields but cannot prove that
 the artifact belongs to the supplied PDF. Matching an artifact filename to a PDF filename is insufficient: either
-file can change between review and apply. Source-backed preparation independently reads the PDF, but is advisory
-until recomputed immediately before a write. The backend also uses bounded visual total evidence when text extraction
+file can change between review and apply. Source-backed preparation independently reads the PDF, and
+`apply-from-source` recomputes it immediately before writing. The backend also uses bounded visual total evidence when text extraction
 is insufficient; that case remains review required in the shared command. A PDF header check alone cannot replace
 document validation.
 
-Before adding an apply operation, the shared command must independently validate the PDF and its monetary evidence,
-bind a versioned preview to the exact PDF bytes, recognition artifact, selected `In` section and period, and recheck
-that binding immediately before writing. The caller must supply an authorized root, source PDF, recognition artifact,
-selected section root, and destination directory; real paths for all inputs must stay within the root, and the
-destination must stay within that selected section. `Out` invoices remain unsupported.
+The caller supplies the authorized reports root, source PDF, selected `In` section and period, and existing destination.
+The command checks real-path containment and the exact `root/year/branch/quarter/in` layout. The supplied fingerprint
+and canonical filename must match a freshly computed eligible preview. The recognition JSON artifact is never used
+as apply evidence. `Out` invoices remain unsupported.
 
-Publication must reject existing canonical PDF, recognition, and extraction-sidecar paths, including concurrent
-creations. It must preserve original PDF and recognition evidence until a complete canonical PDF plus validated
+Publication rejects existing canonical PDF and extraction-sidecar paths, including concurrent
+creations. It preserves the original source PDF until a complete canonical PDF plus validated
 sidecar exists. Because two filesystem entries cannot be published as one atomic operation, the command must define
 an observable partial state and a retry/recovery rule before any write path is enabled. A failed write must never
 silently overwrite, discard, or claim a completed extraction.
 
-The internal `ReviewPublisher` primitive is a building block, not an exposed apply operation. Given already validated
+The internal `ReviewPublisher` primitive backs `apply-from-source`. Given freshly validated
 PDF bytes, extraction, and canonical target paths, it stages both files with exclusive creation in the destination
 directory, verifies the staged PDF hash, and publishes each target with an exclusive hard link. A collision leaves
 existing targets intact. If sidecar publication fails after the PDF link, rollback removes that PDF only when its
