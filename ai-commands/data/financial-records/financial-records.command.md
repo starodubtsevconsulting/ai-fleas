@@ -5,6 +5,15 @@ Portable command contract for evidence-preserving Financial Insights record oper
 Implementations may use filesystem/NAS/cloud storage, PDF text extraction, OCR, vision, or provider-specific adapters,
 but callers receive the same bounded result shapes. The command does not make strategic financial decisions.
 
+## Shared execution target
+
+This file currently defines a capability contract, not a runnable processor. The intended implementation is one
+executable command for both no-UI workflow callers and the platform backend. Keep recognition, canonical naming,
+structured extraction, and reconciliation in that shared implementation; the backend may provide UI context and
+display review results, but must not maintain a separate copy of those rules. Profile-authorized adapters select the
+storage and document drivers. A caller must not treat an unsupported document section as processed merely because the
+contract defines its result shape.
+
 ## Operations
 
 ### recognize

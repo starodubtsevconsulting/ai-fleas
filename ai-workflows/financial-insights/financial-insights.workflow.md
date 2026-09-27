@@ -47,6 +47,12 @@ command contract alone is not an executable processor. The current UI staged int
 do not assume its Add or normalization path supports an existing `Out` record. If no authorized processor supports the
 record's section, report processing as pending rather than rename or extract it ad hoc.
 
+The target execution boundary for recognition, normalization, extraction, and reconciliation is one executable
+`financial-records` command with profile-authorized adapters. Both no-UI agents and the platform backend should call
+that command so they use the same classification, naming, extraction, and collision rules. Until that implementation
+and backend integration exist, the portable contract describes the desired behavior; it does not grant access to the
+platform's private driver or make unsupported sections processable.
+
 ## Document intake
 
 Evidence-preserving intake follows:
