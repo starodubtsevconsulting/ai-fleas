@@ -20,6 +20,23 @@ must include relevant code excerpts, interface constraints, examples, and a
 stop condition, then inspect and verify any accepted code. A model response
 that is empty or ends at the output token limit fails the route.
 
+## Preliminary Q5 versus routed 35B observation
+
+On 2026-09-27, a broad Router design request through the direct 35B launcher returned
+`Model answer was empty or truncated` after about 27 seconds. A shorter design request
+returned only `BLOCKED`. A narrow JavaScript function request returned a usable proposal
+in about 1.3 seconds; a larger, single-function request returned a proposal in about
+4.4 seconds. This suggests splitting Coder handoffs at a known function or interface
+boundary for this model. It does not establish that the model can complete the full
+Router migration.
+
+We also ran the Hermes Admin profile on a target-selection code proposal. Q5 alone took
+53 seconds and mistakenly used a route ID as the destination task ID. Q5 calling the
+`bounded_coder` MCP tool returned in 23 seconds and used the caller task ID, but omitted
+strict string validation and claimed a risk that optional chaining already addressed.
+The prompts and tool availability differed slightly, so this is directional evidence,
+not a controlled speed or quality ranking. The routed answer still requires Admin review.
+
 `bounded-model.command.mjs ask` reads one prompt from standard input.
 `serve-mcp` provides the same model through one MCP tool, `bounded_coder`.
 `bounded-model.delegate.mjs check|run --project ID` resolves the selected Dev

@@ -28,7 +28,13 @@ class BoundedModelClient {
     if (!response.ok) throw new Error(`Model endpoint returned HTTP ${response.status}`);
     const choice = (await response.json())?.choices?.[0];
     const answer = choice?.message?.content;
-    if (choice?.finish_reason !== 'stop' || typeof answer !== 'string' || !answer.trim()) throw new Error('Model answer was empty or truncated');
+    if (choice?.finish_reason !== 'stop' || typeof answer !== 'string' || !answer.trim()) {
+      const finishReason = typeof choice?.finish_reason === 'string'
+        ? choice.finish_reason.replace(/[^a-z_]/gi, '').slice(0, 32) || 'unknown'
+        : 'unknown';
+      const answerLength = typeof answer === 'string' ? answer.length : 0;
+      throw new Error(`Model answer was empty or truncated (finish_reason=${finishReason}, answer_chars=${answerLength}, max_output_tokens=${this.maxOutputTokens})`);
+    }
     return answer.trim();
   }
 }
