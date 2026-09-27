@@ -31,3 +31,7 @@ model proposal against the command's real interface before execution. The
 route returns the command's actual exit status, output, and signal; a model
 answer is never execution evidence. It does not replace independent review or
 UI acceptance.
+
+For these repositories, the registered `test` wrapper accepts `--script`
+followed by an existing repository-relative `.test.sh` or `.test.mjs` file.
+The route uses that wrapper to execute focused checks with a hard timeout.
