@@ -37,6 +37,16 @@ runtime_diagnostics:
     - inspect-output-cap-and-finish-reason
     - compare-a-small-identical-task-in-a-second-harness-before-changing-prompt-rules
   setting_changes: require-measured-local-evidence
+measured_unattended_profile_guards:
+  status: experimental
+  agent_max_turns: 20
+  agent_run_budget_seconds: 240
+  tool_loop_guardrails_hard_stop_enabled: true
+  agent_gateway_auto_continue_freshness_seconds: 1
+  limits:
+    - run-budget-is-a-wrap-up-notice-not-a-hard-timeout
+    - tool-loop-hard-stop-does-not-catch-successful-repeated-writes
+    - a2a-terminal-status-does-not-cancel-hermes-gateway-turn
 verification:
   owner: command-runner-and-admin
   require:

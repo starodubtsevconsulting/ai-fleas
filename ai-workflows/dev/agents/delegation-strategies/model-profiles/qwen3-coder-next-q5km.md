@@ -19,6 +19,15 @@ Hermes A2A. Review this profile if either value changes.
 - Two recognizer assignments created unrequested test/scratch files despite an exact one-file write scope. A correction
   also repeated date and context parsing mistakes. Require concrete input/output examples and explicitly authorize
   any adjacent test file; stop and rescope after one unsuccessful correction instead of repeated long retries.
+- The first failed recognizer session made 277 `write_file` calls and continued after A2A had marked its task failed.
+  A gateway restart left a separate session worker alive. The Manager stopped that worker before cleanup. A later
+  broad CLI assignment again wrote unrequested fixtures and continued after a client `fetch failed` result; the Manager
+  stopped the gateway. A2A task state is not a reliable stop signal for filesystem work.
+- With a 20-turn profile cap, a 240-second advisory run budget, and tool-loop hard stops enabled, a one-file,
+  no-test recognizer assignment completed in about 38 seconds. A broader CLI assignment still exceeded the transport
+  window. Three subsequent one-file corrections completed in roughly one to two minutes each, and independent checks
+  confirmed a working read-only CLI against the real PDF. These settings help bound ordinary turns but have not proven
+  a hard wall-clock limit or repaired A2A cancellation.
 
 These are observations from the financial-records and Hermes delegation work in September 2026. They guide the next
 assignment; they do not claim that every run or other deployment of the model behaves this way.

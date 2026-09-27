@@ -7,7 +7,12 @@ but callers receive the same bounded result shapes. The command does not make st
 
 ## Shared execution target
 
-This file currently defines a capability contract, not a runnable processor. The intended implementation is one
+This file defines the full capability contract. A read-only `recognize` executable now handles snow-removal service
+contracts as review-pending evidence; it does not support `extract`, `reconcile`, `completeness`, normalization, or
+sidecar publication. Invoke it through the selected profile with
+`node financial-records.command.mjs recognize --root ABSOLUTE_ROOT --source ABSOLUTE_PDF`.
+
+The intended full implementation is one
 executable command for both no-UI workflow callers and the platform backend. Keep recognition, canonical naming,
 structured extraction, and reconciliation in that shared implementation; the backend may provide UI context and
 display review results, but must not maintain a separate copy of those rules. Profile-authorized adapters select the

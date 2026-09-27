@@ -19,6 +19,11 @@ timing:
     - never-overlap-assignments-that-write-the-same-files
     - never-infer-failure-from-client-fetch-error-alone
   a2a_terminal_status_cancels_gateway_turn: false
+  restart_risk: recent-interrupted-sessions-may-auto-resume-on-gateway-start
+  recovery:
+    - route-gateway-lifecycle-through-authorized-manager
+    - verify-gateway-turn-and-any-separate-session-worker-have-stopped
+    - verify-write-count-stays-stable-before-cleanup-or-retry
 scratch:
   temporary_directories: forbidden
   files: only-exact-visible-paths-authorized-in-assignment
