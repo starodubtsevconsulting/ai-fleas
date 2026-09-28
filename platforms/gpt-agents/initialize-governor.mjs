@@ -25,6 +25,23 @@ function declaredFile(base, ref, label) {
   return requireFile(path.resolve(base, ref), label);
 }
 
+function taskAccessError(operation, error) {
+  if (['EACCES', 'EPERM', 'EROFS'].includes(error?.code)) {
+    return new Error(`current task environment blocks ${operation}: ${error.message}`, { cause: error });
+  }
+  return error;
+}
+
+function verifyMemoryWrite(file, options) {
+  try {
+    if (options.checkMemoryWrite) return options.checkMemoryWrite(file);
+    const descriptor = fs.openSync(file, 'r+');
+    fs.closeSync(descriptor);
+  } catch (error) {
+    throw taskAccessError('writing the authoritative Governor memory file', error);
+  }
+}
+
 function resolveGovernorMemory(dir, permanent, memory, governor, options) {
   if (permanent.provider === 'git-profile-memory') {
     const memoryFile = declaredFile(dir, permanent.path, 'authoritative Git memory');
@@ -42,7 +59,7 @@ function resolveGovernorMemory(dir, permanent, memory, governor, options) {
         JSON.stringify(governor.cutover?.resolutionChain) !== JSON.stringify(expectedChain)) {
       throw new Error('Governor cutover conflicts with authoritative Git memory');
     }
-    fs.accessSync(memoryFile, fs.constants.R_OK | fs.constants.W_OK);
+    verifyMemoryWrite(memoryFile, options);
     return memoryFile;
   }
   if (permanent.provider !== 'permanent-memory-synology') {
@@ -59,7 +76,12 @@ function resolveGovernorMemory(dir, permanent, memory, governor, options) {
   if (check.error || check.status !== 0 || !/^provider=synology$/m.test(check.stdout) ||
       !/^reachable=true$/m.test(check.stdout) || !/^access=read-write$/m.test(check.stdout) ||
       !/^writable=true$/m.test(check.stdout)) {
-    throw new Error(`Governor memory is not usable: ${check.error?.message || check.stderr?.trim() || check.stdout?.trim()}`);
+    if (check.error) throw taskAccessError('checking the declared memory provider', check.error);
+    const detail = check.stderr?.trim() || check.stdout?.trim();
+    if (/permission denied|operation not permitted|network access denied/i.test(detail)) {
+      throw new Error(`current task environment blocks checking the declared memory provider: ${detail}`);
+    }
+    throw new Error(`Governor memory is not usable: ${detail}`);
   }
   return providerFile;
 }

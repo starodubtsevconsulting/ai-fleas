@@ -1,0 +1,16 @@
+permanentMemory:
+  governor:
+    provider: git-profile-memory
+    authoritative: true
+    writableAuthority: true
+    path: memory/governor-memory.md
+    format: markdown
+    humanInterface: git
+    access: read-write
+    sourceOfTruth: true
+retrieval:
+  sourcePermanentMemoryRef: governor
+  writableAuthorityCount: 1
+consumers:
+  personalGovernor:
+    permanentMemoryRef: governor

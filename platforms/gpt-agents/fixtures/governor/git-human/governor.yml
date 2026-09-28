@@ -1,0 +1,20 @@
+agentId: personal-governor
+roleDefinition: ../../../../../ai-workflows/_common/roles/personal-governor.yml
+subject:
+  id: git-human
+readinessToken: PERSONAL_GOVERNOR_READY
+platformBindings:
+  gpt-agents: {}
+memory:
+  - name: governor
+    uri: profile-memory://governor
+    authority: source-of-truth
+    access: read-write
+    provider: git-profile-memory
+cutover:
+  authoritativeMemory: profile-memory://governor
+  writableAuthorityCount: 1
+  resolutionChain:
+    - profile-memory://governor
+    - git-profile-memory
+    - memory/governor-memory.md
