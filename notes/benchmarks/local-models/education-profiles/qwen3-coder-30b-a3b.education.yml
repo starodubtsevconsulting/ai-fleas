@@ -1,0 +1,33 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3-Coder-30B-A3B
+profile_status: sparse-evidence
+declared_education:
+  primary:
+    - coding
+    - software-engineering
+  source_status: upstream-model-card-review-needed-for-finer-claims
+observed_capability:
+  strengths: []
+  limits:
+    - partial-gpu-residency-made-tested-3080ti-deployments-too-slow-for-interactive-system-agent
+  evidence:
+    - ../rtx-3080-ti.md
+unknown_or_unverified:
+  - accepted-hermes-coding-quality-on-this-hardware
+  - best-agent-role
+communication:
+  direct_vocabulary:
+    - software-concepts
+    - code
+  translate_first:
+    - specialized-domain-semantics
+  preferred_pattern: coding-oriented-handoff
+role_fit:
+  observed_good_fit: []
+  supervised_or_unproven:
+    - coding-worker
+deployment_variants:
+  - id: Q8_0
+    note: quantization; not education
+  - id: Q4_K_M
+    note: quantization; not education
