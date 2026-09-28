@@ -96,9 +96,12 @@ preserve the narration script and audio in the configured permanent article arch
 whether the author actually listened, then ask for awkward/inaccurate/missing/voice feedback. A plan to synthesize,
 an unplayed file that was never presented, or a later explanation is not an offer. After a passing independent review,
 return `human_action_required` with a durable `human-action` reference containing the exact review, audio location,
-and pending listen-through. The Router must wait at `human_review`; `requires_human_article_acceptance: false` does not
-waive this listen-through gate. Do not claim the author listened from successful synthesis, presenting a player, or
-starting playback. Require the author's explicit confirmation that they listened to this exact narration.
+and pending decision. The Router waits at `human_review`. The normal listen-through path requires the author's
+explicit confirmation that they listened to this exact narration; synthesis, presenting a player, or starting
+playback is insufficient. An exact, direct human delegation to Admin may instead use the
+[Admin-delegated release contract](../../guides/admin-delegated-release.md). Independently verify its durable
+revision-bound receipt and Admin verdict, then return `admin_delegated` with `review`, `destination-review`, and
+`release-delegation` references. Never label this as human listening.
 When the profile grants online synthesis for publication-intended articles, do not introduce a second per-article
 permission gate for that service. If host approval review denies the network action, report that blocker directly.
 
@@ -123,6 +126,8 @@ If listen-through or article acceptance is required, return `human_action_requir
 resolved. When the human asks to play the narration, play the exact revision without treating playback as confirmation;
 return `listen_pending` with the existing `human-action` reference until the author confirms listening. For a review-only
 policy, that confirmation permits `human_listened` with the exact `review` and new `human-listen` evidence references.
+A valid Admin delegation permits `admin_delegated` after all independent checks and Admin's own revision-bound
+verdict, whether or not the author listened; record the author's listening status as unconfirmed.
 For a clearly labeled, nonconfidential test article only, the human may explicitly authorize a simulated listening
 agreement and scheduling of that exact test article. First offer the exact narration and return
 `human_action_required` so the Router records the human wait. On a later direct human-authorized test continuation,

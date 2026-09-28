@@ -18,8 +18,10 @@ a release-ready recommendation.
    active `requires_human_article_acceptance` policy: when true, also require direct human acceptance or a valid
    [session-scoped release mandate](../guides/session-release-authorization.md); when false, a complete successful
    independent review satisfies the editorial decision. If profile `review_preferences.listen_through.enabled` is true,
-   separately require the author's revision-bound confirmation of listening before release; an offered or played audio
-   file alone is insufficient. When review or listening evidence
+   separately require the author's revision-bound confirmation of listening or a verified exact Admin-delegated
+   release receipt under the [delegation contract](../guides/admin-delegated-release.md); an offered or played audio
+   file alone is insufficient. Record which path cleared the decision gate, never claim author listening for an Admin
+   delegation. When review or decision evidence
    is missing, stale, conflicting, or ambiguous, expose one precise blocker event to the Router; do not contact Reviewer or
    make the human relay the question. The Router assigns diagnosis or revision work to the proper owner and may send a verified
    continuation packet back. If acceptance or review still is not proven, record the missing gate and do not mark the

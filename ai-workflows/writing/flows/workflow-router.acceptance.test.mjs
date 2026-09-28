@@ -55,6 +55,9 @@ assert.match(visualMap, /human_review\["human_review<br\/>reviewer<br\/>WAITING 
 assert.match(visualMap, /human_review -->\|listen_pending: wait for confirmation\| human_review/);
 assert.match(visualMap, /human_review -->\|changes_required: stale cross-surface evidence\| correction/);
 assert.match(visualMap, /human_review -->\|human_listened: review passed\| release/);
+assert.match(visualMap, /human_review -->\|admin_delegated: explicit human mandate reviewed\| release/);
+assert.deepEqual(portableDefinition.stages.human_review.transitions.admin_delegated.requiredReferenceKinds,
+  ['review', 'destination-review', 'release-delegation']);
 assert.match(visualMap, /human_review -->\|test_listen_simulated: test release only\| release/);
 assert.deepEqual(portableDefinition.stages.human_review.transitions.test_listen_simulated.requiredReferenceKinds,
   ['review', 'destination-review', 'test-listen-simulation']);

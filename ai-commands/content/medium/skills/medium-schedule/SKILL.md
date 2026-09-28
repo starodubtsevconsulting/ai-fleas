@@ -18,8 +18,11 @@ target.
 
 1. Verify the complete independent review and Writer disposition for the exact final article and intended unpublished
    Medium draft. If profile `review_preferences.listen_through.enabled` is true, require revision-bound evidence that
-   the author explicitly confirmed listening to the offered narration. A generated file, presented player, playback
-   request, or review pass alone does not satisfy that gate. A separate `test_listen_simulated` Router transition may
+   the author explicitly confirmed listening to the offered narration, or a verified exact `admin_delegated` Router
+   transition with a `release-delegation` receipt under the
+   [delegation contract](../../../../../ai-workflows/writing/guides/admin-delegated-release.md). Record the latter as
+   Admin-delegated with author listening unconfirmed. A generated file, presented player, playback request, or review
+   pass alone does not satisfy that gate. A separate `test_listen_simulated` Router transition may
    schedule only a clearly labeled test article when the human explicitly authorized both simulated agreement and
    live scheduling of that exact test article. Require a `test-listen-simulation` artifact bound to the exact reviewed
    revision, offered audio, destination draft, and target; record the outcome as simulated listening, never as actual

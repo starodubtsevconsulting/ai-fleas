@@ -96,7 +96,10 @@ them.
    destination rendering or visual preparation remains pending. Reviewer returns
    `changes_required` only for remaining Writer-owned preparation. When listen-through is enabled, a passing review
    returns `human_action_required` and the Router waits for the author to listen and confirm the exact narration.
-   That listening requirement remains even when Medium sets `requires_human_article_acceptance: false`; in that case
+   That listening requirement remains even when Medium sets `requires_human_article_acceptance: false`, unless the
+   author explicitly delegates this exact article's release decision to Admin under the
+   [Admin-delegated release contract](guides/admin-delegated-release.md). In that case the Reviewer verifies the
+   revision-bound Admin verdict and returns `admin_delegated` without claiming the author listened. Otherwise,
    `human_listened` advances to release without treating listening as editorial acceptance. When acceptance is also
    required, Reviewer waits for that separate decision. With listen-through disabled and no acceptance requirement,
    a complete successful review returns `accepted` directly.

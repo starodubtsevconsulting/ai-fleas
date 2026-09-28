@@ -88,6 +88,11 @@ open editorial decisions. Keep both versions unpublished.
    For a clearly labeled test article with explicit human authorization for simulated agreement and live scheduling,
    a later test continuation may return `test_listen_simulated` with distinct revision-bound simulation evidence after
    the narration offer and human wait. Never describe this as actual listening.
+   When the author explicitly delegates the release decision for this exact article to Admin, Reviewer verifies the
+   [Admin-delegated release receipt](../guides/admin-delegated-release.md), Admin's own verdict, and current independent
+   review. It may return `admin_delegated` from `human_review` with `review`, `destination-review`, and
+   `release-delegation` references. Record that author listening was not confirmed; the delegation is a decision
+   substitute, not a listening claim. A changed article or destination invalidates the verdict.
    With listen-through disabled and no acceptance requirement, `accepted` may route directly to release. Proof: exact
    review record, selected policy, and revision-bound listening or acceptance evidence where required.
 

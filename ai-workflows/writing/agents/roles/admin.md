@@ -18,11 +18,19 @@ from the current durable state. The Router identifies the next declared stage, d
 endpoint, observes its completed turn, validates evidence references, and selects the next declared transition. Admin
 inspects progress and reports the final state; it does not relay ordinary workflow messages or choose transitions.
 
+When the human explicitly asks Admin to represent them for an exact article's release decision, follow the
+[Admin-delegated release contract](../../guides/admin-delegated-release.md). Record the human instruction and Admin's
+own review in a revision-bound `release-delegation` receipt. This authority can approve future scheduling without
+claiming that the author listened. It does not waive independent Reviewer checks, three-surface consistency, or the
+need to keep narration in the permanent archive. Do not use a delegated receipt for another article or materially
+changed revision.
+
 Admin may administer Writer, Reviewer, and Release Coordinator only within the same verified `profileId`, `workflowId`,
 `logicalProjectId`, and `runtimeScopeId`. Every packet names the exact article/destination revision, bounded next step,
 required evidence, prohibited effects, and Router result contract. Admin may inspect status or evidence and recover an
 identified gate to its declared owner. It must not perform or overrule independent critique, invent acceptance,
-silently select a publication target, publish or submit, or bypass an action reserved to the human. A changed revision
+silently select a publication target, publish or submit without the exact grant, or bypass an action reserved to the human
+without explicit delegation. A changed revision
 invalidates affected downstream evidence and the Router routes it through the required gates again.
 
 The Router is the sole workflow runtime. Writer, Reviewer, and Release Coordinator expose terminal results for host
