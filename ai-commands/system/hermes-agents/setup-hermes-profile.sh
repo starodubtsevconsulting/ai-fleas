@@ -39,6 +39,7 @@ binding_registry_path="${HERMES_BINDING_REGISTRY_PATH:-}"
 hermes_bin="${HERMES_BIN:-}"
 context_length="${HERMES_CONTEXT_LENGTH:-${DEFAULT_CONTEXT_LENGTH}}"
 compression_threshold="${HERMES_COMPRESSION_THRESHOLD:-${DEFAULT_COMPRESSION_THRESHOLD}}"
+compression_threshold_tokens="${HERMES_COMPRESSION_THRESHOLD_TOKENS:-}"
 compression_target_ratio="${HERMES_COMPRESSION_TARGET_RATIO:-${DEFAULT_COMPRESSION_TARGET_RATIO}}"
 compression_protect_last_n="${HERMES_COMPRESSION_PROTECT_LAST_N:-${DEFAULT_COMPRESSION_PROTECT_LAST_N}}"
 validate_only=false
@@ -210,6 +211,9 @@ printf 'Hermes provider configured: profile=%s provider=%s endpoint=%s headers=%
 "${hermes_bin}" -p "${profile}" config set model.api_mode chat_completions
 "${hermes_bin}" -p "${profile}" config set model.context_length "${context_length}"
 "${hermes_bin}" -p "${profile}" config set compression.threshold "${compression_threshold}"
+if [[ -n "${compression_threshold_tokens}" ]]; then
+  "${hermes_bin}" -p "${profile}" config set compression.threshold_tokens "${compression_threshold_tokens}"
+fi
 "${hermes_bin}" -p "${profile}" config set compression.target_ratio "${compression_target_ratio}"
 "${hermes_bin}" -p "${profile}" config set compression.protect_last_n "${compression_protect_last_n}"
 if [[ "${scope}" == 'system' ]]; then
@@ -353,6 +357,10 @@ actual_model="$("${hermes_bin}" -p "${profile}" config get model.default)"
 actual_endpoint="$("${hermes_bin}" -p "${profile}" config get model.base_url)"
 actual_context_length="$("${hermes_bin}" -p "${profile}" config get model.context_length)"
 actual_compression_threshold="$("${hermes_bin}" -p "${profile}" config get compression.threshold)"
+actual_compression_threshold_tokens=''
+if [[ -n "${compression_threshold_tokens}" ]]; then
+  actual_compression_threshold_tokens="$("${hermes_bin}" -p "${profile}" config get compression.threshold_tokens)"
+fi
 actual_compression_target_ratio="$("${hermes_bin}" -p "${profile}" config get compression.target_ratio)"
 actual_compression_protect_last_n="$("${hermes_bin}" -p "${profile}" config get compression.protect_last_n)"
 if [[ "${scope}" == 'system' ]]; then
@@ -367,6 +375,7 @@ actual_workspace="$("${hermes_bin}" -p "${profile}" config get terminal.cwd)"
 [[ "${actual_endpoint%/}" == "${endpoint%/}" ]]
 [[ "${actual_context_length}" == "${context_length}" ]]
 [[ "${actual_compression_threshold}" == "${compression_threshold}" ]]
+[[ -z "${compression_threshold_tokens}" || "${actual_compression_threshold_tokens}" == "${compression_threshold_tokens}" ]]
 [[ "${actual_compression_target_ratio}" == "${compression_target_ratio}" ]]
 [[ "${actual_compression_protect_last_n}" == "${compression_protect_last_n}" ]]
 [[ "${scope}" != 'system' || "${actual_title_generation_enabled}" == 'false' ]]
