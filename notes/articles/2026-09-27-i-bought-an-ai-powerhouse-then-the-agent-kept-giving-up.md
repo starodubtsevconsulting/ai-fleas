@@ -70,6 +70,11 @@ So the path from “please fix this code” to a changed file is already a chain
 
 **assignment → Hermes on Mac → working memory + tools → API → llama.cpp on GX10 → Qwen → tool call → Hermes → filesystem**
 
+<!-- TODO: add the final PNG asset at notes/articles/assets/2026-09-27-model-is-not-the-agent-stack.png. Source/spec: 2026-09-27-model-is-not-the-agent-stack.diagram.md -->
+![The model is not the agent: a local AI worker is a stack of task, Hermes, API, model server, Qwen, tools, and result layers.](assets/2026-09-27-model-is-not-the-agent-stack.png)
+
+*Failures can happen at different layers — not only in the model.*
+
 The speed of Qwen generating tokens is roughly the speed at which the brain can produce its next words. It says very little about whether the executive layer keeps the right information in working memory, whether the hands do what was intended, or whether the communication channel reports the right state.
 
 And when one agent delegates to another, there is another layer around that.
