@@ -1,0 +1,32 @@
+schema_version: ai-fleas-model-education.v1
+model_family: MiniMax-M2.7
+profile_status: sparse-evidence
+declared_education:
+  primary: []
+  source_status: upstream-education-review-needed
+observed_capability:
+  strengths:
+    - passed-controlled-file-tools-fixture
+  limits:
+    - slower-than-qwen3-coder-next-on-matched-fixture
+    - bounded-parser-task-did-not-complete-acceptably
+    - deployment-license-restricts-intended-business-use-without-authorization
+  evidence:
+    - ../gx10-qwen38-minimax-m27.md
+unknown_or_unverified:
+  - primary-training-specialization
+  - best-agent-role
+  - specialized-domain-knowledge
+communication:
+  direct_vocabulary:
+    - general-instructions
+  translate_first:
+    - specialized-domain-semantics
+  preferred_pattern: probe-before-role-selection
+role_fit:
+  observed_good_fit: []
+  supervised_or_unproven:
+    - coding-worker
+deployment_variants:
+  - id: UD-IQ4_XS
+    note: quantization/deployment representation; not education
