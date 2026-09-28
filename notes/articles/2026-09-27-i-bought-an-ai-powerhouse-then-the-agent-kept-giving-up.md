@@ -50,7 +50,7 @@ Maybe the model was only one part of the problem.
 
 My setup is not simply “Qwen running on a GX10.”
 
-If Qwen is the brain, Hermes is closer to the executive layer around it. It keeps the working session, decides what recent information stays in view, gives the model tools, and keeps asking what to do next. The tools are the hands: read this file, edit that one, run a command, check the result.
+If Qwen is the brain, Hermes is closer to the executive layer around it. Hermes is an open-source AI agent program: instead of only chatting with a model, it can give the model tools and let it work through a task. It keeps the working session, decides what recent information stays in view, and keeps asking what to do next. The tools are the hands: read this file, edit that one, run a command, check the result.
 
 The brain itself is not even running on the same machine. Hermes runs on my Mac. It talks over an OpenAI-compatible API to a llama.cpp server on the GX10, where Qwen actually runs.
 
@@ -103,7 +103,7 @@ The public AI Fleas runtime did not support that profile setting yet, so I added
 
 Context was not the only moving part.
 
-I had also been using A2A between the hosted coordinator and the Hermes coder. A2A gives separate systems a structured way to exchange tasks. Architecturally, I still like that boundary.
+I had also been using A2A — basically a protocol for one AI agent to hand a task to another — between the hosted coordinator and the Hermes coder. Architecturally, I still like that boundary.
 
 Operationally, I found an unpleasant lifecycle problem.
 
