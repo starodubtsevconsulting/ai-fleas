@@ -134,6 +134,8 @@ Not because “compression is bad.” The experiment does not prove that. It pro
 
 So I kept the 65K model context and restored the existing Hermes compression behavior while I looked for a stronger lever.
 
+I later tried the cap on an actual coding task with a deliberately large source packet. It fired four times across two capped runs and spent about **110 seconds** summarizing. Two runs with the old setting did not compact. After one correction per run, **neither setting produced an accepted fix**. That is a coding test, but it still gives me no reason to turn on the early cap.
+
 ## Then there was the communication layer
 
 Context was not the only moving part.
@@ -307,6 +309,8 @@ The strongest measured jumper so far was in the **handoff itself**.
 
 Not “write a better prompt” in the vague internet sense. Something more concrete: tell the worker which representation preserves the invariant it must protect.
 
+I also tried putting a small domain explanation *before* the unchanged task: where the PDF text comes from, which representation preserves word boundaries, and why `PAYMENT` cannot mean `REPAYMENT`. In a fresh interleaved batch, that passed **4 of 8** verifier runs; task-only passed **0 of 8**. Both groups took about the same time per attempt. Helpful direction, but four failures still make it too unreliable to call a general recipe. Every failure repeated the same substring mistake.
+
 ## More turns were not the enemy either
 
 Another tempting knob was the maximum number of agent turns.
@@ -426,4 +430,4 @@ This is a living draft based on the author's September 2026 GX10/Hermes experime
 
 The model-number primer is published as [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683). The earlier model-selection experiment is described in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](2026-09-27-i-tried-to-replace-my-local-coder.md), and the hybrid coordination design in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md). The original runtime change and article work landed in [AI Fleas PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219). The follow-up controlled runs, per-run benchmark data, CLI lifecycle changes, and compression findings are being collected in [PR #225](https://github.com/starodubtsevconsulting/ai-fleas/pull/225).
 
-Hermes's current [context compression documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/developer-guide/context-compression-and-caching.md) documents the small-context 75% threshold floor and the `compression.threshold_tokens` absolute cap. The article intentionally separates measured observations from broader conclusions: the 32K cap was rejected for this setup based on the observed probe, while compression in general remains an open tuning dimension.
+Hermes's current [context compression documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/developer-guide/context-compression-and-caching.md) documents the small-context 75% threshold floor and the `compression.threshold_tokens` absolute cap. The [long-context coding pilot](../benchmarks/local-models/gx10-long-context-coding-pilot-2026-09-28.json) and [domain-context handoff pilot](../benchmarks/local-models/gx10-domain-context-handoff-pilot-2026-09-28.json) record the later matched results. The 32K cap was rejected for this setup; compression in general remains an open tuning dimension.
