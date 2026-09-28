@@ -42,7 +42,7 @@ const visualMap = renderWorkflowMap(portableDefinition);
 assert.equal(portableDefinition.stages.administration.role, 'admin');
 assert.equal(portableDefinition.stages.administration.transitions['route-required'].to, 'drafting');
 assert.deepEqual(portableDefinition.stages.administration.transitions['route-required'].requiredReferenceKinds,
-  ['revision']);
+  ['revision', 'work-request']);
 assert.equal(portableDefinition.stages.administration.transitions.handled.terminal, true);
 assert.match(visualMap, /administration -->\|route-required: send article request to Writer\| drafting/);
 assert.equal(portableDefinition.stages.review.transitions.source_accepted.to, 'source_complete');
@@ -79,6 +79,19 @@ const adapter = {
   async dispatch(packet) { dispatched.push(packet); },
 };
 const router = createWorkflowRuntime(definition, { ...scope, routerRuntimeId: 'writing-router-a' });
+
+const adminIngress = createWorkflowRuntime(definition,
+  { ...scope, routerRuntimeId: 'writing-admin-ingress' }, { stage: 'administration' });
+assert.throws(() => adminIngress.transition({ scope, type: 'route-required', expectedStage: 'administration', references: [
+  { kind: 'revision', ref: 'article://current-revision' },
+] }), ({ code }) => code === 'BLOCKED_ROUTER_REFERENCE');
+const routedRequest = await adminIngress.route({ scope, type: 'route-required', expectedStage: 'administration', references: [
+  { kind: 'revision', ref: 'article://current-revision' },
+  { kind: 'work-request', ref: 'request://medium-home-approved' },
+] }, adapter);
+assert.equal(routedRequest.currentStage, 'drafting');
+assert.equal(dispatched.at(-1).requiredExecutionRole, 'writer');
+dispatched.length = 0;
 
 const sourceDispatches = [];
 const sourceRouter = createWorkflowRuntime(definition, { ...scope, routerRuntimeId: 'writing-source-only' });

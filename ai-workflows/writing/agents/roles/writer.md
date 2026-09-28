@@ -21,6 +21,11 @@ This role composes the [common agent contract](../../../agents.md) within one in
 
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
 
+For an Admin-routed `drafting` packet, open its required durable `work-request` reference before deciding the scope.
+Honor the recorded publication intent, destination, target, and approvals together with the exact `revision` reference.
+Do not infer source-only scope from an article's older metadata when the new human request explicitly expands it.
+Preserve human-only listening as pending until the author confirms the exact narration.
+
 ## Human prompt interpretation cases
 
 | Human prompt | Interpretation |

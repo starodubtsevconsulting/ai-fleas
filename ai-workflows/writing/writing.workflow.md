@@ -65,7 +65,8 @@ them.
   declared run and report its state, but does not manually relay stage packets or choose transitions. Admin does not
   inherit editorial verdicts, human acceptance, publication-target choice, or publication authority.
   A direct article request enters the Router through Admin's `administration/route-required` transition with an exact
-  article `revision` reference; the Router assigns Writer's `drafting` stage. Admin-owned work finishes through
+  article `revision` and durable `work-request` reference carrying the human's scope, target, and approvals; the Router
+  assigns Writer's `drafting` stage. Admin-owned work finishes through
   `administration/handled`.
 - The human author may accept or reject a final revision. When the selected profile explicitly permits review-only
   Medium scheduling, a successful independent review authorizes Release Coordinator to schedule a future slot without

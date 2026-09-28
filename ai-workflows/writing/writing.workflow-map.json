@@ -20,7 +20,7 @@
         "route-required": {
           "to": "drafting",
           "visualLabel": "route-required: send article request to Writer",
-          "requiredReferenceKinds": ["revision"]
+          "requiredReferenceKinds": ["revision", "work-request"]
         },
         "handled": {
           "to": "administration_complete",
