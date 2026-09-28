@@ -4,6 +4,9 @@ Status: **conceptual refactor; no runtime paths move in this branch yet**.
 
 ## Why
 
+For the human/agent-facing vocabulary and practical explanation, start with [`models/README.md`](../models/README.md). The rest of this document defines the architectural ownership and migration boundary.
+
+
 AI-Fleas already treats **roles** as reusable architecture. Models have grown into another reusable entity, but their
 knowledge is currently split between Dev-specific delegation strategies and `notes/models/`.
 
