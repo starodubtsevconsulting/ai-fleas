@@ -1,33 +1,23 @@
 schema_version: ai-fleas-model-education.v1
 model_family: Qwen3-Coder-30B-A3B
-profile_status: sparse-evidence
+profile_status: source-review-needed
 declared_education:
-  primary:
-    - coding
-    - software-engineering
-  source_status: upstream-model-card-review-needed-for-finer-claims
+  primary: ["coding", "software-engineering"]
+  source_status: review-needed
 observed_capability:
-  strengths: []
-  limits:
-    - partial-gpu-residency-made-tested-3080ti-deployments-too-slow-for-interactive-system-agent
-  evidence:
-    - ../rtx-3080-ti.md
+  demonstrated: []
+  limits: ["partial-gpu-residency-too-slow-for-interactive-system-agent-on-3080ti"]
+  evidence: ["../rtx-3080-ti.md"]
 unknown_or_unverified:
-  - accepted-hermes-coding-quality-on-this-hardware
-  - best-agent-role
+  - specialized-domain-knowledge-unless-evidenced
+  - organization-specific-semantics
 communication:
-  direct_vocabulary:
-    - software-concepts
-    - code
-  translate_first:
-    - specialized-domain-semantics
-  preferred_pattern: coding-oriented-handoff
+  principle: translate-unfamiliar-domain-into-demonstrated-conceptual-language
+  use_domain_context_handoff_when_needed: true
 role_fit:
-  observed_good_fit: []
-  supervised_or_unproven:
-    - coding-worker
+  provisional: ["coding-worker-unproven"]
 deployment_variants:
-  - id: Q8_0
-    note: quantization; not education
-  - id: Q4_K_M
-    note: quantization; not education
+  - id: "Q8_0"
+    note: "deployment representation; not education"
+  - id: "Q4_K_M"
+    note: "deployment representation; not education"

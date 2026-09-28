@@ -1,33 +1,21 @@
 schema_version: ai-fleas-model-education.v1
 model_family: DeepSeek-V4-Flash-0731
-profile_status: sparse-evidence
+profile_status: source-review-needed
 declared_education:
   primary: []
-  source_status: upstream-education-review-needed
+  source_status: review-needed
 observed_capability:
-  strengths:
-    - passed-hermes-file-tool-fixture
-  limits:
-    - high-memory-cost-on-single-gx10
-    - slow-relative-to-qwen3-coder-next-in-measured-fixture
-  evidence:
-    - ../gx10.md
+  demonstrated: ["passed-hermes-file-tools-fixture"]
+  limits: ["high-single-gx10-memory-cost", "slow-relative-to-qwen3-coder-next"]
+  evidence: ["../gx10.md"]
 unknown_or_unverified:
-  - primary-training-specialization
-  - coding-depth
-  - business-domain-expertise
-  - best-agent-role
+  - specialized-domain-knowledge-unless-evidenced
+  - organization-specific-semantics
 communication:
-  direct_vocabulary:
-    - general-instructions
-  translate_first:
-    - specialized-domain-semantics
-    - organization-specific-terms
-  preferred_pattern: probe-before-role-selection
+  principle: translate-unfamiliar-domain-into-demonstrated-conceptual-language
+  use_domain_context_handoff_when_needed: true
 role_fit:
-  observed_good_fit: []
-  supervised_or_unproven:
-    - coding-worker
+  provisional: ["coding-worker-unproven"]
 deployment_variants:
-  - id: IQ2_XXS-Q2_K
-    note: compressed deployment representation; not education
+  - id: "IQ2_XXS-Q2_K"
+    note: "deployment representation; not education"
