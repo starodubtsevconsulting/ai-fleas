@@ -226,13 +226,33 @@ That is the strongest Phase 1 result so far.
 
 I started calling the idea **Domain Context Handoff**: before asking for the change, give the worker the smallest piece of domain reality it needs to make good decisions.
 
-It is how I would treat a human developer too. If I hand somebody a ticket saying “fix PAYMENT matching” without explaining what these two text representations mean or why `REPAYMENT` must not count, I should not be surprised by code that looks plausible and is wrong.
+But even that is not one magic recipe.
 
-The useful handoff became:
+You can explain a domain badly.
 
-**what this thing is → why it matters → invariants → relevant boundary/representation → task → acceptance checks**
+Imagine teaching biology to someone with a software background by throwing unfamiliar molecular terminology at them. The facts may all be correct and still be useless. A good teacher translates the new domain into concepts the listener already has.
 
-Not the whole domain. Just enough reality to understand the work.
+Agents seem to deserve the same treatment.
+
+So there are at least two very different versions of “give it domain context”:
+
+**Domain dump:**  
+“Here are the domain terms, internal representations, and rules. Good luck.”
+
+**Translated domain context:**  
+“You have two versions of the same PDF text. One behaves like normal text and preserves word boundaries. The other is deliberately more permissive for fuzzy recognition. This business rule depends on an exact standalone word, so use the first representation here. `PAYMENT` counts; `REPAYMENT` does not.”
+
+Same domain. Very different teaching.
+
+That is the version I want to test next.
+
+The useful handoff may be closer to:
+
+**what this thing is → translate it into concepts the worker already understands → why it matters → positive and misleading examples → invariants → relevant code boundary → task → acceptance checks**
+
+Not the whole domain. And not domain jargon for its own sake.
+
+**Translate the domain. Don’t dump the domain.**
 
 I also tried one of the obvious mechanical fixes: fewer agent turns. Six sounded safer than twenty. In the small matched test, the shorter limit was actually slower, so I kept the existing turn budget.
 
