@@ -14,4 +14,4 @@ For each initial failure, allow exactly one correction in a fresh session on its
 
 The acceptance gate is the fixture verifier, exact-file scope, process exit, and source review. A faster rejected result is not a speed improvement. Compare the three arms only after the fixed run order finishes; distinguish the overlap in facts between B and C from C's additional operational translation. If C materially improves acceptance over both A and B, test the pattern on another coding fixture before making a general claim.
 
-The [sanitized 27-run record](../../gx10-domain-context-three-arm-2026-09-28.json) contains the completed comparison. Exact prompts, saved candidates, logs, and correction outputs remain in ignored local `runs/` artifacts.
+The [sanitized 27-run record](../../../../models/qwen3-coder-next/benchmarks/gx10/domain-context-three-arm-2026-09-28.json) contains the completed comparison. Exact prompts, saved candidates, logs, and correction outputs remain in ignored local `runs/` artifacts.

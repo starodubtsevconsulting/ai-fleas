@@ -7,7 +7,7 @@ declared_education:
 observed_capability:
   demonstrated: []
   limits: ["partial-gpu-residency-too-slow-for-interactive-system-agent-on-3080ti"]
-  evidence: ["../rtx-3080-ti.md"]
+  evidence: ["../../benchmarks/local-models/rtx-3080-ti.md"]
 unknown_or_unverified:
   - specialized-domain-knowledge-unless-evidenced
   - organization-specific-semantics
