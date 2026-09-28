@@ -101,7 +101,7 @@ providers:
     models:
       - id: example-coder
         provider_model: example-coder-model
-        hermes: { context_window_tokens: 65536, compression_threshold: 0.25, compression_target: 0.15, protect_last_messages: 8 }
+        hermes: { context_window_tokens: 65536, compression_threshold: 0.25, compression_threshold_tokens: 32768, compression_target: 0.15, protect_last_messages: 8 }
 YAML
 cat >"${test_root}/ai-profile/example/projects/dev/service/project.yml" <<YAML
 id: service
@@ -131,7 +131,7 @@ fi
 if [[ "$1" == -p && "$3" == config && "$4" == get ]]; then
   case "$5" in
     model.provider) printf 'example-box\n';; model.default) printf 'example-coder-model\n';; model.base_url) printf 'http://192.0.2.10:1234/v1\n';;
-    model.context_length) printf '65536\n';; compression.threshold) printf '0.25\n';; compression.target_ratio) printf '0.15\n';;
+    model.context_length) printf '65536\n';; compression.threshold) printf '0.25\n';; compression.threshold_tokens) printf '32768\n';; compression.target_ratio) printf '0.15\n';;
     compression.protect_last_n) printf '8\n';; terminal.cwd) printf '%s\n' "${TEST_WORKSPACE}";;
   esac
   exit 0
