@@ -228,6 +228,55 @@ A fixture can be almost any small piece of real work if it has:
 
 That is enough to turn “this setting feels better” into something we can actually compare.
 
+### Then I realized what the local machine should be doing
+
+By this point I had another realization that had less to do with model quality and more to do with economics.
+
+I had been watching an agent run these experiments since the morning. Hours of changing one parameter, resetting the fixture, running the same task again, collecting timings, checking the verifier, saving the result, and moving to the next variation.
+
+Useful work, but not exactly thrilling work.
+
+And somewhere around hour eight I thought: **this is exactly the kind of job I want the local model to do.**
+
+The hard part was deciding what experiment mattered.
+
+Which variable should move? What stays fixed? What counts as success? What result would actually change my mind?
+
+That is reasoning work.
+
+But once the experiment exists, much of the execution is closer to a lab technician following a protocol:
+
+**change → run → measure → verify → record → reset → repeat**
+
+That changes how I think about the role of a local model.
+
+I do not necessarily need it to replace the strongest hosted model at everything.
+
+A stronger hosted model can help design the experiment, notice patterns, question the assumptions, and interpret the evidence.
+
+A local worker can take the boring middle:
+
+- run twenty variations;
+- wait for each one;
+- capture the measurements;
+- reset the environment;
+- flag the strange runs;
+- come back with the evidence.
+
+Latency matters less there. Repetition matters more. And when the machine is already sitting in my office, the marginal cost of another dozen experiments starts to look very different from spending hosted tokens for hours.
+
+There is some irony in that.
+
+I bought the GX10 because I wanted useful local intelligence. Then I spent most of a working day using a hosted agent to figure out how to make the local worker better.
+
+But the experiment itself revealed one of the jobs the local worker should eventually take over.
+
+Maybe that is another kind of jumper.
+
+Not a setting that makes the model twice as smart.
+
+A better division of labour.
+
 That gave me my first surprise.
 
 The baseline assignment passed only **2 of 8** runs.
