@@ -90,49 +90,21 @@ That contradiction was useful.
 
 ## One innocent-looking number was not doing what I thought
 
-My Hermes profile advertised a 65,536-token context window for the Qwen coder.
+My Qwen coder has a **65K context window**. I think of that as the size of its working-memory desk.
 
-Using the brain analogy, that is the size of the working-memory desk. But an agent does not want to wait until every square centimetre of the desk is covered before cleaning it.
+Hermes can clean that desk by summarizing older context. I had configured what looked like a 25% cleanup threshold, but for a context this size Hermes effectively would not start until much later — around three quarters full.
 
-Hermes can compress older context: roughly, take piles of old notes, summarize what still matters, and clear space for the next part of the job.
-
-I had a compression threshold of `0.25`. Reading that casually, I expected Hermes to start cleaning the desk around one quarter of the window.
-
-But current Hermes behavior is more nuanced. Its own context-compression documentation says models with context windows below 512K have a **75% minimum ratio threshold**. Hermes also supports an absolute `threshold_tokens` cap, which can force compaction earlier than that ratio would.
-
-For a 65,536-token model window, 75% is roughly 49,000 tokens.
-
-That is very different from the 16,000-ish number I thought I had configured.
-
-That gave me a very plausible hypothesis.
-
-Keep the model at **65,536 tokens**, but ask Hermes to start cleaning the desk around **32,768**. In other words: do not make the brain's desk smaller; just tidy it earlier.
-
-I even added support for that absolute cap in [PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219).
+So I had a plausible idea: keep the full 65K desk, but ask Hermes to clean it earlier, around **32K**.
 
 Then we tested it.
 
-And this is where the story became more useful.
+The first coding tasks never even reached 32K, which meant they could tell me nothing about the change. So I forced a longer run that actually crossed the threshold.
 
-The first coding runs were too small to tell me anything about compression. The largest model input was only about **11,900 tokens**. Neither the old configuration nor the proposed 32K cap compressed anything.
+When compression finally fired, Hermes spent about **53 seconds** summarizing and then immediately wanted to summarize again. The run became slower and less useful instead of cleaner.
 
-That sounds obvious in retrospect, but it is exactly why I wanted a repeatable test. If the trigger never fires, any difference in speed or quality cannot honestly be credited to the trigger.
+That was enough to roll the change back.
 
-So I forced the question with a longer, read-only five-turn code-review probe.
-
-Under the old settings, the probe finished in about **90 seconds** without compacting.
-
-With the proposed **32,768-token** cap, Hermes finally crossed the threshold. It spent about **53 seconds** summarizing the conversation — and after that summary the context was still around 47,700 tokens. Hermes immediately wanted to summarize again. The run hit my 120-second outer limit without producing the final answer.
-
-I tried protecting fewer recent messages. Same basic behavior.
-
-I tried a later cap around **49K**. That version finished after one long summary, but the whole probe took about **152 seconds** and the answer missed the specific review question.
-
-That was enough for me to reject my own 32K idea for now.
-
-Not because “compression is bad.” The experiment does not prove that. It proves something narrower and more useful: **an intuitively reasonable tuning knob can make the system worse if you have not measured what actually happens when it fires.**
-
-So I kept the 65K model context and restored the existing Hermes compression behavior while I looked for a stronger lever.
+Not because compression is bad. The lesson was simpler: **a tuning knob that sounds sensible is not a win until the workload actually reaches it and the result improves.**
 
 ## Then there was the communication layer
 
@@ -174,41 +146,23 @@ The verifier was intentionally stricter than “the agent said it was done.” I
 
 ### What the little test bench actually looks like
 
-I did not build a grand benchmarking platform first. It emerged from the experiment.
+I did not set out to build a benchmarking platform. It emerged because I needed to stop arguing with my own impressions.
 
-The checked-in version is basically four things:
-
-```text
-notes/benchmarks/local-models/
-├── fixtures/hermes-financial-recognizer-coding/
-│   ├── TASK.md
-│   ├── starter/
-│   │   └── ...the frozen starting code...
-│   └── verify.mjs
-└── run-hermes-financial-recognizer-coding.sh
-```
-
-The **starter** makes every run begin from the same place.
-
-`TASK.md` is the assignment the worker receives.
-
-The runner starts the agent and measures the run.
-
-And `verify.mjs` is deliberately outside the agent's opinion of its own work. The worker can say “done”; the verifier can still say “no.”
+The pattern is small:
 
 ```mermaid
 flowchart LR
-    S["Frozen starter"] --> T["Same TASK.md"]
+    S["Frozen starting code"] --> T["Same task"]
     T --> A["Agent under test"]
-    X["Change one variable"] --> A
+    X["Change one thing"] --> A
     A --> V["Independent verifier"]
-    V --> R["Record: pass/fail, time, calls, scope"]
-    R --> N["Reset and run again"]
+    V --> R["Record result"]
+    R --> N["Reset and repeat"]
 ```
 
-That last part matters more than it looks. A normal AI demo often ends when the answer looks plausible. Here, the answer is only one piece of evidence.
+The important part is the **independent verifier**. The agent is allowed to say “done.” The verifier is allowed to disagree.
 
-For example, one of the verifier's negative cases is essentially this:
+One negative case was basically this:
 
 ```js
 const result = recognizer.recognize({
@@ -218,128 +172,65 @@ const result = recognizer.recognize({
 assert.deepEqual(result, { recognizedFamily: false });
 ```
 
-That tiny test caught a bug that looked reasonable in the generated code: searching for the substring `payment` also finds it inside `repayment`.
+That tiny check caught a very human-looking mistake: searching for `payment` also finds it inside `repayment`.
 
-So the reusable idea is not specifically about snow contracts, Qwen, or even Hermes.
+So the reusable recipe became:
 
-A fixture can be almost any small piece of real work if it has:
+**frozen start + fixed task + independent definition of success + recorded result.**
 
-**a frozen start + a fixed assignment + an independent definition of success + recorded measurements.**
-
-That is enough to turn “this setting feels better” into something we can actually compare.
+That is enough to turn “this feels better” into an experiment.
 
 ### Then I realized what the local machine should be doing
 
-By this point I had another realization that had less to do with model quality and more to do with economics.
+I had been watching an agent run these experiments since the morning. By hour eight it was still doing useful but mechanical work: reset, run, measure, verify, record, repeat.
 
-I had been watching an agent run these experiments since the morning. Hours of changing one parameter, resetting the fixture, running the same task again, collecting timings, checking the verifier, saving the result, and moving to the next variation.
+And I realized: **this is exactly the kind of work I eventually want the local model to do.**
 
-Useful work, but not exactly thrilling work.
+The hard part is deciding what experiment matters and what result would change my mind. A stronger hosted model can help design and interpret that.
 
-And somewhere around hour eight I thought: **this is exactly the kind of job I want the local model to do.**
+But once the protocol exists, the repetitive middle is closer to a lab technician following instructions. Latency matters less. Repetition and cost matter more.
 
-The hard part was deciding what experiment mattered.
+There is some irony in spending most of a working day with a hosted agent to discover one of the jobs the local machine should eventually take over.
 
-Which variable should move? What stays fixed? What counts as success? What result would actually change my mind?
-
-That is reasoning work.
-
-But once the experiment exists, much of the execution is closer to a lab technician following a protocol:
-
-**change → run → measure → verify → record → reset → repeat**
-
-That changes how I think about the role of a local model.
-
-I do not necessarily need it to replace the strongest hosted model at everything.
-
-A stronger hosted model can help design the experiment, notice patterns, question the assumptions, and interpret the evidence.
-
-A local worker can take the boring middle:
-
-- run twenty variations;
-- wait for each one;
-- capture the measurements;
-- reset the environment;
-- flag the strange runs;
-- come back with the evidence.
-
-Latency matters less there. Repetition matters more. And when the machine is already sitting in my office, the marginal cost of another dozen experiments starts to look very different from spending hosted tokens for hours.
-
-There is some irony in that.
-
-I bought the GX10 because I wanted useful local intelligence. Then I spent most of a working day using a hosted agent to figure out how to make the local worker better.
-
-But the experiment itself revealed one of the jobs the local worker should eventually take over.
-
-Maybe that is another kind of jumper.
-
-Not a setting that makes the model twice as smart.
-
-A better division of labour.
+Maybe that is another kind of jumper: not a setting that makes the model twice as smart, but a better division of labour.
 
 That gave me my first surprise.
 
 The baseline assignment passed only **2 of 8** runs.
 
-The failure was subtle. Qwen often checked `PAYMENT` correctly as a whole word in the original normalized text — but then also searched a compacted version of the text with something equivalent to `includes("payment")`. That meant **REPAYMENT** could accidentally count as **PAYMENT**.
+The failure was subtle. Qwen could correctly recognize the word `PAYMENT`, but it also used a more permissive text representation where `REPAYMENT` could accidentally count as `PAYMENT`.
 
 So I changed the handoff, not the model.
 
-I told the coder explicitly which representation preserved the word boundary: use `normalizedText` for the whole-word English `PAYMENT` check; do not use a substring search in `compactText` for that condition.
+I explained what the component was doing, why the distinction mattered, which text representation preserved word boundaries, and which behavior had to remain unchanged.
 
-Then I repeated the same experiment.
+Then I repeated the same task.
 
 **8 of 8 passed.**
 
-The baseline eight runs consumed about **319 seconds** of Coder time. The clarified eight consumed about **243 seconds**.
+That is the strongest Phase 1 result so far.
 
-On this narrow task, accepted results per Coder minute went from about **0.38 to 1.97**.
+I started calling the idea **Domain Context Handoff**: before asking for the change, give the worker the smallest piece of domain reality it needs to make good decisions.
 
-That is more than a fivefold difference.
+It is how I would treat a human developer too. If I hand somebody a ticket saying “fix PAYMENT matching” without explaining what these two text representations mean or why `REPAYMENT` must not count, I should not be surprised by code that looks plausible and is wrong.
 
-And no compression happened in either group.
+The useful handoff became:
 
-That was probably the most useful result of the day.
+**what this thing is → why it matters → invariants → relevant boundary/representation → task → acceptance checks**
 
-I had been looking for the jumper in context size, compression thresholds, and transport settings.
+Not the whole domain. Just enough reality to understand the work.
 
-The strongest measured jumper so far was in the **handoff itself**.
-
-Not “write a better prompt” in the vague internet sense. Something more concrete: tell the worker which representation preserves the invariant it must protect.
-
-## More turns were not the enemy either
-
-Another tempting knob was the maximum number of agent turns.
-
-If the agent loops too much, why not just cut it from 20 turns to 6?
-
-So we tested that too on a fixed source-port task where the expected result was already known and independently verifiable.
-
-All four runs produced accepted output.
-
-But the two **6-turn** runs both hit their limit and averaged about **63 seconds**.
-
-The two **20-turn** runs finished normally and averaged about **47 seconds**.
-
-Small sample, narrow task — not a universal law.
-
-But enough to reject another attractive assumption: **a smaller turn budget did not make this worker faster.**
+I also tried one of the obvious mechanical fixes: fewer agent turns. Six sounded safer than twenty. In the small matched test, the shorter limit was actually slower, so I kept the existing turn budget.
 
 ## The loop problem is still real
 
-None of this means the runtime is now efficient.
+Better handoff did not magically make the runtime efficient.
 
-In one production port, the Coder eventually produced the correct file, but it took about **144 seconds**, reached the full 20-turn limit, and made **17 successful patch calls**. Several patches came after the file already matched the requested result.
+In one case the Coder reached the correct file, then kept patching it anyway. The agent made **17 successful patch calls** before finally stopping.
 
-That is exactly the kind of behavior that originally made the machine feel underused.
+That is the remaining kind of waste I care about in Phase 1: not whether the model knows the answer, but whether the surrounding agent knows when the work is done.
 
-The model was capable of the change. The tools worked. The result was eventually correct.
-
-But the executive layer kept moving its hands after the work was effectively done.
-
-So the next tuning target is clearer now: not “make the model bigger” and not “compress at 32K.”
-
-It is controlling repeated tool calls, hard process deadlines, completion detection, and the newer Hermes guard that can stop identical repeated calls.
+So the remaining work here is mostly guardrails: hard deadlines, scope boundaries, completion detection, and independent verification.
 
 ## I still have not touched the GX10 server
 
@@ -364,7 +255,7 @@ So the server stays put until the next experiment actually requires moving that 
 At this point I find it useful to think of the work in layers rather than as one giant tuning exercise.
 
 **Phase 1 — agent and handoff layer. _This is where I am now._**  
-Hermes behavior, task handoff, context management, turn limits, process control, tool loops, and independent verification.
+Teach the worker enough of the domain to understand the job, then constrain and verify how it executes.
 
 **Phase 2 — GX10 inference layer.**  
 Only after the first layer is understood: llama.cpp, tool parsing, cache and memory behavior, context/server flags, and the exact model artifact.
@@ -394,17 +285,9 @@ What I needed was a different kind of benchmark: give the worker the **same real
 
 That is when the numbers became useful.
 
-Not because they produced one magic setting. They did the opposite.
+They did not reveal one magic setting. They killed attractive theories and exposed a more interesting result: the biggest Phase 1 gain came from giving the worker enough domain context to understand the job.
 
-They killed several attractive theories.
-
-The early compression cap looked sensible. It made things worse in the long probe.
-
-The shorter turn budget looked sensible. It was slower in the small matched test.
-
-CLI looked like it might make the coder better. So far its measurable advantage is control, not intelligence.
-
-And a tiny clarification about which text representation preserves a word boundary changed one task from **2/8 accepted runs to 8/8**.
+The machine did not suddenly become more intelligent. I became more precise about the reality I was handing to it.
 
 The model matters. The hardware matters.
 
