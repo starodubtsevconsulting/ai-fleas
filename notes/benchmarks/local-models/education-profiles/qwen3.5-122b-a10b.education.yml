@@ -1,0 +1,33 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3.5-122B-A10B
+profile_status: sparse-evidence
+declared_education:
+  primary:
+    - general-multimodal-assistant
+  source_status: upstream-model-card-review-needed-for-finer-claims
+observed_capability:
+  strengths:
+    - hermes-file-tool-fixture-compatible
+  limits:
+    - substantially-slower-than-qwen3-coder-next-on-measured-gx10-fixture
+  evidence:
+    - ../gx10.md
+unknown_or_unverified:
+  - coding-specialization-relative-to-coder-family
+  - business-domain-expertise
+  - best-agent-role
+communication:
+  direct_vocabulary:
+    - general-instructions
+    - common-technical-concepts
+  translate_first:
+    - organization-specific-domain-language
+  preferred_pattern: probe-before-specialized-delegation
+role_fit:
+  observed_good_fit: []
+  supervised_or_unproven:
+    - coding-worker
+    - generalist-reviewer
+deployment_variants:
+  - id: Q5_K_S
+    note: quantization/deployment representation; not education
