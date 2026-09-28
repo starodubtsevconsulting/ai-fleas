@@ -54,7 +54,7 @@ providers:
     models:
       - id: gemma-q8
         provider_model: gemma-4-31b-q8
-        hermes: { context_window_tokens: 32768, compression_threshold: 0.25, compression_target: 0.15, protect_last_messages: 8 }
+        hermes: { context_window_tokens: 32768, compression_threshold: 0.25, compression_threshold_tokens: 16384, compression_target: 0.15, protect_last_messages: 8 }
   - id: openai-service
     label: OpenAI
     protocol: openai-compatible
@@ -92,7 +92,9 @@ by_role = {record[0]: record for record in records}
 lyrics = by_role["lyrics-script-worker"]
 audio = by_role["audio-worker"]
 assert lyrics[2] == "gx10-local" and lyrics[7] == "gemma-4-31b-q8" and lyrics[8] == "32768"
+assert lyrics[14] == "16384"
 assert audio[2] == "openai-service" and audio[7] == "gpt-5.6-sol" and audio[8] == "65536"
+assert audio[14] == "-"
 assert base64.b64decode(lyrics[13]).decode().endswith("/workflows/youtube/flows/lyrics.md")
 assert base64.b64decode(audio[13]).decode().endswith("/workflows/youtube/flows/audio.md")
 PY
