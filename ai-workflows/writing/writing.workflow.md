@@ -90,7 +90,9 @@ them.
    addressing substantive findings before calling it release-ready. The computer offers a spoken preview when enabled;
    a fresh-context reviewer checks the exact article and destination rendering. If the human requested only an article
    source and no publication destination was authorized, a passing source review returns terminal `source_accepted`;
-   no release stage runs. If publication is intended, a source-only pass is not the workflow event `accepted` while
+   no release stage runs. For a PR-scoped source review, the accepted article and assets must be at the remote PR
+   head; local corrections awaiting a push return to Writer and are independently rechecked after the PR updates.
+   If publication is intended, a source-only pass is not the workflow event `accepted` while
    destination rendering or visual preparation remains pending. Reviewer returns
    `changes_required` only for remaining Writer-owned preparation. When listen-through is enabled, a passing review
    returns `human_action_required` and the Router waits for the author to listen and confirm the exact narration.
