@@ -82,6 +82,20 @@ That changed the debugging question.
 
 Instead of asking, “Why is this model bad at coding?” I started asking, “At which layer does a working model turn into an unreliable agent?”
 
+Then I noticed something else: I kept looking **inside** the components, while many of the interesting failures were happening **between** them.
+
+The model could work. Hermes could work. The tool could work. The filesystem could work.
+
+And the whole worker could still fail at the **joint**.
+
+In more technical language, these are integration boundaries. I prefer “joints” because it describes what I was actually debugging:
+
+**task ↔ agent ↔ working memory ↔ model server ↔ model ↔ tools ↔ result**
+
+Each joint asks a different question. Did the worker understand the task? Did Hermes keep the right context? Did the model call the tool correctly? Did the agent notice that the work was already finished? Did “failed” actually mean the child process stopped?
+
+That made the numbers more useful too. They stopped being specifications and became clues around particular joints.
+
 There was already evidence that mattered. The same Qwen Q5 model had passed a controlled Hermes file-tools test: read a file, transform it, write outputs, calculate checksums, and verify the result. So the model could use tools successfully in this environment.
 
 The failures appeared more often on longer, messier assignments.
@@ -265,7 +279,7 @@ Only then does it make sense to compare another model or quantization against Qw
 
 The order matters. If I change the agent framework, the server, and the model at the same time, an improvement teaches me almost nothing.
 
-So the current goal is not to keep turning knobs until the graph looks better. It is to finish learning what the first layer actually controls, then move one layer deeper.
+So the current goal is not to keep turning knobs until the graph looks better. It is to move **joint by joint**: understand one boundary, keep the measurements that tell me something about it, then move one layer deeper.
 
 ## The expensive lesson
 
