@@ -23,6 +23,9 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 
 For an Admin-routed `drafting` packet, open its required durable `work-request` reference before deciding the scope.
 Honor the recorded publication intent, destination, target, and approvals together with the exact `revision` reference.
+Carry that same `work-request` reference in the review packet and each `review_ready` result, including after a
+correction, so Reviewer can route an explicitly delegated release decision to Admin. Never expand its scope or
+substitute a conversational summary for the durable request.
 Do not infer source-only scope from an article's older metadata when the new human request explicitly expands it.
 Preserve human listening as unconfirmed until the author confirms the exact narration. If the workflow instead
 records an exact Admin-delegated release approval, label it as delegated; never turn it into a listening claim.

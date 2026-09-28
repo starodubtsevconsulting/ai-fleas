@@ -4,6 +4,7 @@ flowchart LR
     drafting["drafting<br/>writer<br/>START"]
     review["review<br/>reviewer"]
     source_complete["source_complete<br/>reviewer<br/>COMPLETE"]
+    admin_release_review["admin_release_review<br/>admin"]
     human_review["human_review<br/>reviewer<br/>WAITING FOR HUMAN"]
     correction["correction<br/>writer"]
     release["release<br/>release-coordinator"]
@@ -11,12 +12,17 @@ flowchart LR
     diagnosis["diagnosis<br/>reviewer"]
     complete["complete<br/>writer<br/>COMPLETE"]
     administration -->|route-required: send article request to Writer| drafting
+    administration -->|review-required: recheck delegated release| review
     administration -->|handled: administration complete| administration_complete
     drafting -->|review_ready| review
     review -->|source_accepted: source-only review complete| source_complete
     review -->|accepted: review passes policy| release
     review -->|changes_required| correction
+    review -->|admin_decision_required: exact delegated verdict| admin_release_review
     review -->|human_action_required: listen or acceptance pending| human_review
+    admin_release_review -->|approved: Admin-delegated release decision| release
+    admin_release_review -->|changes_required| correction
+    admin_release_review -->|decision_missing: wait for author| human_review
     human_review -->|listen_pending: wait for confirmation| human_review
     human_review -->|changes_required: stale cross-surface evidence| correction
     human_review -->|human_listened: review passed| release
