@@ -1,0 +1,51 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3-Coder-Next
+profile_status: evidence-backed-provisional
+declared_education:
+  primary:
+    - software-engineering
+    - coding-agent-work
+    - code-generation-and-modification
+    - tool-using-agentic-coding
+  source_status: upstream-model-card-reviewed
+observed_capability:
+  strengths:
+    - focused-file-edits
+    - repository-tool-use
+    - source-to-target-ports
+    - bounded-coding-with-independent-verification
+  limits:
+    - completion-prose-can-disagree-with-result
+    - repeated-tool-or-patch-loops
+    - translated-domain-context-does-not-guarantee-hard-reasoning-transfer
+  evidence:
+    - ../gx10.md
+    - ../gx10-hermes-qwen-coder-runtime-2026-09-28.md
+unknown_or_unverified:
+  - specialized-business-domain-knowledge
+  - organization-specific-semantics
+  - reliable-generalization-from-one-domain-handoff-fixture
+communication:
+  direct_vocabulary:
+    - files
+    - APIs
+    - processes
+    - tests
+    - state
+    - interfaces
+    - repository-structure
+  translate_first:
+    - business-rules
+    - organization-specific-terms
+    - unfamiliar-domain-invariants
+  preferred_pattern: domain-context-handoff-when-domain-is-unfamiliar
+role_fit:
+  observed_good_fit:
+    - focused-coder
+    - bounded-repository-worker
+  supervised_or_unproven:
+    - unattended-long-horizon-coder
+    - difficult-process-lifecycle-reasoning
+deployment_variants:
+  - id: Q5_K_M
+    note: quantization/deployment representation; not education
