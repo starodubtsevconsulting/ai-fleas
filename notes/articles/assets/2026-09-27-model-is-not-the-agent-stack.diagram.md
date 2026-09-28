@@ -20,7 +20,7 @@ Keep the image explanatory rather than decorative.
 ## Required flow
 
 ```mermaid
-flowchart LR
+flowchart TD
     Task["Task"] --> Hermes["Hermes on Mac<br/>executive layer:<br/>session, context, tools"]
     Hermes --> API["OpenAI-compatible API"]
     API --> Llama["llama.cpp on GX10<br/>model server"]
@@ -54,9 +54,17 @@ Bottom-line caption:
 
 **Failures can happen at different layers — not only in the model.**
 
+## Layout contract
+
+- narrow-safe vertical flow; never place the seven layers in one horizontal row
+- 900 × 1750 source canvas, intended to scale to a 350-pixel article column inside a 390-pixel viewport
+- one full-width card per layer, ordered from task at the top to observable result at the bottom
+- compact warning strip inside each of the first six cards so failure detail travels with its layer
+- final result card visually distinct and successful
+
 ## Style
 
-- 16:9 editorial inline diagram
+- tall editorial inline diagram
 - white or very light background
 - dark, high-contrast typography
 - one restrained warning/accent color
@@ -69,6 +77,8 @@ Bottom-line caption:
 
 The model is not the agent: a local AI worker is shown as a stack from task to Hermes on Mac, API, llama.cpp on GX10, Qwen, tool calls, and final files or commands, with possible failure points under each layer.
 
-## Current generated concept
+## Final implementation
 
-The approved concept uses a horizontal row of seven cards with small failure warnings beneath the first six layers. The final result card is visually distinct and successful. Preserve that structure when the final PNG is added.
+The editable implementation is
+`notes/articles/assets/2026-09-27-model-is-not-the-agent-stack.svg`.
+The exported PNG is the article asset named above. Preserve the vertical seven-layer sequence and the layer-specific warning strips in future revisions.

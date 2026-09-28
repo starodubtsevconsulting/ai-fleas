@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1750" viewBox="0 0 900 1750" role="img" aria-labelledby="title desc">
+  <title id="title">The model is not the agent</title>
+  <desc id="desc">A vertical seven-layer stack from task to Hermes on Mac, API, llama.cpp on GX10, Qwen, tool calls, and final files or commands. The first six layers identify a possible failure point.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#172033" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="6" refY="6" orient="auto">
+      <path d="M1,1 L11,6 L1,11 Z" fill="#64748b"/>
+    </marker>
+    <style>
+      .title { font: 700 50px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+      .subtitle { font: 400 26px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #526076; }
+      .number { font: 700 24px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; }
+      .layer { font: 700 34px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+      .detail { font: 400 25px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #526076; }
+      .warning { font: 600 22px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #9a3412; }
+      .success { font: 600 22px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #166534; }
+      .footer { font: 700 28px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+    </style>
+  </defs>
+
+  <rect width="900" height="1750" fill="#f6f7fb"/>
+  <text class="title" x="70" y="82">The model is not the agent</text>
+  <text class="subtitle" x="70" y="124">A local AI worker is a seven-layer system.</text>
+
+  <g stroke="#64748b" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <path d="M450 330 L450 372"/>
+    <path d="M450 544 L450 586"/>
+    <path d="M450 758 L450 800"/>
+    <path d="M450 972 L450 1014"/>
+    <path d="M450 1186 L450 1228"/>
+    <path d="M450 1400 L450 1442"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="168" width="760" height="162" rx="24" fill="#ffffff"/>
+    <circle cx="122" cy="220" r="26" fill="#334155"/>
+    <text class="number" x="122" y="229" text-anchor="middle">1</text>
+    <text class="layer" x="170" y="226">Task</text>
+    <text class="detail" x="170" y="264">assignment and acceptance criteria</text>
+    <rect x="94" y="282" width="712" height="32" rx="16" fill="#ffedd5"/>
+    <text class="warning" x="450" y="306" text-anchor="middle">failure point: ambiguous or incomplete</text>
+
+    <rect x="70" y="382" width="760" height="162" rx="24" fill="#ffffff"/>
+    <circle cx="122" cy="434" r="26" fill="#334155"/>
+    <text class="number" x="122" y="443" text-anchor="middle">2</text>
+    <text class="layer" x="170" y="440">Hermes on Mac</text>
+    <text class="detail" x="170" y="478">executive layer: session, context, tools</text>
+    <rect x="94" y="496" width="712" height="32" rx="16" fill="#ffedd5"/>
+    <text class="warning" x="450" y="520" text-anchor="middle">failure point: context • tools • session</text>
+
+    <rect x="70" y="596" width="760" height="162" rx="24" fill="#ffffff"/>
+    <circle cx="122" cy="648" r="26" fill="#334155"/>
+    <text class="number" x="122" y="657" text-anchor="middle">3</text>
+    <text class="layer" x="170" y="654">OpenAI-compatible API</text>
+    <text class="detail" x="170" y="692">request and response transport</text>
+    <rect x="94" y="710" width="712" height="32" rx="16" fill="#ffedd5"/>
+    <text class="warning" x="450" y="734" text-anchor="middle">failure point: network • request • API mismatch</text>
+
+    <rect x="70" y="810" width="760" height="162" rx="24" fill="#ffffff"/>
+    <circle cx="122" cy="862" r="26" fill="#334155"/>
+    <text class="number" x="122" y="871" text-anchor="middle">4</text>
+    <text class="layer" x="170" y="868">llama.cpp on GX10</text>
+    <text class="detail" x="170" y="906">model server</text>
+    <rect x="94" y="924" width="712" height="32" rx="16" fill="#ffedd5"/>
+    <text class="warning" x="450" y="948" text-anchor="middle">failure point: server • config • resource limits</text>
+
+    <rect x="70" y="1024" width="760" height="162" rx="24" fill="#ffffff"/>
+    <circle cx="122" cy="1076" r="26" fill="#334155"/>
+    <text class="number" x="122" y="1085" text-anchor="middle">5</text>
+    <text class="layer" x="170" y="1082">Qwen model</text>
+    <text class="detail" x="170" y="1120">the brain</text>
+    <rect x="94" y="1138" width="712" height="32" rx="16" fill="#ffedd5"/>
+    <text class="warning" x="450" y="1162" text-anchor="middle">failure point: output • context • parser mismatch</text>
+
+    <rect x="70" y="1238" width="760" height="162" rx="24" fill="#ffffff"/>
+    <circle cx="122" cy="1290" r="26" fill="#334155"/>
+    <text class="number" x="122" y="1299" text-anchor="middle">6</text>
+    <text class="layer" x="170" y="1296">Tool calls</text>
+    <text class="detail" x="170" y="1334">the hands</text>
+    <rect x="94" y="1352" width="712" height="32" rx="16" fill="#ffedd5"/>
+    <text class="warning" x="450" y="1376" text-anchor="middle">failure point: tool • permission • unsafe action</text>
+
+    <rect x="70" y="1452" width="760" height="150" rx="24" fill="#ecfdf5" stroke="#86efac" stroke-width="3"/>
+    <circle cx="122" cy="1504" r="26" fill="#15803d"/>
+    <text class="number" x="122" y="1513" text-anchor="middle">7</text>
+    <text class="layer" x="170" y="1510">Files / commands / result</text>
+    <text class="detail" x="170" y="1548">the observable work product</text>
+    <text class="success" x="170" y="1580">verify what actually changed</text>
+  </g>
+
+  <text class="footer" x="450" y="1677" text-anchor="middle">Failures can happen at different layers —</text>
+  <text class="footer" x="450" y="1714" text-anchor="middle">not only in the model.</text>
+</svg>

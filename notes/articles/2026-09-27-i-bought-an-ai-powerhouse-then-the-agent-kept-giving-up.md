@@ -70,8 +70,7 @@ So the path from “please fix this code” to a changed file is already a chain
 
 **assignment → Hermes on Mac → working memory + tools → API → llama.cpp on GX10 → Qwen → tool call → Hermes → filesystem**
 
-<!-- TODO: add the final PNG asset at notes/articles/assets/2026-09-27-model-is-not-the-agent-stack.png. Source/spec: 2026-09-27-model-is-not-the-agent-stack.diagram.md -->
-![The model is not the agent: a local AI worker is a stack of task, Hermes, API, model server, Qwen, tools, and result layers.](assets/2026-09-27-model-is-not-the-agent-stack.png)
+![The model is not the agent: a local AI worker is shown as a stack from task to Hermes on Mac, API, llama.cpp on GX10, Qwen, tool calls, and final files or commands, with possible failure points at each layer.](assets/2026-09-27-model-is-not-the-agent-stack.png)
 
 *Failures can happen at different layers — not only in the model.*
 
