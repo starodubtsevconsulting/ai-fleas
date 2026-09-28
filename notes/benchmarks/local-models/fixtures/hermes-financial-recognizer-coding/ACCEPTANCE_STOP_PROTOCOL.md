@@ -1,0 +1,14 @@
+# Live acceptance stop on a coding task without a reference solution
+
+Question: does stopping a Coder after an independently accepted artifact improve useful throughput on the frozen recognizer task, where there is no reviewed target file to copy?
+
+Use the frozen French-only [starter](starter/recognizers/snow-removal-contract-recognizer.mjs), unchanged [task](TASK.md), translated [domain explanation](DOMAIN_CONTEXT_TRANSLATED.md), and independent [verifier](verify.mjs). The translation arm passed 8/9 first attempts in the earlier comparison; keep its exact preface and the same task in both arms here. Use Qwen3-Coder-Next Q5_K_M, the configured Hermes profile, CLI `chat -Q` route, 20-turn cap, 180-second deadline, fresh sessions, and an exact staged recognizer-file write root. Coder may read the task and staged target, may edit only that target, and may not read or run the verifier. Admin owns acceptance and source review.
+
+Each run begins with a fresh staged directory containing only `TASK.md` and the frozen `recognizers/snow-removal-contract-recognizer.mjs`. Both arms use the same read-only observer. On a changed target-file content hash, it copies the candidate into a separate visible ignored snapshot directory with only files allowed by the verifier, runs the unchanged verifier, and rechecks that the live target bytes remain identical and the Coder process is still active. Record only the first such verified acceptance event; never treat a partial write, process exit, or completion prose as acceptance.
+
+- **A, ordinary:** record the event and let Coder finish.
+- **B, acceptance stop:** after that event, terminate only the launched delegate process group, wait up to five seconds, then kill remaining members and reap the launcher. Preserve the accepted candidate. If no live accepted event occurs, allow normal completion or the fixed deadline.
+
+Run one ordinary pilot to show a live accepted event can be observed. Then freeze the observer and prompt and run eight fresh sessions per arm in **ABBA, BAAB, ABBA, BAAB** order. Do not tune from individual failures. After each run, verify the final staged directory, inspect accepted source for contract and scope, and retain raw logs only under ignored visible `runs/`. Keep final artifact acceptance distinct from completed Coder reports. Record first verified acceptance time, wall time, calls/tokens, corrections (none planned), scope errors, compaction, timeout, and actual interventions. If a stop leaves an unaccepted artifact or process cleanup is uncertain, halt the batch and inspect before proceeding.
+
+Compare accepted artifacts per Coder minute only after all runs. This one recognizer fixture cannot establish general coding reliability or justify a workflow default. The supervisor is an external experiment; Hermes runtime and profile are unchanged.
