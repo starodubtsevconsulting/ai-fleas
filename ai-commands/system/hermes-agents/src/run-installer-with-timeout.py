@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import signal
 import subprocess
 import sys
@@ -22,24 +23,35 @@ def main() -> int:
         return 2
 
     process = subprocess.Popen(sys.argv[2:], start_new_session=True)
+    pgid = process.pid
 
-    def forward(signum: int, _frame: object) -> None:
+    def cleanup(signum: int) -> None:
         try:
-            process.send_signal(signum)
+            os.killpg(pgid, signum)
         except ProcessLookupError:
             pass
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            pass
+        try:
+            os.killpg(pgid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        try:
+            process.wait()
+        except ProcessLookupError:
+            pass
+
+    def forward(signum: int, _frame: object) -> None:
+        cleanup(signum)
 
     signal.signal(signal.SIGINT, forward)
     signal.signal(signal.SIGTERM, forward)
     try:
         return process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
-        process.terminate()
-        try:
-            process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
+        cleanup(signal.SIGTERM)
         print(f"Hermes installer exceeded {timeout} seconds.", file=sys.stderr)
         return 124
 

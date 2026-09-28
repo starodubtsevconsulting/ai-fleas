@@ -126,6 +126,14 @@ direct file-tool work and concise completion, so the source-representation sente
 This is a task-specific handoff result, not a general model-speed setting. Include both false-positive and coexistence
 cases in independent acceptance checks. See the [GX10 runtime benchmark](../../../../notes/benchmarks/local-models/gx10-hermes-qwen-coder-runtime-2026-09-28.md).
 
+For process-tree cleanup, state the exact sequence and verify each branch. On a frozen six-case helper fixture, two
+fresh handoffs explicitly required an unconditional final group SIGKILL, but both initial implementations still made
+it conditional on a direct-child wait timeout. One verifier-backed correction produced accepted code in 52.64 seconds
+total Coder time; another passed the verifier but failed source review because an early return could skip reaping.
+Porting the accepted source to the production helper passed all six cases, yet the Coder spent 143.92 seconds and
+repeated patches until its 20-turn cap. Use the verifier and inspect the diff even when a turn reports success or
+exits at its limit. This is a useful handoff pattern for this task, not a measured general speed improvement.
+
 For launcher or protocol changes, spell out both sides of the command boundary with example invocations and where
 each input is read (argument or stdin). Require the Coder to inspect existing callers and tests before editing. Ask
 for concise changed-file and blocker evidence; do not rely on a prose claim of completion.
