@@ -43,7 +43,7 @@ def parse_bindings(raw: str, group: str) -> list[dict[str, str]]:
     profiles: set[str] = set()
     for record in raw.split(","):
         fields = record.split("|")
-        if len(fields) != 14:
+        if len(fields) != 15:
             fail("HERMES_PROFILE_SCOPE_INVALID", f"group={group}; malformed role binding with {len(fields)} fields")
         (
             role,
@@ -60,6 +60,7 @@ def parse_bindings(raw: str, group: str) -> list[dict[str, str]]:
             protect,
             role_path_b64,
             flow_path_b64,
+            threshold_tokens,
         ) = fields
         if not all((role, suffix, provider, endpoint_b64, model)):
             fail("HERMES_PROFILE_SCOPE_INVALID", f"group={group}; role binding has required empty fields")
@@ -81,6 +82,7 @@ def parse_bindings(raw: str, group: str) -> list[dict[str, str]]:
                 "threshold": threshold,
                 "target": target,
                 "protect": protect,
+                "threshold_tokens": "" if threshold_tokens == "-" else threshold_tokens,
                 "role_path": decode(role_path_b64, "role path", role),
                 "flow_path": decode(flow_path_b64, "flow path", role),
             }
@@ -105,6 +107,7 @@ def role_environment(base: dict[str, str], binding: dict[str, str]) -> dict[str,
             "HERMES_COMPRESSION_THRESHOLD": binding["threshold"],
             "HERMES_COMPRESSION_TARGET_RATIO": binding["target"],
             "HERMES_COMPRESSION_PROTECT_LAST_N": binding["protect"],
+            "HERMES_COMPRESSION_THRESHOLD_TOKENS": binding["threshold_tokens"],
             "HERMES_ROLE_INSTRUCTIONS_PATH": binding["role_path"],
             "HERMES_FLOW_INSTRUCTIONS_PATH": binding["flow_path"],
         }
