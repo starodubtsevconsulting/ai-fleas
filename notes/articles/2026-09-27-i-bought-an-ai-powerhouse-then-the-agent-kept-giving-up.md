@@ -359,6 +359,23 @@ If I had changed the GX10 server at the same time, all of those lessons would ha
 
 So the server stays put until the next experiment actually requires moving that layer.
 
+## Where I am in the experiment
+
+At this point I find it useful to think of the work in layers rather than as one giant tuning exercise.
+
+**Phase 1 — agent and handoff layer. _This is where I am now._**  
+Hermes behavior, task handoff, context management, turn limits, process control, tool loops, and independent verification.
+
+**Phase 2 — GX10 inference layer.**  
+Only after the first layer is understood: llama.cpp, tool parsing, cache and memory behavior, context/server flags, and the exact model artifact.
+
+**Phase 3 — model choice.**  
+Only then does it make sense to compare another model or quantization against Qwen again.
+
+The order matters. If I change the agent framework, the server, and the model at the same time, an improvement teaches me almost nothing.
+
+So the current goal is not to keep turning knobs until the graph looks better. It is to finish learning what the first layer actually controls, then move one layer deeper.
+
 ## The expensive lesson
 
 The GX10 may still turn out to be exactly the machine I wanted.
