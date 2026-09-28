@@ -1,0 +1,32 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3-8B
+profile_status: sparse-evidence
+declared_education:
+  primary:
+    - general-assistant
+  source_status: upstream-model-card-review-needed
+observed_capability:
+  strengths:
+    - fast-fully-gpu-resident-direct-inference-on-3080ti
+  limits:
+    - native-context-in-tested-model-below-current-hermes-minimum
+  evidence:
+    - ../rtx-3080-ti.md
+unknown_or_unverified:
+  - hermes-agent-acceptance
+  - coding-depth
+  - specialized-domain-knowledge
+communication:
+  direct_vocabulary:
+    - general-instructions
+  translate_first:
+    - specialized-domain-semantics
+  preferred_pattern: lightweight-task-probe
+role_fit:
+  observed_good_fit:
+    - direct-api-lightweight-worker
+  supervised_or_unproven:
+    - hermes-system-agent
+deployment_variants:
+  - id: Q4_K_M
+    note: quantization; not education
