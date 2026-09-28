@@ -104,16 +104,18 @@ For a 65,536-token model window, 75% is roughly 49,000 tokens.
 
 That is very different from the 16,000-ish number I thought I had configured.
 
-So I changed the shape of the configuration rather than shrinking the model itself:
+So I proposed changing the shape of the configuration rather than shrinking the model itself:
 
 - keep the model context at **65,536 tokens**;
 - add an absolute Hermes compaction trigger at **32,768 tokens**;
 - target a smaller retained context after compaction;
 - preserve more of the most recent conversation.
 
-This distinction matters. I am not serving Qwen with a 32K context. Hermes still knows the model has a 65K window. I am simply asking the agent framework to clean up its working history earlier.
+This distinction matters. I was not proposing to serve Qwen with a 32K context. Hermes would still know the model had a 65K window; the proposed cap would ask the agent framework to clean up its working history earlier.
 
-The public AI Fleas runtime did not support that profile setting yet, so I added it in [PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219).
+The public AI Fleas runtime did not support that profile setting yet, so I added the capability in [PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219). But adding a knob is not proof that turning it helps.
+
+The short coding test never reached the proposed 32,768-token trigger. Its results could not tell me whether earlier compression helped coding. In a separate five-turn source-review trial, the proposed cap did fire, but Hermes spent about 53 seconds summarizing, remained above the cap, started summarizing again, and hit the turn's time limit without an answer. A higher cap completed but was slower than the old setting. That review task was not a coding-quality test, yet it gave me a clear reason **not to promote the early cap**. The live coder profile still uses its previous compression settings.
 
 ## Then there was the communication layer
 
@@ -129,11 +131,19 @@ That is much worse than a slow answer. It means “failed” did not necessarily
 
 A later matched experiment used Hermes CLI one-shot instead. It was not magically faster, but the process lifecycle was much easier to reason about. I could see whether the process was still alive, send a termination signal, and verify that it had exited.
 
-So, for now, I changed my normal coding delegation route from **A2A to CLI one-shot**.
+So, for controlled Dev trials, I selected **CLI one-shot instead of A2A** in a still-open private configuration PR. A separate public launcher change makes the profile's turn limit apply, requires an explicit write boundary, and starts process-group cleanup after 240 seconds by default. Those controls make an overlong CLI run easier to stop and inspect; they do not make unfinished code correct.
 
 That is not a verdict against A2A. It is a decision about the failure mode I can control today.
 
 I had already been circling this idea in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md): communication between agents is not automatically the hard part. Sometimes the difficult part is knowing what is actually running, what context it has, and whether a reported state corresponds to reality.
+
+## What the coding tests actually found
+
+I needed to measure useful results, not just elapsed time. On a frozen text-recognition task, eight baseline assignments passed the independent verifier twice. Eight assignments with a precise reminder about which text representation preserved word boundaries passed all eight. Total Coder time also fell from about 319 to 243 seconds. That is a real improvement for **this task and this handoff**, with too few runs to claim a general model-speed setting.
+
+The improvement did not carry over to a process-cleanup task. Four attempts with a clearer prompt still failed the independent checks. A later handoff spelling out the cleanup algorithm, followed by one correction based on verifier failures, produced an accepted fix. Porting it to the production helper passed the checks, but the agent spent nearly 144 seconds and kept patching after the useful edit was already present. A tighter six-turn cap made a small matched port task slower than the existing 20-turn setting.
+
+The strongest lesson is less satisfying than finding the right jumper: the same local model can be useful with a precise handoff and review, while its agent loop can still waste time. The process deadline limits that waste. I have not demonstrated a general speed or coding-quality gain from the Hermes compression parameters.
 
 ## I have not touched the GX10 server yet
 
@@ -145,11 +155,11 @@ I am deliberately not changing those yet.
 
 If I change Hermes compression, the communication transport, llama.cpp, the model artifact, and the context size at the same time—and the agent improves—I will have learned almost nothing.
 
-So the current experiment changes the Mac/Hermes side first.
+The completed comparisons changed the Mac/Hermes side first.
 
-Then I will rerun the same bounded coding assignments and look at completion, compaction, unexpected writes, wall time, and whether the worker actually exits when it says it is done.
+I recorded completion, compaction, unexpected writes, wall time, model calls, and whether the worker actually stopped. The remaining long-context question needs a repeatable coding task that compacts and still produces independently checked code; a read-only review run cannot answer it.
 
-If the failures remain, I move one layer deeper and tune the GX10 server.
+The server is still a separate experiment. I will change it only with a coding failure that points there and a fixed comparison to test that hypothesis.
 
 ## The expensive lesson
 
@@ -181,8 +191,8 @@ Which is why I keep digging. I have seen this movie before: sometimes the missin
 
 ## Sources and provenance
 
-This is a living draft based on the author's September 2026 GX10/Hermes experiments. The current tuning changes have been prepared but have not yet completed the same post-change real-task validation, so they are described as an active experiment rather than a proven fix.
+This is a living draft based on the author's September 2026 GX10/Hermes experiments. Matched short coding runs and process-lifecycle checks support the narrow claims above. The proposed early compression cap was removed from the private configuration PR after its long-context review regression; no accepted long-context coding comparison has demonstrated a compression benefit.
 
-The model-number primer is published as [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683). The earlier model-selection experiment is described in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](2026-09-27-i-tried-to-replace-my-local-coder.md), and the hybrid coordination design in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md). Controlled GX10 measurements and Hermes lifecycle observations are preserved in the public [GX10 benchmark record](../benchmarks/local-models/gx10.md). The executable public change that adds an absolute Hermes compression cap is [AI Fleas PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219).
+The model-number primer is published as [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683). The earlier model-selection experiment is described in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](2026-09-27-i-tried-to-replace-my-local-coder.md), and the hybrid coordination design in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md). Controlled GX10 measurements and Hermes lifecycle observations are preserved in the public [GX10 benchmark record](../benchmarks/local-models/gx10.md) and the [Hermes Qwen runtime trial](../benchmarks/local-models/gx10-hermes-qwen-coder-runtime-2026-09-28.md). [AI Fleas PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219) added absolute compression-cap support; draft [PR #225](https://github.com/starodubtsevconsulting/ai-fleas/pull/225) carries the runtime controls and benchmark evidence.
 
 Hermes's current [context compression documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/developer-guide/context-compression-and-caching.md) documents the small-context 75% threshold floor and the `compression.threshold_tokens` absolute cap. The profile-specific configuration and machine topology remain private.
