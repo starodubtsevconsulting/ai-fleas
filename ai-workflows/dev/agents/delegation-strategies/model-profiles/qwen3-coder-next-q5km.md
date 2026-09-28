@@ -7,6 +7,46 @@ Applies when the configured `provider_model` is exactly `qwen3-coder-next-q5km` 
 Hermes. Review this profile if the model changes. Combine it with the strategy for the selected transport: A2A or
 CLI one-shot.
 
+## Education and communication model
+
+Treat this as the worker's **education profile**, not another runtime specification. The purpose is to help a delegating agent decide what it can probably say directly, what it should translate, and what it must not assume.
+
+Keep three evidence classes separate:
+
+### Declared education
+
+Derived from the upstream model documentation/training intent, not from our local benchmark impressions.
+
+- Primary orientation: software engineering, code generation/modification, repository work, and agentic/tool-using coding.
+- General technical and world knowledge exists, but this profile does not assume completeness or freshness merely because the base model is large.
+- `Q5_K_M` describes the local quantized representation; it is **not** the model's education or domain specialization.
+
+### Observed capability in this deployment
+
+Derived only from checked AI-Fleas fixtures and reviewed real work. Update this list as evidence changes.
+
+- Can perform focused file edits, source-to-target ports, and ordinary tool-driven repository work when scope and acceptance are concrete.
+- On the frozen financial recognizer, translated domain context produced substantially better first-pass acceptance than task-only or raw-domain handoffs.
+- That gain did **not** transfer to the harder process-group lifecycle fixture on first pass; clearer explanation did not remove the repeated cleanup-algorithm error.
+- Independent verification remains necessary because completion prose, process exit, and plausible code have each disagreed with accepted behavior in observed runs.
+
+### Unknown or unverified education
+
+Do not silently assume competence here. Translate or probe first.
+
+- Organization-specific terminology and local conventions.
+- Specialized business/domain semantics that are not evident from code.
+- Niche technical invariants whose correct implementation requires reasoning beyond ordinary programming vocabulary.
+- Any claimed knowledge boundary that has not been established by upstream documentation or our own controlled evidence.
+
+### Handoff implication
+
+Before delegating, ask: **is this concept already inside the worker's demonstrated/declared education, or am I asking it to learn a small piece of a new domain while coding?**
+
+If translation is needed, use [Domain Context Handoff](../domain-context-handoff.md): explain the smallest relevant domain model in concepts this coding worker can operationalize, include positive and misleading examples when useful, map the invariant to the relevant code/data boundary, then give the task and acceptance checks.
+
+Do not treat this section as static truth. Refine it from model documentation and controlled observations, and record contradictions rather than smoothing them away.
+
 ## Observed behavior
 
 - Several bounded requests took close to or beyond the A2A server's roughly five-minute per-message limit. A client
