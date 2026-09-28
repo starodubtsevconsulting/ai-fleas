@@ -134,8 +134,6 @@ Not because “compression is bad.” The experiment does not prove that. It pro
 
 So I kept the 65K model context and restored the existing Hermes compression behavior while I looked for a stronger lever.
 
-I also tried a coding-specific context stress test after that review probe. The agent read a frozen packet of real installer source before trying to fix process cleanup. The two capped runs compacted twice each, spending about **110 seconds total** on four summaries. The two old-setting runs did not compact. After one correction per run, **neither setting produced an accepted fix**: 0/2 in each arm. The packet was deliberately large and the sample small, so I cannot call the wall-time difference a general speed result. It does confirm that the cap fired during coding without producing more accepted work.
-
 ## Then there was the communication layer
 
 Context was not the only moving part.
@@ -361,6 +359,23 @@ If I had changed the GX10 server at the same time, all of those lessons would ha
 
 So the server stays put until the next experiment actually requires moving that layer.
 
+## Where I am in the experiment
+
+At this point I find it useful to think of the work in layers rather than as one giant tuning exercise.
+
+**Phase 1 — agent and handoff layer. _This is where I am now._**  
+Hermes behavior, task handoff, context management, turn limits, process control, tool loops, and independent verification.
+
+**Phase 2 — GX10 inference layer.**  
+Only after the first layer is understood: llama.cpp, tool parsing, cache and memory behavior, context/server flags, and the exact model artifact.
+
+**Phase 3 — model choice.**  
+Only then does it make sense to compare another model or quantization against Qwen again.
+
+The order matters. If I change the agent framework, the server, and the model at the same time, an improvement teaches me almost nothing.
+
+So the current goal is not to keep turning knobs until the graph looks better. It is to finish learning what the first layer actually controls, then move one layer deeper.
+
 ## The expensive lesson
 
 The GX10 may still turn out to be exactly the machine I wanted.
@@ -383,7 +398,7 @@ Not because they produced one magic setting. They did the opposite.
 
 They killed several attractive theories.
 
-The early compression cap looked sensible. It made things worse in the long review probe, and the coding-specific stress test found no accepted-work benefit.
+The early compression cap looked sensible. It made things worse in the long probe.
 
 The shorter turn budget looked sensible. It was slower in the small matched test.
 
@@ -411,4 +426,4 @@ This is a living draft based on the author's September 2026 GX10/Hermes experime
 
 The model-number primer is published as [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683). The earlier model-selection experiment is described in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](2026-09-27-i-tried-to-replace-my-local-coder.md), and the hybrid coordination design in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md). The original runtime change and article work landed in [AI Fleas PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219). The follow-up controlled runs, per-run benchmark data, CLI lifecycle changes, and compression findings are being collected in [PR #225](https://github.com/starodubtsevconsulting/ai-fleas/pull/225).
 
-Hermes's current [context compression documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/developer-guide/context-compression-and-caching.md) documents the small-context 75% threshold floor and the `compression.threshold_tokens` absolute cap. The [coding-specific pilot record](../benchmarks/local-models/gx10-long-context-coding-pilot-2026-09-28.json) and its [repeatable protocol](../benchmarks/local-models/fixtures/hermes-process-group-long-context/README.md) show where the cap actually fired. The 32K cap was rejected for this setup; compression in general remains an open tuning dimension.
+Hermes's current [context compression documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/developer-guide/context-compression-and-caching.md) documents the small-context 75% threshold floor and the `compression.threshold_tokens` absolute cap. The article intentionally separates measured observations from broader conclusions: the 32K cap was rejected for this setup based on the observed probe, while compression in general remains an open tuning dimension.
