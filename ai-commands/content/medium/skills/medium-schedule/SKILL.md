@@ -18,8 +18,11 @@ target.
 
 1. Verify the complete independent review and Writer disposition for the exact final article and intended unpublished
    Medium draft. If profile `review_preferences.listen_through.enabled` is true, require revision-bound evidence that
-   the author explicitly confirmed listening to the offered narration. A generated file, presented player, playback
-   request, or review pass alone does not satisfy that gate. A separate `test_listen_simulated` Router transition may
+   the author explicitly confirmed listening to the offered narration, or a verified exact `admin_delegated` Router
+   transition with a `release-delegation` receipt under the
+   [delegation contract](../../../../../ai-workflows/writing/guides/admin-delegated-release.md). Record the latter as
+   Admin-delegated with author listening unconfirmed. A generated file, presented player, playback request, or review
+   pass alone does not satisfy that gate. A separate `test_listen_simulated` Router transition may
    schedule only a clearly labeled test article when the human explicitly authorized both simulated agreement and
    live scheduling of that exact test article. Require a `test-listen-simulation` artifact bound to the exact reviewed
    revision, offered audio, destination draft, and target; record the outcome as simulated listening, never as actual
@@ -28,6 +31,11 @@ target.
    future scheduling after any enabled listen-through; do not wait for another article-acceptance or timing reply. Resolve the canonical archive article
    and verify that the draft reflects the reviewed revision, including title, body, links, visuals, and topics. Stop on a mismatch or
    any material change. Medium may publish edits to a scheduled story automatically at the scheduled time.
+   If the profile declares an article repository mirror, verify the Reviewer's current
+   [three-surface consistency evidence](../../../../../ai-workflows/writing/guides/three-surface-consistency.md)
+   against the remote article commit, selected public visual assets, permanent archive, and exact Medium draft.
+   Missing or stale mirror evidence blocks scheduling and returns to the Router for correction; do not infer that a
+   source-only review or a saved Medium draft proves all three surfaces agree.
 2. Verify the signed-in Medium account's profile link against the workflow's `account_profile_url`. Inspect published
    and scheduled stories and reconcile them with archive records. If queue/history is incomplete, stop and report it.
 3. Choose a future date and time using the destination's configured time zone. Check the maximum posts per local day,
@@ -44,8 +52,9 @@ target.
 5. Read back Medium's scheduled status, story URL, and date/time. Return the exact release record to the Router so
    Writer can save the reviewed revision identifier, account, scheduled instant, configured local time and time zone,
    Medium URL, and evidence to the article archive. The Writer-owned archive update must be read back before the
-   workflow is complete. If Medium confirms scheduling but the archive update fails, report the Medium state and
-   repair the record before starting another release. If scheduling is uncertain, inspect the queue before retrying
+   workflow is complete. For a declared repository mirror, Writer must also update and verify its remote release
+   metadata while preserving the reviewed body and visual identities. If Medium confirms scheduling but either record
+   update fails, report the Medium state and synchronization pending; repair the records before another release. If scheduling is uncertain, inspect the queue before retrying
    so the action is not duplicated.
 
 No extra per-item scheduling approval is required after the configured review and acceptance gate passes. When every

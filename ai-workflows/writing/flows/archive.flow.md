@@ -24,6 +24,11 @@ An authorized article project, candidate or source article, existing archive lay
 4. The task confirms a configured editor such as Obsidian opens the same folder through its registered project
    mapping; proof: the exact vault path, not its display name. External folder sync remains separate from the
    editor; do not create a redundant sync.
+5. When the selected profile declares a repository article mirror, verify the permanent archive article and selected
+   public visual assets against that remote repository record and maintain its selected-header use index. At an actual
+   destination state change, update and read back both archive and repository release metadata while preserving the
+   reviewed body; proof: the [three-surface reconciliation](../guides/three-surface-consistency.md). Keep narration
+   scripts and audio in the permanent article archive only.
 
 ## Exit
 

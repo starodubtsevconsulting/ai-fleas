@@ -18,12 +18,18 @@ a release-ready recommendation.
    active `requires_human_article_acceptance` policy: when true, also require direct human acceptance or a valid
    [session-scoped release mandate](../guides/session-release-authorization.md); when false, a complete successful
    independent review satisfies the editorial decision. If profile `review_preferences.listen_through.enabled` is true,
-   separately require the author's revision-bound confirmation of listening before release; an offered or played audio
-   file alone is insufficient. When review or listening evidence
+   separately require the author's revision-bound confirmation of listening or a verified exact Admin-delegated
+   release receipt under the [delegation contract](../guides/admin-delegated-release.md); an offered or played audio
+   file alone is insufficient. Record which path cleared the decision gate, never claim author listening for an Admin
+   delegation. When review or decision evidence
    is missing, stale, conflicting, or ambiguous, expose one precise blocker event to the Router; do not contact Reviewer or
    make the human relay the question. The Router assigns diagnosis or revision work to the proper owner and may send a verified
    continuation packet back. If acceptance or review still is not proven, record the missing gate and do not mark the
    article release-ready. Proof: review record and exact revision identifiers, Router continuation when used, or status.
+   For a profile-declared article repository mirror, verify the current remote commit and selected assets still match
+   the Reviewer's archive/repository/destination consistency evidence. A missing or stale mirror is a release blocker
+   even when narration and destination visual review passed; return `review_required` with the discrepancy so the
+   Router can assign diagnosis and Writer correction. Do not schedule the mismatched version.
 2. Resolve the exact publication target separately from the provider account and schedule: for Medium, either the
    author's profile/home or one named Publication that the signed-in account is verified and authorized to use. Use an
    explicit article selection or a human-authorized `publication_target: profile-home` in the selected workflow policy.

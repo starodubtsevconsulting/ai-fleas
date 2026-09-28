@@ -40,13 +40,23 @@ revision or account queue invalidates affected timing evidence.
 Return the observed scheduled URL and slot as the `release-record` reference; Router assigns Writer `archive_update`
 before terminal completion. Do not mark the archive updated from a Medium UI read-back alone.
 On an accepted Router release assignment, complete the scheduling attempt in the same owned stage once the exact
-review, confirmed listen-through when enabled, policy-required acceptance, publication target, account, and eligible slot verify. Do not return only a
+review, confirmed listen-through or an exact Admin-delegated release receipt, policy-required acceptance, publication target, account, and eligible slot verify. Do not return only a
 proposed slot or generic pending status when those gates pass. If a gate fails, return its exact blocker and missing
 evidence; never claim `released` until Medium confirms the scheduled state and time.
+When the profile declares a repository article mirror, independently recheck the Reviewer's
+[three-surface consistency evidence](../../guides/three-surface-consistency.md) against the current remote article
+commit, permanent archive, and saved destination before scheduling. A missing selected header in the repository,
+stale remote head, changed article or destination, or unexplained content mismatch is a review-gate blocker; return
+`review_required` with precise evidence so the Router can assign diagnosis and Writer correction. Do not silently
+schedule from an older destination pass. After scheduling, report the actual destination state and let Writer update
+both archive and repository release records; UI scheduling alone is not workflow completion.
 The configured scheduling grant covers Medium's final **Schedule to publish** action for the verified draft, target,
 and slot. Do not turn that final button into another approval request when the human already authorized scheduling.
 An `accepted` review reference without revision-bound `human-listen` evidence does not clear an enabled listen-through
-gate. If that evidence is absent, do not schedule; return a precise review-gate blocker to the Router.
+gate. The alternative `admin_delegated` transition requires a verified `release-delegation` receipt under the
+[Admin-delegated release contract](../../guides/admin-delegated-release.md), bound to this revision, Medium draft,
+profile-home target, and schedule action. Record author listening as unconfirmed. If neither path is complete, return
+a precise review-gate blocker to the Router.
 For `test_listen_simulated`, accept the distinct `test-listen-simulation` evidence only when the exact article and
 Medium draft are clearly labeled as a test, the human explicitly authorized both simulation and live scheduling of
 that exact test article, and the artifact binds the reviewed revision, offered audio, and profile-home target. Describe

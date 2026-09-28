@@ -53,7 +53,11 @@ assert.deepEqual(portableDefinition.stages.correction.transitions.review_ready.r
   ['revision', 'review-packet'], 'destination-only corrections must count changed review evidence');
 assert.match(visualMap, /human_review\["human_review<br\/>reviewer<br\/>WAITING FOR HUMAN"\]/);
 assert.match(visualMap, /human_review -->\|listen_pending: wait for confirmation\| human_review/);
+assert.match(visualMap, /human_review -->\|changes_required: stale cross-surface evidence\| correction/);
 assert.match(visualMap, /human_review -->\|human_listened: review passed\| release/);
+assert.match(visualMap, /human_review -->\|admin_delegated: explicit human mandate reviewed\| release/);
+assert.deepEqual(portableDefinition.stages.human_review.transitions.admin_delegated.requiredReferenceKinds,
+  ['review', 'destination-review', 'release-delegation']);
 assert.match(visualMap, /human_review -->\|test_listen_simulated: test release only\| release/);
 assert.deepEqual(portableDefinition.stages.human_review.transitions.test_listen_simulated.requiredReferenceKinds,
   ['review', 'destination-review', 'test-listen-simulation']);
@@ -109,6 +113,15 @@ const sourceComplete = await sourceRouter.route({ scope, type: 'source_accepted'
 assert.equal(sourceComplete.status, 'completed');
 assert.equal(sourceComplete.currentStage, 'source_complete');
 assert.equal(sourceDispatches.length, 1, 'source-only acceptance must not dispatch release');
+const parityRouter = createWorkflowRuntime(definition,
+  { ...scope, routerRuntimeId: 'writing-human-parity-correction' }, { stage: 'human_review' });
+const parityDispatches = [];
+const parityCorrection = await parityRouter.route({ scope, type: 'changes_required',
+  expectedStage: 'human_review', references: [
+    { kind: 'findings', ref: 'review://selected-header-absent-from-repository' },
+  ] }, { ...adapter, async dispatch(packet) { parityDispatches.push(packet); } });
+assert.equal(parityCorrection.currentStage, 'correction');
+assert.equal(parityDispatches[0].requiredExecutionRole, 'writer');
 const sourceReleaseGuard = createWorkflowRuntime(definition,
   { ...scope, routerRuntimeId: 'writing-source-release-guard' }, { stage: 'review' });
 assert.throws(() => sourceReleaseGuard.transition({ scope, type: 'accepted', expectedStage: 'review', references: [

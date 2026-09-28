@@ -56,6 +56,17 @@ Evaluate the header shortlist independently using the canonical
 [header-image selection contract](../../guides/header-image-contract.md). Verify the packet's contract path and exact
 content hash before judging; do not accept copied criteria or a different revision. Reviewer owns comparison and the
 one-candidate-or-`none acceptable` verdict, not search or replacement.
+Check the repository header-use index, the actual selected-header files and source IDs in the configured archive,
+and accessible destination history under the [header contract](../../guides/header-image-contract.md). A reused crop,
+resize, renamed file, or re-upload is still a reused header. Reject it for a different article and identify the prior
+use; absence from an incomplete index is not proof of uniqueness.
+For a profile-declared repository mirror, independently apply the
+[three-surface consistency contract](../../guides/three-surface-consistency.md) to the permanent archive, current
+remote repository article and selected assets, and exact saved destination. Record a durable parity finding before
+release if any selected visual, title, subtitle, prose, meaningful link, caption, credit, or status claim is missing
+or inconsistent. Do not pass a destination merely because its source text matches the archive while the selected
+hero is absent from the remote repository. Recheck parity after a Writer correction and before advancing a waiting
+human review to release; a confirmed listen-through does not clear a newly discovered content mismatch.
 Reconcile every claimed diagram, figure, illustration, caption, credit, visual cross-reference, and placeholder with an
 actually rendered visual. Do not accept a label or prose description as proof that the visual exists. Report missing,
 failed, text-only, or orphaned visuals with direct rendered evidence and their effect on comprehension.
@@ -81,12 +92,16 @@ When listen-through is enabled, the Reviewer owns the human-facing preview but n
 spoken preview from the exact revision, invoke/delegate the configured `tts` route with autoplay disabled, and present
 the resulting audio as a click-to-play/open control. Reviewer may inspect its format, duration, waveform, silence,
 clipping, or transcription without playing it through the user's audio device. Record the narrated revision and
+preserve the narration script and audio in the configured permanent article archive, never in the repository mirror. Record
 whether the author actually listened, then ask for awkward/inaccurate/missing/voice feedback. A plan to synthesize,
 an unplayed file that was never presented, or a later explanation is not an offer. After a passing independent review,
 return `human_action_required` with a durable `human-action` reference containing the exact review, audio location,
-and pending listen-through. The Router must wait at `human_review`; `requires_human_article_acceptance: false` does not
-waive this listen-through gate. Do not claim the author listened from successful synthesis, presenting a player, or
-starting playback. Require the author's explicit confirmation that they listened to this exact narration.
+and pending decision. The Router waits at `human_review`. The normal listen-through path requires the author's
+explicit confirmation that they listened to this exact narration; synthesis, presenting a player, or starting
+playback is insufficient. An exact, direct human delegation to Admin may instead use the
+[Admin-delegated release contract](../../guides/admin-delegated-release.md). Independently verify its durable
+revision-bound receipt and Admin verdict, then return `admin_delegated` with `review`, `destination-review`, and
+`release-delegation` references. Never label this as human listening.
 When the profile grants online synthesis for publication-intended articles, do not introduce a second per-article
 permission gate for that service. If host approval review denies the network action, report that blocker directly.
 
@@ -111,6 +126,8 @@ If listen-through or article acceptance is required, return `human_action_requir
 resolved. When the human asks to play the narration, play the exact revision without treating playback as confirmation;
 return `listen_pending` with the existing `human-action` reference until the author confirms listening. For a review-only
 policy, that confirmation permits `human_listened` with the exact `review` and new `human-listen` evidence references.
+A valid Admin delegation permits `admin_delegated` after all independent checks and Admin's own revision-bound
+verdict, whether or not the author listened; record the author's listening status as unconfirmed.
 For a clearly labeled, nonconfidential test article only, the human may explicitly authorize a simulated listening
 agreement and scheduling of that exact test article. First offer the exact narration and return
 `human_action_required` so the Router records the human wait. On a later direct human-authorized test continuation,

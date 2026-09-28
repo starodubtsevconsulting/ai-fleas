@@ -96,10 +96,18 @@ them.
    destination rendering or visual preparation remains pending. Reviewer returns
    `changes_required` only for remaining Writer-owned preparation. When listen-through is enabled, a passing review
    returns `human_action_required` and the Router waits for the author to listen and confirm the exact narration.
-   That listening requirement remains even when Medium sets `requires_human_article_acceptance: false`; in that case
+   That listening requirement remains even when Medium sets `requires_human_article_acceptance: false`, unless the
+   author explicitly delegates this exact article's release decision to Admin under the
+   [Admin-delegated release contract](guides/admin-delegated-release.md). In that case the Reviewer verifies the
+   revision-bound Admin verdict and returns `admin_delegated` without claiming the author listened. Otherwise,
    `human_listened` advances to release without treating listening as editorial acceptance. When acceptance is also
    required, Reviewer waits for that separate decision. With listen-through disabled and no acceptance requirement,
    a complete successful review returns `accepted` directly.
+   For a profile-declared repository mirror, Reviewer checks the permanent archive, current remote repository note
+   and selected assets, and saved destination under the
+   [three-surface consistency contract](guides/three-surface-consistency.md). If this evidence becomes stale while
+   waiting for the author, `human_review/changes_required` routes the precise discrepancy to Writer without treating
+   the author's listening confirmation as a content pass. Narration audio stays in the permanent archive, not Git.
    A separately authorized, clearly labeled test article may use `test_listen_simulated` after the narration offer and
    recorded human wait when the human explicitly authorized both simulation and live scheduling of that exact test
    article. Its distinct evidence must say the author did not confirm listening. It never satisfies a production
@@ -114,6 +122,9 @@ them.
    Pending review or timing must be visible in the handoff, not silently treated as approval.
    For scheduled releases, Router first assigns Writer the archive update and marks the run complete only after the
    scheduled metadata is saved and verified.
+   When a repository mirror is declared, Writer also updates and verifies its remote release metadata before the
+   archive-update stage can finish; a scheduled destination with incomplete record synchronization remains visible
+   as pending rather than being called workflow complete.
 
 For a source-to-destination conversion, preserve the source in the archive even if import or editor work fails.
 For a read-only question or a minor revision, run only the applicable flows and explain any skipped gate.
@@ -127,6 +138,11 @@ For a read-only question or a minor revision, run only the applicable flows and 
   Obsidian's vault label, a sidebar title, or a nearby folder.
 - Keep an editable Markdown copy of each article in the archive, along with source, draft/publication status,
   destination URL, and selected topics or tags. Preserve existing archive layout and files.
+- When the selected profile declares `repository_mirror`, resolve its authorized `project_ref`, `article_path`,
+  `asset_path`, and `header_use_index` within that project. Writer maintains the selected header and article mirror;
+  Reviewer independently compares it with the permanent archive and saved destination under the
+  [three-surface consistency contract](guides/three-surface-consistency.md). A repository index assists inspection
+  but never replaces checking actual prior header images. Do not infer a mirror from a nearby Git checkout.
 - For a newly prepared article, copy the source into the archive and verify the copy before considering the writing
   task complete. Never rename, move, or delete the archive as part of workflow setup.
 - A profile-selected editor such as Obsidian may open that exact archive folder as a vault. Verify its configured

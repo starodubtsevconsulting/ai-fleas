@@ -142,12 +142,15 @@ function resolveModel(provider, alias) {
   if (!hermes || typeof hermes !== 'object' || Array.isArray(hermes)) fail(`model '${alias}' has no Hermes settings.`);
   const contextWindow = String(hermes.context_window_tokens || '');
   const compressionThreshold = String(hermes.compression_threshold ?? '');
+  const compressionThresholdTokens = String(hermes.compression_threshold_tokens ?? '');
   const compressionTarget = String(hermes.compression_target ?? '');
   const protectLastMessages = String(hermes.protect_last_messages || '');
   if (!/^[1-9][0-9]*$/.test(contextWindow)) fail(`model '${alias}' has an invalid Hermes context window.`);
   for (const [label, value] of [['compression threshold', compressionThreshold], ['compression target', compressionTarget]]) if (!/^(?:0(?:\.[0-9]+)?|1(?:\.0+)?)$/.test(value)) fail(`model '${alias}' has an invalid Hermes ${label}.`);
+  if (compressionThresholdTokens && !/^[1-9][0-9]*$/.test(compressionThresholdTokens)) fail(`model '${alias}' has an invalid Hermes compression threshold token cap.`);
+  if (compressionThresholdTokens && Number(compressionThresholdTokens) >= Number(contextWindow)) fail(`model '${alias}' Hermes compression threshold token cap must be smaller than its context window.`);
   if (!/^[1-9][0-9]*$/.test(protectLastMessages)) fail(`model '${alias}' has an invalid Hermes protected-message count.`);
-  return { providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages };
+  return { providerModel, contextWindow, compressionThreshold, compressionThresholdTokens, compressionTarget, protectLastMessages };
 }
 const defaultModel = resolveModel(defaultProvider.provider, modelAlias);
 const { providerModel, contextWindow, compressionThreshold, compressionTarget, protectLastMessages } = defaultModel;
@@ -193,7 +196,7 @@ const roleBindings = roleDefinitions.flatMap((definition) => {
   if (flowPath && !flowPath.startsWith(`${path.resolve(workflowsRoot)}${path.sep}`)) fail(`flow for '${role}' escapes the workflow catalog.`);
   if (flowPath && !fs.statSync(flowPath, { throwIfNoEntry: false })?.isFile()) fail(`flow for '${role}' is not readable.`);
   const encode = (value) => Buffer.from(value, 'utf8').toString('base64');
-  return [[role, role, resolvedProvider, encode(String(resolved.provider.label || resolvedProvider)), encode(resolved.endpoint), encode(JSON.stringify(resolved.headers)), encode(JSON.stringify(resolved.storedHeaders)), roleModel.providerModel, roleModel.contextWindow, roleModel.compressionThreshold, roleModel.compressionTarget, roleModel.protectLastMessages, encode(rolePath), encode(flowPath)].join('|')];
+  return [[role, role, resolvedProvider, encode(String(resolved.provider.label || resolvedProvider)), encode(resolved.endpoint), encode(JSON.stringify(resolved.headers)), encode(JSON.stringify(resolved.storedHeaders)), roleModel.providerModel, roleModel.contextWindow, roleModel.compressionThreshold, roleModel.compressionTarget, roleModel.protectLastMessages, encode(rolePath), encode(flowPath), roleModel.compressionThresholdTokens || '-'].join('|')];
 });
 for (const bindingKey of Object.keys(agentProviderBindings)) if (!usedAgentProviderBindings.has(bindingKey)) fail(`agent provider binding '${bindingKey}' is not referenced by the workflow roster.`);
 if (roleBindings.length === 0 || new Set(roleBindings).size !== roleBindings.length) fail(`workflow '${workflowId}' role roster is empty or contains duplicates.`);

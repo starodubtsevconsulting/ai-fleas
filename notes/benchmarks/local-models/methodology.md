@@ -26,6 +26,23 @@ Worker-model comparisons use the checked-in [Hermes file-tools fixture](fixtures
 
 The fixture, task text, success check, and timing boundary stay fixed across candidates. The run also retains the Hermes usage summary so input/output token counts and model API-call count can be reported alongside wall time.
 
+## Controlled Hermes coding fixture
+
+The checked-in [financial recognizer coding fixture](fixtures/hermes-financial-recognizer-coding/README.md) adds a
+repeatable real-code task derived from the September 2026 Financial Insights exercise. It starts from the exact
+French-only snow-removal recognizer that preceded the matched A2A/CLI experiment and asks the worker to add a bounded
+English recognition path while preserving existing behavior and changing only one file.
+
+Use this fixture when evaluating configuration changes that may affect **agent completion quality** rather than basic
+tool compatibility, including context-compression policy, transport, model choice, or serving-runtime changes.
+
+Keep the assignment and starter source fixed. Change one experimental variable at a time. Independent verification
+checks behavior and scope after the worker stops. Record wall time, usage/API calls, unexpected files, and actual
+process/gateway termination separately from the agent's completion prose.
+
+The coding fixture does not replace the file-tools fixture: the file-tools task remains the simpler cross-model
+compatibility baseline, while the coding task exercises a more realistic multi-turn implementation loop.
+
 ## Benchmark purpose profile
 
 Every hardware/model report should state, before presenting numbers:

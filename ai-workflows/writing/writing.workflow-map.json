@@ -91,10 +91,20 @@
           "waitForHuman": true,
           "requiredReferenceKinds": ["human-action"]
         },
+        "changes_required": {
+          "to": "correction",
+          "visualLabel": "changes_required: stale cross-surface evidence",
+          "requiredReferenceKinds": ["findings"]
+        },
         "human_listened": {
           "to": "release",
           "visualLabel": "human_listened: review passed",
           "requiredReferenceKinds": ["review", "destination-review", "human-listen"]
+        },
+        "admin_delegated": {
+          "to": "release",
+          "visualLabel": "admin_delegated: explicit human mandate reviewed",
+          "requiredReferenceKinds": ["review", "destination-review", "release-delegation"]
         },
         "test_listen_simulated": {
           "to": "release",
