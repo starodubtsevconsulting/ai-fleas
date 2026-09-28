@@ -18,9 +18,21 @@ tags:
 
 *What tuning Hermes around a local Qwen coder taught me about the layers between a model and useful work.*
 
-I bought an ASUS Ascent GX10 because I wanted serious local AI capacity.
+I hate having capacity I cannot quite unlock.
 
-It has 128 GB of unified memory. It can run coding models that do not fit on an ordinary workstation. On paper, this is exactly the kind of machine that should make local AI agents interesting.
+I remember this from when I was a student. I had an old pre-Pentium IBM-compatible computer — I think it was a 486-era machine. It ran at one speed, and I used it that way for years.
+
+Later I sold it. The buyer opened the case, moved a few jumpers on the motherboard — those tiny plastic connectors that bridge pairs of pins — and suddenly the same machine ran dramatically faster. In my memory it was close to twice the speed.
+
+I just stood there watching him.
+
+The hardware had been mine the whole time. The extra capacity had been there the whole time. I simply had never figured out the configuration that unlocked it.
+
+That experience stayed with me. Whenever I own something capable and suspect I am using only part of what it can do, it bothers me disproportionately. I start digging.
+
+That is almost exactly how I feel about my ASUS Ascent GX10.
+
+I bought it because I wanted serious local AI capacity. It has 128 GB of unified memory and can run coding models that do not fit on an ordinary workstation. On paper, this is exactly the kind of machine that should make local AI agents interesting.
 
 The numbers around these models are easy to mix together, so I now try to translate them into something closer to a person.
 
@@ -158,6 +170,8 @@ The model matters. The hardware matters.
 But once AI starts doing real work, the plumbing becomes part of the intelligence.
 
 And apparently, I bought the powerhouse before I understood the plumbing.
+
+Which is why I keep digging. I have seen this movie before: sometimes the missing performance is not another piece of hardware. Sometimes it is a jumper you never knew you had to move.
 
 ---
 
