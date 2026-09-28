@@ -39,6 +39,10 @@ inspect files and the active process/session before retrying either route.
 - [Goal-backed continuation](goal-backed-continuation.md): several Coder turns are useful and the transport has a
   verified persistent goal and task-status mechanism.
 
+For domain-sensitive coding tasks, the provisional [Domain Context Handoff](domain-context-handoff.md) pattern can
+augment the selected strategy. It translates the minimum domain model into invariants, examples, and a code boundary;
+it does not add file authority or replace independent acceptance checks.
+
 Use read-only discovery before implementation when the write scope or required behavior is uncertain. A strategy never
 grants new file authority or transfers testing, review, or acceptance ownership to Coder. Check the launcher's actual
 restrictions before dispatch. If transport fails, inspect the task state and visible diff before considering a retry.
