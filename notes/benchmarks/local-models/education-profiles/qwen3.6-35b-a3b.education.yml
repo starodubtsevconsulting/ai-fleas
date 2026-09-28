@@ -1,0 +1,39 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3.6-35B-A3B
+profile_status: evidence-backed-provisional
+declared_education:
+  primary:
+    - general-multimodal-assistant
+    - coding
+  source_status: upstream-model-card-reviewed
+observed_capability:
+  strengths:
+    - useful-focused-code-proposals
+    - fast-short-direct-api-responses-in-tested-deployment
+  limits:
+    - current-32k-serving-route-blocks-hermes-agent
+    - proposal-quality-variable-on-financial-records-work
+    - direct-speed-does-not-establish-coding-acceptance
+  evidence:
+    - ../gx10.md
+unknown_or_unverified:
+  - hermes-tool-use-at-supported-context
+  - reliable-unattended-implementation
+  - specialized-business-domain-knowledge
+communication:
+  direct_vocabulary:
+    - software-concepts
+    - code-excerpts
+    - interfaces
+  translate_first:
+    - business-domain-semantics
+    - organization-specific-terms
+  preferred_pattern: self-contained-proposal-with-independent-review
+role_fit:
+  observed_good_fit:
+    - bounded-proposal-worker
+  supervised_or_unproven:
+    - hermes-coder
+deployment_variants:
+  - id: NVFP4
+    note: deployment representation; not education
