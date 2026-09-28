@@ -133,6 +133,9 @@ total Coder time; another passed the verifier but failed source review because a
 Porting the accepted source to the production helper passed all six cases, yet the Coder spent 143.92 seconds and
 repeated patches until its 20-turn cap. Use the verifier and inspect the diff even when a turn reports success or
 exits at its limit. This is a useful handoff pattern for this task, not a measured general speed improvement.
+In a four-run source-port pilot, a six-turn cap passed the same verifier but exhausted its budget on both runs and
+averaged 62.94 seconds; the 20-turn cap finished normally in both runs and averaged 46.85 seconds. This small port
+test does not justify lowering the live cap to six. See the checked-in sanitized turn-cap pilot in the GX10 note.
 
 For launcher or protocol changes, spell out both sides of the command boundary with example invocations and where
 each input is read (argument or stdin). Require the Coder to inspect existing callers and tests before editing. Ask
