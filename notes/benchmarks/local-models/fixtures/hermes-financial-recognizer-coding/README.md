@@ -17,6 +17,8 @@ evidence to claim one transport was faster or produced better code.
 This checked-in fixture freezes the starting source and assignment so future runtime/model/configuration experiments do
 not silently change the workload.
 
+A separate [domain-context handoff protocol](DOMAIN_CONTEXT.md) compares the unchanged task with a small domain model placed before it. It keeps this fixture's starter and independent verifier fixed.
+
 ## Fixed starting state
 
 The starter recognizer is the exact French-only source from commit
