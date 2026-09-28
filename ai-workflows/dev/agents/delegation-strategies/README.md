@@ -13,6 +13,9 @@ not select the strategy for a distinct Coder target. In the configured Dev route
 resolves the same provider model through its separate proposal-only strategy. The `qwen-bounded-coder` catalog entry
 retains Qwen3.6 35B for targeted comparison. GPT Admin invokes the bounded model launcher directly, with no Hermes
 caller hop. Hermes Q5 callers use the same target strategy when invoking that route.
+Where the selected strategy names an [education profile](model-profiles/README.md#education-metadata), use its
+declared orientation, scoped local observations, and unknowns to choose the handoff's vocabulary. It guides how the
+task is explained; it does not replace the selected route, strategy, or independent acceptance checks.
 GPT Admin must load and apply the target strategy before a handoff; the launcher's `check` reports its validated path.
 The launcher does not inject strategy prose into the model prompt. Its evidence notes explain the settings; they do
 not replace the profile binding or these strategy rules.

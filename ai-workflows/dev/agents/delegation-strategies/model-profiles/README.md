@@ -16,6 +16,26 @@ session and timeout behavior. `evidence_notes` may point to a companion explanat
 working evidence, not inherent properties of a model. A changed model or transport requires a fresh review before
 reuse. Do not copy machine names, endpoints, client data, or operational profile IDs into public guidance.
 
+## Education metadata
+
+A model strategy may point to an `education_profile` file in this directory. Its reusable
+[schema](model-education.schema.json) separates three kinds of information:
+
+- `declared`: the upstream model maker's stated design or training orientation, with a direct source and a limit on what the claim proves;
+- `observed`: a checked local result, its exact model/route/task scope, evidence paths, and an interpretation limit;
+- `unknown_or_unverified`: concepts the coordinator should translate or probe before assuming competence.
+
+`communication` turns those entries into a starting vocabulary, translation needs, and a verification rule. It is
+handoff guidance, not an audit of hidden model knowledge or a runtime setting. [Qwen3-Coder-Next Q5](qwen3-coder-next-q5km.education.yml)
+is the first populated instance. The Hermes and proposal-only strategies for that provider model point to the same
+file, but an observed Hermes result does not prove the proposal-only route behaves the same way. Always check each
+observation's `scope` before applying it. Other models should receive a profile only when their declared sources and
+local evidence have been checked; do not fill gaps by copying Qwen's claims.
+
+The current launchers select and validate strategy files; they do not load, validate, or inject education metadata.
+Until a coordinator explicitly reads it, the `education_profile` pointer is advisory. Match its
+`applies_to.provider_model` to the selected delegate model and preserve the selected transport's rules.
+
 Admin may choose a different strategy for a particular task when its scope or evidence warrants it. Record why in
 the handoff. Strategy config cannot expand Coder's write scope, override workflow gates, or imply that an A2A message
 supports persistent goals or session reuse unless the selected launcher has verified support.

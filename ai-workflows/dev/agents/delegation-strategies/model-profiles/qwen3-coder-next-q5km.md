@@ -9,43 +9,34 @@ CLI one-shot.
 
 ## Education and communication model
 
-Treat this as the worker's **education profile**, not another runtime specification. The purpose is to help a delegating agent decide what it can probably say directly, what it should translate, and what it must not assume.
-
-Keep three evidence classes separate:
+This is coordinator guidance about the language of a handoff, not a measurement of the model's hidden knowledge. The [structured education profile](qwen3-coder-next-q5km.education.yml) keeps source claims, local observations, and unknowns separate. Parameter count, `Q5_K_M` quantization, and context length describe architecture or this deployment; they do not establish domain education.
 
 ### Declared education
 
-Derived from the upstream model documentation/training intent, not from our local benchmark impressions.
+The [upstream model card](https://huggingface.co/Qwen/Qwen3-Coder-Next) describes Qwen3-Coder-Next as designed for coding agents and local development and highlights tool-using coding. That supports software and code concepts as the **starting vocabulary** for a handoff. It is a statement of design intent, not proof that this quantized deployment will solve a particular software task. The card does not establish knowledge of our financial-document rules or organization-specific conventions.
 
-- Primary orientation: software engineering, code generation/modification, repository work, and agentic/tool-using coding.
-- General technical and world knowledge exists, but this profile does not assume completeness or freshness merely because the base model is large.
-- `Q5_K_M` describes the local quantized representation; it is **not** the model's education or domain specialization.
+### Observed education and capability in this deployment
 
-### Observed capability in this deployment
+These are outcomes on checked tasks, not direct measurements of what the model knew before the handoff.
 
-Derived only from checked AI-Fleas fixtures and reviewed real work. Update this list as evidence changes.
-
-- Can perform focused file edits, source-to-target ports, and ordinary tool-driven repository work when scope and acceptance are concrete.
-- On the frozen financial recognizer, translated domain context produced substantially better first-pass acceptance than task-only or raw-domain handoffs.
-- That gain did **not** transfer to the harder process-group lifecycle fixture on first pass; clearer explanation did not remove the repeated cleanup-algorithm error.
-- Independent verification remains necessary because completion prose, process exit, and plausible code have each disagreed with accepted behavior in observed runs.
+- It produced accepted focused file edits and source-to-target ports under exact scope and independent checks. This supports using familiar software terms such as file, interface, state, invariant, process, and test without first teaching those terms. It does not establish reliable performance on arbitrary repository work.
+- On one frozen financial recognizer, nine interleaved runs per arm passed on the first try **3/9 task only, 5/9 raw domain context, and 8/9 translated context**. The translated arm combined an analogy, positive and misleading examples, and a code-boundary hint; the experiment cannot isolate which ingredient helped or reveal the model's prior financial knowledge. See the [protocol](../../../../../notes/benchmarks/local-models/fixtures/hermes-financial-recognizer-coding/THREE_ARM_PROTOCOL.md) and [run record](../../../../../notes/benchmarks/local-models/gx10-domain-context-three-arm-2026-09-28.json).
+- On the separate process-group lifecycle fixture, task-only and raw-context arms each had **0/8** accepted first passes. A later translated-context batch also had **0/8** first passes, despite spelling out the cleanup sequence; one of eight became source-accepted after a fixed correction. The translated batch was not interleaved with the earlier arms, so their times are not a matched ranking. The first-pass failure is evidence that better explanation alone was insufficient *on this fixture*, not proof of a general reasoning ceiling. See the [A/B record](../../../../../notes/benchmarks/local-models/gx10-process-group-domain-context-pilot-2026-09-28.json) and [translated transfer record](../../../../../notes/benchmarks/local-models/gx10-process-group-translated-pilot-2026-09-28.json).
+- Completion prose, a zero process exit, and plausible code have disagreed with independent acceptance. The coordinator must verify the artifact and task invariants.
 
 ### Unknown or unverified education
 
-Do not silently assume competence here. Translate or probe first.
+Do not infer these from the coding orientation or from one successful fixture:
 
-- Organization-specific terminology and local conventions.
-- Specialized business/domain semantics that are not evident from code.
-- Niche technical invariants whose correct implementation requires reasoning beyond ordinary programming vocabulary.
-- Any claimed knowledge boundary that has not been established by upstream documentation or our own controlled evidence.
+- Organization-specific terminology, conventions, and business rules, including financial-document semantics. Translate the minimum relevant facts into data and code concepts, then check the result.
+- Reliability on unfamiliar lifecycle algorithms or other multi-step reasoning. A familiar analogy may clarify the task but may not make the implementation correct; specify the invariant and use an independent verifier.
+- Transfer of either fixture result to other models, transports, domains, or task sizes. Probe before treating a result as general capability.
 
 ### Handoff implication
 
-Before delegating, ask: **is this concept already inside the worker's demonstrated/declared education, or am I asking it to learn a small piece of a new domain while coding?**
+Before delegating, ask: **which concepts can this worker use directly, and which domain facts must I translate or test?** Start with software vocabulary for a coding assignment. If the task carries an unfamiliar domain rule, use [Domain Context Handoff](../domain-context-handoff.md): translate the smallest relevant domain model into familiar concepts, explain why it matters, give positive and misleading examples, map the invariant to the code or data boundary, then state the task and acceptance checks.
 
-If translation is needed, use [Domain Context Handoff](../domain-context-handoff.md): explain the smallest relevant domain model in concepts this coding worker can operationalize, include positive and misleading examples when useful, map the invariant to the relevant code/data boundary, then give the task and acceptance checks.
-
-Do not treat this section as static truth. Refine it from model documentation and controlled observations, and record contradictions rather than smoothing them away.
+Use the recognizer result as evidence that communication can change accepted work. Use the process-group result as a warning that explanation may be insufficient for a harder task. Neither result diagnoses the model's internal knowledge or fixes its maximum capability. Update this profile when a new controlled result supports or contradicts a scoped claim.
 
 ## Observed behavior
 
@@ -164,7 +155,7 @@ eight interleaved assignments explicitly saying to check whole-word `PAYMENT` in
 search `compactText` passed 8/8, with 319.42 versus 243.49 seconds of total Coder time. The treatment also requested
 direct file-tool work and concise completion, so the source-representation sentence is not isolated as the sole cause.
 This is a task-specific handoff result, not a general model-speed setting. Include both false-positive and coexistence
-cases in independent acceptance checks. See the [GX10 runtime benchmark](../../../../notes/benchmarks/local-models/gx10-hermes-qwen-coder-runtime-2026-09-28.md).
+cases in independent acceptance checks. See the [GX10 runtime benchmark](../../../../../notes/benchmarks/local-models/gx10-hermes-qwen-coder-runtime-2026-09-28.md).
 
 For process-tree cleanup, state the exact sequence and verify each branch. On a frozen six-case helper fixture, two
 fresh handoffs explicitly required an unconditional final group SIGKILL, but both initial implementations still made
