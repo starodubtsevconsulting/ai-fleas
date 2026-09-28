@@ -18,6 +18,13 @@ reuse. Do not copy machine names, endpoints, client data, or operational profile
 
 ## Education metadata
 
+The [model-family education catalog](../../../../../notes/benchmarks/local-models/education-profiles/README.md)
+is the canonical cross-model vocabulary. This directory adds route-specific evidence for the selected
+provider-model. The two YAML shapes are not interchangeable or consumed automatically. A catalog `role_fit`
+or family-level strength can nominate a worker for a probe; before a handoff, check the route-specific scope
+and evidence. A future shared schema should retain both family-level design intent and each observed result's
+exact deployment, transport, and task scope.
+
 A model strategy may point to an `education_profile` file in this directory. Its reusable
 [schema](model-education.schema.json) separates three kinds of information:
 
