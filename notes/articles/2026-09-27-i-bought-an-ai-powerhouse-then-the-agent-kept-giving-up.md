@@ -292,6 +292,50 @@ A jumper can unlock capacity that is already there.
 
 It cannot turn the motherboard into a different computer.
 
+### Before tuning the worker, learn who you hired
+
+That gave me a different way to think about model profiles.
+
+Imagine hiring somebody whose résumé says:
+
+**80B. Q5. 65K context.**
+
+Impressive. Also almost useless as a hiring decision.
+
+What did this person study? What kind of work are they good at? What vocabulary can I use without explanation? Where do they need onboarding? And what happens when I give them a real assignment?
+
+The model numbers answer different questions. Roughly, **80B** tells me about learned capacity, **Q5** about how that learned model is represented on my machine, and **65K** about how much current material can fit on the working-memory desk.
+
+None of those numbers tells me what kind of employee is sitting at the desk.
+
+For that I need something closer to an **educational profile**.
+
+For my Qwen coder, I want to keep three things separate:
+
+**Declared education** — what the model's creators say it was designed and trained to do.
+
+**Observed capability** — what I have actually watched this particular deployment do under controlled tests and real work.
+
+**Unknown education** — areas where I should not assume understanding just because the model is large.
+
+That changes delegation.
+
+If the worker already speaks software engineering, I can talk directly about processes, APIs, files, tests, state, and interfaces.
+
+If I give it financial-document semantics, I may need to translate that unfamiliar domain into concepts inside its existing education.
+
+And if I translate the problem clearly and it still makes the same mistake eight times, perhaps I should stop treating that as an onboarding problem.
+
+Maybe I hired the wrong worker for that job.
+
+That is another reason the little test bench matters. A résumé tells me what the model is supposed to be. The benchmark lets me watch its education **in action**.
+
+Sometimes I may discover that the worker I hired for one department belongs in another. Sometimes the brilliant-looking candidate is best used as a very reliable mechanical worker. Sometimes a supposedly weaker worker may understand a particular kind of assignment better.
+
+So before asking, “Which parameter should I tune?” I now want to ask a more basic question:
+
+**Who did I hire, what have they actually learned, and am I giving them the kind of work they can understand?**
+
 I also tried one of the obvious mechanical fixes: fewer agent turns. Six sounded safer than twenty. In the small matched test, the shorter limit was actually slower, so I kept the existing turn budget.
 
 ## The loop problem is still real
@@ -327,7 +371,7 @@ So the server stays put until the next experiment actually requires moving that 
 At this point I find it useful to think of the work in layers rather than as one giant tuning exercise.
 
 **Phase 1 — agent and handoff layer. _This is where I am now._**  
-Teach the worker enough of the domain to understand the job, then constrain and verify how it executes.
+Understand the worker's educational profile, teach only the unfamiliar domain it can reasonably absorb, then constrain and verify how it executes.
 
 **Phase 2 — GX10 inference layer.**  
 Only after the first layer is understood: llama.cpp, tool parsing, cache and memory behavior, context/server flags, and the exact model artifact.
