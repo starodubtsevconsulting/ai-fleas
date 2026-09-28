@@ -244,15 +244,33 @@ So there are at least two very different versions of “give it domain context�
 
 Same domain. Very different teaching.
 
-That is the version I want to test next.
+So I tested that distinction directly.
 
-The useful handoff may be closer to:
+I froze the same recognizer task and ran three versions of the handoff, nine fresh attempts each:
+
+- **task only:** 3 of 9 correct on the first attempt;
+- **raw domain context:** 5 of 9;
+- **translated domain context:** **8 of 9**.
+
+Same model. Same starting code. Same verifier. Same execution route.
+
+The thing that changed was how the domain reached the worker.
+
+That does not prove a universal prompting law. It is one task, and the translated version bundled several things together: a familiar analogy, a positive example, a misleading near-match, and a hint about the relevant code boundary.
+
+But it is exactly the kind of result I wanted from the test bench. Instead of arguing that one explanation “sounds clearer,” I can see whether the worker gets the job right before somebody has to correct it.
+
+Corrections complicate the picture: after one identical correction was allowed for failures, all three groups recovered much more often. So the strongest signal here is **first-pass understanding**, not eventual recoverability.
+
+The useful handoff now looks more like:
 
 **what this thing is → translate it into concepts the worker already understands → why it matters → positive and misleading examples → invariants → relevant code boundary → task → acceptance checks**
 
 Not the whole domain. And not domain jargon for its own sake.
 
 **Translate the domain. Don’t dump the domain.**
+
+Now I am trying the same idea on a different kind of coding problem — process cleanup rather than document recognition. If it transfers, it becomes much more interesting than a recognizer-specific trick.
 
 I also tried one of the obvious mechanical fixes: fewer agent turns. Six sounded safer than twenty. In the small matched test, the shorter limit was actually slower, so I kept the existing turn budget.
 
@@ -277,7 +295,7 @@ But the Mac/Hermes experiments already produced several concrete findings withou
 - the 32K compression cap was not justified;
 - CLI gives me better lifecycle control, but not proven better intelligence;
 - lowering the turn cap did not help;
-- a more precise task boundary dramatically improved one real coding fixture;
+- translated domain context produced the strongest first-pass result on one controlled coding fixture;
 - repeated tool calls remain a measurable source of waste.
 
 If I had changed the GX10 server at the same time, all of those lessons would have been blurred together.
