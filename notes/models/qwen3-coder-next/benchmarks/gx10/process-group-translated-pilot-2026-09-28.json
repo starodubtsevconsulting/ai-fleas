@@ -1,0 +1,241 @@
+{
+  "fixture": "frozen process-group helper; independent six-case verifier",
+  "model": "Qwen3-Coder-Next Q5_K_M",
+  "route": "configured Hermes CLI Coder delegate",
+  "treatment": "translated process-group domain context followed by unchanged task",
+  "design": "later exploratory eight-run transfer probe; not interleaved with earlier A/B process-group arms",
+  "profile": "unchanged sc dev Hermes profile; 20-turn limit; exact staged-file write root",
+  "deadlines_seconds": {
+    "initial": 180,
+    "correction": 120
+  },
+  "correction_rule": "one identical verifier-backed correction per failed initial candidate",
+  "frozen_input_sha256": {
+    "task": "1dd033697a75a3046289939df70c4e868b51bb84d716b96e9a7d254372d6d65e",
+    "context": "adcaab70dc856ea629f35c63cde9138b84c8f9e8ceffcb5ffddbffd9b1726ab8",
+    "starter": "9cd0a4059de1759ef91fc2f9bfe5c4cb4217de26d960ab1528ade6a767c0ddef"
+  },
+  "summary": {
+    "runs": 8,
+    "first_pass_verifier_pass": 0,
+    "first_pass_source_accepted": 0,
+    "correction_raw_verifier_pass": 3,
+    "correction_completed_verifier_pass": 2,
+    "source_accepted_after_correction": 1,
+    "initial_coder_wall_seconds": 422.2,
+    "correction_coder_wall_seconds": 613.83,
+    "total_coder_wall_seconds": 1036.03,
+    "initial_model_calls": 61,
+    "correction_model_calls": 55,
+    "initial_output_tokens": 15518,
+    "correction_output_tokens": 26521,
+    "initial_max_turn_stops": 1,
+    "correction_deadline_stops": 3,
+    "scope_denials": 0,
+    "compactions": 0
+  },
+  "runs": [
+    {
+      "run": 1,
+      "initial_wall_seconds": 126.8,
+      "initial_model_calls": 20,
+      "initial_output_tokens": 4048,
+      "initial_stop": "max_iterations_reached(20/20)",
+      "initial_coder_exit": 0,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_group_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 24.74,
+      "correction_model_calls": 3,
+      "correction_output_tokens": 916,
+      "correction_stop": "text_response(finish_reason=stop)",
+      "correction_coder_exit": 0,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "source_review_note": "verifier failed"
+    },
+    {
+      "run": 2,
+      "initial_wall_seconds": 33.35,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1240,
+      "initial_stop": "text_response(finish_reason=stop)",
+      "initial_coder_exit": 0,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_group_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 29.11,
+      "correction_model_calls": 4,
+      "correction_output_tokens": 1094,
+      "correction_stop": "text_response(finish_reason=stop)",
+      "correction_coder_exit": 0,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "source_review_note": "verifier failed"
+    },
+    {
+      "run": 3,
+      "initial_wall_seconds": 36.23,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1396,
+      "initial_stop": "text_response(finish_reason=stop)",
+      "initial_coder_exit": 0,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_group_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 122.81,
+      "correction_model_calls": 5,
+      "correction_output_tokens": 5899,
+      "correction_stop": "transport_deadline",
+      "correction_coder_exit": 124,
+      "correction_failed_cases": [],
+      "correction_verifier_pass": true,
+      "source_review_accepted": false,
+      "source_review_note": "Coder hit correction deadline; final wait timeout is swallowed, so reaping is not guaranteed"
+    },
+    {
+      "run": 4,
+      "initial_wall_seconds": 35.05,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1334,
+      "initial_stop": "text_response(finish_reason=stop)",
+      "initial_coder_exit": 0,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_group_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 53.09,
+      "correction_model_calls": 6,
+      "correction_output_tokens": 1750,
+      "correction_stop": "text_response(finish_reason=stop)",
+      "correction_coder_exit": 0,
+      "correction_failed_cases": [
+        "sigterm",
+        "sigint"
+      ],
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "source_review_note": "verifier failed"
+    },
+    {
+      "run": 5,
+      "initial_wall_seconds": 80.31,
+      "initial_model_calls": 14,
+      "initial_output_tokens": 3288,
+      "initial_stop": "text_response(finish_reason=stop)",
+      "initial_coder_exit": 0,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_group_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 122.88,
+      "correction_model_calls": 10,
+      "correction_output_tokens": 5548,
+      "correction_stop": "transport_deadline",
+      "correction_coder_exit": 124,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "source_review_note": "verifier failed"
+    },
+    {
+      "run": 6,
+      "initial_wall_seconds": 35.81,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1309,
+      "initial_stop": "text_response(finish_reason=stop)",
+      "initial_coder_exit": 0,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_group_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 122.19,
+      "correction_model_calls": 11,
+      "correction_output_tokens": 5324,
+      "correction_stop": "transport_deadline",
+      "correction_coder_exit": 124,
+      "correction_failed_cases": [
+        "timeout"
+      ],
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "source_review_note": "verifier failed"
+    },
+    {
+      "run": 7,
+      "initial_wall_seconds": 41.66,
+      "initial_model_calls": 7,
+      "initial_output_tokens": 1616,
+      "initial_stop": "text_response(finish_reason=stop)",
+      "initial_coder_exit": 0,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_group_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 58.52,
+      "correction_model_calls": 6,
+      "correction_output_tokens": 2452,
+      "correction_stop": "text_response(finish_reason=stop)",
+      "correction_coder_exit": 0,
+      "correction_failed_cases": [],
+      "correction_verifier_pass": true,
+      "source_review_accepted": false,
+      "source_review_note": "SIGINT handler sends SIGTERM instead of forwarding received signal"
+    },
+    {
+      "run": 8,
+      "initial_wall_seconds": 32.99,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1287,
+      "initial_stop": "text_response(finish_reason=stop)",
+      "initial_coder_exit": 0,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_group_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 80.49,
+      "correction_model_calls": 10,
+      "correction_output_tokens": 3538,
+      "correction_stop": "text_response(finish_reason=stop)",
+      "correction_coder_exit": 0,
+      "correction_failed_cases": [],
+      "correction_verifier_pass": true,
+      "source_review_accepted": true,
+      "source_review_note": "accepted"
+    }
+  ],
+  "interpretation": "Translation did not solve this lifecycle task on the first pass: every initial implementation gated group SIGKILL on direct-child wait timeout. One of eight was source-accepted after the fixed correction. Two other corrected candidates passed the six-case verifier but failed source review or ended at the deadline. This later sequential batch cannot establish a speed ranking against the earlier A/B batch."
+}

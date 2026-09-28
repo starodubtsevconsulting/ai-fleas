@@ -1,0 +1,18 @@
+{
+  "trace": "accepted process-group production port",
+  "installed_hermes": "v0.21.0, commit 29112bef099274229cadff79cdff7bf7b99c4b77",
+  "model_calls": 20,
+  "tool_calls_in_export": 23,
+  "patch_requests": 18,
+  "patch_requests_with_identical_old_and_new_text": 16,
+  "maximum_consecutive_identical_tool_arguments": 1,
+  "longest_exact_argument_cycle": {
+    "period": 3,
+    "laps": 2
+  },
+  "guard_applicability": {
+    "v2026_9_7_identical_consecutive_call_halt_would_trigger": false,
+    "v2026_9_14_identical_cycle_halt_would_trigger": false
+  },
+  "limits": "Trace replay compares call arguments and documented guard thresholds; neither newer runtime was tested live."
+}

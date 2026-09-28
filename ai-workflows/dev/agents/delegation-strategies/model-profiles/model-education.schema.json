@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI-Fleas model education profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "applies_to",
+    "declared",
+    "observed",
+    "unknown_or_unverified",
+    "communication"
+  ],
+  "properties": {
+    "schema_version": { "const": "model-education.v1" },
+    "applies_to": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider_model"],
+      "properties": {
+        "provider_model": { "type": "string", "minLength": 1 }
+      }
+    },
+    "declared": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["statement", "source_url", "interpretation_limit"],
+        "properties": {
+          "statement": { "type": "string", "minLength": 1 },
+          "source_url": { "type": "string", "format": "uri" },
+          "interpretation_limit": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "observed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["statement", "scope", "evidence_paths", "interpretation_limit"],
+        "properties": {
+          "statement": { "type": "string", "minLength": 1 },
+          "scope": { "type": "string", "minLength": 1 },
+          "evidence_paths": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "interpretation_limit": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "unknown_or_unverified": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["area", "handoff_action"],
+        "properties": {
+          "area": { "type": "string", "minLength": 1 },
+          "handoff_action": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "communication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["direct_starting_vocabulary", "translate_or_probe", "verification_rule"],
+      "properties": {
+        "direct_starting_vocabulary": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "translate_or_probe": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "verification_rule": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3.5-122B-A10B
+profile_status: source-review-needed
+declared_education:
+  primary: ["general-assistant"]
+  source_status: review-needed
+observed_capability:
+  demonstrated: ["passed-hermes-file-tools-fixture"]
+  limits: ["slow-on-measured-gx10-fixture"]
+  evidence: ["../gx10.md"]
+unknown_or_unverified:
+  - specialized-domain-knowledge-unless-evidenced
+  - organization-specific-semantics
+communication:
+  principle: translate-unfamiliar-domain-into-demonstrated-conceptual-language
+  use_domain_context_handoff_when_needed: true
+role_fit:
+  provisional: ["generalist-worker-unproven", "coding-worker-unproven"]
+deployment_variants:
+  - id: "Q5_K_S"
+    note: "deployment representation; not education"

@@ -1,0 +1,21 @@
+schema_version: ai-fleas-model-education.v1
+model_family: DeepSeek-V4-Flash-0731
+profile_status: source-review-needed
+declared_education:
+  primary: []
+  source_status: review-needed
+observed_capability:
+  demonstrated: ["passed-hermes-file-tools-fixture"]
+  limits: ["high-single-gx10-memory-cost", "slow-relative-to-qwen3-coder-next"]
+  evidence: ["../gx10.md"]
+unknown_or_unverified:
+  - specialized-domain-knowledge-unless-evidenced
+  - organization-specific-semantics
+communication:
+  principle: translate-unfamiliar-domain-into-demonstrated-conceptual-language
+  use_domain_context_handoff_when_needed: true
+role_fit:
+  provisional: ["coding-worker-unproven"]
+deployment_variants:
+  - id: "IQ2_XXS-Q2_K"
+    note: "deployment representation; not education"

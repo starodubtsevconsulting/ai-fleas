@@ -1,0 +1,21 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3.5-9B
+profile_status: source-review-needed
+declared_education:
+  primary: ["general-multimodal-assistant"]
+  source_status: review-needed
+observed_capability:
+  demonstrated: ["fast-fully-gpu-resident-inference", "meets-served-hermes-context", "system-agent-candidate"]
+  limits: ["full-hermes-orchestration-can-dominate-latency", "role-quality-not-deeply-benchmarked"]
+  evidence: ["../rtx-3080-ti.md"]
+unknown_or_unverified:
+  - specialized-domain-knowledge-unless-evidenced
+  - organization-specific-semantics
+communication:
+  principle: translate-unfamiliar-domain-into-demonstrated-conceptual-language
+  use_domain_context_handoff_when_needed: true
+role_fit:
+  provisional: ["local-system-agent", "micro-command-worker"]
+deployment_variants:
+  - id: "Q4_K_M"
+    note: "deployment representation; not education"

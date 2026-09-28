@@ -1,0 +1,21 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3.6-35B-A3B
+profile_status: evidence-backed-provisional
+declared_education:
+  primary: ["general-multimodal-assistant", "coding"]
+  source_status: reviewed-or-family-evident
+observed_capability:
+  demonstrated: ["useful-focused-code-proposals", "fast-short-direct-api"]
+  limits: ["32k-served-route-blocks-hermes", "proposal-quality-variable"]
+  evidence: ["../gx10.md"]
+unknown_or_unverified:
+  - specialized-domain-knowledge-unless-evidenced
+  - organization-specific-semantics
+communication:
+  principle: translate-unfamiliar-domain-into-demonstrated-conceptual-language
+  use_domain_context_handoff_when_needed: true
+role_fit:
+  provisional: ["bounded-proposal-worker"]
+deployment_variants:
+  - id: "NVFP4"
+    note: "deployment representation; not education"

@@ -1,0 +1,174 @@
+{
+  "date": "2026-09-28",
+  "model": "qwen3-coder-next-q5km",
+  "route": "configured Hermes CLI chat -Q",
+  "fixture": "fixtures/hermes-financial-recognizer-coding",
+  "compression": "old realized profile; no compaction observed",
+  "outer_turn_limit_seconds": 180,
+  "groups": {
+    "baseline": {
+      "accepted": 2,
+      "runs": 8,
+      "total_wall_seconds": 319.42,
+      "accepted_per_minute": 0.376
+    },
+    "precise_word_intermediate": {
+      "accepted": 1,
+      "runs": 2,
+      "total_wall_seconds": 68.02,
+      "accepted_per_minute": 0.882
+    },
+    "boundary_source": {
+      "accepted": 8,
+      "runs": 8,
+      "total_wall_seconds": 243.49,
+      "accepted_per_minute": 1.971
+    }
+  },
+  "runs_in_order": [
+    {
+      "arm": "base1",
+      "prompt_group": "baseline",
+      "wall_seconds": 44.96,
+      "accepted": false,
+      "model_calls": 5,
+      "output_tokens": 1584
+    },
+    {
+      "arm": "precise1",
+      "prompt_group": "precise-word",
+      "wall_seconds": 22.13,
+      "accepted": true,
+      "model_calls": 3,
+      "output_tokens": 798
+    },
+    {
+      "arm": "precise2",
+      "prompt_group": "precise-word",
+      "wall_seconds": 45.89,
+      "accepted": false,
+      "model_calls": 5,
+      "output_tokens": 1934
+    },
+    {
+      "arm": "base2",
+      "prompt_group": "baseline",
+      "wall_seconds": 24.78,
+      "accepted": true,
+      "model_calls": 4,
+      "output_tokens": 867
+    },
+    {
+      "arm": "boundary_source1",
+      "prompt_group": "boundary-source",
+      "wall_seconds": 24.38,
+      "accepted": true,
+      "model_calls": 4,
+      "output_tokens": 827
+    },
+    {
+      "arm": "boundary_source2",
+      "prompt_group": "boundary-source",
+      "wall_seconds": 31.32,
+      "accepted": true,
+      "model_calls": 5,
+      "output_tokens": 1191
+    },
+    {
+      "arm": "base3",
+      "prompt_group": "baseline",
+      "wall_seconds": 47.42,
+      "accepted": false,
+      "model_calls": 6,
+      "output_tokens": 1982
+    },
+    {
+      "arm": "boundary_source3",
+      "prompt_group": "boundary-source",
+      "wall_seconds": 48.93,
+      "accepted": true,
+      "model_calls": 6,
+      "output_tokens": 2014
+    },
+    {
+      "arm": "boundary_source4",
+      "prompt_group": "boundary-source",
+      "wall_seconds": 29.01,
+      "accepted": true,
+      "model_calls": 4,
+      "output_tokens": 1105
+    },
+    {
+      "arm": "base4",
+      "prompt_group": "baseline",
+      "wall_seconds": 34.51,
+      "accepted": false,
+      "model_calls": 4,
+      "output_tokens": 1348
+    },
+    {
+      "arm": "base5",
+      "prompt_group": "baseline",
+      "wall_seconds": 53.67,
+      "accepted": true,
+      "model_calls": 7,
+      "output_tokens": 2236
+    },
+    {
+      "arm": "boundary_source5",
+      "prompt_group": "boundary-source",
+      "wall_seconds": 26.81,
+      "accepted": true,
+      "model_calls": 4,
+      "output_tokens": 976
+    },
+    {
+      "arm": "boundary_source6",
+      "prompt_group": "boundary-source",
+      "wall_seconds": 22.36,
+      "accepted": true,
+      "model_calls": 4,
+      "output_tokens": 779
+    },
+    {
+      "arm": "base6",
+      "prompt_group": "baseline",
+      "wall_seconds": 31.77,
+      "accepted": false,
+      "model_calls": 4,
+      "output_tokens": 1226
+    },
+    {
+      "arm": "boundary_source7",
+      "prompt_group": "boundary-source",
+      "wall_seconds": 30.5,
+      "accepted": true,
+      "model_calls": 4,
+      "output_tokens": 1179
+    },
+    {
+      "arm": "base7",
+      "prompt_group": "baseline",
+      "wall_seconds": 35.46,
+      "accepted": false,
+      "model_calls": 4,
+      "output_tokens": 1430
+    },
+    {
+      "arm": "base8",
+      "prompt_group": "baseline",
+      "wall_seconds": 46.85,
+      "accepted": false,
+      "model_calls": 6,
+      "output_tokens": 2017
+    },
+    {
+      "arm": "boundary_source8",
+      "prompt_group": "boundary-source",
+      "wall_seconds": 30.18,
+      "accepted": true,
+      "model_calls": 4,
+      "output_tokens": 1104
+    }
+  ]
+}

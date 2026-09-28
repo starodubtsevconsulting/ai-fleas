@@ -1,0 +1,446 @@
+{
+  "fixture": "frozen process-group helper and six-case independent verifier",
+  "model": "Qwen3-Coder-Next Q5_K_M",
+  "route": "configured Hermes CLI Coder delegate",
+  "order": "A B B A, repeated four times",
+  "treatments": {
+    "A": "task only",
+    "B": "small process-group domain model before unchanged task"
+  },
+  "correction_rule": "one identical verifier-backed correction per initial failure",
+  "arms": {
+    "A": {
+      "runs": 8,
+      "first_pass_accepted": 0,
+      "verifier_passed_after_correction": 1,
+      "source_accepted_after_correction": 0,
+      "initial_wall_seconds": 615.44,
+      "correction_wall_seconds": 436.28,
+      "total_coder_wall_seconds": 1051.72,
+      "initial_model_calls": 100,
+      "correction_model_calls": 43,
+      "scope_denials": 0
+    },
+    "B": {
+      "runs": 8,
+      "first_pass_accepted": 0,
+      "verifier_passed_after_correction": 0,
+      "source_accepted_after_correction": 0,
+      "initial_wall_seconds": 284.15,
+      "correction_wall_seconds": 319.8,
+      "total_coder_wall_seconds": 603.95,
+      "initial_model_calls": 37,
+      "correction_model_calls": 39,
+      "scope_denials": 0
+    }
+  },
+  "runs": [
+    {
+      "run": 1,
+      "arm": "A",
+      "initial_wall_seconds": 41.58,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1431,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 31.25,
+      "correction_model_calls": 4,
+      "correction_output_tokens": 1164,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 2,
+      "arm": "B",
+      "initial_wall_seconds": 35.08,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1350,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 47.19,
+      "correction_model_calls": 6,
+      "correction_output_tokens": 1929,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 3,
+      "arm": "B",
+      "initial_wall_seconds": 28.82,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1077,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 29.74,
+      "correction_model_calls": 3,
+      "correction_output_tokens": 1140,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 4,
+      "arm": "A",
+      "initial_wall_seconds": 145.59,
+      "initial_model_calls": 20,
+      "initial_output_tokens": 6628,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 63.22,
+      "correction_model_calls": 7,
+      "correction_output_tokens": 2678,
+      "correction_verifier_pass": true,
+      "source_review_accepted": false,
+      "correction_failed_cases": [],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 5,
+      "arm": "A",
+      "initial_wall_seconds": 31.33,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1102,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 33.28,
+      "correction_model_calls": 4,
+      "correction_output_tokens": 1284,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 6,
+      "arm": "B",
+      "initial_wall_seconds": 31.33,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1184,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 42.81,
+      "correction_model_calls": 6,
+      "correction_output_tokens": 1706,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 7,
+      "arm": "B",
+      "initial_wall_seconds": 42.95,
+      "initial_model_calls": 6,
+      "initial_output_tokens": 1694,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 47.61,
+      "correction_model_calls": 5,
+      "correction_output_tokens": 1986,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 8,
+      "arm": "A",
+      "initial_wall_seconds": 38.23,
+      "initial_model_calls": 8,
+      "initial_output_tokens": 1375,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 47.29,
+      "correction_model_calls": 6,
+      "correction_output_tokens": 1909,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 9,
+      "arm": "A",
+      "initial_wall_seconds": 34.54,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1322,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 64.55,
+      "correction_model_calls": 10,
+      "correction_output_tokens": 2814,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 10,
+      "arm": "B",
+      "initial_wall_seconds": 26.48,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 963,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 26.07,
+      "correction_model_calls": 4,
+      "correction_output_tokens": 932,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 11,
+      "arm": "B",
+      "initial_wall_seconds": 30.53,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1135,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 38.34,
+      "correction_model_calls": 5,
+      "correction_output_tokens": 1530,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 12,
+      "arm": "A",
+      "initial_wall_seconds": 105.48,
+      "initial_model_calls": 20,
+      "initial_output_tokens": 3183,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 123.03,
+      "correction_model_calls": 4,
+      "correction_output_tokens": 1228,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 124,
+      "scope_denials": 0
+    },
+    {
+      "run": 13,
+      "arm": "A",
+      "initial_wall_seconds": 92.13,
+      "initial_model_calls": 20,
+      "initial_output_tokens": 3047,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 38.21,
+      "correction_model_calls": 4,
+      "correction_output_tokens": 1469,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 14,
+      "arm": "B",
+      "initial_wall_seconds": 51.17,
+      "initial_model_calls": 7,
+      "initial_output_tokens": 2018,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 35.87,
+      "correction_model_calls": 6,
+      "correction_output_tokens": 2279,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 15,
+      "arm": "B",
+      "initial_wall_seconds": 37.79,
+      "initial_model_calls": 4,
+      "initial_output_tokens": 1469,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 52.17,
+      "correction_model_calls": 4,
+      "correction_output_tokens": 1408,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    },
+    {
+      "run": 16,
+      "arm": "A",
+      "initial_wall_seconds": 126.56,
+      "initial_model_calls": 20,
+      "initial_output_tokens": 4764,
+      "initial_verifier_pass": false,
+      "initial_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "initial_sigkill_nested_under_direct_wait_timeout": true,
+      "correction_wall_seconds": 35.45,
+      "correction_model_calls": 4,
+      "correction_output_tokens": 1278,
+      "correction_verifier_pass": false,
+      "source_review_accepted": false,
+      "correction_failed_cases": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "coder_exit": 0,
+      "scope_denials": 0
+    }
+  ],
+  "interpretation": "The domain preface reduced model calls and wall time to a failed first pass but did not improve accepted code. Every initial candidate gated group SIGKILL on direct-child wait timeout. One task-only correction passed the verifier but source review rejected its swallowed final wait timeout; no source-accepted output resulted."
+}
