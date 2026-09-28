@@ -17,6 +17,17 @@ A separate **read-only, five-turn code-review probe** crossed the cap with froze
 
 The successful long-patch call generated 1,828 output tokens and took 35.2 seconds. A 1,024- or 1,536-token output cap risks truncating that useful tool call; a 2,048-token cap would not shorten it. Model generation and the number of turns dominated these short runs, while file tools took roughly 1–1.5 seconds per run.
 
+## Task-specific handoff improvement
+
+The recognizer's repeated false positive had a concrete cause: Coder implementations often checked `PAYMENT` as a whole word in `normalizedText` but also used `compactText.includes('payment')`, which accepts `REPAYMENT`. A frozen prompt addition stated that `normalizedText` preserves word boundaries, `compactText` may concatenate words and must not be substring-searched for English `PAYMENT`, and standalone `PAYMENT` still counts beside `REPAYMENT`. It also requested direct file-tool work and a one-sentence completion. The original task and verifier were unchanged; all runs used the same Q5 profile, CLI route, exact-file write boundary, frozen starter, and 180-second outer limit. Eight baseline and eight clarified runs were interleaved, each in a fresh session, with the starter restored between runs.
+
+| Handoff | Accepted / runs | Total Coder wall time | Mean per run | Accepted results per minute | Model calls | Output tokens |
+|---|---:|---:|---:|---:|---:|---:|
+| Frozen baseline | 2/8 | 319.42 s | 39.93 s | 0.376 | 40 | 12,690 |
+| Boundary-source clarification | 8/8 | 243.49 s | 30.44 s | 1.971 | 35 | 9,175 |
+
+The independent verifier covered French preservation, English positive and negative cases, the `PAYMENT`/`REPAYMENT` coexistence case, evidence flags, and the result contract. All processes exited, no arm compacted, and the checkout target was restored after every run. The clarified prompt produced about **5.2 times as many accepted results per Coder minute on this fixture**. An intermediate two-run prompt that mentioned whole words without distinguishing `normalizedText` from `compactText` passed only 1/2, reinforcing the source-representation explanation. The [sanitized per-run record](gx10-word-boundary-pilot-2026-09-28.json) is checked in; raw local outputs and session IDs are in ignored `runs/sc-word-boundary-pilot-2026-09-28/`. This is a narrow text-recognition task, not evidence that Hermes compression or general multi-step coding improved; cache order and only eight runs per matched arm limit broader speed claims. For similar recognizers, specify which representation preserves the invariant and verify both false positives and coexistence.
+
 ## Larger coding and loop behavior
 
 Two synthetic publication implementations, each with one correction, failed an existing ownership and collision behavior test. A smaller historical amount-recognizer repair started at 4/5 passing cases; its first edit and correction each passed only 1/5. These trials produced **no accepted larger implementation**, so faster completion text is not a usefulness gain.
@@ -35,4 +46,4 @@ With the bounded route, the frozen recognizer took 42.96 seconds and 6 model cal
 
 ## Decision
 
-Keep the existing Q5 model and compression settings. The measured benefit so far is **better control of runaway CLI work and missing write scope**, not faster accepted coding. Next, enforce a hard process deadline, test the newer identical-call halt on a frozen loop-prone task, and run a long coding fixture that actually crosses the compression trigger. Compare pass rate, total wall time, model calls, tool repetition, scope errors, and post-compaction correctness with the same start and independent verifier.
+Keep the existing Q5 model and compression settings. CLI controls improve the handling of runaway work and missing write scope; the task-specific boundary-source wording improved accepted work per minute on the frozen recognizer. It has not established a general coding or Hermes-parameter speedup. Next, enforce a hard process deadline, test the newer identical-call halt on a frozen loop-prone task, and run a long coding fixture that actually crosses the compression trigger. Compare pass rate, total wall time, model calls, tool repetition, scope errors, and post-compaction correctness with the same start and independent verifier.

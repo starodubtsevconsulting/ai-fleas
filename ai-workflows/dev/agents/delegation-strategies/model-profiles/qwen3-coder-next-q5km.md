@@ -117,6 +117,15 @@ If the code path is unknown, use read-only discovery first, then send a focused 
 known. Use [bounded exploration](../bounded-exploration.md) only when the transitive code path truly requires it and
 the stage fits the transport's verified limit.
 
+For text recognizers, state which input representation preserves the invariant being tested. In a frozen English
+`PAYMENT` recognizer fixture, the Coder repeatedly used a whole-word check on `normalizedText` but also a substring
+check on `compactText`, which accepted `REPAYMENT`. Eight baseline assignments passed 2/8 independent verifiers;
+eight interleaved assignments explicitly saying to check whole-word `PAYMENT` in `normalizedText` and not substring
+search `compactText` passed 8/8, with 319.42 versus 243.49 seconds of total Coder time. The treatment also requested
+direct file-tool work and concise completion, so the source-representation sentence is not isolated as the sole cause.
+This is a task-specific handoff result, not a general model-speed setting. Include both false-positive and coexistence
+cases in independent acceptance checks. See the [GX10 runtime benchmark](../../../../notes/benchmarks/local-models/gx10-hermes-qwen-coder-runtime-2026-09-28.md).
+
 For launcher or protocol changes, spell out both sides of the command boundary with example invocations and where
 each input is read (argument or stdin). Require the Coder to inspect existing callers and tests before editing. Ask
 for concise changed-file and blocker evidence; do not rely on a prose claim of completion.
