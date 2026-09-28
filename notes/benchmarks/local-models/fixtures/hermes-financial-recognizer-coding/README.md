@@ -38,7 +38,7 @@ Use an already-realized Hermes profile so the run exercises that profile's actua
 and provider configuration:
 
 ```sh
-./notes/benchmarks/local-models/run-hermes-financial-recognizer-coding.sh \
+bash notes/benchmarks/local-models/run-hermes-financial-recognizer-coding.sh \
   /tmp/qwen-recognizer-run sc-dev-5-coder
 ```
 
