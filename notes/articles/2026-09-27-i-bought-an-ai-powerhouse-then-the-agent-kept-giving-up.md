@@ -22,7 +22,17 @@ I bought an ASUS Ascent GX10 because I wanted serious local AI capacity.
 
 It has 128 GB of unified memory. It can run coding models that do not fit on an ordinary workstation. On paper, this is exactly the kind of machine that should make local AI agents interesting.
 
-The numbers around these models are easy to mix together. An “80B” model has roughly 80 billion learned parameters — numerical weights produced during training. “Q5” or “4-bit” describes how those weights are stored more compactly for inference. “64K context” describes something different again: how much text and tool history the model can work with in one active window. Bigger in one column does not automatically mean better in the others. I wrote a separate primer, [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683), for readers who want those numbers unpacked.
+The numbers around these models are easy to mix together, so I now try to translate them into something closer to a person.
+
+Think of the model itself as the part of the brain that has already been shaped by years of education and experience. An “80B” model has roughly 80 billion learned parameters. Those parameters are not 80 billion stored facts. They are closer to learned wiring: patterns that affect what the model can recognize, connect, and produce.
+
+Then there is **Q5**, or sometimes “4-bit” in other model names. That is not how educated the brain is. It is closer to how precisely that learned wiring is stored when I load the model onto my machine. Lower precision can make the model much smaller in memory, a little like keeping a compressed copy of something rather than the full-resolution original.
+
+And **64K context** is something else again. I think of that as working memory: how much of the current conversation, code, instructions, tool results, and recent work the model can have “in mind” at once.
+
+So a model can be highly educated but have a crowded desk. It can have a huge desk but work slowly. It can speak quickly without being more capable. These numbers describe different parts of the system.
+
+I wrote a separate primer, [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683), because I realized that throwing around numbers like 27B, Q5, and 64K assumes the reader already knows what kind of number each one is.
 
 Then my coding agent kept giving up on assignments.
 
@@ -40,11 +50,15 @@ Maybe the model was only one part of the problem.
 
 My setup is not simply “Qwen running on a GX10.”
 
-Hermes runs on my Mac. It keeps the agent session, decides what context the model sees, exposes tools, and manages the work loop. Hermes talks over an OpenAI-compatible API to a llama.cpp server on the GX10. The model then produces text and tool calls, which have to survive the trip back through the server, parser, Hermes, and whatever transport I use between agents.
+If Qwen is the brain, Hermes is closer to the executive layer around it. It keeps the working session, decides what recent information stays in view, gives the model tools, and keeps asking what to do next. The tools are the hands: read this file, edit that one, run a command, check the result.
 
-A simplified version looks like this:
+The brain itself is not even running on the same machine. Hermes runs on my Mac. It talks over an OpenAI-compatible API to a llama.cpp server on the GX10, where Qwen actually runs.
 
-**assignment → Hermes on Mac → context + tools → API → llama.cpp on GX10 → Qwen → tool call → Hermes → filesystem**
+So the path from “please fix this code” to a changed file is already a chain:
+
+**assignment → Hermes on Mac → working memory + tools → API → llama.cpp on GX10 → Qwen → tool call → Hermes → filesystem**
+
+The speed of Qwen generating tokens is roughly the speed at which the brain can produce its next words. It says very little about whether the executive layer keeps the right information in working memory, whether the hands do what was intended, or whether the communication channel reports the right state.
 
 And when one agent delegates to another, there is another layer around that.
 
@@ -62,7 +76,11 @@ That contradiction was useful.
 
 My Hermes profile advertised a 65,536-token context window for the Qwen coder.
 
-I also had a compression threshold of `0.25`. Reading that casually, I expected Hermes to start compacting the conversation around one quarter of the window.
+Using the brain analogy, that is the size of the working-memory desk. But an agent does not want to wait until every square centimetre of the desk is covered before cleaning it.
+
+Hermes can compress older context: roughly, take piles of old notes, summarize what still matters, and clear space for the next part of the job.
+
+I had a compression threshold of `0.25`. Reading that casually, I expected Hermes to start cleaning the desk around one quarter of the window.
 
 But current Hermes behavior is more nuanced. Its own context-compression documentation says models with context windows below 512K have a **75% minimum ratio threshold**. Hermes also supports an absolute `threshold_tokens` cap, which can force compaction earlier than that ratio would.
 
@@ -125,7 +143,9 @@ But “powerful local AI hardware” and “reliable local AI worker” are not 
 
 The useful worker is the whole chain:
 
-**hardware + inference runtime + model + context policy + tool parser + agent framework + transport + task design + verification**
+**hardware + inference runtime + model + working memory + tool parser + agent framework + communication + task design + verification**
+
+In human terms, that is closer to asking about the whole worker: the brain, what is currently in mind, how quickly thoughts can be expressed, the hands, the instructions, the communication channel, and whether somebody checks the result.
 
 A benchmark can tell me that a model generates 50 tokens per second.
 
