@@ -1,0 +1,33 @@
+schema_version: ai-fleas-model-education.v1
+model_family: DeepSeek-V4-Flash-0731
+profile_status: sparse-evidence
+declared_education:
+  primary: []
+  source_status: upstream-education-review-needed
+observed_capability:
+  strengths:
+    - passed-hermes-file-tool-fixture
+  limits:
+    - high-memory-cost-on-single-gx10
+    - slow-relative-to-qwen3-coder-next-in-measured-fixture
+  evidence:
+    - ../gx10.md
+unknown_or_unverified:
+  - primary-training-specialization
+  - coding-depth
+  - business-domain-expertise
+  - best-agent-role
+communication:
+  direct_vocabulary:
+    - general-instructions
+  translate_first:
+    - specialized-domain-semantics
+    - organization-specific-terms
+  preferred_pattern: probe-before-role-selection
+role_fit:
+  observed_good_fit: []
+  supervised_or_unproven:
+    - coding-worker
+deployment_variants:
+  - id: IQ2_XXS-Q2_K
+    note: compressed deployment representation; not education
