@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { buildGovernorInitialization } from './initialize-governor.mjs';
 
 const humanDir = fileURLToPath(new URL('./fixtures/governor/example-human/', import.meta.url));
+const gitHumanDir = fileURLToPath(new URL('./fixtures/governor/git-human/', import.meta.url));
 const usableProvider = () => ({
   status: 0,
   stdout: 'provider=synology\nreachable=true\naccess=read-write\nwritable=true\n',
@@ -31,4 +32,16 @@ test('rejects identity mismatch and unusable memory before registering a task', 
   assert.throws(() => buildGovernorInitialization(humanDir, 'example-human', 1, {
     checkProvider: () => ({ status: 0, stdout: 'provider=synology\nreachable=true\naccess=read-write\nwritable=false\n' }),
   }), /memory is not usable/);
+});
+
+test('reports a task sandbox denial separately from an invalid memory binding', () => {
+  const denied = Object.assign(new Error('operation not permitted'), { code: 'EPERM' });
+  assert.throws(() => buildGovernorInitialization(gitHumanDir, 'git-human', 1, {
+    checkMemoryWrite: () => { throw denied; },
+  }), /current task environment blocks writing the authoritative Governor memory file: operation not permitted/);
+  const { binding } = buildGovernorInitialization(gitHumanDir, 'git-human', 1);
+  assert.equal(binding.initialization.memoryBinding, 'profile-memory://governor');
+  assert.throws(() => buildGovernorInitialization(humanDir, 'example-human', 1, {
+    checkProvider: () => ({ status: 1, stdout: '', stderr: 'network access denied' }),
+  }), /current task environment blocks checking the declared memory provider: network access denied/);
 });
