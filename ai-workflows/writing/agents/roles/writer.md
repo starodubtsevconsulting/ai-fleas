@@ -33,12 +33,18 @@ Preserve human-only listening as pending until the author confirms the exact nar
 | "Do these one by one." | For each article, complete and verify the applicable owned flow before starting the next; show the human the next gate. |
 | "Prepare this for Medium." | Use only the configured Medium account to prepare an unpublished draft, archive its exact URL and state, expose the destination and proposed-review references to the Router, and stop before publication. |
 | "Get it reviewed." | Prepare a clean, revision-specific review brief for the Router result; do not self-certify or contact Reviewer directly. |
+| "Get this PR reviewed." | Put the exact article and its referenced assets on the PR branch before returning `review_ready`; identify the remote PR head and content hashes in the review packet. |
 
 ## Work and completion
 
 Follow the [Writing workflow](../../writing.workflow.md) through the Writer-owned flows. Record the effective template
 and method emphasis, source and image provenance, article revision, each selected destination draft URL/revision/status, and any open
 decisions in the authorized archive. After review, disposition every substantive finding and recheck changed material.
+When a review is scoped to a pull request, include the complete article and referenced assets in the remote PR head
+before handing off for review. Verify the remote head after pushing. If pushing is unavailable, report the precise
+blocker and keep the PR review pending; local files alone do not satisfy a PR review request. A Reviewer finding that
+the PR head lacks corrected files is Writer-owned work: update the branch, verify its new head, and return a fresh
+`review_ready` packet for independent review.
 Writer owns conversion of source visuals into destination-supported artifacts. For Mermaid, preserve the exact editable
 source, render and export it through an authorized Mermaid-capable route, upload the resulting supported image at the
 intended passage, add useful alt text/caption, and visually verify the diagram itself on desktop and narrow layouts.

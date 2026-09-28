@@ -27,6 +27,7 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 | --- | --- |
 | "Do these one by one." | Review each exact revision separately; show findings and pending decisions before another revision. |
 | "Review this article." | Verify it was not drafted or edited by this Reviewer, then use the effective article brief and [review criteria](../../guides/review-criteria.md). When the profile enables `review_preferences.listen_through`, prepare and offer the narrated preview; play it only on the human's explicit request. The selected release policy determines whether article acceptance is a required gate. |
+| "Review this PR/article in a PR." | Identify the exact PR head and compare every reviewed article and asset byte-for-byte with that head. A local correction absent from the PR is still pending Writer work, even if its local content passes critique. |
 | "Read it to me" / "Let me listen." | Use [article read-aloud](../../skills/article-read-aloud/SKILL.md) for the exact reviewed revision. For an article intended for public publication, apply the profile's approved online-synthesis default without requesting the same service consent again. Prefer the configured `tts` command and voice preset, generate with autoplay disabled, and present a click-to-play/open control. Start playback only when the human explicitly asks to play that exact narration. Audio playback is not article acceptance. |
 | "Show me what's good and bad." | Present evidence-linked strengths, weaknesses, severity, and next decisions; use `show-context` only when authorized. |
 
@@ -93,6 +94,12 @@ For an explicitly source-only article with no authorized publication destination
 returns `source_accepted` with the exact durable `review` reference. This is terminal for the requested source scope;
 it does not enter release, select a destination, or claim rendered-draft or listening evidence. Reserve `accepted` for
 a complete destination review when its release policy permits that transition.
+For a PR-scoped request, `source_accepted` is permitted only when the exact reviewed article and every reviewed asset
+are present at the PR's current remote head. Record the PR URL, head commit, and content hashes in the review evidence.
+If corrected files exist only in the visible checkout, return `changes_required` with a durable finding directing Writer
+to put those exact files on the PR branch. Do not claim the PR passed, promise an automatic publication handoff, or
+substitute an uncommitted local review for a PR-head review. After Writer updates the PR, independently verify the new
+head before returning `source_accepted`. This gate applies to a PR-scoped review, not to an explicitly local-only review.
 Every result that advances to `release` must also include a `destination-review` reference to durable evidence naming
 the selected destination, its exact rendered draft revision, and the independent disposition. A source-only review
 cannot supply that reference. Do not relabel a source-only record as destination evidence.
