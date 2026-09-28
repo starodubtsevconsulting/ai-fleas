@@ -74,6 +74,8 @@ without changing this command, the workflow contract, or the bot lifecycle.
 
 `hermes-delegate.command.sh check [--project ID]` and `hermes-delegate.command.sh run [--project ID] "assignment"` provide a synchronous Coder delegation endpoint. The caller selects the profile catalog root with `AI_PROFILE_ROOT`, then `AI_WORK_PROFILE_ID` and `AI_FLOW_WORKFLOW`; the command resolves the selected profile's `gpt-agents` `commands[].config` reference and reads `execution_delegates.<workflow>.coder` there. It verifies the authorized project, named branch, workflow receipt, live Hermes profile, provider, model, and endpoint before running the bounded assignment. Profile-owned wrappers may supply those selections, but should not duplicate the transport or validation logic. The public example config illustrates a possible transport binding; each operational profile selects its own values.
 
+For CLI `run`, set `HERMES_WRITE_SAFE_ROOT` to the exact authorized write boundary. The launcher begins process-group cleanup after 240 seconds by default, with up to five seconds for graceful exit; `HERMES_CODER_TIMEOUT_SECONDS` can set a positive integer number of seconds for one run. Timeout exits 124 after group cleanup. `check` does not require either variable.
+
 The [delegation architecture](delegation-architecture.md) diagrams the profile binding, CLI and A2A communication, result handling, and interruption boundaries.
 For a profile-selected 32K model used as a proposal-only Coder route, see the [bounded Coder route](bounded-coder.md).
 For a route that executes exact registered commands without a Command Runner bot, see the [Command Runner route](command-runner-route.md).

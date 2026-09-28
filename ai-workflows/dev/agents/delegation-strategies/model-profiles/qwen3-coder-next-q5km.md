@@ -27,8 +27,8 @@ CLI one-shot.
 - With a 20-turn profile cap, a 240-second advisory run budget, and tool-loop hard stops enabled, a one-file,
   no-test recognizer assignment completed in about 38 seconds. A broader CLI assignment still exceeded the transport
   window. Three subsequent one-file corrections completed in roughly one to two minutes each, and independent checks
-  confirmed a working read-only CLI against the real PDF. These settings help bound ordinary turns but have not proven
-  a hard wall-clock limit or repaired A2A cancellation.
+  confirmed a working read-only CLI against the real PDF. At that time these settings bounded ordinary turns without
+  a hard wall-clock limit or repaired A2A cancellation; the later CLI wrapper adds a separate process deadline.
 - A one-file monetary extractor parsed a synthetic example and the real contract, but its single correction for
   duplicate labels removed the real tax amounts. The draft was rejected. For numeric parsers, require an independent
   real-layout check after each edit and stop this model stage after one failed correction; do not publish a parser
@@ -71,7 +71,7 @@ benchmark or evidence that CLI produces better code. The CLI completion prose in
 contract result "supported"; review the result object and diff rather than trusting that prose on either route.
 
 CLI one-shot provides a directly observable process exit and avoids the A2A message deadline for this assignment.
-The current launcher still has no hard wall-clock timeout; the later trial below exercised direct termination once.
+At the time of this comparison the launcher had no hard wall-clock timeout; a later change added the verified wrapper.
 A2A remains available for later session-oriented work, but its current task status must not be treated as a
 process-stop guarantee. Select the transport in the profile binding and load its matching transport strategy; do not
 change the model strategy when switching between these two routes.
@@ -136,6 +136,14 @@ exits at its limit. This is a useful handoff pattern for this task, not a measur
 In a four-run source-port pilot, a six-turn cap passed the same verifier but exhausted its budget on both runs and
 averaged 62.94 seconds; the 20-turn cap finished normally in both runs and averaged 46.85 seconds. This small port
 test does not justify lowering the live cap to six. See the checked-in sanitized turn-cap pilot in the GX10 note.
+
+The CLI launcher now runs Hermes through the process-group timeout helper, with a 240-second default and a positive
+integer per-run override. A real correction turn completed through the wrapper; a fake CLI integration check confirmed
+that timeout exits 124 and stops a signal-resistant descendant. Independent testing of the helper still passes six
+cases. This bounds a runaway process but does not turn a timed-out assignment into accepted code. The first Coder
+stage for this change itself took 163 seconds, reached 20 calls, and wrote an unrequested empty file repeatedly;
+Admin removed that file after the process exited. One correction took 43.82 seconds. Continue to enforce exact write
+scope and independent acceptance, and do not treat a zero process exit as proof of completion.
 
 For launcher or protocol changes, spell out both sides of the command boundary with example invocations and where
 each input is read (argument or stdin). Require the Coder to inspect existing callers and tests before editing. Ask

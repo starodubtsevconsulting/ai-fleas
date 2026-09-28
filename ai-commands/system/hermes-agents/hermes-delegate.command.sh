@@ -195,4 +195,8 @@ if [[ -z "${HERMES_WRITE_SAFE_ROOT:-}" ]]; then
   exit 1
 fi
 
-exec hermes -p "${profile_id}" chat -Q -t file --query "${prompt}" --in "${workspace}"
+# Enforce wall-clock timeout for the CLI run
+timeout_env="${HERMES_CODER_TIMEOUT_SECONDS-240}"
+
+python_script="$(dirname "$0")/src/run-installer-with-timeout.py"
+exec "${python_script}" "${timeout_env}" hermes -p "${profile_id}" chat -Q -t file --query "${prompt}" --in "${workspace}"
