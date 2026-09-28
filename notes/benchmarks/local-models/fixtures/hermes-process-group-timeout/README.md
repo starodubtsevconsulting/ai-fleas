@@ -1,6 +1,6 @@
 # Hermes process-group timeout coding fixture
 
-Status: **ready as a bounded coding-acceptance fixture**; not yet a long-context compression benchmark.
+Status: **ready as a bounded coding-acceptance fixture**. A separate [long-context protocol](../hermes-process-group-long-context/README.md) has exercised compaction on this fixture; neither tested setting produced accepted code in that pilot.
 
 This fixture freezes a real lifecycle bug in `ai-commands/system/hermes-agents/src/run-installer-with-timeout.py`: the helper starts its command in a new process session, but its timeout and forwarded signals target only the direct child. A child that spawns another process can therefore leave that descendant running after the helper reports a timeout.
 
