@@ -44,6 +44,10 @@ With listen-through disabled and `requires_human_article_acceptance: false`, a s
 directly. For a source-only request with no authorized publication destination, a passing review returns terminal
 `source_accepted` with its exact `review` reference. It never routes to Release Coordinator. When publication is
 intended, “source accepted” while destination rendering or visual review remains pending is not `accepted`.
+For a PR-scoped request, the source pass must bind the remote PR head containing the exact reviewed article and
+assets. A local-only correction is `changes_required` for Writer to push and resubmit, not `source_accepted` for the
+PR. The source-only terminal must be reported as completion of that review scope, with no implied Writer or release
+dispatch. A later publication request enters through Admin with its own durable destination mandate.
 Use `changes_required` only for work Writer can perform; a human rejection returns findings to Writer.
 
 For a release-gate diagnosis, the Router assigns Reviewer the exact review record and discrepancy. Reviewer returns
