@@ -1,0 +1,108 @@
+{
+  "fixture": "long-context process-group helper coding and one verifier-backed correction",
+  "model": "Qwen3-Coder-Next Q5_K_M",
+  "route": "configured Hermes CLI Coder delegate",
+  "context_tokens": 65536,
+  "source_files": 11,
+  "source_bytes": 110711,
+  "single_changed_setting": "compression.threshold_tokens=32768; all other profile settings fixed",
+  "run_order": [
+    {
+      "arm": "old-b",
+      "threshold_tokens": null,
+      "initial_wall_seconds": 212.12,
+      "correction_wall_seconds": 33.46,
+      "total_coder_wall_seconds": 245.58,
+      "initial_model_calls": 20,
+      "largest_model_input_tokens": 52748,
+      "committed_compactions": 0,
+      "compression_wall_seconds": 0.0,
+      "initial_verifier_passed": false,
+      "correction_verifier_passed": false,
+      "failed_cases_after_correction": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "profile_restored": true,
+      "initial_process_exit": 0,
+      "correction_process_exit": 0
+    },
+    {
+      "arm": "cap-a",
+      "threshold_tokens": 32768,
+      "initial_wall_seconds": 189.91,
+      "correction_wall_seconds": 41.82,
+      "total_coder_wall_seconds": 231.73,
+      "initial_model_calls": 17,
+      "largest_model_input_tokens": 31186,
+      "committed_compactions": 2,
+      "compression_wall_seconds": 52.01,
+      "initial_verifier_passed": false,
+      "correction_verifier_passed": false,
+      "failed_cases_after_correction": [
+        "sigterm",
+        "sigint"
+      ],
+      "profile_restored": true,
+      "initial_process_exit": 0,
+      "correction_process_exit": 0
+    },
+    {
+      "arm": "cap-b",
+      "threshold_tokens": 32768,
+      "initial_wall_seconds": 194.21,
+      "correction_wall_seconds": 59.19,
+      "total_coder_wall_seconds": 253.4,
+      "initial_model_calls": 16,
+      "largest_model_input_tokens": 31340,
+      "committed_compactions": 2,
+      "compression_wall_seconds": 57.94,
+      "initial_verifier_passed": false,
+      "correction_verifier_passed": false,
+      "failed_cases_after_correction": [
+        "timeout",
+        "sigterm",
+        "sigint"
+      ],
+      "profile_restored": true,
+      "initial_process_exit": 0,
+      "correction_process_exit": 0
+    },
+    {
+      "arm": "old-c",
+      "threshold_tokens": null,
+      "initial_wall_seconds": 185.15,
+      "correction_wall_seconds": 28.32,
+      "total_coder_wall_seconds": 213.47,
+      "initial_model_calls": 20,
+      "largest_model_input_tokens": 50926,
+      "committed_compactions": 0,
+      "compression_wall_seconds": 0.0,
+      "initial_verifier_passed": false,
+      "correction_verifier_passed": false,
+      "failed_cases_after_correction": [
+        "sigterm",
+        "sigint"
+      ],
+      "profile_restored": true,
+      "initial_process_exit": 0,
+      "correction_process_exit": 0
+    }
+  ],
+  "arms": {
+    "old": {
+      "accepted_after_correction": 0,
+      "runs": 2,
+      "total_coder_wall_seconds": 459.05,
+      "committed_compactions": 0
+    },
+    "cap32768": {
+      "accepted_after_correction": 0,
+      "runs": 2,
+      "total_coder_wall_seconds": 485.13,
+      "committed_compactions": 4
+    }
+  },
+  "interpretation": "The cap fired in coding and used auxiliary summaries, but neither arm produced accepted code after one correction. Wall-time ranking cannot establish usefulness or a speed gain."
+}

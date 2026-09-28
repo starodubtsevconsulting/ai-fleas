@@ -1,0 +1,39 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3-Coder-Next
+profile_status: evidence-backed-provisional
+declared_education:
+  primary: ["coding-agent-work", "local-software-development", "tool-using-coding"]
+  source_status: upstream-model-card-reviewed
+  source_url: https://huggingface.co/Qwen/Qwen3-Coder-Next
+  interpretation_limit: Design intent does not establish success on a particular task or local deployment.
+observed_capability:
+  demonstrated: ["focused-file-edits", "repository-tool-use", "source-to-target-ports"]
+  controlled_findings:
+    - task: frozen-financial-recognizer
+      scope: Q5_K_M through the configured Hermes CLI route; nine interleaved fresh runs per stable prompt arm.
+      first_pass_accepted: {task_only: "3/9", raw_domain: "5/9", translated_domain: "8/9"}
+      evidence: ../gx10-domain-context-three-arm-2026-09-28.json
+      interpretation_limit: Translation bundled analogy, examples, and code-boundary mapping; one fixture does not isolate the useful ingredient or prove prior financial knowledge.
+    - task: frozen-process-group-helper
+      scope: Same Q5_K_M and Hermes CLI route; task-only and raw-domain arms interleaved, translated-domain arm run later.
+      first_pass_accepted: {task_only: "0/8", raw_domain: "0/8", translated_domain: "0/8"}
+      evidence:
+        - ../gx10-process-group-domain-context-pilot-2026-09-28.json
+        - ../gx10-process-group-translated-pilot-2026-09-28.json
+      interpretation_limit: The later translated arm cannot be timing-ranked against the earlier arms; these failures do not prove a general reasoning ceiling.
+  limits: ["completion-prose-can-disagree-with-result", "repeated-tool-loops", "process-lifecycle-fixture-not-accepted-first-pass-in-three-tested-arms"]
+  evidence: ["../gx10.md", "../gx10-hermes-qwen-coder-runtime-2026-09-28.md"]
+unknown_or_unverified:
+  - specialized-domain-knowledge-unless-evidenced
+  - organization-specific-semantics
+  - reliable-transfer-to-other-tasks-or-transports
+  - reliable-unfamiliar-process-lifecycle-implementation
+communication:
+  principle: translate-unfamiliar-domain-into-demonstrated-conceptual-language
+  use_domain_context_handoff_when_needed: true
+  verification_rule: Check the produced artifact with independent acceptance; neither completion prose nor process exit proves correctness.
+role_fit:
+  provisional: ["focused-coder", "bounded-repository-worker"]
+deployment_variants:
+  - id: "Q5_K_M"
+    note: "deployment representation; not education"

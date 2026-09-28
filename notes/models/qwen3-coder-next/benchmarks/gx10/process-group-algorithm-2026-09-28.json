@@ -1,0 +1,46 @@
+{
+  "fixture": "hermes-process-group-timeout",
+  "route": "configured Qwen3-Coder-Next Q5_K_M CLI delegate",
+  "staged_runs": [
+    {
+      "arm": "algorithm-1-initial",
+      "wall_seconds": 52.63,
+      "verifier_passed": 3,
+      "verifier_total": 6,
+      "accepted": false
+    },
+    {
+      "arm": "algorithm-1-correction",
+      "wall_seconds": 31.04,
+      "verifier_passed": 6,
+      "verifier_total": 6,
+      "accepted": false,
+      "reason": "early return before direct-child reap on ProcessLookupError"
+    },
+    {
+      "arm": "algorithm-2-initial",
+      "wall_seconds": 28.55,
+      "verifier_passed": 3,
+      "verifier_total": 6,
+      "accepted": false
+    },
+    {
+      "arm": "algorithm-2-correction",
+      "wall_seconds": 24.09,
+      "verifier_passed": 6,
+      "verifier_total": 6,
+      "accepted": true
+    }
+  ],
+  "production_port": {
+    "wall_seconds": 143.92,
+    "model_calls": 20,
+    "successful_patch_calls": 17,
+    "turn_limit_reached": true,
+    "exact_match_to_accepted_staged_source": true,
+    "verifier_passed": 6,
+    "verifier_total": 6,
+    "source_review_accepted": true
+  },
+  "interpretation": "One accepted helper after one correction; production port passed despite a costly repeated-patch loop. No Hermes parameter speedup measured."
+}

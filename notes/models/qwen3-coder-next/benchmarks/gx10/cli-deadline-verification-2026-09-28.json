@@ -1,0 +1,29 @@
+{
+  "route": "configured Qwen3-Coder-Next Q5_K_M CLI delegate",
+  "first_coder_stage": {
+    "wall_seconds": 163.0,
+    "model_calls": 20,
+    "patch_calls": 4,
+    "write_file_calls": 9,
+    "unrequested_empty_file_removed_after_exit": true,
+    "accepted": false
+  },
+  "correction": {
+    "wall_seconds": 43.82,
+    "model_calls": 6,
+    "completed_through_deadline_wrapper": true,
+    "accepted_after_independent_verification": true
+  },
+  "integration": {
+    "fake_command_checks_passed": 9,
+    "fake_command_checks_total": 9,
+    "invalid_override_values_rejected_before_command_start": ["empty", "noninteger", "zero", "negative"],
+    "default_timeout_seconds": 240,
+    "timeout_test_seconds": 1,
+    "timeout_exit": 124,
+    "signal_resistant_descendant_survived": false,
+    "helper_process_group_cases_passed": 6,
+    "helper_process_group_cases_total": 6
+  },
+  "interpretation": "Hard CLI process deadline and cleanup verified; no accepted-work speed improvement measured."
+}

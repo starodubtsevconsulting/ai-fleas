@@ -1,0 +1,86 @@
+{
+  "date": "2026-09-28",
+  "model": "qwen3-coder-next-q5km",
+  "route": "configured Hermes CLI chat -Q",
+  "fixture": "fixtures/hermes-process-group-timeout",
+  "verifier_sha256": "ceabec0b45ec99800be0d7565fe57087d1754bfe12253bad7b2ed597b47ed406",
+  "outer_turn_limit_seconds": 180,
+  "runs_in_order": [
+    {
+      "arm": "base1",
+      "variant": false,
+      "wall_seconds": 177.47,
+      "coder_exit": 0,
+      "timed_out": false,
+      "verifier_exit": 1,
+      "cases": {
+        "normal-exit-and-streams": true,
+        "invalid-timeout": true,
+        "noninteger-timeout": true,
+        "timeout": false,
+        "sigterm": false,
+        "sigint": false
+      },
+      "model_calls": 20,
+      "output_tokens": 6308,
+      "compression_events": 0
+    },
+    {
+      "arm": "signal_group1",
+      "variant": true,
+      "wall_seconds": 181.69,
+      "coder_exit": 130,
+      "timed_out": true,
+      "verifier_exit": 1,
+      "cases": {
+        "normal-exit-and-streams": true,
+        "invalid-timeout": true,
+        "noninteger-timeout": true,
+        "timeout": false,
+        "sigterm": false,
+        "sigint": false
+      },
+      "model_calls": 17,
+      "output_tokens": 8164,
+      "compression_events": 0
+    },
+    {
+      "arm": "signal_group2",
+      "variant": true,
+      "wall_seconds": 44.18,
+      "coder_exit": 0,
+      "timed_out": false,
+      "verifier_exit": 1,
+      "cases": {
+        "normal-exit-and-streams": true,
+        "invalid-timeout": true,
+        "noninteger-timeout": true,
+        "timeout": false,
+        "sigterm": false,
+        "sigint": false
+      },
+      "model_calls": 5,
+      "output_tokens": 1626,
+      "compression_events": 0
+    },
+    {
+      "arm": "base2",
+      "variant": false,
+      "wall_seconds": 94.1,
+      "coder_exit": 0,
+      "timed_out": false,
+      "verifier_exit": 1,
+      "cases": {
+        "normal-exit-and-streams": true,
+        "invalid-timeout": true,
+        "noninteger-timeout": true,
+        "timeout": false,
+        "sigterm": false,
+        "sigint": false
+      },
+      "model_calls": 19,
+      "output_tokens": 3929,
+      "compression_events": 0
+    }
+  ]
+}

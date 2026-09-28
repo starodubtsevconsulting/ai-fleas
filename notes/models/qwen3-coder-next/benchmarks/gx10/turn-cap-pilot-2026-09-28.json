@@ -1,0 +1,53 @@
+{
+  "fixture": "accepted process-group helper source port",
+  "route": "configured Qwen3-Coder-Next Q5_K_M CLI delegate",
+  "treatment": "agent.max_turns only",
+  "run_order": [
+    {
+      "arm": "cap6-a",
+      "max_turns": 6,
+      "wall_seconds": 59.91,
+      "model_calls": 6,
+      "ended_at_turn_cap": true,
+      "patch_calls": 2,
+      "write_file_calls": 1,
+      "accepted": true
+    },
+    {
+      "arm": "cap20-a",
+      "max_turns": 20,
+      "wall_seconds": 34.85,
+      "model_calls": 4,
+      "ended_at_turn_cap": false,
+      "patch_calls": 1,
+      "write_file_calls": 0,
+      "accepted": true
+    },
+    {
+      "arm": "cap20-b",
+      "max_turns": 20,
+      "wall_seconds": 58.85,
+      "model_calls": 7,
+      "ended_at_turn_cap": false,
+      "patch_calls": 0,
+      "write_file_calls": 1,
+      "accepted": true
+    },
+    {
+      "arm": "cap6-b",
+      "max_turns": 6,
+      "wall_seconds": 65.96,
+      "model_calls": 6,
+      "ended_at_turn_cap": true,
+      "patch_calls": 0,
+      "write_file_calls": 1,
+      "accepted": true
+    }
+  ],
+  "mean_accepted_wall_seconds": {
+    "max_turns_6": 62.94,
+    "max_turns_20": 46.85
+  },
+  "profile_restored_after_every_run": true,
+  "limits": "Two runs per arm; a source port with accepted reference is narrower than independent multi-step coding."
+}

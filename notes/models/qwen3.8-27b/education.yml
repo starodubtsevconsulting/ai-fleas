@@ -1,0 +1,21 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3.8-27B
+profile_status: evidence-backed-provisional
+declared_education:
+  primary: ["general-multimodal-assistant"]
+  source_status: reviewed-or-family-evident
+observed_capability:
+  demonstrated: ["benchmarked-local-worker-candidate"]
+  limits: ["no-established-coding-quality-gain-over-qwen3-coder-next"]
+  evidence: ["../gx10-qwen38-minimax-m27.md"]
+unknown_or_unverified:
+  - specialized-domain-knowledge-unless-evidenced
+  - organization-specific-semantics
+communication:
+  principle: translate-unfamiliar-domain-into-demonstrated-conceptual-language
+  use_domain_context_handoff_when_needed: true
+role_fit:
+  provisional: ["generalist-worker-unproven", "coding-worker-unproven"]
+deployment_variants:
+  - id: "benchmarked-local-quant"
+    note: "deployment representation; not education"

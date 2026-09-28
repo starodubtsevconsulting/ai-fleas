@@ -1,0 +1,48 @@
+{
+  "method": "Read-only replay of completed sc-dev-5-coder sessions and accepted production-port export; no Hermes runtime or profile change",
+  "window_utc": "2026-09-28 16:42 through 22:46 UTC",
+  "selection_limit": "One benchmark-heavy day with repeated tasks and corrections, not representative production traffic",
+  "sessions_scanned": 190,
+  "sessions_with_patch": 155,
+  "patch_requests": 410,
+  "confirmed_successful_no_change_patch_results": 100,
+  "three_result_triggers_on_same_target_path": 7,
+  "threshold_replay": {
+    "2_consecutive_confirmed_no_change_tool_calls": {
+      "triggered_sessions": 11,
+      "sessions_with_later_landed_patch": 1,
+      "later_landed_patch_requests": 1,
+      "later_confirmed_no_change_patch_requests": 49,
+      "later_non_patch_tool_calls": 5
+    },
+    "3_consecutive_confirmed_no_change_tool_calls": {
+      "triggered_sessions": 7,
+      "sessions_with_later_landed_patch": 0,
+      "later_landed_patch_requests": 0,
+      "later_confirmed_no_change_patch_requests": 36,
+      "later_non_patch_tool_calls": 0
+    },
+    "4_consecutive_confirmed_no_change_tool_calls": {
+      "triggered_sessions": 4,
+      "sessions_with_later_landed_patch": 0,
+      "later_landed_patch_requests": 0,
+      "later_confirmed_no_change_patch_requests": 30,
+      "later_non_patch_tool_calls": 0
+    }
+  },
+  "accepted_production_port": {
+    "patch_requests": 18,
+    "effective_mutating_patches_before_target_matched": 2,
+    "confirmed_no_change_patches_after_target_matched": 15,
+    "failed_patch_after_target_matched": 1,
+    "accepted_source_matched_after_patch_result_seconds": 27.79,
+    "three_no_change_trigger_after_patch_number": 8,
+    "three_no_change_trigger_after_patch_result_seconds": 63.12,
+    "session_duration_seconds": 141.86,
+    "remaining_observed_session_time_at_three_no_change_trigger_seconds": 78.74,
+    "later_patch_requests_after_three_no_change_trigger": 10,
+    "later_landed_patches": 0,
+    "source_match_verified_by_exact_replay": true
+  },
+  "interpretation": "A three-result hard stop is a candidate for a live isolated comparison: it would have flagged seven sessions and none had a later successful patch or non-patch tool call in these traces. A two-result stop would have flagged one session before a later successful patch. Historical replay cannot predict model behavior after a new guard, prove safe completion, or establish saved wall time."
+}

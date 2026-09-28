@@ -1,0 +1,21 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Gemma-4-31B-IT-Uncensored
+profile_status: source-review-needed
+declared_education:
+  primary: ["instruction-following-generalist"]
+  source_status: review-needed
+observed_capability:
+  demonstrated: ["produced-correct-fixture-content"]
+  limits: ["failed-output-location-acceptance", "slow-on-measured-gx10-fixture"]
+  evidence: ["../gx10.md"]
+unknown_or_unverified:
+  - specialized-domain-knowledge-unless-evidenced
+  - organization-specific-semantics
+communication:
+  principle: translate-unfamiliar-domain-into-demonstrated-conceptual-language
+  use_domain_context_handoff_when_needed: true
+role_fit:
+  provisional: ["chat-quality-experiment", "coding-worker-unproven"]
+deployment_variants:
+  - id: "Q8_0"
+    note: "deployment representation; not education"
