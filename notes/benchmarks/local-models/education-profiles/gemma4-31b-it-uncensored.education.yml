@@ -1,0 +1,34 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Gemma-4-31B-IT-Uncensored
+profile_status: sparse-evidence
+declared_education:
+  primary:
+    - instruction-following-generalist
+  source_status: derivative-model-source-review-needed
+observed_capability:
+  strengths:
+    - produced-correct-fixture-content
+  limits:
+    - failed-controlled-tool-use-acceptance-by-writing-to-wrong-location
+    - slow-in-measured-gx10-fixture
+  evidence:
+    - ../gx10.md
+unknown_or_unverified:
+  - effect-of-uncensored-derivative-on-capability-profile
+  - reliable-agentic-tool-use
+  - coding-specialization
+communication:
+  direct_vocabulary:
+    - general-instructions
+  translate_first:
+    - repository-scope-and-write-boundaries
+    - specialized-domain-semantics
+  preferred_pattern: explicit-scope-plus-independent-verification
+role_fit:
+  observed_good_fit: []
+  supervised_or_unproven:
+    - chat-quality-experiment
+    - coding-worker
+deployment_variants:
+  - id: Q8_0
+    note: quantization/deployment representation; not education
