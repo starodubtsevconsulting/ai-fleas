@@ -52,6 +52,10 @@ schedule from an older destination pass. After scheduling, report the actual des
 both archive and repository release records; UI scheduling alone is not workflow completion.
 The configured scheduling grant covers Medium's final **Schedule to publish** action for the verified draft, target,
 and slot. Do not turn that final button into another approval request when the human already authorized scheduling.
+An exact, verified `release-delegation` receipt for this article, destination, profile-home target, and future
+schedule action is that authorization. After independently verifying the account, queue, date, and time, click
+**Schedule to publish** and read back Medium's scheduled state in the same release turn. Do not ask Admin or the
+author to reconfirm the prepared slot unless the action or target differs from the receipt.
 An `accepted` review reference without revision-bound `human-listen` evidence does not clear an enabled listen-through
 gate. The alternative `admin_delegated` transition requires a verified `release-delegation` receipt under the
 [Admin-delegated release contract](../../guides/admin-delegated-release.md), bound to this revision, Medium draft,

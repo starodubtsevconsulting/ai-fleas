@@ -60,6 +60,9 @@ target.
 No extra per-item scheduling approval is required after the configured review and acceptance gate passes. When every
 gate passes, the final **Schedule to publish** click is included in the standing scheduling authorization. Perform it
 in the current release stage and verify Medium's scheduled state; do not stop at that button to ask the human again.
+An exact Admin-delegated release receipt for this reviewed article, Medium draft, profile-home target, and future
+scheduling action also covers that final click. Verify the concrete slot against the active queue and configured time
+zone, then click and verify in the same turn without a second Admin or author confirmation.
 A proposed slot alone is unfinished.
 An in-scope correction needs renewed independent review. When the policy requires human acceptance, a revision inside
 an existing mandate needs no repeated human wording; a revision outside it needs new human authorization. Never
