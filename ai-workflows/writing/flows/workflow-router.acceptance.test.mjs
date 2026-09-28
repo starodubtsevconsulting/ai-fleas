@@ -45,6 +45,9 @@ assert.deepEqual(portableDefinition.stages.administration.transitions['route-req
   ['revision', 'work-request']);
 assert.equal(portableDefinition.stages.administration.transitions.handled.terminal, true);
 assert.match(visualMap, /administration -->\|route-required: send article request to Writer\| drafting/);
+assert.match(visualMap, /administration -->\|review-required: recheck delegated release\| review/);
+assert.match(visualMap, /review -->\|admin_decision_required: exact delegated verdict\| admin_release_review/);
+assert.match(visualMap, /admin_release_review -->\|approved: Admin-delegated release decision\| release/);
 assert.equal(portableDefinition.stages.review.transitions.source_accepted.to, 'source_complete');
 assert.equal(portableDefinition.stages.review.transitions.source_accepted.terminal, true);
 assert.deepEqual(portableDefinition.stages.review.transitions.source_accepted.requiredReferenceKinds, ['review']);
@@ -96,6 +99,55 @@ const routedRequest = await adminIngress.route({ scope, type: 'route-required', 
 assert.equal(routedRequest.currentStage, 'drafting');
 assert.equal(dispatched.at(-1).requiredExecutionRole, 'writer');
 dispatched.length = 0;
+
+const lateIngress = createWorkflowRuntime(definition,
+  { ...scope, routerRuntimeId: 'writing-late-delegation' }, { stage: 'administration' });
+const lateReview = await lateIngress.route({ scope, type: 'review-required', expectedStage: 'administration', references: [
+  { kind: 'revision', ref: 'article://late-revision' },
+  { kind: 'review-packet', ref: 'review://late-packet' },
+  { kind: 'work-request', ref: 'request://late-exact-delegation' },
+] }, adapter);
+assert.equal(lateReview.currentStage, 'review');
+assert.equal(dispatched.at(-1).requiredExecutionRole, 'reviewer');
+dispatched.length = 0;
+
+const delegatedDispatches = [];
+const delegatedAdapter = {
+  resolveRole: adapter.resolveRole,
+  async dispatch(packet) { delegatedDispatches.push(packet); },
+};
+const delegated = createWorkflowRuntime(definition,
+  { ...scope, routerRuntimeId: 'writing-delegated-decision' });
+await delegated.route({ scope, type: 'review_ready', expectedStage: 'drafting', references: [
+  { kind: 'revision', ref: 'article://delegated-revision' },
+  { kind: 'review-packet', ref: 'review://delegated-packet' },
+  { kind: 'work-request', ref: 'request://exact-delegation' },
+] }, delegatedAdapter);
+const adminDecision = await delegated.route({ scope, type: 'admin_decision_required', expectedStage: 'review', references: [
+  { kind: 'review', ref: 'review://delegated-pass' },
+  { kind: 'destination-review', ref: 'review://delegated-medium-pass' },
+  { kind: 'work-request', ref: 'request://exact-delegation' },
+] }, delegatedAdapter);
+assert.equal(adminDecision.currentStage, 'admin_release_review');
+assert.throws(() => delegated.transition({ scope, type: 'approved', expectedStage: 'admin_release_review', references: [
+  { kind: 'review', ref: 'review://delegated-pass' },
+  { kind: 'destination-review', ref: 'review://delegated-medium-pass' },
+] }), ({ code }) => code === 'BLOCKED_ROUTER_REFERENCE');
+const delegatedRelease = await delegated.route({ scope, type: 'approved', expectedStage: 'admin_release_review', references: [
+  { kind: 'review', ref: 'review://delegated-pass' },
+  { kind: 'destination-review', ref: 'review://delegated-medium-pass' },
+  { kind: 'release-delegation', ref: 'delegation://exact-verdict' },
+] }, delegatedAdapter);
+assert.equal(delegatedRelease.currentStage, 'release');
+await delegated.route({ scope, type: 'released', expectedStage: 'release', references: [
+  { kind: 'release-record', ref: 'medium://delegated-scheduled' },
+] }, delegatedAdapter);
+const delegatedComplete = await delegated.route({ scope, type: 'archived', expectedStage: 'archive_update', references: [
+  { kind: 'archive-record', ref: 'archive://delegated-scheduled' },
+] }, delegatedAdapter);
+assert.equal(delegatedComplete.status, 'completed');
+assert.deepEqual(delegatedDispatches.map(({ requiredExecutionRole }) => requiredExecutionRole),
+  ['reviewer', 'admin', 'release-coordinator', 'writer']);
 
 const sourceDispatches = [];
 const sourceRouter = createWorkflowRuntime(definition, { ...scope, routerRuntimeId: 'writing-source-only' });

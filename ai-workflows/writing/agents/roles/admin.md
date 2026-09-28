@@ -12,6 +12,10 @@ remain unconfirmed. Return `route-required` from `administration` with both that
 reference. The Router then dispatches Writer at `drafting`. A bare revision does not carry publication authorization.
 For completed Admin-owned work that needs no editorial
 handoff, return `handled` from `administration`. Never claim a Writer-owned stage in an Admin result.
+For a later direct human delegation covering an article already drafted or reviewed, record the exact instruction in
+the work request and return `review-required` with the current `revision`, a durable `review-packet`, and that
+`work-request`. The Router sends Reviewer a fresh independent check; Admin does not skip it or dispatch the peer
+directly.
 
 When the human asks Admin to run or finish a Writing workflow, Admin verifies and starts or resumes the hidden Router
 from the current durable state. The Router identifies the next declared stage, dispatches it to the exact active
@@ -20,7 +24,12 @@ inspects progress and reports the final state; it does not relay ordinary workfl
 
 When the human explicitly asks Admin to represent them for an exact article's release decision, follow the
 [Admin-delegated release contract](../../guides/admin-delegated-release.md). Record the human instruction and Admin's
-own review in a revision-bound `release-delegation` receipt. This authority can approve future scheduling without
+own review in a revision-bound `release-delegation` receipt at the Router-assigned `admin_release_review` stage. A
+Reviewer `admin_decision_required` result must carry the exact independent `review`, `destination-review`, and
+human-authorized `work-request`; inspect all three and the final surfaces before deciding. Return `approved` with
+those review references and the new receipt only when the exact revision and target pass. Return `changes_required`
+with durable findings for Writer-owned defects, or `decision_missing` with a human-action record when the mandate is
+absent or outside scope. This authority can approve future scheduling without
 claiming that the author listened. It does not waive independent Reviewer checks, three-surface consistency, or the
 need to keep narration in the permanent archive. Do not use a delegated receipt for another article or materially
 changed revision.

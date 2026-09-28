@@ -80,9 +80,14 @@ open editorial decisions. Keep both versions unpublished.
    list tied to the resulting article and draft revisions. A materially changed revision requires a new review request.
 6. When Writer-owned work is complete, apply the selected destination's release policy and listen-through preference.
    A complete successful independent review does not advance to Release Coordinator while enabled listen-through is
-   pending, even if Medium sets `requires_human_article_acceptance: false`. Reviewer presents the verified narration,
-   records the exact review and audio in a `human-action` artifact, and returns `human_action_required`; the Router
-   records `waiting-human`. The author's request to play keeps the gate pending. After the author confirms listening
+   pending, even if Medium sets `requires_human_article_acceptance: false`. Reviewer prepares and archives the exact
+   narration in every case. When the carried `work-request` expressly delegates this article's release decision to
+   Admin, Reviewer returns `admin_decision_required` with `review`, `destination-review`, and `work-request`; the Router
+   assigns Admin to inspect the exact revision and issue a durable verdict. Admin `approved` advances to release only
+   with its `release-delegation` receipt; `changes_required` returns to Writer, and `decision_missing` waits for the
+   human. Without that exact grant, Reviewer presents the verified narration, records the exact review and audio in a
+   `human-action` artifact, and returns `human_action_required`; the Router records `waiting-human`. The author's
+   request to play keeps the gate pending. After the author confirms listening
    to that revision, Reviewer returns `human_listened` with the review and listening evidence when article acceptance
    is not required. If acceptance is required, wait for that separate explicit decision and return `human_accepted`.
    For a clearly labeled test article with explicit human authorization for simulated agreement and live scheduling,

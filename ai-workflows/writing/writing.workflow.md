@@ -98,8 +98,11 @@ them.
    returns `human_action_required` and the Router waits for the author to listen and confirm the exact narration.
    That listening requirement remains even when Medium sets `requires_human_article_acceptance: false`, unless the
    author explicitly delegates this exact article's release decision to Admin under the
-   [Admin-delegated release contract](guides/admin-delegated-release.md). In that case the Reviewer verifies the
-   revision-bound Admin verdict and returns `admin_delegated` without claiming the author listened. Otherwise,
+   [Admin-delegated release contract](guides/admin-delegated-release.md). When the durable work request carries that
+   grant, Reviewer returns `admin_decision_required` after its independent checks and narration preparation; the
+   Router assigns Admin the revision-bound release decision, then sends an `approved` result to Release Coordinator.
+   For an existing run already at `human_review`, Reviewer may verify an exact Admin verdict and return
+   `admin_delegated` without claiming the author listened. Otherwise,
    `human_listened` advances to release without treating listening as editorial acceptance. When acceptance is also
    required, Reviewer waits for that separate decision. With listen-through disabled and no acceptance requirement,
    a complete successful review returns `accepted` directly.

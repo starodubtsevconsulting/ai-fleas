@@ -22,6 +22,11 @@
           "visualLabel": "route-required: send article request to Writer",
           "requiredReferenceKinds": ["revision", "work-request"]
         },
+        "review-required": {
+          "to": "review",
+          "visualLabel": "review-required: recheck delegated release",
+          "requiredReferenceKinds": ["revision", "review-packet", "work-request"]
+        },
         "handled": {
           "to": "administration_complete",
           "visualLabel": "handled: administration complete",
@@ -68,6 +73,11 @@
           "to": "correction",
           "requiredReferenceKinds": ["findings"]
         },
+        "admin_decision_required": {
+          "to": "admin_release_review",
+          "visualLabel": "admin_decision_required: exact delegated verdict",
+          "requiredReferenceKinds": ["review", "destination-review", "work-request"]
+        },
         "human_action_required": {
           "to": "human_review",
           "visualLabel": "human_action_required: listen or acceptance pending",
@@ -80,6 +90,27 @@
       "role": "reviewer",
       "capability": "independent_critique",
       "transitions": {}
+    },
+    "admin_release_review": {
+      "role": "admin",
+      "capability": "workflow_orchestration",
+      "transitions": {
+        "approved": {
+          "to": "release",
+          "visualLabel": "approved: Admin-delegated release decision",
+          "requiredReferenceKinds": ["review", "destination-review", "release-delegation"]
+        },
+        "changes_required": {
+          "to": "correction",
+          "requiredReferenceKinds": ["findings"]
+        },
+        "decision_missing": {
+          "to": "human_review",
+          "visualLabel": "decision_missing: wait for author",
+          "waitForHuman": true,
+          "requiredReferenceKinds": ["human-action"]
+        }
+      }
     },
     "human_review": {
       "role": "reviewer",

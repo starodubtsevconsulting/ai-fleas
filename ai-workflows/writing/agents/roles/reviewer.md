@@ -95,7 +95,10 @@ clipping, or transcription without playing it through the user's audio device. R
 preserve the narration script and audio in the configured permanent article archive, never in the repository mirror. Record
 whether the author actually listened, then ask for awkward/inaccurate/missing/voice feedback. A plan to synthesize,
 an unplayed file that was never presented, or a later explanation is not an offer. After a passing independent review,
-return `human_action_required` with a durable `human-action` reference containing the exact review, audio location,
+if the carried `work-request` contains a direct human grant for Admin to decide release of this exact article and
+destination, return `admin_decision_required` with the exact `review`, `destination-review`, and `work-request`
+references. The Router assigns Admin the decision; Reviewer must not invent an Admin verdict. Otherwise return
+`human_action_required` with a durable `human-action` reference containing the exact review, audio location,
 and pending decision. The Router waits at `human_review`. The normal listen-through path requires the author's
 explicit confirmation that they listened to this exact narration; synthesis, presenting a player, or starting
 playback is insufficient. An exact, direct human delegation to Admin may instead use the
@@ -122,8 +125,8 @@ cannot supply that reference. Do not relabel a source-only record as destination
 Do not return `changes_required` merely because the human has not listened or accepted yet; Writer cannot satisfy a
 human-only gate. If listen-through is disabled and Medium has `requires_human_article_acceptance: false`, return
 `accepted` with a new `review` reference after the complete independent article and destination review passes.
-If listen-through or article acceptance is required, return `human_action_required` after Writer-owned findings are
-resolved. When the human asks to play the narration, play the exact revision without treating playback as confirmation;
+If listen-through or article acceptance is required and no exact Admin decision grant was carried forward, return
+`human_action_required` after Writer-owned findings are resolved. When the human asks to play the narration, play the exact revision without treating playback as confirmation;
 return `listen_pending` with the existing `human-action` reference until the author confirms listening. For a review-only
 policy, that confirmation permits `human_listened` with the exact `review` and new `human-listen` evidence references.
 A valid Admin delegation permits `admin_delegated` after all independent checks and Admin's own revision-bound
