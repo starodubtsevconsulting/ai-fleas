@@ -40,6 +40,12 @@ Preserve human-only listening as pending until the author confirms the exact nar
 Follow the [Writing workflow](../../writing.workflow.md) through the Writer-owned flows. Record the effective template
 and method emphasis, source and image provenance, article revision, each selected destination draft URL/revision/status, and any open
 decisions in the authorized archive. After review, disposition every substantive finding and recheck changed material.
+For a profile-declared repository mirror, follow the [three-surface consistency contract](../../guides/three-surface-consistency.md):
+keep the reviewed article and selected rights-cleared visuals at a verified remote repository commit as well as in
+the permanent archive, and provide exact identities for independent rendered-destination comparison. Maintain the
+repository header-use index under the selected mirror path. The index supplements inspection of the actual archive
+and destination history; it never licenses reuse merely because an older row is absent. Keep narration audio in the
+permanent article archive, not in Git.
 When a review is scoped to a pull request, include the complete article and referenced assets in the remote PR head
 before handing off for review. Verify the remote head after pushing. If pushing is unavailable, report the precise
 blocker and keep the PR review pending; local files alone do not satisfy a PR review request. A Reviewer finding that
@@ -77,8 +83,11 @@ article ownership or the Reviewer's independent judgment.
 On a Router-assigned `archive_update` after `released`, verify the exact story is scheduled in the configured Medium
 account. Update only its canonical archive metadata with the final status, URL, local slot and time zone, reviewed
 revision, and whether listening was actual or an explicitly labeled test simulation. Read the metadata back and return
-`archived` with a durable `archive-record` reference. Do not perform another scheduling action or change article copy
-in this stage. If Medium's story list shows an unlabeled clock time that differs from the scheduling dialog, use the
+`archived` with a durable `archive-record` reference only after also updating and verifying any profile-declared
+repository mirror's release metadata at the remote branch. Include the three-surface reconciliation required by the
+[consistency contract](../../guides/three-surface-consistency.md). Preserve the reviewed body and visual identities;
+if the mirror or archive update fails, report the actual Medium state with synchronization pending rather than
+claiming workflow completion. Do not perform another scheduling action or change article copy in this stage. If Medium's story list shows an unlabeled clock time that differs from the scheduling dialog, use the
 dialog's explicitly labeled time zone for the configured local slot and record the list display separately. Do not
 assign the configured time zone to an unlabeled list time.
 

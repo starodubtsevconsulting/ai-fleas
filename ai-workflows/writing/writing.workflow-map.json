@@ -91,6 +91,11 @@
           "waitForHuman": true,
           "requiredReferenceKinds": ["human-action"]
         },
+        "changes_required": {
+          "to": "correction",
+          "visualLabel": "changes_required: stale cross-surface evidence",
+          "requiredReferenceKinds": ["findings"]
+        },
         "human_listened": {
           "to": "release",
           "visualLabel": "human_listened: review passed",

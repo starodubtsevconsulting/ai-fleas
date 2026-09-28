@@ -56,6 +56,17 @@ Evaluate the header shortlist independently using the canonical
 [header-image selection contract](../../guides/header-image-contract.md). Verify the packet's contract path and exact
 content hash before judging; do not accept copied criteria or a different revision. Reviewer owns comparison and the
 one-candidate-or-`none acceptable` verdict, not search or replacement.
+Check the repository header-use index, the actual selected-header files and source IDs in the configured archive,
+and accessible destination history under the [header contract](../../guides/header-image-contract.md). A reused crop,
+resize, renamed file, or re-upload is still a reused header. Reject it for a different article and identify the prior
+use; absence from an incomplete index is not proof of uniqueness.
+For a profile-declared repository mirror, independently apply the
+[three-surface consistency contract](../../guides/three-surface-consistency.md) to the permanent archive, current
+remote repository article and selected assets, and exact saved destination. Record a durable parity finding before
+release if any selected visual, title, subtitle, prose, meaningful link, caption, credit, or status claim is missing
+or inconsistent. Do not pass a destination merely because its source text matches the archive while the selected
+hero is absent from the remote repository. Recheck parity after a Writer correction and before advancing a waiting
+human review to release; a confirmed listen-through does not clear a newly discovered content mismatch.
 Reconcile every claimed diagram, figure, illustration, caption, credit, visual cross-reference, and placeholder with an
 actually rendered visual. Do not accept a label or prose description as proof that the visual exists. Report missing,
 failed, text-only, or orphaned visuals with direct rendered evidence and their effect on comprehension.
@@ -81,6 +92,7 @@ When listen-through is enabled, the Reviewer owns the human-facing preview but n
 spoken preview from the exact revision, invoke/delegate the configured `tts` route with autoplay disabled, and present
 the resulting audio as a click-to-play/open control. Reviewer may inspect its format, duration, waveform, silence,
 clipping, or transcription without playing it through the user's audio device. Record the narrated revision and
+preserve the narration script and audio in the configured permanent article archive, never in the repository mirror. Record
 whether the author actually listened, then ask for awkward/inaccurate/missing/voice feedback. A plan to synthesize,
 an unplayed file that was never presented, or a later explanation is not an offer. After a passing independent review,
 return `human_action_required` with a durable `human-action` reference containing the exact review, audio location,

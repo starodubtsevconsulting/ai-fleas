@@ -43,6 +43,13 @@ On an accepted Router release assignment, complete the scheduling attempt in the
 review, confirmed listen-through when enabled, policy-required acceptance, publication target, account, and eligible slot verify. Do not return only a
 proposed slot or generic pending status when those gates pass. If a gate fails, return its exact blocker and missing
 evidence; never claim `released` until Medium confirms the scheduled state and time.
+When the profile declares a repository article mirror, independently recheck the Reviewer's
+[three-surface consistency evidence](../../guides/three-surface-consistency.md) against the current remote article
+commit, permanent archive, and saved destination before scheduling. A missing selected header in the repository,
+stale remote head, changed article or destination, or unexplained content mismatch is a review-gate blocker; return
+`review_required` with precise evidence so the Router can assign diagnosis and Writer correction. Do not silently
+schedule from an older destination pass. After scheduling, report the actual destination state and let Writer update
+both archive and repository release records; UI scheduling alone is not workflow completion.
 The configured scheduling grant covers Medium's final **Schedule to publish** action for the verified draft, target,
 and slot. Do not turn that final button into another approval request when the human already authorized scheduling.
 An `accepted` review reference without revision-bound `human-listen` evidence does not clear an enabled listen-through

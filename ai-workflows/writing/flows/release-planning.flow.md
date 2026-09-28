@@ -24,6 +24,10 @@ a release-ready recommendation.
    make the human relay the question. The Router assigns diagnosis or revision work to the proper owner and may send a verified
    continuation packet back. If acceptance or review still is not proven, record the missing gate and do not mark the
    article release-ready. Proof: review record and exact revision identifiers, Router continuation when used, or status.
+   For a profile-declared article repository mirror, verify the current remote commit and selected assets still match
+   the Reviewer's archive/repository/destination consistency evidence. A missing or stale mirror is a release blocker
+   even when narration and destination visual review passed; return `review_required` with the discrepancy so the
+   Router can assign diagnosis and Writer correction. Do not schedule the mismatched version.
 2. Resolve the exact publication target separately from the provider account and schedule: for Medium, either the
    author's profile/home or one named Publication that the signed-in account is verified and authorized to use. Use an
    explicit article selection or a human-authorized `publication_target: profile-home` in the selected workflow policy.

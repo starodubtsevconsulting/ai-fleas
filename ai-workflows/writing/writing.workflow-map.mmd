@@ -18,6 +18,7 @@ flowchart LR
     review -->|changes_required| correction
     review -->|human_action_required: listen or acceptance pending| human_review
     human_review -->|listen_pending: wait for confirmation| human_review
+    human_review -->|changes_required: stale cross-surface evidence| correction
     human_review -->|human_listened: review passed| release
     human_review -->|test_listen_simulated: test release only| release
     human_review -->|human_accepted| release

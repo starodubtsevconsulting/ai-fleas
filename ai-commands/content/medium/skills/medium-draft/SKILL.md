@@ -75,5 +75,11 @@ to an already published article.
    Reviewer independently repeats those read-only checks for the exact draft revision and returns a substantive
    finding with visible opening, image-location, or typography evidence if a defect remains. Return the draft URL,
    selected topics, and unresolved issues; update archive metadata and verify the read-back.
+   When the selected profile declares an article repository mirror, compare the saved Medium representation with the
+   current remote repository note, its selected header and inline assets, and the permanent archive under the
+   [three-surface consistency contract](../../../../../ai-workflows/writing/guides/three-surface-consistency.md).
+   Reviewer repeats this independently. A missing selected header in the repository, stale PR head, or unmatched
+   visible content remains a release blocker even if Medium itself looks correct. The header-use index helps locate
+   prior headers; inspect the actual archive and destination images for crops and re-uploads.
 7. Stop at the unpublished draft. Leave Publish and Submit to the human. Release Coordinator alone may schedule later
    through the separately authorized Medium schedule skill; Writer must not press Schedule even if the editor offers it.

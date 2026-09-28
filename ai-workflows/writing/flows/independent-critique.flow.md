@@ -59,6 +59,12 @@ open editorial decisions. Keep both versions unpublished.
    Build an independent source-diagram inventory and reconcile every stable ID and count with the rendered destination.
    Scan the full draft for residual arrow chains, `Diagram—` prose, Mermaid fences/syntax, caption-only blocks, and
    placeholders. One successful diagram replacement does not clear other inventory items or residual placeholders.
+   When the selected profile declares a repository article mirror, independently reconcile the permanent archive,
+   current remote repository article and selected visual assets, and exact saved destination under the
+   [three-surface consistency contract](../guides/three-surface-consistency.md). Check the selected hero against the
+   repository header-use index and actual earlier archive/destination images; an incomplete index is not a uniqueness
+   pass. Missing or stale mirror content is a Writer-owned finding that blocks release readiness. The narration audio
+   stays in the permanent article archive rather than Git.
 4. When `show-context` is enabled by the selected profile and writing workflow, the Reviewer uses it to present a
    bounded, human-readable review report: what works, what needs work, severity, supporting passages, and the next
    decision. The critique remains the source of judgment; `show-context` only renders it and must not imply approval.

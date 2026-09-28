@@ -19,6 +19,25 @@ do not replace it.
   report is not delivery.
 - Reviewer describes and compares each candidate, then returns exactly one recommendation or `none acceptable`.
 
+## Prior-use check
+
+Before recommending any candidate, Writer inventories earlier **selected** article headers in the configured article
+archive, the declared repository mirror and its header-use index, and accessible destination stories. The repository
+index is a durable lookup aid, not proof that an unlisted archive image was never used. Record each selected header's
+article identity, repository-relative asset path, archive-relative asset path, source/photo ID when available, exact
+SHA-256, destination story identity, and a short visual description. Writer updates the index when a selection is
+actually used; rejected candidates are not recorded as used headers. When a public article has a repository mirror,
+copy the selected rights-cleared header and its credit/provenance there so future Reviewers can inspect the image.
+
+Reviewer independently checks every candidate against the index **and the underlying prior images**. Compare source
+photo IDs, exact hashes, and visible content: renamed files, re-uploads, crops, color edits, and resized derivatives
+can still be the same header. A previously used header is `reject` for a different article even when its new caption
+or crop fits. If the index is incomplete, inspect the archive and destination history; do not treat absence from the
+index as a uniqueness pass. Record the comparison scope and matched prior article in a durable finding. If all
+candidates repeat earlier headers, return `none acceptable` and require a new bounded shortlist. Verify the selected
+header remains represented consistently across the archive, repository mirror, and saved destination under
+[article consistency](three-surface-consistency.md).
+
 ## Shared acceptance criteria
 
 For every candidate, Writer must establish and Reviewer must independently verify:
