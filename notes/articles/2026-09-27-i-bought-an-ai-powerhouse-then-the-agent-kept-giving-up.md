@@ -270,7 +270,27 @@ Not the whole domain. And not domain jargon for its own sake.
 
 **Translate the domain. Don’t dump the domain.**
 
-Now I am trying the same idea on a different kind of coding problem — process cleanup rather than document recognition. If it transfers, it becomes much more interesting than a recognizer-specific trick.
+Then I tried the same idea on a different kind of coding problem — process cleanup rather than document recognition.
+
+This time it did **not** transfer.
+
+The task-only runs had produced **0 of 8** accepted first attempts. Raw domain context also produced **0 of 8**. So I translated the problem more aggressively into a familiar mental model: think of the direct child process as the team leader and the process group as the whole team. The leader going home does not mean everybody else has left the building.
+
+The explanation was clearer. The implementation was not.
+
+**Translated context: 0 of 8 accepted first attempts.**
+
+All eight workers still made essentially the same mistake around cleaning up the whole process group. After a fixed correction, only one of the eight was fully accepted after both automated verification and source review.
+
+That failure matters as much as the 8-of-9 result.
+
+Domain Context Handoff is not a magic prompt pattern. Better teaching can help a model use capability it already has. It cannot guarantee that the model has enough underlying reasoning or implementation ability for the problem in front of it.
+
+That brings me back to the old motherboard jumper.
+
+A jumper can unlock capacity that is already there.
+
+It cannot turn the motherboard into a different computer.
 
 I also tried one of the obvious mechanical fixes: fewer agent turns. Six sounded safer than twenty. In the small matched test, the shorter limit was actually slower, so I kept the existing turn budget.
 
@@ -295,7 +315,7 @@ But the Mac/Hermes experiments already produced several concrete findings withou
 - the 32K compression cap was not justified;
 - CLI gives me better lifecycle control, but not proven better intelligence;
 - lowering the turn cap did not help;
-- translated domain context produced the strongest first-pass result on one controlled coding fixture;
+- translated domain context produced the strongest first-pass result on one fixture, but failed to improve first-pass acceptance on a harder process-lifecycle fixture;
 - repeated tool calls remain a measurable source of waste.
 
 If I had changed the GX10 server at the same time, all of those lessons would have been blurred together.
