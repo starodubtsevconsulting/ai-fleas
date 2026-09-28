@@ -86,7 +86,7 @@ The public repository is therefore a deliberately selected **slice of a larger w
 
 The main repository contains **AI Commands** and **AI Workflows** directly. **AI Profile** remains a separate example repository because profiles are configuration rather than part of the reusable command/workflow implementation.
 
-This repository also contains shared reference material that does not belong to one implementation project, including **[local model and hardware benchmarks](notes/benchmarks/local-models/README.md)**.
+This repository also contains shared reference material that does not belong to one implementation project, including **[local model and hardware benchmarks](notes/benchmarks/local-models/README.md)**. The proposed first-class **[Models](models/README.md)** module describes model education, communication and evidence in a reusable form.
 
 ## AI Workflow Suite vocabulary
 
@@ -101,10 +101,13 @@ These are the main building blocks used across the public collection.
 | **Agent** | A runtime participant that realizes a role with concrete configuration and identity. | [AI Workflows](ai-workflows/) |
 | **Profile** | Personal or organization-specific configuration that activates workflows and supplies runtime policy. | [AI Profile](https://github.com/starodubtsevconsulting/ai-profile) |
 | **AI Provider** | An AI/inference service through which an agent accesses a model, such as a remote provider or locally hosted endpoint. | [Workflow agent contract](ai-workflows/dev/agents.yml) |
+| **Model** | The learned intelligence available to an agent, independent of the role it performs or the deployment that runs it. | [Models](models/README.md) |
+| **Education Profile** | A structured description of the model's conceptual world, communication language, demonstrated capability, limits and unknowns. | [Model education](models/README.md#education-profile) |
+| **Deployment** | A concrete model representation plus runtime, context/configuration and hardware. | [Models](models/README.md#model-versus-deployment) |
 
 A useful mental model is:
 
-`Profile -> Workflow -> Agents/Roles -> Flow -> Commands -> AI Providers -> Result`
+`Profile -> Workflow -> Role -> Agent -> Model -> Deployment -> Commands/Tools -> Result`
 
 ## AI vocabulary
 
@@ -121,6 +124,15 @@ A useful mental model is:
 | **Memory** | Information preserved so it can be retrieved beyond immediate context. |
 | **MCP** | Model Context Protocol: a common interface for exposing tools/resources to AI applications. |
 | **Model** | The trained neural network doing language/reasoning work. |
+| **Education** | The conceptual knowledge/language a model was trained toward and has demonstrated in work. |
+| **Declared education** | What upstream documentation says the model was designed or trained for. |
+| **Observed education / capability** | What controlled work and independent verification show the model can actually do. |
+| **Education Profile** | Human- and agent-readable model knowledge used by a delegator to decide what can be said directly and what needs translation. |
+| **Education Profile Extraction** | Iterative process that refines a draft model résumé using controlled work, evidence and contradictions. |
+| **Conceptual language** | Vocabulary and abstractions the model can operationalize without additional teaching. |
+| **Translation boundary** | Where unfamiliar domain concepts should be translated into the model's conceptual language before delegation. |
+| **Domain Context Handoff** | A handoff technique that teaches the smallest relevant unfamiliar domain model before assigning the task. |
+| **Deployment** | A particular model representation, runtime, context/configuration and hardware combination. |
 | **Inference** | Running a trained model to process input and generate an answer/action. |
 | **Quantization** | Storing model parameters with fewer bits so the model needs less memory. |
 
