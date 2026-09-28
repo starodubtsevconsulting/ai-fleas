@@ -1,0 +1,33 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3.8-27B
+profile_status: sparse-evidence
+declared_education:
+  primary:
+    - general-multimodal-assistant
+  source_status: upstream-model-card-reviewed
+observed_capability:
+  strengths:
+    - benchmarked-as-local-worker-candidate
+  limits:
+    - did-not-establish-coding-quality-improvement-over-qwen3-coder-next
+  evidence:
+    - ../gx10-qwen38-minimax-m27.md
+unknown_or_unverified:
+  - coding-specialization
+  - best-agent-role
+  - specialized-domain-knowledge
+communication:
+  direct_vocabulary:
+    - general-instructions
+    - common-technical-concepts
+  translate_first:
+    - specialized-domain-semantics
+  preferred_pattern: probe-before-role-selection
+role_fit:
+  observed_good_fit: []
+  supervised_or_unproven:
+    - coding-worker
+    - generalist-worker
+deployment_variants:
+  - id: benchmarked-local-quant
+    note: see benchmark for exact representation; quantization is not education
