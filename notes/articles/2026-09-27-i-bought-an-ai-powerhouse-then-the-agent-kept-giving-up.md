@@ -172,6 +172,62 @@ Same starting file. Same instructions. Same model. Same verifier. Same machine. 
 
 The verifier was intentionally stricter than “the agent said it was done.” It checked positive cases, negative cases, old French behavior, evidence flags, unexpected files, and whether the result really matched what the agent claimed.
 
+### What the little test bench actually looks like
+
+I did not build a grand benchmarking platform first. It emerged from the experiment.
+
+The checked-in version is basically four things:
+
+```text
+notes/benchmarks/local-models/
+├── fixtures/hermes-financial-recognizer-coding/
+│   ├── TASK.md
+│   ├── starter/
+│   │   └── ...the frozen starting code...
+│   └── verify.mjs
+└── run-hermes-financial-recognizer-coding.sh
+```
+
+The **starter** makes every run begin from the same place.
+
+`TASK.md` is the assignment the worker receives.
+
+The runner starts the agent and measures the run.
+
+And `verify.mjs` is deliberately outside the agent's opinion of its own work. The worker can say “done”; the verifier can still say “no.”
+
+```mermaid
+flowchart LR
+    S["Frozen starter"] --> T["Same TASK.md"]
+    T --> A["Agent under test"]
+    X["Change one variable"] --> A
+    A --> V["Independent verifier"]
+    V --> R["Record: pass/fail, time, calls, scope"]
+    R --> N["Reset and run again"]
+```
+
+That last part matters more than it looks. A normal AI demo often ends when the answer looks plausible. Here, the answer is only one piece of evidence.
+
+For example, one of the verifier's negative cases is essentially this:
+
+```js
+const result = recognizer.recognize({
+  normalizedText: 'SNOW REMOVAL CONTRACT\\nREPAYMENT DUE'
+});
+
+assert.deepEqual(result, { recognizedFamily: false });
+```
+
+That tiny test caught a bug that looked reasonable in the generated code: searching for the substring `payment` also finds it inside `repayment`.
+
+So the reusable idea is not specifically about snow contracts, Qwen, or even Hermes.
+
+A fixture can be almost any small piece of real work if it has:
+
+**a frozen start + a fixed assignment + an independent definition of success + recorded measurements.**
+
+That is enough to turn “this setting feels better” into something we can actually compare.
+
 That gave me my first surprise.
 
 The baseline assignment passed only **2 of 8** runs.
