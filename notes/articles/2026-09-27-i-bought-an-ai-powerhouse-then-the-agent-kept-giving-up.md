@@ -104,16 +104,35 @@ For a 65,536-token model window, 75% is roughly 49,000 tokens.
 
 That is very different from the 16,000-ish number I thought I had configured.
 
-So I changed the shape of the configuration rather than shrinking the model itself:
+That gave me a very plausible hypothesis.
 
-- keep the model context at **65,536 tokens**;
-- add an absolute Hermes compaction trigger at **32,768 tokens**;
-- target a smaller retained context after compaction;
-- preserve more of the most recent conversation.
+Keep the model at **65,536 tokens**, but ask Hermes to start cleaning the desk around **32,768**. In other words: do not make the brain's desk smaller; just tidy it earlier.
 
-This distinction matters. I am not serving Qwen with a 32K context. Hermes still knows the model has a 65K window. I am simply asking the agent framework to clean up its working history earlier.
+I even added support for that absolute cap in [PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219).
 
-The public AI Fleas runtime did not support that profile setting yet, so I added it in [PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219).
+Then we tested it.
+
+And this is where the story became more useful.
+
+The first coding runs were too small to tell me anything about compression. The largest model input was only about **11,900 tokens**. Neither the old configuration nor the proposed 32K cap compressed anything.
+
+That sounds obvious in retrospect, but it is exactly why I wanted a repeatable test. If the trigger never fires, any difference in speed or quality cannot honestly be credited to the trigger.
+
+So I forced the question with a longer, read-only five-turn code-review probe.
+
+Under the old settings, the probe finished in about **90 seconds** without compacting.
+
+With the proposed **32,768-token** cap, Hermes finally crossed the threshold. It spent about **53 seconds** summarizing the conversation — and after that summary the context was still around 47,700 tokens. Hermes immediately wanted to summarize again. The run hit my 120-second outer limit without producing the final answer.
+
+I tried protecting fewer recent messages. Same basic behavior.
+
+I tried a later cap around **49K**. That version finished after one long summary, but the whole probe took about **152 seconds** and the answer missed the specific review question.
+
+That was enough for me to reject my own 32K idea for now.
+
+Not because “compression is bad.” The experiment does not prove that. It proves something narrower and more useful: **an intuitively reasonable tuning knob can make the system worse if you have not measured what actually happens when it fires.**
+
+So I kept the 65K model context and restored the existing Hermes compression behavior while I looked for a stronger lever.
 
 ## Then there was the communication layer
 
@@ -127,29 +146,113 @@ In one of my real coding experiments, the A2A task reached its timeout and was m
 
 That is much worse than a slow answer. It means “failed” did not necessarily mean “stopped.”
 
-A later matched experiment used Hermes CLI one-shot instead. It was not magically faster, but the process lifecycle was much easier to reason about. I could see whether the process was still alive, send a termination signal, and verify that it had exited.
+A later matched experiment used Hermes CLI one-shot instead. It was not magically faster, and I still did not see a convincing coding-quality advantage over A2A.
 
-So, for now, I changed my normal coding delegation route from **A2A to CLI one-shot**.
+But the process lifecycle was much easier to reason about. I could see whether the process was still alive, send a termination signal, and verify that it had exited.
 
-That is not a verdict against A2A. It is a decision about the failure mode I can control today.
+That distinction became important enough that I changed my normal coding delegation route from **A2A to CLI one-shot**.
+
+This is not a verdict that CLI is “smarter.” So far I have not measured that. It is a control decision: when something fails, I want “failed” to mean I know what is still running.
 
 I had already been circling this idea in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md): communication between agents is not automatically the hard part. Sometimes the difficult part is knowing what is actually running, what context it has, and whether a reported state corresponds to reality.
 
-## I have not touched the GX10 server yet
+## Then we stopped guessing and froze the task
 
-This may be the most important part of the experiment.
+At this point I needed something more useful than impressions.
 
-There are still plausible GX10-side causes: llama.cpp version, Qwen tool parsing, the exact GGUF artifact, cache configuration, memory headroom, and server flags.
+So I took a small real coding task from my Financial Insights workflow and froze it.
 
-I am deliberately not changing those yet.
+The task was deliberately boring: extend a snow-removal contract recognizer so English text containing **SNOW REMOVAL CONTRACT** and **PAYMENT** is recognized, while preserving the existing French behavior.
 
-If I change Hermes compression, the communication transport, llama.cpp, the model artifact, and the context size at the same time—and the agent improves—I will have learned almost nothing.
+Why use such a small task?
 
-So the current experiment changes the Mac/Hermes side first.
+Because a benchmark is only useful when the thing being compared stays the same.
 
-Then I will rerun the same bounded coding assignments and look at completion, compaction, unexpected writes, wall time, and whether the worker actually exits when it says it is done.
+Same starting file. Same instructions. Same model. Same verifier. Same machine. Then change **one variable at a time**.
 
-If the failures remain, I move one layer deeper and tune the GX10 server.
+The verifier was intentionally stricter than “the agent said it was done.” It checked positive cases, negative cases, old French behavior, evidence flags, unexpected files, and whether the result really matched what the agent claimed.
+
+That gave me my first surprise.
+
+The baseline assignment passed only **2 of 8** runs.
+
+The failure was subtle. Qwen often checked `PAYMENT` correctly as a whole word in the original normalized text — but then also searched a compacted version of the text with something equivalent to `includes("payment")`. That meant **REPAYMENT** could accidentally count as **PAYMENT**.
+
+So I changed the handoff, not the model.
+
+I told the coder explicitly which representation preserved the word boundary: use `normalizedText` for the whole-word English `PAYMENT` check; do not use a substring search in `compactText` for that condition.
+
+Then I repeated the same experiment.
+
+**8 of 8 passed.**
+
+The baseline eight runs consumed about **319 seconds** of Coder time. The clarified eight consumed about **243 seconds**.
+
+On this narrow task, accepted results per Coder minute went from about **0.38 to 1.97**.
+
+That is more than a fivefold difference.
+
+And no compression happened in either group.
+
+That was probably the most useful result of the day.
+
+I had been looking for the jumper in context size, compression thresholds, and transport settings.
+
+The strongest measured jumper so far was in the **handoff itself**.
+
+Not “write a better prompt” in the vague internet sense. Something more concrete: tell the worker which representation preserves the invariant it must protect.
+
+## More turns were not the enemy either
+
+Another tempting knob was the maximum number of agent turns.
+
+If the agent loops too much, why not just cut it from 20 turns to 6?
+
+So we tested that too on a fixed source-port task where the expected result was already known and independently verifiable.
+
+All four runs produced accepted output.
+
+But the two **6-turn** runs both hit their limit and averaged about **63 seconds**.
+
+The two **20-turn** runs finished normally and averaged about **47 seconds**.
+
+Small sample, narrow task — not a universal law.
+
+But enough to reject another attractive assumption: **a smaller turn budget did not make this worker faster.**
+
+## The loop problem is still real
+
+None of this means the runtime is now efficient.
+
+In one production port, the Coder eventually produced the correct file, but it took about **144 seconds**, reached the full 20-turn limit, and made **17 successful patch calls**. Several patches came after the file already matched the requested result.
+
+That is exactly the kind of behavior that originally made the machine feel underused.
+
+The model was capable of the change. The tools worked. The result was eventually correct.
+
+But the executive layer kept moving its hands after the work was effectively done.
+
+So the next tuning target is clearer now: not “make the model bigger” and not “compress at 32K.”
+
+It is controlling repeated tool calls, hard process deadlines, completion detection, and the newer Hermes guard that can stop identical repeated calls.
+
+## I still have not touched the GX10 server
+
+That is now more deliberate than before.
+
+There are still plausible GX10-side variables: llama.cpp version, Qwen tool parsing, the GGUF artifact, cache configuration, memory headroom, and server flags.
+
+But the Mac/Hermes experiments already produced several concrete findings without touching them:
+
+- the 32K compression cap was not justified;
+- CLI gives me better lifecycle control, but not proven better intelligence;
+- lowering the turn cap did not help;
+- a more precise task boundary dramatically improved one real coding fixture;
+- repeated tool calls remain a measurable source of waste.
+
+If I had changed the GX10 server at the same time, all of those lessons would have been blurred together.
+
+So the server stays put until the next experiment actually requires moving that layer.
 
 ## The expensive lesson
 
@@ -165,24 +268,40 @@ In human terms, that is closer to asking about the whole worker: the brain, what
 
 A benchmark can tell me that a model generates 50 tokens per second.
 
-It cannot tell me whether my coding agent will spend seven minutes writing the wrong helper file after its parent task has already failed.
+What I needed was a different kind of benchmark: give the worker the **same real task repeatedly**, verify the result independently, and change one thing at a time.
 
-That is the part I am learning now.
+That is when the numbers became useful.
+
+Not because they produced one magic setting. They did the opposite.
+
+They killed several attractive theories.
+
+The early compression cap looked sensible. It made things worse in the long probe.
+
+The shorter turn budget looked sensible. It was slower in the small matched test.
+
+CLI looked like it might make the coder better. So far its measurable advantage is control, not intelligence.
+
+And a tiny clarification about which text representation preserves a word boundary changed one task from **2/8 accepted runs to 8/8**.
 
 The model matters. The hardware matters.
 
-But once AI starts doing real work, the plumbing becomes part of the intelligence.
+But once AI starts doing real work, the plumbing — and the way we hand work into that plumbing — becomes part of the intelligence we actually experience.
 
 And apparently, I bought the powerhouse before I understood the plumbing.
 
-Which is why I keep digging. I have seen this movie before: sometimes the missing performance is not another piece of hardware. Sometimes it is a jumper you never knew you had to move.
+The funny part is that I started this experiment looking for the modern equivalent of that old motherboard jumper.
+
+I still think there is one.
+
+I am just less convinced now that it is a single switch.
 
 ---
 
 ## Sources and provenance
 
-This is a living draft based on the author's September 2026 GX10/Hermes experiments. The current tuning changes have been prepared but have not yet completed the same post-change real-task validation, so they are described as an active experiment rather than a proven fix.
+This is a living draft based on the author's September 2026 GX10/Hermes experiments. The first half records the hypotheses that led to the tests; the later sections incorporate the measured results from the September 28 runtime/benchmark work. Those results are task-specific and should not be read as universal model rankings.
 
-The model-number primer is published as [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683). The earlier model-selection experiment is described in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](2026-09-27-i-tried-to-replace-my-local-coder.md), and the hybrid coordination design in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md). Controlled GX10 measurements and Hermes lifecycle observations are preserved in the public [GX10 benchmark record](../benchmarks/local-models/gx10.md). The executable public change that adds an absolute Hermes compression cap is [AI Fleas PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219).
+The model-number primer is published as [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683). The earlier model-selection experiment is described in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](2026-09-27-i-tried-to-replace-my-local-coder.md), and the hybrid coordination design in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md). The original runtime change and article work landed in [AI Fleas PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219). The follow-up controlled runs, per-run benchmark data, CLI lifecycle changes, and compression findings are being collected in [PR #225](https://github.com/starodubtsevconsulting/ai-fleas/pull/225).
 
-Hermes's current [context compression documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/developer-guide/context-compression-and-caching.md) documents the small-context 75% threshold floor and the `compression.threshold_tokens` absolute cap. The profile-specific configuration and machine topology remain private.
+Hermes's current [context compression documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/developer-guide/context-compression-and-caching.md) documents the small-context 75% threshold floor and the `compression.threshold_tokens` absolute cap. The article intentionally separates measured observations from broader conclusions: the 32K cap was rejected for this setup based on the observed probe, while compression in general remains an open tuning dimension.
