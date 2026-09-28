@@ -190,4 +190,9 @@ if [[ "${transport}" == a2a ]]; then
   exit $?
 fi
 
-exec hermes -p "${profile_id}" -t file -z "${prompt}" --in "${workspace}"
+if [[ -z "${HERMES_WRITE_SAFE_ROOT:-}" ]]; then
+  printf '%s\n' 'HERMES_CODER_BLOCKED: HERMES_WRITE_SAFE_ROOT is required for CLI run.' >&2
+  exit 1
+fi
+
+exec hermes -p "${profile_id}" chat -Q -t file --query "${prompt}" --in "${workspace}"

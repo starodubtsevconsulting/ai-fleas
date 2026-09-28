@@ -24,6 +24,8 @@ The caller selects `AI_PROFILE_ROOT`, `AI_WORK_PROFILE_ID`, and `AI_FLOW_WORKFLO
 
 Before either route, `check` verifies the declared delegate, selected project, workflow project root, named Git branch, Hermes readiness receipt, and live Hermes profile against the workflow's provider, model, and endpoint. For A2A it also checks the local Agent Card name and URL. CLI `check` verifies configuration, but does not run an inference turn. A profile-owned wrapper may select the profile and project; the shared launcher performs these checks.
 
+CLI `run` requires the caller to set `HERMES_WRITE_SAFE_ROOT` to its authorized write boundary; `check` does not require it. The caller still needs an independent process deadline and must inspect the actual diff and task result.
+
 ## Assignment flow
 
 ```mermaid
@@ -40,7 +42,7 @@ sequenceDiagram
   alt CLI selected
     L-->>A: Ready (configuration check)
     A->>L: run --project ID "bounded assignment"
-    L->>C: hermes -p PROFILE -t file -z PROMPT --in ROOT
+    L->>C: hermes -p PROFILE chat -Q -t file --query PROMPT --in ROOT
     C->>F: Read and edit within assignment scope
     C-->>L: Process output and exit
   else A2A selected

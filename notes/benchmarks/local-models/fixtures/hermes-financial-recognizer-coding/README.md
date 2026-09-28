@@ -38,19 +38,27 @@ Use an already-realized Hermes profile so the run exercises that profile's actua
 and provider configuration:
 
 ```sh
+mkdir -p recognizers
+cp notes/benchmarks/local-models/fixtures/hermes-financial-recognizer-coding/starter/recognizers/snow-removal-contract-recognizer.mjs \
+  recognizers/snow-removal-contract-recognizer.mjs
 bash notes/benchmarks/local-models/run-hermes-financial-recognizer-coding.sh \
-  /tmp/qwen-recognizer-run sc-dev-5-coder
+  notes/benchmarks/local-models/runs/qwen-recognizer-run YOUR_HERMES_CODER_PROFILE
 ```
 
 The runner:
 
-1. creates the fixed starter tree;
+1. requires the fixed starter at `recognizers/snow-removal-contract-recognizer.mjs` in the visible checkout;
 2. sends the exact `TASK.md` through the selected Hermes profile;
-3. records wall time and Hermes usage;
+3. records wall time and copies the agent's result into the run directory;
 4. independently executes `verify.mjs`;
 5. rejects unexpected files.
 
-Use a fresh run directory for every trial.
+Use a fresh run directory for every trial. Reset the checkout target from the frozen starter
+after inspecting and saving each result. The target is a real file in the checkout because
+Hermes file tools resolved paths at the checkout root in the September 28 GX10 trial,
+even when `--in` pointed to a nested run directory. Compare the checkout diff as well as
+the verifier output to detect changes outside the requested target. Hermes `chat --oneshot`
+does not emit a `--usage-file`; collect API usage from the session logs when available.
 
 ## Matched A2A run
 

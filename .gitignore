@@ -36,3 +36,7 @@
 /ai-profile/example-profile/**
 /ai-profile/*/
 !/ai-profile/example/
+
+# Local Hermes benchmark artifacts and checkout-root working copy.
+/notes/benchmarks/local-models/runs/
+/recognizers/snow-removal-contract-recognizer.mjs
