@@ -4,6 +4,10 @@
 >
 > — Seneca, *On the Shortness of Life*, translated by C. D. N. Costa
 
+![A person in a black hoodie mows grass beside a lakeside chalet and dog while an AI Fleas robot at a nearby desk checks a receipt and calendar.](assets/2026-09-20-mowing-delegated-accounting-ai-fleas-header.png)
+
+*While the human tends the lawn, an AI Flea handles a bounded financial question. Illustration generated from the author’s AI Fleas character references.*
+
 > **Draft:** Prepared through the Writing workflow in emulation mode. Independent fresh-context critique, human listen-through, and release approval remain pending.
 
 The birds were singing.
