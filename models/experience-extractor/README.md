@@ -1,6 +1,8 @@
-# Experience Extractor
+# Model Experience Extractor
 
-The Experience Extractor is a reusable AI-Fleas **Agent role and feedback-loop flow** for discovering how a model should be communicated with and delegated to.
+**Short name:** Experience Extractor.
+
+The Model Experience Extractor is a reusable AI-Fleas **Agent role and feedback-loop flow** for discovering how a model should be communicated with and delegated to.
 
 It does not try to make every model pass every task. Its goal is to make `models/<model>/experience-profile.yml` increasingly accurate until it is sufficient for the intended use.
 
