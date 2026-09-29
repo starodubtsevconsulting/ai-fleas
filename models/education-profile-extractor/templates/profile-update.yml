@@ -1,0 +1,18 @@
+schema_version: ai-fleas-education-profile-update.v1
+claim:
+  id: ""
+  previous_state: draft
+  new_state: inferred-but-unverified
+  statement: ""
+evidence:
+  paths: []
+  model: ""
+  deployment: ""
+  task_family: ""
+  result: ""
+interpretation:
+  supports: ""
+  does_not_prove: ""
+next_action:
+  type: probe-or-stop
+  uncertainty: ""
