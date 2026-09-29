@@ -1,8 +1,8 @@
 schemaVersion: role.v1
 extends: _role.yml
 
-id: experience-extractor
-contract: experience-extractor.md
+id: expertise-extractor
+contract: expertise-extractor.md
 
 scope:
   kind: workflow
@@ -14,7 +14,7 @@ lifecycle:
   default: task-scoped
 
 fixed:
-  canonicalRole: experience-extractor
+  canonicalRole: expertise-extractor
 
 configurable:
   flow:
@@ -27,4 +27,4 @@ configurable:
     required: true
 
 bindings:
-  defaultFlowTemplate: ../../../models/experience-extractor/default-flow.md
+  defaultFlowTemplate: ../../../models/expertise-extractor/default-flow.md

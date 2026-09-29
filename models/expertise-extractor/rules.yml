@@ -1,4 +1,4 @@
-schema_version: ai-fleas-experience-extractor-rules.v1
+schema_version: ai-fleas-expertise-extractor-rules.v1
 objective: make-model-representation-sufficiently-accurate-for-intended-use
 not_objectives:
   - make-model-pass-every-task

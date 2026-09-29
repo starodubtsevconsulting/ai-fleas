@@ -2,7 +2,7 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
-CMD="$HERE/experience-extractor.command.sh"
+CMD="$HERE/expertise-extractor.command.sh"
 MODEL="extractor-test-model-$$"
 DIR="$ROOT/models/$MODEL"
 TMP="$(mktemp -d)"
@@ -15,7 +15,7 @@ declared_education:
 YAML
 
 "$CMD" init --model "$MODEL" --declared "$TMP/declared.yml" --intended-use focused-coder > "$TMP/init.json"
-test -f "$DIR/experience-profile.yml"
+test -f "$DIR/expertise-profile.yml"
 grep -q '"status": "draft"' "$TMP/init.json"
 
 cat > "$TMP/e1.yml" <<YAML
@@ -38,9 +38,9 @@ next_action:
   uncertainty: transfer to another task family
 YAML
 "$CMD" apply --model "$MODEL" --evidence "$TMP/e1.yml" --evidence-id run-1 > "$TMP/apply1.json"
-test -f "$DIR/benchmarks/experience-extraction/run-1.yml"
-grep -q 'direct-code-language' "$DIR/experience-profile.yml"
-grep -q 'transfer to another task family' "$DIR/experience-profile.yml"
+test -f "$DIR/benchmarks/expertise-extraction/run-1.yml"
+grep -q 'direct-code-language' "$DIR/expertise-profile.yml"
+grep -q 'transfer to another task family' "$DIR/expertise-profile.yml"
 
 cat > "$TMP/e2.yml" <<YAML
 claim:
@@ -63,9 +63,9 @@ next_action:
 YAML
 "$CMD" apply --model "$MODEL" --evidence "$TMP/e2.yml" --evidence-id run-2 > "$TMP/apply2.json"
 # Both historical claim states must remain present.
-grep -q 'state: confirmed' "$DIR/experience-profile.yml"
-grep -q 'state: contradicted' "$DIR/experience-profile.yml"
-grep -q 'sufficient-for-current-purpose' "$DIR/experience-profile.yml"
+grep -q 'state: confirmed' "$DIR/expertise-profile.yml"
+grep -q 'state: contradicted' "$DIR/expertise-profile.yml"
+grep -q 'sufficient-for-current-purpose' "$DIR/expertise-profile.yml"
 
 "$CMD" status --model "$MODEL" > "$TMP/status.json"
 grep -q '"confirmed": 1' "$TMP/status.json"
@@ -80,4 +80,4 @@ if "$CMD" apply --model "$MODEL" --evidence "$TMP/wrong.yml" --evidence-id wrong
   echo "model mismatch unexpectedly accepted" >&2; exit 1
 fi
 
-echo "experience-extractor tests passed"
+echo "expertise-extractor tests passed"

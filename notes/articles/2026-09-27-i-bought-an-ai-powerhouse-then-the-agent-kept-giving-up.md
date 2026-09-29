@@ -372,11 +372,11 @@ What was this model educated to do? What conceptual language does it speak natur
 
 That led to a new structure in AI Fleas:
 
-**Model → Education + Experience Profile → Deployment → Benchmark Evidence**
+**Model → Education + Expertise Profile → Deployment → Benchmark Evidence**
 
 And a new process:
 
-**public model information → declared Education → controlled work → observed Experience → evolving Experience Profile**
+**public model information → declared Education → controlled work → demonstrated Expertise → evolving Expertise Profile**
 
 At first I called that **Education Profile Extraction**.
 
@@ -384,7 +384,7 @@ Then the name started bothering me.
 
 Education is not the same thing as demonstrated ability. The model card can tell me what the model was designed or trained for — its résumé, its **potential**. But my six hours of experiments were not extracting its education. I could not look inside the training process and recover what it had truly learned.
 
-What I could observe was its **experience in action**.
+What I could observe was its **expertise in action**.
 
 Give it real work. Change how the work is explained. Watch what transfers. Watch what fails. Let an independent verifier decide what actually worked. Keep the contradictions.
 
@@ -392,13 +392,13 @@ So the terminology evolved again:
 
 **Education → declared potential from public/training information.**
 
-**Experience → evidence of what happens when we actually work with the model.**
+**Expertise → demonstrated competence: what the model can actually apply in real work.**
 
-And the reusable mechanism became the **Model Experience Extractor**.
+And the reusable mechanism became the **Model Expertise Extractor**.
 
-Its job is not to train the model or force it to pass. It starts with the résumé, gives the model a controlled series of real tasks, follows the evidence, and builds an **Experience Profile** that says what kind of language works, what kinds of jobs fit, where explanation helps, where it does not, and what we still do not know.
+Its job is not to train the model or force it to pass. It starts with the résumé, gives the model a controlled series of real tasks, follows the evidence, and builds an **Expertise Profile** that says what kind of language works, what kinds of jobs fit, where explanation helps, where it does not, and what we still do not know.
 
-The public model card is the résumé. The benchmark is the interview. Repeated real work becomes the experience record.
+The public model card is the résumé. The benchmark is the interview. Repeated real work becomes the expertise evidence.
 
 That also changed how I think about Domain Context Handoff. It is not “give the model more context.” It is:
 

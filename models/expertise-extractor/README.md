@@ -1,10 +1,10 @@
-# Model Experience Extractor
+# Model Expertise Extractor
 
-**Short name:** Experience Extractor.
+**Short name:** Expertise Extractor.
 
-The Model Experience Extractor is a reusable AI-Fleas **Agent role and feedback-loop flow** for discovering how a model should be communicated with and delegated to.
+The Model Expertise Extractor is a reusable AI-Fleas **Agent role and feedback-loop flow** for discovering how a model should be communicated with and delegated to.
 
-It does not try to make every model pass every task. Its goal is to make `models/<model>/experience-profile.yml` increasingly accurate until it is sufficient for the intended use.
+It does not try to make every model pass every task. Its goal is to make `models/<model>/expertise-profile.yml` increasingly accurate until it is sufficient for the intended use.
 
 ## Two phases
 
@@ -19,7 +19,7 @@ This is the model's résumé. It is not observed competence.
 An extractor agent challenges the draft through controlled work:
 
 ```
-draft experience profile
+draft expertise profile
         ↓
 identify important uncertainty
         ↓
@@ -33,7 +33,7 @@ compare evidence
         ↓
 confirm / refine / contradict / leave unknown
         ↓
-update experience-profile.yml
+update expertise-profile.yml
         ↓
 next uncertainty OR stop
 ```
@@ -63,7 +63,7 @@ See the preserved Qwen evidence under [Qwen3-Coder-Next benchmarks](../qwen3-cod
 
 ## Extractor agent requirements
 
-The **Extractor Agent is not the model under test**. It is an Agent bound to the reusable [Experience Extractor role](../../ai-workflows/_common/roles/experience-extractor.md) and follows the [default extraction flow](default-flow.md). It acts as teacher, experiment designer, domain translator and evaluator.
+The **Extractor Agent is not the model under test**. It is an Agent bound to the reusable [Expertise Extractor role](../../ai-workflows/_common/roles/expertise-extractor.md) and follows the [default extraction flow](default-flow.md). It acts as teacher, experiment designer, domain translator and evaluator.
 
 It should operate at a higher abstraction level than the target worker for the capability being profiled. In practical terms, the extractor should be able to understand the human problem independently of the target model and reason about both sides of the translation:
 
@@ -104,7 +104,7 @@ The target model must not grade itself, define its own acceptance criteria, or r
 
 The extractor owns three outputs:
 
-1. `models/<model>/experience-profile.yml` — evolving synthesis.
+1. `models/<model>/expertise-profile.yml` — evolving synthesis.
 2. `models/<model>/benchmarks/...` — evidence/probe records.
 3. extraction report — what changed in the profile and why.
 
@@ -155,7 +155,7 @@ See [rules.yml](rules.yml) for agent-readable rules and [profile-update.yml](tem
 
 ## Current implementation
 
-The intelligent extractor is the Agent/Role + flow. Its deterministic profile/evidence bookkeeping is implemented as the reusable AI Command [`experience-extractor`](../../ai-commands/utility/experience-extractor/experience-extractor.command.md).
+The intelligent extractor is the Agent/Role + flow. Its deterministic profile/evidence bookkeeping is implemented as the reusable AI Command [`expertise-extractor`](../../ai-commands/utility/expertise-extractor/expertise-extractor.command.md).
 
 It currently supports:
 

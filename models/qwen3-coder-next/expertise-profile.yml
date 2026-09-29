@@ -1,4 +1,4 @@
-schema_version: ai-fleas-model-experience.v1
+schema_version: ai-fleas-model-expertise.v1
 model_family: Qwen3-Coder-Next
 profile_status: evidence-backed-provisional
 purpose: Guide delegation from observed work rather than assumed hidden knowledge.

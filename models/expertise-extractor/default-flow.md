@@ -1,8 +1,8 @@
-# Experience Extraction default flow
+# Expertise Extraction default flow
 
 ## Purpose
 
-Reusable default program for an Agent bound to the **Model Experience Extractor** role.
+Reusable default program for an Agent bound to the **Model Expertise Extractor** role.
 
 A concrete workflow imports/binds this program and supplies the target model/deployment, Extractor Agent binding, target execution route, verifier/reviewer and authorized Commands.
 
@@ -14,11 +14,11 @@ Required:
 - canonical model directory;
 - Extractor Agent whose capability satisfies the role contract;
 - independent acceptance route;
-- public-information sources or an existing Experience Profile.
+- public-information sources or an existing Expertise Profile.
 
 ## Steps
 
-1. **Bootstrap** — if no profile exists, collect attributable public/model-card claims and initialize a **draft** Experience Profile. Do not convert declared claims into observed competence.
+1. **Bootstrap** — if no profile exists, collect attributable public/model-card claims and initialize a **draft** Expertise Profile. Do not convert declared claims into observed competence.
 2. **Read state** — load the current profile, preserved evidence and remaining unknowns.
 3. **Choose uncertainty** — select the highest decision-relevant uncertainty for the intended use. If none blocks the decision, go to Stop.
 4. **Form hypotheses** — state what competing explanations the next probe should distinguish (for example communication gap vs implementation/reasoning gap).
@@ -27,7 +27,7 @@ Required:
 7. **Execute target** — delegate the frozen task to the target Agent/Model. The target cannot define acceptance or alter the experiment.
 8. **Independent acceptance** — verifier/reviewer checks the artifact/behavior. Completion prose and successful process exit are not acceptance.
 9. **Interpret** — determine exactly what the evidence supports and what it does not prove. Separate communication, implementation/reasoning, runtime/tool and verifier failures.
-10. **Update profile** — use the Experience Extractor Command to append evidence and mark claims confirmed, refined, contradicted, inferred-but-unverified or unknown.
+10. **Update profile** — use the Expertise Extractor Command to append evidence and mark claims confirmed, refined, contradicted, inferred-but-unverified or unknown.
 11. **Transfer when needed** — before generalizing a promising communication pattern, test it on another relevant task family.
 12. **Decide** — if another probe is likely to change the intended delegation decision, return to Choose uncertainty. Otherwise Stop.
 13. **Stop** — mark the profile sufficient for the current purpose, preserve remaining unknowns, and report what changed and why.
@@ -35,7 +35,7 @@ Required:
 ## Exit
 
 Outputs:
-- updated `models/<model>/experience-profile.yml`;
+- updated `models/<model>/expertise-profile.yml`;
 - preserved extraction evidence under the model;
 - extraction report;
 - explicit remaining unknowns;

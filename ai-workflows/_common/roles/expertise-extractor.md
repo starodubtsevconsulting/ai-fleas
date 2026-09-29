@@ -1,6 +1,6 @@
-# Model Experience Extractor role
+# Model Expertise Extractor role
 
-Model Experience Extractor is the reusable role for an Agent that discovers how a target Model should be communicated with and delegated to, then evolves the target's canonical Experience Profile from evidence.
+Model Expertise Extractor is the reusable role for an Agent that discovers how a target Model should be communicated with and delegated to, then evolves the target's canonical Expertise Profile from evidence.
 
 It is the **teacher, experiment designer, domain translator and evidence synthesizer**. The target model is the subject of the experiment, not the evaluator.
 
@@ -17,7 +17,7 @@ If the selected Extractor model lacks authoritative knowledge of the problem dom
 ## Can
 
 - Bootstrap declared education from attributable public/upstream information.
-- Inspect the target's existing Experience Profile and evidence.
+- Inspect the target's existing Expertise Profile and evidence.
 - Identify the next decision-relevant uncertainty.
 - Select or design a frozen, bounded probe.
 - Construct matched handoff treatments without changing unrelated variables.
@@ -42,11 +42,11 @@ If the selected Extractor model lacks authoritative knowledge of the problem dom
 - **Extractor Agent** — hypothesis, probe design/selection, interpretation and profile synthesis.
 - **Target Agent/Model** — frozen task execution.
 - **Independent verifier/reviewer** — acceptance evidence.
-- **Experience Extractor Command** — deterministic profile/evidence bookkeeping.
+- **Expertise Extractor Command** — deterministic profile/evidence bookkeeping.
 
 ## Default flow
 
-Use the Models subsystem [default extraction flow](../../../models/experience-extractor/default-flow.md) as the reusable starting program. A workflow binding may specialize mechanics/routes but must preserve the role's independence, evidence and stopping invariants.
+Use the Models subsystem [default extraction flow](../../../models/expertise-extractor/default-flow.md) as the reusable starting program. A workflow binding may specialize mechanics/routes but must preserve the role's independence, evidence and stopping invariants.
 
 ## Completion
 
