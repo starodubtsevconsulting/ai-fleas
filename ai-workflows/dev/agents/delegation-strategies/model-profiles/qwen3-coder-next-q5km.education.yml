@@ -32,10 +32,10 @@ unknown_or_unverified:
     handoff_action: Run a scoped probe before assuming transfer.
 communication:
   direct_starting_vocabulary:
-    - files and interfaces
-    - APIs and process state
-    - invariants and tests
+    - named files, functions, and source-to-target edits
+    - input/output contracts and concrete test cases
+    - data representations, whole-word checks, and substring checks
   translate_or_probe:
-    - unfamiliar business meaning behind input fields or document labels
-    - specialized algorithmic invariants even when described in software terms
-  verification_rule: Check the artifact against independent acceptance; prose and process exit do not establish correctness.
+    - unfamiliar business meaning behind input fields or document labels; map it to a data invariant and its code boundary
+    - specialized process-lifecycle invariants; explicit analogies and sequences did not yield reliable first-pass cleanup on this fixture
+  verification_rule: Check the artifact against independent acceptance and review lifecycle source paths; prose, process exit, and behavioral verifier pass alone do not establish correctness.
