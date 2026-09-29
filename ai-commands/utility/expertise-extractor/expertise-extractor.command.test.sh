@@ -38,7 +38,7 @@ next_action:
   uncertainty: transfer to another task family
 YAML
 "$CMD" apply --model "$MODEL" --evidence "$TMP/e1.yml" --evidence-id run-1 > "$TMP/apply1.json"
-test -f "$DIR/benchmarks/experience-extraction/run-1.yml"
+test -f "$DIR/benchmarks/expertise-extraction/run-1.yml"
 grep -q 'direct-code-language' "$DIR/expertise-profile.yml"
 grep -q 'transfer to another task family' "$DIR/expertise-profile.yml"
 
