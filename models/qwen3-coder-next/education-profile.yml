@@ -1,19 +1,44 @@
 schema_version: ai-fleas-model-education.v1
 model_family: Qwen3-Coder-Next
 profile_status: evidence-backed-provisional
+purpose: Guide a delegator's language and teaching for this worker based on observed work, not on assumed hidden knowledge.
 declared_education:
   primary: ["coding-agent-work", "local-software-development", "tool-using-coding"]
   source_status: upstream-model-card-reviewed
   source_url: https://huggingface.co/Qwen/Qwen3-Coder-Next
-  interpretation_limit: Design intent does not establish success on a particular task or local deployment.
-observed_capability:
+  interpretation_limit: Upstream design intent does not establish local competence or prior knowledge of a domain.
+communication:
+  observed_scope: Qwen3-Coder-Next Q5_K_M through the configured Stage-1 Hermes CLI Coder route; do not assume transfer to another deployment.
+  direct_starting_language:
+    - Give a named file and edit boundary, a source-to-target change, and the existing input/output contract directly.
+    - Use concrete code and data terms such as function, representation, substring, whole word, result, and test case.
+    - State a local invariant and its positive and misleading cases at the code boundary where it applies.
+  translate_first:
+    - Explain unfamiliar business labels or document meaning as properties of inputs and data representations.
+    - For specialized lifecycle behavior, spell out state transitions, survivor cases, and cleanup obligations; familiar software words alone did not make implementation reliable here.
+  observed_working_pattern:
+    description: >-
+      On the frozen recognizer, describe normalizedText as text that preserves word boundaries and compactText as a fuzzy search form. Contrast standalone PAYMENT with the misleading REPAYMENT substring, explain why the distinction matters, and point to the English payment check before giving the unchanged task.
+    evidence: benchmarks/gx10/domain-context-three-arm-2026-09-28.json
+    limit: The translated arm bundled analogy, examples, and code-boundary mapping; the experiment did not isolate which ingredient helped.
+  observed_insufficient_pattern:
+    description: >-
+      Raw recognizer facts helped less than the translated package. On the process-group fixture, a team-leader analogy, a surviving-worker example, an exact cleanup invariant, and later an explicit sequence still failed to produce reliable first-pass code. Candidates repeatedly made group SIGKILL conditional on the direct child's wait timing out.
+    evidence:
+      - benchmarks/gx10/domain-context-three-arm-2026-09-28.json
+      - benchmarks/gx10/process-group-translated-pilot-2026-09-28.json
+      - benchmarks/gx10/process-group-algorithm-2026-09-28.json
+    limit: Output can reflect parts of an explanation while missing its combined invariant; internal understanding cannot be inferred from that output.
+  handoff_rule: Translate only the unfamiliar meaning needed for this edit into data, state, invariants, positive and misleading examples, and the relevant code boundary.
+  verification_rule: Check the artifact independently; completion prose, exit zero, and even a behavioral verifier pass may miss source-level lifecycle flaws.
+observed_education:
   demonstrated: ["focused-file-edits", "repository-tool-use", "source-to-target-ports"]
   controlled_findings:
     - task: frozen-financial-recognizer
       scope: Q5_K_M through the configured Hermes CLI route; nine interleaved fresh runs per stable prompt arm.
       first_pass_accepted: {task_only: "3/9", raw_domain: "5/9", translated_domain: "8/9"}
       evidence: benchmarks/gx10/domain-context-three-arm-2026-09-28.json
-      interpretation_limit: Translation bundled analogy, examples, and code-boundary mapping; one fixture does not isolate the useful ingredient or prove prior financial knowledge.
+      interpretation_limit: One fixture does not prove prior financial knowledge, general domain fluency, or which translated element helped.
     - task: frozen-process-group-helper
       scope: Same Q5_K_M and Hermes CLI route; task-only and raw-domain arms interleaved, translated-domain arm run later.
       first_pass_accepted: {task_only: "0/8", raw_domain: "0/8", translated_domain: "0/8"}
@@ -21,19 +46,29 @@ observed_capability:
         - benchmarks/gx10/process-group-domain-context-pilot-2026-09-28.json
         - benchmarks/gx10/process-group-translated-pilot-2026-09-28.json
       interpretation_limit: The later translated arm cannot be timing-ranked against the earlier arms; these failures do not prove a general reasoning ceiling.
-  limits: ["completion-prose-can-disagree-with-result", "repeated-tool-loops", "process-lifecycle-fixture-not-accepted-first-pass-in-three-tested-arms"]
-  evidence: ["../../benchmarks/local-models/gx10.md", "benchmarks/gx10/hermes-qwen-coder-runtime-2026-09-28.md"]
+    - task: reviewed-source-port
+      scope: Four source-copy runs on one process-group helper fixture; two per tested turn cap.
+      accepted: "4/4"
+      evidence: benchmarks/gx10/turn-cap-pilot-2026-09-28.json
+      interpretation_limit: Porting a reviewed answer does not establish independent design skill.
+  recurring_limits:
+    - Completion prose and process exit sometimes disagreed with independently checked code.
+    - Repeated no-change patch calls and turn-limit stops occurred after a useful artifact was present.
+    - Process-group candidates repeatedly failed descendant cleanup despite explicit handoff language; one corrected staged helper was accepted after an exact-sequence handoff and source review.
+  evidence: ["../../notes/benchmarks/local-models/gx10.md", "benchmarks/gx10/hermes-qwen-coder-runtime-2026-09-28.md"]
+inferred_but_unverified:
+  - Software and data vocabulary may be a better default communication language than unexplained domain terminology; individual vocabulary items were not isolated experimentally.
+  - Translation may unlock capability when an unfamiliar rule reduces to a local data/code invariant; transfer beyond the recognizer is unproven.
+  - The process-group failure may involve multi-step implementation difficulty beyond communication; this route and fixture cannot establish a model-wide limit.
 unknown_or_unverified:
-  - specialized-domain-knowledge-unless-evidenced
-  - organization-specific-semantics
-  - reliable-transfer-to-other-tasks-or-transports
-  - reliable-unfamiliar-process-lifecycle-implementation
-communication:
-  principle: translate-unfamiliar-domain-into-demonstrated-conceptual-language
-  use_domain_context_handoff_when_needed: true
-  verification_rule: Check the produced artifact with independent acceptance; neither completion prose nor process exit proves correctness.
+  - The model's prior financial-document knowledge and organization-specific semantics.
+  - Which part of the translated recognizer handoff produced the improvement.
+  - Reliable transfer to other tasks, domains, transports, or deployments.
+  - Reliable first-pass implementation of unfamiliar process-lifecycle invariants.
+  - Representative long-context accepted-code performance.
 role_fit:
   provisional: ["focused-coder", "bounded-repository-worker"]
+  handoff_condition: Give an exact write scope and independent acceptance checks; treat repeated failure after clear teaching as a route or capability question to investigate.
 deployment_variants:
   - id: "Q5_K_M"
-    note: "deployment representation; not education"
+    note: "deployment representation and runtime capacity are not education"
