@@ -1,9 +1,10 @@
-# I Stopped Trying to Automate the Demo
+# I Stopped Trying to Fully Automate the Demo
 
-> “Don't explain your philosophy. Embody it.”
->
-> — Epictetus
+![A human presents a software demo while an AI Fleas robot prepares reproducible evidence at a nearby desk.](assets/2026-09-18-ai-fleas-human-led-demo-header.png)
 
+*The human leads the demonstration while the AI Flea prepares the evidence. AI Fleas illustration generated from the author’s character references.*
+
+Epictetus’s advice in [*Enchiridion* 46](https://dcc.dickinson.edu/epictetus-encheiridion/chapter-46) is to show your principles through your actions, rather than merely talk about them.
 
 There is a particular kind of confidence that comes from a green test suite.
 
@@ -163,21 +164,3 @@ It must not silently change the behavior the demo is supposed to prove.
 A demo that adapts its mechanics is useful.
 
 A demo that adapts reality to make itself green is theatre.
-
-## The larger idea
-
-This started as a practical annoyance: I wanted an easier way to demonstrate AI-assisted work.
-
-But I think it points toward a broader development pattern.
-
-As AI increases the amount of implementation context a person can operate across, we should stop requiring that person to memorize all of that context merely to demonstrate competence.
-
-The artifacts should retain the detail.
-
-AI should retrieve the relevant slice.
-
-The human should retain judgment, responsibility, and the ability to explain what matters.
-
-That is the balance I am interested in: not removing the human from the demo, and not forcing the human to pretend the AI was never there.
-
-Just building a better interface between the two.
