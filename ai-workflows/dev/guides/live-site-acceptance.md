@@ -1,6 +1,6 @@
 # Live-site acceptance guide
 
-Use this as Stage 2 of the [search discoverability flow](../flows/search-discoverability.flow.md) for one named public site. The earlier [search guide](search-discoverability.md) establishes crawl and search-account evidence. This guide establishes whether people can use the deployed site and whether its durable data can be recovered. The selected project's own smoke scenarios supply exact routes, roles, and expected content. Do not copy another site's business rules into a new site's acceptance criteria.
+Use this as Stage 2 of the [search discoverability flow](../flows/search-discoverability.flow.md) for one named public site. The earlier [search guide](search-discoverability.md) establishes crawl and search-account evidence. This guide establishes whether people can use the deployed site and whether its durable data can be recovered. Continue into the [buyer-journey and optimization guide](site-buyer-journey.md) for Stage 3. The selected project's own smoke scenarios supply exact routes, roles, and expected content. Do not copy another site's business rules into a new site's acceptance criteria.
 
 To reuse the whole flow, ask: **“Run the search discoverability flow, including live-site acceptance, for `<public site>` in `<authorized project>`.”** Provide the site's owner/operator, production target, authorized test roles and mailbox, and any permitted sandbox transaction. Missing access leaves only dependent checks pending; continue independent public and recovery checks.
 
