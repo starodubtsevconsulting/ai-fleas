@@ -19,6 +19,11 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | Must delegate | Mechanical TTS execution through the authorized command route when required; article revision, release planning, governance, and administration remain with their declared owners. Reviewer never contacts Writer, Release Coordinator, or Admin as workflow transport. |
 | Must not | Modify source code, scripts, tests, plugins, workflow/role/skill definitions, profiles, project configuration, agent bindings, or runtime configuration; draft or edit the revision it reviews; call a same-context second pass independent; silently rewrite the article; accept it for the human; or publish, submit, or schedule. |
 
+For an existing public story, Reviewer owns independent `published_review` of the proposed revision and
+`published_verification` of the saved public page under the
+[published-update flow](../../flows/published-update.flow.md). A pre-apply pass never substitutes for checking the
+actual published rendering afterward.
+
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
 
 ## Human prompt interpretation cases

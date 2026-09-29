@@ -45,3 +45,13 @@ conflicting record returns to its owner and remains visible as incomplete.
 Narration scripts and audio stay in the configured permanent article archive, normally its `audio/` folder. Record
 their hashes and narrated article revision in review evidence; do not require or place the audio in the repository
 mirror or publishing destination.
+
+## Updating an already published story
+
+Use the [published-update route](../flows/published-update.flow.md). During preparation, the public story deliberately
+still shows the old revision. Record that as a proposed difference, with the old public state, exact replacement
+revision, and authorized story URL; do not claim the three surfaces already match. Reviewer checks the proposed
+archive and remote mirror against the destination preview before the edit. After Release Coordinator changes the same
+public URL, Reviewer independently checks its rendered state, and Writer reconciles the archive, remote repository,
+and live story. A saved editor view is not a live-page read-back. Keep the previous image and provenance in the
+archive's history while updating the current selected-header index only after the replacement is visibly live.

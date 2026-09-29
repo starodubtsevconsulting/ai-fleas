@@ -1,6 +1,11 @@
 flowchart LR
     administration["administration<br/>admin"]
     administration_complete["administration_complete<br/>admin<br/>COMPLETE"]
+    published_revision["published_revision<br/>writer"]
+    published_review["published_review<br/>reviewer"]
+    published_apply["published_apply<br/>release-coordinator"]
+    published_verification["published_verification<br/>reviewer"]
+    published_reconciliation["published_reconciliation<br/>writer"]
     drafting["drafting<br/>writer<br/>START"]
     review["review<br/>reviewer"]
     source_complete["source_complete<br/>reviewer<br/>COMPLETE"]
@@ -12,8 +17,18 @@ flowchart LR
     diagnosis["diagnosis<br/>reviewer"]
     complete["complete<br/>writer<br/>COMPLETE"]
     administration -->|route-required: send article request to Writer| drafting
+    administration -->|published-update-required: revise existing story| published_revision
     administration -->|review-required: recheck delegated release| review
     administration -->|handled: administration complete| administration_complete
+    published_revision -->|review_ready: exact replacement and preview| published_review
+    published_review -->|accepted: independently reviewed update| published_apply
+    published_review -->|changes_required| published_revision
+    published_apply -->|applied: live story changed in place| published_verification
+    published_apply -->|changes_required| published_revision
+    published_apply -->|blocked: Admin inspects destination obstacle| administration
+    published_verification -->|verified: rendered story matches review| published_reconciliation
+    published_verification -->|changes_required| published_revision
+    published_reconciliation -->|archived: archive and mirror reconciled| complete
     drafting -->|review_ready| review
     review -->|source_accepted: source-only review complete| source_complete
     review -->|accepted: review passes policy| release
@@ -43,5 +58,5 @@ flowchart LR
     class drafting start
     class human_review waiting
     class administration_complete done
-    class source_complete done
     class complete done
+    class source_complete done

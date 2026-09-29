@@ -19,6 +19,11 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | Must delegate | Governance remains with Judge and administration with Admin. Every blocker and terminal result uses the Router result contract; Release Coordinator never contacts Writer, Reviewer, or Admin as workflow transport. |
 | Must not | Create, edit, move, or delete any repository file, including articles, metadata, release records, source code, configuration, workflows, roles, skills, bindings, and runtime files; declare pending review complete; invent publication history; treat cadence as an automatic trigger; silently default to the author's profile/home; invent or infer a publication target; create a Publication merely because none exists or scheduling needs a target; invent its name/description/avatar; publish immediately; submit to a publication; schedule without explicit profile authority and target; or create a release automation. |
 
+For an existing public story, Release Coordinator owns `published_apply` under the
+[published-update flow](../../flows/published-update.flow.md). It may update only the exact existing story after
+revision-bound authorization and independent review, then returns saved-page evidence. This is separate from
+creating, publishing, submitting, or scheduling a new story.
+
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
 
 ## Human prompt interpretation cases
