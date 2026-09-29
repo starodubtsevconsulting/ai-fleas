@@ -1,8 +1,8 @@
-# Education Profile Extractor specification
+# Model Experience Extractor specification
 
 ## Boundary
 
-This Command is the deterministic mechanic beneath the Education Profile Extractor Agent/flow. It has three responsibilities:
+This Command is the deterministic mechanic beneath the Model Experience Extractor Agent/flow. It has three responsibilities:
 
 1. initialize a draft profile from declared/public information;
 2. apply independently evaluated evidence without losing contradictions;
