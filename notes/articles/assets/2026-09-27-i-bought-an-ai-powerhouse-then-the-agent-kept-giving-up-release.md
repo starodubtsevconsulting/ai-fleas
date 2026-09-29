@@ -1,7 +1,7 @@
 # Release metadata: I Bought an AI Powerhouse. Then the Agent Kept Giving Up.
 
 - Status: scheduled
-- Medium story: https://medium.com/@sergii_96457/cda2488bf64c
+- Medium story: https://medium.com/@aifleas/cda2488bf64c
 - Medium editor: https://medium.com/p/cda2488bf64c/edit
 - Destination: `@sergii_96457`, profile/home
 - Scheduled local slot: `2026-10-01 10:00 America/Toronto (EDT)`

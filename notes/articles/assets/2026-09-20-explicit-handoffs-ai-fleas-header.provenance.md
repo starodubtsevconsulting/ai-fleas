@@ -1,6 +1,6 @@
 # Published header for “Why Explicit Handoffs Make AI Agent Teams More Reliable”
 
-- Story: `https://medium.com/@sergii_96457/why-explicit-handoffs-make-ai-agent-teams-more-reliable-f4607f298cb6`
+- Story: `https://medium.com/@aifleas/why-explicit-handoffs-make-ai-agent-teams-more-reliable-f4607f298cb6`
 - Asset: `notes/articles/assets/2026-09-20-explicit-handoffs-ai-fleas-header.png`
 - Permanent archive: `_ai_fleas/Why Explicit Handoffs Make AI Agent Teams More Reliable/visuals/2026-09-29-ai-fleas-explicit-handoff-header.png`
 - SHA-256: `e6a4e1dc1760cc4ceeeaa2572d4d45d065f3282d7f995d4bb89c1eb3ddd3a48c`
