@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Create and evolve a model's canonical `education-profile.yml` from declared public information and controlled evidence.
+Mechanical bookkeeping Command used by an Agent in the **Education Profile Extractor** role. It creates/evolves a model's canonical `education-profile.yml` from declared information and already-evaluated evidence.
+
+The Command is **not the Extractor Agent**: it does not choose hypotheses, design probes, judge model behavior, or decide what the evidence means. Those responsibilities belong to the Extractor role/default flow and independent verifier.
 
 The command operationalizes the process documented in [Models / Education Profile Extractor](../../../models/education-profile-extractor/).
 
