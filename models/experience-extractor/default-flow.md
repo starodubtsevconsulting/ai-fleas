@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Reusable default program for an Agent bound to the **Experience Extractor** role.
+Reusable default program for an Agent bound to the **Model Experience Extractor** role.
 
 A concrete workflow imports/binds this program and supplies the target model/deployment, Extractor Agent binding, target execution route, verifier/reviewer and authorized Commands.
 
