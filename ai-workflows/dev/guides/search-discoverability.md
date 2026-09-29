@@ -1,10 +1,10 @@
 # Search discoverability guide
 
-Use this guide with the [search discoverability flow](../flows/search-discoverability.flow.md) when a human asks to make **one named public site** discoverable in Google Search. The flow includes a [human-readable registration and execution diagram](../flows/search-discoverability.flow.md#where-it-is-registered-and-how-to-run-it). The flow determines order and owners; this guide supplies the intake, practical checklist, and run record. Follow the selected project's normal authority, coding, review, delivery, and deployment rules. Mark already-satisfied work not applicable with evidence.
+Use this guide as Stage 1 of the [search discoverability flow](../flows/search-discoverability.flow.md) when a human asks to make **one named public site** discoverable in Google Search. The flow includes a [human-readable registration and execution diagram](../flows/search-discoverability.flow.md#where-it-is-registered-and-how-to-run-it) and continues into the [live-site acceptance guide](live-site-acceptance.md) as Stage 2. The flow determines order and owners; the guides supply the checklists and run records. Follow the selected project's normal authority, coding, review, delivery, and deployment rules. Mark already-satisfied work not applicable with evidence.
 
 Google decides whether and when to index a page. The achievable result is a site that can be crawled and understood, a verified Search Console property where access is available, and recorded evidence of what Google currently sees.
 
-To reuse it, ask: **“Run the search discoverability flow for `<public site URL>` in `<authorized project>`. Use `<known owner/account>` for search verification, and preserve the working site.”** The operator fills the input table from the current project and account, executes applicable steps, and returns the run record with pending items. If access or a necessary public fact is missing, complete independent steps and name the exact blocker.
+To reuse the full flow, ask: **“Run the search discoverability flow, including live-site acceptance, for `<public site URL>` in `<authorized project>`. Use `<known owner/account>` for search verification and preserve the working site.”** The operator fills the input table from the current project and account, executes applicable steps, then follows Stage 2. If access or a necessary public fact is missing, complete independent steps and name the exact blocker.
 
 ## Inputs to resolve
 

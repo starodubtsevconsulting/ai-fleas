@@ -80,7 +80,8 @@ the same bounded Coder route while retaining ownership of design and independent
    [planning flow](flows/planning.flow.md).
    For a public site's search-discoverability task, enter the
    [search discoverability flow](flows/search-discoverability.flow.md), which uses the
-   [search discoverability guide](guides/search-discoverability.md) for site-specific inputs and evidence.
+   [search discoverability guide](guides/search-discoverability.md) for site-specific search inputs and evidence,
+   followed by the [live-site acceptance guide](guides/live-site-acceptance.md) for production behavior and recovery.
 3. Coder implements the product and test changes. Use the:
    - [coding.md](guides/coding.md)
    - [domain-driven-design.md](guides/strategies/domain-driven-design.md)
