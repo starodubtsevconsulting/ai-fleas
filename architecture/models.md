@@ -1,6 +1,6 @@
 # First-class Models in AI-Fleas
 
-Status: **conceptual refactor; no runtime paths move in this branch yet**.
+Status: **implemented model-ownership refactor; runtime strategy behavior remains unchanged**.
 
 ## Why
 
@@ -63,8 +63,7 @@ models/
 
 Shared benchmark **protocols/fixtures** remain reusable infrastructure rather than being copied into every model.
 
-`notes/models/` is an interim knowledge registry created while Stage 1 is still active. A later migration can promote
-it to `models/` after consumers are updated.
+The Stage-1 interim `notes/models/` registry has been promoted to top-level `models/`. Shared benchmark fixtures remain under `notes/benchmarks/local-models/`.
 
 ## Model versus deployment
 
@@ -125,19 +124,15 @@ delegation guidance
 
 Public information is the résumé. Benchmarks are education in action.
 
-## Migration boundary
+## Migration completed
 
-Do **not** move the active Dev model-profile paths while GX10 Stage 1 / PR #225 depends on them.
+GX10 Stage 1 / PR #225 is closed and merged. This branch applies the ownership migration:
 
-After Stage 1 stabilizes:
-
-1. define the first-class model/education schemas;
-2. promote `notes/models/` to `models/`;
-3. move canonical education evidence out of Dev-specific delegation paths;
-4. leave workflow/platform configs as references/consumers of model IDs and deployment IDs;
-5. update launchers and validators;
-6. verify existing Dev, Writing, System and other workflows resolve models without owning model knowledge;
-7. remove obsolete duplicate sources only after consumers are migrated.
+1. top-level `models/` owns canonical model education and model-specific benchmark evidence;
+2. canonical education files use `education-profile.yml`;
+3. Dev strategy configs remain operational consumers and reference the canonical profile;
+4. shared benchmark fixtures/protocols remain reusable infrastructure;
+5. launchers still do not inject education automatically; future Education Profile Extractor/delegator work can consume the canonical registry.
 
 ## Architectural test
 
