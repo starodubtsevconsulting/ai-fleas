@@ -1,0 +1,69 @@
+schema_version: ai-fleas-model-experience.v1
+model_family: Qwen3-Coder-Next
+profile_status: evidence-backed-provisional
+purpose: Guide delegation from observed work rather than assumed hidden knowledge.
+education_reference: education.yml
+communication:
+  observed_scope: Qwen3-Coder-Next Q5_K_M through the configured Stage-1 Hermes CLI Coder route; do not assume transfer to another deployment.
+  direct_starting_language:
+    - Give a named file and edit boundary, a source-to-target change, and the existing input/output contract directly.
+    - Use concrete code and data terms such as function, representation, substring, whole word, result, and test case.
+    - State a local invariant and its positive and misleading cases at the code boundary where it applies.
+  translate_first:
+    - Explain unfamiliar business labels or document meaning as properties of inputs and data representations.
+    - For specialized lifecycle behavior, spell out state transitions, survivor cases, and cleanup obligations; familiar software words alone did not make implementation reliable here.
+  observed_working_pattern:
+    description: On the frozen recognizer, map normalizedText to boundary-preserving text and compactText to fuzzy search; contrast PAYMENT with REPAYMENT and point to the relevant code boundary.
+    evidence: benchmarks/gx10/domain-context-three-arm-2026-09-28.json
+    limit: The translated arm bundled analogy, examples, and code-boundary mapping; the experiment did not isolate which ingredient helped.
+  observed_insufficient_pattern:
+    description: Raw recognizer facts helped less than the translated package. On the process-group fixture, analogy, survivor example, exact invariant and explicit sequence still failed to produce reliable first-pass code.
+    evidence:
+      - benchmarks/gx10/domain-context-three-arm-2026-09-28.json
+      - benchmarks/gx10/process-group-translated-pilot-2026-09-28.json
+      - benchmarks/gx10/process-group-algorithm-2026-09-28.json
+    limit: Output can reflect parts of an explanation while missing its combined invariant; internal understanding cannot be inferred from output.
+  handoff_rule: Translate only unfamiliar meaning needed for the edit into data, state, invariants, positive/misleading examples and the relevant code boundary.
+  verification_rule: Check the artifact independently; completion prose, exit zero and even behavioral verification may miss source-level lifecycle flaws.
+observed:
+  demonstrated:
+    - focused-file-edits
+    - repository-tool-use
+    - source-to-target-ports
+  controlled_findings:
+    - task: frozen-financial-recognizer
+      first_pass_accepted: {task_only: "3/9", raw_domain: "5/9", translated_domain: "8/9"}
+      evidence: benchmarks/gx10/domain-context-three-arm-2026-09-28.json
+      interpretation_limit: One fixture does not prove prior financial knowledge or general domain fluency.
+    - task: frozen-process-group-helper
+      first_pass_accepted: {task_only: "0/8", raw_domain: "0/8", translated_domain: "0/8"}
+      evidence:
+        - benchmarks/gx10/process-group-domain-context-pilot-2026-09-28.json
+        - benchmarks/gx10/process-group-translated-pilot-2026-09-28.json
+      interpretation_limit: These failures do not prove a general reasoning ceiling.
+    - task: reviewed-source-port
+      accepted: "4/4"
+      evidence: benchmarks/gx10/turn-cap-pilot-2026-09-28.json
+      interpretation_limit: Porting a reviewed answer does not establish independent design skill.
+  recurring_limits:
+    - Completion prose and process exit sometimes disagreed with independently checked code.
+    - Repeated no-change patch calls and turn-limit stops occurred after a useful artifact was present.
+    - Process-group candidates repeatedly failed descendant cleanup despite explicit handoff language.
+inferred_but_unverified:
+  - Software/data vocabulary may be a better default communication language than unexplained domain terminology.
+  - Translation may unlock capability when an unfamiliar rule reduces to a local data/code invariant.
+  - Process-group failure may involve multi-step implementation difficulty beyond communication.
+unknown:
+  - prior financial-document knowledge and organization-specific semantics
+  - which translated recognizer ingredient produced the improvement
+  - transfer to other tasks, domains, transports or deployments
+  - reliable first-pass unfamiliar process-lifecycle implementation
+  - representative long-context accepted-code performance
+role_fit:
+  provisional:
+    - focused-coder
+    - bounded-repository-worker
+  handoff_condition: Give exact write scope and independent acceptance; repeated failure after clear teaching becomes a route/capability question.
+deployment_variants:
+  - id: Q5_K_M
+    note: deployment representation and runtime capacity are not experience
