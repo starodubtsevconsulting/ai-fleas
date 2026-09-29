@@ -82,6 +82,14 @@ That changed the debugging question.
 
 Instead of asking, “Why is this model bad at coding?” I started asking, “At which layer does a working model turn into an unreliable agent?”
 
+<!-- VISUAL PLACEHOLDER: AI Fleas three-panel strip — “A Big Brain / A Big Desk / Still Wrong?”
+Use the canonical human + AI Fleas characters.
+Panel 1: ~80B / Q5 ≈ learned capacity / education.
+Panel 2: 65K context ≈ working memory / what can stay on the desk now.
+Panel 3: capability ≠ understanding the assignment.
+Asset target: assets/2026-09-28-ai-fleas-big-brain-big-desk-still-wrong.png
+-->
+
 Then I noticed something else: I kept looking **inside** the components, while many of the interesting failures were happening **between** them.
 
 The model could work. Hermes could work. The tool could work. The filesystem could work.
@@ -269,6 +277,13 @@ The useful handoff now looks more like:
 Not the whole domain. And not domain jargon for its own sake.
 
 **Translate the domain. Don’t dump the domain.**
+
+<!-- VISUAL PLACEHOLDER: AI Fleas three-panel strip — “Task only / Raw domain context / Translated domain context”
+Use the canonical human + AI Fleas characters.
+Show the frozen recognizer result directly: Task only 3/9 → Raw context 5/9 → Translated context 8/9.
+Keep the bottom takeaway: “Translate the domain. Don’t dump the domain.”
+Asset target: assets/2026-09-28-ai-fleas-domain-context-handoff-3-5-8.png
+-->
 
 Then I tried the same idea on a different kind of coding problem — process cleanup rather than document recognition.
 
