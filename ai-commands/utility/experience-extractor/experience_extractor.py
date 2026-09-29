@@ -30,7 +30,7 @@ def dump_yaml(path, data):
         yaml.safe_dump(data, f, sort_keys=False, allow_unicode=True)
 
 def profile_path(model):
-    return MODELS / safe_id(model) / "education-profile.yml"
+    return MODELS / safe_id(model) / "experience-profile.yml"
 
 def cmd_init(args):
     dst=profile_path(args.model)
@@ -38,7 +38,7 @@ def cmd_init(args):
         raise SystemExit(f"profile already exists: {dst}")
     declared=load_yaml(args.declared)
     profile={
-      "schema_version":"ai-fleas-model-education.v1",
+      "schema_version":"ai-fleas-model-experience.v1",
       "model":args.model,
       "profile":{"maturity":"draft","basis":["public-model-documentation"]},
       "draft":declared,
@@ -72,7 +72,7 @@ def cmd_apply(args):
     if not pp.exists(): raise SystemExit(f"profile not found: {pp}")
     profile=load_yaml(pp); update=load_yaml(args.evidence); validate_update(update,args.model)
     eid=safe_id(args.evidence_id or Path(args.evidence).stem)
-    evidence_dir=pp.parent/"benchmarks"/"education-profile-extraction"
+    evidence_dir=pp.parent/"benchmarks"/"experience-extraction"
     stored=evidence_dir/f"{eid}.yml"
     if stored.exists(): raise SystemExit(f"evidence id already exists: {eid}")
     dump_yaml(stored,update)
