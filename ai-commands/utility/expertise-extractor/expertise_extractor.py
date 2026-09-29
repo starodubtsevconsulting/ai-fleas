@@ -72,7 +72,7 @@ def cmd_apply(args):
     if not pp.exists(): raise SystemExit(f"profile not found: {pp}")
     profile=load_yaml(pp); update=load_yaml(args.evidence); validate_update(update,args.model)
     eid=safe_id(args.evidence_id or Path(args.evidence).stem)
-    evidence_dir=pp.parent/"benchmarks"/"experience-extraction"
+    evidence_dir=pp.parent/"benchmarks"/"expertise-extraction"
     stored=evidence_dir/f"{eid}.yml"
     if stored.exists(): raise SystemExit(f"evidence id already exists: {eid}")
     dump_yaml(stored,update)
