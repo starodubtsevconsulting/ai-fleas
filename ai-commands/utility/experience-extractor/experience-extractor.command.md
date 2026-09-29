@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Mechanical bookkeeping Command used by an Agent in the **Experience Extractor** role. It creates/evolves a model's canonical `experience-profile.yml` from declared information and already-evaluated evidence.
+Mechanical bookkeeping Command used by an Agent in the **Model Experience Extractor** role. It creates/evolves a model's canonical `experience-profile.yml` from declared information and already-evaluated evidence.
 
 The Command is **not the Extractor Agent**: it does not choose hypotheses, design probes, judge model behavior, or decide what the evidence means. Those responsibilities belong to the Extractor role/default flow and independent verifier.
 
