@@ -18,6 +18,10 @@ tags:
 
 *What tuning Hermes around a local Qwen coder taught me about the layers between a model and useful work.*
 
+![The author explains a task to the AI Fleas robot, which listens and considers his words.](assets/2026-09-29-ai-powerhouse-human-ai-flea-conversation-header.png)
+
+*The author and AI Fleas discuss how to turn a capable local model into a useful agent. Illustration generated with OpenAI image generation from the author-provided character references.*
+
 I hate having capacity I cannot quite unlock.
 
 I remember this from when I was a student. I had an old pre-Pentium IBM-compatible computer — I think it was a 486-era machine. It ran at one speed, and I used it that way for years.
