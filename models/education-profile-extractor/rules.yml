@@ -1,0 +1,44 @@
+schema_version: ai-fleas-education-profile-extractor-rules.v1
+objective: make-model-representation-sufficiently-accurate-for-intended-use
+not_objectives:
+  - make-model-pass-every-task
+  - optimize-runtime-by-default
+  - infer-education-from-model-size-or-quantization
+phases:
+  draft:
+    source: public-upstream-information
+    claims_are: declared-not-demonstrated
+  evidence:
+    source: controlled-observation
+    claims_are: scoped-to-evidence
+experiment:
+  freeze:
+    - starter
+    - task
+    - verifier
+    - acceptance-criteria
+  vary: one-meaningful-variable-at-a-time
+  repeat_or_interleave_when_variance_matters: true
+  independent_acceptance_required: true
+  completion_prose_is_acceptance: false
+  preserve_contradictions: true
+  transfer_before_generalizing: true
+claim_states:
+  - confirmed
+  - refined
+  - contradicted
+  - inferred-but-unverified
+  - unknown
+stopping:
+  stop_when:
+    - intended-role-questions-are-sufficiently-resolved
+    - next-probe-is-unlikely-to-change-delegation-decision
+  do_not_continue_merely_to:
+    - achieve-a-pass
+    - accumulate-more-benchmarks
+profile_update:
+  require:
+    - evidence-path
+    - task-and-deployment-scope
+    - interpretation-limit
+  never_silently_overwrite_contradictory_evidence: true
