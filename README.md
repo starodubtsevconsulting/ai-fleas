@@ -128,7 +128,7 @@ A useful mental model is:
 | **Declared education** | What upstream documentation says the model was designed or trained for. |
 | **Observed education / capability** | What controlled work and independent verification show the model can actually do. |
 | **Education Profile** | Human- and agent-readable model knowledge used by a delegator to decide what can be said directly and what needs translation. |
-| **Education Profile Extraction** | Iterative process that refines a draft model résumé using controlled work, evidence and contradictions. |
+| **Education Profile Extraction** | Iterative process that refines a draft model résumé using controlled work, evidence and contradictions; see the [Education Profile Extractor](models/education-profile-extractor/). |
 | **Conceptual language** | Vocabulary and abstractions the model can operationalize without additional teaching. |
 | **Translation boundary** | Where unfamiliar domain concepts should be translated into the model's conceptual language before delegation. |
 | **Domain Context Handoff** | A handoff technique that teaches the smallest relevant unfamiliar domain model before assigning the task. |

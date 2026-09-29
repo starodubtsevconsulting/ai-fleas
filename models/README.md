@@ -56,6 +56,8 @@ It tells us what the model is supposed to have been educated for. It does not pr
 
 ## Education Profile Extraction
 
+The reusable process is defined in the [Education Profile Extractor](education-profile-extractor/).
+
 The Education Profile Extractor is the process that turns the résumé into evidence-backed knowledge:
 
 ```
