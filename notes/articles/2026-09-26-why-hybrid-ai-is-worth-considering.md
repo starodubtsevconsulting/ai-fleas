@@ -4,25 +4,25 @@ subtitle: "A scripted podcast-style conversation about hosted intelligence, loca
 author: Sergii Starodubtsev
 date: "2026-09-26"
 locale: en
-status: draft
+status: published
 tags:
   - artificial-intelligence
   - ai-agents
   - local-models
   - a2a
   - observability
-lead_image: "assets/2026-09-26-why-hybrid-ai-is-worth-considering-header.jpg"
-lead_image_alt: "A glass pedestrian bridge connects two separate buildings above a narrow street."
-lead_image_credit: "Photo by B PJ on Unsplash."
+lead_image: "assets/2026-09-26-why-hybrid-ai-is-worth-considering-ai-fleas-header.png"
+lead_image_alt: "A human and an AI Fleas robot route tasks between a local computer and a hosted cloud, with symbols for privacy, speed, and storage."
+lead_image_credit: "Illustration generated from the author’s AI Fleas character references."
 ---
 
 # Why Hybrid AI Is Worth Considering
 
 *A scripted podcast-style conversation about hosted intelligence, local capacity, cost, and control.*
 
-![A glass pedestrian bridge connects two separate buildings above a narrow street.](assets/2026-09-26-why-hybrid-ai-is-worth-considering-header.jpg)
+![A human and an AI Fleas robot route tasks between a local computer and a hosted cloud, with symbols for privacy, speed, and storage.](assets/2026-09-26-why-hybrid-ai-is-worth-considering-ai-fleas-header.png)
 
-*A clear connection can let independent systems work together without pretending they are one. Photo by B PJ on Unsplash.*
+*The AI Fleas team routes work between local capacity and hosted AI. Illustration generated from the author’s AI Fleas character references.*
 
 *The following is a scripted dialogue. Host and Anna are fictional voices used to explain a real implementation; this is not a transcript of an actual interview.*
 
