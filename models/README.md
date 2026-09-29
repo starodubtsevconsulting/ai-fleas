@@ -31,7 +31,7 @@ AI-Fleas calls that the model's **education profile**.
 
 ## Education profile
 
-Each model eventually has an `education.yml`.
+Each model eventually has an `education-profile.yml`.
 
 It is both human-readable and agent-readable. It records:
 
@@ -61,7 +61,7 @@ The Education Profile Extractor is the process that turns the résumé into evid
 ```
 public information
       ↓
-draft education.yml
+draft education-profile.yml
       ↓
 controlled work across task families
       ↓
@@ -69,7 +69,7 @@ independent verification
       ↓
 observations + contradictions
       ↓
-revised education.yml
+revised education-profile.yml
 ```
 
 This is not a one-time benchmark. The profile evolves as we work with the model.
@@ -126,7 +126,7 @@ The target knowledge structure is:
 models/
   qwen3-coder-next/
     model.yml
-    education.yml
+    education-profile.yml
     benchmarks/
       gx10/
         ...
@@ -172,6 +172,6 @@ See:
 
 - [First-class Models architecture](../architecture/models.md)
 - [Education Profile design](../architecture/model-education-profile.md)
-- [Qwen3-Coder-Next example](../architecture/examples/qwen3-coder-next.education.yml)
+- [Qwen3-Coder-Next example](../architecture/examples/qwen3-coder-next.education-profile.yml)
 
 The later structural migration should make this module the canonical home of model knowledge and update workflow/platform consumers to reference it.
