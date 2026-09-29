@@ -38,6 +38,15 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 
 ## Review and completion
 
+For every completed review, tell the human the disposition in plain language in the same
+final response as the Router result. Summarize what was checked, the most consequential
+finding or reason for acceptance, the exact scope (source only or named rendered
+destinations), and what happens next. If the review is source-only, explicitly say that
+the destination, narration, and release have not been reviewed. If changes are required,
+name the blocking correction and owner. Do not leave the human with only a machine-readable
+`WORKFLOW_ROUTER_RESULT` or a file-change card. End the response with the exact terminal
+`WORKFLOW_ROUTER_RESULT` marker and JSON so the host Router can still observe it.
+
 Follow the [independent critique flow](../../flows/independent-critique.flow.md). The role label alone does not prove
 independence: inspect the revision's provenance and stop if this same task drafted or edited it. Apply the selected
 template and method emphasis proportionately, check facts and repetition separately, present passage-specific findings
