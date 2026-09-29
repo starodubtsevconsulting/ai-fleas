@@ -1,0 +1,30 @@
+schemaVersion: role.v1
+extends: _role.yml
+
+id: education-profile-extractor
+contract: education-profile-extractor.md
+
+scope:
+  kind: workflow
+  bindingOwner: workflow
+
+humanFacing: true
+
+lifecycle:
+  default: task-scoped
+
+fixed:
+  canonicalRole: education-profile-extractor
+
+configurable:
+  flow:
+    type: path
+    ownership: workflow
+    required: true
+  aiBinding:
+    type: provider-model-binding
+    ownership: profile
+    required: true
+
+bindings:
+  defaultFlowTemplate: ../../../models/education-profile-extractor/default-flow.md
