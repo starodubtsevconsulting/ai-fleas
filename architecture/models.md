@@ -49,13 +49,13 @@ models/
     education.schema.json
   qwen3-coder-next/
     model.yml
-    education.yml
+    education-profile.yml
     benchmarks/
       gx10/
         ...
   qwen3.5-9b/
     model.yml
-    education.yml
+    education-profile.yml
     benchmarks/
       rtx-3080-ti/
         ...
