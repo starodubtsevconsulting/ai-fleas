@@ -4,7 +4,7 @@ Use this scenario when a human asks to make **one named public site** discoverab
 
 Google decides whether and when to index a page. The achievable result is a site that can be crawled and understood, a verified Search Console property where access is available, and recorded evidence of what Google currently sees.
 
-To reuse it, ask: **“Run the [site search scenario](search-discoverability.scenario.md) for `<public site URL>` in `<authorized project>`. Use `<known owner/account>` for search verification, and preserve the working site.”** The operator fills the input table from the current project and account, executes applicable steps, and returns the run record with pending items. If access or a necessary public fact is missing, complete independent steps and name the exact blocker.
+To reuse it, ask: **“Run the [search discoverability flow](../flows/search-discoverability.flow.md) for `<public site URL>` in `<authorized project>`. Use `<known owner/account>` for search verification, and preserve the working site.”** The operator fills the input table from the current project and account, executes applicable steps, and returns the run record with pending items. If access or a necessary public fact is missing, complete independent steps and name the exact blocker.
 
 ## Inputs to resolve
 
