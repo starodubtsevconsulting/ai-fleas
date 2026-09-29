@@ -59,6 +59,45 @@ The initial Qwen3-Coder-Next investigation is the reference prototype. It establ
 
 See the preserved Qwen evidence under [Qwen3-Coder-Next benchmarks](../qwen3-coder-next/benchmarks/gx10/).
 
+## Extractor agent requirements
+
+The **extractor agent is not the model under test**. It acts as teacher, experiment designer, domain translator and evaluator.
+
+It should operate at a higher abstraction level than the target worker for the capability being profiled. In practical terms, the extractor should be able to understand the human problem independently of the target model and reason about both sides of the translation:
+
+**human/problem domain ↔ general concepts ↔ target model's conceptual language**
+
+Required characteristics:
+
+- understand the real task/domain well enough to know what correctness means before probing the target;
+- reason in higher-level abstractions rather than merely imitate the target model's vocabulary;
+- distinguish domain knowledge, communication failure, implementation failure, tool/runtime failure and verification failure;
+- translate unfamiliar human/domain concepts into several candidate representations without assuming one is correct;
+- design probes that discriminate between competing hypotheses;
+- create positive, negative and misleading near-match examples;
+- interpret independent acceptance evidence and source-level behavior;
+- recognize when the target repeats an explanation without operationalizing the invariant;
+- preserve uncertainty and contradictions instead of rationalizing failures;
+- stop teaching when evidence suggests the limitation is not primarily communicative;
+- remain independent from the target model's self-assessment.
+
+The extractor does **not** need to be globally “smarter” than every possible target in every domain. It must be sufficiently more capable for the **profiling objective**: understanding the problem, designing/evaluating the experiment, and reasoning about the target's behavior.
+
+### Domain grounding
+
+For domain-specific profiling, the extractor must have access to authoritative domain context or a knowledgeable human/reviewer. A powerful general model must not invent the definition of correctness for medicine, finance, law, organization-specific business rules, or other unfamiliar domains.
+
+### Separation of duties
+
+Where practical:
+
+- **Extractor/Coordinator** chooses hypotheses and probes.
+- **Target model** performs the frozen task.
+- **Independent verifier/reviewer** determines acceptance.
+- **Extractor** synthesizes the evidence into the profile.
+
+The target model must not grade itself, define its own acceptance criteria, or rewrite the experiment after seeing a failure.
+
 ## Outputs
 
 The extractor owns three outputs:
