@@ -56,11 +56,13 @@ I did not yet have enough information to say yes.
 
 During the call, I was talking it through with my Personal Governor—an AI agent I have set up with context about my goals and past decisions.
 
-It did not make the decision for me. It helped me notice a pattern: I was being asked to commit before I understood the service. It suggested that I end the conversation and review a written proposal later.
+It did not make the decision for me. It helped me notice a pattern: I was being asked to commit before I understood the service. As the salesperson continued talking, my Personal Governor suggested the same short boundary several times: “Thank you, goodbye.”
+
+That advice was useful because the agent already had context about my goals, priorities, and broader situation. In this call, the outside seller did not have that accumulated context. The agent was not deciding for me; it was helping me recognize and express a decision I had already reached.
 
 That was harder to do than it sounds.
 
-I tried to be polite. The conversation kept circling back to another offer, another term, another reason to decide immediately. I repeated that I would not buy anything on the call.
+I tried to be polite. The conversation kept circling back to another offer, another term, another reason to decide immediately. I repeated that I would not buy anything on the call, but I still found it difficult to say the final words and leave.
 
 Eventually, I hung up without even saying goodbye.
 
