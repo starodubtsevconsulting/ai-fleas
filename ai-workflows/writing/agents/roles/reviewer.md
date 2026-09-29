@@ -47,6 +47,10 @@ not just filenames or captions: a crop or re-upload of the same photograph is st
 both hero and an early inline block unless the second placement has a distinct editorial purpose. Verify the title,
 subtitle/deck, and first body heading as separate visual roles in the rendered draft. A subtitle pasted as a large,
 bold heading or styled like the title is a destination-formatting defect even when its words are correct.
+For each selected image, check the canonical archive and repository filename against its visible subject and editorial
+purpose. A bare number, generic upload name, or unexplained random string is a Writer-owned finding even if the image
+renders correctly. Verify provenance retains the supplied original name and content hash; do not judge Medium's
+internal upload identifier as the canonical filename.
 For a Medium draft, load the command-owned
 [Medium draft skill](../../../../ai-commands/content/medium/skills/medium-draft/SKILL.md) for its read-only rendered
 checks. Verify the title is the first content block, with no empty editable paragraph or excess blank band above it.

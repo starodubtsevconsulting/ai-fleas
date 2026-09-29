@@ -54,6 +54,9 @@ purpose and source mapping. A hero repeated directly after the title or subtitle
 the second use adds a clear, necessary explanation. Record both locations and screenshots so Writer can remove or
 justify the repeat. Do not clear visual QA from a source-file inventory alone: a destination may insert the cover
 separately and also render the source's lead image inline.
+For each selected image, verify that the canonical archive and repository filename describes its subject or editorial
+purpose and can be traced to the original supplied filename and content hash. Reject bare numbers, generic upload
+names, and unexplained random strings as canonical names. The destination may assign its own internal upload ID.
 
 Inspect the rendered title, subtitle or deck, and first body heading together. Confirm that the subtitle uses the
 destination's intended subtitle treatment and reads as secondary to the title, with suitable font, weight, size,

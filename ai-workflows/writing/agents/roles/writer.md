@@ -50,6 +50,10 @@ the permanent archive, and provide exact identities for independent rendered-des
 repository header-use index under the selected mirror path. The index supplements inspection of the actual archive
 and destination history; it never licenses reuse merely because an older row is absent. Keep narration audio in the
 permanent article archive, not in Git.
+For every selected image, give the canonical archive and repository copies a stable, descriptive filename that names
+the article or subject and the image's editorial purpose. Do not retain upload names such as `1.png`, `img2.png`, or
+an unexplained random string as the canonical asset name. Record the supplied original filename and content hash in
+provenance so renaming does not break traceability. Medium's generated upload identifier is outside this naming rule.
 When a review is scoped to a pull request, include the complete article and referenced assets in the remote PR head
 before handing off for review. Verify the remote head after pushing. If pushing is unavailable, report the precise
 blocker and keep the PR review pending; local files alone do not satisfy a PR review request. A Reviewer finding that
