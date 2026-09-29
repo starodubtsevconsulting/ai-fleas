@@ -4,6 +4,10 @@
 >
 > — Epictetus, *Enchiridion* 1, translated by Elizabeth Carter ([text](https://seaver.pepperdine.edu/academics/ge/seaver-core/foundations-of-reasoning/content/the-handbook-encheiridion-of-epictetus.pdf))
 
+![A human enables one tool permission while an AI Fleas robot receives a bounded capability through an adapter connected to a secured vault.](assets/2026-09-16-ai-fleas-bounded-secret-access-header.png)
+
+*A bounded tool capability reaches the agent while the secret stays in the vault. Illustration generated from the author’s AI Fleas character references.*
+
 A few years ago, the answer to “where should I keep my secrets?” was often simple: use AWS Secrets Manager, Azure Key Vault, Google Secret Manager, or whatever your cloud already provides.
 
 That still makes perfect sense when the cloud is where your system lives.
