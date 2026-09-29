@@ -10,7 +10,12 @@
     "critique_disposition": "writer",
     "human_listen_through": "reviewer",
     "release_planning": "release-coordinator",
-    "release_gate_diagnosis": "reviewer"
+    "release_gate_diagnosis": "reviewer",
+    "published_revision": "writer",
+    "published_review": "reviewer",
+    "published_apply": "release-coordinator",
+    "published_verification": "reviewer",
+    "published_reconciliation": "writer"
   },
   "stages": {
     "administration": {
@@ -21,6 +26,11 @@
           "to": "drafting",
           "visualLabel": "route-required: send article request to Writer",
           "requiredReferenceKinds": ["revision", "work-request"]
+        },
+        "published-update-required": {
+          "to": "published_revision",
+          "visualLabel": "published-update-required: revise existing story",
+          "requiredReferenceKinds": ["published-story", "work-request"]
         },
         "review-required": {
           "to": "review",
@@ -39,6 +49,79 @@
       "role": "admin",
       "capability": "workflow_orchestration",
       "transitions": {}
+    },
+    "published_revision": {
+      "role": "writer",
+      "capability": "published_revision",
+      "transitions": {
+        "review_ready": {
+          "to": "published_review",
+          "visualLabel": "review_ready: exact replacement and preview",
+          "requiredReferenceKinds": ["revision", "published-story", "review-packet"]
+        }
+      }
+    },
+    "published_review": {
+      "role": "reviewer",
+      "capability": "published_review",
+      "transitions": {
+        "accepted": {
+          "to": "published_apply",
+          "visualLabel": "accepted: independently reviewed update",
+          "requiredReferenceKinds": ["review", "published-story", "destination-review"]
+        },
+        "changes_required": {
+          "to": "published_revision",
+          "requiredReferenceKinds": ["findings"]
+        }
+      }
+    },
+    "published_apply": {
+      "role": "release-coordinator",
+      "capability": "published_apply",
+      "transitions": {
+        "applied": {
+          "to": "published_verification",
+          "visualLabel": "applied: live story changed in place",
+          "requiredReferenceKinds": ["published-story", "destination-change"]
+        },
+        "changes_required": {
+          "to": "published_revision",
+          "requiredReferenceKinds": ["findings"]
+        },
+        "blocked": {
+          "to": "administration",
+          "visualLabel": "blocked: Admin inspects destination obstacle",
+          "requiredReferenceKinds": ["blocker", "published-story"]
+        }
+      }
+    },
+    "published_verification": {
+      "role": "reviewer",
+      "capability": "published_verification",
+      "transitions": {
+        "verified": {
+          "to": "published_reconciliation",
+          "visualLabel": "verified: rendered story matches review",
+          "requiredReferenceKinds": ["published-story", "destination-review"]
+        },
+        "changes_required": {
+          "to": "published_revision",
+          "requiredReferenceKinds": ["findings"]
+        }
+      }
+    },
+    "published_reconciliation": {
+      "role": "writer",
+      "capability": "published_reconciliation",
+      "transitions": {
+        "archived": {
+          "to": "complete",
+          "visualLabel": "archived: archive and mirror reconciled",
+          "terminal": true,
+          "requiredReferenceKinds": ["archive-record", "published-story"]
+        }
+      }
     },
     "drafting": {
       "role": "writer",

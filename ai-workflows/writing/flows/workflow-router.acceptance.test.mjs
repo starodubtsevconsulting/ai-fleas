@@ -68,6 +68,8 @@ assert.match(visualMap, /complete\["complete<br\/>writer<br\/>COMPLETE"\]/);
 assert.match(visualMap, /release -->\|released: schedule verified; archive status\| archive_update/);
 assert.match(visualMap, /diagnosis -->\|review_ready: prepared packet\| review/);
 assert.match(visualMap, /diagnosis -->\|changes_required: Writer preparation\| correction/);
+assert.match(visualMap, /administration -->\|published-update-required: revise existing story\| published_revision/);
+assert.match(visualMap, /published_apply -->\|applied: live story changed in place\| published_verification/);
 
 
 // Multi-destination contract guard: selected representations remain independently identifiable.
@@ -86,6 +88,25 @@ const adapter = {
   async dispatch(packet) { dispatched.push(packet); },
 };
 const router = createWorkflowRuntime(definition, { ...scope, routerRuntimeId: 'writing-router-a' });
+
+// An existing public URL follows a review/apply/verify/reconcile route, never scheduling.
+const publishedScope = { ...scope, runtimeScopeId: 'writing-published-update' };
+const published = createWorkflowRuntime({ ...definition, scope: publishedScope },
+  { ...publishedScope, routerRuntimeId: 'writing-published-update' }, { stage: 'administration' });
+const publishedSteps = [
+  ['published-update-required', 'administration', 'published_revision', ['published-story', 'work-request']],
+  ['review_ready', 'published_revision', 'published_review', ['revision', 'published-story', 'review-packet']],
+  ['accepted', 'published_review', 'published_apply', ['review', 'published-story', 'destination-review']],
+  ['applied', 'published_apply', 'published_verification', ['published-story', 'destination-change']],
+  ['verified', 'published_verification', 'published_reconciliation', ['published-story', 'destination-review']],
+  ['archived', 'published_reconciliation', 'complete', ['archive-record', 'published-story']],
+];
+for (const [type, expectedStage, nextStage, kinds] of publishedSteps) {
+  const result = await published.route({ scope: publishedScope, type, expectedStage,
+    references: kinds.map((kind) => ({ kind, ref: `${kind}://published-update` })) }, adapter);
+  assert.equal(result.currentStage, nextStage);
+  assert.notEqual(result.currentStage, 'release');
+}
 
 const adminIngress = createWorkflowRuntime(definition,
   { ...scope, routerRuntimeId: 'writing-admin-ingress' }, { stage: 'administration' });

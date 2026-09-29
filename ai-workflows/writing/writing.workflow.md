@@ -22,7 +22,8 @@ The executable projection is [writing.workflow-map.json](writing.workflow-map.js
 is [writing.workflow-map.mmd](writing.workflow-map.mmd).
 The generated diagram marks the workflow start in blue, the human wait in amber, and completion in green; its
 diagnosis arrows show the recovery route for prepared review evidence, missing Writer preparation, or a resolved
-release gate. It describes possible states rather than the currently active run.
+release gate. Its published-update branch revises an existing live story without scheduling a second release. It
+describes possible states rather than the currently active run.
 
 ## Repository mutation boundary
 
@@ -56,6 +57,8 @@ them.
   diagnosis stage. It reports a pending gate instead of inventing a slot. It is repository read-only; any later
   archival update belongs to Writer. Substantive
   editorial changes remain Writer-owned; a changed revision requires affected checks to be repeated.
+  On the distinct [published-update route](flows/published-update.flow.md), it applies an independently reviewed,
+  authorized change to the exact existing destination story and returns a saved-page record for fresh verification.
 - In release-gate diagnosis, Reviewer routes an already prepared revision and review packet back to independent
   `review` with `review_ready`, including the fixed header shortlist when image selection is pending. Reviewer uses
   `changes_required` with findings when Writer must prepare missing assets or an unpublished destination draft.
@@ -68,6 +71,8 @@ them.
   article `revision` and durable `work-request` reference carrying the human's scope, target, and approvals; the Router
   assigns Writer's `drafting` stage. Admin-owned work finishes through
   `administration/handled`.
+  A request to revise an already published story uses `administration/published-update-required` with the exact
+  `published-story` and `work-request` references; it must not enter the new-article scheduling path.
 - The human author may accept or reject a final revision. When the selected profile explicitly permits review-only
   Medium scheduling, a successful independent review authorizes Release Coordinator to schedule a future slot without
   another article-acceptance decision. The human performs immediate Publish or Submit actions. A Reviewer title or
@@ -131,6 +136,9 @@ them.
 
 For a source-to-destination conversion, preserve the source in the archive even if import or editor work fails.
 For a read-only question or a minor revision, run only the applicable flows and explain any skipped gate.
+For an already published article, use the [published-update flow](flows/published-update.flow.md): prepare and mirror
+the new revision, independently review it, apply it to the existing public story, independently verify the rendered
+page, then reconcile the archive and remote repository record. Preserve the public URL and prior asset history.
 
 ## Article memory
 

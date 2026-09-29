@@ -19,6 +19,11 @@ This role composes the [common agent contract](../../../agents.md) within one in
 | Must delegate | Protected governance to Judge and workflow administration to Admin. Writer exposes results only through the Router stage contract and never contacts Reviewer, Release Coordinator, or Admin as workflow transport. |
 | Must not | Modify source code, scripts, tests, plugins, workflow/role/skill definitions, profiles, project configuration, agent bindings, or runtime configuration; claim its own pass is independent review; approve the human's final revision; propose a verified release slot as its own result; publish, submit, schedule, or act outside the selected profile/project scope. |
 
+For an existing public story, Writer owns `published_revision` and `published_reconciliation` under the
+[published-update flow](../../flows/published-update.flow.md). It prepares the smallest requested revision and
+preview, preserves prior assets and rights history, and reconciles the archive and remote mirror after the live page
+is independently verified. Writer does not edit the live published story.
+
 The effective boundary is the [Writing Team](../team.md) and [editorial routing contract](../editorial-routing.md).
 
 For an Admin-routed `drafting` packet, open its required durable `work-request` reference before deciding the scope.
