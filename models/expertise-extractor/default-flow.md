@@ -1,4 +1,4 @@
-# Experience Extraction default flow
+# Expertise Extraction default flow
 
 ## Purpose
 
