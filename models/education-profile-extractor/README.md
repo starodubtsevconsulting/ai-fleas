@@ -112,6 +112,18 @@ If yes to the last question, **stop**. Do not benchmark indefinitely.
 
 See [rules.yml](rules.yml) for agent-readable rules and [profile-update.yml](templates/profile-update.yml) for the evidence-to-profile update contract.
 
+## Current implementation
+
+The deterministic profile/evidence core is implemented as the reusable AI Command [`education-profile-extractor`](../../ai-commands/utility/education-profile-extractor/education-profile-extractor.command.md).
+
+It currently supports:
+
+- `init` — create a public-information draft profile;
+- `apply` — append independently evaluated evidence and evolve claim state without erasing contradictions;
+- `status` — report claim states, unresolved questions and extraction status.
+
+The next implementation layer is the **probe runner/orchestrator**: choose a probe from this catalog, invoke the configured model/deployment through an adapter, obtain independent acceptance, materialize a profile-update record, and feed it back to the deterministic core. The core intentionally has no Hermes/Qwen dependency.
+
 ## Intended interface
 
 The implementation ticket is Trello #141. The eventual reusable operation should feel like:
