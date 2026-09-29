@@ -55,7 +55,7 @@ observed_education:
     - Completion prose and process exit sometimes disagreed with independently checked code.
     - Repeated no-change patch calls and turn-limit stops occurred after a useful artifact was present.
     - Process-group candidates repeatedly failed descendant cleanup despite explicit handoff language; one corrected staged helper was accepted after an exact-sequence handoff and source review.
-  evidence: ["../../benchmarks/local-models/gx10.md", "benchmarks/gx10/hermes-qwen-coder-runtime-2026-09-28.md"]
+  evidence: ["../../notes/benchmarks/local-models/gx10.md", "benchmarks/gx10/hermes-qwen-coder-runtime-2026-09-28.md"]
 inferred_but_unverified:
   - Software and data vocabulary may be a better default communication language than unexplained domain terminology; individual vocabulary items were not isolated experimentally.
   - Translation may unlock capability when an unfamiliar rule reduces to a local data/code invariant; transfer beyond the recognizer is unproven.

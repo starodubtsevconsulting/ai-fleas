@@ -18,22 +18,21 @@ reuse. Do not copy machine names, endpoints, client data, or operational profile
 
 ## Education metadata
 
-The [model-family education catalog](../../../../../notes/models/README.md)
-is the canonical cross-model vocabulary. This directory adds route-specific evidence for the selected
-provider-model. The two YAML shapes are not interchangeable or consumed automatically. A catalog `role_fit`
+The [model-family education catalog](../../../../../models/README.md)
+is the canonical cross-model vocabulary. This directory owns route-specific strategy and evidence for the selected provider-model; canonical model education lives under the top-level `models/` registry and is consumed by reference. A catalog `role_fit`
 or family-level strength can nominate a worker for a probe; before a handoff, check the route-specific scope
 and evidence. A future shared schema should retain both family-level design intent and each observed result's
 exact deployment, transport, and task scope.
 
-A model strategy may point to an `education_profile` file in this directory. Its reusable
-[schema](model-education.schema.json) separates three kinds of information:
+A model strategy may point to a canonical `education_profile` under the top-level `models/` registry. Its reusable
+[canonical schema](../../../../../models/schema/education-profile.schema.json) separates three kinds of information:
 
 - `declared`: the upstream model maker's stated design or training orientation, with a direct source and a limit on what the claim proves;
 - `observed`: a checked local result, its exact model/route/task scope, evidence paths, and an interpretation limit;
 - `unknown_or_unverified`: concepts the coordinator should translate or probe before assuming competence.
 
 `communication` turns those entries into a starting vocabulary, translation needs, and a verification rule. It is
-handoff guidance, not an audit of hidden model knowledge or a runtime setting. [Qwen3-Coder-Next Q5](qwen3-coder-next-q5km.education.yml)
+handoff guidance, not an audit of hidden model knowledge or a runtime setting. [Qwen3-Coder-Next](../../../../../models/qwen3-coder-next/education-profile.yml)
 is the first populated instance. The Hermes and proposal-only strategies for that provider model point to the same
 file, but an observed Hermes result does not prove the proposal-only route behaves the same way. Always check each
 observation's `scope` before applying it. Other models should receive a profile only when their declared sources and

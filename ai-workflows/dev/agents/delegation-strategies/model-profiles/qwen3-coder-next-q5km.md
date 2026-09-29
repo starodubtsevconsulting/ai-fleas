@@ -9,7 +9,7 @@ CLI one-shot.
 
 ## Education and communication model
 
-This is coordinator guidance about the language of a handoff, not a measurement of the model's hidden knowledge. The [structured education profile](qwen3-coder-next-q5km.education.yml) keeps source claims, local observations, and unknowns separate. Parameter count, `Q5_K_M` quantization, and context length describe architecture or this deployment; they do not establish domain education.
+This is coordinator guidance about the language of a handoff, not a measurement of the model's hidden knowledge. The [canonical education profile](../../../../../models/qwen3-coder-next/education-profile.yml) keeps source claims, local observations, and unknowns separate. Parameter count, `Q5_K_M` quantization, and context length describe architecture or this deployment; they do not establish domain education.
 
 ### Declared education
 
@@ -20,8 +20,8 @@ The [upstream model card](https://huggingface.co/Qwen/Qwen3-Coder-Next) describe
 These are outcomes on checked tasks, not direct measurements of what the model knew before the handoff.
 
 - It produced accepted focused file edits and source-to-target ports under exact scope and independent checks. This supports using familiar software terms such as file, interface, state, invariant, process, and test without first teaching those terms. It does not establish reliable performance on arbitrary repository work.
-- On one frozen financial recognizer, nine interleaved runs per arm passed on the first try **3/9 task only, 5/9 raw domain context, and 8/9 translated context**. The translated arm combined an analogy, positive and misleading examples, and a code-boundary hint; the experiment cannot isolate which ingredient helped or reveal the model's prior financial knowledge. See the [protocol](../../../../../notes/benchmarks/local-models/fixtures/hermes-financial-recognizer-coding/THREE_ARM_PROTOCOL.md) and [run record](../../../../../notes/models/qwen3-coder-next/benchmarks/gx10/domain-context-three-arm-2026-09-28.json).
-- On the separate process-group lifecycle fixture, task-only and raw-context arms each had **0/8** accepted first passes. A later translated-context batch also had **0/8** first passes, despite spelling out the cleanup sequence; one of eight became source-accepted after a fixed correction. The translated batch was not interleaved with the earlier arms, so their times are not a matched ranking. The first-pass failure is evidence that better explanation alone was insufficient *on this fixture*, not proof of a general reasoning ceiling. See the [A/B record](../../../../../notes/models/qwen3-coder-next/benchmarks/gx10/process-group-domain-context-pilot-2026-09-28.json) and [translated transfer record](../../../../../notes/models/qwen3-coder-next/benchmarks/gx10/process-group-translated-pilot-2026-09-28.json).
+- On one frozen financial recognizer, nine interleaved runs per arm passed on the first try **3/9 task only, 5/9 raw domain context, and 8/9 translated context**. The translated arm combined an analogy, positive and misleading examples, and a code-boundary hint; the experiment cannot isolate which ingredient helped or reveal the model's prior financial knowledge. See the [protocol](../../../../../notes/benchmarks/local-models/fixtures/hermes-financial-recognizer-coding/THREE_ARM_PROTOCOL.md) and [run record](../../../../../models/qwen3-coder-next/benchmarks/gx10/domain-context-three-arm-2026-09-28.json).
+- On the separate process-group lifecycle fixture, task-only and raw-context arms each had **0/8** accepted first passes. A later translated-context batch also had **0/8** first passes, despite spelling out the cleanup sequence; one of eight became source-accepted after a fixed correction. The translated batch was not interleaved with the earlier arms, so their times are not a matched ranking. The first-pass failure is evidence that better explanation alone was insufficient *on this fixture*, not proof of a general reasoning ceiling. See the [A/B record](../../../../../models/qwen3-coder-next/benchmarks/gx10/process-group-domain-context-pilot-2026-09-28.json) and [translated transfer record](../../../../../models/qwen3-coder-next/benchmarks/gx10/process-group-translated-pilot-2026-09-28.json).
 - Completion prose, a zero process exit, and plausible code have disagreed with independent acceptance. The coordinator must verify the artifact and task invariants.
 
 ### Unknown or unverified education
@@ -155,7 +155,7 @@ eight interleaved assignments explicitly saying to check whole-word `PAYMENT` in
 search `compactText` passed 8/8, with 319.42 versus 243.49 seconds of total Coder time. The treatment also requested
 direct file-tool work and concise completion, so the source-representation sentence is not isolated as the sole cause.
 This is a task-specific handoff result, not a general model-speed setting. Include both false-positive and coexistence
-cases in independent acceptance checks. See the [GX10 runtime benchmark](../../../../../notes/models/qwen3-coder-next/benchmarks/gx10/hermes-qwen-coder-runtime-2026-09-28.md).
+cases in independent acceptance checks. See the [GX10 runtime benchmark](../../../../../models/qwen3-coder-next/benchmarks/gx10/hermes-qwen-coder-runtime-2026-09-28.md).
 
 For process-tree cleanup, state the exact sequence and verify each branch. On a frozen six-case helper fixture, two
 fresh handoffs explicitly required an unconditional final group SIGKILL, but both initial implementations still made
