@@ -2,11 +2,11 @@
 
 ## Purpose
 
-[Dev](../dev.workflow.md), from planning through production acceptance when a human asks to launch or improve one named public site and make it eligible for Google Search. Apply the [search discoverability guide](../guides/search-discoverability.md), then the [live-site acceptance guide](../guides/live-site-acceptance.md), to the selected project. This flow owns the order, role ownership, and exit; the guides own the site-specific checklists and run record. It does not add an agent, account authority, or a guarantee of indexing.
+[Dev](../dev.workflow.md), from planning through production acceptance when a human asks to launch or improve one named public site and make it eligible for Google Search. Apply the [search discoverability guide](../guides/search-discoverability.md), then the [live-site acceptance guide](../guides/live-site-acceptance.md), then the [buyer-journey and optimization guide](../guides/site-buyer-journey.md), to the selected project. This flow owns the order, role ownership, and exit; the guides own the site-specific checklists and run record. It does not add an agent, account authority, or a guarantee of indexing.
 
 ## Where it is registered and how to run it
 
-The [Dev workflow manifest](../workflow.yml) selects [dev.workflow.md](../dev.workflow.md) as its entry. Dev step 2 links to this flow for public-site search work. The flow uses the [search guide](../guides/search-discoverability.md) for discovery and registration, then the [acceptance guide](../guides/live-site-acceptance.md) for live behavior and recovery checks. It is a linked Dev flow, not a separate workflow or agent registration.
+The [Dev workflow manifest](../workflow.yml) selects [dev.workflow.md](../dev.workflow.md) as its entry. Dev step 2 links to this flow for public-site search work. The flow uses the [search guide](../guides/search-discoverability.md) for discovery and registration, the [acceptance guide](../guides/live-site-acceptance.md) for live behavior and recovery checks, and the [buyer-journey guide](../guides/site-buyer-journey.md) for offer clarity, conversion paths, accessibility, and measured optimization. It is a linked Dev flow, not a separate workflow or agent registration.
 
 ```mermaid
 flowchart TD
@@ -29,7 +29,16 @@ flowchart TD
     Q -->|Failure| T[Create follow-up; debug and repeat affected checks]
     T --> V
     Q -->|Access missing| P[Record not run, owner, and recovery point; keep acceptance open]
-    Q -->|Yes| X[Return to Dev verification and closure]
+    P --> J
+    Q -->|Yes| X[Stage 2 safe flows have current evidence]
+    X --> J[Stage 3: buyer-journey and optimization guide]
+    J --> U[Walk Home to offer or proof to contact on phone and desktop]
+    U --> O{Observed technical defect or approved copy change?}
+    O -->|Yes| Y[Review candidate, build all affected frontends, deploy, and read back]
+    O -->|No| Z[Record proposals and pending owner decisions]
+    Y --> Z
+    Z --> W[Measure search and inquiry outcomes later]
+    W --> E[Return to Dev verification and closure]
 ```
 
 The diagram shows the handoff and evidence path. The numbered steps below remain authoritative for role ownership, gates, and exceptions.
@@ -38,6 +47,7 @@ The diagram shows the handoff and evidence path. The numbered steps below remain
 | --- | --- | --- |
 | 1. Search foundation and registration | Public crawl baseline, site changes, live metadata, Google/Bing property and sitemap evidence | Search-account access, delayed crawl and indexing |
 | 2. Live-site acceptance | Current browser flow and recovery evidence for the deployed revision | Safe checks awaiting authorized test access; deliberately excluded transactions |
+| 3. Buyer journey and optimization | Phone/desktop path evidence, technical fixes, reviewed copy proposals, live read-back, and a measurement plan | Owner decisions on wording/proof, field performance data, search and inquiry outcomes |
 
 Future stages can extend this sequence by adding a linked guide, owner, evidence and exit gate here and in the Dev entry. Keep site-specific runs in the selected project's work record rather than adding production details to this reusable flow.
 
@@ -64,10 +74,13 @@ The same flow works with the registered Dev roles or with a directly authorized 
 9. **Designer / Reviewer** starts Stage 2 using the [live-site acceptance guide](../guides/live-site-acceptance.md). Coordinate actual UI acceptance and configured test/deployment owners. On the exact deployed revision, exercise desktop/mobile navigation, assets, public content, signed-out account UI, and applicable authenticated, contact, and transaction previews. Proof: per-flow `pass`, `fail`, or `not run` with URL, observed result, and failure evidence. A prior run or HTTP 200 alone does not pass a user flow.
 10. **Designer / Reviewer** verifies the selected site's durable-data backup schedule, off-host copy where required, an isolated restore, monitoring, and rollback path. Mark inapplicable items with a reason. For failures, use the parent's debugging path and make specific follow-up work items; repeat affected checks after changes. Never make a real booking, payment, publication, deletion, or account change solely for smoke testing without that transaction's authorization.
 11. **Manager** updates the authorized work record with completed and pending items; proof: tracker state matching both run records and the next recovery point. Keep acceptance open when a required safe flow lacks access or evidence. Deliberately untested irreversible transactions may remain `not run` when the site's acceptance criteria allow them.
+12. **Designer / Reviewer** starts Stage 3 using the [buyer-journey and optimization guide](../guides/site-buyer-journey.md). Walk the site's actual Home → offer or proof → contact journey on a phone and desktop; inspect the four visitor questions (who, offer, proof, contact), links, keyboard access, layout, and measured performance. Record URLs, viewports, observed friction, and whether each item is technical, copy, or unverified. Use read-only discovery before changing unfamiliar paths.
+13. **Coder** corrects bounded technical defects through the parent's implementation and review gates. Draft copy and proof claims for the owner; publish them only after the selected project's required content approval. **Command Runner** runs builds for every frontend affected by shared code, focused tests, and the authorized deployment route. **Designer / Reviewer** reads back the exact live revision, keyboard and mobile navigation, conversion path, service logs, and other sites sharing the component. If a production build fails, restore the last known good revision through the authorized rollback path, correct the failure, and repeat the affected gates.
+14. **Manager** records Stage 3 findings, approved changes, pending copy decisions, and a dated measurement event. Separate technical pass, owner-approved messaging, Core Web Vitals, indexing, referrals, and qualified inquiries. Pending approval or delayed field data is reported explicitly rather than silently counted as complete.
 
 ## Exit
 
-Return to the parent's deployment-verification checkpoint when a candidate was delivered, then closure. For a verification-only run with no site change, return through the parent's no-delivery acceptance path. Stage 1 is complete when applicable site changes are live and verified (or existing foundations are confirmed sufficient), search-property/sitemap/live-inspection checks have real results or named access blockers, and delayed crawl/index data is explicitly pending. Stage 2 is complete when required safe live flows and recovery checks have current evidence; authorized exclusions and deliberately untested transactions are explicitly `not run`. Access blockers keep final acceptance open with a named owner and recovery point. Failed behavior returns to debugging at the first failed gate; changed code, deployment, or account state invalidates only affected evidence. Do not report a submitted sitemap or indexing request as an indexed page.
+Return to the parent's deployment-verification checkpoint when a candidate was delivered, then closure. For a verification-only run with no site change, return through the parent's no-delivery acceptance path. Stage 1 is complete when applicable site changes are live and verified (or existing foundations are confirmed sufficient), search-property/sitemap/live-inspection checks have real results or named access blockers, and delayed crawl/index data is explicitly pending. Stage 2 is complete when required safe live flows and recovery checks have current evidence; authorized exclusions and deliberately untested transactions are explicitly `not run`. Stage 3 is complete when the buyer paths and applicable technical fixes have current phone/desktop evidence, copy proposals have an explicit owner decision or pending owner, and a later measurement point is recorded. Access blockers keep final acceptance open with a named owner and recovery point. Failed behavior returns to debugging at the first failed gate; changed code, deployment, or account state invalidates only affected evidence. Do not report a submitted sitemap or indexing request as an indexed page.
 
 ## Later promotion capability
 
