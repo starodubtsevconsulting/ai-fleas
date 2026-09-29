@@ -1,4 +1,4 @@
-# Proposed header for “Should Your Hybrid AI Start in ChatGPT or Hermes?”
+# Published header for “Should Your Hybrid AI Start in ChatGPT or Hermes?”
 
 - Story ID: `6b04a12cba4c` on the author's Medium account.
 - Asset: `notes/articles/assets/2026-09-26-ai-fleas-hybrid-front-door-header.png`
@@ -8,4 +8,4 @@
 - Visual: a human and one AI Flea consider a hosted cloud entrance and a local workbench as the front door to a hybrid AI workflow.
 - Author approval: 2026-09-29, for this story's replacement header.
 - Proposed alt text: `A human and an AI Fleas robot consider two paths: a hosted cloud workspace and a local computer.`
-- Status: approved asset, **not yet selected on the live Medium story**. Preserve the current image and credit until the saved public replacement is verified; then update the article record and `header-use-index.md`.
+- Status: published on the existing Medium story on 2026-09-29. The public page shows this image once, with native subtitle, caption, and alt text; the control-room photograph and its credit are absent. Medium image ID: `0*Y-u0ErXJPYsH9Dn8.png`.
