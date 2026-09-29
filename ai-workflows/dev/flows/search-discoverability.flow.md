@@ -16,9 +16,12 @@ flowchart TD
     F --> G[Stage 1: search guide and run record]
     F --> B[Audit live pages, crawl signals, mobile, and contact]
     B --> C{Site change needed?}
-    C -->|Yes| I[Implement, review, test, and deploy through Dev]
+    C -->|Yes| I[Implement and review; build and run locally on a safe host]
+    I --> G1{Local builds and browser paths pass?}
+    G1 -->|No| I
+    G1 -->|Yes| I2[Update production checkout; restart only required services]
     C -->|No| L[Confirm existing production behavior]
-    I --> L
+    I2 --> L
     L --> S[Verify search accounts; submit sitemap; inspect URLs and messages]
     G --> S
     S --> R[Record deployed, discovered, crawled, and indexed states separately]
@@ -34,9 +37,12 @@ flowchart TD
     X --> J[Stage 3: buyer-journey and optimization guide]
     J --> U[Walk Home to offer or proof to contact on phone and desktop]
     U --> O{Observed technical defect or approved copy change?}
-    O -->|Yes| Y[Review candidate, build all affected frontends, deploy, and read back]
+    O -->|Yes| Y[Review candidate; build and run affected paths locally]
+    Y --> G2{Local build and browser gates pass?}
+    G2 -->|No| Y
+    G2 -->|Yes| Y2[Update production checkout, restart, and read back]
     O -->|No| Z[Record proposals and pending owner decisions]
-    Y --> Z
+    Y2 --> Z
     Z --> W[Measure search and inquiry outcomes later]
     W --> E[Return to Dev verification and closure]
 ```
@@ -66,8 +72,8 @@ The same flow works with the registered Dev roles or with a directly authorized 
 1. **Manager** resolves the target and tracker state; proof: one selected site and project, current work item, and a recoverable plan point. Use the parent's target-resolution and planning checkpoints.
 2. **Designer / Reviewer** records the public HTTP, metadata, robots, sitemap, rendered-content, mobile, and contact baseline. Define priority URLs, minimal changes, and acceptance checks using the [search discoverability guide](../guides/search-discoverability.md). Obtain approved copy/proof facts only when publishing new claims; proof: dated baseline and candidate-specific plan with unknowns named.
 3. **Coder** implements the authorized site changes through the parent's implementation checkpoint; proof: reviewable source revision and preserved working routes/contact path. Follow [coding guidance](../guides/coding.md). Account or DNS changes are not Coder-owned implementation.
-4. **Designer / Reviewer** coordinates [testing](testing.flow.md), independent review, and UI acceptance where applicable. Command Runner executes configured checks through the parent workflow; proof: current build/behavior evidence and a visible mobile and contact result, with failed gates corrected before delivery. Required independent gates need their actual owners; an emulating Admin reports them unmet or not applicable with a reason, never self-certified.
-5. **Command Runner** delivers the accepted candidate through the parent's [delivery](../guides/delivery.md) and [deployment](deployment.flow.md) path when authorized; proof: exact candidate, target, and terminal deployment result.
+4. **Designer / Reviewer** coordinates [testing](testing.flow.md), independent review, and UI acceptance where applicable. Command Runner executes configured checks through the parent workflow. Before production changes, build the exact candidate for every affected frontend and backend in the local safe environment, including production build configurations that differ from the local run. Start the site locally with isolated data, mail, and secrets, then exercise the affected phone/desktop paths in a browser. Proof: current build logs, local runtime health, and visible mobile and contact results; failed gates are corrected locally before production. Required independent gates need their actual owners; an emulating Admin reports them unmet or not applicable with a reason, never self-certified.
+5. **Command Runner** applies the accepted candidate through the parent's [delivery](../guides/delivery.md) and [deployment](deployment.flow.md) path when authorized. For a site that runs directly from a checkout, this means updating that checkout and restarting only the required service rather than implying an artifact deployment. Proof: exact candidate, target, terminal update/restart result, and live read-back. Keep the previous service public until the local gate passes.
 6. **Designer / Reviewer** reads the live site back; proof: deployed or existing revision, expected statuses, correct public metadata, sitemap, and working contact path. A local build or PR alone is insufficient. This establishes the Stage 1 production baseline, not full site acceptance.
 7. **Designer / Reviewer** coordinates Google Search Console checks with the exact profile-authorized account operator. That operator checks existing ownership, verifies the property if needed, submits the canonical sitemap, inspects the homepage and an inner page with a live test, and reads property messages. Classify each message as informational or actionable; verify an actionable warning against the relevant report and live site before changing anything. Perform Bing verification only when selected and authorized, and review its site notices when available. Proof: read-back of ownership, sitemap status, discovered pages, rendered content/canonical, message disposition, and any indexing request confirmation. Preserve verification tokens outside public records. If the operator or access is unavailable, leave this step pending and retain completed site evidence. A directly authorized Admin may perform this operation when its exact scope permits it.
 8. **Designer / Reviewer** compares live and search-console evidence, separates deployed, discovered, crawled, and indexed states, and records measured mobile/performance and inquiry limitations; proof: a [run record](../guides/search-discoverability.md#run-record-template) linked to actual observations and a date or event for delayed indexing review.
@@ -75,7 +81,7 @@ The same flow works with the registered Dev roles or with a directly authorized 
 10. **Designer / Reviewer** verifies the selected site's durable-data backup schedule, off-host copy where required, an isolated restore, monitoring, and rollback path. Mark inapplicable items with a reason. For failures, use the parent's debugging path and make specific follow-up work items; repeat affected checks after changes. Never make a real booking, payment, publication, deletion, or account change solely for smoke testing without that transaction's authorization.
 11. **Manager** updates the authorized work record with completed and pending items; proof: tracker state matching both run records and the next recovery point. Keep acceptance open when a required safe flow lacks access or evidence. Deliberately untested irreversible transactions may remain `not run` when the site's acceptance criteria allow them.
 12. **Designer / Reviewer** starts Stage 3 using the [buyer-journey and optimization guide](../guides/site-buyer-journey.md). Walk the site's actual Home → offer or proof → contact journey on a phone and desktop; inspect the four visitor questions (who, offer, proof, contact), links, keyboard access, layout, and measured performance. Record URLs, viewports, observed friction, and whether each item is technical, copy, or unverified. Use read-only discovery before changing unfamiliar paths.
-13. **Coder** corrects bounded technical defects through the parent's implementation and review gates. Draft copy and proof claims for the owner; publish them only after the selected project's required content approval. **Command Runner** runs builds for every frontend affected by shared code, focused tests, and the authorized deployment route. **Designer / Reviewer** reads back the exact live revision, keyboard and mobile navigation, conversion path, service logs, and other sites sharing the component. If a production build fails, restore the last known good revision through the authorized rollback path, correct the failure, and repeat the affected gates.
+13. **Coder** corrects bounded technical defects through the parent's implementation and review gates. Draft copy and proof claims for the owner; publish them only after the selected project's required content approval. **Command Runner** runs focused tests and all affected production builds on the local safe host, then starts the local site with isolated services. **Designer / Reviewer** checks local keyboard/mobile navigation and conversion paths before production. Only after that gate passes, **Command Runner** updates the production checkout and restarts the required service; **Designer / Reviewer** reads back the exact live revision, service logs, and other sites sharing the component. If the production run fails, restore the last known good revision through the authorized rollback path, correct the failure locally, and repeat the affected gates.
 14. **Manager** records Stage 3 findings, approved changes, pending copy decisions, and a dated measurement event. Separate technical pass, owner-approved messaging, Core Web Vitals, indexing, referrals, and qualified inquiries. Pending approval or delayed field data is reported explicitly rather than silently counted as complete.
 
 ## Exit

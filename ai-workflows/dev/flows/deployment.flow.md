@@ -6,14 +6,14 @@
 
 ## Entry
 
-Known component, candidate/artifact, target, registered deployment route, readiness/runtime gates, and recovery policy.
+Known component, candidate/artifact, target, registered production update or deployment route, local safe-host readiness/runtime gates, and recovery policy.
 PR/build success does not authorize deployment; production follows its selected release policy.
 
 ## Steps
 
 1. Designer/Reviewer resolves applicability, existing exact authorization, candidate/target, and expected runtime proof.
-2. Command Runner verifies required terminal checks for that candidate/artifact using [delivery guidance](../guides/delivery.md).
-3. Command Runner dispatches through the profile-selected route; returns run identity, candidate, target, terminal result, and evidence.
+2. Command Runner verifies required terminal checks for that candidate/artifact using [delivery guidance](../guides/delivery.md). For a site that builds when started from its checkout, first build every affected production target and run the changed browser paths on a local host with isolated services. A local gate failure blocks the production update.
+3. Command Runner dispatches through the profile-selected route; returns run identity, candidate, target, terminal result, and evidence. For checkout-run sites, the action is a controlled source update and service restart, not an implied artifact deployment. Watch startup build and service logs until the site is ready.
 4. Designer/Reviewer invokes [testing](testing.flow.md) for proof the intended candidate is active and behaves correctly in the target.
 5. Manager records the verified outcome through authorized configured tracker persistence when applicable.
 
