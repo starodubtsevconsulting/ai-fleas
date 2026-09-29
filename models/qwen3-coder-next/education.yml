@@ -1,0 +1,15 @@
+schema_version: ai-fleas-model-education.v1
+model_family: Qwen3-Coder-Next
+status: declared
+source:
+  kind: upstream-model-card
+  url: https://huggingface.co/Qwen/Qwen3-Coder-Next
+declared:
+  primary:
+    - coding-agent-work
+    - local-software-development
+    - tool-using-coding
+interpretation_limit: >
+  Public/upstream design intent describes training orientation and potential.
+  It does not establish local competence, prior knowledge of a specific domain,
+  or behavior on a particular deployment.

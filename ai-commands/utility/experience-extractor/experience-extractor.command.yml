@@ -1,0 +1,6 @@
+id: experience-extractor
+version: 0.0.1-SNAPSHOT
+category: utility
+type: executable
+ai:
+  powered: true
