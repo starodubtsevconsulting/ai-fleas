@@ -2,7 +2,7 @@
 
 ## Purpose
 
-[Dev](../dev.workflow.md), from planning through deployment verification when a human asks to make one named public site eligible for Google Search. Apply the [site search guide](../guides/search-discoverability.scenario.md) to the selected project. This flow coordinates existing Dev checkpoints; it does not add an agent, account authority, or a guarantee of indexing.
+[Dev](../dev.workflow.md), from planning through deployment verification when a human asks to make one named public site eligible for Google Search. Apply the [search discoverability guide](../guides/search-discoverability.md) to the selected project. This flow owns the order, role ownership, and exit; the guide owns the site-specific checklist and run record. It does not add an agent, account authority, or a guarantee of indexing.
 
 ## Entry
 
@@ -17,13 +17,13 @@ The same flow works with the registered Dev roles or with a directly authorized 
 ## Steps
 
 1. **Manager** resolves the target and tracker state; proof: one selected site and project, current work item, and a recoverable plan point. Use the parent's target-resolution and planning checkpoints.
-2. **Designer / Reviewer** records the public HTTP, metadata, robots, sitemap, rendered-content, mobile, and contact baseline. Define priority URLs, minimal changes, and acceptance checks using the [site search guide](../guides/search-discoverability.scenario.md). Obtain approved copy/proof facts only when publishing new claims; proof: dated baseline and candidate-specific plan with unknowns named.
+2. **Designer / Reviewer** records the public HTTP, metadata, robots, sitemap, rendered-content, mobile, and contact baseline. Define priority URLs, minimal changes, and acceptance checks using the [search discoverability guide](../guides/search-discoverability.md). Obtain approved copy/proof facts only when publishing new claims; proof: dated baseline and candidate-specific plan with unknowns named.
 3. **Coder** implements the authorized site changes through the parent's implementation checkpoint; proof: reviewable source revision and preserved working routes/contact path. Follow [coding guidance](../guides/coding.md). Account or DNS changes are not Coder-owned implementation.
 4. **Designer / Reviewer** coordinates [testing](testing.flow.md), independent review, and UI acceptance where applicable. Command Runner executes configured checks through the parent workflow; proof: current build/behavior evidence and a visible mobile and contact result, with failed gates corrected before delivery. Required independent gates need their actual owners; an emulating Admin reports them unmet or not applicable with a reason, never self-certified.
 5. **Command Runner** delivers the accepted candidate through the parent's [delivery](../guides/delivery.md) and [deployment](deployment.flow.md) path when authorized; proof: exact candidate, target, and terminal deployment result.
 6. **Designer / Reviewer** reads the live site back; proof: deployed or existing revision, expected statuses, correct public metadata, sitemap, and working contact path. A local build or PR alone is insufficient.
 7. **Designer / Reviewer** coordinates Google Search Console checks with the exact profile-authorized account operator. That operator checks existing ownership, verifies the property if needed, submits the canonical sitemap, and inspects the homepage and an inner page with a live test. Perform Bing verification only when selected and authorized. Proof: read-back of ownership, sitemap status, discovered pages, rendered content/canonical, and any indexing request confirmation. Preserve verification tokens outside public records. If the operator or access is unavailable, leave this step pending and retain completed site evidence. A directly authorized Admin may perform this operation when its exact scope permits it.
-8. **Designer / Reviewer** compares live and search-console evidence, separates deployed, discovered, crawled, and indexed states, and records measured mobile/performance and inquiry limitations; proof: a [run record](../guides/search-discoverability.scenario.md#run-record-template) linked to actual observations and a date or event for delayed indexing review.
+8. **Designer / Reviewer** compares live and search-console evidence, separates deployed, discovered, crawled, and indexed states, and records measured mobile/performance and inquiry limitations; proof: a [run record](../guides/search-discoverability.md#run-record-template) linked to actual observations and a date or event for delayed indexing review.
 9. **Manager** updates the authorized work record with completed and pending items; proof: tracker state matching the run record and the next recovery point.
 
 ## Exit
