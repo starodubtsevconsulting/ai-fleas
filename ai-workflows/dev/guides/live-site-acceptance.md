@@ -8,7 +8,7 @@ To reuse the whole flow, ask: **“Run the search discoverability flow, includin
 
 - Record site origin, environment, browser/device, date/time/timezone, current deployed revision, service owner, source-control branch, tracker item, and the approved account roles/mailbox. Verify a test account's role before opening private pages. Keep credentials, tokens, cookies, and private contact content out of the report.
 - Enumerate the site's actual user journeys: navigation, public content, conversion/contact, account access, and any booking, purchase, publication, or other state-changing journey. Mark a journey `not applicable` only with a reason. Define the safe stopping point for each transaction before testing.
-- Preserve a baseline before restart or deployment. Use the project's controlled restart/release path only when authorized; then confirm the exact revision and service state. A successful restart command is not proof that the browser works.
+- Preserve a baseline before a production update or restart. If this run includes code changes, require the selected project's local safe-host build and browser gate first, including every frontend affected by shared code. Use the project's controlled update/restart path only when authorized; then confirm the exact revision, service state, and public browser paths. A successful restart command is not proof that the browser works.
 
 ## Check live behavior
 
