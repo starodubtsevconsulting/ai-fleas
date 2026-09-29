@@ -50,6 +50,7 @@ Copy this checklist into the selected site's work record. Mark each item `done`,
 - [ ] Check for an existing Google Search Console property in the authorized owner account. Choose the correct domain or URL-prefix scope and verification method. If DNS is selected, save only the required record, check public DNS, and read back **Ownership verified**. Do not save verification token values in a public work record.
 - [ ] Submit the canonical sitemap in Search Console; read back submission status, processing/success state, and discovered page count. Distinguish an accepted sitemap from indexed pages.
 - [ ] If Bing is in scope, check for an existing Bing Webmaster property, verify it using a working method, and submit the same canonical sitemap. If a live meta tag is not accepted, inspect the effective fetched URL and use an authorized alternative such as DNS CNAME; verify DNS and Bing's ownership result. Record Bing processing separately from Google success.
+- [ ] Open Search Console's property Messages after verification and during follow-up. Record each message's title, date, affected property, type, and disposition: informational, actionable, or awaiting evidence. Treat a new-property welcome note as informational; it does not prove an indexing issue. For warnings, use the linked Search Console report and a live-site check to confirm the affected URLs before fixing or dismissing anything. Review Bing site notices the same way when available. Do not grant access, enable integrations, or change site behavior merely because a message suggests it.
 - [ ] Do not grant an optional broad DNS/account integration merely to replace a working manual verification record. Verify the requested scope and effects first.
 
 ### Crawl inspection and follow-up
@@ -76,6 +77,7 @@ Baseline HTTP, metadata, robots, sitemap, mobile, contact:
 Changes and build/test evidence:
 Live URL read-back:
 Google property / ownership state / sitemap status:
+Search Console and Bing messages / type / disposition / evidence:
 URL Inspection indexed result / live result / rendered content:
 Bing property and sitemap status (if applicable):
 Performance measurement / consent and inquiry measurement:
