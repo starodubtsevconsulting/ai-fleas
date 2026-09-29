@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import os
 import signal
 import subprocess
 import sys
@@ -16,43 +15,32 @@ def main() -> int:
     try:
         timeout = int(sys.argv[1])
     except ValueError:
-        print("Command timeout must be an integer.", file=sys.stderr)
+        print("Installer timeout must be an integer.", file=sys.stderr)
         return 2
     if timeout <= 0:
-        print("Command timeout must be positive.", file=sys.stderr)
+        print("Installer timeout must be positive.", file=sys.stderr)
         return 2
 
     process = subprocess.Popen(sys.argv[2:], start_new_session=True)
-    pgid = process.pid
-
-    def cleanup(signum: int) -> None:
-        try:
-            os.killpg(pgid, signum)
-        except ProcessLookupError:
-            pass
-        try:
-            process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            pass
-        try:
-            os.killpg(pgid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        try:
-            process.wait()
-        except ProcessLookupError:
-            pass
 
     def forward(signum: int, _frame: object) -> None:
-        cleanup(signum)
+        try:
+            process.send_signal(signum)
+        except ProcessLookupError:
+            pass
 
     signal.signal(signal.SIGINT, forward)
     signal.signal(signal.SIGTERM, forward)
     try:
         return process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
-        cleanup(signal.SIGTERM)
-        print(f"Command exceeded {timeout} seconds.", file=sys.stderr)
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+        print(f"Hermes installer exceeded {timeout} seconds.", file=sys.stderr)
         return 124
 
 

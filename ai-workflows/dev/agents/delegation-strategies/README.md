@@ -13,6 +13,9 @@ not select the strategy for a distinct Coder target. In the configured Dev route
 resolves the same provider model through its separate proposal-only strategy. The `qwen-bounded-coder` catalog entry
 retains Qwen3.6 35B for targeted comparison. GPT Admin invokes the bounded model launcher directly, with no Hermes
 caller hop. Hermes Q5 callers use the same target strategy when invoking that route.
+Where the selected strategy names an [education profile](model-profiles/README.md#education-metadata), use its
+declared orientation, scoped local observations, and unknowns to choose the handoff's vocabulary. It guides how the
+task is explained; it does not replace the selected route, strategy, or independent acceptance checks.
 GPT Admin must load and apply the target strategy before a handoff; the launcher's `check` reports its validated path.
 The launcher does not inject strategy prose into the model prompt. Its evidence notes explain the settings; they do
 not replace the profile binding or these strategy rules.
@@ -38,6 +41,10 @@ inspect files and the active process/session before retrying either route.
 - [Bounded exploration and implementation](bounded-exploration.md): Coder must trace related code before editing.
 - [Goal-backed continuation](goal-backed-continuation.md): several Coder turns are useful and the transport has a
   verified persistent goal and task-status mechanism.
+
+For domain-sensitive coding tasks, the provisional [Domain Context Handoff](domain-context-handoff.md) pattern can
+augment the selected strategy. It translates the minimum domain model into invariants, examples, and a code boundary;
+it does not add file authority or replace independent acceptance checks.
 
 Use read-only discovery before implementation when the write scope or required behavior is uncertain. A strategy never
 grants new file authority or transfers testing, review, or acceptance ownership to Coder. Check the launcher's actual

@@ -12,17 +12,17 @@ observed_capability:
     - task: frozen-financial-recognizer
       scope: Q5_K_M through the configured Hermes CLI route; nine interleaved fresh runs per stable prompt arm.
       first_pass_accepted: {task_only: "3/9", raw_domain: "5/9", translated_domain: "8/9"}
-      evidence: ../gx10-domain-context-three-arm-2026-09-28.json
+      evidence: benchmarks/gx10/domain-context-three-arm-2026-09-28.json
       interpretation_limit: Translation bundled analogy, examples, and code-boundary mapping; one fixture does not isolate the useful ingredient or prove prior financial knowledge.
     - task: frozen-process-group-helper
       scope: Same Q5_K_M and Hermes CLI route; task-only and raw-domain arms interleaved, translated-domain arm run later.
       first_pass_accepted: {task_only: "0/8", raw_domain: "0/8", translated_domain: "0/8"}
       evidence:
-        - ../gx10-process-group-domain-context-pilot-2026-09-28.json
-        - ../gx10-process-group-translated-pilot-2026-09-28.json
+        - benchmarks/gx10/process-group-domain-context-pilot-2026-09-28.json
+        - benchmarks/gx10/process-group-translated-pilot-2026-09-28.json
       interpretation_limit: The later translated arm cannot be timing-ranked against the earlier arms; these failures do not prove a general reasoning ceiling.
   limits: ["completion-prose-can-disagree-with-result", "repeated-tool-loops", "process-lifecycle-fixture-not-accepted-first-pass-in-three-tested-arms"]
-  evidence: ["../gx10.md", "../gx10-hermes-qwen-coder-runtime-2026-09-28.md"]
+  evidence: ["../../benchmarks/local-models/gx10.md", "benchmarks/gx10/hermes-qwen-coder-runtime-2026-09-28.md"]
 unknown_or_unverified:
   - specialized-domain-knowledge-unless-evidenced
   - organization-specific-semantics
