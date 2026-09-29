@@ -58,7 +58,7 @@ The command follows `models/expertise-extractor/rules.yml`:
 ## Outputs
 
 - `models/<model>/expertise-profile.yml`
-- evidence records under `models/<model>/benchmarks/experience-extraction/`
+- evidence records under `models/<model>/benchmarks/expertise-extraction/`
 - machine-readable status on stdout
 
 ## Roles
