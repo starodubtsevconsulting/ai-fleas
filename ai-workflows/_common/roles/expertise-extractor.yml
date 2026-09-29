@@ -1,0 +1,30 @@
+schemaVersion: role.v1
+extends: _role.yml
+
+id: expertise-extractor
+contract: expertise-extractor.md
+
+scope:
+  kind: workflow
+  bindingOwner: workflow
+
+humanFacing: true
+
+lifecycle:
+  default: task-scoped
+
+fixed:
+  canonicalRole: expertise-extractor
+
+configurable:
+  flow:
+    type: path
+    ownership: workflow
+    required: true
+  aiBinding:
+    type: provider-model-binding
+    ownership: profile
+    required: true
+
+bindings:
+  defaultFlowTemplate: ../../../models/expertise-extractor/default-flow.md
