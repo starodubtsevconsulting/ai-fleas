@@ -1,0 +1,7 @@
+flowchart TB
+    S["Frozen starting code"] --> T["Same task"]
+    T --> A["Agent under test"]
+    X["Change one thing"] --> A
+    A --> V["Independent verifier"]
+    V --> R["Record result"]
+    R --> N["Reset and repeat"]

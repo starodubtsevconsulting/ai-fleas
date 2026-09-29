@@ -52,7 +52,7 @@ That was difficult to reconcile with the hardware. I had a machine people descri
 
 My first reaction was predictable: perhaps the model was not good enough.
 
-I spent time testing that idea. I tried larger and newer local models. Some were slower. Some consumed much more memory. None gave me a convincing reason to replace my current Qwen3-Coder-Next Q5_K_M worker. I wrote about that experiment in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](2026-09-27-i-tried-to-replace-my-local-coder.md)
+I spent time testing that idea. I tried larger and newer local models. Some were slower. Some consumed much more memory. None gave me a convincing reason to replace my current Qwen3-Coder-Next Q5_K_M worker. I wrote about that experiment in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](https://github.com/starodubtsevconsulting/ai-fleas/blob/ba39a0818b51fcaaa97b0a8d0460c906253a5818/notes/articles/2026-09-27-i-tried-to-replace-my-local-coder.md)
 
 That left a more annoying possibility.
 
@@ -82,13 +82,9 @@ That changed the debugging question.
 
 Instead of asking, “Why is this model bad at coding?” I started asking, “At which layer does a working model turn into an unreliable agent?”
 
-<!-- VISUAL PLACEHOLDER: AI Fleas three-panel strip — “A Big Brain / A Big Desk / Still Wrong?”
-Use the canonical human + AI Fleas characters.
-Panel 1: ~80B / Q5 ≈ learned capacity / education.
-Panel 2: 65K context ≈ working memory / what can stay on the desk now.
-Panel 3: capability ≠ understanding the assignment.
-Asset target: assets/2026-09-28-ai-fleas-big-brain-big-desk-still-wrong.png
--->
+![Three panels show a human and the AI Fleas character comparing an 80B Q5 model's learned capacity, a 65K context desk, and the model still misunderstanding an assignment.](assets/2026-09-28-ai-fleas-big-brain-big-desk-still-wrong.png)
+
+*A big brain and a big working-memory desk still do not guarantee that the assignment was understood. Illustration supplied by the author.*
 
 Then I noticed something else: I kept looking **inside** the components, while many of the interesting failures were happening **between** them.
 
@@ -148,7 +144,7 @@ That distinction became important enough that I changed my normal coding delegat
 
 This is not a verdict that CLI is “smarter.” So far I have not measured that. It is a control decision: when something fails, I want “failed” to mean I know what is still running.
 
-I had already been circling this idea in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md): communication between agents is not automatically the hard part. Sometimes the difficult part is knowing what is actually running, what context it has, and whether a reported state corresponds to reality.
+I had already been circling this idea in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](https://medium.com/@sergii_96457/6b04a12cba4c): communication between agents is not automatically the hard part. Sometimes the difficult part is knowing what is actually running, what context it has, and whether a reported state corresponds to reality.
 
 ## Then we stopped guessing and froze the task
 
@@ -172,15 +168,9 @@ I did not set out to build a benchmarking platform. It emerged because I needed 
 
 The pattern is small:
 
-```mermaid
-flowchart LR
-    S["Frozen starting code"] --> T["Same task"]
-    T --> A["Agent under test"]
-    X["Change one thing"] --> A
-    A --> V["Independent verifier"]
-    V --> R["Record result"]
-    R --> N["Reset and repeat"]
-```
+![A flowchart shows frozen starting code feeding the same task to an agent under test, one changed variable entering the agent, an independent verifier checking the result, and the cycle recording, resetting, and repeating.](assets/2026-09-29-ai-powerhouse-frozen-task-test-bench.png)
+
+*A small test bench changes one variable, verifies the artifact independently, then resets and repeats.*
 
 The important part is the **independent verifier**. The agent is allowed to say “done.” The verifier is allowed to disagree.
 
@@ -216,7 +206,7 @@ There is some irony in spending most of a working day with a hosted agent to dis
 
 Maybe that is another kind of jumper: not a setting that makes the model twice as smart, but a better division of labour.
 
-That gave me my first surprise.
+That gave me my first surprise in an **earlier eight-run pilot**. This round compared a task-only baseline with one improved handoff and scored complete accepted runs.
 
 The baseline assignment passed only **2 of 8** runs.
 
@@ -252,7 +242,7 @@ So there are at least two very different versions of “give it domain context�
 
 Same domain. Very different teaching.
 
-So I tested that distinction directly.
+So I tested that distinction directly in a **separate follow-up protocol**. This time I compared three handoff styles, ran each one nine times, and focused on first-attempt correctness rather than the earlier pilot's overall accepted-run count.
 
 I froze the same recognizer task and ran three versions of the handoff, nine fresh attempts each:
 
@@ -278,12 +268,9 @@ Not the whole domain. And not domain jargon for its own sake.
 
 **Translate the domain. Don’t dump the domain.**
 
-<!-- VISUAL PLACEHOLDER: AI Fleas three-panel strip — “Task only / Raw domain context / Translated domain context”
-Use the canonical human + AI Fleas characters.
-Show the frozen recognizer result directly: Task only 3/9 → Raw context 5/9 → Translated context 8/9.
-Keep the bottom takeaway: “Translate the domain. Don’t dump the domain.”
-Asset target: assets/2026-09-28-ai-fleas-domain-context-handoff-3-5-8.png
--->
+![Three panels show the human briefing the AI Fleas character with task only, raw domain context, and translated domain context, improving first-attempt results from 3 of 9 to 5 of 9 to 8 of 9.](assets/2026-09-28-ai-fleas-domain-context-handoff-3-5-8.png)
+
+*On the frozen recognizer follow-up, translated context produced the strongest first-attempt result: 3/9 → 5/9 → 8/9. Illustration supplied by the author.*
 
 Then I tried the same idea on a different kind of coding problem — process cleanup rather than document recognition.
 
@@ -440,7 +427,7 @@ What I did get was measurable progress.
 - on the frozen recognizer, better handoff moved first-pass acceptance from **3/9 → 5/9 → 8/9**;
 - on the harder process-lifecycle fixture, translated context still produced **0/8** accepted first attempts, showing that better explanation is not always the missing piece;
 - on a reviewed source-port task, acceptance-stop kept **8/8 accepted artifacts** while reducing Coder time from about **417 seconds to 269 seconds** and model calls from **55 to 29**;
-- the model now has an evidence-backed **Education Profile** rather than being described only by model/runtime numbers;
+- the model now has an evidence-backed **Expertise Profile** rather than being described only by model/runtime numbers;
 - the experiment now leaves reproducible evidence instead of a collection of good and bad impressions.
 
 So did I solve the original problem?
@@ -501,6 +488,6 @@ I am just less convinced now that it is a single switch.
 
 This is a living draft based on the author's September 2026 GX10/Hermes experiments. The first half records the hypotheses that led to the tests; the later sections incorporate the measured results from the September 28 runtime/benchmark work. Those results are task-specific and should not be read as universal model rankings.
 
-The model-number primer is published as [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683). The earlier model-selection experiment is described in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](2026-09-27-i-tried-to-replace-my-local-coder.md), and the hybrid coordination design in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md). The original runtime change and article work landed in [AI Fleas PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219). The follow-up controlled runs, per-run benchmark data, CLI lifecycle changes, compression findings, and Stage 1 closure landed in [PR #225](https://github.com/starodubtsevconsulting/ai-fleas/pull/225). The final Stage-1-derived Qwen education/communication observations landed in [PR #238](https://github.com/starodubtsevconsulting/ai-fleas/pull/238), and the resulting first-class Models / Education Profile structure was integrated in [PR #237](https://github.com/starodubtsevconsulting/ai-fleas/pull/237).
+The model-number primer is published as [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683). The earlier model-selection experiment is described in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](https://github.com/starodubtsevconsulting/ai-fleas/blob/ba39a0818b51fcaaa97b0a8d0460c906253a5818/notes/articles/2026-09-27-i-tried-to-replace-my-local-coder.md), and the hybrid coordination design in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](https://medium.com/@sergii_96457/6b04a12cba4c). The original runtime change and article work landed in [AI Fleas PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219). The follow-up controlled runs, per-run benchmark data, CLI lifecycle changes, compression findings, and Phase 1 closure landed in [PR #225](https://github.com/starodubtsevconsulting/ai-fleas/pull/225). The final Phase-1-derived Qwen education/communication observations landed in [PR #238](https://github.com/starodubtsevconsulting/ai-fleas/pull/238), and the resulting first-class Models / Education Profile structure was integrated in [PR #237](https://github.com/starodubtsevconsulting/ai-fleas/pull/237).
 
 Hermes's current [context compression documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/developer-guide/context-compression-and-caching.md) documents the small-context 75% threshold floor and the `compression.threshold_tokens` absolute cap. The article intentionally separates measured observations from broader conclusions: the 32K cap was rejected for this setup based on the observed probe, while compression in general remains an open tuning dimension.
