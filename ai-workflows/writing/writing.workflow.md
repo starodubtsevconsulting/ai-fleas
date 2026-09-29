@@ -134,6 +134,14 @@ For a read-only question or a minor revision, run only the applicable flows and 
 
 ## Article memory
 
+- Select one editorial project from the selected profile's registered Writing projects before creating an article.
+  The article-store project supplies storage and is not itself the editorial subject. Resolve the selected editorial
+  project's `writing_archive_subdir` when present and use that relative folder inside the configured article store
+  for new articles. Reject absolute paths, `..`, and any path that escapes the store. Load applicable project knowledge
+  for the article and its visuals; project preferences refine the shared editorial and header contracts without
+  granting new publication authority. Record the selected project ID and resolved archive-relative folder in intake
+  and handoff evidence. For an existing article, locate its current canonical archive folder before editing; do not
+  silently create a second copy when it has not yet been migrated.
 - Resolve the archive from the selected profile's `article_store.project_ref`, which must name an authorized project.
   Its `storage_path` is the local location for the active device/runtime, not a universal path across devices. The
   logical article store and its content remain the same when another authorized device maps it to a different local
