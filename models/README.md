@@ -166,7 +166,7 @@ A benchmark is evidence about the model under a particular deployment. Shared fi
 
 ## Current status
 
-This module is a conceptual target while GX10 Stage 1 / PR #225 is still active. Existing paths should not be moved underneath a running experiment.
+This is now the canonical home of model knowledge. GX10 Stage 1 / PR #225 is closed and merged; its Qwen model evidence has been promoted here.
 
 See:
 
@@ -174,4 +174,4 @@ See:
 - [Education Profile design](../architecture/model-education-profile.md)
 - [Qwen3-Coder-Next example](../architecture/examples/qwen3-coder-next.education-profile.yml)
 
-The later structural migration should make this module the canonical home of model knowledge and update workflow/platform consumers to reference it.
+Workflow/platform strategy configs reference this registry rather than owning duplicate model education.
