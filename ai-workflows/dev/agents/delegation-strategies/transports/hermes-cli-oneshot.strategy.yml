@@ -14,7 +14,10 @@ timing:
     - never-overlap-assignments-that-write-the-same-files
   successful_process_exit_observed: true
   interrupted_process_descendant_cleanup: observed-on-one-directly-terminated-run
-  unattended_use: requires-enforced-wall-clock-limit-and-scope-review
+  hard_process_deadline_seconds_default: 240
+  termination_grace_seconds: 5
+  hard_process_deadline_override: HERMES_CODER_TIMEOUT_SECONDS
+  unattended_use: requires-scope-and-accepted-result-review
 scratch:
   temporary_directories: forbidden
   files: only-exact-visible-paths-authorized-in-assignment

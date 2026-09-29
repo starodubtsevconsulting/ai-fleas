@@ -24,6 +24,8 @@ The caller selects `AI_PROFILE_ROOT`, `AI_WORK_PROFILE_ID`, and `AI_FLOW_WORKFLO
 
 Before either route, `check` verifies the declared delegate, selected project, workflow project root, named Git branch, Hermes readiness receipt, and live Hermes profile against the workflow's provider, model, and endpoint. For A2A it also checks the local Agent Card name and URL. CLI `check` verifies configuration, but does not run an inference turn. A profile-owned wrapper may select the profile and project; the shared launcher performs these checks.
 
+CLI `run` requires the caller to set `HERMES_WRITE_SAFE_ROOT` to its authorized write boundary; `check` does not require it. It begins process-group cleanup after 240 seconds by default, allowing up to five seconds for graceful exit before SIGKILL. `HERMES_CODER_TIMEOUT_SECONDS` may set another positive integer for a specific run; empty or invalid values fail before Hermes launches. Timeout exits 124 after process-group cleanup. The caller must still inspect the actual diff and task result.
+
 ## Assignment flow
 
 ```mermaid
@@ -40,7 +42,7 @@ sequenceDiagram
   alt CLI selected
     L-->>A: Ready (configuration check)
     A->>L: run --project ID "bounded assignment"
-    L->>C: hermes -p PROFILE -t file -z PROMPT --in ROOT
+    L->>C: deadline wrapper → hermes -p PROFILE chat -Q -t file --query PROMPT --in ROOT
     C->>F: Read and edit within assignment scope
     C-->>L: Process output and exit
   else A2A selected
@@ -71,7 +73,7 @@ Both routes receive the same bounded assignment prompt, which names the selected
 | Context | A fresh process per bounded assignment; reuse is disabled by current strategy. | Current launcher starts a fresh context per assignment; task ID is used for polling, not verified context reuse. |
 | Progress and result | Waits for process output and exit. | `SendMessage` returns a task ID; `GetTask` is polled until a terminal result or client deadline. |
 | Interruption | Stop the exact one-shot process, verify it and descendants have exited, then inspect the diff. | A failed or timed-out task does not prove the gateway turn stopped. Check task state, stop the exact gateway when needed, verify no continuing session writes, then inspect the diff. |
-| Current limit | The launcher has no enforced wall-clock timeout. | The client has a 30-minute deadline; a gateway message may fail earlier. Terminal A2A state is not a process-stop guarantee. |
+| Current limit | The launcher enforces a 240-second process-group deadline by default; an authorized caller can set `HERMES_CODER_TIMEOUT_SECONDS`. It does not prove that every task completed correctly before the deadline. | The client has a 30-minute deadline; a gateway message may fail earlier. Terminal A2A state is not a process-stop guarantee. |
 
 The [JavaScript adapter](a2a-client.mjs) exposes A2A `ListTasks`, `GetTask`, and `CancelTask`, plus named-profile gateway status, start, and stop through Hermes CLI. `CancelTask` does not abort a live in-flight turn. The [external coordinator contract](external-coordinator.md) defines when a GPT coordinator may call these operations directly and how to verify recovery; the Dev workflow's internal Manager route is not the transport control path for that external caller.
 

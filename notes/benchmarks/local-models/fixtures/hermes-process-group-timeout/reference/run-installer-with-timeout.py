@@ -16,10 +16,10 @@ def main() -> int:
     try:
         timeout = int(sys.argv[1])
     except ValueError:
-        print("Command timeout must be an integer.", file=sys.stderr)
+        print("Installer timeout must be an integer.", file=sys.stderr)
         return 2
     if timeout <= 0:
-        print("Command timeout must be positive.", file=sys.stderr)
+        print("Installer timeout must be positive.", file=sys.stderr)
         return 2
 
     process = subprocess.Popen(sys.argv[2:], start_new_session=True)
@@ -52,7 +52,7 @@ def main() -> int:
         return process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
         cleanup(signal.SIGTERM)
-        print(f"Command exceeded {timeout} seconds.", file=sys.stderr)
+        print(f"Hermes installer exceeded {timeout} seconds.", file=sys.stderr)
         return 124
 
 

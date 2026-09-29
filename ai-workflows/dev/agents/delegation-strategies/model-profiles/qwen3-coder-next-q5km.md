@@ -7,6 +7,37 @@ Applies when the configured `provider_model` is exactly `qwen3-coder-next-q5km` 
 Hermes. Review this profile if the model changes. Combine it with the strategy for the selected transport: A2A or
 CLI one-shot.
 
+## Education and communication model
+
+This is coordinator guidance about the language of a handoff, not a measurement of the model's hidden knowledge. The [structured education profile](qwen3-coder-next-q5km.education.yml) keeps source claims, local observations, and unknowns separate. Parameter count, `Q5_K_M` quantization, and context length describe architecture or this deployment; they do not establish domain education.
+
+### Declared education
+
+The [upstream model card](https://huggingface.co/Qwen/Qwen3-Coder-Next) describes Qwen3-Coder-Next as designed for coding agents and local development and highlights tool-using coding. That supports software and code concepts as the **starting vocabulary** for a handoff. It is a statement of design intent, not proof that this quantized deployment will solve a particular software task. The card does not establish knowledge of our financial-document rules or organization-specific conventions.
+
+### Observed education and capability in this deployment
+
+These are outcomes on checked tasks, not direct measurements of what the model knew before the handoff.
+
+- It produced accepted focused file edits and source-to-target ports under exact scope and independent checks. This supports using familiar software terms such as file, interface, state, invariant, process, and test without first teaching those terms. It does not establish reliable performance on arbitrary repository work.
+- On one frozen financial recognizer, nine interleaved runs per arm passed on the first try **3/9 task only, 5/9 raw domain context, and 8/9 translated context**. The translated arm combined an analogy, positive and misleading examples, and a code-boundary hint; the experiment cannot isolate which ingredient helped or reveal the model's prior financial knowledge. See the [protocol](../../../../../notes/benchmarks/local-models/fixtures/hermes-financial-recognizer-coding/THREE_ARM_PROTOCOL.md) and [run record](../../../../../notes/models/qwen3-coder-next/benchmarks/gx10/domain-context-three-arm-2026-09-28.json).
+- On the separate process-group lifecycle fixture, task-only and raw-context arms each had **0/8** accepted first passes. A later translated-context batch also had **0/8** first passes, despite spelling out the cleanup sequence; one of eight became source-accepted after a fixed correction. The translated batch was not interleaved with the earlier arms, so their times are not a matched ranking. The first-pass failure is evidence that better explanation alone was insufficient *on this fixture*, not proof of a general reasoning ceiling. See the [A/B record](../../../../../notes/models/qwen3-coder-next/benchmarks/gx10/process-group-domain-context-pilot-2026-09-28.json) and [translated transfer record](../../../../../notes/models/qwen3-coder-next/benchmarks/gx10/process-group-translated-pilot-2026-09-28.json).
+- Completion prose, a zero process exit, and plausible code have disagreed with independent acceptance. The coordinator must verify the artifact and task invariants.
+
+### Unknown or unverified education
+
+Do not infer these from the coding orientation or from one successful fixture:
+
+- Organization-specific terminology, conventions, and business rules, including financial-document semantics. Translate the minimum relevant facts into data and code concepts, then check the result.
+- Reliability on unfamiliar lifecycle algorithms or other multi-step reasoning. A familiar analogy may clarify the task but may not make the implementation correct; specify the invariant and use an independent verifier.
+- Transfer of either fixture result to other models, transports, domains, or task sizes. Probe before treating a result as general capability.
+
+### Handoff implication
+
+Before delegating, ask: **which concepts can this worker use directly, and which domain facts must I translate or test?** Start with software vocabulary for a coding assignment. If the task carries an unfamiliar domain rule, use [Domain Context Handoff](../domain-context-handoff.md): translate the smallest relevant domain model into familiar concepts, explain why it matters, give positive and misleading examples, map the invariant to the code or data boundary, then state the task and acceptance checks.
+
+Use the recognizer result as evidence that communication can change accepted work. Use the process-group result as a warning that explanation may be insufficient for a harder task. Neither result diagnoses the model's internal knowledge or fixes its maximum capability. Update this profile when a new controlled result supports or contradicts a scoped claim.
+
 ## Observed behavior
 
 - Several bounded requests took close to or beyond the A2A server's roughly five-minute per-message limit. A client
@@ -27,8 +58,8 @@ CLI one-shot.
 - With a 20-turn profile cap, a 240-second advisory run budget, and tool-loop hard stops enabled, a one-file,
   no-test recognizer assignment completed in about 38 seconds. A broader CLI assignment still exceeded the transport
   window. Three subsequent one-file corrections completed in roughly one to two minutes each, and independent checks
-  confirmed a working read-only CLI against the real PDF. These settings help bound ordinary turns but have not proven
-  a hard wall-clock limit or repaired A2A cancellation.
+  confirmed a working read-only CLI against the real PDF. At that time these settings bounded ordinary turns without
+  a hard wall-clock limit or repaired A2A cancellation; the later CLI wrapper adds a separate process deadline.
 - A one-file monetary extractor parsed a synthetic example and the real contract, but its single correction for
   duplicate labels removed the real tax amounts. The draft was rejected. For numeric parsers, require an independent
   real-layout check after each edit and stop this model stage after one failed correction; do not publish a parser
@@ -71,7 +102,7 @@ benchmark or evidence that CLI produces better code. The CLI completion prose in
 contract result "supported"; review the result object and diff rather than trusting that prose on either route.
 
 CLI one-shot provides a directly observable process exit and avoids the A2A message deadline for this assignment.
-The current launcher still has no hard wall-clock timeout; the later trial below exercised direct termination once.
+At the time of this comparison the launcher had no hard wall-clock timeout; a later change added the verified wrapper.
 A2A remains available for later session-oriented work, but its current task status must not be treated as a
 process-stop guarantee. Select the transport in the profile binding and load its matching transport strategy; do not
 change the model strategy when switching between these two routes.
@@ -116,6 +147,34 @@ write roots, exclusions, and a concrete stop condition. For a port, state the ex
 If the code path is unknown, use read-only discovery first, then send a focused implementation packet once scope is
 known. Use [bounded exploration](../bounded-exploration.md) only when the transitive code path truly requires it and
 the stage fits the transport's verified limit.
+
+For text recognizers, state which input representation preserves the invariant being tested. In a frozen English
+`PAYMENT` recognizer fixture, the Coder repeatedly used a whole-word check on `normalizedText` but also a substring
+check on `compactText`, which accepted `REPAYMENT`. Eight baseline assignments passed 2/8 independent verifiers;
+eight interleaved assignments explicitly saying to check whole-word `PAYMENT` in `normalizedText` and not substring
+search `compactText` passed 8/8, with 319.42 versus 243.49 seconds of total Coder time. The treatment also requested
+direct file-tool work and concise completion, so the source-representation sentence is not isolated as the sole cause.
+This is a task-specific handoff result, not a general model-speed setting. Include both false-positive and coexistence
+cases in independent acceptance checks. See the [GX10 runtime benchmark](../../../../../notes/models/qwen3-coder-next/benchmarks/gx10/hermes-qwen-coder-runtime-2026-09-28.md).
+
+For process-tree cleanup, state the exact sequence and verify each branch. On a frozen six-case helper fixture, two
+fresh handoffs explicitly required an unconditional final group SIGKILL, but both initial implementations still made
+it conditional on a direct-child wait timeout. One verifier-backed correction produced accepted code in 52.64 seconds
+total Coder time; another passed the verifier but failed source review because an early return could skip reaping.
+Porting the accepted source to the production helper passed all six cases, yet the Coder spent 143.92 seconds and
+repeated patches until its 20-turn cap. Use the verifier and inspect the diff even when a turn reports success or
+exits at its limit. This is a useful handoff pattern for this task, not a measured general speed improvement.
+In a four-run source-port pilot, a six-turn cap passed the same verifier but exhausted its budget on both runs and
+averaged 62.94 seconds; the 20-turn cap finished normally in both runs and averaged 46.85 seconds. This small port
+test does not justify lowering the live cap to six. See the checked-in sanitized turn-cap pilot in the GX10 note.
+
+The CLI launcher now runs Hermes through the process-group timeout helper, with a 240-second default and a positive
+integer per-run override. A real correction turn completed through the wrapper; a fake CLI integration check confirmed
+that timeout exits 124 and stops a signal-resistant descendant. Independent testing of the helper still passes six
+cases. This bounds a runaway process but does not turn a timed-out assignment into accepted code. The first Coder
+stage for this change itself took 163 seconds, reached 20 calls, and wrote an unrequested empty file repeatedly;
+Admin removed that file after the process exited. One correction took 43.82 seconds. Continue to enforce exact write
+scope and independent acceptance, and do not treat a zero process exit as proof of completion.
 
 For launcher or protocol changes, spell out both sides of the command boundary with example invocations and where
 each input is read (argument or stdin). Require the Coder to inspect existing callers and tests before editing. Ask

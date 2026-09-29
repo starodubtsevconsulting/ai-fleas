@@ -66,6 +66,7 @@ const frenchVersement = recognizer.recognize({
 });
 assertContract(frenchVersement);
 assert.ok(frenchVersement.result.evidenceFlags.includes('versement-keyword'));
+assert.ok(!frenchVersement.result.evidenceFlags.includes('paiement-keyword'));
 
 const frenchPaiement = recognizer.recognize({
   normalizedText: 'Contrat de déneigement\nPaiement final',
@@ -73,6 +74,7 @@ const frenchPaiement = recognizer.recognize({
 });
 assertContract(frenchPaiement);
 assert.ok(frenchPaiement.result.evidenceFlags.includes('paiement-keyword'));
+assert.ok(!frenchPaiement.result.evidenceFlags.includes('versement-keyword'));
 
 const english = recognizer.recognize({
   normalizedText: 'SNOW REMOVAL CONTRACT\nPAYMENT DUE',
@@ -82,10 +84,29 @@ assertContract(english);
 assert.ok(english.result.evidenceFlags.includes('service-contract-keyword'));
 assert.ok(english.result.evidenceFlags.includes('snow-removal-contract-keyword'));
 assert.ok(english.result.evidenceFlags.includes('payment-keyword'));
+assert.ok(!english.result.evidenceFlags.includes('contrat-keyword'));
+assert.ok(!english.result.evidenceFlags.includes('denigement-keyword'));
+assert.ok(!english.result.evidenceFlags.includes('versement-keyword'));
+assert.ok(!english.result.evidenceFlags.includes('paiement-keyword'));
+
+const mixedCaseEnglish = recognizer.recognize({
+  normalizedText: 'SnOw ReMoVaL CoNtRaCt\nPaYmEnT Due',
+  compactText: '',
+});
+assertContract(mixedCaseEnglish);
+
+const paymentWithDistractor = recognizer.recognize({
+  normalizedText: 'SNOW REMOVAL CONTRACT\nPAYMENT DUE AFTER REPAYMENT ADJUSTMENT',
+  compactText: 'snow removal contract payment due after repayment adjustment',
+});
+assertContract(paymentWithDistractor);
+assert.ok(paymentWithDistractor.result.evidenceFlags.includes('payment-keyword'));
 
 for (const input of [
   { normalizedText: 'SNOW REMOVAL CONTRACT', compactText: 'snow removal contract' },
   { normalizedText: 'PAYMENT DUE', compactText: 'payment due' },
+  { normalizedText: 'SNOW REMOVAL CONTRACT\nREPAYMENT DUE', compactText: 'snow removal contract repayment due' },
+  { normalizedText: 'SNOW REMOVAL CONTRACT\nPAYMENTS DUE', compactText: 'snow removal contract payments due' },
 ]) {
   assert.deepEqual(recognizer.recognize(input), { recognizedFamily: false });
 }
