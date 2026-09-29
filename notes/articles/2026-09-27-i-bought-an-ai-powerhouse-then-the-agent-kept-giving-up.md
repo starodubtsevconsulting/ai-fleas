@@ -391,6 +391,10 @@ Its job is not to train the model or force it to pass. It starts with the résum
 
 The public model card is the résumé. The benchmark is the interview. Repeated real work becomes the expertise evidence.
 
+![An orange AI Flea interviews a distinct red AI Flea across repeated task sessions, recording both successful and failed results as evidence of the red agent’s demonstrated expertise.](assets/2026-09-29-ai-fleas-model-expertise-extractor-sessions.png)
+
+*One AI Flea can build another agent’s Expertise Profile through repeated questions, real tasks, and independent checks. This observes ability over time; it does not train the model. Illustration generated from the author-provided AI Fleas character reference.*
+
 That also changed how I think about Domain Context Handoff. It is not “give the model more context.” It is:
 
 > **Translate unfamiliar reality into the conceptual language this particular worker can use.**
