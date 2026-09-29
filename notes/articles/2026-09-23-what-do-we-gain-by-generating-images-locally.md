@@ -2,9 +2,9 @@
 
 **September 23, 2026**
 
-![A matte-black local compute box in a warm geometric pool of light sends five colored bands to a floating abstract image plane.](assets/2026-09-23-local-images-header-final.png)
+![An AI Fleas robot and a human produce an image at a local workstation, pass it through a checkmark gate, and save it in an asset folder.](assets/2026-09-23-local-image-generation-ai-fleas-header.png)
 
-*A locally generated image moving from owned compute to an editorial asset.*
+*A local AI Fleas image moves through an explicit policy check into the article archive. Illustration generated from the author’s AI Fleas character references.*
 
 What is the point of owning an image-generation machine if the first image I ask it to make never reaches me?
 
