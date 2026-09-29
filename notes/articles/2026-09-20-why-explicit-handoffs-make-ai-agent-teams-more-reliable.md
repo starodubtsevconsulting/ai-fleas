@@ -2,6 +2,10 @@
 
 *The quality of an AI workflow depends less on how many agents it has than on what passes between them.*
 
+![Two AI Fleas robots pass an orange evidence packet; a path continues toward the next stage.](assets/2026-09-20-explicit-handoffs-ai-fleas-header.png)
+
+*An AI Fleas handoff carries the work and evidence the next agent needs. Illustration generated from the author's character reference.*
+
 It is tempting to describe an AI agent team as a group of specialists. One agent writes, another reviews, and a third handles the release. Give each one a good prompt, connect them, and the system should work.
 
 But specialization alone does not create reliability. It creates boundaries. The real question is whether useful context can cross those boundaries without becoming vague, stale, or dangerously broad.
@@ -67,4 +71,4 @@ AI agent teams become reliable when their collaboration stops depending on impli
 
 ## Sources and provenance
 
-This article is an original synthesis based on the public AI Fleas workflow contracts for [agent communication](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-workflows/_common/agents/communication.md), [reliable delivery](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-workflows/_common/agents/delivery.md), [continuity](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-workflows/_common/agents/continuity.md), and [Writing editorial routing](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-workflows/writing/agents/editorial-routing.md). No quotations are used; the third-party header photograph is credited to Peter Zhan.
+This article is an original synthesis based on the public AI Fleas workflow contracts for [agent communication](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-workflows/_common/agents/communication.md), [reliable delivery](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-workflows/_common/agents/delivery.md), [continuity](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-workflows/_common/agents/continuity.md), and [Writing editorial routing](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/ai-workflows/writing/agents/editorial-routing.md). No quotations are used; the AI Fleas header illustration was generated from the author's character reference.

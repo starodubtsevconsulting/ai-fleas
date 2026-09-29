@@ -4,21 +4,25 @@ subtitle: "A scripted conversation about choosing the front door to a hybrid AI 
 author: Sergii Starodubtsev
 date: "2026-09-26"
 locale: en
-status: draft
+status: published
 tags:
   - artificial-intelligence
   - ai-agents
   - local-models
   - hermes
   - hybrid-ai
-lead_image: "assets/2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes-header.jpg"
-lead_image_alt: "A control room contains rows of switches, gauges, electronic panels, and a long operating console."
-lead_image_credit: "Photo by Dmitrijs Safrans on Unsplash."
+lead_image: "assets/2026-09-26-ai-fleas-hybrid-front-door-header.png"
+lead_image_alt: "A human and an AI Flea robot stand at a crossroads between a hosted cloud entrance and a local computer workspace."
+lead_image_credit: "Illustration generated from the author's AI Fleas character references."
 ---
 
 # Should Your Hybrid AI Start in ChatGPT or Hermes?
 
 *A scripted conversation about choosing the front door to a hybrid AI system.*
+
+![A human and an AI Flea robot stand at a crossroads between a hosted cloud entrance and a local computer workspace.](assets/2026-09-26-ai-fleas-hybrid-front-door-header.png)
+
+*A human and an AI Flea choose between a hosted front door and a local workspace. Illustration generated from the author's character references.*
 
 *The following is a scripted dialogue. Host and Anna are fictional voices used to explain a real implementation; this is not a transcript of an actual interview.*
 
