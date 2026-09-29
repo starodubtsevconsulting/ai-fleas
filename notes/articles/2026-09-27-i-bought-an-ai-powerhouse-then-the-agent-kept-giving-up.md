@@ -377,6 +377,57 @@ Sometimes it does not.
 
 Knowing the difference may be more useful than another parameter to tune.
 
+## So, did I actually make the local agent better?
+
+Yes — but not in the way I expected.
+
+I started with a machine people describe as an AI powerhouse and a local coding agent I did not trust. It could spend minutes working, claim success, keep writing after it should have stopped, and produce plausible code that still failed independent checks.
+
+I went looking for a parameter that would fix that.
+
+I did not find one.
+
+What I did get was measurable progress.
+
+**Before Phase 1:**
+
+- no reliable hard boundary around a runaway coding turn;
+- an A2A failure did not necessarily mean the worker had stopped;
+- completion prose was too easy to mistake for completion;
+- domain handoff was mostly intuition;
+- compression and turn limits were knobs I was tempted to change without evidence;
+- I knew the model as “80B, Q5, 65K,” but not as a worker I knew how to brief.
+
+**After Phase 1:**
+
+- the CLI route has an enforced process deadline and exact write boundary;
+- artifacts are independently verified instead of being accepted from the agent's prose;
+- the proposed 32K compression change was tested and **rejected**;
+- reducing the turn budget from 20 to 6 was tested and **rejected**;
+- on the frozen recognizer, better handoff moved first-pass acceptance from **3/9 → 5/9 → 8/9**;
+- on the harder process-lifecycle fixture, translated context still produced **0/8** accepted first attempts, showing that better explanation is not always the missing piece;
+- on a reviewed source-port task, acceptance-stop kept **8/8 accepted artifacts** while reducing Coder time from about **417 seconds to 269 seconds** and model calls from **55 to 29**;
+- the model now has an evidence-backed **Education Profile** rather than being described only by model/runtime numbers;
+- the experiment now leaves reproducible evidence instead of a collection of good and bad impressions.
+
+So did I solve the original problem?
+
+**Partly.**
+
+I did not turn Qwen into a universally reliable autonomous coder. I did not establish a magic Hermes setting. And I still have not shown that changing the GX10 inference layer will improve accepted coding work.
+
+What I did solve was the first layer: I can now **bound the worker, verify it, communicate with it more effectively on some tasks, recognize when communication is not the problem, and measure the difference**.
+
+I started with:
+
+> *This expensive thing feels disappointingly stupid.*
+
+I ended Phase 1 with something much more useful:
+
+> *I know which parts are the model, which parts are the agent, which interventions actually helped, and which ones did not.*
+
+That is a much better starting point for Phase 2.
+
 ## The expensive lesson
 
 The GX10 may still turn out to be exactly the machine I wanted.
