@@ -300,9 +300,9 @@ Better handoff did not magically make the runtime efficient.
 
 In one case the Coder reached the correct file, then kept patching it anyway. The agent made **17 successful patch calls** before finally stopping.
 
-That is the remaining kind of waste I care about in Phase 1: not whether the model knows the answer, but whether the surrounding agent knows when the work is done.
+That became one of the clearest Phase 1 findings: the problem was not only whether the model knew the answer, but whether the surrounding agent knew when the work was done.
 
-So the remaining work here is mostly guardrails: hard deadlines, scope boundaries, completion detection, and independent verification.
+The stage therefore kept the guardrails that were justified — hard deadlines, scope boundaries and independent verification — while leaving broader completion-detection experiments for later.
 
 ## I still have not touched the GX10 server
 
@@ -326,8 +326,8 @@ So the server stays put until the next experiment actually requires moving that 
 
 At this point I find it useful to think of the work in layers rather than as one giant tuning exercise.
 
-**Phase 1 — agent and handoff layer. _This is where I am now._**  
-Teach the worker enough of the domain to understand the job, then constrain and verify how it executes.
+**Phase 1 — agent and handoff layer. _Closed._**  
+This stage ended with findings explicitly classified as accepted, rejected, provisional, or unanswered. The goal was not to prove that the worker was “good” or “bad,” but to learn which parts of the handoff and execution loop actually changed accepted work.
 
 **Phase 2 — GX10 inference layer.**  
 Only after the first layer is understood: llama.cpp, tool parsing, cache and memory behavior, context/server flags, and the exact model artifact.
@@ -338,6 +338,44 @@ Only then does it make sense to compare another model or quantization against Qw
 The order matters. If I change the agent framework, the server, and the model at the same time, an improvement teaches me almost nothing.
 
 So the current goal is not to keep turning knobs until the graph looks better. It is to move **joint by joint**: understand one boundary, keep the measurements that tell me something about it, then move one layer deeper.
+
+## What six hours of testing actually changed
+
+The interesting result was not a parameter.
+
+By the end of Phase 1, I had kept the existing compression settings and the 20-turn limit. Some attractive tuning ideas had failed. Some guardrails became clearer. And one communication experiment had gone from **3/9 → 5/9 → 8/9** — then failed to transfer to a harder problem at **0/8**.
+
+That contradiction led to something more useful than another setting.
+
+I started thinking about a model as a worker with an **Education Profile**.
+
+The usual numbers still matter. Parameter count says something about capacity. Quantization says something about how that capacity is represented on my machine. Context tells me how much material can sit on the desk at once.
+
+But none of them tells me **who is sitting at the desk**.
+
+What was this model educated to do? What conceptual language does it speak naturally? What can I say directly? What needs translating? And when does better explanation stop helping because I simply gave the job to the wrong worker?
+
+That led to a new structure in AI Fleas:
+
+**Model → Education Profile → Deployment → Benchmark Evidence**
+
+And a new process:
+
+**public model information → draft Education Profile → controlled work → observed strengths and failures → revised profile**
+
+I call that **Education Profile Extraction**.
+
+The public model card is the résumé. The benchmark is the interview. Repeated real work is where you eventually discover who you actually hired.
+
+That also changed how I think about Domain Context Handoff. It is not “give the model more context.” It is:
+
+> **Translate unfamiliar reality into the conceptual language this particular worker can use.**
+
+Sometimes that unlocks capability already there.
+
+Sometimes it does not.
+
+Knowing the difference may be more useful than another parameter to tune.
 
 ## The expensive lesson
 
@@ -379,6 +417,6 @@ I am just less convinced now that it is a single switch.
 
 This is a living draft based on the author's September 2026 GX10/Hermes experiments. The first half records the hypotheses that led to the tests; the later sections incorporate the measured results from the September 28 runtime/benchmark work. Those results are task-specific and should not be read as universal model rankings.
 
-The model-number primer is published as [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683). The earlier model-selection experiment is described in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](2026-09-27-i-tried-to-replace-my-local-coder.md), and the hybrid coordination design in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md). The original runtime change and article work landed in [AI Fleas PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219). The follow-up controlled runs, per-run benchmark data, CLI lifecycle changes, and compression findings are being collected in [PR #225](https://github.com/starodubtsevconsulting/ai-fleas/pull/225).
+The model-number primer is published as [“What 27B, 4-Bit, and 64K Actually Mean in an AI Model”](https://medium.com/@sergii_96457/what-27b-4-bit-and-64k-actually-mean-in-an-ai-model-f43ea724c683). The earlier model-selection experiment is described in [“I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.”](2026-09-27-i-tried-to-replace-my-local-coder.md), and the hybrid coordination design in [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md). The original runtime change and article work landed in [AI Fleas PR #219](https://github.com/starodubtsevconsulting/ai-fleas/pull/219). The follow-up controlled runs, per-run benchmark data, CLI lifecycle changes, compression findings, and Stage 1 closure landed in [PR #225](https://github.com/starodubtsevconsulting/ai-fleas/pull/225). The final Stage-1-derived Qwen education/communication observations landed in [PR #238](https://github.com/starodubtsevconsulting/ai-fleas/pull/238), and the resulting first-class Models / Education Profile structure was integrated in [PR #237](https://github.com/starodubtsevconsulting/ai-fleas/pull/237).
 
 Hermes's current [context compression documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/developer-guide/context-compression-and-caching.md) documents the small-context 75% threshold floor and the `compression.threshold_tokens` absolute cap. The article intentionally separates measured observations from broader conclusions: the 32K cap was rejected for this setup based on the observed probe, while compression in general remains an open tuning dimension.
