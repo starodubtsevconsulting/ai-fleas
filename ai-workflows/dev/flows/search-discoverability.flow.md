@@ -4,6 +4,29 @@
 
 [Dev](../dev.workflow.md), from planning through deployment verification when a human asks to make one named public site eligible for Google Search. Apply the [search discoverability guide](../guides/search-discoverability.md) to the selected project. This flow owns the order, role ownership, and exit; the guide owns the site-specific checklist and run record. It does not add an agent, account authority, or a guarantee of indexing.
 
+## Where it is registered and how to run it
+
+The [Dev workflow manifest](../workflow.yml) selects [dev.workflow.md](../dev.workflow.md) as its entry. Dev step 2 links to this flow for public-site search work. The flow uses the [guide](../guides/search-discoverability.md) for the checklist and run record. It is a linked Dev flow, not a separate workflow or agent registration.
+
+```mermaid
+flowchart TD
+    H[Human names one public site and authorized project] --> M[Dev workflow manifest: workflow.yml]
+    M --> D[Dev entry: dev.workflow.md]
+    D -->|Step 2: public-site search task| F[This search discoverability flow]
+    F --> G[Search discoverability guide: inputs, checklist, run record]
+    F --> B[Audit live pages, crawl signals, mobile, and contact]
+    B --> C{Site change needed?}
+    C -->|Yes| I[Implement, review, test, and deploy through Dev]
+    C -->|No| L[Confirm existing production behavior]
+    I --> L
+    L --> S[Verify search accounts; submit sitemap; inspect URLs and messages]
+    G --> S
+    S --> R[Record deployed, discovered, crawled, and indexed states separately]
+    R --> X[Return to Dev verification and closure]
+```
+
+The diagram shows the handoff and evidence path. The numbered steps below remain authoritative for role ownership, gates, and exceptions.
+
 ## Entry
 
 Resolve the exact public site, priority URLs, authorized project and deployment target, owner of the site and search accounts, audience/offer, and current contact path. Record the existing live baseline and the parent Dev stage. Missing account access does not block independent site work; record verification as pending with its owner. Do not infer ownership from a browser session or repository name.

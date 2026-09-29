@@ -1,6 +1,6 @@
 # Search discoverability guide
 
-Use this guide with the [search discoverability flow](../flows/search-discoverability.flow.md) when a human asks to make **one named public site** discoverable in Google Search. The flow determines order and owners; this guide supplies the intake, practical checklist, and run record. Follow the selected project's normal authority, coding, review, delivery, and deployment rules. Mark already-satisfied work not applicable with evidence.
+Use this guide with the [search discoverability flow](../flows/search-discoverability.flow.md) when a human asks to make **one named public site** discoverable in Google Search. The flow includes a [human-readable registration and execution diagram](../flows/search-discoverability.flow.md#where-it-is-registered-and-how-to-run-it). The flow determines order and owners; this guide supplies the intake, practical checklist, and run record. Follow the selected project's normal authority, coding, review, delivery, and deployment rules. Mark already-satisfied work not applicable with evidence.
 
 Google decides whether and when to index a page. The achievable result is a site that can be crawled and understood, a verified Search Console property where access is available, and recorded evidence of what Google currently sees.
 
