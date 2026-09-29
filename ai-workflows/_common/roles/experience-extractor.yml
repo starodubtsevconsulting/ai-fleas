@@ -1,8 +1,8 @@
 schemaVersion: role.v1
 extends: _role.yml
 
-id: education-profile-extractor
-contract: education-profile-extractor.md
+id: experience-extractor
+contract: experience-extractor.md
 
 scope:
   kind: workflow
@@ -14,7 +14,7 @@ lifecycle:
   default: task-scoped
 
 fixed:
-  canonicalRole: education-profile-extractor
+  canonicalRole: experience-extractor
 
 configurable:
   flow:
@@ -27,4 +27,4 @@ configurable:
     required: true
 
 bindings:
-  defaultFlowTemplate: ../../../models/education-profile-extractor/default-flow.md
+  defaultFlowTemplate: ../../../models/experience-extractor/default-flow.md
