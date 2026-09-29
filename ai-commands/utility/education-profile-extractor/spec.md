@@ -2,7 +2,7 @@
 
 ## Boundary
 
-The reusable core has three responsibilities:
+This Command is the deterministic mechanic beneath the Education Profile Extractor Agent/flow. It has three responsibilities:
 
 1. initialize a draft profile from declared/public information;
 2. apply independently evaluated evidence without losing contradictions;
