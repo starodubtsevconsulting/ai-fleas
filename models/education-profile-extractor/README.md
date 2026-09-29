@@ -1,6 +1,6 @@
 # Education Profile Extractor
 
-The Education Profile Extractor is a reusable AI-Fleas process for discovering **how a model should be communicated with and delegated to**.
+The Education Profile Extractor is a reusable AI-Fleas **Agent role and feedback-loop flow** for discovering how a model should be communicated with and delegated to.
 
 It does not try to make every model pass every task. Its goal is to make `models/<model>/education-profile.yml` increasingly accurate until it is sufficient for the intended use.
 
@@ -61,7 +61,7 @@ See the preserved Qwen evidence under [Qwen3-Coder-Next benchmarks](../qwen3-cod
 
 ## Extractor agent requirements
 
-The **extractor agent is not the model under test**. It acts as teacher, experiment designer, domain translator and evaluator.
+The **Extractor Agent is not the model under test**. It is an Agent bound to the reusable [Education Profile Extractor role](../../ai-workflows/_common/roles/education-profile-extractor.md) and follows the [default extraction flow](default-flow.md). It acts as teacher, experiment designer, domain translator and evaluator.
 
 It should operate at a higher abstraction level than the target worker for the capability being profiled. In practical terms, the extractor should be able to understand the human problem independently of the target model and reason about both sides of the translation:
 
@@ -153,7 +153,7 @@ See [rules.yml](rules.yml) for agent-readable rules and [profile-update.yml](tem
 
 ## Current implementation
 
-The deterministic profile/evidence core is implemented as the reusable AI Command [`education-profile-extractor`](../../ai-commands/utility/education-profile-extractor/education-profile-extractor.command.md).
+The intelligent extractor is the Agent/Role + flow. Its deterministic profile/evidence bookkeeping is implemented as the reusable AI Command [`education-profile-extractor`](../../ai-commands/utility/education-profile-extractor/education-profile-extractor.command.md).
 
 It currently supports:
 
