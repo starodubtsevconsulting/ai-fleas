@@ -10,4 +10,4 @@
 - Proposed caption: `An AI Fleas handoff carries the work and evidence the next agent needs. Illustration generated from the author's character reference.`
 - Proposed alt text: `Two AI Fleas robots pass an orange evidence packet; a path continues toward the next stage.`
 - Status: published on the existing Medium story on 2026-09-29. The public page shows this image once, with the caption above, and no Peter Zhan photograph or credit. Medium image ID: `0*Csf7qwkPzh8_CdEP.png`.
-- Accessibility follow-up: Medium's public image currently has empty alt text; its editor alt-text control did not retain an update. The caption is present. Retry and verify alt text before closing the full header-refresh campaign.
+- Accessibility: Medium's public image alt text was saved and verified as `Two AI Fleas robots pass an orange evidence packet; a path continues toward the next stage.` The caption is present.
