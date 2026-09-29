@@ -1,5 +1,7 @@
 # Live acceptance stop on a coding task without a reference solution
 
+Status: **prepared, not executed**. The visible ignored runner did not pass Admin review after four bounded Coder implementation/correction assignments (two reached their 240-second process deadline). In its latest state it reruns the verifier for unchanged failing candidates, contrary to the changed-content rule below. No pilot or A/B coding trial was started, and this protocol contributes no acceptance or speed result to Stage 1.
+
 Question: does stopping a Coder after an independently accepted artifact improve useful throughput on the frozen recognizer task, where there is no reviewed target file to copy?
 
 Use the frozen French-only [starter](starter/recognizers/snow-removal-contract-recognizer.mjs), unchanged [task](TASK.md), translated [domain explanation](DOMAIN_CONTEXT_TRANSLATED.md), and independent [verifier](verify.mjs). The translation arm passed 8/9 first attempts in the earlier comparison; keep its exact preface and the same task in both arms here. Use Qwen3-Coder-Next Q5_K_M, the configured Hermes profile, CLI `chat -Q` route, 20-turn cap, 180-second deadline, fresh sessions, and an exact staged recognizer-file write root. Coder may read the task and staged target, may edit only that target, and may not read or run the verifier. Admin owns acceptance and source review.
