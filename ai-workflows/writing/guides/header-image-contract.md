@@ -4,6 +4,13 @@ This is the single canonical header/hero-image contract for the Writing workflow
 same file. A review packet records its repository-relative path and exact content hash; copied or role-local variants
 do not replace it.
 
+For a selected editorial project, Writer and Reviewer also load applicable profile-owned project knowledge. Its visual
+preferences can specify character references, brand treatment, and a preferred image direction for that project.
+Record the project ID and knowledge source in the image evidence. Apply the shared relevance, uniqueness, rights,
+crop, and rendering checks below to every candidate; a project preference does not waive them or apply to another
+project. Review replacements for published headers against the same checks and preserve the earlier image and its
+provenance in the archive rather than silently overwriting history.
+
 ## Ownership and shortlist
 
 - Writer owns discovery or generation and supplies a fixed shortlist of no more than three profile-authorized
