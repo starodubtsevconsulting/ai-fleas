@@ -78,8 +78,9 @@ the same bounded Coder route while retaining ownership of design and independent
 1. Manager resolves the work target, ticket when applicable, and required agents.
 2. Designer / Reviewer defines requirements, acceptance criteria, and implementation design through the
    [planning flow](flows/planning.flow.md).
-   For a public site's search-discoverability task, use the
-   [site search scenario](guides/search-discoverability.scenario.md) to collect site-specific inputs and evidence.
+   For a public site's search-discoverability task, enter the
+   [search discoverability flow](flows/search-discoverability.flow.md), which uses the
+   [site search guide](guides/search-discoverability.scenario.md) for site-specific inputs and evidence.
 3. Coder implements the product and test changes. Use the:
    - [coding.md](guides/coding.md)
    - [domain-driven-design.md](guides/strategies/domain-driven-design.md)
