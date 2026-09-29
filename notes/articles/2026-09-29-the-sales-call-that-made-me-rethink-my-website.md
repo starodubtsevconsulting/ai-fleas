@@ -6,7 +6,7 @@
 
 *Before buying attention, clarify the audience, the message, and the result you need. AI Fleas illustration generated from the author’s character references.*
 
-Today, a salesperson who said he represented Yellow Pages called about promoting my consulting website.
+Today, a salesperson called about promoting my consulting website.
 
 He had my attention because he pointed to a real problem. The site exists, but it could do a much better job explaining what I do, showing why it matters, and helping the right people find me.
 
