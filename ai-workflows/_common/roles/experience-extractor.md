@@ -1,6 +1,6 @@
-# Experience Extractor role
+# Model Experience Extractor role
 
-Experience Extractor is the reusable role for an Agent that discovers how a target Model should be communicated with and delegated to, then evolves the target's canonical Experience Profile from evidence.
+Model Experience Extractor is the reusable role for an Agent that discovers how a target Model should be communicated with and delegated to, then evolves the target's canonical Experience Profile from evidence.
 
 It is the **teacher, experiment designer, domain translator and evidence synthesizer**. The target model is the subject of the experiment, not the evaluator.
 
