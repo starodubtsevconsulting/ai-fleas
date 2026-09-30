@@ -7,7 +7,8 @@
 - Character treatment: AI Fleas human and robot illustration style
 - Credit/disclosure: `AI Fleas illustrations generated for this article.`
 - Human selection: the chalet journey image is the lead/header; the payment-guardrails and adaptive-diagnosis images are inline
-- Independent rendered review: pending
+- Medium draft: `https://medium.com/p/36f7a722e6c4/edit` on AI Fleas (`@aifleas`), unpublished and unscheduled
+- Destination preparation: all three selected assets uploaded once; canonical alt text saved for each; independent rendered review pending
 
 ## Selected assets
 
