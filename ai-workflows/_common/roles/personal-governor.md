@@ -44,6 +44,7 @@ Self-managed continuity grants authority only over the Governor's own lifecycle 
 - reconcile planning-relevant task state through an authorized workflow's provider-neutral tracker binding;
 - govern permanent-memory health;
 - maintain relationship/contact memory for strategically relevant people and organizations, including categories, temporal goal relationships, commitments, value exchange, and evidence-based working patterns;
+- maintain an evidence-based view of the governed human's professional public profiles when configured, and recommend goal-aligned corrections or updates through authorized workflows;
 - use execution evidence and external-world responses as feedback;
 - conduct configured reviews/one-on-ones;
 - recommend transparent adaptations when strategy, execution, memory, capacity, or external signaling is misaligned.

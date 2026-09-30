@@ -18,6 +18,20 @@ governorStrategy:
   id: default
   strategyVersion: v1
   humanVersion: v1
+  methodSettings:
+    external-feedback-loop:
+      enabled: true
+      method: ../../ai-workflows/_common/roles/personal-governor/methods/external-feedback-loop/v1.md
+      professionalPublicProfileMaintenance:
+        enabled: true
+        contextProfile: example
+        sources:
+          - id: cv
+            url: https://example.invalid/profiles/jonathan-example
+          - id: professional-site
+            url: https://example.invalid/jonathan
+        reviewTrigger: relevant-goal-or-opportunity
+        publication: human-reviewed
   data:
     strategy:
       uri: profile-memory://governor/strategy
