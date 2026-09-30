@@ -39,3 +39,12 @@ The garden bed represents a month with limited capacity. The human visibly choos
 ## Prior-use check
 
 The repository header-use index, underlying selected repository assets, configured archive, and accessible prior destination identities were inventoried before generation. This candidate has a new SHA-256 and a distinct garden-grid/pruning/replanning composition. The most related earlier header, `2026-09-17-ai-fleas-day-planning-rest-header.png`, uses an indoor day schedule and rest scene; it does not depict a garden grid, pruning, empty capacity, or month-level replanning. Independent Reviewer must repeat the full visible-content comparison before selecting it.
+
+## Destination use
+
+- Medium account: `@aifleas` (`AI Fleas`)
+- Medium story ID: `e61f9870080f`
+- Medium editor: `https://medium.com/p/e61f9870080f/edit`
+- Destination status: unpublished draft; not submitted, published, or scheduled
+- Destination alt text: `A man chooses a garden plot while an AI Fleas robot prunes one plant and moves a marker toward an open plot.`
+- Destination caption: `A useful month plan tends priorities, prunes distractions, and leaves room for change. AI Fleas illustration generated from the author’s character references.`
