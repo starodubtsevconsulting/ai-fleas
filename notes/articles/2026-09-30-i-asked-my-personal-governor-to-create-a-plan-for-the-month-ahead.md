@@ -1,14 +1,18 @@
-# I Asked My Personal Gardener to Create a Plan for the Month Ahead
+# I Asked My Personal Governor to Create a Plan for the Month Ahead
 
 *A month plan became useful when it remembered my priorities and changed with the work.*
 
-![A man chooses a garden plot while an AI Fleas robot prunes one plant and moves a marker toward an open plot.](assets/2026-09-30-ai-fleas-personal-gardener-month-plan-candidate.png)
+![A human chooses a route piece for a month plan while the AI Fleas robot holds a compass beside him.](assets/2026-09-30-ai-fleas-personal-governor-month-plan-header.png)
+
+*I choose the direction. My Personal Governor helps me keep the plan aligned as circumstances change.*
+
+The **Personal Governor is part of the [AI Fleas](https://aifleas.com/) platform**. It helps me keep my chosen goals, commitments, and capacity in view across the work I do. I decide what matters; the Governor helps me see the tradeoffs and adjust a plan when the evidence changes.
 
 I once [asked AI to plan a day](https://medium.com/@aifleas/i-asked-ai-to-plan-my-day-it-told-me-to-go-back-to-bed-9f23de93ce3b). I had slept badly, had too much I wanted to do, and needed a plan that treated recovery as real. The AI put a nap on my calendar. That was a better answer than filling every empty hour with work.
 
 This time I asked for something harder: **plan the next month with me.**
 
-I call the agent my **Personal Governor** in [AI Fleas](https://aifleas.com/). “Personal Gardener” may describe the feeling better. A gardener cannot make a plant grow by adding more tasks to its calendar. It decides what to tend, what to prune, and when to leave something alone. My Governor should help me make those choices about work while I remain the person who owns the goals.
+For a month, that help means holding the priorities steady long enough to test them against real work. The Governor can point out a crowded schedule or a displaced commitment, but the goals and decisions remain mine.
 
 ## A calendar does not know why the work matters
 
