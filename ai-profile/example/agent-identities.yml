@@ -39,6 +39,11 @@ roles:
     display_name: UI Acceptance Tester
     email: ui@example.com
     github_login: example-ui
+  smoke-tester:
+    account_name: smoke
+    display_name: Smoke Tester
+    email: smoke@example.com
+    github_login: example-smoke
   proxy-coder:
     account_name: proxy-coder
     display_name: Proxy Coder

@@ -148,6 +148,8 @@ workflows:
     projects:
       - ref: projects-config/dev/example-service/project.yml
       - ref: projects-config/dev/example-web/project.yml
+      # A Smoke Tester may select either registered project; each application
+      # target supplies its own apps/<target>-e2e/SMOKE.md in that repository.
       - id: example-public-project
         label: Example public project
         repo_path: ~/projects/example-workspace/example-public-project
