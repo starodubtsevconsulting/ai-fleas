@@ -2,6 +2,8 @@
 
 *The payment flow kept failing in small, inconsistent ways. Fixing it was only the first step.*
 
+![An AI Fleas robot guides a chalet booking journey from property selection through dates and payment to a confirmed receipt while the owner watches.](assets/2026-09-30-ai-fleas-chalet-smoke-tester-hero-candidate.png)
+
 I built a chalet-booking platform for myself.
 
 The simplest way to describe it is that it is something like Airbnb, but smaller, independent, and designed around the way I actually want to run a chalet business in Canada.
@@ -81,6 +83,8 @@ The digital QA agent can compare the current interface with the intended workflo
 
 ## The agent needs real limits around real money
 
+![Inside a bounded testing area, an AI Fleas robot completes a small chalet payment, verifies the booking, and follows a controlled cleanup path while the owner observes.](assets/2026-09-30-ai-fleas-payment-test-guardrails-candidate.png)
+
 Testing a live payment flow is valuable because it crosses the boundaries that mocks do not.
 
 It is also the part that needs the strongest controls.
@@ -140,6 +144,8 @@ Only then should it repair the appropriate layer.
 That is why I call it a digital QA agent rather than an AI browser bot.
 
 ## The intelligence should expand only when the problem demands it
+
+![An AI Fleas robot inspects a failed payment step, separating a healthy automated path from evidence, diagnosis, and repair work.](assets/2026-09-30-ai-fleas-adaptive-smoke-testing-candidate.png)
 
 For most runs, very little intelligence should be necessary.
 
