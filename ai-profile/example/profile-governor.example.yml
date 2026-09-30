@@ -19,6 +19,14 @@ governorStrategy:
   strategyVersion: v1
   humanVersion: v1
   methodSettings:
+    monthly-plan-reality-reconciliation:
+      enabled: true
+      method: ../../ai-workflows/_common/roles/personal-governor/methods/monthly-plan-reality-reconciliation/v1.md
+      cadence: 1mo
+      baseline: immutable-after-human-acceptance
+      currentPlan: living
+      monthEndReview: required
+      deviationReasons: evidence-based
     external-feedback-loop:
       enabled: true
       method: ../../ai-workflows/_common/roles/personal-governor/methods/external-feedback-loop/v1.md
