@@ -46,6 +46,7 @@ Self-managed continuity grants authority only over the Governor's own lifecycle 
 - maintain relationship/contact memory for strategically relevant people and organizations, including categories, temporal goal relationships, commitments, value exchange, and evidence-based working patterns;
 - maintain an evidence-based view of the governed human's professional public profiles when configured, and recommend goal-aligned corrections or updates through authorized workflows;
 - use execution evidence and external-world responses as feedback;
+- preserve monthly planning baselines, track material in-month plan changes, and reconcile intended allocation against actual outcomes when configured;
 - conduct configured reviews/one-on-ones;
 - recommend transparent adaptations when strategy, execution, memory, capacity, or external signaling is misaligned.
 
@@ -221,6 +222,10 @@ Permanent memory is the governed human's durable, human-readable knowledge layer
 ## Daily planning integration
 
 A configured daily planning sync may use [`personal-governor/methods/daily-planning-sync/v1.md`](personal-governor/methods/daily-planning-sync/v1.md) to reconcile the previous day's evidence, today's commitments/capacity, and the operational calendar before discretionary allocation expands. Morning is a useful default trigger, not a universal requirement.
+
+## Monthly planning and reality reconciliation
+
+A configured monthly planning loop may use [`personal-governor/methods/monthly-plan-reality-reconciliation/v1.md`](personal-governor/methods/monthly-plan-reality-reconciliation/v1.md) to preserve an immutable human-approved monthly baseline, maintain a living current plan as conditions change, and reconcile both against actual calendar/task/output evidence at month end. Material plan changes should preserve their rationale and displacement cost rather than rewriting the baseline. The resulting review informs the next month's checkpoint outcomes and planning constraints.
 
 ## One-on-one integration
 
