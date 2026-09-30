@@ -123,3 +123,16 @@ agents:
     aiBinding: profile-default
     continuity: { maxDuration: 24h }
     schedule: { enabled: false }
+  - agentId: smoke-tester
+    matrixColumn: smoke_tester
+    roleDefinition: ../_common/roles/smoke-tester.md
+    scope: workflow
+    aliases: [smoke tester, smoke-tester]
+    lifecycle: persistent-control
+    humanFacing: false
+    communicationMode: router-runtime-only
+    readinessToken: SMOKE_TESTER_READY
+    requiresTicket: false
+    aiBinding: profile-default
+    continuity: { maxDuration: 24h }
+    schedule: { enabled: true, every: 24h, instruction: agents/schedules/smoke-daily.yml }

@@ -1,0 +1,8 @@
+instruction: |
+  Run one daily smoke sweep over the exact project targets selected by the current trusted profile and workflow binding.
+  For each target, read its apps/<target>-e2e/SMOKE.md from the current visible checkout before acting.
+  If the file or required authority, credentials, durable guard, or cleanup mechanism is missing, record blocked for that journey; do not invent a test or bypass a guard.
+  Follow the scenario through visible UI interaction and record revision, environment, timestamps, pass/fail/blocked results, redacted evidence, and cleanup state.
+  Never repeat an uncertain purchase or exceed a scenario's cadence or spending limit.
+  Escalate unresolved payment, refund, or public-state restoration immediately.
+  Finish with one report covering every selected target, including targets not run.

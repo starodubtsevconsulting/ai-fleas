@@ -26,6 +26,7 @@ transition absent from the workflow.
 | Coder                | no              | disposable |
 | Command Runner       | no              | disposable |
 | UI Acceptance Tester | no              | disposable |
+| Smoke Tester         | no              | persistent |
 
 These are the workflow roles. Platform configuration may realize Coder and Command Runner as routes rather than visible bots;
 the caller still owns review of the returned proposal or terminal evidence. The role's responsibility and command boundaries remain.
@@ -45,6 +46,7 @@ platform's trusted lifecycle channel, but team agents do not initiate direct Sys
 | Coder                | Product, configuration, and test-source implementation                            |
 | Command Runner       | Commands, Git, builds, tests, delivery, and deployment mechanics                  |
 | UI Acceptance Tester | Independent visible UI acceptance                                                 |
+| Smoke Tester         | Recurring visible smoke checks across registered project targets                  |
 
 The capability-ownership matrix is authoritative when this summary and a matrix cell disagree.
 
