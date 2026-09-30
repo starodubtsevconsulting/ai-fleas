@@ -141,13 +141,44 @@ Only then should it repair the appropriate layer.
 
 That is why I call it a digital QA agent rather than an AI browser bot.
 
+## The intelligence should expand only when the problem demands it
+
+For most runs, very little intelligence should be necessary.
+
+If the interface is familiar, the account is ready, the scripted journey works, the expected records appear, and cleanup succeeds, the agent can stay in a low-cost execution mode. It can run the existing mechanics, capture the evidence, and move on.
+
+There is no reason to spend maximum reasoning effort rediscovering a healthy checkout every hour.
+
+The interesting part begins when something goes wrong.
+
+A traditional pipeline usually turns red. It may identify the step or selector that failed, but the investigation still lands on a human. If the test has become outdated, it can remain red for days until everyone learns to ignore it.
+
+The Smoke Tester should respond differently. It can increase the level of intelligence it uses and begin a bounded diagnosis:
+
+- inspect the current page rather than relying only on the failed selector;
+- compare the observed journey with the Markdown contract;
+- inspect application and payment evidence;
+- create a temporary diagnostic or automation script when that is the fastest safe tool;
+- identify whether the fault belongs to the product, environment, test data, or test implementation;
+- open a ticket with the evidence and a reproducible explanation;
+- notify the owner when a decision or risky action is required;
+- or delegate a code correction to the authorized development agent.
+
+With the right permissions and release controls, a later version could carry a verified correction through testing and deployment. That does not mean the QA agent should receive unlimited production authority. It means the workflow can hand the problem to the role that owns the next action, preserve the evidence, and follow the repair until the critical journey is healthy again.
+
+This is the self-healing mechanism I have in mind.
+
+It does not force a broken test to pass. It heals the testing system when the mechanics have drifted, routes real product defects to the right owner, and keeps the human informed when the system reaches a boundary it should not cross alone.
+
+The level of intelligence becomes elastic: quiet and inexpensive when everything is normal, deeper and more investigative when the evidence stops making sense.
+
 ## Reliability becomes someone’s daily responsibility
 
 The biggest change is not technical.
 
 Before, payment reliability was something I checked when I was working on payments or when a failure reminded me to look.
 
-Now it is becoming an owned responsibility.
+Now it is becoming an owned responsibility that can watch the platform daily—and eventually more often where the scenario and cost justify it.
 
 Every day, the Smoke Tester should be able to say one of three things:
 
@@ -164,3 +195,5 @@ I do not want to wait until then to build the habit.
 I fixed the payment flow.
 
 Now I am building the agent whose job is to keep proving that it stays fixed.
+
+And if it stops being fixed, I want that agent to do more than turn a pipeline red. I want it to find out why, bring in the right help, and stay with the problem until there is a trustworthy answer.
