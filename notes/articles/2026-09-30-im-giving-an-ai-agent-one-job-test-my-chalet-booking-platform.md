@@ -8,7 +8,7 @@ I built a chalet-booking platform for myself.
 
 The simplest way to describe it is that it is something like Airbnb, but smaller, independent, and designed around the way I actually want to run a chalet business in Canada.
 
-It started with my own property. Over time, I want it to become a multi-chalet, multi-owner platform. Other chalet owners could add their properties and use it as another way to reach guests.
+It started with [my own property](https://chaletwhisper.com/). Over time, I want it to become a multi-chalet, multi-owner platform. Other chalet owners could add their properties and use it as another way to reach guests.
 
 I do not expect it to replace Airbnb or Booking.com. Those platforms are useful for discovery and for finding new customers. But after someone has stayed at a chalet and built a relationship with the owner, the next booking does not always need to go through the same global marketplace.
 
@@ -208,6 +208,6 @@ This project brings together two parts of my life that may look unrelated: build
 
 If you are a developer, a founder, or a business trying to understand how agents could work inside a real operation, you can learn more about my work at [Starodubtsev Consulting](https://starodubtsev.consulting/) or contact me about AI consulting.
 
-If you are looking for a place to stay, you can visit [Chalet Whisper on Booking.com](https://www.booking.com/hotel/ca/eyelets-chalet.html) or contact me directly. The independent booking platform is the next part of that story.
+If you are looking for a place to stay, you can visit [Chalet Whisper on Booking.com](https://www.booking.com/hotel/ca/eyelets-chalet.html) or contact me directly. [The independent booking platform](https://chaletwhisper.com/) is the next part of that story.
 
 Whether you came for the agents or the chalet, you are welcome.
