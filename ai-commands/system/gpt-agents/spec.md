@@ -41,6 +41,9 @@ Verified exact task receipts or a precise no-mutation failure.
 - Logical roles come from the portable workflow roster; GPT-specific realization comes from the registered adapter.
 - `initialize` realizes the complete GPT-specific workflow roster; it does not inherit Hermes App's profile/group
   realization or impose its own task count on other platform adapters.
+- `initialize-role --role ROLE_ID` realizes exactly one roster role only when the portable manifest explicitly marks it
+  `initializationMode: independent`. It uses the same exact scope, host catalog, and plugin receipt checks but does not
+  create other roles or claim the whole workflow Router ready.
 - One logical agent maps to one exact app-returned task ID and launches in the logical group's primary saved Codex project.
 - One logical project may cover one or more profile-registered folders or repositories. The first selected project is the
   primary project: it hosts rules, commands, workflow definitions, and the Codex agents. Later selected entries are

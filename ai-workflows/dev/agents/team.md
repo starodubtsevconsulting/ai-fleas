@@ -26,7 +26,7 @@ transition absent from the workflow.
 | Coder                | no              | disposable |
 | Command Runner       | no              | disposable |
 | UI Acceptance Tester | no              | disposable |
-| Smoke Tester         | no              | persistent |
+| Smoke Tester         | direct human    | persistent |
 
 These are the workflow roles. Platform configuration may realize Coder and Command Runner as routes rather than visible bots;
 the caller still owns review of the returned proposal or terminal evidence. The role's responsibility and command boundaries remain.
@@ -75,6 +75,8 @@ boundaries. Helpers are not workflow Agents or matrix columns and do not acquire
 Manager owns workflow-agent lifecycle and applies the common [agent continuity](../../_common/agents/continuity.md) policy when an agent needs to continue across runtime instances.
 
 Agent scheduling follows the common [agent scheduling](../../_common/agents/scheduling.md) policy. The Dev Manager runs its configured continuity reconciliation instruction on schedule; other agent schedules are declared independently in `agents.yml`.
+
+Smoke Tester declares `initializationMode: independent`. The GPT adapter may initialize this one endpoint without creating the rest of the Dev roster. That operation does not mark the Dev Router or full team ready. Its own trusted task binding, selected project set, and scheduled smoke guards remain mandatory.
 
 Coder can have up to 3 active instances and Command Runner up to 4. All other workflow roles can have only one active instance.
 
