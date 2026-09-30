@@ -17,9 +17,9 @@ tags:
 
 *A scripted conversation about testing local AI workers for work I can actually use.*
 
-![A person works at a desk with several computer monitors and a laptop.](assets/2026-09-27-i-tried-to-replace-my-local-coder-header.jpg)
+![The AI Fleas robot points to a compact local coder finishing work while a larger model stalls beside the author.](assets/2026-09-29-ai-fleas-local-coder-model-comparison-header.png)
 
-*Local capacity becomes useful only when the work is good enough to hand back. Photo by Ilham Malik on Unsplash.*
+*A bigger model is useful only when its work is good enough to hand back. AI Fleas illustration generated for this article.*
 
 *The following is a scripted dialogue. Host and Anna are fictional voices used to explain a real experiment; this is not a transcript of an actual interview.*
 
