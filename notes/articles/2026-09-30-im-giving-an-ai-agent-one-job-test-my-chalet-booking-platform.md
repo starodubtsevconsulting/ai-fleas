@@ -197,3 +197,13 @@ I fixed the payment flow.
 Now I am building the agent whose job is to keep proving that it stays fixed.
 
 And if it stops being fixed, I want that agent to do more than turn a pipeline red. I want it to find out why, bring in the right help, and stay with the problem until there is a trustworthy answer.
+
+## Whether you came for the AI or the chalet
+
+This project brings together two parts of my life that may look unrelated: building AI systems and welcoming people to a chalet.
+
+If you are a developer, a founder, or a business trying to understand how agents could work inside a real operation, you can learn more about my work at [Starodubtsev Consulting](https://starodubtsev.consulting/) or contact me about AI consulting.
+
+If you are looking for a place to stay, you can visit [Chalet Whisper on Booking.com](https://www.booking.com/hotel/ca/eyelets-chalet.html) or contact me directly. The independent booking platform is the next part of that story.
+
+Whether you came for the agents or the chalet, you are welcome.
