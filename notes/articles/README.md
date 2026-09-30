@@ -8,6 +8,7 @@ Keep short engineering/research notes directly under `notes/`; keep article-leng
 
 Newest first:
 
+- [2026-09-29 — What 27B, 4-Bit, and 64K Actually Mean in an AI Model](2026-09-29-what-27b-4-bit-and-64k-mean.md) — scheduled for 2026-10-04 10:00 EDT
 - [2026-09-27 — I Bought an AI Powerhouse. Then the Agent Kept Giving Up.](2026-09-27-i-bought-an-ai-powerhouse-then-the-agent-kept-giving-up.md) — scheduled for 2026-10-02 10:00 EDT
 - [2026-09-27 — I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.](2026-09-27-i-tried-to-replace-my-local-coder.md) — draft
 - [2026-09-26 — Should Your Hybrid AI Start in ChatGPT or Hermes?](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md) — draft
