@@ -52,7 +52,7 @@ It can execute. It can observe. It can diagnose. It can repair a brittle test wh
 
 It cannot quietly redefine success.
 
-## The English scenario is the source of truth
+## The plain-language scenario is the source of truth
 
 The test begins with a Markdown file.
 
@@ -97,7 +97,11 @@ The current strategy includes:
 - restoration of any temporary price;
 - and an immediate stop when identity, payment, or rollback state is unclear.
 
-The working idea is to allow sandbox testing several times per day and one tightly controlled live attempt in a rolling 24-hour period. That production cadence should remain conditional on the locks, recovery process, and monitoring being reliable.
+Sandbox testing is the default. The working idea is to run it several times per day while the production path remains inactive.
+
+Before enabling any recurring real charge, I would need to confirm the payment provider's approved verification method, the merchant-account rules, and the financial side effects—including fees, refunds, and accounting treatment. Only then could I decide whether a tightly controlled live attempt, perhaps no more than once in a rolling 24-hour period, is appropriate.
+
+The agent must stop rather than transact whenever authorization, charge state, or cleanup is uncertain. A CAD 1.00 ceiling limits exposure; it does not make an otherwise unapproved production-testing pattern acceptable.
 
 The goal is unattended testing, not unattended spending.
 
@@ -109,13 +113,7 @@ I maintain several projects. Each one has an important path that should be check
 
 Each product keeps its own scenario close to its code. The agent knows where to discover that scenario, how to acquire the correct lock, what evidence it must keep, and when to move to the next project.
 
-The responsibilities separate naturally:
-
-- the product repository owns the application-specific `SMOKE.md` and optional Playwright implementation;
-- the public AI workflow repository owns the reusable Smoke Tester role, safety rules, and evidence contract;
-- the private platform configuration owns the real projects, runner, accounts, schedules, credentials, and notification settings.
-
-That division is important. The public role can explain how a safe tester behaves without exposing private infrastructure. The product can describe its own customer journey without knowing how every future agent will be hosted. The private configuration can change runners or schedules without rewriting the meaning of the test.
+The separation can stay simple: each product owns its own scenario and optional Playwright mechanics, the shared tester owns common safety and evidence rules, and private configuration supplies the real accounts, schedules, credentials, and runner. That keeps the customer journey close to the product without exposing operational details in a reusable agent definition.
 
 ## This is not conventional test automation
 
@@ -178,7 +176,7 @@ The biggest change is not technical.
 
 Before, payment reliability was something I checked when I was working on payments or when a failure reminded me to look.
 
-Now it is becoming an owned responsibility that can watch the platform daily—and eventually more often where the scenario and cost justify it.
+Now I want proof on a regular schedule—daily at first, and eventually more often only where the scenario, safety, and cost justify it.
 
 Every day, the Smoke Tester should be able to say one of three things:
 
