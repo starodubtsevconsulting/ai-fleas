@@ -48,7 +48,7 @@ assert.deepEqual(exampleProfile.system_agent.schedule, {
 
 const nonAdmin = portable.agents.map((agent) => agent.agentId);
 assert.deepEqual(nonAdmin, [
-  'designer-reviewer', 'judge', 'manager', 'coder', 'command-runner', 'ui-acceptance-tester',
+  'designer-reviewer', 'judge', 'manager', 'coder', 'command-runner', 'ui-acceptance-tester', 'smoke-tester',
 ]);
 for (const role of portableRoles) {
   const portableAgent = role === portable.initializer.agentId
