@@ -1,6 +1,6 @@
 # The Sales Call That Made Me Rethink My Website
 
-*The offer was $299 a month. The more important question was whether I knew what I wanted the service to accomplish.*
+*They said $299 a year. Their own AI disclosed $299 a month under a 12-month agreement.*
 
 ![A thoughtful man holds a phone while an AI Fleas robot presents three cards representing audience, message, and measurable results.](assets/2026-09-29-ai-fleas-sales-call-decision-header.png)
 
@@ -18,13 +18,13 @@ But I already work with AI agents. I can build a chatbot myself. What I wanted t
 
 That question never received a clear enough answer.
 
-## The price was not $3,000 a month
+## When $299 a year became $299 a month
 
-At first, I thought I had heard a figure in the thousands. The recorded offer clarified the actual price: **$299 due that day, then $299 per month plus tax under a 12-month agreement**.
+The offer was presented to me as **$299 for the year**. That sounded manageable. But when the seller’s recorded AI disclosure spelled out the terms, I heard something different: **$299 due that day, then $299 per month plus tax under a 12-month agreement**.
 
-If the upfront payment counted as the first month, the full term would be **$3,588 plus tax**.
+Twelve monthly payments of $299 would total **$3,588 before tax**. I could not tell from the call whether the $299 due that day counted toward the first month or was an additional payment. I needed the terms in writing before agreeing to anything.
 
-That is very different from $3,000 every month. It is still a meaningful commitment, especially when I could not yet explain exactly what I would be buying or how I would judge the result.
+That was very different from the annual price I thought I was considering. It was a meaningful commitment, especially when I could not yet explain exactly what I would be buying or how I would judge the result.
 
 Later in the conversation, other prices and terms were offered. I kept asking for the same thing: send me a written list of the services, and give me time to decide.
 
