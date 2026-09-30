@@ -9,13 +9,19 @@
 - Style source: `ai-workflows/writing/styles/minimalist-editorial-realism.md`
 - Character references: `_ai_fleas/brand/ai-fleas-human-character-reference.png` and `_ai_fleas/brand/ai-fleas-robot-character-reference.png`
 - Rights: original generated illustration commissioned for this article; no third-party stock asset or recognizable public person is depicted
-- Status: one-candidate fixed shortlist; not selected until independent Reviewer verdict
+- Status: selected after independent Reviewer acceptance on 2026-09-30
 - SHA-256: `ee217e113eaaabe521e867a92aad4c7d70911a7a41e06a6bb46a51e4c356338d`
 - Dimensions: 1672 × 941
 
 ## Visible description
 
 The AI Fleas human points to a chosen plot in a wide garden bed while the branded robot prunes one plant and moves a plant marker toward a separate open plot. Several plots are deliberately empty. The scene uses a restrained warm, green, charcoal, and orange palette with substantial negative space.
+
+## Selection evidence
+
+- Reviewer findings: `repo://.agent-runtime/writing/findings/2026-09-30-personal-gardener-month-plan-first-review.md#sha256=7ac2191499c2f4cd039e6fa8f092cd2f07584d3a6e99e411dc284bb73c2e79a4`
+- Verdict: accepted and recommended
+- Repository header-use index updated only after this verdict
 
 ## Editorial intent
 

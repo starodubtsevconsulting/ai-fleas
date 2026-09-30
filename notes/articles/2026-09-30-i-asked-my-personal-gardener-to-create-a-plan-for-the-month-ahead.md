@@ -2,6 +2,8 @@
 
 *A month plan became useful when it remembered my priorities and changed with the work.*
 
+![A man chooses a garden plot while an AI Fleas robot prunes one plant and moves a marker toward an open plot.](assets/2026-09-30-ai-fleas-personal-gardener-month-plan-candidate.png)
+
 I once [asked AI to plan a day](https://medium.com/@aifleas/i-asked-ai-to-plan-my-day-it-told-me-to-go-back-to-bed-9f23de93ce3b). I had slept badly, had too much I wanted to do, and needed a plan that treated recovery as real. The AI put a nap on my calendar. That was a better answer than filling every empty hour with work.
 
 This time I asked for something harder: **plan the next month with me.**
