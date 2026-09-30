@@ -73,6 +73,8 @@ for (const role of portableRoles) {
 }
 
 assert.match(contract, /mechanical initialization controller/);
+assert.match(contract, /initialize-role --role ROLE_ID/);
+assert.match(contract, /initializationMode: independent/);
 assert.match(contract, /including Admin and Manager, in one host batch/);
 assert.match(contract, /Admin is a\s+compatibility role and must not bootstrap, delegate, or orchestrate initialization/);
 assert.match(contract, /No profile-owned GPT binding-state file is created or read/);

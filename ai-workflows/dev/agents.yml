@@ -129,8 +129,9 @@ agents:
     scope: workflow
     aliases: [smoke tester, smoke-tester]
     lifecycle: persistent-control
-    humanFacing: false
-    communicationMode: router-runtime-only
+    humanFacing: primary
+    communicationMode: human-dialogue-and-router-runtime
+    initializationMode: independent
     readinessToken: SMOKE_TESTER_READY
     requiresTicket: false
     aiBinding: profile-default

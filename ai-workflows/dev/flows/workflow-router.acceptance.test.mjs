@@ -16,7 +16,7 @@ assert.equal(manifest.policy.communicationMatrix, undefined);
 assert.equal(manifest.policy.workflowRuntime, '../_common/runtime/workflow-router.md');
 assert.equal(manifest.dependencies, undefined);
 assert.ok(!fs.existsSync(path.join(workflowRoot, 'agents/role-communication-matrix.csv')));
-assert.ok(manifest.agents.filter(({ agentId }) => !['designer-reviewer', 'judge'].includes(agentId))
+assert.ok(manifest.agents.filter(({ agentId }) => !['designer-reviewer', 'judge', 'smoke-tester'].includes(agentId))
   .every(({ communicationMode }) => communicationMode === 'router-runtime-only'));
 assert.equal(gptOverlay.schema_version, 'gpt-agents-workflow-runtime.v2');
 assert.equal(gptOverlay.workflow_runtime.visibility, 'hidden');

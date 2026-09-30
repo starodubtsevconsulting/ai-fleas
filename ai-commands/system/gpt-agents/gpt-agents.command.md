@@ -121,6 +121,7 @@ The application must be installed and pass its smoke test before agent initializ
 | `unwatch-system-group --group LOGICAL_PROJECT_ID` | Remove one exact logical project from System's scheduler watch scope without changing that workflow group or its agents. |
 | `reinitialize-system --confirm-reinitialize-system` | Explicitly create and verify a successor System task, transfer required lifecycle state, then recoverably archive the predecessor. |
 | `initialize` | Idempotently realize the exact requested roster: reuse active receipts, reactivate exact receipt-backed archived tasks, create only genuinely missing roles, initialize every role, and record exact task receipts. |
+| `initialize-role --role ROLE_ID` | Initialize only one role explicitly declared `initializationMode: independent`. Reuse or reactivate its exact receipt, or create one missing task. Leave every other role untouched; this does not initialize the full workflow Router. |
 | `list` | Return recorded logical-agent-to-task bindings without inferring unbound tasks. |
 | `status` | Verify task existence, project binding, role initialization, and current lifecycle state. |
 | `message` | Deliver a prompt to one exact bound task ID. |
@@ -128,6 +129,14 @@ The application must be installed and pass its smoke test before agent initializ
 | `replace` | Create and verify a successor before recoverably archiving its exact predecessor. |
 | `archive` | Recoverably archive one exact task ID after confirming its binding. |
 | `delete-workflow` | Recoverably archive every exact task bound to one logical project while preserving its saved Codex project and scoped folders. |
+
+### Independent single-role initialization
+
+`initialize-role` is for a human-requested independent role such as Dev `smoke-tester`. It is not a shortcut for initializing a Manager, Coder, or ticket worker. Resolve the exact profile, workflow, authorized ordered project subset, logical project, saved-project ID, public roster, GPT adapter, and profile overrides as for `initialize`. Run `platforms/gpt-agents/agents/select-role-initialization.mjs` against the current roster and adapter; stop unless the selected role has `initializationMode: independent`, a complete direct endpoint, no ticket requirement, and a persistent lifecycle.
+
+Enumerate active and archived host catalogs to exhaustion and read exact plugin binding candidates. Feed **only the selected role and its exact receipts** to `reconcile-roster.mjs`; separately reject an unbound same-role candidate in the exact saved project rather than creating a duplicate. Reuse or restore the exact task when possible. Otherwise create exactly one task in the configured saved project with the complete canonical role initialization prompt as its first message, verify its returned task ID in the project catalog, register and queue its exact plugin binding, and wait for its readiness token and active binding. Do not create, archive, restore, or message any other workflow role. Do not declare the complete workflow Router ready from this result.
+
+The initialized independent role may receive direct human requests and its own schedule. It must still enforce the selected project's scenario and authorization limits. If its project set or required schedule cannot be represented by the installed host, report that limitation rather than silently narrowing scope. An agent title alone is never initialization evidence.
 
 ## Workflow deletion contract
 
