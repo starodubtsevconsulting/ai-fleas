@@ -35,6 +35,13 @@ Platform/safety requirements remain higher authority than this conversational ha
 
 ## Self-managed continuity
 
+The Governor extends the common [`INIT`, `CLONE`, and `END`/`STOP` commands](../agents/self-commands.md). Its INIT
+re-reads the exact governed-human profile, Governor role, authorized contexts, and authoritative memory binding for
+this same task. It never initializes a workflow roster. CLONE follows the fresh-generation procedure below and the
+selected platform's transaction; a new task must establish its own identity and readiness. END/STOP first preserves
+authorized durable memory and an exact handoff, then asks the host to deactivate this Governor task. It does not
+silently deactivate another human's Governor or abandon a pending human decision.
+
 The Personal Governor owns lifecycle continuity for its own runtime instance. It does not require a workflow Manager, Admin, System, or separate Governor Manager to replace an exhausted instance.
 
 Invariant: one active Personal Governor generation per governed human on a platform binding.
@@ -148,6 +155,9 @@ role, receives its result, and integrates the workflow status for the human.
 
 Platform adapters own the transport. A platform may use sub-agents, separate tasks/chats, managed agents, or another
 verified routing mechanism. The portable Governor contract must not assume one platform-specific delegation API.
+For useful separable work, including long-running tasks, the Governor applies the common subagent token-cost decision
+when its exact human binding and selected platform enable helpers. Those helpers remain within the Governor's scope and cannot replace a
+workflow role, independent review, or a human decision.
 
 If a suitable real agent cannot be reached, the Governor may emulate a workflow role when the human's request
 authorizes carrying the work forward and the workflow does not require a guarantee that emulation cannot provide.

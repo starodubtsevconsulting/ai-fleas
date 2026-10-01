@@ -19,6 +19,14 @@ If the human profile is absent, ambiguous, or conflicting, stop read-only.
 
 ## Initialization
 
+The common [self commands](../../../ai-workflows/_common/agents/self-commands.md) apply to the Governor. `INIT`
+revalidates only this exact GPT task and its human/memory binding; it does not call workflow roster initialization.
+`CLONE` requests a fresh-history projectless successor with a new task ID and runs INIT there. The current Governor
+initializer rejects a second active or pending binding for the same human, so CLONE must use an adapter-supported
+transactional successor route; if unavailable, return `BLOCKED_CLONE_CAPABILITY` rather than creating an unbound task
+or archiving the predecessor first. `END`/`STOP` preserves memory, then requires host-verified archival/routing disablement
+before claiming future silence.
+
 Load the portable Personal Governor role/policies, then the selected human profile's Governor and memory bindings. Require the Governor binding and memory manifest to name the same authoritative provider. For `git-profile-memory`, resolve the manifest's `path` against the human profile directory, require a readable and writable Markdown file inside that profile's `memory/` directory, and verify that the Governor cutover chain resolves to that exact file. Verify that the current task environment can open that authoritative file for writing before claiming full readiness. This private Git file is the only authoritative writable Governor memory. A Synology backup target is not a second authority and is not a destination for Governor memory writes. For a legacy `permanent-memory-synology` binding, resolve its declared `providerConfig` against the human profile directory and check that provider's read/write status. A matching file in another profile, an old Git revision, or a readable local folder cannot replace a missing declared source. Do not infer storage from paths or conversation history. Report a missing or conflicting declared binding as a binding error. Report a file-write or network permission denial as a restriction of the current task environment; it does not revoke Governor memory authority or establish that GitHub is unavailable machine-wide.
 
 The Governor may initialize itself because no workflow/profile Admin owns it. Self-bootstrap grants only the authority declared by the human profile.

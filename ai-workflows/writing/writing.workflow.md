@@ -8,18 +8,25 @@ Declaring the roster does not initialize live agents or create publication autho
 
 ## Execution mode
 
-When a selected platform has initialized the complete roster under the [common agent contract](../agents.md), the hidden
+For a managed run, when a selected platform has initialized the complete roster under the [common agent contract](../agents.md), the hidden
 [Workflow Router](../_common/runtime/workflow-router.md) executes the declared flow through the
 [Writing routing contract](agents/editorial-routing.md). It assigns each stage to one exact role endpoint, observes the
 completed turn, validates evidence references, and selects the next declared transition. Endpoints never contact one
 another. Admin inspects the runtime and performs authorized recovery; it is not the workflow transport. All roles remain
-directly human-addressable. Before initialization, an authorized task
-may emulate Writer and Release Coordinator steps for
-draft preparation, but it must not claim a managed-agent identity. Independent critique still needs a genuinely
-fresh-context Reviewer task or human reader who did not draft or edit the revision. If unavailable, mark it pending.
+directly human-addressable. When the human asks Admin to run Writing work, Admin defaults to stating the exact Writing roles it will
+emulate and performing only those steps under its Admin identity, whether or not the roster exists. An already active
+managed run still uses its Router and endpoints. Before initialization, an authorized task may emulate Writer and Release Coordinator steps for draft
+preparation, but it must not claim a managed-agent identity. Independent critique still needs a genuinely fresh-context
+Reviewer task or human reader who did not draft or edit the revision. If unavailable, mark it pending.
+All Writing Agents apply the [common subagent token-cost decision](../_common/agents/utility-subagents.md) to bounded
+role-owned work when supported. Subagents do not independently own workflow stages or satisfy independent critique.
 
 The executable projection is [writing.workflow-map.json](writing.workflow-map.json); its generated human-readable view
 is [writing.workflow-map.mmd](writing.workflow-map.mmd).
+For Admin emulation, first read this workflow and its JSON projection. Use the map's stage owners, transitions,
+reference requirements, human waits, and terminal outcomes to plan and report each `@admin acting as @<role>` step.
+Keep an emulated trace separate from a managed Router runtime. The map cannot turn an Admin helper into an independent
+Reviewer, prove the author's listening, or authorize a transition whose evidence is missing.
 The generated diagram marks the workflow start in blue, the human wait in amber, and completion in green; its
 diagnosis arrows show the recovery route for prepared review evidence, missing Writer preparation, or a resolved
 release gate. Its published-update branch revises an existing live story without scheduling a second release. It
@@ -150,6 +157,13 @@ page, then reconcile the archive and remote repository record. Preserve the publ
   granting new publication authority. Record the selected project ID and resolved archive-relative folder in intake
   and handoff evidence. For an existing article, locate its current canonical archive folder before editing; do not
   silently create a second copy when it has not yet been migrated.
+- Keep the selected editorial project distinct from the article-store project and the workflow's logical project.
+  Admin records the exact profile ID, editorial project ID and `project.yml` reference in the work request; Writer
+  resolves the current project definition and its applicable knowledge before drafting or revising; Reviewer loads
+  those same current sources independently for the exact article revision. Carry the knowledge IDs and source
+  references through the review packet and review evidence. If the editorial project or a required knowledge source
+  cannot be resolved, stop that stage rather than falling back to generic Writing guidance or a nearby project.
+  When project knowledge changes after drafting, recheck affected copy and visuals before accepting the review.
 - Resolve the archive from the selected profile's `article_store.project_ref`, which must name an authorized project.
   Its `storage_path` is the local location for the active device/runtime, not a universal path across devices. The
   logical article store and its content remain the same when another authorized device maps it to a different local

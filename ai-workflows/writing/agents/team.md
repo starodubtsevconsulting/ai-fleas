@@ -19,6 +19,19 @@ contract. Writer, Reviewer, and Release Coordinator are independently addressabl
 stages to their exact active task IDs, observes their completed turns, and applies only workflow-declared transitions.
 No endpoint sends workflow messages to another endpoint, and the human is never used as a courier.
 
+When the human asks Admin to run Writing work, Admin defaults to emulating the selected roles even when the roster
+exists. It records the work as Admin work. An already active managed run remains Router-dispatched. Every endpoint
+uses the [common subagent token-cost decision](../../_common/agents/utility-subagents.md) for bounded role-owned
+tasks, including long-running drafting, checking, or destination preparation when supported. The parent endpoint
+verifies the result and owns its stage evidence. A subagent cannot issue its own roster receipt or advance a gate.
+
+For an authorized Admin emulation, Admin assigns each role it actually emulates to a separate role-scoped
+subagent under the [Admin role contract](../../_common/roles/admin.md). Admin reads that role's effective model and
+reasoning binding before dispatch and verifies its output. If dispatch is not useful or available, Admin reports that
+and performs the bounded work directly. This work remains Admin-performed; a Reviewer subagent of
+the drafting Admin does not satisfy independent critique. A separate fresh-context Reviewer task or human reader
+supplies that gate.
+
 Release Coordinator uses Medium's native future scheduling only when the selected profile explicitly enables it and
 the exact article and destination have passed independent review. The profile's
 `requires_human_article_acceptance` policy determines whether direct human acceptance or a valid session-scoped

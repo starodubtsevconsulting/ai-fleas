@@ -7,14 +7,18 @@ experience, attribution, or facts.
 
 ## Entry
 
-A usable brief, authorized source material, intended article type, and the current canonical draft if one exists.
+A usable brief, authorized source material, intended article type, selected profile and editorial project with
+applicable knowledge sources, and the current canonical draft if one exists.
 
 ## Steps
 
 1. The active writing task chooses a suitable structure and, when relevant, a reusable
    [blogging template or method](../../blogging/blogging.workflow.md); proof: an outline or clear section plan.
-2. The task drafts or revises with the [writing command](../../../ai-commands/content/writing/writing.command.md),
-   preserving the author's voice and marking uncertain claims. Apply the cross-platform
+2. The task reads the selected editorial project's current `project.yml` and all knowledge applicable to writing.
+   Apply its article-specific voice, audience, subject, and visual guidance while drafting or revising with the
+   [writing command](../../../ai-commands/content/writing/writing.command.md), preserving the author's voice and
+   marking uncertain claims. Record the project ID and applied knowledge IDs in the article brief and review packet.
+   Apply the cross-platform
    [article headline guide](../guides/article-headlines.md) after the article's promise is clear; proof: an editable
    article candidate with a truthful working title and, when useful, a complementary subtitle.
 3. The task identifies links, quotations, diagrams, screenshots, and other assets needing verification or rendering;

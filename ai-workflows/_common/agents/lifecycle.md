@@ -40,6 +40,10 @@ meaning remains human-owned. A workflow may narrow these roles but must not tran
 
 ## Initialization lifecycle
 
+The common [`INIT`, `CLONE`, and `END`/`STOP` commands](self-commands.md) target one agent. In particular, an agent's
+`INIT` reloads and verifies only that exact current instance. It is distinct from the workflow-owned complete-roster
+`initialize` operation below.
+
 The workflow-owned initialization entrypoint verifies or bootstraps Admin and performs all agent-instance mutation through
 the selected platform adapter. Initialization creates the complete declared governed roster.
 

@@ -30,8 +30,12 @@ open editorial decisions. Keep both versions unpublished.
    is not itself approval. The author need not read aloud. Proof: a playable narration or verified live read-aloud,
    narrated revision, and feedback or explicit pending-listen status tied to that revision. Present the verified
    playback control before requesting a human listen-through; merely intending to prepare audio is not an offer.
-3. The Reviewer follows the [review criteria](../guides/review-criteria.md), reads as a skeptical intended reader,
-   and identifies specific, prioritized weaknesses: unclear promise or title, unsupported or overstated claims,
+3. The Reviewer independently resolves the selected editorial project from the profile and reads its current
+   review-applicable knowledge. Compare its IDs and references with Writer's packet; a mismatch or missing source
+   blocks a passing disposition until the project context is reconciled. Record which project policies were checked
+   and any article-specific findings. The Reviewer then follows the [review criteria](../guides/review-criteria.md),
+   reads as a skeptical intended reader, and identifies specific, prioritized weaknesses: unclear promise or title,
+   unsupported or overstated claims,
    missing counterpoints, weak logic, confusing structure, unearned emotional beats, tone drift, visual problems, and
    what a reader might misunderstand or stop reading at.
    Ask specifically where the same idea appears again without advancing it, while distinguishing a deliberate

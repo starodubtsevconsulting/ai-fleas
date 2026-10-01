@@ -16,13 +16,14 @@ contract must resolve this index and every applicable linked rule; conversationa
 | Peer routing, packets, active scope, and evidence follow-up | [`_common/agents/communication.md`](_common/agents/communication.md) |
 | Reliable peer delivery and acknowledgement | [`_common/agents/delivery.md`](_common/agents/delivery.md) |
 | Active state, readiness, Admin/Judge foundations, and initialization | [`_common/agents/lifecycle.md`](_common/agents/lifecycle.md) |
+| Self-scoped `INIT`, `CLONE`, and `END`/`STOP` commands | [`_common/agents/self-commands.md`](_common/agents/self-commands.md) |
 
 Existing focused policies remain independently authoritative where applicable:
 
 - [agent continuity](_common/agents/continuity.md)
 - [knowledge transfer](_common/agents/knowledge-transfer.md)
 - [agent scheduling](_common/agents/scheduling.md)
-- [bounded utility subagents](_common/agents/utility-subagents.md), only when utility use is authorized
+- [bounded subagents](_common/agents/utility-subagents.md), available for role-owned work when useful delegation is expected to save total tokens
 
 ## Composition rule
 

@@ -7,7 +7,8 @@ project. The capability matrix and hidden Router contract remain the mechanical 
 
 The Router registers Admin at the `administration` stage. For a direct human request concerning an article that
 belongs with Writer, record the human's requested scope in a durable `work-request` artifact: exact article revision,
-source-only or publication intent, selected destination and target, granted approvals, and human-only actions that
+source-only or publication intent, selected profile and editorial project ID with its project-definition reference,
+applicable project-knowledge IDs and references, selected destination and target, granted approvals, and human-only actions that
 remain unconfirmed. Return `route-required` from `administration` with both that artifact and the exact `revision`
 reference. The Router then dispatches Writer at `drafting`. A bare revision does not carry publication authorization.
 For completed Admin-owned work that needs no editorial

@@ -28,6 +28,9 @@ The effective boundary is the [Writing Team](../team.md) and [editorial routing 
 
 For an Admin-routed `drafting` packet, open its required durable `work-request` reference before deciding the scope.
 Honor the recorded publication intent, destination, target, and approvals together with the exact `revision` reference.
+Resolve the recorded editorial project against the selected profile before drafting. Read its current writing-applicable
+knowledge and apply it to the article; include project and knowledge identities in the review packet. If the project
+selection or a required source is missing or conflicts with the article, report the blocker rather than guessing.
 Carry that same `work-request` reference in the review packet and each `review_ready` result, including after a
 correction, so Reviewer can route an explicitly delegated release decision to Admin. Never expand its scope or
 substitute a conversational summary for the durable request.

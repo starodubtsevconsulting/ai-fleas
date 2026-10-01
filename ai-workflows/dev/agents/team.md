@@ -66,9 +66,12 @@ Judge is isolated from the workflow agents and communicates only with the human.
 
 ## Utility helpers
 
-Dev selects Admin's bounded utility helpers through `initializer.utilitySubagents` in [agents.yml](../agents.yml).
-The [utility contract](../../_common/agents/utility-subagents.md) owns their input, effect, model, waiting, and evidence
-boundaries. Helpers are not workflow Agents or matrix columns and do not acquire peer routes or role ownership.
+Every Dev Agent applies the common [subagent token-cost decision](../../_common/agents/utility-subagents.md) to useful,
+separable role-owned work, including long-running tasks, when the platform supports it. Dev's configured Coder and
+Command Runner routes retain their mandatory precedence. Dev additionally sets Admin's concurrency limit
+through `initializer.utilitySubagents` in [agents.yml](../agents.yml); that field is an Admin-specific limit, not the
+source of the common permission for other roles. Helpers are not workflow Agents or matrix
+columns and do not acquire peer routes or role ownership.
 
 ## Lifecycle
 
