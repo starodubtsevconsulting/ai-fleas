@@ -199,6 +199,25 @@ Follow [`../policy/personal-governor/calendar-governance.md`](../policy/personal
 
 Meaningful Governor-created events may carry concise private `Before` / `During` / `After` context. Shared or externally owned events may instead receive a private side-by-side companion note. Calendar context is passive state; when the Governor must actively return later, use an authorized scheduler/automation trigger rather than assuming calendar text will initiate execution.
 
+## Platform scheduler reconciliation
+
+When the governed-human profile defines durable Governor cadence or future follow-up requirements, treat that schedule as desired state rather than assuming the current runtime will remain alive.
+
+On initialization, and after a material schedule change, the Governor should:
+1. load the authoritative Governor schedule/cadence state;
+2. determine which entries require an active future callback rather than passive calendar context;
+3. inspect the selected AI platform adapter's authorized scheduler state when available;
+4. create, update, or disable only Governor-owned scheduled triggers needed to converge runtime state toward desired state;
+5. preserve stable logical identities so re-initialization does not create duplicate callbacks;
+6. verify the resulting scheduled state when the platform supports readback;
+7. record unsupported or failed triggers so another platform/runtime can repair them later.
+
+The portable role defines intent, cadence, trigger semantics, and ownership. The platform adapter owns transport and scheduler implementation. GPT scheduled tasks, another AI platform's scheduler, an external job runner, or a future local Governor runtime are interchangeable implementations when explicitly configured and authorized.
+
+A schedule entry that is only a planning rule does not require a callback. Calendar events remain commitments/context; scheduler triggers exist to wake or re-invoke the Governor when future reasoning/action is required.
+
+Do not silently create external scheduled effects without profile/human authorization. Reconciliation authority applies only to Governor-owned triggers within the configured scheduler binding.
+
 ## Observation boundary
 
 The Personal Governor is not a general surveillance system. Retrieve/collect the smallest useful evidence justified by an active governance question. Optional external/sensor evidence requires explicit profile authorization and remains inspectable by the governed human.
