@@ -8,7 +8,9 @@
 
 The **Personal Governor is part of the [AI Fleas](https://aifleas.com/) platform**. It helps me keep my chosen goals, commitments, and capacity in view across the work I do. I decide what matters; the Governor helps me see the tradeoffs and adjust a plan when the evidence changes.
 
-Over the preceding days, the work had accumulated into more than a task list: goals, strategies, methods, commitments, and tickets. Each had a reason to exist, but the month needed a clear line from the goals I had chosen to the work I would actually do. That is a harder question than finding open space on a calendar.
+How many of your active projects have collected tasks, plans, and methods without a clear answer to which goal they serve?
+
+Over the preceding days, my work had accumulated into more than a task list: goals, strategies, methods, commitments, and tickets. I designed the Governor’s monthly planning method to start with the goals I had chosen and trace them down to the work I would actually do. That is a harder question than finding open space on a calendar.
 
 This time I asked for something harder: **plan the next month with me.**
 
@@ -22,13 +24,13 @@ The question for October was not “How can I fit them all in?” It was **“Wh
 
 I gave the Governor the goals and constraints I had already chosen: meet existing commitments, set a bounded amount of time for my own projects, and make AI Fleas useful on real work rather than only promising that it could be useful. We traced each proposed monthly outcome back through its strategy and method. Work that could not explain that connection needed a decision before it earned calendar space.
 
-That produced a first focus: use my Writing workflow to carry actual articles through drafting, independent review, correction, destination review, and my own acceptance. A working article is better evidence than another diagram of how agents ought to collaborate.
+For AI Fleas, the chain was concrete. The goal was to make the platform useful on real work. The strategy was to validate it through an actual Writing workflow. The method was to carry articles through drafting, independent review, correction, destination review, and my own acceptance. A completed article would be better evidence than another diagram of how agents ought to collaborate.
 
 The plan kept necessary commitments visible as capacity constraints. They did not need to masquerade as strategic outcomes to matter.
 
 ## A plan has to land somewhere
 
-The Governor proposed the month. I said yes. Then I opened my calendar and did not see the plan.
+The Governor proposed the month. I said yes, then checked the calendar where the plan was supposed to live. The events were missing.
 
 Its first attempt to write the events had been rejected by the task’s permissions. It told me the plan was not there, but that still left a gap between our conversation and my actual week. I pointed it out. When the calendar connection was available, we created the focus blocks and checked that they appeared.
 
@@ -83,3 +85,5 @@ Then help me put the accepted plan in my calendar and verify it is there.
 At the end of the month, the best question may not be “Did I follow the plan perfectly?”
 
 It may be: **“Did the plan help me make the choices I meant to make?”**
+
+The Personal Governor is one part of the AI Fleas approach I am building. If you want to examine the reusable workflows and roles behind it, [explore AI Fleas](https://aifleas.com/). If you are working through a similar problem in your business and want a technical partner, [see my consulting work](https://starodubtsev.consulting/).
