@@ -8,18 +8,18 @@ Declaring the roster does not initialize live agents or create publication autho
 
 ## Execution mode
 
-When a selected platform has initialized the complete roster under the [common agent contract](../agents.md), the hidden
+For a managed run, when a selected platform has initialized the complete roster under the [common agent contract](../agents.md), the hidden
 [Workflow Router](../_common/runtime/workflow-router.md) executes the declared flow through the
 [Writing routing contract](agents/editorial-routing.md). It assigns each stage to one exact role endpoint, observes the
 completed turn, validates evidence references, and selects the next declared transition. Endpoints never contact one
 another. Admin inspects the runtime and performs authorized recovery; it is not the workflow transport. All roles remain
 directly human-addressable. When the human asks Admin to run Writing work, Admin defaults to stating the exact Writing roles it will
-emulate and performing only those steps under its Admin identity. A managed run still uses the initialized Router and
-endpoints. Before initialization, an authorized task may emulate Writer and Release Coordinator steps for draft
+emulate and performing only those steps under its Admin identity, whether or not the roster exists. An already active
+managed run still uses its Router and endpoints. Before initialization, an authorized task may emulate Writer and Release Coordinator steps for draft
 preparation, but it must not claim a managed-agent identity. Independent critique still needs a genuinely fresh-context
 Reviewer task or human reader who did not draft or edit the revision. If unavailable, mark it pending.
-All Writing Agents apply the [common subagent token-cost decision](../_common/agents/utility-subagents.md) to useful bounded
-read-only evidence work when supported. Helpers do not provide independent critique or own workflow stages.
+All Writing Agents apply the [common subagent token-cost decision](../_common/agents/utility-subagents.md) to bounded
+role-owned work when supported. Subagents do not independently own workflow stages or satisfy independent critique.
 
 The executable projection is [writing.workflow-map.json](writing.workflow-map.json); its generated human-readable view
 is [writing.workflow-map.mmd](writing.workflow-map.mmd).
