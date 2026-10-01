@@ -8,7 +8,7 @@
 
 The **Personal Governor is part of the [AI Fleas](https://aifleas.com/) platform**. It helps me keep my chosen goals, commitments, and capacity in view across the work I do. I decide what matters; the Governor helps me see the tradeoffs and adjust a plan when the evidence changes.
 
-I once [asked AI to plan a day](https://medium.com/@aifleas/i-asked-ai-to-plan-my-day-it-told-me-to-go-back-to-bed-9f23de93ce3b). I had slept badly, had too much I wanted to do, and needed a plan that treated recovery as real. The AI put a nap on my calendar. That was a better answer than filling every empty hour with work.
+Over the preceding days, the work had accumulated into more than a task list: goals, strategies, methods, commitments, and tickets. Each had a reason to exist, but the month needed a clear line from the goals I had chosen to the work I would actually do. That is a harder question than finding open space on a calendar.
 
 This time I asked for something harder: **plan the next month with me.**
 
@@ -20,11 +20,11 @@ I maintain several websites and products. I am developing AI Fleas while continu
 
 The question for October was not “How can I fit them all in?” It was **“What would make this month count?”**
 
-I gave the Governor the priorities and constraints I had already chosen: keep my existing commitments, protect sleep, spend a bounded amount of time on my own projects, and make AI Fleas useful on real work rather than only promising that it could be useful.
+I gave the Governor the goals and constraints I had already chosen: meet existing commitments, set a bounded amount of time for my own projects, and make AI Fleas useful on real work rather than only promising that it could be useful. We traced each proposed monthly outcome back through its strategy and method. Work that could not explain that connection needed a decision before it earned calendar space.
 
 That produced a first focus: use my Writing workflow to carry actual articles through drafting, independent review, correction, destination review, and my own acceptance. A working article is better evidence than another diagram of how agents ought to collaborate.
 
-It also gave a long-postponed personal commitment a place on the calendar. Preparing forever would not count as completing it.
+The plan kept necessary commitments visible as capacity constraints. They did not need to masquerade as strategic outcomes to matter.
 
 ## A plan has to land somewhere
 
@@ -63,7 +63,7 @@ I do not need an AI to tell me that articles, websites, and testing are all good
 
 The Governor does not own my priorities. It helps me hold them long enough to test them against what I actually do. It can also be corrected. In this case, I corrected both the missing calendar implementation and the choice of local-agent experiment.
 
-I have written before about [planning one day around capacity](https://medium.com/@aifleas/i-asked-ai-to-plan-my-day-it-told-me-to-go-back-to-bed-9f23de93ce3b) and about [asking whether an agent team can work while I am away from the desk](https://medium.com/@aifleas/i-was-cutting-the-grass-could-my-ai-team-do-the-accounting-0a0286af4b1f). A month plan connects those two questions. It gives the agent a direction to protect, and it gives me a way to judge whether the work and the schedule moved together.
+A month plan gives the agent a direction to protect and gives me a way to judge whether the work and the schedule moved together. The baseline records what I chose at the start; the current plan records deliberate changes; the results at month end show what actually happened. That distinction makes adaptation visible without rewriting the original decision.
 
 ## Try it without building a Governor
 
