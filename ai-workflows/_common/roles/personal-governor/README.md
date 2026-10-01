@@ -168,3 +168,31 @@ raw Git, tickets, conversations, external sources
 ```
 
 This hierarchy is important for continuity. A fresh Governor should normally understand the human's current trajectory from durable summaries and plans without replaying every commit, ticket, calendar event, or conversation.
+
+
+### Monthly reporting hierarchy
+
+Month-end reporting follows the configured AI-Fleas ownership structure rather than a Governor-specific category tree:
+
+```mermaid
+flowchart TD
+    H["Governed human"] --> P["Profile"]
+    P --> W1["Workflow"]
+    W1 --> PR1["Project"]
+    PR1 --> A["Material activities during month"]
+    A --> E["Evidence / result"]
+    E --> GM["Goal movement: closer / unchanged / farther"]
+
+    GM --> WR["Workflow roll-up"]
+    WR --> PR["Profile roll-up"]
+    PR --> HR["Human-goal roll-up"]
+
+    W1 --> D["Cross-project / workflow displacement"]
+    D --> HR
+```
+
+The Governor should resolve workflow/project membership from the live profile configuration. For example, a profile may bind development, writing, YouTube, or financial workflows to different project refs. Only active projects for the month appear in the report.
+
+The report therefore answers both:
+- **bottom-up:** what happened in each project/workflow and what evidence resulted;
+- **top-down:** whether those activities moved the profile and human-owned goals closer, left them unchanged, or moved them farther away.
