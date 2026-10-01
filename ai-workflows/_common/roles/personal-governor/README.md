@@ -56,3 +56,115 @@ INIT normally occurs once per day. Its purpose is not to pre-schedule the Govern
 For example, a month-end rule does not require a callback created thirty days in advance. On the last day's INIT, the Governor recognizes the rule and materializes the appropriate same-day review/follow-up through the selected platform adapter.
 
 Durable schedule state describes **what should happen and when**. Platform schedulers describe **how the Governor is invoked later**. This keeps the Governor portable across GPT, other AI platforms, external schedulers, and future local runtimes.
+
+
+## Governor architecture at a glance
+
+The Personal Governor is a persistent governance system around one human, not a single prompt or a conventional task workflow. Its major parts have distinct responsibilities.
+
+| Part | Function |
+| --- | --- |
+| **Role contract** | Defines what the Governor is, its authority, boundaries, and relationship to workflows and the governed human. |
+| **Strategy** | Interprets human-owned goals, priorities, opportunity cost, capacity, and evidence to decide what deserves attention. |
+| **Methods** | Reusable reasoning procedures such as daily planning, measurable-progress review, state transitions, goal rehearsal, external feedback, and monthly plan/reality reconciliation. |
+| **Permanent memory** | Durable human-readable source of truth for goals, decisions, evidence, relationships, monthly reports, plans, and learned operating patterns. |
+| **Hot/runtime state** | Minimum current state needed for today's reasoning. It is reconstructed from durable sources rather than treated as permanent truth. |
+| **INIT** | Once-per-day bootstrap: load the latest compressed history, current plan/goals, recent evidence, today and near future; establish current state; reconcile today's active callbacks. |
+| **Calendar** | Operational commitment/allocation surface. It says when meaningful commitments are intended to happen; it is not the task database or permanent memory. |
+| **Task tracker** | Operational project/task state owned by the relevant workflow/profile. Governor reads only what planning requires. |
+| **Evidence loop** | Captures what actually happened and compares it with intentions without confusing activity with progress. |
+| **Scheduler rules** | Durable desired cadence/triggers such as daily sync, weekly review, month-end reconciliation, or a conditional follow-up. |
+| **Platform scheduler adapter** | Materializes useful callbacks for the current day through GPT, another AI platform, an external scheduler, or a local runtime. |
+| **Workflow delegation** | Sends execution work to the appropriate workflow/agent while Governor retains WHY/WHEN/priority/allocation responsibility. |
+| **External feedback** | Treats responses from people, users, markets, publications, opportunities, etc. as evidence that can alter assumptions or allocation. |
+| **Continuity** | Replaces an exhausted Governor runtime while preserving one durable governed-human identity and authoritative memory. |
+
+### Operating mechanics
+
+```mermaid
+flowchart LR
+    H["Human-owned goals"] --> S["Governor strategy"]
+    M["Permanent memory"] --> I["Daily INIT"]
+    MR["Latest month report"] --> I
+    MP["Current month baseline"] --> I
+    C["Calendar"] --> I
+    E["Recent evidence"] --> I
+
+    I --> ST["Today's state"]
+    ST --> S
+    S --> P["Plan / prioritize / protect boundaries"]
+    P --> C
+    P --> W["Delegate to workflows"]
+    P --> SR["Scheduler rules"]
+
+    SR --> A["Platform scheduler adapter"]
+    A --> CB["Same-day callbacks"]
+    CB --> S
+
+    W --> X["Execution"]
+    C --> X
+    X --> EV["Actual evidence"]
+    EV --> D["Daily / weekly reconciliation"]
+    D --> M
+    D --> MON["Month-end: baseline vs changes vs actual"]
+    MON --> MR
+    MON --> NM["Next-month baseline"]
+    NM --> M
+
+    F["External feedback"] --> EV
+    T["Task tracker"] -. "planning evidence on demand" .-> S
+    G["Git / raw activity"] -. "verification on demand" .-> EV
+```
+
+### Time horizons
+
+The Governor uses nested feedback loops rather than one giant plan:
+
+```text
+INIT / today
+    -> What is true now?
+    -> What matters today?
+    -> What callbacks will make Governor useful later today?
+
+Daily
+    -> Intended vs actual
+    -> Carry-forward / correction
+
+Weekly
+    -> Allocation trend
+    -> Repeated displacement / progress pattern
+
+Monthly
+    -> Immutable baseline
+    -> Living plan changes + reasons
+    -> Actual outcomes
+    -> Why deviations happened
+    -> What changes next month
+
+Long-term
+    -> Human-owned goals / strategy
+    -> Evidence from months and external reality
+```
+
+### Information hierarchy
+
+Prefer compressed durable evidence before expensive raw reconstruction:
+
+```text
+strategy + goals
+    ↓
+previous month report
+    ↓
+current month baseline + material plan changes
+    ↓
+weekly summaries
+    ↓
+daily evidence
+    ↓
+calendar / task state
+    ↓
+raw Git, tickets, conversations, external sources
+       only when a material evidence gap remains
+```
+
+This hierarchy is important for continuity. A fresh Governor should normally understand the human's current trajectory from durable summaries and plans without replaying every commit, ticket, calendar event, or conversation.
