@@ -7,6 +7,7 @@ Copy this compact record into the selected project's work item or PR. Fill only 
 - User task and affected routes/components:
 - Candidate revision and environment:
 - Current behavior and intended change:
+- Supported languages and switch/route behavior (or not applicable):
 - Viewports checked (width and height; include phone, desktop, and any affected breakpoint):
 - States checked (for example default, empty, loading, error, success):
 
@@ -16,6 +17,8 @@ Copy this compact record into the selected project's work item or PR. Fill only 
 | --- | --- | --- |
 | Primary task and navigation path | | |
 | Content hierarchy, wording, and readability | | |
+| Changed visible content and behavior in every supported language | | |
+| Language switch, localized routes/links, and accessible labels | | |
 | Responsive layout, wrapping, clipping, and horizontal overflow | | |
 | Scroll reachability and usable controls at narrow width | | |
 | Keyboard navigation, focus, and control labels | | |
@@ -24,7 +27,7 @@ Copy this compact record into the selected project's work item or PR. Fill only 
 
 ## Evidence and follow-up
 
-- Screenshots or recording (route, viewport, date, revision):
+- Screenshots or recording (route, language, viewport, date, revision):
 - Focused automated checks (command, result, revision), if applicable:
 - Independent UI acceptance receipt, if required:
 - Failures, exclusions, or unverified behavior (reason, owner, next action):
