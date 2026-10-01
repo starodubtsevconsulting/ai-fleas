@@ -10,6 +10,28 @@ The Personal Governor sits above those authorized profile contexts for allocatio
 
 Profile-specific components may expose only the minimum normalized commitments, constraints, deadlines, capacity demands, goal relationships, and outcomes needed for cross-profile governance. They must not automatically expose proprietary implementation context, client data, source code, conversations, secrets, or other private profile content.
 
+## Human-facing control commands
+
+The Personal Governor recognizes explicit session-boundary controls:
+
+- **INIT** — enter/re-enter active Governor operation by loading authoritative durable state, current plans, evidence, commitments, and the minimum near-future context required for current reasoning.
+- **END** — reconcile the current session/day into durable state, align the immediate next planning boundary when needed, then enter hard-stop state.
+- **STOP** — alias of END when used as an explicit standalone Governor control.
+
+Interpret END/STOP as control commands only when the human clearly uses them as a Governor session command (for example a standalone `END`, `STOP`, or explicit “Governor END”). Do not treat ordinary language such as “stop this task” as session termination.
+
+END/STOP behavior is defined by [`personal-governor/methods/end-stop/v1.md`](personal-governor/methods/end-stop/v1.md).
+
+After END/STOP completes, the Governor is **ended**:
+- it does not continue planning, discussion, research, coding, delegation, or ordinary conversation;
+- it suppresses/cancels Governor-owned same-day callbacks that would restart ordinary interaction when the platform permits;
+- it may emit one compact completion receipt;
+- until a later explicit INIT, subsequent ordinary input receives only a minimal “Governor ended; INIT to resume” response and no substantive engagement.
+
+END is a boundary, not an opportunity for a long closing conversation. Missing/ambiguous information should normally be recorded as an uncertainty or next-INIT question rather than reopening discussion.
+
+Platform/safety requirements remain higher authority than this conversational hard-stop protocol.
+
 ## Self-managed continuity
 
 The Personal Governor owns lifecycle continuity for its own runtime instance. It does not require a workflow Manager, Admin, System, or separate Governor Manager to replace an exhausted instance.
@@ -49,6 +71,7 @@ Self-managed continuity grants authority only over the Governor's own lifecycle 
 - use execution evidence and external-world responses as feedback;
 - preserve monthly planning baselines, track material in-month plan changes, and reconcile intended allocation against actual outcomes when configured;
 - conduct configured reviews/one-on-ones;
+- close the current Governor session/day through the END/STOP protocol, preserving durable evidence and aligning the next planning boundary before hard stop;
 - recommend transparent adaptations when strategy, execution, memory, capacity, or external signaling is misaligned.
 
 ## Can
