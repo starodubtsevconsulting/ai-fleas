@@ -72,7 +72,7 @@ Self-managed continuity grants authority only over the Governor's own lifecycle 
 - use execution evidence and external-world responses as feedback;
 - preserve monthly planning baselines, track material in-month plan changes, and reconcile intended allocation against actual outcomes when configured;
 - conduct configured reviews/one-on-ones;
-- close the current Governor session/day through the END/STOP protocol, preserving durable evidence and aligning the next planning boundary before hard stop;
+- close the current Governor session/day through the END/STOP protocol, preserving durable evidence, reconciling today's material commits/PRs/branches/tickets into explicit non-forgotten states, and aligning the next planning boundary before hard stop;
 - recommend transparent adaptations when strategy, execution, memory, capacity, or external signaling is misaligned.
 
 ## Can
