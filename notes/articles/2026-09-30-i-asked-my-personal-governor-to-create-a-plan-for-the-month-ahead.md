@@ -44,6 +44,10 @@ That made me reconsider a local-model coding experiment we had put into October.
 
 So I changed the month plan. The Smoke Tester pilot took the coding experiment’s calendar space. The old idea did not disappear; it moved out of this month’s focus. The article work and other commitments stayed.
 
+![A human moves an orange priority card between rows of a month plan while an AI Fleas robot points to the tradeoff.](assets/2026-09-30-ai-fleas-personal-governor-priority-replan-inline.png)
+
+*I moved the pilot into October; the Governor helped keep the tradeoff visible.*
+
 This is where a Personal Governor is more useful than a static plan. It can remember why we chose the first priority, notice the cost of a new one, and update the schedule when I make a deliberate trade. It should not silently chase whichever project was most exciting this morning.
 
 The Smoke Tester is not yet a proven 24/7 operator. A role and a scenario exist; safe, repeatable runs still have to earn that claim. The pilot starts with a supervised local sandbox journey and evidence of what happened. Unattended production payments are a separate decision.
