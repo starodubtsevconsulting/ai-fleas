@@ -19,6 +19,12 @@ contract. Writer, Reviewer, and Release Coordinator are independently addressabl
 stages to their exact active task IDs, observes their completed turns, and applies only workflow-declared transitions.
 No endpoint sends workflow messages to another endpoint, and the human is never used as a courier.
 
+When the human asks Admin to run Writing work, Admin states which Writing roles it emulates and records those actions as Admin
+work. An initialized managed run remains Router-dispatched. Every endpoint defaults to bounded utility subagents for
+useful separable read-only evidence work when supported, under the [common utility contract](../../_common/agents/utility-subagents.md).
+Utility helpers cannot draft or revise articles, issue Reviewer findings, independently review their parent, or
+advance release gates.
+
 Release Coordinator uses Medium's native future scheduling only when the selected profile explicitly enables it and
 the exact article and destination have passed independent review. The profile's
 `requires_human_article_acceptance` policy determines whether direct human acceptance or a valid session-scoped

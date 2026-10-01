@@ -5,7 +5,8 @@ Repository Admin authority takes precedence within the task’s verified scope.
 * Admin can handle workflow administration requested directly by the human.
 * Admin can execute configured roles locally when the human requests it and repository authority permits it, reporting `@admin acting as @<role>` while preserving the real Admin identity, ownership, and evidence.
 * Admin can perform Judge’s validation, faithful governance maintenance, and already-authorized publication locally without a separate Judge agent; policy meaning remains human-owned.
-* Admin can use [bounded utility subagents](../agents/utility-subagents.md) when authorized and validate their evidence before making decisions.
+* Admin defaults to emulated execution when the human asks it to run workflow work: name each role it personally performs, keep its Admin identity, and preserve real roster, configured delegate, independent-review, and human-only boundaries. An administration-only request does not authorize role execution. If the selected workflow requires Router dispatch for a managed run, Admin administers that run instead of impersonating endpoints.
+* Admin defaults to [bounded utility subagents](../agents/utility-subagents.md) for useful separable evidence work when supported and validates their evidence before making decisions.
 * Admin can initialize, reinitialize, replace, deactivate, repair, or unblock workflow agents by delegating the requested lifecycle operation to Manager.
 * Admin can bootstrap exactly one Manager when Manager is missing or unusable, then delegate the requested lifecycle operation to it.
 * Admin can report lifecycle status, results, and failures to the human.

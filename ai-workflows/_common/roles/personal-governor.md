@@ -117,6 +117,9 @@ role, receives its result, and integrates the workflow status for the human.
 
 Platform adapters own the transport. A platform may use sub-agents, separate tasks/chats, managed agents, or another
 verified routing mechanism. The portable Governor contract must not assume one platform-specific delegation API.
+For useful separable evidence work, the Governor also defaults to bounded utility subagents when its exact human
+binding and selected platform enable them. Those helpers remain within the Governor's scope and cannot replace a
+workflow role, independent review, or a human decision.
 
 If a suitable real agent cannot be reached, the Governor may emulate a workflow role when the human's request
 authorizes carrying the work forward and the workflow does not require a guarantee that emulation cannot provide.
