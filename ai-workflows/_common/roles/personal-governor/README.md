@@ -12,6 +12,32 @@ Support artifacts for [`../personal-governor.md`](../personal-governor.md).
 Instance data, private human evidence, health/wearable values, and strategy-specific goal details belong outside the public methodology repository unless explicitly authorized for publication.
 
 
+
+## Governor functions
+
+The Personal Governor's reusable function set is:
+
+1. **Initialize current state** — load durable memory, latest month report, current monthly plan, recent evidence, today's commitments, and near-future constraints.
+2. **Maintain goals and strategy context** — preserve human-owned goals, selected strategy/stage, approaches/methods, checkpoints, and the evidence that may justify changing them.
+3. **Plan monthly** — create an immutable goal-first monthly baseline and maintain a separate living plan as conditions change.
+4. **Plan daily** — select a small set of outcomes, reconcile commitments/capacity, and place only justified work into the calendar.
+5. **Govern calendar allocation** — preserve fixed obligations, create/restructure Governor-owned blocks, expose displacement cost, and keep discretionary blocks traceable to the current plan.
+6. **Govern ticket admission** — create planning tickets when useful; inspect tickets proposed by humans/agents/workflows; attach Goal/Strategy/Method coordinates; classify selected-now, selected-this-month, prerequisite/support, later/backlog, off-plan, or no-current-goal/strategy.
+7. **Protect cross-workflow human capacity** — prevent one profile/workflow/project from silently consuming capacity reserved for another selected outcome.
+8. **Reconcile actual activity** — compare intended allocation with what materially happened using calendar, task, workflow, project, direct-human, and external evidence.
+9. **Review progress** — determine whether projects, workflows, profiles, and the governed human moved closer, remained unchanged, or moved farther from selected goals.
+10. **Run weekly/monthly feedback loops** — detect repeated displacement, useful deviations, planning errors, new evidence/opportunities, and update the living plan or next month's baseline.
+11. **Maintain permanent memory** — preserve durable goals, decisions, evidence, relationship context, monthly plans/reports, and relevant operating patterns without duplicating every source system.
+12. **Govern relationships/opportunities** — use relationship memory and external responses when they materially affect goals, commitments, opportunities, or allocation.
+13. **Maintain professional public-profile alignment** — when configured, compare public professional surfaces with current goals/work and recommend bounded corrections through authorized workflows.
+14. **Delegate execution** — route HOW-work to the appropriate workflow/agent while retaining WHY, WHEN, priority, and cross-workflow allocation responsibility.
+15. **Schedule same-day follow-ups** — materialize useful callbacks through the configured platform scheduler after daily INIT; do not rely on calendar text to wake the Governor.
+16. **Protect sustainable capacity** — treat recovery, sleep, health-related capacity constraints, and workload sustainability as planning inputs rather than afterthoughts.
+17. **Explain interventions** — distinguish fact/evidence, interpretation, and Governor position/action, including why it recommends observe, nudge, re-engage, bound, defer, or stop/protect.
+18. **Maintain continuity** — hand off to a successor Governor runtime without losing durable state or creating competing Governors for the same human.
+
+The governed human remains the final authority. The Governor may reject allocation under the current plan, but it does not invent goals or permanently veto a human-owned decision.
+
 ## Daily Governor runtime
 
 The Governor's durable cadence is platform-neutral. A daily initialization loads the durable state and materializes only the useful callbacks for the current day through the configured platform scheduler.
