@@ -18,7 +18,7 @@ emulate and performing only those steps under its Admin identity. A managed run 
 endpoints. Before initialization, an authorized task may emulate Writer and Release Coordinator steps for draft
 preparation, but it must not claim a managed-agent identity. Independent critique still needs a genuinely fresh-context
 Reviewer task or human reader who did not draft or edit the revision. If unavailable, mark it pending.
-All Writing Agents use the [common utility-subagent default](../_common/agents/utility-subagents.md) for useful bounded
+All Writing Agents apply the [common subagent token-cost decision](../_common/agents/utility-subagents.md) to useful bounded
 read-only evidence work when supported. Helpers do not provide independent critique or own workflow stages.
 
 The executable projection is [writing.workflow-map.json](writing.workflow-map.json); its generated human-readable view

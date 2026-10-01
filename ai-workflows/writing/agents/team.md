@@ -20,10 +20,16 @@ stages to their exact active task IDs, observes their completed turns, and appli
 No endpoint sends workflow messages to another endpoint, and the human is never used as a courier.
 
 When the human asks Admin to run Writing work, Admin states which Writing roles it emulates and records those actions as Admin
-work. An initialized managed run remains Router-dispatched. Every endpoint defaults to bounded utility subagents for
-useful separable read-only evidence work when supported, under the [common utility contract](../../_common/agents/utility-subagents.md).
+work. An initialized managed run remains Router-dispatched. Every endpoint uses the [common subagent token-cost decision](../../_common/agents/utility-subagents.md)
+for useful separable read-only evidence work when supported.
 Utility helpers cannot draft or revise articles, issue Reviewer findings, independently review their parent, or
 advance release gates.
+
+For an authorized Admin emulation, Admin may assign each role it actually emulates to a separate role-scoped
+subagent under the [Admin role contract](../../_common/roles/admin.md). Admin reads that role's effective model and
+reasoning binding before dispatch and verifies its output. This work remains Admin-performed; a Reviewer subagent of
+the drafting Admin does not satisfy independent critique. A separate fresh-context Reviewer task or human reader
+supplies that gate.
 
 Release Coordinator uses Medium's native future scheduling only when the selected profile explicitly enables it and
 the exact article and destination have passed independent review. The profile's

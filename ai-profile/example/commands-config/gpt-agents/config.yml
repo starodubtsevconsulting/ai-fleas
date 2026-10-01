@@ -21,7 +21,7 @@ role_overrides:
   smoke-tester: { model: gpt-5.6-terra, reasoning: low }
   writer: { model: gpt-5.6-sol, reasoning: low }
   reviewer: { model: gpt-5.6-sol, reasoning: low }
-  release-coordinator: { model: gpt-5.6-sol, reasoning: low }
+  release-coordinator: { model: gpt-5.6-terra, reasoning: low }
 
 # Optional example only. A real profile must select its own Coder profile,
 # authorized projects, routing policy, transport, and matching strategy.

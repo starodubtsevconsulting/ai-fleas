@@ -22,7 +22,7 @@ Existing focused policies remain independently authoritative where applicable:
 - [agent continuity](_common/agents/continuity.md)
 - [knowledge transfer](_common/agents/knowledge-transfer.md)
 - [agent scheduling](_common/agents/scheduling.md)
-- [bounded utility subagents](_common/agents/utility-subagents.md), the default for useful separable work when supported
+- [bounded utility subagents](_common/agents/utility-subagents.md), selected when useful separable work is expected to save total tokens
 
 ## Composition rule
 

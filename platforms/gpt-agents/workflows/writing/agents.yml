@@ -34,7 +34,7 @@ role_endpoints:
     reasoning: low
   - role: release-coordinator
     title: "🗓️ Release Coordinator"
-    model: gpt-5.6-sol
+    model: gpt-5.6-terra
     reasoning: low
 
 role_contracts:
