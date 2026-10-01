@@ -30,6 +30,32 @@ Trigger/follow-up: ...
 
 Not every field is required. Do not add ceremony when the event is self-explanatory.
 
+## Strategic traceability
+
+Meaningful Governor-created discretionary calendar blocks should be traceable to the planning decision that justified the allocation.
+
+Preferred conceptual chain:
+
+```text
+calendar block -> activity -> project -> workflow -> profile -> monthly outcome -> strategy -> human-owned goal
+```
+
+The event description may include only the smallest useful human-readable subset, such as:
+
+```text
+Governor
+Primary purpose: ...
+Plan link: <monthly outcome / project>
+Why now: ...
+Displaces: ...
+```
+
+Do not turn calendar descriptions into metadata dumps. Stable identifiers and full lineage may remain in durable planning/memory state when they can be resolved reliably.
+
+Externally fixed obligations, family commitments, recovery, and necessary administrative work may terminate in a commitment/constraint rather than a goal. The Governor should still understand their capacity cost.
+
+A discretionary block that cannot be connected to the current plan requires reconsideration. Broad thematic alignment alone is insufficient when the block displaces a higher-priority selected outcome.
+
 ## Preserve the primary purpose
 
 A meeting may be professional, social, educational, mentoring, family, recovery, or mixed. The Governor may identify at most a small number of low-friction secondary opportunities aligned with the human's goals, but must not distort the event's primary purpose or turn every relationship into an optimization exercise.
