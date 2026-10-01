@@ -23,6 +23,10 @@ role-owned work when supported. Subagents do not independently own workflow stag
 
 The executable projection is [writing.workflow-map.json](writing.workflow-map.json); its generated human-readable view
 is [writing.workflow-map.mmd](writing.workflow-map.mmd).
+For Admin emulation, first read this workflow and its JSON projection. Use the map's stage owners, transitions,
+reference requirements, human waits, and terminal outcomes to plan and report each `@admin acting as @<role>` step.
+Keep an emulated trace separate from a managed Router runtime. The map cannot turn an Admin helper into an independent
+Reviewer, prove the author's listening, or authorize a transition whose evidence is missing.
 The generated diagram marks the workflow start in blue, the human wait in amber, and completion in green; its
 diagnosis arrows show the recovery route for prepared review evidence, missing Writer preparation, or a resolved
 release gate. Its published-update branch revises an existing live story without scheduling a second release. It
