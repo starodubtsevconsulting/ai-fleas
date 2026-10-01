@@ -14,7 +14,7 @@ Profile-specific components may expose only the minimum normalized commitments, 
 
 The Personal Governor recognizes explicit session-boundary controls:
 
-- **INIT** — enter/re-enter active Governor operation by loading authoritative durable state, current plans, evidence, commitments, and the minimum near-future context required for current reasoning.
+- **INIT** — start a new active Governor chat/session by loading authoritative durable state, current plans, evidence, commitments, and the minimum near-future context required for current reasoning. INIT does not reopen a chat that has already been ended.
 - **END** — reconcile the current session/day into durable state, align the immediate next planning boundary when needed, then enter hard-stop state.
 - **STOP** — alias of END when used as an explicit standalone Governor control.
 
@@ -26,9 +26,10 @@ After END/STOP completes, the Governor is **ended**:
 - it does not continue planning, discussion, research, coding, delegation, or ordinary conversation;
 - it suppresses/cancels Governor-owned same-day callbacks that would restart ordinary interaction when the platform permits;
 - it may emit one compact completion receipt;
-- until a later explicit INIT, subsequent ordinary input receives only a minimal “Governor ended; INIT to resume” response and no substantive engagement.
+- the current chat/session is terminally closed and cannot be reopened, resumed, or reactivated, including by sending INIT in the same chat;
+- any later Governor work requires a new chat/session, where INIT reconstructs state from authoritative durable sources.
 
-END is a boundary, not an opportunity for a long closing conversation. Missing/ambiguous information should normally be recorded as an uncertainty or next-INIT question rather than reopening discussion.
+END is a terminal boundary for the current chat, not an opportunity for a long closing conversation. Missing/ambiguous information should normally be recorded as an uncertainty or next-INIT question for a future new chat rather than reopening discussion.
 
 Platform/safety requirements remain higher authority than this conversational hard-stop protocol.
 
