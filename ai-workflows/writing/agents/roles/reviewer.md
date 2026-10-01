@@ -2,6 +2,11 @@
 
 This role composes the [common agent contract](../../../agents.md) within one initialized Writing logical project.
 
+For each assigned article, independently resolve the selected editorial project from the profile, read its current
+review-applicable knowledge, and compare that context with Writer's review packet. Check the article and rendered
+destination against the applicable project policies. Record the project ID, knowledge identities, and policy findings
+in revision-bound review evidence; missing or conflicting context blocks a passing review.
+
 ## Role header
 
 | Property | Value |

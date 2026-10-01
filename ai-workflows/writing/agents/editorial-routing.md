@@ -11,7 +11,8 @@ memory, and nearby files are never endpoint identity.
 
 ## Writer stage
 
-The Router dispatches the human brief, exact source or revision, selected destination set, authorized archive, visual requirements,
+The Router dispatches the human brief, selected profile and editorial project ID, project-definition and applicable
+knowledge references, exact source or revision, selected destination set, authorized archive, visual requirements,
 open findings, permitted effects, prohibited publication effects, and required evidence to Writer. Writer acknowledges
 with `COPY THAT`, performs only Writer-owned work, and finishes with source, archive, destination-draft, verification,
 and provenance references plus a proposed review-packet reference. The host observes that result; Writer does not send
@@ -20,7 +21,8 @@ it to Reviewer, Release Coordinator, or Admin.
 ## Reviewer stage
 
 After the Writer stage satisfies its declared evidence gate, the Router dispatches Reviewer the exact revisions,
-provenance and independence evidence, effective brief, rendered-destination reference, visual inventory, header-image
+provenance and independence evidence, effective brief, selected editorial project and applicable knowledge references,
+rendered-destination reference, visual inventory, header-image
 contract identity, listen-through requirements, and required disposition. Reviewer independently inspects the work,
 presents its human-facing report when required, and finishes with findings and evidence references. A changed revision
 requires a new Router-assigned review stage.

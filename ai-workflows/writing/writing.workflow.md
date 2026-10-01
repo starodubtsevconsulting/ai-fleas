@@ -150,6 +150,13 @@ page, then reconcile the archive and remote repository record. Preserve the publ
   granting new publication authority. Record the selected project ID and resolved archive-relative folder in intake
   and handoff evidence. For an existing article, locate its current canonical archive folder before editing; do not
   silently create a second copy when it has not yet been migrated.
+- Keep the selected editorial project distinct from the article-store project and the workflow's logical project.
+  Admin records the exact profile ID, editorial project ID and `project.yml` reference in the work request; Writer
+  resolves the current project definition and its applicable knowledge before drafting or revising; Reviewer loads
+  those same current sources independently for the exact article revision. Carry the knowledge IDs and source
+  references through the review packet and review evidence. If the editorial project or a required knowledge source
+  cannot be resolved, stop that stage rather than falling back to generic Writing guidance or a nearby project.
+  When project knowledge changes after drafting, recheck affected copy and visuals before accepting the review.
 - Resolve the archive from the selected profile's `article_store.project_ref`, which must name an authorized project.
   Its `storage_path` is the local location for the active device/runtime, not a universal path across devices. The
   logical article store and its content remain the same when another authorized device maps it to a different local
