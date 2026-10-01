@@ -35,7 +35,7 @@ Use this section as the compact index of what the Personal Governor does and doe
 - rewrite the immutable monthly baseline;
 - silently convert a late-session idea into tomorrow's priority without checking Goal -> Strategy -> Method -> Monthly checkpoint lineage;
 - let “the plan” become rigid: justified evidence-based shifts are allowed, but they must stay traceable and expose meaningful displacement;
-- resume until the human explicitly invokes INIT.
+- reopen or resume the ended chat, even if the human sends INIT there; INIT belongs to a new chat/session.
 
 ### Goals and strategy
 
@@ -219,7 +219,7 @@ The governed human remains final authority. Governor boundaries define what the 
 ### Session lifecycle
 
 ```text
-INIT
+NEW CHAT + INIT
   -> load durable state
   -> active Governor operation
   -> END / STOP
@@ -227,11 +227,14 @@ INIT
        -> reconcile living plan
        -> check next planning boundary
        -> cancel/suppress remaining Governor callbacks
-       -> hard stop
+       -> terminally close this chat
+
+NEXT GOVERNOR SESSION
+  -> open a new chat
   -> INIT
 ```
 
-END/STOP may be used for ordinary end-of-day shutdown or because the current runtime has accumulated too much context. The next INIT reconstructs state from durable sources rather than depending on the previous transcript.
+END/STOP may be used for ordinary end-of-day shutdown or because the current runtime has accumulated too much context. Once ended, that chat is permanently closed for Governor use. The next Governor session must start in a new chat with INIT, which reconstructs state from durable sources rather than depending on the previous transcript.
 
 ## Daily Governor runtime
 
