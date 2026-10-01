@@ -16,6 +16,7 @@ contract must resolve this index and every applicable linked rule; conversationa
 | Peer routing, packets, active scope, and evidence follow-up | [`_common/agents/communication.md`](_common/agents/communication.md) |
 | Reliable peer delivery and acknowledgement | [`_common/agents/delivery.md`](_common/agents/delivery.md) |
 | Active state, readiness, Admin/Judge foundations, and initialization | [`_common/agents/lifecycle.md`](_common/agents/lifecycle.md) |
+| Self-scoped `INIT`, `CLONE`, and `END`/`STOP` commands | [`_common/agents/self-commands.md`](_common/agents/self-commands.md) |
 
 Existing focused policies remain independently authoritative where applicable:
 

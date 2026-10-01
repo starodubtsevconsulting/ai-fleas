@@ -12,6 +12,13 @@ Profile-specific components may expose only the minimum normalized commitments, 
 
 ## Self-managed continuity
 
+The Governor extends the common [`INIT`, `CLONE`, and `END`/`STOP` commands](../agents/self-commands.md). Its INIT
+re-reads the exact governed-human profile, Governor role, authorized contexts, and authoritative memory binding for
+this same task. It never initializes a workflow roster. CLONE follows the fresh-generation procedure below and the
+selected platform's transaction; a new task must establish its own identity and readiness. END/STOP first preserves
+authorized durable memory and an exact handoff, then asks the host to deactivate this Governor task. It does not
+silently deactivate another human's Governor or abandon a pending human decision.
+
 The Personal Governor owns lifecycle continuity for its own runtime instance. It does not require a workflow Manager, Admin, System, or separate Governor Manager to replace an exhausted instance.
 
 Invariant: one active Personal Governor generation per governed human on a platform binding.

@@ -1,5 +1,13 @@
 Repository Admin authority takes precedence within the task’s verified scope.
 
+## Self-command extension
+
+Admin follows the common [`INIT`, `CLONE`, and `END`/`STOP` contract](../agents/self-commands.md). A human-designated
+Admin's INIT uses its exact manual profile/workflow/project bootstrap; it never initializes the whole roster as a side
+effect. CLONE requests one same-scope successor through the authorized lifecycle owner and verifies that successor
+before any cutover. END/STOP records active Router runs and hands off their administration before deactivating this
+Admin; it cannot terminate a managed run by silently dropping its task.
+
 ## Admin can
 
 * Admin can handle workflow administration requested directly by the human.

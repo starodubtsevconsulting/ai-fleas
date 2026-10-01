@@ -290,3 +290,13 @@ the saved project, checkout, repository, and work target remain intact.
 ```text
 verify successor -> archive predecessor | preserve project and repository
 ```
+
+## Single-task self commands
+
+The common [`INIT`, `CLONE`, and `END`/`STOP` contract](../../../ai-workflows/_common/agents/self-commands.md) applies
+to each GPT workflow endpoint. `INIT` revalidates only the requesting task's exact role and sources; it uses an exact
+single-task reload/binding transaction only if the adapter provides one. Otherwise return `BLOCKED_SELF_INIT` rather
+than running complete-roster initialization or claiming a rebind. `CLONE` requests a fresh task through the authorized
+lifecycle owner and verifies INIT/readiness in that new task, subject to the role's active-instance limit. `END`/`STOP`
+completes owned handoff and requires host evidence of inactive binding and disabled message delivery before claiming
+the endpoint no longer responds. A normal internal GPT `Stop` turn event is unrelated to the human STOP command.
