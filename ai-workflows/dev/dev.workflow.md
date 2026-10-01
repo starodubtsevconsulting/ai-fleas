@@ -78,6 +78,9 @@ the same bounded Coder route while retaining ownership of design and independent
 1. Manager resolves the work target, ticket when applicable, and required agents.
 2. Designer / Reviewer defines requirements, acceptance criteria, and implementation design through the
    [planning flow](flows/planning.flow.md).
+   For a user-visible interface change, use the [UX and UI flow](flows/ux-ui.flow.md) across planning,
+   implementation, and verification. Record the affected screens and viewport-specific evidence with its
+   [review template](guides/ux-ui-review-template.md).
    For a public site's search-discoverability task, enter the
    [search discoverability flow](flows/search-discoverability.flow.md), which uses the
    [search discoverability guide](guides/search-discoverability.md) for site-specific search inputs and evidence,
