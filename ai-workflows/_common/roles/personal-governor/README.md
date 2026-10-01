@@ -216,6 +216,23 @@ Production deployment is a hard Governor boundary even when the Governor is othe
 
 The governed human remains final authority. Governor boundaries define what the Governor itself may do; the human may choose a different plan or delegate execution to the appropriate role without turning the Governor into that role.
 
+### Session lifecycle
+
+```text
+INIT
+  -> load durable state
+  -> active Governor operation
+  -> END / STOP
+       -> persist material evidence
+       -> reconcile living plan
+       -> check next planning boundary
+       -> cancel/suppress remaining Governor callbacks
+       -> hard stop
+  -> INIT
+```
+
+END/STOP may be used for ordinary end-of-day shutdown or because the current runtime has accumulated too much context. The next INIT reconstructs state from durable sources rather than depending on the previous transcript.
+
 ## Daily Governor runtime
 
 The Governor's durable cadence is platform-neutral. A daily initialization loads the durable state and materializes only the useful callbacks for the current day through the configured platform scheduler.
