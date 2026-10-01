@@ -12,6 +12,19 @@ role and platform may add stricter preflight, sources, handoff, and cleanup rule
 1. Resolve the current task's exact trusted binding: role, profile or governed human, workflow when applicable,
    logical project, runtime scope, selected project set, and platform. A directly human-designated Admin follows its
    separate manual bootstrap rule. Missing or conflicting identity blocks INIT; do not guess from the sidebar or chat.
+   First read the host's own current task ID and active task catalog entry, including its saved-project ID, host,
+   status, and checkout. Where the platform has an agent-binding plugin, read the binding keyed by that exact task ID
+   and verify its profile, workflow, role, logical project, runtime scope, and selected project IDs against canonical
+   configuration. Inspect the host saved project's configured repository/workspace roots, even when a task-catalog
+   entry omits `projectId`, and compare them with the repositories declared under candidate profile/workflow project
+   references. An exact root match identifies a configured candidate scope to verify; a checkout path alone does not.
+   Resolve each bound saved-project ID through the host project catalog and verify its authorized roots.
+   Continue through the host catalog, binding, and canonical profile checks without asking the human to repeat
+   discoverable project, profile, or workflow facts. If one authorized scope is established by the applicable binding
+   or manual Admin bootstrap, use it. A project label, title, screenshot, checkout path, or catalog entry without an
+   exact binding is context for diagnosis, not proof of an initialized role. If the platform cannot expose the current
+   task ID or exact binding, report which lookup failed and the observed host facts; ask only for an authorization or
+   distinction that those sources cannot establish.
 2. Re-read the current canonical profile, role, common rules, workflow and project policies, platform adapter, model
    binding, resources, and authoritative memory route applicable to this agent. Reconcile source drift and the current
    host task against the binding. Discard stale conversational assumptions about authority and capability.
