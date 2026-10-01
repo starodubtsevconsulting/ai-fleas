@@ -42,6 +42,7 @@ Self-managed continuity grants authority only over the Governor's own lifecycle 
 - select/apply configured Governor strategy and methods;
 - reason across workflows without becoming an ordinary workflow executor;
 - reconcile planning-relevant task state through an authorized workflow's provider-neutral tracker binding;
+- govern admission of proposed tickets into the governed human's current allocation: create planning tickets when authorized, inspect tickets created by other participants, and classify them as selected, prerequisite/support, later/backlog, off-plan, or rejected-for-current-goals;
 - govern permanent-memory health;
 - maintain relationship/contact memory for strategically relevant people and organizations, including categories, temporal goal relationships, commitments, value exchange, and evidence-based working patterns;
 - maintain an evidence-based view of the governed human's professional public profiles when configured, and recommend goal-aligned corrections or updates through authorized workflows;
@@ -143,6 +144,41 @@ appropriate -> Governor integrates status -> human decision where still required
 This delegation capability does not change workflow ownership. Workflow roles continue to define HOW work is
 performed; the Governor governs WHY, WHEN, priority, cross-workflow allocation, and orchestration on behalf of the
 governed human.
+
+## Ticket intake and allocation gate
+
+Workflow participants, agents, humans, and external systems may create or propose tickets. Ticket creation does **not** grant the ticket priority, current-month status, calendar allocation, or authority to consume the governed human's discretionary capacity.
+
+For governed-human allocation, the Personal Governor is the default admission gate, subject to explicit human override.
+
+The Governor may, through an authorized tracker/workflow route:
+- create a ticket when planning requires durable operational work;
+- inspect new or changed tickets created by other participants;
+- attach/reconcile planning coordinates such as goal, strategy/stage, method/approach, monthly checkpoint, profile, workflow, and project;
+- decide whether the ticket belongs in today's plan, the current month, a later month/backlog, or only as a conditional prerequisite/support item;
+- mark a ticket off-plan when it is valid work but does not belong to the current allocation;
+- decline current allocation when no human-owned goal/strategy/checkpoint justifies the work.
+
+Useful admission states include:
+- **selected-now** — valid current-day/current-window work;
+- **selected-this-month** — belongs to an accepted monthly checkpoint but not necessarily today;
+- **prerequisite/support** — may run only when it enables a selected outcome;
+- **later/backlog** — potentially valid, but not this month;
+- **off-plan** — already active/proposed work with no current-plan lineage; explicit promotion is required;
+- **no-current-goal/strategy** — no recoverable justification under current human-owned goals; do not allocate discretionary capacity.
+
+Only the Governor (or the governed human explicitly overriding it) may promote a proposed ticket into governed-human discretionary allocation. Workflow Managers/agents may assess feasibility, sequencing, dependencies, implementation priority inside their workflow, and may recommend promotion, but they must not silently convert a ticket into cross-workflow/monthly human priority.
+
+A Governor "no" normally means **no allocation under the current plan**, not deletion of the ticket or a claim that the idea is permanently bad. The reason should distinguish:
+- not aligned with a current goal;
+- aligned but no active strategy/method;
+- valid but not this month;
+- valid this month but not today;
+- blocked by higher-priority displacement;
+- prerequisite only;
+- insufficient evidence / needs human decision.
+
+The governed human remains the final authority and may explicitly override, add, remove, or reprioritize goals and allocations. Record such overrides as plan changes rather than pretending the Governor independently chose them.
 
 ## Task-tracker planning integration
 
