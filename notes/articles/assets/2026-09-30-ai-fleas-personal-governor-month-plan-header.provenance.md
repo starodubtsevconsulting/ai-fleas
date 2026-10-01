@@ -8,7 +8,7 @@
 - Character references: AI Fleas human and robot visual identity from earlier selected article headers
 - SHA-256: `f0b6ece09afcd546452dcd1c3c3e69b65eca83ec0cc90f99f75bba3f22287cee`
 - Dimensions: 1672 × 941
-- Status: author-selected replacement; fresh independent review and Medium upload pending
+- Status: author-selected replacement; uploaded to saved Medium draft 2026-10-01; fresh independent review pending
 
 ## Visible content and intent
 
@@ -26,4 +26,5 @@ The composition was compared with the earlier selected headers recorded in `head
 ## Destination
 
 - Medium story: `https://medium.com/p/e61f9870080f/edit`
-- Status: unpublished saved draft; replacement image upload pending
+- Status: unpublished saved draft; replacement image uploaded beneath subtitle with caption and alt text
+- Medium image identity: `1*D5oq-vyHuIwgXJ-cEkLiCw.png`
