@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { parseDocument } from 'yaml';
+import { loadRegistry, resolveDispatchPlan, requireAdapter } from '../../../../platforms/dispatch-plan.mjs';
 
 const [profileRoot, workProfileId, workflowSelector = '', projectSelector = '', connectionSelector = ''] = process.argv.slice(2);
 function fail(message) { console.error(`HERMES_PROFILE_SCOPE_INVALID: ${message}`); process.exit(1); }
@@ -50,6 +51,7 @@ if (!availablePlatforms.includes('hermes')) fail(`work profile '${workProfileId}
 
 const commandsRoot = resolveCatalogRoot(String(profile.ai_commands_root || ''), 'ai_commands_root');
 const workflowsRoot = resolveCatalogRoot(String(profile.ai_workflows_root || ''), 'ai_workflows_root');
+const platformsRoot = resolveCatalogRoot(String(profile.ai_platforms_root || ''), 'ai_platforms_root');
 const workflowId = path.basename(String(workflow.path)).replace(/\.workflow\.md$/, '').replace(/\.md$/, '');
 const workflowInstructions = path.join(workflowsRoot, workflowId, `${workflowId}.workflow.md`);
 if (!fs.statSync(workflowInstructions, { throwIfNoEntry: false })?.isFile()) fail(`workflow contract is not a readable file: ${workflowInstructions}`);
@@ -59,6 +61,12 @@ const logicalAgentsFile = path.join(workflowsRoot, workflowId, 'agents.yml');
 const logicalAgents = readYaml(logicalAgentsFile);
 if (logicalAgents.workflowId !== workflowId || !Array.isArray(logicalAgents.agents)) fail(`logical role configuration does not match workflow '${workflowId}'.`);
 const roleDefinitions = [logicalAgents.initializer, ...logicalAgents.agents].filter(Boolean);
+try {
+  const lifecyclePlan = resolveDispatchPlan(profile, workflow,
+    loadRegistry(path.join(platformsRoot, 'registry.yml')),
+    { operation: 'full-roster', declaredAgentIds: roleDefinitions.map(role => role.agentId) });
+  requireAdapter(lifecyclePlan, 'hermes');
+} catch (error) { fail(error.message); }
 
 const localAi = workflow.local_ai;
 if (!localAi || typeof localAi !== 'object' || Array.isArray(localAi)) fail('workflow local_ai mapping is required.');
