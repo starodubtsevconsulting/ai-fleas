@@ -7,4 +7,4 @@ workflows:
     agent_overrides:
       coder:
         platform: hermes-cli
-# Admin-only plan resolves GPT; full-roster execution rejects mixed platforms.
+# Admin-only selection resolves codex-app; full-roster execution rejects mixed platforms.
