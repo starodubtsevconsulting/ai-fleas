@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from 'yaml';
 import { buildAdminInitialization, resolveProjectRoot } from './admin-initialization.mjs';
-import { discoverWorkflowSavedProject } from './native-project-catalog.mjs';
+import { GptNativeCatalog } from './native-project-catalog.mjs';
 
 export async function prepareNativeAdmin(request, client, {io = fs} = {}) {
   const profilePath = io.realpathSync(request.profilePath);
@@ -30,7 +30,9 @@ export async function prepareNativeAdmin(request, client, {io = fs} = {}) {
     return p;
   });
   const logicalProjectId = request.logicalProjectId || `${request.profileId}-${request.workflowId}`;
-  const saved = await discoverWorkflowSavedProject(client, { logicalProjectId, authorizedRoots: selected.map(p => p.root), realpathSync: value => io.realpathSync(value) });
+  // One dependency-owned catalog, with fresh read-only discovery rather than cached scope.
+  const catalog = new GptNativeCatalog(client, { realpathSync: value => io.realpathSync(value) });
+  const saved = await catalog.discoverWorkflowSavedProject({ logicalProjectId, authorizedRoots: selected.map(p => p.root) });
   const plan = buildAdminInitialization({ ...request, profilePath, projectIds, logicalProjectId,
     runtimeScope: request.runtimeScope || logicalProjectId, generation: request.generation || 1,
     savedProjectId: saved.id,

@@ -5,7 +5,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readNativeProjectCatalog, discoverWorkflowSavedProject, projectRootContains } from './native-project-catalog.mjs';
+import { GptNativeCatalog, readNativeProjectCatalog, discoverWorkflowSavedProject, projectRootContains } from './native-project-catalog.mjs';
 const project = (id, name = 'fictional-financial-insights', roots = ['/fictional/code', '/fictional/records']) => ({ id, name, roots: roots.map(path => ({ path })) });
 const realpathSync = value => value.replace('/fictional/link', '/fictional/records');
 function fixture(pages = [{ data: [project('one')], nextCursor: null }], reads = {}) {
@@ -18,6 +18,25 @@ function fixture(pages = [{ data: [project('one')], nextCursor: null }], reads =
     throw new Error('Unexpected mutation RPC');
   } };
 }
+test('catalog construction only owns dependencies and performs no effects', async () => {
+  const client = fixture();
+  const rootsRead = [];
+  const catalog = new GptNativeCatalog(client, { realpathSync: value => { rootsRead.push(value); return value; } });
+  assert.deepEqual(client.calls, []);
+  assert.deepEqual(rootsRead, []);
+  assert.equal(typeof catalog.list, 'function');
+  // Unsupported transport is rejected on use, not during dependency ownership.
+  await assert.rejects(new GptNativeCatalog(null).list(), /HOST_PROJECT_RPC_UNSUPPORTED/);
+});
+test('class methods preserve fresh RPC ordering and selected-root evidence', async () => {
+  const client = fixture([{ data: [project('one')] }, { data: [project('one')] }, { data: [project('one')] }]);
+  const catalog = new GptNativeCatalog(client, { realpathSync });
+  assert.equal((await catalog.list())[0].id, 'one');
+  assert.equal((await catalog.read(project('one'))).rootsComplete, true);
+  assert.equal((await catalog.readCatalog({ selectedProjectIds: ['one'] }))[0].id, 'one');
+  assert.equal((await catalog.discoverWorkflowSavedProject({ logicalProjectId: 'fictional-financial-insights', authorizedRoots: ['/fictional/link'] })).id, 'one');
+  assert.deepEqual(client.calls.map(call => call.method), ['project/list', 'project/read', 'project/list', 'project/read', 'project/list', 'project/read']);
+});
 test('exhausts pagination and reads immutable IDs with complete secondary roots', async () => {
   const client = fixture([{ data: [project('other', 'other')], nextCursor: 'next' }, { data: [project('one')], nextCursor: null }]);
   const found = await discoverWorkflowSavedProject(client, { logicalProjectId: 'fictional-financial-insights', authorizedRoots: ['/fictional/link'], realpathSync });
