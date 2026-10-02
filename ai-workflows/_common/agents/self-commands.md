@@ -77,9 +77,25 @@ disable another agent. The agent stops taking new work, inspects its active assi
    that exact merge and branch protection, review, and release gates pass; a generic STOP does not identify or approve
    an otherwise unapproved merge. Route an action to its configured owner when this role does not own it. Do not
    publish, deploy, spend, or waive a human decision as an implied part of STOP.
-3. Preserve the minimum durable handoff and report the final state once. Ask the selected platform to deactivate or
+3. Collect and verify owned subagent results, then close completed children through their supported owning transport
+   under the [parent-owned cleanup duty](utility-subagents.md#parent-owned-cleanup-and-handoff). Verify exact child
+   relationships and release before attempting parent archival. A completed turn is not a released writer. Do not
+   interrupt unfinished assignments, force-close another owner's session, or archive first and hope child cleanup
+   succeeds. Missing owner-close or release evidence is `STOP_PENDING_DEACTIVATION`, not successful END.
+4. Preserve the minimum durable handoff and report the final state once. Ask the selected platform to deactivate or
    recoverably archive this exact task and disable its routing, schedules, and new-message delivery. Verify the host
    reports it inactive. After verified deactivation, the agent does not respond to later messages.
+
+For `codex-app`, the explicitly invoked [guarded closeout transaction](../../../platforms/gpt-agents/agent-closeout.mjs)
+requires trusted host capabilities for identity, approval, child release, archival, and delivery verification. It is not
+an automatic hook or an effectful launcher command. If a parent archive fails, re-read its persisted/archive and live
+state: the host may have unloaded it even though it remains unarchived. Do not blindly resend a failed queued END or
+claim the chat is usable. Report the state and arrange supported owning-app recovery only while the exact task remains
+authorized and unarchived. Never treat recovery or archive membership alone as verified disabled future delivery.
+
+The agent's own END turn is still running while it prepares its handoff. The trusted lifecycle controller performs
+physical closeout only after that turn completes; it must not archive a running parent. If the host cannot execute and
+verify post-turn closeout, report `STOP_PENDING_DEACTIVATION` instead of claiming END was completed by a final message.
 
 If closeout or host deactivation cannot be verified, report `STOP_PENDING_DEACTIVATION` with the exact blocker. Do not
 claim the agent is silent while the host still routes messages to it. A later direct human request to resume requires

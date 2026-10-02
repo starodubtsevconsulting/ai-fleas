@@ -137,6 +137,19 @@ lock. Never delete receipts/history/logs, edit SQLite, kill processes, spoof a c
 or resume a session to bypass this error. Archival is not proof of a separate END
 transaction or disabled future delivery.
 
+Failed recursive archive can also unload a still-unarchived parent, causing its
+next queued message to fail with `thread not found`. Preserve that message; check
+exact host state before supported owning-app recovery or a human-directed retry.
+The [guarded closeout service](../../../../agent-closeout.mjs) validates trusted
+cleanup/archive/delivery capabilities before effects and reports unfinished
+deactivation explicitly. It is an imported controller service, not a plugin hook,
+standalone CLI, or fix to the desktop's raw archive UI.
+
+An app restart and a shared-daemon restart are different operations. A daemon-held
+writer may survive the former. Restarting the shared daemon requires separate
+approval, no-running-turn checks, and post-restart verification; never infer that
+disconnecting the UI released all descendant sessions.
+
 ## Test
 
 ```sh

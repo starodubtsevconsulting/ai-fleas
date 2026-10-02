@@ -225,3 +225,33 @@ This is a controller-followed troubleshooting procedure. The bootstrap plugin do
 not change the app's error toast, provide a force-close API, or automatically clean
 up children when the owning transport lacks that capability. A successful archive
 also is not an implemented Admin END/deactivation transaction.
+
+### Failed archive followed by failed queued messages
+
+A failed recursive archive can leave the parent persisted and unarchived but
+unloaded. If the next `turn/start` reports `thread not found`, first verify the exact
+parent's active/archived catalog membership and owning-app execution state. Do not
+assume the message was delivered, delete its queued content, or blindly resend it.
+Use supported owning-app recovery only for the same verified, authorized,
+unarchived task; preserve the human's pending message and let the human decide when
+to retry. Do not resume an archived task or create a replacement to hide the error.
+
+The [guarded closeout service](../agent-closeout.mjs) checks required host ports and
+child cleanup before invoking parent archive. It reports `STOP_PENDING_DEACTIVATION`
+on missing capabilities, running children, unverifiable release, uncertain archival,
+or unverified delivery disablement. Its callbacks must bridge actual trusted host
+capabilities; this module does not supply an otherwise unavailable owner-close API
+or intercept the app's raw archive button.
+
+An agent interpreting END prepares its handoff in a running turn. The trusted
+controller invokes closeout after that turn completes, with actual owning-host
+state showing an idle or unloaded parent. The service rejects a running parent;
+it must not be used to terminate the agent's own unfinished turn. A missing
+post-turn controller is an explicit deactivation capability gap, not an installed
+automatic END implementation.
+
+The desktop UI and shared app-server daemon have separate lifetimes. An app restart
+does not prove a daemon-held child writer was released. A managed daemon restart
+requires separate human approval and fresh checks of all loaded turns because it
+may affect other local chats. Use its supported management command rather than
+manual process termination, and verify the child release and final archive afterward.
