@@ -44,8 +44,26 @@ The common [`INIT`, `CLONE`, and `END`/`STOP` commands](self-commands.md) target
 `INIT` reloads and verifies only that exact current instance. It is distinct from the workflow-owned complete-roster
 `initialize` operation below.
 
-The workflow-owned initialization entrypoint verifies or bootstraps Admin and performs all agent-instance mutation through
-the selected platform adapter. Initialization creates the complete declared governed roster.
+The workflow-owned full-roster initialization entrypoint verifies or bootstraps Admin and performs all agent-instance
+mutation through the selected platform adapter. Full-roster initialization creates the complete declared governed roster.
+A separately supported Admin-only bootstrap, after direct human approval, creates or reuses only the declared Admin.
+It verifies that instance's exact identity, scope, and `ADMIN_READY`; it neither initializes other roles nor establishes
+full-roster readiness. Governor-originated bootstrap stops at verified readiness and direct human access to Admin;
+it does not grant ongoing permission to message a human-only initialized Admin.
+
+For the selected `codex-app` route, an authorized controller follows the reusable
+[Admin-only procedure](../../../platforms/gpt-agents/agents/admin-only-initialization.md)
+and its [bootstrap infrastructure overview](../../../platforms/gpt-agents/plugins/ai-fleas-gpt/modules/agent-bootstrap/README.md).
+The preflight command is read-only; effectful initialization requires the trusted
+controller APIs and host capabilities. Other platforms require their own supported
+Admin-only route. Missing capability never authorizes full-roster fallback.
+
+The authorized lifecycle controller may deliver only the exact self-scoped `INIT` under that approval. Its host-side
+pending permit must bind the exact task and scope, carry a fresh nonce and expiry, and be consumed once. Verify these
+conditions before delivery and before readiness. This exception grants no ordinary workflow instructions, follow-up
+messages, or other self-commands; reject other task-to-Admin instructions. Explicit evidence-return and blocker routes
+within existing human-authorized orchestration remain subject to their declared contract. Admin readiness still
+requires its complete identity, source, scope, and bounded INIT-audit verification, not a requested token alone.
 
 When a human requests full reinitialization including Admin, the active Admin creates one successor Admin in the same
 runtime scope, verifies its exact returned instance ID, contract, source, runtime configuration, and `ADMIN_READY`

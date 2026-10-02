@@ -1,6 +1,14 @@
+/**
+ * Purpose: restore exact host task bindings and activate matched initialization turns.
+ * Caller: Codex UserPromptSubmit/Stop lifecycle hooks with host-owned task/event IDs.
+ * Inputs: host event JSON and the existing PLUGIN_DATA agent-bindings registry.
+ * Effects: injects canonical identity and updates only matching initialization receipts.
+ * Prompt/turn/token checks are automated; live scope/project checks and human-only
+ * communication remain controller/role obligations, not proof from this hook alone.
+ */
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
+import { initializationCompletion, initializationPromptMatches } from './readiness-evidence.mjs';
 import {
   AgentBindingRegistry,
   PersonalGovernorOnboarding,
@@ -32,9 +40,6 @@ function atomicWrite(file, value) {
   fs.renameSync(temporary, file);
 }
 
-function digest(value) {
-  return createHash('sha256').update(String(value ?? '')).digest('hex');
-}
 
 function expired(binding) {
   const expiry = Date.parse(binding?.initialization?.expiresAt ?? '');
@@ -146,7 +151,7 @@ if (!binding) {
       },
     });
   } else {
-    const matchedPrompt = digest(input.prompt) === binding.initialization.promptSha256;
+    const matchedPrompt = initializationPromptMatches(binding, input);
     if (matchedPrompt) {
       binding.initialization.turnId = input.turn_id ?? null;
       binding.initialization.startedAt = new Date().toISOString();
@@ -160,10 +165,8 @@ if (!binding) {
     });
   }
 } else if (input.hook_event_name === 'Stop' && binding.status === 'pending') {
-  const expectedTurn = binding.initialization.turnId;
-  const sameTurn = Boolean(expectedTurn) && expectedTurn === input.turn_id;
-  const exactReadiness = String(input.last_assistant_message ?? '').trim() === binding.initialization.readinessToken;
-  if (binding.initialization.startedAt && sameTurn && exactReadiness) {
+  const completion = initializationCompletion(binding, input);
+  if (completion) {
     if (binding.replaces && !replacementPredecessor(registry, binding)) {
       emit({
         systemMessage: 'Governor successor readiness was received, but its exact active predecessor could not be verified. The predecessor remains active and this successor remains pending; reconcile lifecycle state before retrying.',
@@ -173,6 +176,7 @@ if (!binding) {
     const predecessor = replacementPredecessor(registry, binding);
     binding.status = 'active';
     binding.activatedAt = new Date().toISOString();
+    Object.assign(binding.initialization, completion);
     delete binding.initialization.promptSha256;
     delete binding.initialization.expiresAt;
     delete binding.initialization.turnId;

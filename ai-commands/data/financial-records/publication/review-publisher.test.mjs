@@ -1,3 +1,8 @@
+/**
+ * Run: node ai-commands/data/financial-records/publication/review-publisher.test.mjs
+ * Passing verifies exclusive two-artifact publication, rollback, and collision behavior with in-memory files.
+ * It does not publish live financial records or prove filesystem crash atomicity.
+ */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';

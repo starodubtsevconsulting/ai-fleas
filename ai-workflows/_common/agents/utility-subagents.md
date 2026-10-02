@@ -40,3 +40,34 @@ Delegation does not create or initialize workflow Agents, bypass a declared Rout
 an independent review gate. A separate role endpoint or a genuinely fresh-context reviewer must provide that evidence.
 Admin's role-scoped emulation subagents also follow the [Admin role](../roles/admin.md); they receive no independent
 workflow identity.
+
+## Parent-owned cleanup and handoff
+
+After collecting and verifying a child's result, the parent owns its cleanup through the selected transport's
+supported owner-close operation. A completed result or idle turn is not evidence that the child session is closed:
+it may still retain a writer or subscription that prevents later archival of its parent. Preserve the evidence needed
+for the work before closing the child; do not interrupt a running assignment or close another parent's child.
+
+When the transport exposes cleanup verification, confirm the exact child is no longer loaded and no longer appears
+in the complete loaded-session catalog. If owner-close is unavailable, or release cannot be verified, record the
+exact child identity, its verified parent relationship, observed state, remaining writer/error, and the supported next
+action. Do not claim cleanup success or silently force release. A current connection's unsubscribe may release only
+its own subscription, not another owner's writer.
+
+For new INIT audits, verify an actual owning child-close capability before dispatch. Missing support blocks the audit
+before spawning; do not knowingly create a child the transport cannot release. After verifying the result, close and
+verify release before claiming readiness. Report `BLOCKED_INIT_AUDIT_CLEANUP_UNSUPPORTED` for missing capability or
+`BLOCKED_INIT_AUDIT_RELEASE_UNVERIFIED` for missing release evidence. Readiness does not establish disabled delivery
+or full END, even after this audit cleanup succeeds.
+
+A platform adapter may explicitly realize this bounded audit as a controller-owned, one-shot ephemeral inference
+process rather than a persistent child chat. The initiating agent still completes its own preflight, requests the
+bounded audit, and verifies its findings. The controller must enforce the configured model/reasoning and effect limits,
+authenticate the exact INIT/task/generation, and observe successful process exit before returning release evidence.
+Process exit is that transport's owner-close proof; it must not be represented as a native chat descendant or replace
+an independent review. A failed or uncertain process release blocks readiness. This does not change the parent
+agent's platform, initialize another roster role, or authorize later messages or automatic END/archival.
+
+For legacy tasks with an already-completed but still-loaded child, report its outstanding cleanup limitation so the
+human is not left with an unexplained archive failure. These are parent/controller-followed instructions, not an
+automatic host cleanup service or a guarantee that the app's raw archive button will succeed.

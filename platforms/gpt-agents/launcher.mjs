@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** GPT host launcher, invoked by setup scripts or the human/controller CLI.
- * Inputs: setup/doctor/launch/initialize-governor arguments and declared local configuration.
+ * Inputs: setup/doctor/launch/initialize-governor/preflight-admin arguments and declared configuration.
  * Output: diagnostics or launch status. Effects: may install/update host components,
  * change desktop preferences, launch the app, or invoke the Governor binding transaction.
  * The platform ID is codex-app; gpt-agents remains the command/directory name.
@@ -338,6 +338,7 @@ let migrate = false;
 let human = null;
 let humanDir = null;
 let thread = null;
+let requestFile = null;
 while (args.length) {
   const option = args.shift();
   if (option === '--profile' && args.length) profile = args.shift();
@@ -345,10 +346,17 @@ while (args.length) {
   else if (option === '--human' && args.length) human = args.shift();
   else if (option === '--human-dir' && args.length) humanDir = args.shift();
   else if (option === '--thread' && args.length) thread = args.shift();
+  else if (option === '--request' && args.length) requestFile = args.shift();
   else fail(`unknown or incomplete option: ${option}`);
 }
 
-if (action === 'setup') setup(profile, migrate);
+if (requestFile && action !== 'preflight-admin') fail('--request is only valid for preflight-admin');
+if (action === 'preflight-admin') {
+  if (!requestFile || profile || migrate || human || humanDir || thread) {
+    fail('usage: launcher.mjs preflight-admin --request REQUEST.json');
+  }
+  process.stdout.write(run(process.execPath, [path.join(scriptDir, 'admin-initialization.mjs'), requestFile]));
+} else if (action === 'setup') setup(profile, migrate);
 else if (action === 'doctor') doctor();
 else if (action === 'launch') launch();
 else if (action === 'initialize-governor') {
@@ -359,4 +367,4 @@ else if (action === 'initialize-governor') {
     path.join(scriptDir, 'initialize-governor.mjs'),
     '--human', human, '--human-dir', humanDir, '--thread', thread,
   ]));
-} else fail(`unknown action: ${action}; expected setup, doctor, launch, or initialize-governor`);
+} else fail(`unknown action: ${action}; expected setup, doctor, launch, initialize-governor, or preflight-admin`);

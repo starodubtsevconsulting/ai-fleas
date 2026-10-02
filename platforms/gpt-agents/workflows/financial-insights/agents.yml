@@ -1,0 +1,46 @@
+schema_version: gpt-agents-workflow-runtime.v2
+platform: codex-app
+workflow: financial-insights
+logical_project_pattern: <profile-id>-financial-insights[-<suffix>]
+initialization: ../../agents/initialization.md
+portable_contract: ../../../../ai-workflows/agents.md
+portable_manifest: ../../../../ai-workflows/financial-insights/agents.yml
+
+# Platform realization only: an Admin-only transaction selects one endpoint.
+# Financial Insights declares no Router, Manager, or System; none is added here.
+# Role capabilities remain in the canonical contracts below. Model settings are
+# adapter defaults and remain independent from profile-selected platform routing.
+role_endpoints:
+  - role: admin
+    title: "🔑 Admin"
+    model: gpt-5.6-sol
+    reasoning: high
+  - role: financial-analyst
+    title: "📊 Financial Analyst"
+    model: gpt-5.6-sol
+    reasoning: high
+  - role: records-bookkeeping
+    title: "📒 Records / Bookkeeping"
+    model: gpt-5.6-sol
+    reasoning: high
+  - role: financial-reviewer
+    title: "🔎 Financial Reviewer"
+    model: gpt-5.6-sol
+    reasoning: high
+
+role_contracts:
+  admin: ../../../../ai-workflows/_common/roles/admin.md
+  financial-analyst: ../../../../ai-workflows/financial-insights/agents/roles/financial-analyst.md
+  records-bookkeeping: ../../../../ai-workflows/financial-insights/agents/roles/records-bookkeeping.md
+  financial-reviewer: ../../../../ai-workflows/financial-insights/agents/roles/financial-reviewer.md
+
+runtime_semantics:
+  role_endpoint: user-visible-codex-task
+  instance_id: app-returned-task-id
+  logical_work_scope: profile-workflow-project-set
+  primary_project: first-profile-workflow-project
+  creation_environment: saved-project-local
+  activate: create-and-initialize-task
+  deactivate: recoverably-archive-exact-task-id
+  peer_delivery: prohibited
+  external_bootstrap: create-human-designated-admin

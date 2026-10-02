@@ -2,11 +2,12 @@
 
 ## What does initialization create?
 
-It creates or reconciles one visible Codex task for every workflow role and registers one hidden Workflow Router for
-that exact workflow scope. Profile-wide agents are outside this adapter.
+Full-roster initialization creates or reconciles one visible Codex task for every declared workflow endpoint. It registers
+a hidden Workflow Router only when the selected adapter declares `workflow_runtime`; a workflow without that declaration
+must not gain a Router as a side effect. Profile-wide agents are outside this adapter.
 
 ```text
-Workflow roles -> visible Codex tasks + one hidden Router
+Declared workflow endpoints -> visible Codex tasks (+ declared Router, if any)
 ```
 
 ## What must already exist?
@@ -17,7 +18,8 @@ This applies to full initialization and roster reconciliation. The command resol
 workflow, and per-agent lifecycle selection, verifies the GPT adapter, and blocks unsupported mixed-platform plans.
 An initializer invocation cannot override profile selection. For Admin-only preflight use `admin` in place of
 `full-roster`; that preflight never authorizes creating the rest of the roster. These are controller-invoked gates,
-not automatic desktop launcher hooks.
+not automatic desktop launcher hooks. The separate [Admin-only transaction](admin-only-initialization.md) initializes or
+reuses only the canonical Admin. `ADMIN_READY` never means full-roster readiness.
 
 The profile, workflow, authorized project roots, primary work target, and saved Codex Project must already be configured.
 The saved project must resolve to the authorized roots by immutable project ID. Initialization does not create a project,
@@ -44,10 +46,10 @@ Saved project -> local shared checkout -> role tasks
 
 ```mermaid
 flowchart TD
-    A[Resolve profile + workflow + saved project] --> B[Load workflow map]
+    A[Resolve profile + workflow + saved project] --> B[Load declared workflow contracts and optional runtime map]
     B --> C[Create or reconcile role tasks]
     C --> D[Verify exact task receipts]
-    D --> E[Register host-only workflow map]
+    D --> E[Register host-only workflow map only if adapter declares runtime]
     D --> F[Register peer-free endpoint bindings]
     E --> G[Verify hooks, trust, and host dispatch]
     F --> G
@@ -61,7 +63,7 @@ That is a normal recovery state. `initialize` reads both active and archived cat
 trusted task receipts for the requested profile/workflow/logical-project scope, and restores all matching tasks together.
 It does not interpret an empty active catalog as an empty roster and does not create replacements for receipt-backed
 archived tasks. After unarchiving, it rereads the active project catalog, refreshes readiness, and continues normal Router
-registration and smoke tests.
+registration and smoke tests only where the adapter declares that runtime.
 
 The adapter feeds these inventories to `reconcile-roster.mjs`. Its `restore-all` result is the mechanical proof that every
 declared role has one exact archived receipt in the correct saved project; no title or model judgment participates.
@@ -71,6 +73,10 @@ all exact receipt-backed tasks archived -> batch unarchive -> verify project -> 
 ```
 
 ## Who knows which agent should go next?
+
+The Router-specific sections below apply only to adapters declaring `workflow_runtime`. Financial Insights currently
+declares Admin and its three worker endpoints, not Router or System. Its human-directed Admin work follows the canonical
+Admin contract; this adapter does not invent a mechanical runtime for that workflow.
 
 The workflow definition declares the next stage and the role that owns it. The hidden Router executes that declaration;
 it does not decide creatively who should work next.

@@ -1,3 +1,8 @@
+/**
+ * Run: node ai-commands/data/financial-records/financial-records.command.test.mjs
+ * Passing verifies command validation, bounded preparation, and guarded synthetic Booking publication wiring.
+ * It does not authorize or exercise live financial-record publication, tax submission, or settlement.
+ */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
@@ -43,6 +48,74 @@ assert.equal((await fromSource('booking-in.pdf', { section: 'out' })).reason, 'i
 await assert.rejects(fromSource('booking-in.pdf', {}, path.join(path.dirname(root), 'extraction')), /SOURCE_OUTSIDE_ROOT/);
 await assert.rejects(fromSource('invalid.json'), /INVALID_SOURCE_NOT_PDF/);
 console.log('financial-records prepare-from-source: PASS');
+
+const taxCommand = new FinancialRecordsCommand();
+taxCommand.pdfReader = { async read() {
+  const normalizedText = [
+    'Revenu Quebec payroll source deductions', 'Reporting period start: 2031-07-01',
+    'Reporting period end: 2031-09-30', 'Due date: 2031-10-18', 'Income tax: 1,234.56',
+    'QPP: 789.01', 'Health Services Fund: 234.56', 'QPIP: 111.11', 'CNESST: 0.00',
+    'Total remittance: 2,369.24', 'Page 1 of 1',
+  ].join(' ');
+  return { pageCount: 1, normalizedText, compactText: normalizedText.toLowerCase().replace(/[^a-z0-9]/g, '') };
+} };
+const taxArgs = (overrides = {}) => [
+  'prepare-tax-from-source', '--root', root, '--source', path.join(root, 'booking-in.pdf'),
+  '--branch', overrides.branch || 'example-branch', '--year', overrides.year || '2031',
+  '--quarter', overrides.quarter || 'q4', '--section', overrides.section || 'out',
+];
+const taxPreview = await taxCommand.run(taxArgs());
+assert.equal(taxPreview.operation, 'prepare-tax-from-source');
+assert.equal(taxPreview.status, 'prepared');
+assert.equal(taxPreview.proposedFilename, '2031-09-30_ca-qc_payroll-remittance-obligation.pdf');
+assert.match(taxPreview.extraction.source.sha256, /^[a-f0-9]{64}$/);
+assert.equal(taxPreview.extraction.adapter.id, 'canadian-payroll-tax');
+assert.equal(taxPreview.applyEligible, true);
+assert.doesNotMatch(JSON.stringify(taxPreview), /test-fixtures|booking-in|raw text/i);
+assert.equal((await taxCommand.run(taxArgs({ quarter: 'q2' }))).reason, 'wrong-reporting-period');
+await assert.rejects(taxCommand.run(taxArgs({ section: 'in' })), /INVALID_EXPECTATION/);
+console.log('financial-records prepare-tax-from-source: PASS');
+
+const taxProposalPath = path.join(root, 'tax-proposal.runtime.json');
+const taxReviewPath = path.join(root, 'tax-review.runtime.json');
+const taxDestination = path.join(root, taxPreview.proposedDestination);
+const taxPdfPath = path.join(taxDestination, taxPreview.proposedFilename);
+const taxSidecarPath = `${taxPdfPath}.json`;
+const taxRuntimeFiles = [taxProposalPath, taxReviewPath, taxSidecarPath, taxPdfPath];
+try {
+  fs.writeFileSync(taxProposalPath, `${JSON.stringify(taxPreview)}\n`, { flag: 'wx' });
+  const taxReview = await taxCommand.run([
+    'review-tax-proposal', '--root', root, '--proposal', taxProposalPath,
+  ]);
+  assert.equal(taxReview.reviewState, 'reviewed');
+  assert.equal(taxReview.proposalRevision, taxPreview.proposalRevision);
+  fs.writeFileSync(taxReviewPath, `${JSON.stringify(taxReview)}\n`, { flag: 'wx' });
+  await assert.rejects(taxCommand.run([
+    'apply-tax-from-source', '--root', root, '--source', path.join(root, 'booking-in.pdf'),
+    '--destination', taxDestination, '--review', taxReviewPath, '--branch', 'example-branch',
+    '--year', '2031', '--quarter', 'q3', '--section', 'out',
+    '--expected-proposal-revision', taxPreview.proposalRevision,
+  ]), /CLOSED_PERIOD/);
+  const taxApplied = await taxCommand.run([
+    'apply-tax-from-source', '--root', root, '--source', path.join(root, 'booking-in.pdf'),
+    '--destination', taxDestination, '--review', taxReviewPath, '--branch', 'example-branch',
+    '--year', '2031', '--quarter', 'q4', '--section', 'out',
+    '--expected-proposal-revision', taxPreview.proposalRevision,
+  ]);
+  assert.equal(taxApplied.status, 'applied');
+  assert.equal(fs.existsSync(path.join(root, 'booking-in.pdf')), true, 'source must be preserved');
+  const normalizedTax = JSON.parse(fs.readFileSync(taxSidecarPath, 'utf8'));
+  assert.equal(normalizedTax.processing.state, 'normalized');
+  assert.equal(normalizedTax.obligationLifecycle.state, 'obligation-recorded');
+  const reconciledTax = await taxCommand.run([
+    'reconcile-tax-record', '--root', root, '--pdf', taxPdfPath, '--sidecar', taxSidecarPath,
+    '--branch', 'example-branch', '--year', '2031', '--quarter', 'q4', '--section', 'out',
+  ]);
+  assert.equal(reconciledTax.status, 'normalized');
+  console.log('financial-records tax review/apply/reconcile: PASS');
+} finally {
+  for (const file of taxRuntimeFiles) if (fs.existsSync(file)) fs.unlinkSync(file);
+}
 
 const destination = path.join(root, '2026', 'chalet', 'q3', 'in');
 let published;

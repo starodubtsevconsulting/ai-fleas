@@ -100,5 +100,25 @@ Load only commands needed for the request. Portable commands include `statements
 provider-specific extraction/OCR/document adapters behind those contracts. Governor-facing outputs follow
 [`evidence-contract.md`](evidence-contract.md).
 
+## Browser-assisted tax-payment entry
+
+When the human authorizes visible browser assistance for a tax payment, treat deliberate field entry as a safety and
+reliability requirement. Enter one field at a time, wait for the page to settle, read back and validate the visible
+value, and only then move to the next field. Do not use rapid multi-field bursts. Pause at meaningful form boundaries
+so the human can inspect the state, and re-verify the payee, reporting period, due or payment date, amount components,
+and calculated total before advancing to a final review page.
+
+Use the [`tax-payment-entry` skill](skills/tax-payment-entry/SKILL.md) for source-PDF binding, side-by-side human
+verification, visible form entry, the final-submission boundary, and post-submit reconciliation evidence.
+Follow the [`tax-payment` flow](flows/tax-payment.flow.md) so canonical PDF naming and validated JSON publication happen
+as one reviewed normalization transaction before any payment form is prepared.
+
+This pacing rule is not permission to impersonate a human or evade provider controls. Do not use randomized timing,
+hidden APIs, script injection, anti-bot workarounds, or other deceptive interaction. If the provider requires genuine
+human entry, presents a security challenge, or blocks automation, stop and hand control to the human. Passwords, MFA,
+and other secret authentication input remain human-entered. The agent may prepare and verify the form only within the
+human's current authorization; the human must activate the final submission control. After submission, record the
+provider confirmation as submitted or scheduled evidence until settlement is independently reconciled.
+
 Keep real corporation identities, records, credentials, provider configuration, account identifiers, and
 machine-specific paths in private profiles/stores. Public examples use fictional/sanitized values.
