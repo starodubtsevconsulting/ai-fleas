@@ -36,10 +36,16 @@ function inspectCatalog(catalog, scope) {
     fail('HOST_CATALOG_INCOMPLETE');
   for (const project of scope.projects) {
     const matches = catalog.projects.filter(p => p.id === project.savedProjectId);
-    if (matches.length !== 1 || !path.isAbsolute(matches[0].root || ''))
-      fail('SAVED_PROJECT_MISMATCH');
-    const relative = path.relative(path.resolve(matches[0].root), project.root);
-    if (relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative))
+    if (matches.length !== 1) fail('SAVED_PROJECT_MISMATCH');
+    const saved = matches[0];
+    if (saved.rootsComplete !== true || !Array.isArray(saved.roots) || !saved.roots.length ||
+        saved.roots.some(root => typeof root !== 'string' || !path.isAbsolute(root) || path.resolve(root) !== root))
+      fail('SAVED_PROJECT_ROOTS_UNVERIFIED');
+    const authorized = saved.roots.some(root => {
+      const relative = path.relative(root, project.root);
+      return relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative);
+    });
+    if (!authorized)
       fail('SAVED_PROJECT_MISMATCH');
   }
   return catalog.bindings.filter(b => b.agentId === 'admin' && scopeKey(b.scope || {}) === scopeKey(scope));

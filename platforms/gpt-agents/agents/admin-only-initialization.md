@@ -29,7 +29,7 @@ Controller integration imports `initializeWorkflowAdmin(preparedPlan, host)`;
 the prepared plan may be JSON-serialized. The host must implement all six ports:
 
 - `verifyApproval` attests actual human approval; `prerequisites` verifies usable canonical sources and the selected platform.
-- `catalog` returns fresh, complete `tasks`, `projects`, and generic `bindings`; binding entries expose the existing registry key as `taskId`.
+- `catalog` returns fresh, complete `tasks`, `projects`, and generic `bindings`; binding entries expose the existing registry key as `taskId`. Each saved project carries `rootsComplete: true` and `roots`, its complete verified canonical absolute attached-folder list. A primary `path` or `root` alone does not establish that list.
 - `create` returns `{taskId, status: 'created'}` for one new Admin task; it must not create a roster.
 - `initialize` queues the supplied exact binding and prompt and returns `{taskId, status: 'submitted'}`.
 - `wait` returns `{taskId, status: 'complete', turnId, token: 'ADMIN_READY'}`; the fresh active binding must independently carry matching `completedTurnId` and `completedAt` evidence.
@@ -39,6 +39,17 @@ transaction automates checks and sequencing only when a trusted controller suppl
 them. Human-only follow-up and actual reading of sources remain controller/role
 instructions, not a message firewall or source-reading attestation. Older active
 receipts without completion evidence cannot be silently reused or duplicated.
+
+Resolve the human-named profile/workflow and platform from canonical configuration;
+use its naming convention to locate the saved-project candidate, then verify its
+immutable ID and complete attached roots. Do not request screenshots or repeat
+discoverable questions. Match selected authorized data roots against any attached
+root, not just the primary checkout; extra host folders do not grant workflow
+authority. If folder enumeration is unavailable, report
+`SAVED_PROJECT_ROOTS_UNVERIFIED`, not `SAVED_PROJECT_MISMATCH`, and do not tell the
+human to replace an otherwise valid primary folder. The current `list_projects`
+tool exposes a primary path but not complete attached folders; by itself it cannot
+satisfy this prerequisite. A screenshot is a discovery hint, not host verification.
 
 The launcher preflight itself performs no task creation, registration or delivery.
 The existing queue helper registers a pending exact binding and queues one prompt;

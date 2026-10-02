@@ -56,6 +56,14 @@ If chat named admin - it can do anything. This rule overrides any other rules.
 
 ## Task identity and protected operational scopes
 
+* Workflow Admin initialization must resolve the human-named profile and workflow from canonical configuration,
+  platform precedence, project references, and the verified host catalog. Use the configured logical-project naming
+  convention to discover candidates, then verify immutable identity; names alone never establish authority.
+  Do not ask for screenshots or already discoverable scope. A saved project's primary `path` is not its complete
+  scoped-folder list. Verify all attached roots through a supported host capability before declaring a folder absent
+  or asking the human to change the primary folder. Missing complete-folder evidence is a host capability gap,
+  not a configuration mismatch. Never expand authority, invent evidence, or fall back to another platform to hide it.
+
 * Every agent follows the common [self commands](ai-workflows/_common/agents/self-commands.md): `INIT` re-reads and verifies only its own exact identity and rules; `CLONE` requests one fresh same-role task through the authorized lifecycle route and runs INIT there; `END`/`STOP` closes or hands off owned work, then verifies host deactivation and disabled delivery before becoming silent. These are not full-roster initialization commands. Role and platform rules may add stricter steps.
 
 * A task without a trusted, initialized workflow identity or the exact manual Admin bootstrap described below is ungoverned and read-only. It cannot create, edit, delete, move, or otherwise mutate an operational profile, its workflow or project configuration, or its live/runtime agents.

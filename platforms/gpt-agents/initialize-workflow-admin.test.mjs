@@ -35,7 +35,8 @@ function fixture() {
     ].map(([id, ref]) => ({ id, ref }));
   };
   syncSources();
-  const catalog = { complete: true, projects: [{ id: 'saved-example', root: '/fictional/project' }], tasks: [], bindings: [] };
+  const catalog = { complete: true, projects: [{ id: 'saved-example', rootsComplete: true,
+    roots: ['/fictional/project'] }], tasks: [], bindings: [] };
   const binding = () => ({ agentId: 'admin', taskId: 'task-example', status: 'active', platformAdapter: 'codex-app', scope,
     initialization: { readinessToken: 'ADMIN_READY', completedTurnId: 'turn-example', completedAt: '2026-01-01T00:00:00Z' } });
   const calls = [];
@@ -63,6 +64,9 @@ for (const mutate of [
   x => { delete x.host.wait; },
   x => { x.catalog.complete = false; },
   x => { x.catalog.projects = []; },
+  x => { delete x.catalog.projects[0].rootsComplete; },
+  x => { delete x.catalog.projects[0].roots; },
+  x => { x.catalog.projects[0].roots = ['/fictional/unrelated']; },
   x => { x.input.projectDeclarations[0].root = '/fictional/foreign'; },
   x => { x.input.projectDeclarations[0].declaredRef = 'foreign.yml'; },
   x => { x.input.bootstrapPayload.binding.initialization.sources[0].ref = 'foreign-role.md'; },
@@ -117,6 +121,16 @@ f.input.sources.projectManifests.push('projects/secondary.yml');
 f.syncSources();
 const shared = await initializeWorkflowAdmin(f.input, f.host);
 assert.equal(shared.status, 'ready'); assert.equal(shared.scope.projects[0].id, 'example-project');
+// Explicit secondary roots belong to the saved-project catalog, not profile inference.
+f = fixture();
+f.catalog.projects[0].roots = ['/fictional/unrelated-primary', '/fictional/project'];
+assert.equal((await initializeWorkflowAdmin(f.input, f.host)).status, 'ready');
+f = fixture(); f.catalog.projects[0].rootsComplete = false;
+let blocked = await initializeWorkflowAdmin(f.input, f.host);
+assert.equal(blocked.reason, 'SAVED_PROJECT_ROOTS_UNVERIFIED'); assert.equal(f.calls.length, 0);
+f = fixture(); f.catalog.projects[0].roots = ['/fictional/outside'];
+blocked = await initializeWorkflowAdmin(f.input, f.host);
+assert.equal(blocked.reason, 'SAVED_PROJECT_MISMATCH'); assert.equal(f.calls.length, 0);
 f = fixture(); f.input = JSON.parse(JSON.stringify(f.input));
 assert.equal((await initializeWorkflowAdmin(f.input, f.host)).status, 'ready');
 console.log('Admin-only injected-host transaction: PASS');

@@ -77,7 +77,8 @@ test('builder payload survives JSON transport and creates/reuses only verified A
   const f = fixture();
   const input = JSON.parse(JSON.stringify(buildAdminInitialization(f.request, f.options)));
   assert.equal(input.projectDeclarations[0].declaredRef, 'fictional-project.yml');
-  const catalog = { complete: true, projects: [{ id: 'fictional-host-project', root }], tasks: [], bindings: [] };
+  const catalog = { complete: true, projects: [{ id: 'fictional-host-project', rootsComplete: true,
+    roots: ['/fictional/control-plane', root] }], tasks: [], bindings: [] };
   const effects = [];
   const host = {
     catalog: async () => structuredClone(catalog),
