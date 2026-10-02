@@ -1,6 +1,15 @@
+/**
+ * Purpose: restore exact host task bindings and activate matched initialization turns.
+ * Caller: Codex UserPromptSubmit/Stop lifecycle hooks with host-owned task/event IDs.
+ * Inputs: host event JSON and the existing PLUGIN_DATA agent-bindings registry.
+ * Effects: injects canonical identity and updates only matching initialization receipts.
+ * Prompt/turn/token checks are automated; live scope/project checks and human-only
+ * communication remain controller/role obligations, not proof from this hook alone.
+ */
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { initializationCompletion } from './readiness-evidence.mjs';
 import {
   AgentBindingRegistry,
   PersonalGovernorOnboarding,
@@ -160,10 +169,8 @@ if (!binding) {
     });
   }
 } else if (input.hook_event_name === 'Stop' && binding.status === 'pending') {
-  const expectedTurn = binding.initialization.turnId;
-  const sameTurn = Boolean(expectedTurn) && expectedTurn === input.turn_id;
-  const exactReadiness = String(input.last_assistant_message ?? '').trim() === binding.initialization.readinessToken;
-  if (binding.initialization.startedAt && sameTurn && exactReadiness) {
+  const completion = initializationCompletion(binding, input);
+  if (completion) {
     if (binding.replaces && !replacementPredecessor(registry, binding)) {
       emit({
         systemMessage: 'Governor successor readiness was received, but its exact active predecessor could not be verified. The predecessor remains active and this successor remains pending; reconcile lifecycle state before retrying.',
@@ -173,6 +180,7 @@ if (!binding) {
     const predecessor = replacementPredecessor(registry, binding);
     binding.status = 'active';
     binding.activatedAt = new Date().toISOString();
+    Object.assign(binding.initialization, completion);
     delete binding.initialization.promptSha256;
     delete binding.initialization.expiresAt;
     delete binding.initialization.turnId;

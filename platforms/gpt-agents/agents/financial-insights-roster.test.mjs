@@ -9,6 +9,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { parse } from 'yaml';
 import { loadRegistry } from '../../dispatch-plan.mjs';
 import { selectLifecycleRole, selectLifecycleRoster } from './select-role-initialization.mjs';
@@ -55,4 +56,18 @@ assert.throws(() => selectLifecycleRole(profile, { platform: 'hermes-app' }, reg
   manifest, adapter, 'admin'), /ADAPTER_MISMATCH/);
 assert.throws(() => selectLifecycleRoster(profile, {}, registry, manifest,
   { ...adapter, role_endpoints: [...adapter.role_endpoints, adapter.role_endpoints[0]] }), /ROSTER_ADAPTER_MISMATCH/);
+// Feed the same exact Admin task from the generic binding registry to the existing
+// full-roster reconciler; only the three genuinely missing workers may be created.
+const inventory = { projectId: 'example-saved-project', roles: roles.map(r => r.agentId),
+  receipts: [{ role: 'admin', taskId: 'example-admin-task' }],
+  catalogs: { activeComplete: true, archivedComplete: true,
+    active: [{ id: 'example-admin-task', projectId: 'example-saved-project' }], archived: [] } };
+const reconciled = spawnSync(process.execPath,
+  [fileURLToPath(new URL('./reconcile-roster.mjs', import.meta.url)), '/dev/stdin'],
+  { input: JSON.stringify(inventory), encoding: 'utf8' });
+assert.equal(reconciled.status, 0, reconciled.stderr);
+const action = JSON.parse(reconciled.stdout);
+assert.deepEqual(action.blockers, []);
+assert.deepEqual(action.reuse, [{ role: 'admin', taskId: 'example-admin-task' }]);
+assert.deepEqual(action.create.map(r => r.role), ['financial-analyst', 'records-bookkeeping', 'financial-reviewer']);
 console.log('Financial Insights Admin declaration and roster preflight: PASS');

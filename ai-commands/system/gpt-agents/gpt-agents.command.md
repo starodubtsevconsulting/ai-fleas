@@ -121,6 +121,7 @@ The application must be installed and pass its smoke test before agent initializ
 | `unwatch-system-group --group LOGICAL_PROJECT_ID` | Remove one exact logical project from System's scheduler watch scope without changing that workflow group or its agents. |
 | `reinitialize-system --confirm-reinitialize-system` | Explicitly create and verify a successor System task, transfer required lifecycle state, then recoverably archive the predecessor. |
 | `initialize` | Idempotently realize the exact requested roster: reuse active receipts, reactivate exact receipt-backed archived tasks, create only genuinely missing roles, initialize every role, and record exact task receipts. |
+| `initialize-admin` | After exact human bootstrap approval, create or reuse only the canonical workflow Admin through the [Admin-only transaction](../../../platforms/gpt-agents/agents/admin-only-initialization.md). Verify exact task, scope, project and readiness; never create workers, Router, or System, and never equate `ADMIN_READY` with roster readiness. |
 | `initialize-role --role ROLE_ID` | Initialize only one role explicitly declared `initializationMode: independent`. Reuse or reactivate its exact receipt, or create one missing task. Leave every other role untouched; this does not initialize the full workflow Router. |
 | `list` | Return recorded logical-agent-to-task bindings without inferring unbound tasks. |
 | `status` | Verify task existence, project binding, role initialization, and current lifecycle state. |
@@ -137,6 +138,16 @@ The application must be installed and pass its smoke test before agent initializ
 Enumerate active and archived host catalogs to exhaustion and read exact plugin binding candidates. Feed **only the selected role and its exact receipts** to `reconcile-roster.mjs`; separately reject an unbound same-role candidate in the exact saved project rather than creating a duplicate. Reuse or restore the exact task when possible. Otherwise create exactly one task in the configured saved project with the complete canonical role initialization prompt as its first message, verify its returned task ID in the project catalog, register and queue its exact plugin binding, and wait for its readiness token and active binding. Do not create, archive, restore, or message any other workflow role. Do not declare the complete workflow Router ready from this result.
 
 The initialized independent role may receive direct human requests and its own schedule. It must still enforce the selected project's scenario and authorization limits. If its project set or required schedule cannot be represented by the installed host, report that limitation rather than silently narrowing scope. An agent title alone is never initialization evidence.
+
+### Admin-only bootstrap
+
+`initialize-admin` is distinct from `initialize-role` and full-roster `initialize`. Follow the selected adapter's
+[Admin-only contract](../../../platforms/gpt-agents/agents/admin-only-initialization.md). Personal Governor may invoke the
+approved bootstrap only for an authorized exact profile/workflow and project subset. The returned Admin retains the
+common Admin contract, including human-directed emulated work and separately authorized roster lifecycle administration.
+No worker, Router, System, tax-record change, payment, or platform-selection mutation is part of this operation.
+After readiness, Governor offers direct human access and sends no further operational message to Admin.
+Later full-roster initialization must consume that same exact host Admin binding and reuse it rather than create a second Admin.
 
 ## Workflow deletion contract
 
