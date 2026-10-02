@@ -44,6 +44,8 @@ test('writes only exact existing binding after verified worker exit and preserve
   assert.equal(f.runs.length, 1);
   assert.equal(f.runs[0].model, 'configured-model');
   assert.equal(f.runs[0].cwd, '/fictional/data');
+  assert.equal(f.runs[0].evidence.controllerVerifiedHostEvidence.task.id, 'task');
+  assert.equal(f.runs[0].evidence.controllerVerifiedHostEvidence.oneUsePermit.consumedByTurnId, 'turn');
   assert.equal(f.registry.instances.task.initialization.audit.callId, 'call');
   assert.equal(f.registry.instances.task.initialization.audit.workerClosed, true);
   await assert.rejects(f.controller.handle(f.request), /DUPLICATE/);

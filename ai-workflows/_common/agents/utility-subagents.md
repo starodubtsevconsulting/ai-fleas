@@ -60,6 +60,14 @@ verify release before claiming readiness. Report `BLOCKED_INIT_AUDIT_CLEANUP_UNS
 `BLOCKED_INIT_AUDIT_RELEASE_UNVERIFIED` for missing release evidence. Readiness does not establish disabled delivery
 or full END, even after this audit cleanup succeeds.
 
+A platform adapter may explicitly realize this bounded audit as a controller-owned, one-shot ephemeral inference
+process rather than a persistent child chat. The initiating agent still completes its own preflight, requests the
+bounded audit, and verifies its findings. The controller must enforce the configured model/reasoning and effect limits,
+authenticate the exact INIT/task/generation, and observe successful process exit before returning release evidence.
+Process exit is that transport's owner-close proof; it must not be represented as a native chat descendant or replace
+an independent review. A failed or uncertain process release blocks readiness. This does not change the parent
+agent's platform, initialize another roster role, or authorize later messages or automatic END/archival.
+
 For legacy tasks with an already-completed but still-loaded child, report its outstanding cleanup limitation so the
 human is not left with an unexplained archive failure. These are parent/controller-followed instructions, not an
 automatic host cleanup service or a guarantee that the app's raw archive button will succeed.

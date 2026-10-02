@@ -69,6 +69,7 @@ export class NativeInitAuditController {
     this.#calls.add(params.threadId); // reserve before any await; uncertainty never authorizes resend
     const parent = (await this.#client.request('thread/read', { threadId: params.threadId, includeTurns: true }))?.thread;
     if (parent?.id !== params.threadId || parent.projectId !== this.#plan.scope.projects[0].savedProjectId ||
+        parent.cwd !== this.#plan.scope.projects[0].root ||
         parent.turns?.filter(turn => turn.id === params.turnId && turn.status === 'inProgress').length !== 1)
       fail('INIT_AUDIT_PARENT_TURN_UNVERIFIED');
     const contracts = [this.#plan.sources.adminContract, this.#plan.sources.selfCommands, this.#plan.sources.lifecycle,
@@ -81,6 +82,15 @@ export class NativeInitAuditController {
         reasoning: endpoint.reasoning, adminDeclaration: this.#plan.manifest.initializer,
         bootstrapAuthorization: this.#plan.approval, canonicalSourceReferences: this.#plan.bootstrapPayload.binding.initialization.sources,
         contracts, parentPreflightSummary: args.preflightSummary,
+        controllerVerifiedHostEvidence: {
+          task: { id: parent.id, savedProjectId: parent.projectId, cwd: parent.cwd },
+          initializationTurn: { id: params.turnId, status: 'inProgress' },
+          exactBinding: { taskId: params.threadId, agentId: binding.agentId, platformAdapter: binding.platformAdapter,
+            status: binding.status, generation: binding.generation, scope: binding.scope },
+          oneUsePermit: { noncePresent: true, expiresAt: binding.initialization.expiresAt,
+            consumedByTurnId: binding.initialization.turnId, startedAt: binding.initialization.startedAt,
+            auditCallReserved: true, previousAuditAbsent: true },
+          canonicalPreflight: 'Prepared scope verified against the complete native saved-project attached roots; exact parent read matched the pending binding and current turn.' },
         auditTransport: 'controller-owned ephemeral inference process; no tools, files, nested agents or role authority' } });
     if (result.workerClosed !== true || result.exitCode !== 0 || !result.workerThreadId ||
         !['pass', 'blocked'].includes(result.result?.verdict)) fail('INIT_AUDIT_WORKER_RELEASE_UNVERIFIED');

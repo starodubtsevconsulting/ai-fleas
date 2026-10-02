@@ -243,6 +243,15 @@ export class NativeAdminHost {
         return { status: 'complete', taskId, turnId: evidence.completedTurnId, token: 'ADMIN_READY' };
       }
       if (binding.status !== 'pending') fail('ADMIN_READINESS_UNVERIFIED');
+      if (evidence?.turnId) {
+        const response = await client.request('thread/read', { threadId: taskId, includeTurns: true });
+        const turns = response?.thread?.turns?.filter(turn => turn.id === evidence.turnId);
+        if (response?.thread?.id !== taskId || turns?.length !== 1) fail('ADMIN_PENDING_TURN_UNVERIFIED');
+        if (['completed', 'failed', 'interrupted'].includes(turns[0].status)) {
+          const final = turns[0].items?.filter(item => item.type === 'agentMessage').at(-1)?.text?.trim();
+          fail(/^BLOCKED_[A-Z0-9_]+/.exec(final || '')?.[0] || 'ADMIN_READINESS_UNVERIFIED');
+        }
+      }
       if (now() >= deadline) break;
       await sleep(Math.min(1000, deadline - now()));
     } while (now() <= deadline);

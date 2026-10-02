@@ -92,6 +92,11 @@ test('readiness requires matching live completed turn and final token', async ()
   f.task.turns[0].status = 'failed';
   await assert.rejects(f.host.wait({ taskId: 'task', timeoutMs: 1 }), /READINESS_UNVERIFIED/);
 });
+test('terminal blocked INIT returns concrete blocker instead of waiting or claiming readiness', async () => {
+  const f = fixture(); f.binding.status = 'pending'; f.binding.initialization.turnId = 'turn';
+  f.task.turns[0].items[0].text = 'BLOCKED_INIT_AUDIT\nMissing exact evidence.';
+  await assert.rejects(f.host.wait({ taskId: 'task', timeoutMs: 300000 }), /BLOCKED_INIT_AUDIT/);
+});
 test('ADMIN_READY cannot hide a missing, loaded, running or changed-parent audit', async () => {
   for (const mutate of [
     f => { f.task.turns[0].items.pop(); }, // old released child is not this INIT audit
