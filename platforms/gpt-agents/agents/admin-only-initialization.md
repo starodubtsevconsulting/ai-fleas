@@ -189,3 +189,39 @@ Do not send a follow-up to Admin, choose its execution mode, initialize the rema
 roster, or silently switch platform. The human owns subsequent Admin direction.
 Admin retains its common scoped capabilities, including human-directed emulated
 work and explicitly requested full-roster initialization with normal gates.
+
+## Cleanup and failed archival
+
+The Admin owns its bounded INIT audit child's cleanup after verifying its evidence;
+follow the common [parent-owned cleanup duty](../../../ai-workflows/_common/agents/utility-subagents.md#parent-owned-cleanup-and-handoff).
+The bootstrap controller's release of its own Admin lease does not close an
+Admin-owned child. `ADMIN_READY`, a completed child turn, and `controllerReleased`
+therefore do not establish that the whole thread tree is archiveable.
+
+If the app reports “Failed to archive conversation,” inspect the actual host error
+before retrying. For an error naming a child with an active writer:
+
+1. Read the exact parent and named child's current host state. Verify the immutable
+   parent relationship and completed child turns; do not infer ownership from a title.
+2. Ask the supported owning transport to close that completed child after its evidence
+   is preserved. Do not resume the child or send it another task to manufacture cleanup.
+   A new connection's `thread/unsubscribe` is not a force-close of another owner's writer.
+3. Verify the exact child is `notLoaded` and absent from the complete, paginated
+   `thread/loaded/list` catalog. Stop with the concrete remaining writer/capability
+   blocker if release cannot be proved; do not claim an idle turn is closed.
+4. With the human's archive authorization, use the supported recoverable parent
+   archive operation, then verify exact parent membership in the archived catalog.
+   Sidebar disappearance alone does not prove archival or disabled delivery.
+
+Report the parent/child identities privately, the observed state and host error,
+what cleanup succeeded, and the next supported action. If no owner-close capability
+is available, say so explicitly. Restarting the app requires separate human approval,
+may interrupt other chats, and is not a guaranteed remedy. Never delete bindings,
+rollouts or logs, edit SQLite, kill processes, spoof client identity, or resume a
+thread to bypass a writer lock. Consult the official [app-server documentation](https://learn.chatgpt.com/docs/app-server)
+for the supported host operations.
+
+This is a controller-followed troubleshooting procedure. The bootstrap plugin does
+not change the app's error toast, provide a force-close API, or automatically clean
+up children when the owning transport lacks that capability. A successful archive
+also is not an implemented Admin END/deactivation transaction.

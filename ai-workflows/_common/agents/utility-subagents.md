@@ -40,3 +40,21 @@ Delegation does not create or initialize workflow Agents, bypass a declared Rout
 an independent review gate. A separate role endpoint or a genuinely fresh-context reviewer must provide that evidence.
 Admin's role-scoped emulation subagents also follow the [Admin role](../roles/admin.md); they receive no independent
 workflow identity.
+
+## Parent-owned cleanup and handoff
+
+After collecting and verifying a child's result, the parent owns its cleanup through the selected transport's
+supported owner-close operation. A completed result or idle turn is not evidence that the child session is closed:
+it may still retain a writer or subscription that prevents later archival of its parent. Preserve the evidence needed
+for the work before closing the child; do not interrupt a running assignment or close another parent's child.
+
+When the transport exposes cleanup verification, confirm the exact child is no longer loaded and no longer appears
+in the complete loaded-session catalog. If owner-close is unavailable, or release cannot be verified, record the
+exact child identity, its verified parent relationship, observed state, remaining writer/error, and the supported next
+action. Do not claim cleanup success or silently force release. A current connection's unsubscribe may release only
+its own subscription, not another owner's writer.
+
+INIT readiness and archival eligibility are separate outcomes. A role can pass its identity/readiness checks while
+an already-completed audit child still blocks archival. The handoff must explain that distinction and any outstanding
+cleanup limitation so the human is not left with an unexplained archive failure. These are parent/controller-followed
+instructions, not an automatic host cleanup service or a guarantee that the app's archive button will succeed.

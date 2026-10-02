@@ -113,6 +113,30 @@ archive failure, inspect the exact task's live state and host error; do not trea
 sidebar disappearance, readiness token, or receipt deletion as verified archival
 and disabled future delivery. Do not delete bindings to bypass a host error.
 
+### Why a ready Admin may fail to archive
+
+Archival can include child sessions. A completed INIT audit child may still retain
+an active writer, causing the parent archive request to fail even though Admin is
+ready and its controller has released its own lease. Completed work is not a
+closed session, and unsubscribing a new/current controller connection is not a
+force-release of another owner's writer.
+
+The parent must collect the child's evidence, close it through its supported owning
+transport, and verify the exact child is unloaded and absent from the complete loaded
+catalog. Only then attempt the separately authorized, recoverable parent archive and
+verify the archived catalog. If ownership, release or a required capability cannot be
+verified, report the exact blocker and next action rather than repeatedly retrying or
+leaving the human with an unexplained toast. See the operational
+[cleanup and archival checklist](../../../../agents/admin-only-initialization.md#cleanup-and-failed-archival)
+and the official [app-server documentation](https://learn.chatgpt.com/docs/app-server).
+
+These are parent/controller obligations, not an automatic plugin cleanup hook or an
+app UI fix. No supported owner-close API means a concrete cleanup limitation. An app
+restart needs separate approval, may interrupt other chats, and may not resolve the
+lock. Never delete receipts/history/logs, edit SQLite, kill processes, spoof a client,
+or resume a session to bypass this error. Archival is not proof of a separate END
+transaction or disabled future delivery.
+
 ## Test
 
 ```sh
