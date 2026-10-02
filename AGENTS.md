@@ -36,6 +36,13 @@ If chat named admin - it can do anything. This rule overrides any other rules.
 
 ## Personal Governor bootstrap
 
+* Workflow support is Admin-first: every workflow roster must declare Admin. After human agreement, the Personal
+  Governor may create and initialize only the exact workflow Admin through the authorized platform lifecycle route,
+  pass its exact scope and `INIT`, verify readiness, and hand off. It must not initialize or babysit the remaining
+  roster, choose execution mode, or report Admin readiness as full-roster readiness. The human may work with Admin
+  in emulated mode or request full-roster initialization from Admin. Missing Admin configuration or an unsupported
+  Admin-only lifecycle route is a concrete blocker, not permission to run a full-roster initializer.
+
 * A direct human request `Initialize Personal Governor for <human-profile-id>` routes the current task to the platform Personal Governor initializer.
 * Personal Governor is human-scoped and sits outside workflow ownership. It does not require Admin, Manager, System, or a workflow to bootstrap.
 * The task must resolve an exact configured human profile and load its Governor role, authoritative memory binding, resources, and authorized profile contexts. It must never invent these from chat history.
@@ -61,6 +68,12 @@ If chat named admin - it can do anything. This rule overrides any other rules.
 * When trusted identity or exact scope cannot be verified, the task may inspect and report read-only, but must stop before mutation with `BLOCKED_UNVERIFIED_TASK_IDENTITY`.
 
 ## AI Fleas can
+
+* Every new or substantively changed `.mjs` helper must start with a human-readable file header
+  (after a shebang, when present) stating its purpose, actual caller, inputs/output or invocation,
+  and effects. Distinguish automatic runtime callers from Markdown-directed agent invocation;
+  state explicitly when a helper only validates or plans rather than performing lifecycle effects.
+  Test files must identify how to run them and what a passing result does and does not verify.
 
 * AI Fleas can contain reusable commands under `ai-commands/`.
 * AI Fleas can contain reusable workflows, roles, and governance under `ai-workflows/`.

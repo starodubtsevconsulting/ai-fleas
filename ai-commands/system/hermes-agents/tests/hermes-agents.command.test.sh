@@ -13,10 +13,10 @@ mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/servic
 touch "${test_root}/AGENTS.md" "${test_root}/README.md" "${test_root}/why.md"
 cat >"${test_root}/platforms/registry.yml" <<'YAML'
 platforms:
-  - id: hermes
+  - id: hermes-cli
     contract: hermes/platform.yml
 YAML
-printf 'id: hermes\n' >"${test_root}/platforms/hermes/platform.yml"
+printf 'id: hermes-cli\n' >"${test_root}/platforms/hermes/platform.yml"
 cat >"${test_root}/workflows/dev/agents.yml" <<'YAML'
 schemaVersion: workflow-logical-agents.v1
 workflowId: dev
@@ -37,9 +37,8 @@ cat >"${test_root}/ai-profile/example/example-work-profile.yml" <<YAML
 version: 3
 name: example
 default_workflow: dev.workflow.md
-agent_platform: hermes
-agent_platforms:
-  default: hermes
+platforms:
+  default: hermes-cli
   available:
     - hermes
 governance_rules_repository: example-rules
@@ -63,13 +62,13 @@ system_agent:
     every: 10m
     instruction: _common/agents/schedules/system-lifecycle-monitor.yml
   platform_bindings:
-    hermes:
+    hermes-cli:
       title: System
       provider: example-box
       model: example-coder
 workflows:
   - path: dev.workflow.md
-    harness: hermes
+    platform: hermes-cli
     local_ai: { providers_config: local-ai-providers.yml, provider: example-box, model: example-coder }
     commands:
       - coding
@@ -78,7 +77,7 @@ workflows:
       - ref: projects/dev/service/project.yml
       - ref: projects/dev/web/project.yml
   - path: external.workflow.md
-    harness: gpt-agents
+    platform: codex-app
     projects:
       - ref: projects/dev/service/project.yml
 YAML

@@ -1,8 +1,22 @@
 #!/usr/bin/env node
+/**
+ * Purpose: validate and resolve a profile-owned Hermes workflow before lifecycle work.
+ * Caller: hermes-agents.command.sh runs this automatically during initialization and
+ * connection selection; this is an executable preflight, not an agent instruction file.
+ * Usage: node resolve-workflow-scope.mjs PROFILE_ROOT PROFILE_ID WORKFLOW PROJECT CONNECTION
+ * The final three selectors may be omitted where their configured defaults apply.
+ * Result: tab-separated resolved scope and role/provider settings for the shell caller.
+ * Effects: reads canonical configuration and environment bindings; writes no profiles
+ * and creates no agents. Its shell caller owns subsequent initialization effects.
+ * Platform gate: rejects an adapter mismatch or unsupported mixed-platform roster
+ * before the caller can realize roles. Platform selects the app with its bundled harness;
+ * model/provider configuration does not override that application selection.
+ */
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { parseDocument } from 'yaml';
+import { loadRegistry, resolveDispatchPlan, requireAdapter } from '../../../../platforms/dispatch-plan.mjs';
 
 const [profileRoot, workProfileId, workflowSelector = '', projectSelector = '', connectionSelector = ''] = process.argv.slice(2);
 function fail(message) { console.error(`HERMES_PROFILE_SCOPE_INVALID: ${message}`); process.exit(1); }
@@ -45,11 +59,12 @@ const desiredWorkflow = workflowSelector || String(profile.default_workflow || '
 const workflowMatches = workflows.filter((item) => { if (!item || typeof item !== 'object' || Array.isArray(item)) return false; const p = String(item.path || ''); const id = path.basename(p).replace(/\.workflow\.md$/, '').replace(/\.md$/, ''); return p === desiredWorkflow || id === desiredWorkflow; });
 if (workflowMatches.length !== 1) fail(`workflow '${desiredWorkflow}' did not resolve exactly once.`);
 const workflow = workflowMatches[0];
-const availablePlatforms = Array.isArray(profile.agent_platforms?.available) ? profile.agent_platforms.available : [];
-if (!availablePlatforms.includes('hermes')) fail(`work profile '${workProfileId}' does not declare Hermes as an available agent platform.`);
+const availablePlatforms = Array.isArray(profile.platforms?.available) ? profile.platforms.available : [];
+if (!availablePlatforms.some(id => ['hermes-app', 'hermes-cli'].includes(id))) fail(`work profile '${workProfileId}' does not declare Hermes as an available platform.`);
 
 const commandsRoot = resolveCatalogRoot(String(profile.ai_commands_root || ''), 'ai_commands_root');
 const workflowsRoot = resolveCatalogRoot(String(profile.ai_workflows_root || ''), 'ai_workflows_root');
+const platformsRoot = resolveCatalogRoot(String(profile.ai_platforms_root || ''), 'ai_platforms_root');
 const workflowId = path.basename(String(workflow.path)).replace(/\.workflow\.md$/, '').replace(/\.md$/, '');
 const workflowInstructions = path.join(workflowsRoot, workflowId, `${workflowId}.workflow.md`);
 if (!fs.statSync(workflowInstructions, { throwIfNoEntry: false })?.isFile()) fail(`workflow contract is not a readable file: ${workflowInstructions}`);
@@ -59,6 +74,14 @@ const logicalAgentsFile = path.join(workflowsRoot, workflowId, 'agents.yml');
 const logicalAgents = readYaml(logicalAgentsFile);
 if (logicalAgents.workflowId !== workflowId || !Array.isArray(logicalAgents.agents)) fail(`logical role configuration does not match workflow '${workflowId}'.`);
 const roleDefinitions = [logicalAgents.initializer, ...logicalAgents.agents].filter(Boolean);
+try {
+  const lifecyclePlan = resolveDispatchPlan(profile, workflow,
+    loadRegistry(path.join(platformsRoot, 'registry.yml')),
+    { operation: 'full-roster', declaredAgentIds: roleDefinitions.map(role => role.agentId) });
+  const selectedPlatform = lifecyclePlan.agents[0].platformId;
+  if (!['hermes-app', 'hermes-cli'].includes(selectedPlatform)) throw new Error('LIFECYCLE_ADAPTER_MISMATCH: hermes');
+  requireAdapter(lifecyclePlan, selectedPlatform);
+} catch (error) { fail(error.message); }
 
 const localAi = workflow.local_ai;
 if (!localAi || typeof localAi !== 'object' || Array.isArray(localAi)) fail('workflow local_ai mapping is required.');

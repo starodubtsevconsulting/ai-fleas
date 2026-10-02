@@ -1,6 +1,6 @@
 # Hermes agent initialization
 
-This adapter runs only when the selected profile names `agent_platform: hermes` and the Hermes CLI is available.
+This adapter runs only when the selected profile names `platform: hermes-app` or `platform: hermes-cli` and the Hermes CLI is available.
 
 Initialization has two scopes:
 
@@ -21,7 +21,7 @@ Reconcile profile-bound roles through
 reference the selected workflow contract, allowed commands, project workspace, and applicable repository instructions.
 Verify provider, concrete model, endpoint reachability, context settings, and workspace after setup. A plain `initialize` is workflow-scoped and never initializes System.
 
-System uses the profile's `system_agent.platform_bindings.hermes` provider/model realization and remains outside Hermes workflow groups. Its lifecycle is separate from workflow-group initialize, reconcile, reinitialize, and delete operations. When Hermes exposes profile pinning, pin System in its global navigation without adding it to any workflow group; otherwise report pinning as unsupported.
+System uses the profile's `system_agent.platform_bindings[<selected-platform>]` provider/model realization and remains outside Hermes workflow groups. Its lifecycle is separate from workflow-group initialize, reconcile, reinitialize, and delete operations. When Hermes exposes profile pinning, pin System in its global navigation without adding it to any workflow group; otherwise report pinning as unsupported.
 
 When System scheduling is enabled, supply the portable schedule and initial watch scopes in the System profile's
 initialization message. System owns scheduler bootstrap: it requests Hermes's scheduling adapter to create or reconcile

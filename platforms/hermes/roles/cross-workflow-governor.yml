@@ -1,5 +1,5 @@
 schema_version: hermes-role-overlay.v1
-platform: hermes
+platform: hermes-app
 role: cross-workflow-governor
 portable_role: ../../../ai-workflows/_common/roles/cross-workflow-governor.yml
 

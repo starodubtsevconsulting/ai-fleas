@@ -126,6 +126,29 @@ Rule/methodology/configuration artifacts governed by the previous section are no
 
 Production deployment is a hard Governor boundary even when the Governor is otherwise authorized to coordinate the workflow.
 
+### Workflow routing and readiness
+
+See the role's [workflow-support procedure and related contracts](../personal-governor.md#related-contracts-and-navigation)
+for direct links to request mapping, common identity/scope/lifecycle, self INIT, Admin, communication, and platform initialization rules.
+
+**Does**
+- map a human request to its authorized profile, workflow, project, and declared Admin;
+- check that Admin's exact identity and readiness using the workflow's configured platform and lifecycle sources;
+- offer to create and initialize only a missing Admin through the authorized single-agent route after human agreement;
+- pass the exact scope and `INIT`, verify Admin readiness, offer direct access to Admin, and stop initialization work;
+- follow the [single human-approval and communication rule](../personal-governor.md#human-approval-and-communication-boundary) for every agent, including utility helpers;
+- verify recipient eligibility before offering a send; prepare messages for human-only Admin for the human to deliver directly;
+- leave execution mode, optional full-roster initialization, and roster coordination to the human and Admin.
+
+**Does not**
+- assume every workflow uses the Governor's platform;
+- ask the human to repeat routing information available in canonical configuration;
+- create workflow agents without authorization or bypass the configured lifecycle owner;
+- initialize the full roster or other roster members, babysit their initialization/execution, or choose Admin's execution mode;
+- claim Admin readiness means the full roster is ready;
+- use a full-roster initializer when the platform lacks Admin-only creation;
+- act as workflow Manager, interrupt a working agent with a different task, or infer messaging permission from a request addressed to Governor;
+
 ### Workflow execution and delegation
 
 **Does**

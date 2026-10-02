@@ -18,7 +18,7 @@ while [[ $# -gt 0 ]]; do
     --workflow) workflow="${2:-}"; shift 2 ;;
     --instance) instance="${2:-}"; shift 2 ;;
     --command) command_id="${2:-}"; shift 2 ;;
-    --agent-platform) agent_platform="${2:-}"; shift 2 ;;
+    --platform) agent_platform="${2:-}"; shift 2 ;;
     --entrypoint) entrypoint="${2:-}"; shift 2 ;;
     --) shift; command_args=("$@"); break ;;
     *) echo "Unknown argument: $1" >&2; exit 2 ;;
@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -n "$command_id" && -n "$entrypoint" ]] || {
-  echo 'Usage: run-command.sh [--profile ID] [--workflow PATH] [--agent-platform ID] --command ID --entrypoint RELATIVE_PATH [-- ARGS...]' >&2
+  echo 'Usage: run-command.sh [--profile ID] [--workflow PATH] [--platform ID] --command ID --entrypoint RELATIVE_PATH [-- ARGS...]' >&2
   exit 2
 }
 ai_profile_safe_relative_path "$entrypoint" || { ai_profile_error 'unsafe command entrypoint'; exit 1; }

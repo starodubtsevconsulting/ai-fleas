@@ -1,5 +1,5 @@
 schema_version: gpt-agents-workflow-runtime.v2
-platform: gpt-agents
+platform: codex-app
 workflow: writing
 logical_project_pattern: <profile-id>-writing[-<suffix>]
 initialization: ../../agents/initialization.md

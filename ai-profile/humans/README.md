@@ -9,5 +9,5 @@ The human profile owns the explicit `authorizedProfiles` and profile-qualified
 reusable Personal Governor role or its runtime binding.
 
 Human-specific platform preferences also belong in the human Governor binding. For example,
-`platformBindings.gpt-agents.utilitySubagents` may explicitly authorize the GPT adapter's bounded helper policy and select
+`platformBindings.gpt.utilitySubagents` may explicitly authorize the GPT adapter's bounded helper policy and select
 its model/reasoning routes. The adapter contract owns the mechanics; the human binding only enables and tunes them.

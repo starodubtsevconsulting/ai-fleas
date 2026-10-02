@@ -10,7 +10,7 @@ subject:
   name: Jonathan Example
 
 platformBindings:
-  gpt-agents:
+  codex-app:
     utilitySubagents:
       enabled: true
       routing:

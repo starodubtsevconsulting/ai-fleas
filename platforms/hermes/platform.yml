@@ -1,6 +1,8 @@
 version: 1
-id: hermes
-label: Hermes Platform
+id: hermes-app
+label: Hermes App
+harness: hermes
+interface: app
 runtime_object: hermes-profile
 creation_environment: profile-selected-provider
 initialization: agents/initialization.md

@@ -1,0 +1,10 @@
+platforms:
+  default: codex-app
+  available: [codex-app, hermes-cli]
+workflows:
+  - path: dev.workflow.md
+    platform: codex-app
+    agent_overrides:
+      coder:
+        platform: hermes-cli
+# Admin-only plan resolves GPT; full-roster execution rejects mixed platforms.

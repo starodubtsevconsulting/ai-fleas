@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+/** Hermes System scope preflight, invoked automatically by hermes-agents.command.sh.
+ * Inputs: profile catalog root, exact profile ID and optional connection selector;
+ * output: validated System scope JSON. Reads declared configuration only and does not
+ * create, bind, schedule or activate agents; the command owns subsequent effects.
+ */
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -23,10 +28,10 @@ safeId(workProfileId, 'work-profile ID');
 const selectedProfileRoot = inside(profileRoot, path.join(profileRoot, workProfileId), 'work profile');
 const profile = readYaml(path.join(selectedProfileRoot, `${workProfileId}-work-profile.yml`));
 if (profile.name !== workProfileId) fail('profile name does not match the selected ID.');
-if (!Array.isArray(profile.agent_platforms?.available) || !profile.agent_platforms.available.includes('hermes')) fail('Hermes is not an available platform.');
+if (!Array.isArray(profile.platforms?.available) || !profile.platforms.available.some(id => ['hermes-app', 'hermes-cli'].includes(id))) fail('Hermes is not an available platform.');
 const workflows = Array.isArray(profile.workflows) ? profile.workflows : [];
 const watchedWorkflowGroups = workflows
-  .filter((item) => item && typeof item === 'object' && !Array.isArray(item) && String(item.harness || '') === 'hermes')
+  .filter((item) => item && typeof item === 'object' && !Array.isArray(item) && ['hermes-app', 'hermes-cli'].includes(String(item.platform || profile.platforms.default || '')))
   .map((item) => {
     const workflowId = path.basename(String(item.path || '')).replace(/\.workflow\.md$/, '').replace(/\.md$/, '');
     return `${workProfileId}-${safeId(workflowId, 'Hermes workflow ID')}`;
@@ -35,7 +40,10 @@ if (watchedWorkflowGroups.length === 0) fail('work profile has no Hermes workflo
 if (new Set(watchedWorkflowGroups).size !== watchedWorkflowGroups.length) fail('work profile contains duplicate Hermes workflow IDs.');
 const system = profile.system_agent;
 if (!system || system.scope !== 'system' || system.cardinality !== 'one-per-platform') fail('system_agent contract is missing or invalid.');
-const binding = system.platform_bindings?.hermes;
+const systemPlatforms = ['hermes-app', 'hermes-cli'].filter(id => system.platform_bindings?.[id] && profile.platforms.available.includes(id));
+if (systemPlatforms.length !== 1) fail('Hermes System requires exactly one explicit app or CLI platform binding.');
+const systemPlatform = systemPlatforms[0];
+const binding = system.platform_bindings[systemPlatform];
 if (!binding || typeof binding !== 'object') fail('Hermes System platform binding is missing.');
 const providerAlias = safeId(String(binding.provider || ''), 'System provider');
 const modelAlias = safeId(String(binding.model || ''), 'System model');
@@ -84,7 +92,7 @@ const model = modelMatches[0], hermes = model.hermes;
 if (!hermes || typeof hermes !== 'object') fail(`model '${modelAlias}' has no Hermes settings.`);
 const providerModel = String(model.provider_model || '');
 if (!/^[A-Za-z0-9._:/+-]+$/.test(providerModel)) fail('System provider model ID is unsafe.');
-const workflow = workflows.find((item) => item?.harness === 'hermes');
+const workflow = workflows.find((item) => (item?.platform || profile.platforms.default) === systemPlatform);
 const projectRef = workflow?.projects?.[0]?.ref;
 if (!projectRef || path.isAbsolute(projectRef)) fail('System requires the profile primary project.');
 const project = readYaml(inside(selectedProfileRoot, path.join(selectedProfileRoot, projectRef), 'primary project'));

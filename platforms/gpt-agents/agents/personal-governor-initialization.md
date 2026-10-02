@@ -48,9 +48,9 @@ After readiness, pin the exact Personal Governor task in the global pinned area 
 ## GPT utility-subagent routing
 
 The common utility-subagent obligation applies to every Governor `INIT` audit and substantive work item. This section
-selects GPT execution mechanics only when the selected platform resolves to the exact adapter ID `gpt-agents`, that
+selects GPT execution mechanics only when the selected platform resolves to the exact platform ID `codex-app`, that
 adapter declares `utility-subagent-delegation`, and the human Governor binding sets
-`platformBindings.gpt-agents.utilitySubagents.enabled: true`. Do not infer the platform from a task title, visible UI,
+`platformBindings.codex-app.utilitySubagents.enabled: true`. Do not infer the platform from a task title, visible UI,
 or conversation history. On another platform, use that platform's safe helper transport; if none is available or it
 cannot safely perform the bounded supporting effect, record the concrete blocker rather than treating this obligation
 as inactive.

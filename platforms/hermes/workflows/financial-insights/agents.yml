@@ -1,5 +1,5 @@
 schema_version: hermes-workflow-agents.v1
-platform: hermes
+platform: hermes-app
 workflow: financial-insights
 runtime_object: hermes-profile
 creation_environment: profile-selected-provider

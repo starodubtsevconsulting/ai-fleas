@@ -76,7 +76,7 @@ if not resolved_config_path.is_file():
 gpt_config = yaml.safe_load(resolved_config_path.read_text()) or {}
 binding = ((gpt_config.get('execution_delegates') or {}).get(workflow_id) or {}).get('coder') or {}
 required = {
-    'platform': 'hermes',
+    'platform': 'hermes-cli',
     'route': 'admin-to-real-coder',
     'preferred': True,
     'authorization': 'direct-delegation-or-admin-dev-run',

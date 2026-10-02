@@ -3,7 +3,7 @@ schema_version: gpt-agents-command-config.v1
 capability: gpt-agents
 registered_command: gpt-agents
 command_path: gpt-agents/gpt-agents.command.md
-platform: gpt-agents
+platform: codex-app
 lifecycle:
   creation_environment: saved-project-local
   preserve_history: true
@@ -37,7 +37,7 @@ execution_delegates:
   dev:
     coder:
       id: example-hermes-coder
-      platform: hermes
+      platform: hermes-cli
       profile: example-dev-coder
       transport: cli-oneshot
       strategy_transport_config: dev/agents/delegation-strategies/transports/hermes-cli-oneshot.strategy.yml

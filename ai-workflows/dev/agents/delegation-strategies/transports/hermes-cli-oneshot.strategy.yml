@@ -1,6 +1,6 @@
 schema_version: local-coder-transport-strategy.v1
 applies_to:
-  platform: hermes
+  platform: hermes-cli
   transport: cli-oneshot
 session:
   policy: one-process-per-bounded-assignment

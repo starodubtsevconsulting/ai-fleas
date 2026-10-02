@@ -11,6 +11,14 @@ Workflow roles -> visible Codex tasks + one hidden Router
 
 ## What must already exist?
 
+Before any workflow task mutation, the controller runs
+`node platforms/gpt-agents/agents/select-role-initialization.mjs MANIFEST ADAPTER full-roster PROFILE WORKFLOW REGISTRY`.
+This applies to full initialization and roster reconciliation. The command resolves every portable role using profile,
+workflow, and per-agent lifecycle selection, verifies the GPT adapter, and blocks unsupported mixed-platform plans.
+An initializer invocation cannot override profile selection. For Admin-only preflight use `admin` in place of
+`full-roster`; that preflight never authorizes creating the rest of the roster. These are controller-invoked gates,
+not automatic desktop launcher hooks.
+
 The profile, workflow, authorized project roots, primary work target, and saved Codex Project must already be configured.
 The saved project must resolve to the authorized roots by immutable project ID. Initialization does not create a project,
 clone, checkout, or worktree.
