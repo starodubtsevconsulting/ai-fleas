@@ -2,6 +2,24 @@
 
 ## Reusable entry point for authorized agents
 
+### Object-oriented implementation
+
+The initialization machinery is composed from responsibility-specific objects:
+
+- `AdminInitializationBuilder` owns canonical file/registry dependencies and builds validated payloads.
+- `NativeAdminPreparation` composes the builder with `GptNativeCatalog` for fresh authorized scope discovery.
+- `NativeAdminHost` owns the native connection, injected lifecycle ports, and instance-local transient creation evidence.
+- `WorkflowAdminInitializer` owns the six-port host and executes the fail-closed creation/reuse transaction.
+- `NativeAdminLifecycle` coordinates native initialization, explicit retry, submission, and controller release.
+- `AppAdminLifecycle` coordinates explicitly selected owning-app submission and retry.
+
+Constructors do not perform host or filesystem IO. Call the object's operation
+explicitly to perform its documented effects. Existing named function exports are
+compatibility wrappers around these objects, so current launcher and controller
+callers retain their argument shapes. Pure prompt, path, scope, and evidence helpers
+remain functions; they do not own lifecycle state. Classes do not add authority,
+caching, readiness shortcuts, or automatic lifecycle delivery.
+
 This is a workflow-generic mechanism, not a Financial Insights command. A Personal
 Governor or another authorized lifecycle controller starts here after the human
 approves the exact workflow Admin. Being a higher-level agent alone grants no

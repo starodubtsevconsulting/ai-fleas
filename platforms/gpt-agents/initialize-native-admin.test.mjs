@@ -4,8 +4,33 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { submitNativeAdminInitialization, retryNativeAdminInitialization, verifyInstalledBootstrap, validateNativeAdminRetry, releaseNativeAdminControl } from './initialize-native-admin.mjs';
+import { NativeAdminLifecycle, submitNativeAdminInitialization, retryNativeAdminInitialization, verifyInstalledBootstrap, validateNativeAdminRetry, releaseNativeAdminControl } from './initialize-native-admin.mjs';
 const transaction = { taskId: 'fictional-task', payload: { binding: { agentId: 'admin' }, prompt: 'INIT' } };
+test('native lifecycle construction has no IO and direct submit/release own dependencies', async () => {
+  const calls = [];
+  const client = { request: async method => {
+    calls.push(method);
+    if (method === 'turn/start') return {turn:{id:'new',status:'inProgress'}};
+    if (method === 'thread/unsubscribe') return {status:'notLoaded'};
+    if (method === 'thread/read') return {thread:{id:'fictional-task',projectId:'project',status:{type:'notLoaded'}}};
+    return {data:[],nextCursor:null};
+  } };
+  const lifecycle = new NativeAdminLifecycle(client, { register: () => { calls.push('register'); return {}; } });
+  assert.deepEqual(calls, []);
+  assert.equal(typeof lifecycle.initialize, 'function');
+  assert.equal(typeof lifecycle.retry, 'function');
+  assert.equal((await lifecycle.submit(transaction)).turnId, 'new');
+  assert.deepEqual(await lifecycle.release('fictional-task','project'), {controllerReleased:true});
+  assert.deepEqual(calls,['register','turn/start','thread/unsubscribe','thread/read','thread/loaded/list']);
+});
+test('explicit submission options replace outer lifecycle options rather than widening effects', async()=>{
+  const effects=[];
+  const lifecycle=new NativeAdminLifecycle({request:async method=>{
+    effects.push(method);return {turn:{id:'new',status:'inProgress'}};
+  }},{resume:true,register:()=>{throw new Error('outer register must not run');}});
+  await lifecycle.submit(transaction,{pluginData:'/fictional',register:()=>{effects.push('exact-register');return {};}});
+  assert.deepEqual(effects,['exact-register','turn/start']);
+});
 test('registers generic receipt before exactly one native turn/start', async () => {
   const effects = [];
   const options = { pluginData: '/fictional/plugin', register: x => { effects.push('register'); assert.equal(x.sessionId, transaction.taskId); return {}; } };
@@ -92,7 +117,8 @@ test('controller release accepts notLoaded with nullable input only after exhaus
   await assert.rejects(releaseNativeAdminControl(loaded,'task','project'),/RELEASE_UNVERIFIED/);
 });
 test('retry orchestration rejects duplicate/archived candidates before submit and verifies same-task success',async()=>{
-  for(const mode of ['duplicate','archived','success']){
+  for(const mode of ['duplicate','archived','success','own-method']){
+    const succeeds=mode==='success'||mode==='own-method';
     const scope={kind:'workflow',profileId:'fictional',workflowId:'financial-insights',logicalProjectId:'fictional-financial-insights',runtimeScope:'fictional',projects:[{id:'records',savedProjectId:'project',root:'/fictional/records'}]};
     const binding={status:'pending',agentId:'admin',platformAdapter:'codex-app',generation:1,scope,initialization:{turnId:'old',expiresAt:'2026-01-01T00:00:00Z'}};
     const plan={scope,approval:{humanApproved:true},bootstrapPayload:{binding:structuredClone(binding),prompt:'INIT'}};
@@ -107,13 +133,26 @@ test('retry orchestration rejects duplicate/archived candidates before submit an
       const current=catalogReads===1?{...binding,taskId:'task'}:{...binding,taskId:'task',status:'active',generation:2,initialization:{completedTurnId:'new'}};
       return {complete:true,bindings:mode==='duplicate'?[current,{...current,taskId:'other'}]:[current],tasks:[{id:'task',projectId:'project',status:mode==='archived'?'archived':'active'}]};
     }};
-    const result=await retryNativeAdminInitialization('task',{}, {client,pluginData:'/fictional',installedScripts:'/fictional',
+    const options={client,pluginData:'/fictional',installedScripts:'/fictional',
       prepare:async()=>({plan}),verifyApproval:async()=>true,verifyInstalled:()=>true,verifyPluginActive:async()=>true,
       io:{readFileSync:()=>JSON.stringify({instances:{task:binding}}),realpathSync:x=>x},now:()=>Date.parse('2026-01-01T00:01:00Z'),
-      buildHost:()=>host,submit:async(c,transaction)=>{submits++;assert.equal(transaction.taskId,'task');assert.equal(transaction.payload.binding.generation,2);return {taskId:'task',status:'submitted',turnId:'new'};}});
-    assert.equal(submits,mode==='success'?1:0);
-    assert.equal(result.status,mode==='success'?'ready':'blocked');
-    if(mode==='success')assert.equal(result.controllerReleased,true);
+      buildHost:()=>host,submit:async(c,transaction)=>{submits++;assert.equal(transaction.taskId,'task');assert.equal(transaction.payload.binding.generation,2);return {taskId:'task',status:'submitted',turnId:'new'};}};
+    const lifecycle=new NativeAdminLifecycle(client,options);
+    if(mode==='own-method'){
+      const supplied=options.submit;
+      delete options.submit;
+      lifecycle.submit=(transaction,submissionOptions)=>{
+        assert.equal(submissionOptions.resume,true);
+        assert.equal(submissionOptions.register,undefined);
+        return supplied(client,transaction);
+      };
+    }
+    const result=await (succeeds
+      ? lifecycle.retry('task',{})
+      : retryNativeAdminInitialization('task',{},options));
+    assert.equal(submits,succeeds?1:0);
+    assert.equal(result.status,succeeds?'ready':'blocked');
+    if(succeeds)assert.equal(result.controllerReleased,true);
     else assert.equal(result.reason,'ADMIN_RETRY_CATALOG_UNVERIFIED');
   }
 });
