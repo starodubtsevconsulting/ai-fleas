@@ -3,6 +3,8 @@ import fs from 'node:fs';
 export const PERSONAL_GOVERNOR_ONBOARDING_PROMPT =
   'Get AI Fleas ready. Check for my required Personal Governor and show the safe next action.';
 
+const PERSONAL_GOVERNOR_INIT = /^(?:personal governor\s+init|init(?:ialize)?\s+personal governor)$/i;
+
 export class AgentBindingRegistry {
   constructor(agentBindingsFilePath) {
     this.agentBindingsFilePath = agentBindingsFilePath;
@@ -35,6 +37,8 @@ export class AgentBindingRegistry {
         status: agentBinding.status,
         humanProfileId: agentBinding.scope.humanProfileId,
         generation: agentBinding.generation,
+        humanProfileRef: agentBinding.initialization?.sources
+          ?.find(source => source?.id === 'human-profile')?.ref ?? null,
       }));
   }
 
@@ -67,11 +71,12 @@ export class PersonalGovernorOnboarding {
   }
 
   isOnboardingRequest(hookInput) {
-    return hookInput.hook_event_name === 'UserPromptSubmit' &&
-      String(hookInput.prompt ?? '').trim() === PERSONAL_GOVERNOR_ONBOARDING_PROMPT;
+    if (hookInput.hook_event_name !== 'UserPromptSubmit') return false;
+    const prompt = String(hookInput.prompt ?? '').trim();
+    return prompt === PERSONAL_GOVERNOR_ONBOARDING_PROMPT || PERSONAL_GOVERNOR_INIT.test(prompt);
   }
 
-  buildOnboardingInstructions() {
+  buildOnboardingInstructions(request = {}) {
     const loadResult = this.agentBindingRegistry.loadAgentBindings();
     if (loadResult.loadStatus === 'invalid-document') {
       return this.#buildBlockedInstructions();
@@ -82,7 +87,9 @@ export class PersonalGovernorOnboarding {
     const activeGovernorReceipts = governorReceipts
       .filter(({ status }) => status === 'active');
     if (activeGovernorReceipts.length) {
-      return this.#buildActiveInstructions(activeGovernorReceipts);
+      return request.isExplicitInit
+        ? this.#buildSuccessorInstructions(activeGovernorReceipts)
+        : this.#buildActiveInstructions(activeGovernorReceipts);
     }
 
     const pendingGovernorReceipts = governorReceipts
@@ -109,6 +116,18 @@ export class PersonalGovernorOnboarding {
       `Recorded Personal Governor task bindings: ${this.#formatReceipts(activeGovernorReceipts)}.`,
       'Check each exact task ID in the host active and archived catalogs before claiming a Governor exists or presenting Open Personal Governor. A stored active binding can outlive a deleted task. Reconcile a stale binding through the lifecycle controller. Do not create a duplicate while an exact live Governor exists. Do not offer profiles or workflows before the user enters or explicitly continues with a verified Governor.',
     ].join('\n');
+  }
+
+  #buildSuccessorInstructions(activeGovernorReceipts) {
+    if (activeGovernorReceipts.length !== 1) return this.#buildBlockedInstructions();
+    const [receipt] = activeGovernorReceipts;
+    return [
+      'AI_FLEAS_PERSONAL_GOVERNOR_ONBOARDING',
+      'state=explicit-init-successor',
+      `Verified lifecycle candidate: taskId=${receipt.taskId}, humanProfileId=${receipt.humanProfileId}, generation=${receipt.generation}.`,
+      receipt.humanProfileRef ? `Canonical human profile source: ${receipt.humanProfileRef}.` : null,
+      'The human explicitly requested that this fresh chat become the Personal Governor. Do not reopen the predecessor and do not ask the human to repeat this exact profile ID. Verify the predecessor in the host catalog, then run the host successor-first initialization transaction for this current task. The predecessor stays active until this task returns the exact readiness token.',
+    ].filter(Boolean).join('\n');
   }
 
   #buildPendingInstructions(pendingGovernorReceipts) {

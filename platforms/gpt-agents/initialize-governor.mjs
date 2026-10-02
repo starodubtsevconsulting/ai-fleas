@@ -173,14 +173,32 @@ function main() {
     process.stdout.write(`${JSON.stringify({ threadId: options.thread, status: 'active', alreadyInitialized: true })}\n`);
     return;
   }
+  if (exact?.status === 'pending' && exact.agentId === 'personal-governor' &&
+      exact.scope?.humanProfileId === options.human) {
+    buildGovernorInitialization(options['human-dir'], options.human, exact.generation);
+    process.stdout.write(`${JSON.stringify({ threadId: options.thread, status: 'pending', alreadyQueued: true })}\n`);
+    return;
+  }
   const sameHuman = Object.entries(registry.instances ?? {}).filter(([id, item]) =>
     id !== options.thread && item?.agentId === 'personal-governor' &&
     item?.scope?.humanProfileId === options.human && ['active', 'pending'].includes(item.status));
-  if (sameHuman.length) throw new Error('another Governor binding exists; verify and reconcile its exact host task before replacement');
+  const pending = sameHuman.filter(([, item]) => item.status === 'pending');
+  const active = sameHuman.filter(([, item]) => item.status === 'active');
+  if (pending.length || active.length > 1) {
+    throw new Error('Governor lifecycle state is ambiguous; reconcile exact host tasks before replacement');
+  }
   const generation = 1 + Math.max(0, ...Object.values(registry.instances ?? {})
     .filter(item => item?.agentId === 'personal-governor' && item?.scope?.humanProfileId === options.human)
     .map(item => Number.isInteger(item.generation) ? item.generation : 0));
   const payload = buildGovernorInitialization(options['human-dir'], options.human, generation);
+  if (active.length === 1) {
+    const [predecessorTaskId, predecessor] = active[0];
+    payload.binding.replaces = {
+      taskId: predecessorTaskId,
+      generation: predecessor.generation,
+      strategy: 'successor-first',
+    };
+  }
   const inputDir = path.join(dataDir, 'initialization-inputs', `${options.thread}-${process.pid}`);
   fs.mkdirSync(inputDir, { recursive: true, mode: 0o700 });
   const bindingFile = path.join(inputDir, 'binding.json');

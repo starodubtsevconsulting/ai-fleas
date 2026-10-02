@@ -4,9 +4,9 @@ The Personal Governor is a persistent human-scoped agent. It is not owned by a w
 
 ## Manual bootstrap
 
-A human may create a fresh GPT task/chat and explicitly request: `Initialize Personal Governor for <human-profile-id>`.
+A human may create a fresh GPT task/chat and explicitly request `Personal Governor INIT`, `Initialize Personal Governor`, or `Initialize Personal Governor for <human-profile-id>`.
 
-That direct request is sufficient to select the Personal Governor bootstrap route, but not sufficient to invent identity or resources. Resolve the exact human profile under the activated private profile catalog and verify:
+That direct request is sufficient to select the Personal Governor bootstrap route, but not sufficient to invent identity or resources. When an explicit INIT is made in a fresh chat and exactly one verified active Governor receipt exists, use that receipt's exact human profile and canonical human-profile source; do not ask the human to repeat the profile ID or reopen the predecessor. Otherwise resolve the exact human profile under the activated private profile catalog and verify:
 
 - `type: human`;
 - exact human profile ID;
@@ -14,6 +14,12 @@ That direct request is sufficient to select the Personal Governor bootstrap rout
 - readiness token `PERSONAL_GOVERNOR_READY`;
 - authoritative permanent-memory binding;
 - authorized workflow-profile contexts and capabilities.
+
+### Bootstrap question policy
+
+During Personal Governor INIT, ask the human **only** for the exact human profile ID, and only when no unique verified Governor receipt or trusted host profile selection resolves it. Do not ask for a role, workflow, project, platform, memory provider, memory path, title, pinning preference, prior-chat disposition, or other setup detail: resolve those from the selected human profile and platform contract. If any declared source is absent, ambiguous, unusable, or conflicts with the binding, report the concrete blocker rather than turning configuration discovery into a questionnaire.
+
+If an exact active Governor already exists for that human and the human uses this fresh chat to initialize a replacement, the initializer creates a **pending successor** rather than reopening or adopting the old chat. The predecessor remains active while the successor verifies its sources and returns `PERSONAL_GOVERNOR_READY`. Only the host's successful activation of that exact successor may atomically supersede the verified predecessor. Then pin the successor and set its presentation title to `🧭 Personal Governor`; retain the predecessor until the human chooses recoverable archival. A title or pin never establishes identity.
 
 If the human profile is absent, ambiguous, or conflicting, stop read-only.
 

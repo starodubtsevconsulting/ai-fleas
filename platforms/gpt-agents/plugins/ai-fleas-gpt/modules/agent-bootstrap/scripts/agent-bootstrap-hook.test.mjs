@@ -104,6 +104,34 @@ test('the plugin starter offers the existing active Governor instead of creating
   assert.match(onboardingInstructions, /Do not create a duplicate while an exact live Governor exists/);
 });
 
+test('an explicit Personal Governor INIT turns a fresh chat into a verified successor request', () => {
+  const root = workspace();
+  fs.writeFileSync(path.join(root, 'agent-bindings.json'), JSON.stringify({
+    schemaVersion: 1,
+    instances: {
+      'existing-governor-task': {
+        platformAdapter: 'gpt-agents',
+        agentId: 'personal-governor',
+        generation: 3,
+        scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+        initialization: {
+          sources: [{ id: 'human-profile', ref: '/private/humans/example-human/profile.yml' }],
+        },
+        status: 'active',
+      },
+    },
+  }));
+  const result = runHook(root, {
+    session_id: 'fresh-task', hook_event_name: 'UserPromptSubmit', prompt: 'Personal Governor INIT',
+  });
+  const instructions = result.hookSpecificOutput.additionalContext;
+  assert.match(instructions, /state=explicit-init-successor/);
+  assert.match(instructions, /humanProfileId=example-human/);
+  assert.match(instructions, /Canonical human profile source: \/private\/humans\/example-human\/profile.yml/);
+  assert.match(instructions, /Do not reopen the predecessor/);
+  assert.match(instructions, /do not ask the human to repeat this exact profile ID/);
+});
+
 test('the plugin starter resumes a pending Governor instead of creating a duplicate', () => {
   const root = workspace();
   registerPending(root, 'pending-governor-task');
@@ -202,6 +230,60 @@ test('exact prompt plus exact readiness activates and SessionStart restores iden
   assert.match(restored.hookSpecificOutput.additionalContext, /AI_FLEAS_AGENT_IDENTITY/);
   assert.match(restored.hookSpecificOutput.additionalContext, /generation=2/);
   assert.match(restored.hookSpecificOutput.additionalContext, /profile-memory:\/\/governor/);
+});
+
+test('a ready pending successor atomically supersedes its exact active Governor predecessor', () => {
+  const root = workspace();
+  const prompt = registerPending(root, 'successor-task');
+  const registryPath = path.join(root, 'agent-bindings.json');
+  const registry = JSON.parse(fs.readFileSync(registryPath));
+  registry.instances['previous-task'] = {
+    platformAdapter: 'gpt-agents',
+    agentId: 'personal-governor',
+    generation: 1,
+    scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+    initialization: { sources: [] },
+    status: 'active',
+  };
+  registry.instances['successor-task'].replaces = {
+    taskId: 'previous-task', generation: 1, strategy: 'successor-first',
+  };
+  fs.writeFileSync(registryPath, JSON.stringify(registry));
+
+  runHook(root, {
+    session_id: 'successor-task', turn_id: 'init-turn', hook_event_name: 'UserPromptSubmit', prompt,
+  });
+  const activated = runHook(root, {
+    session_id: 'successor-task', turn_id: 'init-turn', hook_event_name: 'Stop',
+    last_assistant_message: 'PERSONAL_GOVERNOR_READY',
+  });
+  assert.match(activated.systemMessage, /superseded its verified predecessor/);
+  const after = JSON.parse(fs.readFileSync(registryPath));
+  assert.equal(after.instances['successor-task'].status, 'active');
+  assert.equal(after.instances['previous-task'].status, 'superseded');
+  assert.equal(after.instances['previous-task'].supersededBy, 'successor-task');
+});
+
+test('a successor cannot activate when its exact predecessor changed before cutover', () => {
+  const root = workspace();
+  const prompt = registerPending(root, 'successor-task');
+  const registryPath = path.join(root, 'agent-bindings.json');
+  const registry = JSON.parse(fs.readFileSync(registryPath));
+  registry.instances['successor-task'].replaces = {
+    taskId: 'missing-predecessor', generation: 1, strategy: 'successor-first',
+  };
+  fs.writeFileSync(registryPath, JSON.stringify(registry));
+
+  runHook(root, {
+    session_id: 'successor-task', turn_id: 'init-turn', hook_event_name: 'UserPromptSubmit', prompt,
+  });
+  const result = runHook(root, {
+    session_id: 'successor-task', turn_id: 'init-turn', hook_event_name: 'Stop',
+    last_assistant_message: 'PERSONAL_GOVERNOR_READY',
+  });
+  assert.match(result.systemMessage, /predecessor could not be verified/);
+  const after = JSON.parse(fs.readFileSync(registryPath));
+  assert.equal(after.instances['successor-task'].status, 'pending');
 });
 
 test('readiness from a different turn cannot activate the task', () => {
