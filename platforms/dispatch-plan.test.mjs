@@ -9,7 +9,7 @@ import { resolveDispatchPlan, requireAdapter, loadRegistry } from './dispatch-pl
 import fs from 'node:fs';
 import { parse } from 'yaml';
 const registry = loadRegistry(new URL('./registry.yml', import.meta.url));
-for (const [id, harness, interfaceKind] of [['codex-app', 'codex', 'app'], ['codex-cli', 'codex', 'cli'], ['hermes-app', 'hermes', 'app'], ['hermes-cli', 'hermes', 'cli']]) {
+for (const [id, harness, interfaceKind] of [['codex-app', 'codex', 'app'], ['codex-cli', 'codex', 'cli'], ['hermes-app', 'hermes', 'app'], ['hermes-cli', 'hermes', 'cli'], ['pi-cli', 'pi', 'cli']]) {
   const entry = registry.find(p => p.id === id);
   const contract = parse(fs.readFileSync(new URL(entry.contract, new URL('./', import.meta.url)), 'utf8'));
   assert.equal(contract.harness, harness);
@@ -22,6 +22,14 @@ for (const old of ['gpt', 'hermes', 'gpt-agents']) {
 }
 const single = { operation: 'single-agent', requestedAgentId: 'admin', declaredAgentIds: ['admin', 'coder'] };
 const run = (p = base, w = {}, r = single) => resolveDispatchPlan(p, w, registry, r);
+const piProfile = { platforms: { default: 'pi-cli', available: ['pi-cli', 'codex-app'] } };
+assert.equal(run(piProfile, { model: 'example-openai-model', provider: 'example-openai-provider' }).agents[0].platformId, 'pi-cli');
+assert.equal(run(piProfile, { platform: 'codex-app' }).agents[0].platformId, 'codex-app');
+const piEntry = registry.find(p => p.id === 'pi-cli');
+const piContract = parse(fs.readFileSync(new URL(piEntry.contract, new URL('./', import.meta.url)), 'utf8'));
+assert.equal(piContract.initialization, undefined);
+assert.equal(piContract.role_overlays, undefined);
+assert.ok(!piContract.capabilities.includes('persistent-identity'));
 assert.deepEqual(run().agents, [{ agentId: 'admin', platformId: 'codex-app', contract: 'gpt-agents/platform.yml', source: 'profile' }]);
 assert.equal(run(base, { platform: 'hermes-cli' }).agents[0].source, 'workflow');
 assert.equal(run(base, { platform: 'hermes-cli', agent_overrides: { admin: { platform: 'sc' } } }).agents[0].platformId, 'sc');

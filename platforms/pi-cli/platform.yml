@@ -1,0 +1,12 @@
+version: 1
+id: pi-cli
+label: Pi CLI
+harness: pi
+interface: cli
+runtime_object: cli-process
+creation_environment: command-line
+capabilities:
+  - local-tool-execution
+  - model-selection
+# Execution interface only: no workflow roster initialization or desktop task binding.
+# Model/provider selection is independent of the platform ID.

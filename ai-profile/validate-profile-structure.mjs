@@ -11,7 +11,7 @@ import { parse } from 'yaml';
 const profileFile = path.resolve(process.argv[2]);
 const profileDir = path.dirname(profileFile);
 const profile = parse(fs.readFileSync(profileFile, 'utf8'));
-const requiredPlatforms = ['codex-app', 'codex-cli', 'hermes-app', 'hermes-cli', 'sc'];
+const requiredPlatforms = ['codex-app', 'codex-cli', 'hermes-app', 'hermes-cli', 'pi-cli', 'sc'];
 
 assert.equal(profile.version, 3, `${profile.name}: profile version`);
 assert.equal(profile.platforms.default, 'codex-app', `${profile.name}: default platform`);

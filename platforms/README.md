@@ -19,6 +19,7 @@ exact trusted instance binding, while first-time identity assignment remains a l
 | [Codex CLI (`codex-cli`)](codex-cli/platform.yml) | Terminal; Codex harness | Execution contract only; no desktop roster lifecycle |
 | [Hermes App (`hermes-app`)](hermes/) | Desktop UI; Hermes harness | App bots configured through installed CLI lifecycle tooling |
 | [Hermes CLI (`hermes-cli`)](hermes-cli/platform.yml) | Terminal; Hermes harness | Profile-based terminal execution and lifecycle tooling |
+| [Pi CLI (`pi-cli`)](pi-cli/platform.yml) | Terminal; Pi harness | Execution contract only; no desktop roster lifecycle |
 
 Platform IDs identify an interface with its bundled harness, not a model or provider. App variants are the normal interactive examples; CLI variants are optional terminal interfaces. `codex-app` and `codex-cli` do not share desktop task lifecycle support. Hermes App and CLI share installed tooling, but selection is explicit and does not establish identical live instance identity. The existing `sc` entry is a custom host contract, not a claimed app/CLI implementation. Command IDs and folders (`gpt-agents`, `hermes-agents`) remain unchanged.
 | [SC](sc/) | SC platform runtime | Adapter contract |

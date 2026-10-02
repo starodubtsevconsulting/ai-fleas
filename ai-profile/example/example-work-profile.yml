@@ -10,6 +10,7 @@ platforms:
     - codex-cli
     - hermes-app
     - hermes-cli
+    - pi-cli
     - sc
 agent_login_method: web_sso
 web_auth_policies:

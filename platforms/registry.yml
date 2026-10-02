@@ -12,6 +12,9 @@ platforms:
   - id: codex-cli
     label: Codex CLI
     contract: codex-cli/platform.yml
+  - id: pi-cli
+    label: Pi CLI
+    contract: pi-cli/platform.yml
   - id: sc
     label: SC Platform
     contract: sc/platform.yml
