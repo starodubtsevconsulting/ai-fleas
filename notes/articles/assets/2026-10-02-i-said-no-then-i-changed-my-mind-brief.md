@@ -1,6 +1,7 @@
 # Follow-up draft — editorial handoff
 
 Status: draft only; not independently accepted, narrated, scheduled, or published.
+Header: generated through ChatGPT web and approved by the human October 2; attached to repository draft with provenance. Independent visual review still pending; no further header selection is needed unless the human requests a change.
 Human explicitly authorized Personal Governor to draft directly because SC Writing Admin delegation is not ready. This is a one-task exception, not standing Writer authority.
 
 Profile/project: SC Writing / AI Fleas. Primary objective: explore Personal Governor decision support through AI Fleas. Audience: independent professionals, founders, AI-assisted builders.
