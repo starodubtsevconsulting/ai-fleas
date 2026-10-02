@@ -46,8 +46,47 @@ the installed executable, native control socket, complete saved-project scope, a
 trusted hook location; it never installs plugins or restarts the app. Its JSON
 `authorization` is the caller's attestation of the human request, not cryptographic
 proof. Checking that the human actually agreed remains the Governor/controller's
-responsibility. Inspect both `status` and `controllerReleased`; a ready token alone
-does not prove handoff or UI archival.
+responsibility. Native readiness and controller release do not prove that the app
+placed the chat in its sidebar project. Complete success also requires
+`appProjectAttached: true` from the trusted owning-app verifier.
+
+`AdminControllerCommand` accepts a `verifyAppProject({taskId, scope})` adapter.
+It must freshly verify the exact task's app project association and the mapping
+between the expected native saved project and immutable app project ID. Return
+`{taskId, attached: true, nativeProjectId, logicalProjectId, appProjectId}` only
+after checking the owning-app catalogs. App and native project IDs are distinct;
+matching titles or working directories are not mapping evidence. Request JSON
+cannot supply this verifier or attest that attachment occurred.
+
+For an app-tool controller such as Governor, finish the native command's handoff
+using the supported app tools:
+
+1. Retain the command's exact `taskId`; do not create another Admin or resend INIT.
+2. Open that existing chat with `navigate_to_codex_page({threadId: taskId})`.
+   In the tested host, opening reconciled a native-created task's app project
+   association. Opening alone is not evidence that reconciliation succeeded.
+3. Read fresh `list_projects` and `list_threads` catalogs. Verify that the exact
+   chat is associated with the expected immutable app project ID for the selected
+   logical project. Stop if that mapping is absent or ambiguous. Use an adequate
+   catalog limit or a supported exact-ID lookup; a missing recent-list entry does
+   not prove the task is absent and never authorizes duplicate creation.
+   Keep this presentation check separate from the native scope
+   and binding checks; a label alone never establishes Admin authority.
+4. Only after both native readiness/release and app attachment pass may Governor
+   report complete success and link the existing Admin. Otherwise report the
+   attachment blocker with the existing task ID, without retrying initialization.
+
+This is controller-followed orchestration: the CLI cannot call the desktop tool
+on its own, and the native archive cycle does not verify app catalog placement.
+
+The standalone CLI currently has no supported owning-app catalog bridge. It
+therefore reports `ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED` after native readiness
+and release, retaining `taskId` and `adminInitialized: true`, without an overall
+success token. The controller must inspect that exact chat in the app catalog;
+never report a complete handoff from the native result alone. If it is projectless,
+repair that existing chat through a supported app operation, not by creating a
+duplicate. If opening does not reconcile it and no supported attachment operation exists, report that concrete
+capability gap. Do not edit host databases, retry INIT, or silently change scope.
 
 The injectable controller API remains `initializeNativeAdmin(request, options)`
 in `initialize-native-admin.mjs`. For a

@@ -9,6 +9,9 @@
  * Admin handoff uses a reversible native archive/unarchive cycle retaining history;
  * reuse does not perform the cycle. No ordinary
  * messages, plugin installation, restart, END, or financial-data writes.
+ * Complete success also requires an injected owning-app project verifier. The
+ * standalone CLI cannot inspect that catalog and reports a handoff blocker,
+ * retaining the exact initialized task instead of creating a replacement.
  * The approval attestation is controller-followed, not cryptographic human proof.
  */
 import fs from 'node:fs';
@@ -23,11 +26,36 @@ import { normalizeAdminScope } from './initialize-workflow-admin.mjs';
 
 /** Owns discovery/connection dependencies; construction performs no IO. */
 export class AdminControllerCommand {
-  #io; #env; #home; #connect; #prepare; #initialize;
+  #io; #env; #home; #connect; #prepare; #initialize; #verifyAppProject;
   constructor({ io = fs, env = process.env, home = os.homedir(), connect = connectNativeAppServer,
-    prepare = prepareNativeAdmin, initialize = initializeNativeAdmin } = {}) {
+    prepare = prepareNativeAdmin, initialize = initializeNativeAdmin, verifyAppProject } = {}) {
     this.#io = io; this.#env = env; this.#home = home;
     this.#connect = connect; this.#prepare = prepare; this.#initialize = initialize;
+    this.#verifyAppProject = verifyAppProject;
+  }
+
+  /** Native authority and app presentation use different immutable project IDs.
+   * Only a trusted owning-app adapter may join them; request JSON, names, cwd,
+   * and native projectId alone never prove sidebar attachment. No repair effects
+   * are performed here. A failed check preserves the initialized task for repair.
+   */
+  async #verifyHandoff(result, scope) {
+    if (result.status !== 'ready' || result.controllerReleased !== true) return result;
+    try {
+      if (typeof this.#verifyAppProject !== 'function') throw new Error('ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED');
+      const evidence = await this.#verifyAppProject({ taskId: result.taskId, scope });
+      if (!result.taskId || evidence?.taskId !== result.taskId || evidence.attached !== true ||
+          evidence.nativeProjectId !== scope.projects[0].savedProjectId ||
+          evidence.logicalProjectId !== scope.logicalProjectId ||
+          typeof evidence.appProjectId !== 'string' || !evidence.appProjectId.trim())
+        throw new Error('ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED');
+      return { ...result, appProjectAttached: true, appProjectId: evidence.appProjectId };
+    } catch {
+      // Do not expose the native token as an overall success token on failure.
+      const { token, ...retained } = result;
+      return { ...retained, status: 'blocked', reason: 'ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED',
+        adminInitialized: true, appProjectAttached: false };
+    }
   }
 
   #executable() {
@@ -71,11 +99,12 @@ export class AdminControllerCommand {
       if (commands.length !== 1 || !commands[0].startsWith('node /') || !commands[0].endsWith(suffix))
         throw new Error('BOOTSTRAP_PLUGIN_LOCATION_UNVERIFIED');
       const installedScripts = this.#io.realpathSync(path.dirname(commands[0].slice(5)));
-      return await this.#initialize(selected, { client, auditExecutable, installedScripts,
+      const result = await this.#initialize(selected, { client, auditExecutable, installedScripts,
         pluginData: path.join(runtimeHome, 'plugins/data/ai-fleas-gpt-ai-fleas'),
         verifyApproval: async evidence => evidence.operation === 'initialize-admin-only' &&
           isDeepStrictEqual(evidence.approval, approval) && isDeepStrictEqual(normalizeAdminScope(evidence.scope), normalizeAdminScope(plan.scope)),
         verifyPluginActive: () => verifyNativeBootstrapActive(client, { cwd, installedScripts }) });
+      return await this.#verifyHandoff(result, plan.scope);
     } catch (error) { return { status: 'blocked', reason: error.message }; }
     finally { client?.close(); }
   }

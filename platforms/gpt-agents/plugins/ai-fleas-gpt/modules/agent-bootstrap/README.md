@@ -73,6 +73,16 @@ message is sent. This is a supported lifecycle effect, not a daemon restart.
 No automatic END/archive integration is added by this audit transport. Successful
 worker exit, parent controller release, and human UI archival are separate checks.
 
+Sidebar placement is another separate check: the native saved-project ID is not
+the desktop app's project ID. `AdminControllerCommand` requires a trusted
+`verifyAppProject` adapter before overall success. Without it, the CLI retains the
+initialized exact task and returns `ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED`, not
+a complete handoff. An app-tool controller opens that existing task through
+`navigate_to_codex_page`, then verifies its expected project association in fresh
+app catalogs, following the [Admin-only procedure](../../../../agents/admin-only-initialization.md).
+Opening reconciled the association in the live regression, but is not itself
+proof of attachment. Do not create a replacement or resend INIT for this failure.
+
 The transaction verifies fresh complete saved-project roots and active/archived
 task catalogs. It reuses only an exact active ready Admin, otherwise creates only
 one Admin with canonical references and the approved project subset. It registers
