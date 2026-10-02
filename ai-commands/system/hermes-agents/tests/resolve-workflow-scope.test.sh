@@ -15,10 +15,10 @@ mkdir -p "${test_root}/profiles/example/workflows-config/youtube" \
 # Lifecycle selection requires a registered adapter even though this test only resolves scope.
 cat >"${test_root}/platforms/registry.yml" <<'YAML'
 platforms:
-  - id: hermes
+  - id: hermes-cli
     contract: hermes/platform.yml
 YAML
-printf 'id: hermes\n' >"${test_root}/platforms/hermes/platform.yml"
+printf 'id: hermes-cli\n' >"${test_root}/platforms/hermes/platform.yml"
 
 printf '# YouTube\n' >"${test_root}/workflows/youtube/youtube.workflow.md"
 printf '# Worker\n' >"${test_root}/workflows/_common/roles/worker.md"
@@ -42,7 +42,7 @@ YAML
 cat >"${test_root}/profiles/example/example-work-profile.yml" <<YAML
 name: example
 default_workflow: youtube.workflow.md
-agent_platforms: { default: hermes, available: [hermes] }
+platforms: { default: hermes-cli, available: [hermes-cli] }
 ai_commands_root: ../../commands
 ai_workflows_root: ../../workflows
 ai_platforms_root: ../../platforms
@@ -69,7 +69,7 @@ providers:
     protocol: openai-compatible
     endpoint: { url: https://api.example.invalid/v1 }
     models:
-      - id: gpt-sol
+      - id: codex-app-sol
         provider_model: gpt-5.6-sol
         hermes: { context_window_tokens: 65536, compression_threshold: 0.25, compression_target: 0.15, protect_last_messages: 8 }
 YAML

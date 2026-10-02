@@ -23,7 +23,7 @@ model, reasoning level, or MCP operation belong only to an adapter or private im
 runtime checks, but it may not change the role's authority, capability ownership, communication topology, or approval
 requirements.
 
-The selected profile names an `agent_platform`. Resolve that exact ID from `platforms/registry.yml` or an explicitly
+The selected profile names a `platform`. Resolve that exact ID from `platforms/registry.yml` or an explicitly
 provided external registry. Never derive a folder name or scan sibling repositories. An unresolved ID returns
 `BLOCKED_AGENT_PLATFORM_NOT_AVAILABLE` with zero runtime mutation.
 

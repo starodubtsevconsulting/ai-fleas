@@ -3,7 +3,7 @@ schema_version: hermes-agents-command-config.v1
 capability: hermes-agents
 registered_command: hermes-agents
 command_path: hermes-agents/hermes-agents.command.sh
-platform: hermes
+platform: hermes-app
 lifecycle:
   preserve_conversations_on_reconcile: true
   require_confirmation_for_reinitialize: true

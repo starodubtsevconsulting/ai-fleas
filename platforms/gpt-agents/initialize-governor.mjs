@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+/** Human/controller-invoked Governor initializer, called by launcher.mjs.
+ * Inputs: exact human profile directory, human ID and task ID; output: binding readiness.
+ * Effects: validates declared sources and invokes the host plugin's binding/queue transaction.
+ * It does not create tasks or initialize a workflow roster.
+ */
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -102,7 +107,7 @@ export function buildGovernorInitialization(humanDir, humanId, generation, optio
       governor.agentId !== 'personal-governor' || governor.subject?.id !== humanId ||
       profile.governor?.readinessToken !== 'PERSONAL_GOVERNOR_READY' ||
       governor.readinessToken !== 'PERSONAL_GOVERNOR_READY' ||
-      !governor.platformBindings?.['gpt-agents']) {
+      !governor.platformBindings?.['codex-app']) {
     throw new Error('Personal Governor role, subject, readiness, or platform binding conflicts');
   }
   const roleFile = declaredFile(path.dirname(governorFile), governor.roleDefinition, 'Governor role');
@@ -124,7 +129,7 @@ export function buildGovernorInitialization(humanDir, humanId, generation, optio
   const initializerFile = requireFile(path.join(scriptDir, 'agents/personal-governor-initialization.md'), 'GPT initializer');
   return {
     binding: {
-      platformAdapter: 'gpt-agents', agentId: 'personal-governor', generation,
+      platformAdapter: 'codex-app', agentId: 'personal-governor', generation,
       scope: { kind: 'governed-human', humanProfileId: humanId },
       initialization: {
         readinessToken: 'PERSONAL_GOVERNOR_READY', memoryBinding: binding.uri,

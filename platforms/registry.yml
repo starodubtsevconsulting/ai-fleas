@@ -1,11 +1,17 @@
 version: 1
 platforms:
-  - id: gpt-agents
-    label: GPT Agents Platform
+  - id: codex-app
+    label: Codex App
     contract: gpt-agents/platform.yml
-  - id: hermes
-    label: Hermes Platform
+  - id: hermes-app
+    label: Hermes App
     contract: hermes/platform.yml
+  - id: hermes-cli
+    label: Hermes CLI
+    contract: hermes-cli/platform.yml
+  - id: codex-cli
+    label: Codex CLI
+    contract: codex-cli/platform.yml
   - id: sc
     label: SC Platform
     contract: sc/platform.yml

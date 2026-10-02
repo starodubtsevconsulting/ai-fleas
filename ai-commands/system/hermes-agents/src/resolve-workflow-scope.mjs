@@ -9,7 +9,8 @@
  * Effects: reads canonical configuration and environment bindings; writes no profiles
  * and creates no agents. Its shell caller owns subsequent initialization effects.
  * Platform gate: rejects an adapter mismatch or unsupported mixed-platform roster
- * before the caller can realize roles. Workload harness does not choose lifecycle.
+ * before the caller can realize roles. Platform selects the app with its bundled harness;
+ * model/provider configuration does not override that application selection.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -58,8 +59,8 @@ const desiredWorkflow = workflowSelector || String(profile.default_workflow || '
 const workflowMatches = workflows.filter((item) => { if (!item || typeof item !== 'object' || Array.isArray(item)) return false; const p = String(item.path || ''); const id = path.basename(p).replace(/\.workflow\.md$/, '').replace(/\.md$/, ''); return p === desiredWorkflow || id === desiredWorkflow; });
 if (workflowMatches.length !== 1) fail(`workflow '${desiredWorkflow}' did not resolve exactly once.`);
 const workflow = workflowMatches[0];
-const availablePlatforms = Array.isArray(profile.agent_platforms?.available) ? profile.agent_platforms.available : [];
-if (!availablePlatforms.includes('hermes')) fail(`work profile '${workProfileId}' does not declare Hermes as an available agent platform.`);
+const availablePlatforms = Array.isArray(profile.platforms?.available) ? profile.platforms.available : [];
+if (!availablePlatforms.some(id => ['hermes-app', 'hermes-cli'].includes(id))) fail(`work profile '${workProfileId}' does not declare Hermes as an available platform.`);
 
 const commandsRoot = resolveCatalogRoot(String(profile.ai_commands_root || ''), 'ai_commands_root');
 const workflowsRoot = resolveCatalogRoot(String(profile.ai_workflows_root || ''), 'ai_workflows_root');
@@ -77,7 +78,9 @@ try {
   const lifecyclePlan = resolveDispatchPlan(profile, workflow,
     loadRegistry(path.join(platformsRoot, 'registry.yml')),
     { operation: 'full-roster', declaredAgentIds: roleDefinitions.map(role => role.agentId) });
-  requireAdapter(lifecyclePlan, 'hermes');
+  const selectedPlatform = lifecyclePlan.agents[0].platformId;
+  if (!['hermes-app', 'hermes-cli'].includes(selectedPlatform)) throw new Error('LIFECYCLE_ADAPTER_MISMATCH: hermes');
+  requireAdapter(lifecyclePlan, selectedPlatform);
 } catch (error) { fail(error.message); }
 
 const localAi = workflow.local_ai;

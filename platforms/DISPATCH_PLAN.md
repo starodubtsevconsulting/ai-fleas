@@ -1,6 +1,6 @@
 # Lifecycle dispatch contract
 
-`resolveDispatchPlan(profile, workflow, registry, request)` resolves profile default -> workflow override -> per-agent override. The canonical fields are `agent_platforms.default`, `agent_platforms.available`, workflow `agent_platform`, and workflow `agent_overrides[agentId].agent_platform`. It validates every declaration, including overridden values. Missing selections and legacy `platform` aliases fail closed. Harness does not select lifecycle.
+`resolveDispatchPlan(profile, workflow, registry, request)` resolves profile default -> workflow override -> per-agent override. The canonical fields are `platforms.default`, `platforms.available`, workflow `platform`, and workflow `agent_overrides[agentId].platform`. A platform is the selected application with its bundled harness, not the command name or model/provider. It validates every declaration, including overridden values. Missing selections, legacy `agent_platform`/`agent_platforms`, and a separate workflow/per-agent `harness` fail closed. Model/provider settings do not select the application.
 
 Requests supply `declaredAgentIds` from the portable manifest and an explicit `operation`: `single-agent` with `requestedAgentId`, or `full-roster`. Results contain exactly the requested agents, their platform ID, adapter contract, and configuration source. `requireAdapter` checks the plan before lifecycle effects. A full roster with mixed effective platforms is rejected.
 

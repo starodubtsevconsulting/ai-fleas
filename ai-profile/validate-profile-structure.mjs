@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/** Example profile schema assertions, called by validate-example.sh or node directly.
+ * Input: committed example profile; output: PASS or failed assertion.
+ * Read-only: verifies examples, not an operational profile or live lifecycle execution.
+ */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,15 +11,20 @@ import { parse } from 'yaml';
 const profileFile = path.resolve(process.argv[2]);
 const profileDir = path.dirname(profileFile);
 const profile = parse(fs.readFileSync(profileFile, 'utf8'));
-const requiredPlatforms = ['gpt-agents', 'hermes', 'sc'];
+const requiredPlatforms = ['codex-app', 'codex-cli', 'hermes-app', 'hermes-cli', 'sc'];
 
 assert.equal(profile.version, 3, `${profile.name}: profile version`);
-assert.equal(profile.agent_platforms.default, 'gpt-agents', `${profile.name}: default platform`);
-assert.deepEqual(profile.agent_platforms.available, requiredPlatforms, `${profile.name}: available platforms`);
+assert.equal(profile.platforms.default, 'codex-app', `${profile.name}: default platform`);
+assert.deepEqual(profile.platforms.available, requiredPlatforms, `${profile.name}: available platforms`);
+for (const scope of [profile, ...(profile.workflows ?? []), ...(profile.workflows ?? []).flatMap(w => Object.values(w.agent_overrides ?? {}))]) {
+  for (const legacy of ['agent_platform', 'agent_platforms', 'harness']) {
+    assert.ok(!(legacy in scope), `${profile.name}: unsupported legacy selection ${legacy}`);
+  }
+}
 assert.equal(profile.system_agent.scope, 'system', `${profile.name}: System scope`);
 assert.equal(profile.system_agent.cardinality, 'one-per-platform', `${profile.name}: System cardinality`);
 assert.equal(profile.system_agent.schedule.every, '10m', `${profile.name}: System interval`);
-assert.equal(profile.system_agent.platform_bindings['gpt-agents'].readiness_token, 'SYSTEM_READY');
+assert.equal(profile.system_agent.platform_bindings['codex-app'].readiness_token, 'SYSTEM_READY');
 
 const enabledWorkflowIds = new Set((profile.workflows ?? []).map(({ path: workflowPath }) => workflowPath.replace(/\.workflow\.md$/, '')));
 const profileCommandIds = new Set((profile.commands ?? []).map(({ id }) => id));

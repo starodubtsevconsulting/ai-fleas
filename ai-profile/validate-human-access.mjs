@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/** Example-validation CLI called by validate-example.sh.
+ * Inputs: committed example human/profile YAML; output: assertions and PASS.
+ * Read-only: verifies declared access and helper policy, not live identity or initialization.
+ */
 
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -26,7 +30,7 @@ assert.equal(human.governor?.config, 'governor.yml');
 assert.ok(Array.isArray(human.authorizedProfiles), 'human profile authorization must be a list');
 assert.ok(Array.isArray(human.authorizedWorkflows), 'human workflow authorization must be a list');
 
-const utilitySubagents = governor.platformBindings?.['gpt-agents']?.utilitySubagents;
+const utilitySubagents = governor.platformBindings?.['codex-app']?.utilitySubagents;
 assert.equal(utilitySubagents?.enabled, true, 'GPT utility subagents must be explicitly enabled by the human binding');
 assert.deepEqual(utilitySubagents.routing, {
   routine: { model: 'gpt-6-luna', reasoning: 'low' },

@@ -1,3 +1,9 @@
+/** Explicit controller/initializer binding transaction, not an automatic task creator.
+ * Inputs: exact session ID, binding JSON file, prompt text file and PLUGIN_DATA root;
+ * output: registration diagnostics.
+ * Effects: validates and writes the exact host binding and queued initialization receipt.
+ * Only the codex-app platform is accepted; command and directory names remain gpt-agents.
+ */
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -28,7 +34,7 @@ if (!sessionId || !bindingFile || !promptFile || !dataRoot) {
 const binding = JSON.parse(fs.readFileSync(bindingFile, 'utf8'));
 const prompt = fs.readFileSync(promptFile, 'utf8').trimEnd();
 if (!prompt) fail('initialization prompt must not be empty');
-if (binding.platformAdapter !== 'gpt-agents') fail('binding.platformAdapter must be gpt-agents');
+if (binding.platformAdapter !== 'codex-app') fail('binding.platformAdapter must be codex-app');
 if (!binding.agentId || typeof binding.agentId !== 'string') fail('binding requires agentId');
 if (!Number.isInteger(binding.generation) || binding.generation < 1) fail('binding requires a positive integer generation');
 if (!binding.scope?.kind || typeof binding.scope.kind !== 'string') fail('binding.scope requires kind');

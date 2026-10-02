@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/** GPT host launcher, invoked by setup scripts or the human/controller CLI.
+ * Inputs: setup/doctor/launch/initialize-governor arguments and declared local configuration.
+ * Output: diagnostics or launch status. Effects: may install/update host components,
+ * change desktop preferences, launch the app, or invoke the Governor binding transaction.
+ * The platform ID is gpt; gpt-agents remains the command/directory name.
+ */
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -284,7 +290,7 @@ function doctor() {
   const conflicts = conflictingPlugins();
   const result = {
     status: conflicts.length || rootMismatch ? 'migration-required' : marketplace && missing.length === 0 ? 'ready' : 'setup-required',
-    platform: 'gpt-agents',
+    platform: 'codex-app',
     operatingSystem: 'macOS',
     chatGptApp: app,
     marketplace: marketplace ? marketplaceName : null,

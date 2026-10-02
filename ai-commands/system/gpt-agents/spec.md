@@ -14,10 +14,10 @@ Verified exact task receipts or a precise no-mutation failure.
 
 ## Invariants
 
-- Workflow lifecycle platform selection resolves `agent_platforms.default`, then workflow `agent_platform`, then
-  profile-owned workflow `agent_overrides[agentId].agent_platform`. Invocation selection verifies the effective value;
+- Workflow lifecycle platform selection resolves `platforms.default`, then workflow `platform`, then
+  profile-owned workflow `agent_overrides[agentId].platform`. Invocation selection verifies the effective value;
   it cannot override this hierarchy. Every declaration must be registered and available, including overridden values.
-- GPT workflow initialization requires every selected role to resolve to `gpt-agents` and runs the full-roster selector
+- GPT workflow initialization requires every selected role to resolve to platform `codex-app` and runs the full-roster selector
   before task mutation. Mixed-platform roster execution fails closed. This gate is controller-invoked; it is not an
   automatic desktop-launcher hook.
 - `initialize-system` is an explicit lifecycle transaction for exactly one System task per profile/platform binding.

@@ -1,5 +1,5 @@
 schema_version: gpt-agents-role-overlay.v1
-platform: gpt-agents
+platform: codex-app
 role: cross-workflow-governor
 portable_role: ../../../ai-workflows/_common/roles/cross-workflow-governor.yml
 

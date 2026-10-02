@@ -1,3 +1,8 @@
+/** Run with node --test platforms/gpt-agents/plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/agent-bootstrap-hook.test.mjs.
+ * Test-runner-only caller; simulated host events and bindings are inputs, TAP is output.
+ * Effects: creates/removes isolated temporary fixture directories. PASS verifies hook and
+ * registration behavior in fixtures, not live host readiness or workflow authorization.
+ */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -29,7 +34,7 @@ function registerPending(root, sessionId = 'governor-task') {
   const bindingFile = path.join(root, 'binding.json');
   const promptFile = path.join(root, 'prompt.txt');
   fs.writeFileSync(bindingFile, JSON.stringify({
-    platformAdapter: 'gpt-agents',
+    platformAdapter: 'codex-app',
     agentId: 'personal-governor',
     generation: 2,
     scope: { kind: 'governed-human', humanProfileId: 'example-human' },
@@ -82,7 +87,7 @@ test('the plugin starter offers the existing active Governor instead of creating
     schemaVersion: 1,
     instances: {
       'existing-governor-task': {
-        platformAdapter: 'gpt-agents',
+        platformAdapter: 'codex-app',
         agentId: 'personal-governor',
         generation: 3,
         scope: { kind: 'governed-human', humanProfileId: 'example-human' },
@@ -110,7 +115,7 @@ test('an explicit Personal Governor INIT turns a fresh chat into a verified succ
     schemaVersion: 1,
     instances: {
       'existing-governor-task': {
-        platformAdapter: 'gpt-agents',
+        platformAdapter: 'codex-app',
         agentId: 'personal-governor',
         generation: 3,
         scope: { kind: 'governed-human', humanProfileId: 'example-human' },
@@ -238,7 +243,7 @@ test('a ready pending successor atomically supersedes its exact active Governor 
   const registryPath = path.join(root, 'agent-bindings.json');
   const registry = JSON.parse(fs.readFileSync(registryPath));
   registry.instances['previous-task'] = {
-    platformAdapter: 'gpt-agents',
+    platformAdapter: 'codex-app',
     agentId: 'personal-governor',
     generation: 1,
     scope: { kind: 'governed-human', humanProfileId: 'example-human' },
@@ -325,7 +330,7 @@ test('queue helper registers and delivers the exact prompt through Codex queue s
   const promptFile = path.join(root, 'prompt.txt');
   const queueLog = path.join(root, 'queue.log');
   fs.writeFileSync(bindingFile, JSON.stringify({
-    platformAdapter: 'gpt-agents',
+    platformAdapter: 'codex-app',
     agentId: 'personal-governor',
     generation: 2,
     scope: { kind: 'governed-human', humanProfileId: 'example-human' },
@@ -356,7 +361,7 @@ test('queue helper rolls back a newly registered receipt when delivery fails', (
   const promptFile = path.join(root, 'prompt.txt');
   const codex = path.join(root, 'codex-fails');
   fs.writeFileSync(bindingFile, JSON.stringify({
-    platformAdapter: 'gpt-agents',
+    platformAdapter: 'codex-app',
     agentId: 'personal-governor',
     generation: 2,
     scope: { kind: 'governed-human', humanProfileId: 'example-human' },
@@ -384,7 +389,7 @@ test('queue helper restores the previous registry when replacement delivery fail
     schemaVersion: 1,
     instances: {
       existing: {
-        platformAdapter: 'gpt-agents',
+        platformAdapter: 'codex-app',
         agentId: 'personal-governor',
         generation: 1,
         scope: { kind: 'governed-human', humanProfileId: 'example-human' },
@@ -398,7 +403,7 @@ test('queue helper restores the previous registry when replacement delivery fail
   const promptFile = path.join(root, 'prompt.txt');
   const codex = path.join(root, 'codex-fails');
   fs.writeFileSync(bindingFile, JSON.stringify({
-    platformAdapter: 'gpt-agents',
+    platformAdapter: 'codex-app',
     agentId: 'personal-governor',
     generation: 2,
     scope: { kind: 'governed-human', humanProfileId: 'example-human' },

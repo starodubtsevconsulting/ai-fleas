@@ -17,8 +17,8 @@ import { resolveDispatchPlan, requireAdapter, loadRegistry } from '../../dispatc
 export function selectLifecycleRoster(profile, workflow, registry, manifest, adapter) {
   const declaredAgentIds = [manifest?.initializer, ...(manifest?.agents || [])].filter(Boolean).map(role => role.agentId);
   const plan = requireAdapter(resolveDispatchPlan(profile, workflow, registry,
-    { operation: 'full-roster', declaredAgentIds }), 'gpt-agents');
-  if (adapter?.platform !== 'gpt-agents') throw new Error('LIFECYCLE_ADAPTER_MISMATCH');
+    { operation: 'full-roster', declaredAgentIds }), 'codex-app');
+  if (adapter?.platform !== 'codex-app') throw new Error('LIFECYCLE_ADAPTER_MISMATCH');
   const bindings = [...(adapter.role_endpoints || []), ...(adapter.role_routes || [])].map(e => e.role);
   if (bindings.length !== declaredAgentIds.length || new Set(bindings).size !== bindings.length ||
       declaredAgentIds.some(id => !bindings.includes(id))) throw new Error('ROSTER_ADAPTER_MISMATCH');
@@ -28,8 +28,8 @@ export function selectLifecycleRoster(profile, workflow, registry, manifest, ada
 export function selectLifecycleRole(profile, workflow, registry, manifest, adapter, roleId) {
   const declaredAgentIds = [manifest?.initializer, ...(manifest?.agents || [])].filter(Boolean).map(role => role.agentId);
   const plan = requireAdapter(resolveDispatchPlan(profile, workflow, registry,
-    { operation: 'single-agent', requestedAgentId: roleId, declaredAgentIds }), 'gpt-agents');
-  if (adapter?.platform !== 'gpt-agents') throw new Error('LIFECYCLE_ADAPTER_MISMATCH');
+    { operation: 'single-agent', requestedAgentId: roleId, declaredAgentIds }), 'codex-app');
+  if (adapter?.platform !== 'codex-app') throw new Error('LIFECYCLE_ADAPTER_MISMATCH');
   if (roleId === manifest?.initializer?.agentId) {
     const initializer = manifest.initializer;
     const endpoints = adapter.role_endpoints?.filter(e => e.role === roleId) || [];

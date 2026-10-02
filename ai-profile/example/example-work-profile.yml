@@ -3,11 +3,13 @@ name: example
 description: Copyable example work profile
 default_workflow: dev.workflow.md
 default_agent: codex
-agent_platforms:
-  default: gpt-agents
+platforms:
+  default: codex-app
   available:
-    - gpt-agents
-    - hermes
+    - codex-app
+    - codex-cli
+    - hermes-app
+    - hermes-cli
     - sc
 agent_login_method: web_sso
 web_auth_policies:
@@ -32,12 +34,12 @@ system_agent:
     every: 10m
     instruction: _common/agents/schedules/system-lifecycle-monitor.yml
   platform_bindings:
-    gpt-agents:
+    codex-app:
       title: "example-system"
       model: gpt-5.6-luna
       reasoning: low
       readiness_token: SYSTEM_READY
-    hermes:
+    hermes-app:
       title: "example-system"
       lifecycle_command: hermes-agents
       provider: rtx-3080-ti-model-provider
@@ -114,7 +116,7 @@ commands:
     config: commands-config/cloudflare-connector/config.example.env
 workflows:
   - path: dev.workflow.md
-    harness: pi
+    platform: codex-app
     local_ai:
       providers_config: local-ai-providers.yml
       provider: asus-gx10-model-provider
@@ -202,7 +204,7 @@ workflows:
           summary_format: '[project name]: title'
           description_template_file: workflows-config/dev/commands/jira/description.template.txt
   - path: youtube.workflow.md
-    harness: hermes
+    platform: hermes-app
     agent_providers_config: workflows-config/youtube/agent-providers.example.yml
     local_ai:
       providers_config: local-ai-providers.yml
@@ -212,7 +214,7 @@ workflows:
     projects:
       - ref: projects-config/youtube/example-channel/project.yml
   - path: writing.workflow.md
-    harness: hermes
+    platform: hermes-app
     local_ai:
       providers_config: local-ai-providers.yml
       provider: asus-gx10-model-provider
@@ -266,8 +268,7 @@ workflows:
       - ref: projects-config/writing/example-writing/project.yml
       - ref: projects-config/writing/example-articles/project.yml
   - path: financial-insights.workflow.md
-    agent_platform: hermes
-    harness: hermes
+    platform: hermes-app
     local_ai:
       providers_config: local-ai-providers.yml
       provider: asus-gx10-model-provider

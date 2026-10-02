@@ -1,0 +1,16 @@
+version: 1
+id: hermes-cli
+label: Hermes CLI
+harness: hermes
+interface: cli
+runtime_object: hermes-cli-profile
+creation_environment: profile-selected-provider
+initialization: ../hermes/agents/initialization.md
+role_overlays: ../hermes/roles
+capabilities:
+  - profile-binding
+  - model-selection
+  - project-binding
+  - local-tool-execution
+  - conversation-persistence
+# Shares installed harness tooling, not UI instance identity, with hermes-app.

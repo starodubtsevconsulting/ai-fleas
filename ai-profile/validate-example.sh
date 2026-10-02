@@ -10,9 +10,9 @@ test -r "${PROFILE}" || fail "Missing example work profile"
 grep -Fq 'ai_commands_root: ../../ai-commands' "${PROFILE}" || fail "Example must use the AI Commands catalog"
 grep -Fq 'ai_workflows_root: ../../ai-workflows' "${PROFILE}" || fail "Example must use the AI Workflows catalog"
 grep -Fq 'ai_platforms_root: ../../platforms' "${PROFILE}" || fail "Example must use the platform registry"
-grep -Fq 'agent_platforms:' "${PROFILE}" || fail "Example must declare available agent platforms"
-grep -Fq '  default: gpt-agents' "${PROFILE}" || fail "Example must declare the default platform"
-for platform in gpt-agents hermes sc; do
+grep -Fq 'platforms:' "${PROFILE}" || fail "Example must declare available agent platforms"
+grep -Fq '  default: codex-app' "${PROFILE}" || fail "Example must declare the default platform"
+for platform in codex-app codex-cli hermes-app hermes-cli sc; do
   grep -Fq "    - ${platform}" "${PROFILE}" || fail "Example must expose platform: ${platform}"
 done
 test -r "${ROOT}/../platforms/gpt-agents/platform.yml" || fail "Missing GPT Agents platform contract"

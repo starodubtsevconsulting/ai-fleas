@@ -105,20 +105,20 @@ The work-profile file commonly defines `default_agent`, `agent_login_method`, `d
 bindings, catalog locations, organization metadata, environments, and app-mode settings. Runtime selection may use
 `WORK_PROFILE_ID`, and session state remains scoped under `session-root/<work-profile>/...`.
 
-Lifecycle platform selection follows profile `agent_platforms.default`, workflow `agent_platform`, then profile-owned
-workflow `agent_overrides[agentId].agent_platform`. `agent_platforms.available` is a whitelist; every declared selection,
+Lifecycle platform selection follows profile `platforms.default`, workflow `platform`, then profile-owned
+workflow `agent_overrides[agentId].platform`. `platforms.available` is a whitelist; every declared selection,
 including overridden values, must be registered and available. `ai_platforms_root` selects the registry. Missing or
 conflicting selection fails closed; an initializer command verifies the resolved adapter rather than overriding it.
-The typed host exposes `agentPlatformFor(workflowId, agentId)`. Mixed-platform roster orchestration is unsupported;
+The typed host exposes `platformFor(workflowId, agentId)`. Mixed-platform roster orchestration is unsupported;
 single-agent selection resolves only the requested logical role. See [dispatch contract](../platforms/DISPATCH_PLAN.md).
-A workflow may
-still select a command-execution harness independently; an agent platform defines agent identity and lifecycle, while a
-harness defines how an agent executes a particular workload.
+A platform means the selected application plus its bundled harness. Model and provider settings are separate and do not
+change platform selection. Legacy `agent_platform`/`agent_platforms` and separately selected workflow harnesses are rejected.
+The sanitized Dev example selects `platform: codex-app` to match its GPT adapter; its former `harness: pi` was not a registered application.
 
 The consuming host reads this entry point through one typed profile reader. It parses YAML once, rejects duplicate keys,
 malformed workflow/project collections, unsupported top-level project placement, missing workflow paths, unsafe alias
 expansion, and oversized profile files before repositories or the UI consume profile data. Repositories use the normalized
-reader model for workflow paths, command lists, harnesses, and project references; they must not independently reinterpret
+reader model for workflow paths, command lists, platform selections, and project references; they must not independently reinterpret
 the same YAML structure.
 
 ```mermaid
@@ -138,7 +138,7 @@ flowchart TD
 ```
 
 `ProfileReader` owns safe YAML decoding, `WorkProfileFactory` translates decoded configuration into domain language, and
-`WorkProfileAggregate` enforces profile invariants and owns workflow-scoped command, harness, and project-reference
+`WorkProfileAggregate` enforces profile invariants and owns workflow-scoped command, platform, and project-reference
 queries. `WorkProfileRepository` owns discovery and loading only; consumers should ask the aggregate for scoped data
 instead of indexing its configuration maps directly.
 

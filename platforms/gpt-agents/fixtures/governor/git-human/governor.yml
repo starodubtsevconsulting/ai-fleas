@@ -4,7 +4,7 @@ subject:
   id: git-human
 readinessToken: PERSONAL_GOVERNOR_READY
 platformBindings:
-  gpt-agents: {}
+  codex-app: {}
 memory:
   - name: governor
     uri: profile-memory://governor

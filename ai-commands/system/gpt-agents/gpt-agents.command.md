@@ -3,7 +3,7 @@
 ## Purpose
 
 Use `gpt-agents` to check for stable application updates, initialize, inspect, reconcile, message, replace, or recoverably archive AI Fleas logical agents realized
-as Codex tasks. The command composes the selected profile, portable workflow roster, and public `gpt-agents` platform adapter;
+as Codex tasks. The command composes the selected profile, portable workflow roster, and public `codex-app` platform adapter;
 it never infers tasks from titles, recency, or nearby repositories.
 
 Physical GPT/ChatGPT desktop application installation, upgrade, and uninstall belong to the `chatgpt` command
@@ -31,7 +31,7 @@ flowchart LR
   end
 
   Workflow --> Contract
-  Adapter["Public gpt-agents platform adapter"] --> Contract
+  Adapter["Public gpt platform adapter"] --> Contract
   PrimaryProject --> Initialize
   ProjectSet --> Initialize
   Overrides --> Initialize
@@ -60,7 +60,7 @@ therefore changes profile configuration rather than the portable workflow roster
 
 | Input | Required | Source | Description |
 |---|---|---|---|
-| Active AI Profile | Yes | Host activation | Must list `gpt-agents` as available. Workflow lifecycle selection follows profile default → workflow override → per-agent override; invocation flags verify the effective selection. |
+| Active AI Profile | Yes | Host activation | Must list platform `codex-app` as available. Workflow lifecycle selection follows profile default → workflow override → per-agent override; invocation flags verify the effective selection. |
 | Ordered selected project subset and complete logical project | Yes | User and profile | Select one or more project/work targets from those registered to the workflow. Registration authorizes availability but does not make every project mandatory. The first selected project is primary and hosts the rules, commands, workflow definitions, and Codex agents; remaining selected projects are associated work projects. |
 | GPT role overrides | No | Profile-owned `commands[].config` | Override supported model, reasoning, title, or elastic-pool realization values without changing role authority. |
 | Grouping policy | No | Profile-owned `commands[].config` | Defines the saved-project name template and deterministic collision suffix policy. |
@@ -80,12 +80,12 @@ therefore changes profile configuration rather than the portable workflow roster
 |---|---|---|
 || `gpt-agents/gpt-agents.command.md` | AI-readable contract | The invoking host controller loads this contract and invokes the selected app adapter's exact task lifecycle capabilities. |
 
-Every invocation is profile-aware: the host must activate the selected AI Profile and workflow, verify that `gpt-agents` is
+Every invocation is profile-aware: the host must activate the selected AI Profile and workflow, verify that platform `codex-app` is
 available, resolve its platform contract, load the workflow's registered project choices and the non-empty selected subset, and resolve one
 pre-existing exact folder-backed saved Codex project named for the logical project/group before workflow-task mutation. Verify its
 ordered scoped folders from the selected profile-authorized project records. The first selected folder is primary. Registered but
 unselected projects are not required roots. The primary project hosts the control plane and agent launch context. An explicit
-command-level `--agent-platform gpt-agents` verifies the effective profile-owned selection; it cannot override the
+command-level `--platform codex-app` verifies the effective profile-owned selection; it cannot override the
 profile/workflow/agent hierarchy. System lifecycle resolves the profile/platform binding without belonging to a workflow logical project.
 
 Committed configuration template: `gpt-agents/gpt-agents.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
@@ -196,9 +196,9 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
 
 ### System initialization
 
-1. Require explicit System lifecycle intent, the exact profile, and an explicit or default `gpt-agents` platform selection.
+1. Require explicit System lifecycle intent, the exact profile, and an explicit or default `codex-app` platform selection.
 2. Load `system_agent`, require `scope: system`, `cardinality: one-per-platform`, its schedule, and the complete
-   `platform_bindings.gpt-agents` realization, including its presentation title and readiness token. `--every` may override the configured
+   `platform_bindings.gpt` realization, including its presentation title and readiness token. `--every` may override the configured
    interval for this System binding; reject invalid or unsupported intervals.
 3. Resolve recorded System receipts for this exact profile/platform binding. Reuse one active exact binding; block on an
    unrecorded candidate, ambiguity, or multiple candidates instead of adopting or creating another.
@@ -267,7 +267,7 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    portable role's declared bounds.
    Separately, the profile-owned GPT command config may declare optional `utility_delegates` by workflow ID. These are
    governed by the portable `ai-workflows/_common/agents/utility-subagents.md` contract and never enter the roster.
-   For an explicit human-requested bounded evidence task, a `hermes`/`cli-oneshot` entry identifies an existing Hermes
+   For an explicit human-requested bounded evidence task, a `hermes-cli`/`cli-oneshot` entry identifies an existing Hermes
    profile and one selected project. Verify the profile exists, its provider and model match the selected profile's
    workflow `local_ai` catalog binding, and its workspace is that project's authorized root before invocation. Give it
    only relevant read-only inputs; it cannot edit files, receive unnecessary secrets, contact workflow Agents, issue
@@ -370,4 +370,4 @@ System. If System exists, the trusted host lifecycle registry makes the new grou
 
 #command #ai-command #gpt-agents #codex #agents #lifecycle
 
-See [spec.md](spec.md) and the registered [`gpt-agents` platform adapter](../../platforms/gpt-agents/README.md).
+See [spec.md](spec.md) and the registered [`codex-app` platform adapter](../../../platforms/gpt-agents/README.md). The lifecycle command remains `gpt-agents`; its name and directory are not platform IDs.

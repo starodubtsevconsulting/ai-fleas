@@ -25,12 +25,13 @@ assert.throws(() => selectIndependentRole(manifest, adapter, 'unknown'), /ROLE_N
 assert.throws(() => selectIndependentRole(manifest, { ...adapter, role_endpoints: [] }, 'smoke-tester'), /ROLE_ENDPOINT_MISMATCH/);
 console.log('Independent GPT role selection: PASS');
 const registry = loadRegistry(new URL('../../registry.yml', import.meta.url));
-const profile = { agent_platforms: { default: 'gpt-agents', available: ['gpt-agents', 'hermes'] } };
-const admin = selectLifecycleRole(profile, { agent_overrides: { coder: { agent_platform: 'hermes' } } }, registry, manifest, adapter, 'admin');
+const profile = { platforms: { default: 'codex-app', available: ['codex-app', 'hermes-cli'] } };
+assert.throws(() => selectLifecycleRole({ platforms: { default: 'codex-cli', available: ['codex-cli'] } }, {}, registry, manifest, adapter, 'admin'), /ADAPTER_MISMATCH/);
+const admin = selectLifecycleRole(profile, { agent_overrides: { coder: { platform: 'hermes-cli' } } }, registry, manifest, adapter, 'admin');
 assert.equal(admin.agentId, 'admin');
-assert.equal(admin.platformId, 'gpt-agents');
+assert.equal(admin.platformId, 'codex-app');
 assert.equal(admin.readinessToken, 'ADMIN_READY');
-assert.throws(() => selectLifecycleRole(profile, { agent_platform: 'hermes' }, registry, manifest, adapter, 'admin'), /ADAPTER_MISMATCH/);
+assert.throws(() => selectLifecycleRole(profile, { platform: 'hermes-cli' }, registry, manifest, adapter, 'admin'), /ADAPTER_MISMATCH/);
 console.log('GPT Admin-only lifecycle selection: PASS');
 const cli = execFileSync(process.execPath, [fileURLToPath(new URL('./select-role-initialization.mjs', import.meta.url)),
   fileURLToPath(new URL('../../../ai-workflows/dev/agents.yml', import.meta.url)),
@@ -38,11 +39,11 @@ const cli = execFileSync(process.execPath, [fileURLToPath(new URL('./select-role
   fileURLToPath(new URL('../../../ai-profile/example/example-work-profile.yml', import.meta.url)), 'dev',
   fileURLToPath(new URL('../../registry.yml', import.meta.url))], { encoding: 'utf8' });
 assert.equal(JSON.parse(cli).agentId, 'admin');
-assert.equal(JSON.parse(cli).platformId, 'gpt-agents');
+assert.equal(JSON.parse(cli).platformId, 'codex-app');
 assert.equal(selectLifecycleRoster(profile, {}, registry, manifest, adapter).agents.length,
   manifest.agents.length + 1);
-assert.throws(() => selectLifecycleRoster(profile, { agent_overrides: { coder: { agent_platform: 'hermes' } } }, registry, manifest, adapter), /MIXED_PLATFORM/);
-assert.throws(() => selectLifecycleRoster(profile, { agent_platform: 'hermes' }, registry, manifest, adapter), /ADAPTER_MISMATCH/);
+assert.throws(() => selectLifecycleRoster(profile, { agent_overrides: { coder: { platform: 'hermes-cli' } } }, registry, manifest, adapter), /MIXED_PLATFORM/);
+assert.throws(() => selectLifecycleRoster(profile, { platform: 'hermes-cli' }, registry, manifest, adapter), /ADAPTER_MISMATCH/);
 const rosterCli = execFileSync(process.execPath, [fileURLToPath(new URL('./select-role-initialization.mjs', import.meta.url)),
   fileURLToPath(new URL('../../../ai-workflows/dev/agents.yml', import.meta.url)),
   fileURLToPath(new URL('../workflows/dev/agents.yml', import.meta.url)), 'full-roster',

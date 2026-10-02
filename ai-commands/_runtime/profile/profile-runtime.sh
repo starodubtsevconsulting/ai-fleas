@@ -31,7 +31,7 @@ ai_profile_list() {
 
 ai_profile_agent_platform_default() {
   awk '
-    /^agent_platforms:/ { in_platforms=1; next }
+    /^platforms:/ { in_platforms=1; next }
     in_platforms && /^[^[:space:]]/ { exit }
     in_platforms && /^  default:[[:space:]]*/ {
       value=$0; sub(/^  default:[[:space:]]*/, "", value); print value; exit
@@ -41,7 +41,7 @@ ai_profile_agent_platform_default() {
 
 ai_profile_agent_platform_available() {
   awk -v wanted="$2" '
-    /^agent_platforms:/ { in_platforms=1; next }
+    /^platforms:/ { in_platforms=1; next }
     in_platforms && /^[^[:space:]]/ { exit }
     in_platforms && /^  available:/ { in_available=1; next }
     in_platforms && in_available && /^    -[[:space:]]*/ {
@@ -166,16 +166,14 @@ ai_profile_activate() {
   commands_ref="$(ai_profile_scalar "$profile_file" ai_commands_root)"
   workflows_ref="$(ai_profile_scalar "$profile_file" ai_workflows_root)"
   platforms_ref="$(ai_profile_scalar "$profile_file" ai_platforms_root)"
-  if [[ -n "$requested_agent_platform" ]]; then
-    agent_platform="$requested_agent_platform"
-  else
-    agent_platform="$(ai_profile_agent_platform_default "$profile_file")"
-  fi
   governance_repository="$(ai_profile_scalar "$profile_file" governance_rules_repository)"
   governance_surface="$(ai_profile_list "$profile_file" governance_rules_surface | paste -sd: -)"
   AI_COMMANDS_ROOT="$(ai_profile_resolve_path "$profile_dir" "$commands_ref")" || return 1
   AI_WORKFLOWS_ROOT="$(ai_profile_resolve_path "$profile_dir" "$workflows_ref")" || return 1
   AI_PLATFORMS_ROOT="$(ai_profile_resolve_path "$profile_dir" "$platforms_ref")" || return 1
+  # Requested platform is verification, never an override. This workflow-context
+  # transport has no trusted role binding and does not infer one from instance IDs.
+  agent_platform="$(node "$(dirname "${BASH_SOURCE[0]}")/select-platform.mjs" "$profile_file" "$requested_workflow" "$AI_PLATFORMS_ROOT/registry.yml" "$requested_agent_platform")" || return 1
   ai_profile_safe_id "$agent_platform" || { ai_profile_error 'missing or unsafe agent platform'; return 1; }
   ai_profile_agent_platform_available "$profile_file" "$agent_platform" || {
     ai_profile_error "agent platform is not available in profile: $agent_platform"; return 1;

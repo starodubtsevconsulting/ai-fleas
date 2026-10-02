@@ -9,8 +9,8 @@ while [[ $# -gt 0 ]]; do
     --workflow) workflow="${2:-}"; shift 2 ;;
     --instance) instance="${2:-}"; shift 2 ;;
     --command) command_id="${2:-}"; shift 2 ;;
-    --agent-platform) agent_platform="${2:-}"; shift 2 ;;
-    *) echo "Usage: $0 [--profile ID] [--workflow PATH] [--instance ID] [--agent-platform ID] [--command ID]" >&2; exit 2 ;;
+    --platform) agent_platform="${2:-}"; shift 2 ;;
+    *) echo "Usage: $0 [--profile ID] [--workflow PATH] [--instance ID] [--platform ID] [--command ID]" >&2; exit 2 ;;
   esac
 done
 if [[ -n "$command_id" ]]; then

@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/** Run with node ai-commands/system/gpt-agents/gpt-agents.command.test.mjs.
+ * Read-only assertions over committed command contracts, examples and adapters.
+ * PASS verifies mappings and documented gates, not a live host initialization.
+ */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -36,8 +40,8 @@ assert.equal(exampleConfig.binding_state, undefined);
 for (const overrideRole of Object.keys(exampleConfig.role_overrides ?? {})) {
   assert.ok([...adapter.role_endpoints, ...writingAdapter.role_endpoints].some(({ role }) => role === overrideRole), `unknown example override role: ${overrideRole}`);
 }
-assert.equal(exampleProfile.system_agent.platform_bindings['gpt-agents'].readiness_token, 'SYSTEM_READY');
-assert.equal(exampleProfile.system_agent.platform_bindings['gpt-agents'].title, 'example-system');
+assert.equal(exampleProfile.system_agent.platform_bindings['codex-app'].readiness_token, 'SYSTEM_READY');
+assert.equal(exampleProfile.system_agent.platform_bindings['codex-app'].title, 'example-system');
 assert.ok(exampleWorkflow.projects.length > 1, 'a workflow must support a multi-project scope');
 assert.match(exampleWorkflow.projects[0].ref, /\/example-service\/project\.yml$/);
 assert.deepEqual(exampleProfile.system_agent.schedule, {

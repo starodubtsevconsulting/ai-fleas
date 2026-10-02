@@ -57,9 +57,11 @@ semanticAreas:
   outputs: composed-output
 
 platformAccess:
-  hermes:
+  hermes-app:
     route: permanent-memory-command
-  gpt-agents:
+  hermes-cli:
+    route: permanent-memory-command
+  codex-app:
     route: permanent-memory-command-or-mcp-adapter
 
 rules:

@@ -21,7 +21,7 @@ export function loadRegistry(p) {
   const entries = parse(fs.readFileSync(p, 'utf8')).platforms;
   if (!Array.isArray(entries)) throw new Error('PLATFORM_REGISTRY_INVALID');
   for (const entry of entries) {
-    if (typeof entry.contract !== 'string' || entry.contract.split('/').includes('..') || path.isAbsolute(entry.contract)) throw new Error('PLATFORM_CONTRACT_INVALID');
+    if (typeof entry.contract !== 'string' || !entry.contract || entry.contract.includes('\\') || entry.contract.split('/').includes('..') || path.isAbsolute(entry.contract)) throw new Error('PLATFORM_CONTRACT_INVALID');
     const contract = parse(fs.readFileSync(path.join(root, entry.contract), 'utf8'));
     if (contract.id !== entry.id) throw new Error('PLATFORM_CONTRACT_MISMATCH');
   }
@@ -32,11 +32,16 @@ export function resolveDispatchPlan(profile, workflow, registry, request) {
   if (!Array.isArray(registry) || !registry.length) throw new Error('PLATFORM_REGISTRY_REQUIRED');
   const adapters = new Map();
   for (const e of registry) {
-    if (!e?.id || typeof e.contract !== 'string' || !e.contract.startsWith(e.id + '/') ||
+    if (!e?.id || typeof e.contract !== 'string' || !e.contract || e.contract.includes('\\') || path.isAbsolute(e.contract) ||
         e.contract.split('/').includes('..') || adapters.has(e.id)) throw new Error('PLATFORM_REGISTRY_INVALID');
     adapters.set(e.id, e.contract);
   }
-  const config = map(profile.agent_platforms, 'agent_platforms');
+  const rejectLegacy = (scope, profileScope = false) => {
+    if ('agent_platform' in scope || 'agent_platforms' in scope || 'harness' in scope ||
+        (profileScope ? 'platform' in scope : 'platforms' in scope)) throw new Error('PLATFORM_ALIAS_CONFLICT');
+  };
+  rejectLegacy(profile, true); rejectLegacy(workflow);
+  const config = map(profile.platforms, 'platforms');
   if (!Array.isArray(config.available) || !config.available.length ||
       new Set(config.available).size !== config.available.length) throw new Error('PLATFORM_AVAILABLE_INVALID');
   const check = v => {
@@ -46,13 +51,12 @@ export function resolveDispatchPlan(profile, workflow, registry, request) {
   };
   for (const v of config.available) if (!adapters.has(v)) throw new Error('PLATFORM_UNSUPPORTED: ' + v);
   check(config.default);
-  if ('platform' in profile || 'agent_platform' in profile || 'platform' in workflow || 'agent_platforms' in workflow) throw new Error('PLATFORM_ALIAS_CONFLICT');
-  if ('agent_platform' in workflow) check(workflow.agent_platform);
+  if ('platform' in workflow) check(workflow.platform);
   const overrides = workflow.agent_overrides === undefined ? {} : map(workflow.agent_overrides, 'agent_overrides');
   for (const o of Object.values(overrides)) {
     map(o, 'agent override');
-    if ('platform' in o || 'agent_platforms' in o) throw new Error('PLATFORM_ALIAS_CONFLICT');
-    if ('agent_platform' in o) check(o.agent_platform);
+    rejectLegacy(o);
+    if ('platform' in o) check(o.platform);
   }
   const declared = request.declaredAgentIds;
   if (!Array.isArray(declared) || !declared.length || declared.some(id => typeof id !== 'string' || !id) ||
@@ -68,8 +72,8 @@ export function resolveDispatchPlan(profile, workflow, registry, request) {
   } else throw new Error('DISPATCH_OPERATION_REQUIRED');
   const agents = ids.map(agentId => {
     const o = overrides[agentId];
-    const source = o && 'agent_platform' in o ? 'agent' : 'agent_platform' in workflow ? 'workflow' : 'profile';
-    const platformId = source === 'agent' ? o.agent_platform : source === 'workflow' ? workflow.agent_platform : config.default;
+    const source = o && 'platform' in o ? 'agent' : 'platform' in workflow ? 'workflow' : 'profile';
+    const platformId = source === 'agent' ? o.platform : source === 'workflow' ? workflow.platform : config.default;
     return { agentId, platformId, contract: adapters.get(platformId), source };
   });
   if (request.operation === 'full-roster' && new Set(agents.map(a => a.platformId)).size > 1) throw new Error('MIXED_PLATFORM_ORCHESTRATION_UNSUPPORTED');
