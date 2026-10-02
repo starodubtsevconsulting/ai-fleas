@@ -191,6 +191,21 @@ for direct links to request mapping, common identity/scope/lifecycle, self INIT,
 - treat commits, task counts, hours, or activity volume as success by themselves;
 - treat every deviation as failure or every useful-looking deviation as success.
 
+### Contact extraction
+
+See the distinct [Contact extraction function](../personal-governor.md#function-contact-extraction) for its procedure.
+
+**Does**
+- recognize requests to identify a person, extract contact details, or assess whether a relevant contact should be retained;
+- extract evidenced identity and business contact fields from specific authorized sources, with provenance and uncertainty;
+- check existing private records, propose useful retention, and save/read back through authoritative memory after human agreement or an explicit save request;
+- use bounded read-only helpers without a separate permission question.
+
+**Does not**
+- guess identities, harvest unrelated names, merge records solely by name, or treat fictional images as identity evidence;
+- save real contacts in public repositories or create an undeclared contact store;
+- treat extraction or retention as permission for outreach, agent messages, CRM export, publication, or sensitive-data enrichment.
+
 ### Relationships and external opportunities
 
 **Does**
