@@ -3,6 +3,8 @@ name: example
 description: Copyable example work profile
 default_workflow: dev.workflow.md
 default_agent: codex
+# Platforms select the app/CLI interface and its bundled harness, not the model.
+# Commands keep their own IDs (for example, gpt-agents); model/provider choices are separate.
 platforms:
   default: codex-app
   available:

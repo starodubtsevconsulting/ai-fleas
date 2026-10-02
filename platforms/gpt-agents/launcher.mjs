@@ -3,7 +3,7 @@
  * Inputs: setup/doctor/launch/initialize-governor arguments and declared local configuration.
  * Output: diagnostics or launch status. Effects: may install/update host components,
  * change desktop preferences, launch the app, or invoke the Governor binding transaction.
- * The platform ID is gpt; gpt-agents remains the command/directory name.
+ * The platform ID is codex-app; gpt-agents remains the command/directory name.
  */
 import fs from 'node:fs';
 import os from 'node:os';
