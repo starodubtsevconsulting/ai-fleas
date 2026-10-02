@@ -22,6 +22,10 @@ const payroll = await reader.read(fixture, payrollTaxReadPlan);
 assert.equal(payrollTaxReadPlan.layoutTokens.numeric, true);
 assert.ok(payroll.layoutTokens.length > 0);
 assert.ok(payroll.layoutTokens.every((token) => /^\d{1,12}$/.test(token.value)));
+assert.ok(payroll.layoutTokens.every((token) => token.source === 'embedded-layout'
+  ? token.confidence === 1 : token.confidence >= 0 && token.confidence <= 1));
+assert.ok(payroll.layoutTokens.every((token) => ['x', 'y', 'width', 'height']
+  .every((key) => token.bbox[key] >= 0 && token.bbox[key] <= 1)));
 assert.ok(payroll.layoutTokens.length <= payrollTaxReadPlan.layoutTokens.maxTokens);
 assert.throws(() => validatedReadPlan({ ...payrollTaxReadPlan, maxPages: 0 }), /invalid-read-plan/);
 assert.throws(() => validatedReadPlan({ ...payrollTaxReadPlan,

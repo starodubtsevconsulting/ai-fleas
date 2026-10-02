@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { FinancialRecordsCommand } from './financial-records.command.mjs';
+import { taxProposalRevision } from './tax-normalization/tax-normalization-contract.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), 'test-fixtures');
 const command = new FinancialRecordsCommand();
@@ -83,6 +84,8 @@ const taxDestination = path.join(root, taxPreview.proposedDestination);
 const taxPdfPath = path.join(taxDestination, taxPreview.proposedFilename);
 const taxSidecarPath = `${taxPdfPath}.json`;
 const taxRuntimeFiles = [taxProposalPath, taxReviewPath, taxSidecarPath, taxPdfPath];
+const taxOcrProposalPath = path.join(root, 'tax-ocr-proposal.runtime.json');
+taxRuntimeFiles.push(taxOcrProposalPath);
 try {
   fs.writeFileSync(taxProposalPath, `${JSON.stringify(taxPreview)}\n`, { flag: 'wx' });
   const taxReview = await taxCommand.run([
@@ -91,6 +94,27 @@ try {
   assert.equal(taxReview.reviewState, 'reviewed');
   assert.equal(taxReview.proposalRevision, taxPreview.proposalRevision);
   fs.writeFileSync(taxReviewPath, `${JSON.stringify(taxReview)}\n`, { flag: 'wx' });
+  const ocrProposal = structuredClone(taxPreview);
+  ocrProposal.applyEligible = false;
+  ocrProposal.extraction.ocrVerificationRequired = ['amounts.arithmetic.total'];
+  ocrProposal.extraction.provenance['amounts.arithmetic.total'] = {
+    source: 'ocr-layout', confidence: 0.91, bbox: { x: 0.2, y: 0.3, width: 0.1, height: 0.02 },
+  };
+  ocrProposal.proposalRevision = taxProposalRevision(ocrProposal);
+  fs.writeFileSync(taxOcrProposalPath, `${JSON.stringify(ocrProposal)}\n`, { flag: 'wx' });
+  await assert.rejects(taxCommand.run([
+    'review-tax-proposal', '--root', root, '--proposal', taxOcrProposalPath,
+  ]), /OCR_VERIFICATION_REQUIRED/);
+  await assert.rejects(taxCommand.run([
+    'review-tax-proposal', '--root', root, '--proposal', taxOcrProposalPath,
+    '--verify-ocr-fields', 'dates.dueDate',
+  ]), /INVALID_PROPOSAL/);
+  const ocrReview = await taxCommand.run([
+    'review-tax-proposal', '--root', root, '--proposal', taxOcrProposalPath,
+    '--verify-ocr-fields', 'amounts.arithmetic.total',
+  ]);
+  assert.deepEqual(ocrReview.ocrVerification,
+    { requiredFields: ['amounts.arithmetic.total'], attested: true });
   await assert.rejects(taxCommand.run([
     'apply-tax-from-source', '--root', root, '--source', path.join(root, 'booking-in.pdf'),
     '--destination', taxDestination, '--review', taxReviewPath, '--branch', 'example-branch',

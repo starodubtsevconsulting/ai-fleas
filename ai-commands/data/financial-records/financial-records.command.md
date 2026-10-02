@@ -84,6 +84,19 @@ source SHA-256, schema and adapter versions, jurisdiction, reporting period, dat
 page completeness, separate processing and obligation lifecycle states, relations, field provenance, and a canonical
 bundle destination/filename proposal.
 
+The original PDF remains authoritative. Embedded labelled text and embedded layout evidence may be exact; OCR text
+and OCR layout are candidate evidence only. Preparation lists every payment-critical OCR-only field in the sorted,
+bounded `ocrVerificationRequired` array and remains ineligible for apply until a human verifies that exact list against
+the open source PDF. Raw OCR text, screenshots, account identifiers, and confirmation identifiers are never written to
+the normalized sidecar.
+
+This evidence-local contract is extraction schema `2` with Canadian payroll-tax adapter version `2`. Schema/adapter
+version `1` sidecars are not upgraded in place: reconciliation returns deterministic
+`legacy-renormalization-required`, and the original PDF must pass the current prepare, human review, apply, and
+reconcile path again. Each review binds a stable extraction-content revision covering material values, dates,
+lifecycle, provenance, critical-field lists, and source hash; normalized sidecars retain that revision and
+reconciliation rejects any post-review material change.
+
 The shared PDF reader remains domain-neutral and plan-driven. Generic callers use the bounded generic plan without
 numeric layout-token extraction. Payroll-tax preparation explicitly selects the payroll-tax read plan, which owns its
 OCR trigger, language, page-segmentation mode, page/text/token limits, and numeric layout-token policy.
@@ -101,6 +114,10 @@ bundle while retaining its Q3 period end in the sidecar.
 Save the bounded preparation JSON inside the authorized root, inspect it, then explicitly invoke
 `review-tax-proposal --root ABSOLUTE_AUTHORIZED_ROOT --proposal ABSOLUTE_PREPARE_JSON`. Review is read-only and returns
 a source-hash/schema/adapter/destination/filename-bound revision. It rejects incomplete or non-applicable proposals.
+When `ocrVerificationRequired` is non-empty, keep the original PDF open beside the proposal, verify every listed field,
+and pass the exact list with `--verify-ocr-fields field.path,field.path`; review fails closed if the flag is absent,
+contains a different field, or omits one. The artifact stores only the verified field paths and binding hashes—not
+human notes or sensitive values. A proposal with no OCR-only critical fields does not require this flag.
 
 Invoke `apply-tax-from-source --root ABSOLUTE_AUTHORIZED_ROOT --source ABSOLUTE_PDF --destination
 ABSOLUTE_EXISTING_CANONICAL_DIRECTORY --review ABSOLUTE_REVIEW_JSON --branch BRANCH_ID --year YYYY --quarter q4
@@ -112,11 +129,12 @@ two-artifact publisher and preserves the original source.
 Invoke `reconcile-tax-record --root ABSOLUTE_AUTHORIZED_ROOT --pdf ABSOLUTE_CANONICAL_PDF --sidecar
 ABSOLUTE_CANONICAL_PDF_JSON --branch BRANCH_ID --year YYYY --quarter q4 --section out`. Reconcile is read-only. It
 checks exact Q4 routing, PDF hash, filename, schema/adapter, normalized processing state, independent obligation
-lifecycle, provenance, and the confirmation relation when applicable.
+lifecycle, richer field provenance, the exact OCR verification attestation, and the confirmation relation when
+applicable.
 
 Direct CLI failures emit fixed JSON error codes. Tax-specific codes include `INVALID_PROPOSAL`, `INVALID_REVIEW`,
-`REVIEW_MISMATCH`, `INVALID_SIDECAR`, and `CLOSED_PERIOD`; known validation/publication failures retain the shared
-fixed codes instead of silently degrading to `INTERNAL_ERROR`.
+`OCR_VERIFICATION_REQUIRED`, `REVIEW_MISMATCH`, `INVALID_SIDECAR`, and `CLOSED_PERIOD`; known
+validation/publication failures retain the shared fixed codes instead of silently degrading to `INTERNAL_ERROR`.
 
 The backend should become a thin caller: verify the selected profile, project, period, section, and caller authority;
 pass bounded source and destination context to the command; then present its structured result. The command owns PDF

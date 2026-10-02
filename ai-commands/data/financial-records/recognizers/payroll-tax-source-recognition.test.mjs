@@ -48,10 +48,11 @@ assert.equal(quebec.extraction.obligationLifecycle.state, 'obligation-recorded')
 assert.deepEqual(quebec.extraction.source, {
   sha256: hash, mediaType: 'application/pdf', textSource: 'provided-pdf-text',
 });
-assert.equal(quebec.extraction.provenance['amounts.components.qpp'].source, 'source-pdf-visible-content');
+assert.equal(quebec.extraction.provenance['amounts.components.qpp'].source, 'labelled-embedded-text');
 
 const confirmation = recognizer.evaluate(pdf([
   'Revenu Quebec payment submission confirmation', 'Provider status: To be processed',
+  'Confirmation reference: FICTIONAL-ONLY',
   'Reporting period end: 2031-06-30', 'Confirmation date: 2031-07-03',
   'Scheduled execution: 2031-07-12', 'Payment total: 2,369.24', 'Page 1 of 1',
 ].join(' ')), context);
@@ -75,14 +76,16 @@ assert.equal(recognizer.evaluate(pdf(`${quebecText} Reporting period end: 2031-0
   'conflicting-evidence');
 assert.equal(recognizer.evaluate(pdf([
   'Revenu Quebec payment submission confirmation', 'Reporting period end: 2031-06-30',
+  'Confirmation reference: FICTIONAL-ONLY',
   'Confirmation date: 2031-07-03', 'Scheduled execution: 2031-07-12', 'Payment total: 2,369.24',
 ].join(' ')), context).reason, 'missing-required-field');
 
 const formPdf = (normalizedText, compactText, layoutTokens) => ({
   normalizedText, compactText, layoutTokens, pageCount: 1, textSource: 'embedded-pdf-text+local-ocr',
+  evidenceChannels: { embeddedText: normalizedText, ocrText: '' },
 });
 const federalForm = recognizer.evaluate(formPdf(
-  'PD7A fédéral Retenues à la source Période de versement Page 1 de 3',
+  'PD7A fédéral Retenues à la source Période de versement Année 2031 Mois 06 Page 1 de 3',
   'pd7afederalretenuesalasourceperiodedeversement203106page1de3',
   [
     { value: '2468050', x: 0.64, y: 0.67, page: 1, source: 'embedded-pdf-text' },
@@ -103,6 +106,17 @@ const qcForm = recognizer.evaluate(formPdf(
   'tpz1015revenuquebecperiodevisee2031040120310630totalaremettre', qcLayout), context);
 assert.equal(qcForm.status, 'prepared');
 assert.equal(qcForm.extraction.amounts.arithmetic.total, 2369.24);
+assert.equal(qcForm.reviewEligible, true);
+assert.equal(qcForm.applyEligible, false);
+assert.ok(qcForm.extraction.ocrVerificationRequired.includes('amounts.components.incomeTax'));
+assert.ok(qcForm.extraction.ocrVerificationRequired.includes('amounts.arithmetic.total'));
+const qcWrongPageTotal = recognizer.evaluate(formPdf(
+  'TPZ-1015 Revenu Québec Période visée 2031-04-01 au 2031-06-30 Date limite 2031-07-15 '
+    + 'A Impôt B RRQ C FSS D RQAP F CNESST Total à remettre',
+  'tpz1015revenuquebecperiodevisee2031040120310630totalaremettre',
+  qcLayout.map((token, index) => index === qcLayout.length - 1 ? { ...token, page: 2 } : token)), context);
+assert.equal(qcWrongPageTotal.reason, 'missing-total',
+  'a page-2 OCR total must not satisfy the page-1 Quebec obligation total field');
 
 const federalConfirmation = recognizer.evaluate(formPdf([
   'Federal Payroll Deductions EMPTX PD7A submission confirmation', 'Status To be processed',
@@ -132,4 +146,48 @@ assert.equal(federalConfirmation.proposedFilename,
 assert.match(federalConfirmation.proposedDestination,
   /\/q3\/out\/taxes\/payroll-remittances\/ca-federal\/2031-06-30$/);
 assert.doesNotMatch(JSON.stringify(federalConfirmation), /FICTIONAL-REFERENCE/);
+
+const unrelatedDuplicate = quebecText.replace('Total remittance: 2,369.24',
+  'Unrelated reference amount: 2,369.24');
+assert.equal(recognizer.evaluate(pdf(unrelatedDuplicate), context).reason, 'missing-total',
+  'an equal value elsewhere must not prove the total field');
+const concatenatedDigits = quebecText.replace('Total remittance: 2,369.24',
+  'Unrelated digits: 23 69 24');
+assert.equal(recognizer.evaluate(pdf(concatenatedDigits), context).reason, 'missing-total',
+  'globally concatenated digits must not prove a field');
+const outsideBounds = recognizer.evaluate({
+  normalizedText: 'PD7A federal payroll deductions Remittance period end: 2031-06-30 Gross payroll '
+    + 'Number of employees: 7 Amount payable: 2,345.67 Page 1 of 1',
+  compactText: 'pd7afederalpayrolldeductionsremittanceperiodend20310630', pageCount: 1,
+  textSource: 'embedded-pdf-text', layoutTokens: [
+    { value: '2468050', page: 1, source: 'embedded-layout', confidence: 1,
+      bbox: { x: 0.1, y: 0.1, width: 0.1, height: 0.02 } },
+  ],
+}, context);
+assert.equal(outsideBounds.reason, 'missing-required-field',
+  'a colliding layout token outside field bounds must not prove the field');
+const unseparatedMixed = recognizer.evaluate({
+  normalizedText: quebecText, compactText: quebecText.toLowerCase().replace(/[^a-z0-9]/g, ''),
+  pageCount: 1, textSource: 'embedded-pdf-text+local-ocr',
+}, context);
+assert.equal(unseparatedMixed.reason, 'missing-reporting-period',
+  'mixed text without separated evidence channels must fail closed');
+const pageTwoCollision = recognizer.evaluate({
+  normalizedText: 'Revenu Quebec payment submission confirmation Provider status: To be processed '
+    + 'Confirmation reference: FICTIONAL-ONLY Reporting period end: 2031-06-30 '
+    + 'Confirmation date: 2031-07-03 Scheduled execution: 2031-07-12 Page 1 of 2',
+  compactText: 'revenuquebecpaymentsubmissionconfirmationtobeprocessed', pageCount: 2,
+  textSource: 'embedded-pdf-text', layoutTokens: [{ value: '236924', page: 2, source: 'embedded-layout',
+    confidence: 1, bbox: { x: 0.6, y: 0.7, width: 0.08, height: 0.02 } }],
+}, context);
+assert.equal(pageTwoCollision.reason, 'missing-total',
+  'a same-bounds token on page 2 must not supply the page-1 confirmation total');
+const missingCriticalEvidence = recognizer.evaluate(pdf([
+  'Canada Revenue Agency PD7A payroll deductions', 'Remittance period end: 2031-06-30',
+  'Gross payroll: 24,680.50', 'Number of employees: 7', 'Amount payable: 2,345.67', 'Page 1 of 1',
+].join(' ')), context);
+assert.equal(missingCriticalEvidence.status, 'review-required');
+assert.equal(missingCriticalEvidence.reason, 'unresolved-critical-evidence');
+assert.ok(missingCriticalEvidence.extraction.unresolvedCriticalFields.includes('dates.dueDate'));
+assert.equal(missingCriticalEvidence.reviewEligible, false);
 console.log('payroll-tax source recognition: PASS');
