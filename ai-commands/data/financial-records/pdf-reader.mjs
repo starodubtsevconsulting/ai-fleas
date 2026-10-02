@@ -2,7 +2,8 @@
 /**
  * Purpose: read bounded text and page metadata from local PDF evidence, using local in-memory OCR only when embedded
  * text is absent. Caller: financial-records.command.mjs source-backed preparation operations.
- * Input/output: one absolute local PDF path; bounded normalized/compact text, page count, and text-source provenance.
+ * Input/output: one absolute local PDF path plus an optional validated read plan; bounded normalized/compact text,
+ * page count, optional plan-authorized layout tokens, and text-source provenance.
  * Effects: read-only; rendering and OCR remain in memory and never persist pages, crops, or recognized text.
  */
 import fs from 'node:fs';
@@ -11,6 +12,8 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createCanvas } from '@napi-rs/canvas';
 import { createWorker } from 'tesseract.js';
+import { genericReadPlan } from './read-plans/generic-read-plan.mjs';
+import { boundedRenderDimensions, validatedReadPlan } from './read-plans/read-plan.mjs';
 
 class NapiCanvasFactory {
   create(width, height) {
@@ -30,7 +33,8 @@ export class PdfReader {
     this.timeoutMs = Math.min(15000, requestedTimeout);
   }
 
-  async read(pdfPath) {
+  async read(pdfPath, requestedReadPlan = genericReadPlan) {
+    const readPlan = requestedReadPlan === genericReadPlan ? genericReadPlan : validatedReadPlan(requestedReadPlan);
     // Validate path: must be absolute, exist, and be a regular file
     if (!path.isAbsolute(pdfPath)) {
       throw new Error('invalid-path');
@@ -86,8 +90,7 @@ export class PdfReader {
       throw new Error('malformed-pdf');
     }
 
-    // Read first max 5 pages
-    const maxPages = Math.min(pageCount, 5);
+    const maxPages = Math.min(pageCount, readPlan.maxPages);
     const textParts = [];
     const layoutTokens = [];
 
@@ -112,12 +115,12 @@ export class PdfReader {
         throw new Error('text-extraction-failed');
       }
 
-      // Limit to max 10000 text items per page
-      const items = (content.items || []).slice(0, 10000).filter((item) => 'str' in item);
+      const items = (content.items || []).slice(0, readPlan.maxTextItemsPerPage).filter((item) => 'str' in item);
       for (const item of items) {
         textParts.push(item.str);
         const digits = String(item.str || '').replace(/[^0-9]/g, '');
-        if (digits && digits.length <= 12 && Array.isArray(item.transform)) {
+        if (readPlan.layoutTokens.numeric && digits && digits.length <= readPlan.layoutTokens.maxDigits
+          && layoutTokens.length < readPlan.layoutTokens.maxTokens && Array.isArray(item.transform)) {
           const width = Number(page.view?.[2] || 1);
           const height = Number(page.view?.[3] || 1);
           layoutTokens.push({ value: digits, x: item.transform[4] / width,
@@ -129,15 +132,14 @@ export class PdfReader {
     // Combine text and normalize
     let rawText = textParts.join(' ');
     let textSource = 'embedded-pdf-text';
-    // Short form-field streams commonly omit the visible labels or values. A bounded full-page OCR pass is safer
-    // than treating that partial stream as complete evidence.
-    if (rawText.replace(/\s+/g, '').length < 1024) {
-      const ocr = await this.#ocrPages(document, maxPages, require);
+    if (readPlan.ocr.enabled
+      && rawText.replace(/\s+/g, '').length < readPlan.ocr.triggerBelowCompactChars) {
+      const ocr = await this.#ocrPages(document, maxPages, require, readPlan);
       rawText = `${rawText}\n${ocr.text}`;
       layoutTokens.push(...ocr.layoutTokens);
       textSource = 'embedded-pdf-text+local-ocr';
     }
-    const normalizedText = this.#boundedText(rawText);
+    const normalizedText = this.#boundedText(rawText, readPlan.maxTextChars);
 
     // Compact text: normalize and remove non-alphanumeric chars
     const compactText = this.#compactText(normalizedText);
@@ -147,24 +149,32 @@ export class PdfReader {
       normalizedText,
       compactText,
       textSource,
-      layoutTokens: layoutTokens.slice(0, 2000),
+      layoutTokens: layoutTokens.slice(0, readPlan.layoutTokens.maxTokens),
     };
   }
 
-  async #ocrPages(document, maxPages, require) {
-    const languagePath = path.dirname(require.resolve('@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz'));
+  async #ocrPages(document, maxPages, require, readPlan) {
+    const languages = readPlan.ocr.languages.join('+');
+    const primaryLanguage = readPlan.ocr.languages[0];
+    const languagePath = path.dirname(require.resolve(
+      `@tesseract.js-data/${primaryLanguage}/4.0.0_best_int/${primaryLanguage}.traineddata.gz`));
     let worker;
     try {
-      worker = await this.#withTimeout(createWorker('eng', 1, {
+      worker = await this.#withTimeout(createWorker(languages, 1, {
         langPath: languagePath, gzip: true, cacheMethod: 'none', logger: () => undefined,
       }), this.timeoutMs);
-      await this.#withTimeout(worker.setParameters({ tessedit_pageseg_mode: '6' }), this.timeoutMs);
+      await this.#withTimeout(worker.setParameters({
+        tessedit_pageseg_mode: readPlan.ocr.pageSegmentationMode,
+      }), this.timeoutMs);
       const parts = [];
       const layoutTokens = [];
+      let renderedPixels = 0;
       for (let pageNumber = 1; pageNumber <= maxPages; pageNumber += 1) {
         const page = await this.#withTimeout(document.getPage(pageNumber), this.timeoutMs);
-        const viewport = page.getViewport({ scale: 2 });
-        const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+        const viewport = page.getViewport({ scale: readPlan.ocr.scale });
+        const bounds = boundedRenderDimensions(viewport, renderedPixels, readPlan);
+        renderedPixels = bounds.cumulativePixels;
+        const canvas = createCanvas(bounds.width, bounds.height);
         await this.#withTimeout(page.render({
           canvasContext: canvas.getContext('2d'), viewport, canvasFactory: new NapiCanvasFactory(),
         }).promise, this.timeoutMs);
@@ -176,7 +186,9 @@ export class PdfReader {
             for (const line of paragraph.lines || []) {
               for (const word of line.words || []) {
                 const digits = String(word.text || '').replace(/[^0-9]/g, '');
-                if (!digits || digits.length > 12 || !word.bbox) continue;
+                if (!readPlan.layoutTokens.numeric || !digits
+                  || digits.length > readPlan.layoutTokens.maxDigits
+                  || layoutTokens.length >= readPlan.layoutTokens.maxTokens || !word.bbox) continue;
                 layoutTokens.push({ value: digits, x: word.bbox.x0 / canvas.width,
                   y: word.bbox.y0 / canvas.height, page: pageNumber, source: 'local-ocr' });
               }
@@ -204,13 +216,13 @@ export class PdfReader {
     });
   }
 
-  #boundedText(value) {
+  #boundedText(value, maxTextChars) {
     return String(value || '')
       .normalize('NFKC')
       .replace(/[\u0000-\u001f\u007f]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .slice(0, 32 * 1024);
+      .slice(0, maxTextChars);
   }
 
   #compactText(value) {

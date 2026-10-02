@@ -22,6 +22,7 @@ import {
   buildTaxReviewArtifact, normalizedTaxExtraction, reconcileTaxExtraction,
   reviewMatchesPrepared, taxProposalRevision,
 } from './tax-normalization/tax-normalization-contract.mjs';
+import { payrollTaxReadPlan } from './read-plans/payroll-tax-read-plan.mjs';
 
 const VALID_COMMANDS = new Set(['recognize', 'prepare-review', 'prepare-from-source', 'prepare-tax-from-source',
   'review-tax-proposal', 'apply-tax-from-source', 'reconcile-tax-record', 'apply-from-source']);
@@ -436,7 +437,7 @@ export class FinancialRecordsCommand {
     const sourceBytes = fs.readFileSync(source);
     const sourceSha256 = createHash('sha256').update(sourceBytes).digest('hex');
     let pdf;
-    try { pdf = await this.pdfReader.read(source); }
+    try { pdf = await this.pdfReader.read(source, payrollTaxReadPlan); }
     catch { throw new Error('PDF_READ_FAILED'); }
     const prepared = new PayrollTaxSourceRecognition().evaluate(pdf, {
       branchId: options.branch, year: options.year, quarter: options.quarter,
