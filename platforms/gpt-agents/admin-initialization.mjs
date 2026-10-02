@@ -18,6 +18,16 @@ const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.
 const sameSet = (a, b) => Array.isArray(a) && Array.isArray(b) &&
   a.length === b.length && new Set(a).size === a.length && a.every(x => b.includes(x));
 
+/** Exact controller bootstrap message; no ordinary work may be appended. */
+export function buildAdminInitPrompt(scope) {
+  return `The human approved initialization of exactly one Admin for this scope: ${JSON.stringify(scope)}. ` +
+    'This is human-designated Admin bootstrap authorization, not permission for subsequent Governor messages. ' +
+    'INIT. Read and verify every canonical source and your exact host binding and task identity. ' +
+    'Initialize only yourself; do not create any other role, Router or System. ' +
+    'Report ADMIN_READY only after all identity, scope and prerequisite checks pass; otherwise report a concrete blocker. ' +
+    'Admin readiness is not full-roster readiness. Subsequent direction must come from the human.';
+}
+
 /** Expand only the current user's home shorthand; never evaluate shell syntax. */
 export function resolveProjectRoot(value, manifestPath, homeDirectory = os.homedir()) {
   if (typeof value !== 'string' || !value.trim()) throw new Error('PROJECT_ROOT_INVALID');
@@ -63,6 +73,18 @@ export function buildAdminInitialization(request, options = {}) {
   if (rolePath !== canonicalRole || adapterRole !== canonicalRole) throw new Error('ADMIN_CONTRACT_MISMATCH');
   const registry = options.registry || loadRegistry(registryPath);
   selectLifecycleRole(profile, workflow, registry, manifest, adapter, 'admin');
+  const commandDeclarations = profile.commands?.filter(command => command.id === 'gpt-agents') || [];
+  if (commandDeclarations.length > 1) throw new Error('GPT_COMMAND_CONFIG_AMBIGUOUS');
+  const commandConfigPath = commandDeclarations[0]?.config
+    ? file(path.resolve(path.dirname(profilePath), commandDeclarations[0].config)) : null;
+  const commandConfig = commandConfigPath ? yaml(commandConfigPath) : null;
+  const endpoint = { ...adapter.role_endpoints.find(e => e.role === 'admin') };
+  const modelOverride = commandConfig?.role_overrides?.admin;
+  for (const field of ['model', 'reasoning']) {
+    if (modelOverride && Object.hasOwn(modelOverride, field)) endpoint[field] = modelOverride[field];
+  }
+  if (typeof endpoint.model !== 'string' || typeof endpoint.reasoning !== 'string')
+    throw new Error('ADMIN_MODEL_BINDING_INVALID');
   if (!Array.isArray(request.projectIds) || !request.projectIds.length ||
       new Set(request.projectIds).size !== request.projectIds.length) throw new Error('PROJECT_SUBSET_REQUIRED');
   const authorized = (workflow.projects || []).map(entry => {
@@ -110,19 +132,15 @@ export function buildAdminInitialization(request, options = {}) {
     ['admin-only-initializer', file(path.join(repository, 'platforms/gpt-agents/agents/admin-only-initialization.md'))],
     ['platform-contract', file(path.join(platformRoot, 'gpt-agents/platform.yml'))],
     ['rules', file(path.join(repository, 'AGENTS.md'))],
+    ...(commandConfigPath ? [['gpt-command-config', commandConfigPath]] : []),
     ...projects.map(p => [`project-${p.id}`, p.ref]),
   ].map(([id, ref]) => ({ id, ref }));
   const bootstrapPayload = {
     binding: { platformAdapter: 'codex-app', agentId: 'admin', generation: request.generation, scope,
       initialization: { readinessToken: 'ADMIN_READY', sources,
         bootstrapAuthorization: { ...authorization, verified: false, purpose: 'one-time-admin-initialization' } } },
-    prompt: `The human approved initialization of exactly one Admin for this scope: ${JSON.stringify(scope)}. ` +
-      'This is human-designated Admin bootstrap authorization, not permission for subsequent Governor messages. ' +
-      'INIT. Read and verify every canonical source and your exact host binding and task identity. ' +
-      'Initialize only yourself; do not create any other role, Router or System. ' +
-      'Report ADMIN_READY only after all identity, scope and prerequisite checks pass; otherwise report a concrete blocker. ' +
-      'Admin readiness is not full-roster readiness. Subsequent direction must come from the human.',
-    endpoint: adapter.role_endpoints.find(e => e.role === 'admin'),
+    prompt: buildAdminInitPrompt(scope),
+    endpoint,
   };
   const sourceMap = Object.fromEntries(sources.map(source => [source.id, source.ref]));
   const preparedSources = {
@@ -132,6 +150,7 @@ export function buildAdminInitialization(request, options = {}) {
     registry: registryPath, initializer: sourceMap['admin-only-initializer'],
     rules: file(path.join(repository, 'AGENTS.md')),
     projectManifests: projects.map(p => p.ref),
+    ...(commandConfigPath ? { commandConfig: commandConfigPath } : {}),
   };
   return { profile, workflow, registry, manifest, adapter, approval: authorization,
     sources: preparedSources, scope,

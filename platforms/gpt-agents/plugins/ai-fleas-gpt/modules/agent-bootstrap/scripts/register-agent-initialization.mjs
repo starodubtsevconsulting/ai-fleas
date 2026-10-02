@@ -1,23 +1,25 @@
 /** Explicit controller/initializer binding transaction, not an automatic task creator.
- * Inputs: exact session ID, binding JSON file, prompt text file and PLUGIN_DATA root;
- * output: registration diagnostics.
+ * Called by native controllers through registerAgentInitialization or explicitly
+ * by the queue CLI with session ID, binding/prompt files and PLUGIN_DATA root.
+ * The imported API takes binding/prompt values without intermediary files and
+ * returns diagnostics plus an in-memory rollback receipt (never printed by CLI).
  * Effects: validates and writes the exact host binding and queued initialization receipt.
  * Only the codex-app platform is accepted; command and directory names remain gpt-agents.
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 
 function fail(message) {
-  process.stderr.write(`${message}\n`);
-  process.exit(1);
+  throw new Error(message);
 }
 
-function atomicWrite(file, value) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
+function atomicWrite(file, value, io) {
+  io.mkdirSync(path.dirname(file), { recursive: true });
   const temporary = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
-  fs.renameSync(temporary, file);
+  io.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
+  io.renameSync(temporary, file);
 }
 
 function validateSource(source) {
@@ -25,46 +27,66 @@ function validateSource(source) {
     && typeof source.ref === 'string' && source.ref;
 }
 
-const [sessionId, bindingFile, promptFile] = process.argv.slice(2);
-const dataRoot = process.env.PLUGIN_DATA;
-if (!sessionId || !bindingFile || !promptFile || !dataRoot) {
-  fail('usage: PLUGIN_DATA=<dir> node register-agent-initialization.mjs <session-id> <binding.json> <prompt.txt>');
+export function registerAgentInitialization({sessionId, binding, prompt: inputPrompt, dataRoot}, {fs: io = fs, now = new Date()} = {}) {
+  if (!sessionId || typeof sessionId !== 'string' || !dataRoot || typeof dataRoot !== 'string') fail('sessionId and dataRoot are required');
+  if (!binding || typeof inputPrompt !== 'string') fail('binding and prompt are required');
+  const prompt = inputPrompt.trimEnd();
+  if (!prompt) fail('initialization prompt must not be empty');
+  if (binding.platformAdapter !== 'codex-app') fail('binding.platformAdapter must be codex-app');
+  if (!binding.agentId || typeof binding.agentId !== 'string') fail('binding requires agentId');
+  if (!Number.isInteger(binding.generation) || binding.generation < 1) fail('binding requires a positive integer generation');
+  if (!binding.scope?.kind || typeof binding.scope.kind !== 'string') fail('binding.scope requires kind');
+  if (!binding.initialization?.readinessToken) fail('binding.initialization requires readinessToken');
+  if (!Array.isArray(binding.initialization.sources) || !binding.initialization.sources.length
+    || binding.initialization.sources.some((source) => !validateSource(source))) {
+    fail('binding.initialization.sources must contain at least one {id,ref} source');
+  }
+
+  const registryPath = path.join(dataRoot, 'agent-bindings.json');
+  const registry = io.existsSync(registryPath)
+    ? JSON.parse(io.readFileSync(registryPath, 'utf8'))
+    : { schemaVersion: 1, instances: {} };
+  registry.schemaVersion = 1;
+  registry.instances ??= {};
+  const previousBinding = Object.hasOwn(registry.instances, sessionId) ? structuredClone(registry.instances[sessionId]) : null;
+  if (registry.instances[sessionId]?.status === 'active') {
+    fail(`session ${sessionId} already has an active agent binding`);
+  }
+
+  const expiresAt = new Date(now.getTime() + 10 * 60 * 1000).toISOString();
+  registry.instances[sessionId] = {
+    ...binding,
+    status: 'pending',
+    initialization: {
+      ...binding.initialization,
+      nonce: binding.initialization.delivery?.nonce || randomUUID(),
+      promptSha256: createHash('sha256').update(prompt).digest('hex'),
+      expiresAt,
+    },
+    registeredAt: now.toISOString(),
+  };
+  atomicWrite(registryPath, registry, io);
+  return { sessionId, status: 'pending', expiresAt, rollbackReceipt: {registryPath, sessionId, previousBinding, registeredBinding: structuredClone(registry.instances[sessionId])} };
 }
 
-const binding = JSON.parse(fs.readFileSync(bindingFile, 'utf8'));
-const prompt = fs.readFileSync(promptFile, 'utf8').trimEnd();
-if (!prompt) fail('initialization prompt must not be empty');
-if (binding.platformAdapter !== 'codex-app') fail('binding.platformAdapter must be codex-app');
-if (!binding.agentId || typeof binding.agentId !== 'string') fail('binding requires agentId');
-if (!Number.isInteger(binding.generation) || binding.generation < 1) fail('binding requires a positive integer generation');
-if (!binding.scope?.kind || typeof binding.scope.kind !== 'string') fail('binding.scope requires kind');
-if (!binding.initialization?.readinessToken) fail('binding.initialization requires readinessToken');
-if (!Array.isArray(binding.initialization.sources) || !binding.initialization.sources.length
-  || binding.initialization.sources.some((source) => !validateSource(source))) {
-  fail('binding.initialization.sources must contain at least one {id,ref} source');
+/** Roll back only our unchanged pending receipt, preserving other concurrent entries. */
+export function rollbackAgentInitialization(receipt, {fs: io = fs} = {}) {
+  if (!receipt?.registryPath || !receipt.sessionId || !receipt.registeredBinding) fail('Invalid rollback receipt');
+  if (!io.existsSync(receipt.registryPath)) return false;
+  const registry = JSON.parse(io.readFileSync(receipt.registryPath, 'utf8'));
+  const current = registry.instances?.[receipt.sessionId];
+  if (current?.status !== 'pending' || JSON.stringify(current) !== JSON.stringify(receipt.registeredBinding)) return false;
+  if (receipt.previousBinding === null) delete registry.instances[receipt.sessionId];
+  else registry.instances[receipt.sessionId] = receipt.previousBinding;
+  atomicWrite(receipt.registryPath, registry, io);
+  return true;
 }
 
-const registryPath = path.join(dataRoot, 'agent-bindings.json');
-const registry = fs.existsSync(registryPath)
-  ? JSON.parse(fs.readFileSync(registryPath, 'utf8'))
-  : { schemaVersion: 1, instances: {} };
-registry.schemaVersion = 1;
-registry.instances ??= {};
-if (registry.instances[sessionId]?.status === 'active') {
-  fail(`session ${sessionId} already has an active agent binding`);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    const [sessionId, bindingFile, promptFile] = process.argv.slice(2);
+    if (!sessionId || !bindingFile || !promptFile || !process.env.PLUGIN_DATA) fail('usage: PLUGIN_DATA=<dir> node register-agent-initialization.mjs <session-id> <binding.json> <prompt.txt>');
+    const result = registerAgentInitialization({sessionId, binding: JSON.parse(fs.readFileSync(bindingFile, 'utf8')), prompt: fs.readFileSync(promptFile, 'utf8'), dataRoot: process.env.PLUGIN_DATA});
+    process.stdout.write(`${JSON.stringify({sessionId: result.sessionId, status: result.status, expiresAt: result.expiresAt})}\n`);
+  } catch (error) { process.stderr.write(`${error.message}\n`); process.exitCode = 1; }
 }
-
-const now = new Date();
-const expiresAt = new Date(now.getTime() + 10 * 60 * 1000).toISOString();
-registry.instances[sessionId] = {
-  ...binding,
-  status: 'pending',
-  initialization: {
-    ...binding.initialization,
-    promptSha256: createHash('sha256').update(prompt).digest('hex'),
-    expiresAt,
-  },
-  registeredAt: now.toISOString(),
-};
-atomicWrite(registryPath, registry);
-process.stdout.write(`${JSON.stringify({ sessionId, status: 'pending', expiresAt })}\n`);

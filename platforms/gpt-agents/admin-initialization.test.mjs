@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildAdminInitialization, resolveProjectRoot } from './admin-initialization.mjs';
+import { buildAdminInitialization, buildAdminInitPrompt, resolveProjectRoot } from './admin-initialization.mjs';
 import { initializeWorkflowAdmin } from './initialize-workflow-admin.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -40,8 +40,19 @@ function fixture() {
     savedProjects: [{ projectId: 'fictional-records', savedProjectId: 'fictional-host-project' }], generation: 1,
     authorization: { humanApproved: true, profileId: 'fictional', workflowId: 'financial-insights',
       projectIds: ['fictional-records'], logicalProjectId: 'fictional-financial-insights' } };
-  return { request, profile, options: { fs: io } };
+  return { request, profile, documents, options: { fs: io } };
 }
+test('uses configured Admin model and reasoning without overriding canonical endpoint identity', () => {
+  const f = fixture();
+  const configPath = path.join(root, 'fictional-gpt-command.yml');
+  f.profile.commands = [{ id: 'gpt-agents', config: 'fictional-gpt-command.yml' }];
+  f.documents.set(configPath, { role_overrides: { admin: { model: 'fictional-model', reasoning: 'high', role: 'router', title: 'Wrong title', readinessToken: 'WRONG_READY' } } });
+  const base = fixture();
+  const expected = buildAdminInitialization(base.request, base.options).bootstrapPayload.endpoint;
+  const endpoint = buildAdminInitialization(f.request, f.options).bootstrapPayload.endpoint;
+  assert.deepEqual(endpoint, { ...expected, model: 'fictional-model', reasoning: 'high' });
+  assert.equal(endpoint.role, 'admin');
+});
 test('prepares exactly one canonical Admin payload without host effects', () => {
   const f = fixture();
   const result = buildAdminInitialization(f.request, f.options);
@@ -51,6 +62,7 @@ test('prepares exactly one canonical Admin payload without host effects', () => 
   assert.equal(result.bootstrapPayload.binding.initialization.readinessToken, 'ADMIN_READY');
   assert.deepEqual(result.scope.projects, [{ id: 'fictional-records', savedProjectId: 'fictional-host-project', root }]);
   assert.match(result.bootstrapPayload.prompt, /INIT\./);
+  assert.equal(result.bootstrapPayload.prompt, buildAdminInitPrompt(result.bootstrapPayload.binding.scope));
   assert.equal(result.sources.adminContract, path.join(root, 'ai-workflows/_common/roles/admin.md'));
   assert.equal(result.sources.projectManifests.length, 1);
 });

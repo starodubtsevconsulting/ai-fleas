@@ -11,6 +11,8 @@
 import path from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { selectLifecycleRole } from './agents/select-role-initialization.mjs';
+import { projectRootContains } from './native-project-catalog.mjs';
+import { buildAdminInitPrompt } from './admin-initialization.mjs';
 
 const ports = ['catalog', 'prerequisites', 'verifyApproval', 'create', 'initialize', 'wait'];
 const exact = isDeepStrictEqual;
@@ -41,10 +43,7 @@ function inspectCatalog(catalog, scope) {
     if (saved.rootsComplete !== true || !Array.isArray(saved.roots) || !saved.roots.length ||
         saved.roots.some(root => typeof root !== 'string' || !path.isAbsolute(root) || path.resolve(root) !== root))
       fail('SAVED_PROJECT_ROOTS_UNVERIFIED');
-    const authorized = saved.roots.some(root => {
-      const relative = path.relative(root, project.root);
-      return relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative);
-    });
+    const authorized = saved.roots.some(root => projectRootContains(root, project.root));
     if (!authorized)
       fail('SAVED_PROJECT_MISMATCH');
   }
@@ -54,6 +53,7 @@ function inspectCatalog(catalog, scope) {
 function verifyAdmin(catalog, binding, scope, completion) {
   const tasks = catalog.tasks.filter(t => t.id === binding.taskId);
   if (tasks.length !== 1 || tasks[0].status !== 'active' || binding.status !== 'active' ||
+      tasks[0].projectAssignmentPending === true ||
       binding.platformAdapter !== 'codex-app' || !exact(normalizeAdminScope(binding.scope), scope) ||
       scope.projects[0].savedProjectId !== tasks[0].projectId) fail('ADMIN_IDENTITY_UNVERIFIED');
   const evidence = binding.initialization;
@@ -90,12 +90,13 @@ export async function initializeWorkflowAdmin(input, host) {
     if (payload?.binding?.agentId !== 'admin' || payload.binding.platformAdapter !== 'codex-app' ||
         !exact(normalizeAdminScope(payload.binding.scope), scope) ||
         payload.binding.initialization?.readinessToken !== 'ADMIN_READY' ||
-        typeof payload.prompt !== 'string' || !payload.prompt.includes('INIT')) fail('ADMIN_BOOTSTRAP_PAYLOAD_INVALID');
+        payload.prompt !== buildAdminInitPrompt(payload.binding.scope)) fail('ADMIN_BOOTSTRAP_PAYLOAD_INVALID');
     const expectedSources = [
       ['portable-role', sources.adminContract], ['portable-manifest', sources.manifest], ['platform-adapter', sources.adapter],
       ['work-profile', sources.profile], ['platform-registry', sources.registry], ['workflow', sources.workflow],
       ['lifecycle', sources.lifecycle], ['self-commands', sources.selfCommands], ['admin-only-initializer', sources.initializer],
       ['platform-contract', sources.platformContract], ['rules', sources.rules],
+      ...(sources.commandConfig ? [['gpt-command-config', sources.commandConfig]] : []),
       ...scope.projects.map((p, i) => ['project-' + p.id, sources.projectManifests[i]]),
     ].map(([id, ref]) => ({ id, ref }));
     if (!exact(payload.binding.initialization.sources, expectedSources) ||
@@ -119,9 +120,21 @@ export async function initializeWorkflowAdmin(input, host) {
     // are deliberately ignored; the controller must resolve exact host identity.
     if (catalog.tasks.some(t => t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope) &&
         !matches.some(b => b.taskId === t.id))) fail('ADMIN_IDENTITY_UNBOUND');
+    // Presentation can reveal a possible unbound Admin, never prove reuse.
+    // Do not create a duplicate simply because native tasks lack role metadata.
+    if (catalog.tasks.some(t => t.status === 'active' && t.projectId === scope.projects[0].savedProjectId &&
+        t.name === payload.endpoint?.title && typeof t.name === 'string' &&
+        !catalog.bindings.some(b => b.taskId === t.id))) fail('ADMIN_IDENTITY_UNBOUND');
     if (matches.length > 1) fail('ADMIN_IDENTITY_AMBIGUOUS');
     if (matches.length === 1) {
       verifyAdmin(catalog, matches[0], scope);
+      const completion = await host.wait({ taskId: matches[0].taskId, timeoutMs: 60000 });
+      if (completion?.status !== 'complete' || completion.taskId !== matches[0].taskId)
+        fail('ADMIN_READINESS_UNVERIFIED');
+      catalog = await host.catalog();
+      const verified = inspectCatalog(catalog, scope);
+      if (verified.length !== 1 || verified[0].taskId !== matches[0].taskId) fail('ADMIN_IDENTITY_UNVERIFIED');
+      verifyAdmin(catalog, verified[0], scope, completion);
       return { status: 'ready', mode: 'reused', taskId: matches[0].taskId, token: 'ADMIN_READY', scope };
     }
     const request = { role: 'admin', platform: 'codex-app', scope, sources,
@@ -152,6 +165,7 @@ export async function initializeWorkflowAdmin(input, host) {
     verifyAdmin(catalog, active[0], scope, completion);
     return { status: 'ready', mode: 'created', taskId: createdTaskId, token: 'ADMIN_READY', scope };
   } catch (error) {
+    createdTaskId ||= error.createdTaskId;
     return { status: 'blocked', reason: error.message, ...(createdTaskId ? { orphanTaskId: createdTaskId } : {}) };
   }
 }
