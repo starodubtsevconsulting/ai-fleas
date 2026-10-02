@@ -51,6 +51,13 @@ It verifies that instance's exact identity, scope, and `ADMIN_READY`; it neither
 full-roster readiness. Governor-originated bootstrap stops at verified readiness and direct human access to Admin;
 it does not grant ongoing permission to message a human-only initialized Admin.
 
+For the selected `codex-app` route, an authorized controller follows the reusable
+[Admin-only procedure](../../../platforms/gpt-agents/agents/admin-only-initialization.md)
+and its [bootstrap infrastructure overview](../../../platforms/gpt-agents/plugins/ai-fleas-gpt/modules/agent-bootstrap/README.md).
+The preflight command is read-only; effectful initialization requires the trusted
+controller APIs and host capabilities. Other platforms require their own supported
+Admin-only route. Missing capability never authorizes full-roster fallback.
+
 The authorized lifecycle controller may deliver only the exact self-scoped `INIT` under that approval. Its host-side
 pending permit must bind the exact task and scope, carry a fresh nonce and expiry, and be consumed once. Verify these
 conditions before delivery and before readiness. This exception grants no ordinary workflow instructions, follow-up

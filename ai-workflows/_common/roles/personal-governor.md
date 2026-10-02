@@ -199,6 +199,8 @@ Use these canonical rules rather than duplicating their lifecycle or authority r
 - [Common agent communication](../agents/communication.md) — permitted workflow-peer routes and packet boundaries; this is not a grant of cross-workflow communication to Governor.
 - [Repository authority and manual Admin bootstrap](../../../AGENTS.md#task-identity-and-protected-operational-scopes) — human designation, exact scope, and operational-mutation prerequisites.
 - [GPT initialization](../../../platforms/gpt-agents/agents/initialization.md) and [Hermes initialization](../../../platforms/hermes/agents/initialization.md) — platform-specific creation/binding and verification. Use only the selected adapter and its supported Admin-only route, not its full-roster operation.
+- [Codex-app Admin-only controller guide](../../../platforms/gpt-agents/agents/admin-only-initialization.md) — reusable discovery, approval, creation/reuse, exact `INIT` delivery, and readiness verification for any configured workflow. Read this before invoking that route; a preflight alone does not create or initialize Admin.
+- [Bootstrap infrastructure overview](../../../platforms/gpt-agents/plugins/ai-fleas-gpt/modules/agent-bootstrap/README.md) — controller versus plugin responsibilities, hooks, runtime receipts, and troubleshooting.
 
 #### Resolve ownership before execution
 

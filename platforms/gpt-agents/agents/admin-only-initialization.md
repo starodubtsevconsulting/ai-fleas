@@ -1,5 +1,60 @@
 # Admin-only initialization on codex-app
 
+## Reusable entry point for authorized agents
+
+This is a workflow-generic mechanism, not a Financial Insights command. A Personal
+Governor or another authorized lifecycle controller starts here after the human
+approves the exact workflow Admin. Being a higher-level agent alone grants no
+bootstrap authority: verify the caller's declared capabilities and human request.
+See the [bootstrap infrastructure overview](../plugins/ai-fleas-gpt/modules/agent-bootstrap/README.md)
+for the plugin, hooks, receipt storage, and automatic versus agent-directed steps.
+
+For any workflow, require one portable Admin declaration using the common Admin
+contract and `ADMIN_READY`, the selected platform's Admin realization, canonical
+profile/workflow/project references, and a usable saved project with the complete
+authorized attached roots. The profile selects the platform; this mechanism does
+not add a platform selection to the portable roster. Financial Insights is the
+tested example, not evidence that every existing roster already meets these
+prerequisites or that other platform adapters implement this transaction.
+
+The effectful controller API is the exported `initializeNativeAdmin(request, options)`
+in `initialize-native-admin.mjs`; it is not a standalone executable command. For a
+fictional `example` profile and `sample-workflow`, the request shape is:
+
+```js
+const request = {
+  profilePath: canonicalProfilePath,
+  profileId: 'example',
+  workflowId: 'sample-workflow',
+  projectIds: ['sample-project'],
+  authorization: {
+    humanApproved: true,
+    profileId: 'example',
+    workflowId: 'sample-workflow',
+    projectIds: ['sample-project'],
+    logicalProjectId: 'example-sample-workflow',
+  },
+};
+```
+
+Supply a connected native `client`, trusted `pluginData` and `installedScripts`
+locations, and actual `verifyApproval` and `verifyPluginActive` callbacks in
+`options`. These are host-provided capabilities, not guessed paths or functions
+that simply return true. `prepareNativeAdmin` discovers the saved project from
+canonical project roots and the logical name; when more than one canonical project
+is available, supply the human-authorized non-empty subset. Optional
+`logicalProjectId` and `runtimeScope` must follow the configured scope convention.
+Inspect `status`, exact identity, readiness evidence, and release result before
+handing off. A blocked result is not partial success.
+
+There is no effectful `launcher.mjs initialize-admin` command. The launcher offers
+only `preflight-admin`, which validates/builds a plan without creating or messaging
+a task. Do not substitute a full-roster launcher or compose an ad-hoc task creation
+and readiness claim. A controller without the required host ports must report the
+missing capability. An owning-app integration must explicitly provide its trusted
+send and live-thread ports for the app adapter described below; it cannot substitute
+native persisted turn status for the owning app's current execution state.
+
 This controller-followed route initializes exactly one declared workflow Admin, not
 the roster. The portable Admin contract remains authoritative. Do not initialize
 Financial Analyst, Records / Bookkeeping, Financial Reviewer, Router, or System.
