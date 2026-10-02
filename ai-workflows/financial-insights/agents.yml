@@ -2,6 +2,23 @@ schemaVersion: workflow-logical-agents.v1
 workflowId: financial-insights
 logicalProjectIdPattern: <profile-id>-financial-insights[-<suffix>]
 
+# Admin is the portable human-owned bootstrap endpoint. Its capabilities and
+# boundaries remain defined by the canonical common contract, not this roster.
+initializer:
+  agentId: admin
+  roleDefinition: ../_common/roles/admin.md
+  scope: workflow
+  lifecycle: persistent-control
+  humanFacing: human-owned
+  communicationMode: direct-human-administration-only
+  readinessToken: ADMIN_READY
+  aiBinding: profile-default
+  schedule: { enabled: false }
+  utilitySubagents:
+    enabled: true
+    maxConcurrent: 3
+    contract: ../_common/agents/utility-subagents.md
+
 agents:
   - agentId: financial-analyst
     roleDefinition: agents/roles/financial-analyst.md
