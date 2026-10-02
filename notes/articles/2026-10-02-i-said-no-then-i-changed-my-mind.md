@@ -2,6 +2,10 @@
 
 *AI made it easier to do everything myself. That did not make everything worth doing myself.*
 
+![A thoughtful human and an AI Fleas robot stand between tangled promotion tasks and a focused product-building workspace.](assets/2026-10-02-outsourcing-follow-up-header-concept-v1.png)
+
+*Choosing where attention belongs. Original AI-generated illustration using the author's AI Fleas character references.*
+
 In an earlier article, I described hanging up on a salesperson. The offer was unclear, the conversation kept circling, and I would not commit under pressure.
 
 After two more conversations, I agreed in principle to a smaller service.
