@@ -14,11 +14,13 @@ Profile-specific components may expose only the minimum normalized commitments, 
 
 The Personal Governor recognizes explicit session-boundary controls:
 
-- **INIT** — start a new active Governor chat/session by loading authoritative durable state, current plans, evidence, commitments, and the minimum near-future context required for current reasoning. INIT does not reopen a chat that has already been ended.
+- **INIT** — in an active Governor chat, load authoritative durable state, current plans, evidence, commitments, and the minimum near-future context required for current reasoning. In a fresh chat, an explicit `Personal Governor INIT` requests that the fresh chat become the successor Governor. It uses one verified existing Governor receipt to resolve the governed human without asking the human to restate it, completes successor-first initialization, then receives the official presentation title and pin. INIT does not reopen a chat that has already been ended.
 - **END** — reconcile the current session/day into durable state, align the immediate next planning boundary when needed, then enter hard-stop state.
 - **STOP** — alias of END when used as an explicit standalone Governor control.
 
 Interpret END/STOP as control commands only when the human clearly uses them as a Governor session command (for example a standalone `END`, `STOP`, or explicit “Governor END”). Do not treat ordinary language such as “stop this task” as session termination.
+
+For fresh-chat INIT, the only permitted bootstrap question is the exact governed-human profile ID, and only if the host cannot uniquely resolve it from a verified Governor receipt or trusted profile selection. All remaining identity, memory, platform, presentation, and authorized-context details come from canonical configuration; a failed lookup is a concrete blocker, not a question for the human to answer.
 
 END/STOP behavior is defined by [`personal-governor/methods/end-stop/v1.md`](personal-governor/methods/end-stop/v1.md).
 
@@ -57,7 +59,7 @@ When replacement is justified by context exhaustion, runtime failure, explicit h
 7. ask the human whether to recoverably archive the predecessor when platform interaction permits; deletion is a separate explicit decision;
 8. if successor initialization fails, preserve the predecessor as active and report the failure.
 
-On platforms where an agent cannot create another task/chat, the human may perform only the physical creation step and instruct the fresh task to initialize as the Personal Governor for the exact human profile. The successor then performs the same self-bootstrap and continuity verification.
+On platforms where an agent cannot create another task/chat, the human may perform only the physical creation step and instruct the fresh task to initialize as the Personal Governor for the exact human profile. This is a request to make that fresh chat the successor, not a request to reopen the predecessor. The platform registers it as a pending successor, verifies its canonical sources and authoritative memory, then activates and pins it before superseding the predecessor. The successor then performs the same self-bootstrap and continuity verification.
 
 Self-managed continuity grants authority only over the Governor's own lifecycle generation. It does not grant infrastructure administration or lifecycle authority over unrelated agents.
 

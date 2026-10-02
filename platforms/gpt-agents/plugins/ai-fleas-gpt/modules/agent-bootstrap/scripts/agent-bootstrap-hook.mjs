@@ -55,6 +55,18 @@ function sourceText(binding) {
   return binding.initialization.sources.map(({ id, ref }) => `${id}=${ref}`).join(', ');
 }
 
+function replacementPredecessor(registry, binding) {
+  const replacement = binding?.replaces;
+  if (!replacement?.taskId || replacement.strategy !== 'successor-first') return null;
+  const predecessor = registry?.instances?.[replacement.taskId];
+  if (predecessor?.status !== 'active' || predecessor.agentId !== binding.agentId ||
+      predecessor.platformAdapter !== binding.platformAdapter ||
+      predecessor.generation !== replacement.generation ||
+      predecessor.scope?.kind !== binding.scope?.kind ||
+      predecessor.scope?.humanProfileId !== binding.scope?.humanProfileId) return null;
+  return predecessor;
+}
+
 function activeContext(binding) {
   return [
     'AI_FLEAS_AGENT_IDENTITY',
@@ -95,13 +107,15 @@ const binding = bindingFor(registry, input.session_id);
 const personalGovernorOnboarding = new PersonalGovernorOnboarding(
   new AgentBindingRegistry(registryPath()),
 );
+const explicitGovernorInit = /^(?:personal governor\s+init|init(?:ialize)?\s+personal governor)$/i
+  .test(String(input.prompt ?? '').trim());
 
 if (!binding) {
   if (personalGovernorOnboarding.isOnboardingRequest(input)) {
     emit({
       hookSpecificOutput: {
         hookEventName: input.hook_event_name,
-        additionalContext: personalGovernorOnboarding.buildOnboardingInstructions(),
+        additionalContext: personalGovernorOnboarding.buildOnboardingInstructions({ isExplicitInit: explicitGovernorInit }),
       },
     });
   } else {
@@ -150,14 +164,26 @@ if (!binding) {
   const sameTurn = Boolean(expectedTurn) && expectedTurn === input.turn_id;
   const exactReadiness = String(input.last_assistant_message ?? '').trim() === binding.initialization.readinessToken;
   if (binding.initialization.startedAt && sameTurn && exactReadiness) {
+    if (binding.replaces && !replacementPredecessor(registry, binding)) {
+      emit({
+        systemMessage: 'Governor successor readiness was received, but its exact active predecessor could not be verified. The predecessor remains active and this successor remains pending; reconcile lifecycle state before retrying.',
+      });
+      process.exit(0);
+    }
+    const predecessor = replacementPredecessor(registry, binding);
     binding.status = 'active';
     binding.activatedAt = new Date().toISOString();
     delete binding.initialization.promptSha256;
     delete binding.initialization.expiresAt;
     delete binding.initialization.turnId;
     delete binding.initialization.startedAt;
+    if (predecessor) {
+      predecessor.status = 'superseded';
+      predecessor.supersededBy = input.session_id;
+      predecessor.supersededAt = binding.activatedAt;
+    }
     atomicWrite(registryPath(), registry);
-    emit({ systemMessage: `AI Fleas activated the exact ${binding.agentId} task binding for generation ${binding.generation}.` });
+    emit({ systemMessage: `AI Fleas activated the exact ${binding.agentId} task binding for generation ${binding.generation}${predecessor ? ' and superseded its verified predecessor' : ''}.` });
   } else {
     emit({
       systemMessage: `Agent initialization remains pending. Re-dispatch the host-authorized initialization after resolving every reported blocking condition; readiness requires exactly ${binding.initialization.readinessToken} from that new initialization turn.`,
