@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {prepareNativeAdmin} from './prepare-native-admin.mjs';
+import {NativeAdminPreparation,prepareNativeAdmin} from './prepare-native-admin.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 function fixture() {
   const profilePath = path.join(root,'fictional-native-profile.yml'), projectPath = path.join(root,'fictional-native-project.yml');
@@ -22,6 +22,24 @@ function fixture() {
   const request = {profilePath,profileId:'fictional',workflowId:'financial-insights',authorization:{humanApproved:true,profileId:'fictional',workflowId:'financial-insights',projectIds:['fictional-records'],logicalProjectId:'fictional-financial-insights'}};
   return {request,client,io,projects,calls,profile};
 }
+test('preparation owns its dependencies without constructor IO and performs fresh discovery per request', async () => {
+  const f = fixture();
+  let reads = 0;
+  const io = { ...f.io, readFileSync: (...args) => {
+    reads += 1;
+    return f.io.readFileSync(...args);
+  } };
+  const preparation = new NativeAdminPreparation(f.client, { io });
+  assert.equal(reads, 0);
+  assert.equal(f.calls.length, 0);
+  const result = await preparation.prepare(f.request);
+  const compatible = fixture();
+  assert.deepEqual(result, await prepareNativeAdmin(compatible.request, compatible.client, { io: compatible.io }));
+  assert.ok(reads > 0);
+  f.projects[0].roots = [{ path: '/fictional/control-plane' }];
+  await assert.rejects(preparation.prepare(f.request), /HOST_PROJECT_SCOPE_MISMATCH/);
+  assert.deepEqual(f.calls.map(call => call.method), ['project/list', 'project/read', 'project/list', 'project/read']);
+});
 test('automatically discovers native ID and complete secondary scope for one canonical project',async()=>{
   const f=fixture(), result=await prepareNativeAdmin(f.request,f.client,{io:f.io});
   assert.equal(result.savedProject.id,'native-project'); assert.deepEqual(result.savedProject.roots,['/fictional/control-plane',root]);

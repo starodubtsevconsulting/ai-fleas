@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildAdminInitialization, buildAdminInitPrompt, resolveProjectRoot } from './admin-initialization.mjs';
+import { AdminInitializationBuilder, buildAdminInitialization, buildAdminInitPrompt, resolveProjectRoot } from './admin-initialization.mjs';
 import { initializeWorkflowAdmin } from './initialize-workflow-admin.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -42,6 +42,20 @@ function fixture() {
       projectIds: ['fictional-records'], logicalProjectId: 'fictional-financial-insights' } };
   return { request, profile, documents, options: { fs: io } };
 }
+test('builder owns injected dependencies without constructor IO and preserves the functional API', () => {
+  const f = fixture();
+  let reads = 0;
+  const io = { ...f.options.fs, readFileSync: (...args) => {
+    reads += 1;
+    return f.options.fs.readFileSync(...args);
+  } };
+  const builder = new AdminInitializationBuilder({ fs: io });
+  assert.equal(reads, 0);
+  assert.deepEqual(builder.build(f.request), buildAdminInitialization(f.request, f.options));
+  assert.ok(reads > 0);
+  assert.throws(() => builder.build({ ...f.request, profileId: 'foreign' }), /PROFILE_ID_MISMATCH/);
+  assert.deepEqual(builder.build(f.request), buildAdminInitialization(f.request, f.options));
+});
 test('uses configured Admin model and reasoning without overriding canonical endpoint identity', () => {
   const f = fixture();
   const configPath = path.join(root, 'fictional-gpt-command.yml');
