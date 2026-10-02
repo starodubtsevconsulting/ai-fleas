@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+/**
+ * Purpose: portable source-backed financial-record recognition, preparation, and guarded publication command.
+ * Caller: profile-authorized command launchers and direct CLI invocation documented in financial-records.command.md.
+ * Inputs/output: explicit authorized roots, contained source files, context options, and bounded JSON results.
+ * Effects: recognize/prepare operations are read-only; only apply-from-source publishes supported Booking artifacts.
+ * prepare-tax-from-source is planning-only and never writes, renames, submits, or settles tax records.
+ */
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -7,11 +14,17 @@ import { requireCommandProfile } from '../../_runtime/profile/command-profile.gu
 import { PdfReader } from './pdf-reader.mjs';
 import { SnowRemovalContractRecognizer } from './recognizers/snow-removal-contract-recognizer.mjs';
 import { BookingSourceRecognition } from './recognizers/booking-source-recognition.mjs';
+import { PayrollTaxSourceRecognition } from './recognizers/payroll-tax-source-recognition.mjs';
 import { canonicalAccountingPdfBasename } from './naming/accounting-recognition-naming-policy.mjs';
 import { buildPendingAccountingExtraction, validPendingAccountingExtraction } from './extraction/pending-accounting-extraction.mjs';
 import { ReviewPublisher } from './publication/review-publisher.mjs';
+import {
+  buildTaxReviewArtifact, normalizedTaxExtraction, reconcileTaxExtraction,
+  reviewMatchesPrepared, taxProposalRevision,
+} from './tax-normalization/tax-normalization-contract.mjs';
 
-const VALID_COMMANDS = new Set(['recognize', 'prepare-review', 'prepare-from-source', 'apply-from-source']);
+const VALID_COMMANDS = new Set(['recognize', 'prepare-review', 'prepare-from-source', 'prepare-tax-from-source',
+  'review-tax-proposal', 'apply-tax-from-source', 'reconcile-tax-record', 'apply-from-source']);
 
 const FIXED_COMMAND_ERRORS = new Set([
   'DUPLICATE_OPTION',
@@ -36,11 +49,17 @@ const FIXED_COMMAND_ERRORS = new Set([
   'INVALID_DESTINATION_NOT_DIRECTORY',
   'DESTINATION_OUTSIDE_ROOT',
   'INVALID_EXPECTATION',
+  'INVALID_PROPOSAL',
+  'INVALID_REVIEW',
+  'REVIEW_MISMATCH',
+  'INVALID_SIDECAR',
+  'CLOSED_PERIOD',
   'PREVIEW_MISMATCH',
   'SOURCE_CHANGED',
   'PUBLICATION_COLLISION',
   'PUBLICATION_FAILED',
   'PUBLICATION_PARTIAL',
+  'INVALID_PUBLICATION_INPUT',
   'INTERNAL_ERROR',
 ]);
 
@@ -84,6 +103,10 @@ export class FinancialRecordsCommand {
     }
     if (command === 'prepare-review') return this.prepareReview(args.slice(1));
     if (command === 'prepare-from-source') return this.prepareFromSource(args.slice(1));
+    if (command === 'prepare-tax-from-source') return this.prepareTaxFromSource(args.slice(1));
+    if (command === 'review-tax-proposal') return this.reviewTaxProposal(args.slice(1));
+    if (command === 'apply-tax-from-source') return this.applyTaxFromSource(args.slice(1));
+    if (command === 'reconcile-tax-record') return this.reconcileTaxRecord(args.slice(1));
     if (command === 'apply-from-source') return this.applyFromSource(args.slice(1));
 
     const options = { root: undefined, source: undefined };
@@ -374,6 +397,181 @@ export class FinancialRecordsCommand {
       proposedFilename: prepared.proposedFilename, sha256: publication.sha256,
       stagingCleanupRequired: publication.stagingCleanupRequired,
     };
+  }
+
+  async prepareTaxFromSource(args) {
+    const options = {};
+    const allowed = new Set(['root', 'source', 'branch', 'year', 'quarter', 'section']);
+    for (let i = 0; i < args.length; i++) {
+      const separator = args[i].indexOf('=');
+      const key = separator < 0 ? args[i] : args[i].slice(0, separator);
+      const name = key.startsWith('--') ? key.slice(2) : '';
+      if (!allowed.has(name)) throw new Error('UNKNOWN_OPTION');
+      if (Object.hasOwn(options, name)) throw new Error('DUPLICATE_OPTION');
+      const value = separator < 0 ? args[++i] : args[i].slice(separator + 1);
+      if (!value || value.startsWith('--')) throw new Error('MISSING_VALUE');
+      options[name] = value;
+    }
+    if (['root', 'source', 'branch', 'year', 'quarter', 'section'].some((name) => !options[name])) {
+      throw new Error('USAGE');
+    }
+    if (options.section !== 'out' || !/^\d{4}$/.test(options.year) || !/^q[1-4]$/.test(options.quarter)
+      || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(options.branch)) throw new Error('INVALID_EXPECTATION');
+    if (!path.isAbsolute(options.root)) throw new Error('INVALID_ROOT_NOT_ABSOLUTE');
+    if (!path.isAbsolute(options.source)) throw new Error('INVALID_SOURCE_NOT_ABSOLUTE');
+    let root;
+    let source;
+    try {
+      root = fs.realpathSync(options.root);
+      source = fs.realpathSync(options.source);
+    } catch { throw new Error('PATH_RESOLVE_FAILED'); }
+    if (!fs.statSync(root).isDirectory()) throw new Error('INVALID_ROOT_NOT_DIRECTORY');
+    const relative = path.relative(root, source);
+    if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+      throw new Error('SOURCE_OUTSIDE_ROOT');
+    }
+    const stat = fs.statSync(source);
+    if (!stat.isFile() || stat.size > 25 * 1024 * 1024) throw new Error('INVALID_SOURCE_NOT_FILE');
+    if (!this._isPdfFile(source)) throw new Error('INVALID_SOURCE_NOT_PDF');
+    const sourceBytes = fs.readFileSync(source);
+    const sourceSha256 = createHash('sha256').update(sourceBytes).digest('hex');
+    let pdf;
+    try { pdf = await this.pdfReader.read(source); }
+    catch { throw new Error('PDF_READ_FAILED'); }
+    const prepared = new PayrollTaxSourceRecognition().evaluate(pdf, {
+      branchId: options.branch, year: options.year, quarter: options.quarter,
+      section: options.section, sourceSha256,
+    });
+    if (sourceSha256 !== createHash('sha256').update(fs.readFileSync(source)).digest('hex')) {
+      return { schemaVersion: 1, operation: 'prepare-tax-from-source', status: 'review-required', reason: 'source-changed' };
+    }
+    const result = { schemaVersion: 1, operation: 'prepare-tax-from-source', ...prepared };
+    if (result.status === 'prepared') result.proposalRevision = taxProposalRevision(result);
+    return result;
+  }
+
+  reviewTaxProposal(args) {
+    const options = this._parseNamedOptions(args, new Set(['root', 'proposal']), ['root', 'proposal']);
+    const { root, file: proposalPath } = this._resolveContainedFile(options.root, options.proposal,
+      'INVALID_PROPOSAL');
+    const proposal = this._readBoundedJson(proposalPath, 'INVALID_PROPOSAL');
+    const review = buildTaxReviewArtifact(proposal);
+    if (!review || proposal.proposalRevision !== review.proposalRevision) throw new Error('INVALID_PROPOSAL');
+    return { operation: 'review-tax-proposal', ...review, authorizedRootBound: true,
+      operationalDestination: proposal.proposedDestination };
+  }
+
+  async applyTaxFromSource(args) {
+    const required = ['root', 'source', 'destination', 'review', 'branch', 'year', 'quarter', 'section',
+      'expected-proposal-revision'];
+    const options = this._parseNamedOptions(args, new Set(required), required);
+    if (options.quarter === 'q3') throw new Error('CLOSED_PERIOD');
+    if (options.section !== 'out') throw new Error('INVALID_EXPECTATION');
+    if (!/^q[1-4]$/.test(options.quarter) || !/^\d{4}$/.test(options.year)
+      || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(options.branch)
+      || !/^[a-f0-9]{64}$/.test(options['expected-proposal-revision'])) throw new Error('INVALID_EXPECTATION');
+    const { root, file: source } = this._resolveContainedFile(options.root, options.source,
+      'INVALID_SOURCE_NOT_FILE');
+    const reviewResolved = this._resolveContainedFile(root, options.review, 'INVALID_REVIEW');
+    const review = this._readBoundedJson(reviewResolved.file, 'INVALID_REVIEW');
+    if (!path.isAbsolute(options.destination)) throw new Error('INVALID_DESTINATION_NOT_ABSOLUTE');
+    let destination;
+    try { destination = fs.realpathSync(options.destination); }
+    catch { throw new Error('PATH_RESOLVE_FAILED'); }
+    if (!fs.statSync(destination).isDirectory() || fs.lstatSync(options.destination).isSymbolicLink()) {
+      throw new Error('INVALID_DESTINATION_NOT_DIRECTORY');
+    }
+    const prepared = await this.prepareTaxFromSource([
+      '--root', root, '--source', source, '--branch', options.branch, '--year', options.year,
+      '--quarter', options.quarter, '--section', options.section,
+    ]);
+    if (prepared.status !== 'prepared' || prepared.applyEligible !== true) throw new Error('REVIEW_REQUIRED');
+    if (!reviewMatchesPrepared(review, prepared, options['expected-proposal-revision'])) {
+      throw new Error('REVIEW_MISMATCH');
+    }
+    const expectedDestination = path.join(root, ...prepared.proposedDestination.split('/'));
+    if (destination !== expectedDestination || prepared.extraction.operationalPeriod?.quarter === 'q3') {
+      throw new Error('CLOSED_PERIOD');
+    }
+    const pdfPath = path.join(destination, prepared.proposedFilename);
+    const sidecarPath = `${pdfPath}.json`;
+    if (fs.existsSync(pdfPath) || fs.existsSync(sidecarPath)) throw new Error('PUBLICATION_COLLISION');
+    const extraction = normalizedTaxExtraction(prepared.extraction, review);
+    if (!extraction) throw new Error('INVALID_REVIEW');
+    const sourceBytes = fs.readFileSync(source);
+    if (createHash('sha256').update(sourceBytes).digest('hex') !== prepared.extraction.source.sha256) {
+      throw new Error('SOURCE_CHANGED');
+    }
+    const publication = this.publisher.publish({ sourceBytes, extraction, pdfPath, sidecarPath });
+    if (publication.status !== 'applied' || publication.sha256 !== prepared.extraction.source.sha256) {
+      throw new Error('PUBLICATION_FAILED');
+    }
+    return { schemaVersion: 1, operation: 'apply-tax-from-source', status: 'applied',
+      proposedFilename: prepared.proposedFilename, proposalRevision: review.proposalRevision,
+      sha256: publication.sha256, stagingCleanupRequired: publication.stagingCleanupRequired };
+  }
+
+  reconcileTaxRecord(args) {
+    const required = ['root', 'pdf', 'sidecar', 'branch', 'year', 'quarter', 'section'];
+    const options = this._parseNamedOptions(args, new Set(required), required);
+    if (options.quarter === 'q3') throw new Error('CLOSED_PERIOD');
+    if (options.section !== 'out') throw new Error('INVALID_EXPECTATION');
+    const { root, file: pdfPath } = this._resolveContainedFile(options.root, options.pdf,
+      'INVALID_SOURCE_NOT_FILE');
+    const sidecarResolved = this._resolveContainedFile(root, options.sidecar, 'INVALID_SIDECAR');
+    if (sidecarResolved.file !== `${pdfPath}.json`) throw new Error('INVALID_SIDECAR');
+    const extraction = this._readBoundedJson(sidecarResolved.file, 'INVALID_SIDECAR', 64 * 1024);
+    if (extraction.operationalPeriod?.year !== options.year || extraction.operationalPeriod?.quarter !== options.quarter
+      || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(options.branch)) throw new Error('INVALID_EXPECTATION');
+    const expectedDirectory = path.join(root, options.year, options.branch, options.quarter, 'out', 'taxes',
+      'payroll-remittances', extraction.jurisdiction, extraction.reportingPeriod?.end || '');
+    if (path.dirname(pdfPath) !== expectedDirectory) throw new Error('DESTINATION_OUTSIDE_ROOT');
+    const pdfSha256 = createHash('sha256').update(fs.readFileSync(pdfPath)).digest('hex');
+    return { schemaVersion: 1, operation: 'reconcile-tax-record',
+      ...reconcileTaxExtraction({ extraction, pdfSha256, pdfFilename: path.basename(pdfPath) }) };
+  }
+
+  _parseNamedOptions(args, allowed, required) {
+    const options = {};
+    for (let i = 0; i < args.length; i++) {
+      const separator = args[i].indexOf('=');
+      const key = separator < 0 ? args[i] : args[i].slice(0, separator);
+      const name = key.startsWith('--') ? key.slice(2) : '';
+      if (!allowed.has(name)) throw new Error('UNKNOWN_OPTION');
+      if (Object.hasOwn(options, name)) throw new Error('DUPLICATE_OPTION');
+      const value = separator < 0 ? args[++i] : args[i].slice(separator + 1);
+      if (!value || value.startsWith('--')) throw new Error('MISSING_VALUE');
+      options[name] = value;
+    }
+    if (required.some((name) => !options[name])) throw new Error('USAGE');
+    return options;
+  }
+
+  _resolveContainedFile(rootOption, fileOption, errorCode) {
+    if (!path.isAbsolute(rootOption)) throw new Error('INVALID_ROOT_NOT_ABSOLUTE');
+    if (!path.isAbsolute(fileOption)) throw new Error('INVALID_SOURCE_NOT_ABSOLUTE');
+    try { if (fs.lstatSync(rootOption).isSymbolicLink()) throw new Error('INVALID_ROOT_NOT_DIRECTORY'); }
+    catch (error) { if (error.message === 'INVALID_ROOT_NOT_DIRECTORY') throw error; throw new Error('PATH_RESOLVE_FAILED'); }
+    try { if (fs.lstatSync(fileOption).isSymbolicLink()) throw new Error(errorCode); }
+    catch (error) { if (error.message === errorCode) throw error; throw new Error('PATH_RESOLVE_FAILED'); }
+    let root;
+    let file;
+    try { root = fs.realpathSync(rootOption); file = fs.realpathSync(fileOption); }
+    catch { throw new Error('PATH_RESOLVE_FAILED'); }
+    if (!fs.statSync(root).isDirectory() || !fs.statSync(file).isFile()) throw new Error(errorCode);
+    const relative = path.relative(root, file);
+    if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+      throw new Error('SOURCE_OUTSIDE_ROOT');
+    }
+    return { root, file };
+  }
+
+  _readBoundedJson(file, errorCode, limit = 32 * 1024) {
+    try {
+      const bytes = fs.readFileSync(file);
+      if (bytes.length > limit) throw new Error(errorCode);
+      return JSON.parse(bytes.toString('utf8'));
+    } catch { throw new Error(errorCode); }
   }
 
   _isPdfFile(pathname) {

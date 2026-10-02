@@ -72,6 +72,45 @@ display review results, but must not maintain a separate copy of those rules. Pr
 storage and document drivers. A caller must not treat an unsupported document section as processed merely because the
 contract defines its result shape.
 
+### Payroll-tax source preparation
+
+Invoke `prepare-tax-from-source` with `--root ABSOLUTE_AUTHORIZED_ROOT --source ABSOLUTE_PDF --branch BRANCH_ID
+--year YYYY --quarter q1..q4 --section out`. This read-only operation accepts only a contained PDF and explicit `Out`
+context. It classifies supported Canadian federal payroll-remittance obligations, federal PD7A/EMPTX provider
+submission confirmations, Quebec payroll-remittance obligations, and Quebec provider submission confirmations as
+distinct document roles. Confirmation references are retained only as a presence boolean; identifier values are never
+returned or stored. Its bounded result includes the
+source SHA-256, schema and adapter versions, jurisdiction, reporting period, dates, amount components and arithmetic,
+page completeness, separate processing and obligation lifecycle states, relations, field provenance, and a canonical
+bundle destination/filename proposal.
+
+Unsupported, ambiguous, wrong-period, wrong-section, missing-total, arithmetic-mismatched, or conflicting evidence
+fails closed. An incomplete federal page set may return an extraction for review, but remains `incomplete`,
+`review-required`, and ineligible for apply. A provider status such as `to be processed` is submission/scheduling
+evidence with settlement pending; it is never paid or settled evidence. Preparation keeps `reportingPeriod` separate
+from `operationalPeriod`. A Q3 reporting-period obligation selected as current Q4 payment work proposes a Q4 `Out`
+bundle while retaining its Q3 period end in the sidecar.
+
+Save the bounded preparation JSON inside the authorized root, inspect it, then explicitly invoke
+`review-tax-proposal --root ABSOLUTE_AUTHORIZED_ROOT --proposal ABSOLUTE_PREPARE_JSON`. Review is read-only and returns
+a source-hash/schema/adapter/destination/filename-bound revision. It rejects incomplete or non-applicable proposals.
+
+Invoke `apply-tax-from-source --root ABSOLUTE_AUTHORIZED_ROOT --source ABSOLUTE_PDF --destination
+ABSOLUTE_EXISTING_CANONICAL_DIRECTORY --review ABSOLUTE_REVIEW_JSON --branch BRANCH_ID --year YYYY --quarter q4
+--section out --expected-proposal-revision SHA256`. Apply reruns source preparation and requires the exact reviewed
+revision, source hash, adapter/schema, and proposal. It rejects symlinks, Q3 destinations, escapes, missing directories,
+collisions, and incomplete evidence. It publishes a canonical PDF copy plus adjacent `.pdf.json` through the exclusive
+two-artifact publisher and preserves the original source.
+
+Invoke `reconcile-tax-record --root ABSOLUTE_AUTHORIZED_ROOT --pdf ABSOLUTE_CANONICAL_PDF --sidecar
+ABSOLUTE_CANONICAL_PDF_JSON --branch BRANCH_ID --year YYYY --quarter q4 --section out`. Reconcile is read-only. It
+checks exact Q4 routing, PDF hash, filename, schema/adapter, normalized processing state, independent obligation
+lifecycle, provenance, and the confirmation relation when applicable.
+
+Direct CLI failures emit fixed JSON error codes. Tax-specific codes include `INVALID_PROPOSAL`, `INVALID_REVIEW`,
+`REVIEW_MISMATCH`, `INVALID_SIDECAR`, and `CLOSED_PERIOD`; known validation/publication failures retain the shared
+fixed codes instead of silently degrading to `INTERNAL_ERROR`.
+
 The backend should become a thin caller: verify the selected profile, project, period, section, and caller authority;
 pass bounded source and destination context to the command; then present its structured result. The command owns PDF
 recognition, field extraction, naming proposals, collision checks, and any authorized normalization or sidecar write.
