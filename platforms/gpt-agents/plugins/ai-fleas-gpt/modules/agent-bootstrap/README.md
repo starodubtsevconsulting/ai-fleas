@@ -50,6 +50,20 @@ There is no effectful `launcher.mjs initialize-admin` CLI. Its `preflight-admin`
 command only builds and validates a plan. Hook installation does not automatically
 run either controller API.
 
+The default native Admin route installs the exact INIT-only `ai_fleas_init_audit`
+dynamic tool. `NativeInitAuditController` authenticates its task/turn/generation
+against the existing binding; `EphemeralInitAudit` owns a tool-disabled ephemeral
+inference process using the configured role model/reasoning. Results return only
+after process exit. The existing binding stores one correlated audit receipt, not
+a second role registry or a source digest inventory. Stop activation additionally
+requires that passed receipt, and the controller cross-checks the actual structured
+tool call. Missing executable/tool capability blocks without spawning another role
+or switching platforms. Installed readiness code must match the reviewed source;
+changing source alone does not deploy the plugin.
+
+No automatic END/archive integration is added by this audit transport. Successful
+worker exit, parent controller release, and human UI archival are separate checks.
+
 The transaction verifies fresh complete saved-project roots and active/archived
 task catalogs. It reuses only an exact active ready Admin, otherwise creates only
 one Admin with canonical references and the approved project subset. It registers

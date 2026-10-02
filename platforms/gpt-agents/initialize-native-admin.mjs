@@ -4,7 +4,9 @@
  * NativeAdminLifecycle owns dependencies; named exports remain compatibility APIs.
  * Construction performs no IO; only explicit initialize/retry/submit/release calls act.
  * Effects: native discovery; at most one Admin create and INIT; generic binding
- * registration. No plugin deployment, daemon restart, roster, or later messages.
+ * registration and an exact INIT-only ephemeral utility audit. The trusted caller
+ * supplies auditExecutable (absolute installed executable); no platform fallback.
+ * No plugin deployment, daemon restart, roster, or later messages.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,6 +16,8 @@ import { prepareNativeAdmin } from './prepare-native-admin.mjs';
 import { buildNativeAdminHost } from './native-admin-host.mjs';
 import { initializeWorkflowAdmin, normalizeAdminScope } from './initialize-workflow-admin.mjs';
 import { registerAgentInitialization, rollbackAgentInitialization } from './plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/register-agent-initialization.mjs';
+import { EphemeralInitAudit } from './ephemeral-init-audit.mjs';
+import { NativeInitAuditController, initAuditTool } from './native-init-audit-controller.mjs';
 
 const scripts = path.join(path.dirname(fileURLToPath(import.meta.url)), 'plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts');
 
@@ -85,6 +89,10 @@ export class NativeAdminLifecycle {
       buildHost = buildNativeAdminHost, now = Date.now } = this.#options;
     try {
       const {plan} = await prepare(request, client);
+      // Recovery must not send INIT until the existing task's audit tool and
+      // fresh controller generation can both be verified. No native fallback.
+      if (plan.bootstrapPayload.binding.initialization?.auditTransport === 'ephemeral-process')
+        throw new Error('EPHEMERAL_ADMIN_RETRY_NOT_SUPPORTED');
       if (typeof verifyApproval !== 'function' || typeof verifyPluginActive !== 'function' ||
           await verifyApproval({approval:plan.approval,scope:plan.scope,operation:'retry-admin-only'}) !== true)
         throw new Error('HUMAN_BOOTSTRAP_APPROVAL_UNVERIFIED');
@@ -166,15 +174,27 @@ export class NativeAdminLifecycle {
     const client = this.#client;
     const { pluginData, installedScripts, verifyApproval,
       verifyPluginActive, createParams = {}, submitInitialization = (client, transaction, options) => this.submit(transaction, options) } = this.#options;
+    let unregisterAudit;
     try {
-      const { plan } = await prepareNativeAdmin(request, client);
+      const { plan } = await prepareNativeAdmin({ ...request, auditTransport: request.auditTransport || 'ephemeral-process' }, client);
       if (typeof verifyApproval !== 'function' || typeof verifyPluginActive !== 'function')
         throw new Error('NATIVE_ADMIN_TRUSTED_CONTROLLER_REQUIRED');
       const endpoint = plan.bootstrapPayload.endpoint;
+      let audit;
+      if (plan.bootstrapPayload.binding.initialization.auditTransport === 'ephemeral-process') {
+        if (typeof client.registerServerRequestHandler !== 'function') throw new Error('INIT_AUDIT_NATIVE_TOOL_UNAVAILABLE');
+        audit = new NativeInitAuditController(client, { plan, pluginData,
+          worker: new EphemeralInitAudit({ executable: this.#options.auditExecutable }) });
+        unregisterAudit = client.registerServerRequestHandler('item/tool/call', request => audit.handle(request));
+      }
       const host = buildNativeAdminHost(client, { pluginData, verifyApproval,
         selectedProjectIds: [...new Set(plan.scope.projects.map(project => project.savedProjectId))],
-        createParams: { model: endpoint.model, config: { model_reasoning_effort: endpoint.reasoning }, ...createParams },
-        queueInitialization: transaction => submitInitialization(client, transaction, { pluginData }),
+        createParams: { ...createParams, model: endpoint.model, config: { ...createParams.config, model_reasoning_effort: endpoint.reasoning },
+          ...(audit ? { dynamicTools: [initAuditTool] } : {}) },
+        queueInitialization: transaction => {
+          audit?.bindTask(transaction.taskId, transaction.payload.binding);
+          return submitInitialization(client, transaction, { pluginData });
+        },
         prerequisites: async () => {
           verifyInstalledBootstrap(installedScripts);
           if (await verifyPluginActive() !== true) throw new Error('BOOTSTRAP_PLUGIN_ACTIVE_UNVERIFIED');
@@ -194,6 +214,7 @@ export class NativeAdminLifecycle {
       const release = await this.release(result.taskId,plan.scope.projects[0].savedProjectId);
       return { ...result, ...release };
     } catch (error) { return { status: 'blocked', reason: error.message }; }
+    finally { unregisterAudit?.(); }
   }
 
   /** Release our failed creation only after fresh exact idle/terminated evidence. */

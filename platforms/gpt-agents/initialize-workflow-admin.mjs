@@ -107,7 +107,7 @@ export class WorkflowAdminInitializer {
       if (payload?.binding?.agentId !== 'admin' || payload.binding.platformAdapter !== 'codex-app' ||
           !exact(normalizeAdminScope(payload.binding.scope), scope) ||
           payload.binding.initialization?.readinessToken !== 'ADMIN_READY' ||
-          payload.prompt !== buildAdminInitPrompt(payload.binding.scope)) fail('ADMIN_BOOTSTRAP_PAYLOAD_INVALID');
+          payload.prompt !== buildAdminInitPrompt(payload.binding.scope, payload.binding.initialization?.auditTransport)) fail('ADMIN_BOOTSTRAP_PAYLOAD_INVALID');
       const expectedSources = [
         ['portable-role', sources.adminContract], ['portable-manifest', sources.manifest], ['platform-adapter', sources.adapter],
         ['work-profile', sources.profile], ['platform-registry', sources.registry], ['workflow', sources.workflow],
@@ -174,7 +174,8 @@ export class WorkflowAdminInitializer {
         fail('ADMIN_CREATED_TASK_UNVERIFIED');
       const initialized = await host.initialize({ taskId: createdTaskId, payload });
       if (initialized?.taskId !== createdTaskId || initialized.status !== 'submitted') fail('ADMIN_INIT_UNCERTAIN');
-      const completion = await host.wait({ taskId: createdTaskId, timeoutMs: 60000 });
+      const completion = await host.wait({ taskId: createdTaskId,
+        timeoutMs: payload.binding.initialization.auditTransport === 'ephemeral-process' ? 300000 : 60000 });
       if (completion?.taskId !== createdTaskId || completion.status !== 'complete') fail('ADMIN_READINESS_UNVERIFIED');
       catalog = await host.catalog();
       const active = inspectCatalog(catalog, scope);

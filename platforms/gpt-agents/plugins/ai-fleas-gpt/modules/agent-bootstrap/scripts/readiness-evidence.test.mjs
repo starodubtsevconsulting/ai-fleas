@@ -10,6 +10,19 @@ import { createHash } from 'node:crypto';
 import { initializationCompletion, initializationPromptMatches } from './readiness-evidence.mjs';
 const binding = { status: 'pending', initialization: { nonce: 'fictional-permit-nonce', startedAt: '2026-01-01T00:00:00Z', turnId: 'turn-one', readinessToken: 'ADMIN_READY' } };
 const event = { hook_event_name: 'Stop', turn_id: 'turn-one', last_assistant_message: 'ADMIN_READY' };
+test('ephemeral readiness requires exact successful exited-worker receipt', () => {
+  const pending = structuredClone(binding); pending.generation = 1;
+  pending.initialization.auditTransport = 'ephemeral-process';
+  assert.equal(initializationCompletion(pending, event), null);
+  pending.initialization.audit = { transport: 'ephemeral-process', turnId: 'turn-one', generation: 1,
+    callId: 'exact-call', workerThreadId: 'utility', workerClosed: true, exitCode: 0, verdict: 'pass', completedAt: '2026-01-01T00:00:00Z' };
+  assert.ok(initializationCompletion(pending, event));
+  for (const change of [{ verdict: 'blocked' }, { workerClosed: false }, { exitCode: 1 }, { turnId: 'foreign' },
+    { generation: 2 }, { callId: '' }, { completedAt: 'invalid' }]) {
+    assert.equal(initializationCompletion({ ...pending, initialization: { ...pending.initialization,
+      audit: { ...pending.initialization.audit, ...change } } }, event), null);
+  }
+});
 test('matching pending Admin turn retains completion evidence in the existing binding', () => {
   assert.deepEqual(initializationCompletion(binding, event, new Date('2026-01-01T00:01:00Z')),
     { completedTurnId: 'turn-one', completedAt: '2026-01-01T00:01:00.000Z' });

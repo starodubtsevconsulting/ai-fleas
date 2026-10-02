@@ -57,7 +57,9 @@ const request = {
 
 Supply a connected native `client`, trusted `pluginData` and `installedScripts`
 locations, and actual `verifyApproval` and `verifyPluginActive` callbacks in
-`options`. These are host-provided capabilities, not guessed paths or functions
+`options`. The native route defaults to `auditTransport: 'ephemeral-process'` and
+also requires `options.auditExecutable`, the verified absolute installed Codex
+executable. These are host-provided capabilities, not guessed paths or functions
 that simply return true. `prepareNativeAdmin` discovers the saved project from
 canonical project roots and the logical name; when more than one canonical project
 is available, supply the human-authorized non-empty subset. Optional
@@ -65,12 +67,27 @@ is available, supply the human-authorized non-empty subset. Optional
 Inspect `status`, exact identity, readiness evidence, and release result before
 handing off. A blocked result is not partial success.
 
-New INIT requires a supported owning audit-close operation before spawning its
-read-only child. Missing support returns `BLOCKED_INIT_AUDIT_CLEANUP_UNSUPPORTED`
-without creating that child. The native controller also checks the complete task
-catalog with explicit source kinds, exact descendant links, completed audit turns,
-actual `notLoaded` state and complete loaded-catalog exclusion before accepting
-`ADMIN_READY`. Prompt compliance alone cannot hide a retained audit writer.
+The default native INIT provides exactly one `ai_fleas_init_audit` dynamic tool to
+the new Admin. After its own canonical preflight, Admin supplies only a bounded
+`preflightSummary`. The owning controller authenticates the actual task, INIT turn,
+generation, nonce, source references and authorized scope, then runs a process-owned
+`codex exec --ephemeral` utility with the configured Admin model and reasoning.
+Inherited configuration, connectors, execution tools and nested agents are disabled;
+the utility audits supplied evidence without reading financial records. It is not
+a registered workflow role or independent reviewer. Admin remains `codex-app`;
+this explicit utility transport does not change the operational platform.
+
+Only actual process exit with a completed structured result produces an audit
+receipt. The Stop hook requires a passed receipt before activation; the controller
+also compares it with the exact completed native dynamic-tool call and rejects
+any persistent descendant. A worker failure or blocked verdict cannot become
+`ADMIN_READY`. The older explicitly selected `native-child` route still requires
+an owning child-close operation and verified release; neither route falls back.
+Ephemeral same-task retry is currently unsupported and stops before delivery.
+
+This removes the INIT audit's persistent child/writer dependency. It does **not**
+implement automatic END, guarantee UI archival, or repair a shared-daemon writer
+held by another chat. Report controller-release and archive evidence separately.
 
 There is no effectful `launcher.mjs initialize-admin` command. The launcher offers
 only `preflight-admin`, which validates/builds a plan without creating or messaging

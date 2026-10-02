@@ -7,6 +7,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import { readNativeProjectCatalog, listNativeProjects, readNativeProject, projectRootContains } from './native-project-catalog.mjs';
 const fail = code => { throw new Error(code); };
 
@@ -150,7 +151,7 @@ export class NativeAdminHost {
   }
 
   /** Verify actual parent-owned INIT audit release, not merely its final message. */
-  async verifyAuditRelease(taskId, initializationTurn) {
+  async verifyAuditRelease(taskId, initializationTurn, binding) {
     const tasks = await this.#tasks();
     const parentId = task => task.source?.subAgent?.thread_spawn?.parent_thread_id;
     const descendants = new Set(), ancestors = new Set([taskId]);
@@ -161,6 +162,22 @@ export class NativeAdminHost {
         ancestors.add(task.id); descendants.add(task.id); changed = true;
       }
     } while (changed);
+    if (binding?.initialization?.auditTransport === 'ephemeral-process') {
+      const audit = binding.initialization.audit;
+      if (descendants.size || audit?.transport !== 'ephemeral-process' || audit.verdict !== 'pass' ||
+          audit.workerClosed !== true || audit.exitCode !== 0 || audit.generation !== binding.generation ||
+          audit.turnId !== initializationTurn?.id || initializationTurn.status !== 'completed' ||
+          !audit.workerThreadId || !audit.callId || !Number.isFinite(Date.parse(audit.completedAt)))
+        fail('ADMIN_INIT_EPHEMERAL_AUDIT_UNVERIFIED');
+      const calls = initializationTurn.items?.filter(item => item.type === 'dynamicToolCall' && item.tool === 'ai_fleas_init_audit');
+      if (calls?.length !== 1 || calls[0].id !== audit.callId || calls[0].namespace != null ||
+          calls[0].status !== 'completed' || calls[0].success !== true || calls[0].contentItems?.length !== 1 ||
+          calls[0].contentItems[0].type !== 'inputText') fail('ADMIN_INIT_EPHEMERAL_CALL_UNVERIFIED');
+      let result;
+      try { result = JSON.parse(calls[0].contentItems[0].text); } catch { fail('ADMIN_INIT_EPHEMERAL_CALL_UNVERIFIED'); }
+      if (!isDeepStrictEqual(result.audit, audit) || result.result?.verdict !== 'pass') fail('ADMIN_INIT_EPHEMERAL_CALL_UNVERIFIED');
+      return { released: true, transport: 'ephemeral-process', workerThreadId: audit.workerThreadId, taskIds: [] };
+    }
     if (!descendants.size) fail('ADMIN_INIT_AUDIT_UNVERIFIED');
     // Old released children cannot stand in for the audit of this exact INIT.
     // Use the host's structured spawn item, never text mentioning an agent ID.
@@ -201,7 +218,7 @@ export class NativeAdminHost {
   async wait({ taskId, timeoutMs }) {
     const client = this.#client;
     const { now, sleep } = this.#options;
-    const deadline = now() + Math.min(Math.max(timeoutMs || 0, 0), 60000);
+    const deadline = now() + Math.min(Math.max(timeoutMs || 0, 0), 300000);
     do {
       const candidates = this.#bindings().filter(binding => binding.taskId === taskId);
       if (candidates.length !== 1) fail('ADMIN_BINDING_UNVERIFIED');
@@ -222,7 +239,7 @@ export class NativeAdminHost {
         }
         const messages = turns[0].items?.filter(item => item.type === 'agentMessage');
         if (!messages?.length || messages.at(-1).text?.trim() !== 'ADMIN_READY') fail('ADMIN_READINESS_UNVERIFIED');
-        await this.verifyAuditRelease(taskId, turns[0]);
+        await this.verifyAuditRelease(taskId, turns[0], binding);
         return { status: 'complete', taskId, turnId: evidence.completedTurnId, token: 'ADMIN_READY' };
       }
       if (binding.status !== 'pending') fail('ADMIN_READINESS_UNVERIFIED');

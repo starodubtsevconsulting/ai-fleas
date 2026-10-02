@@ -20,15 +20,21 @@ const sameSet = (a, b) => Array.isArray(a) && Array.isArray(b) &&
   a.length === b.length && new Set(a).size === a.length && a.every(x => b.includes(x));
 
 /** Exact controller bootstrap message; no ordinary work may be appended. */
-export function buildAdminInitPrompt(scope) {
+export function buildAdminInitPrompt(scope, auditTransport = 'native-child') {
+  if (!['native-child', 'ephemeral-process'].includes(auditTransport)) throw new Error('INIT_AUDIT_TRANSPORT_UNSUPPORTED');
+  const auditInstructions = auditTransport === 'ephemeral-process'
+    ? 'After completing your own canonical identity and scope preflight, call the controller-provided ai_fleas_init_audit tool exactly once with your bounded preflightSummary. ' +
+      'This is the required bounded utility subagent audit: the controller uses your configured model and reasoning in a tool-disabled ephemeral process and verifies process exit before returning. ' +
+      'Do not spawn a persistent audit child or replace this transport. If the tool is absent, fails, or returns a blocked verdict, report a concrete blocker without ADMIN_READY. Verify its findings and exact audit receipt before readiness. '
+    : 'Before spawning the required read-only INIT audit, verify that your actual transport provides an owning child-close operation. ' +
+      'If unavailable, report BLOCKED_INIT_AUDIT_CLEANUP_UNSUPPORTED without spawning. ' +
+      'After verifying the audit result, close your exact child through that operation and verify it is notLoaded and absent from the complete loaded catalog before ADMIN_READY. ' +
+      'A completed audit is not released; never use a daemon restart, deletion, or another connection unsubscribe as child cleanup. ';
   return `The human approved initialization of exactly one Admin for this scope: ${JSON.stringify(scope)}. ` +
     'This is human-designated Admin bootstrap authorization, not permission for subsequent Governor messages. ' +
     'INIT. Read and verify every canonical source and your exact host binding and task identity. ' +
     'Initialize only yourself; do not create any other role, Router or System. ' +
-    'Before spawning the required read-only INIT audit, verify that your actual transport provides an owning child-close operation. ' +
-    'If unavailable, report BLOCKED_INIT_AUDIT_CLEANUP_UNSUPPORTED without spawning. ' +
-    'After verifying the audit result, close your exact child through that operation and verify it is notLoaded and absent from the complete loaded catalog before ADMIN_READY. ' +
-    'A completed audit is not released; never use a daemon restart, deletion, or another connection unsubscribe as child cleanup. ' +
+    auditInstructions +
     'Report ADMIN_READY only after all identity, scope and prerequisite checks pass; otherwise report a concrete blocker. ' +
     'Admin readiness is not full-roster readiness. Subsequent direction must come from the human.';
 }
@@ -165,8 +171,9 @@ export class AdminInitializationBuilder {
     const bootstrapPayload = {
       binding: { platformAdapter: 'codex-app', agentId: 'admin', generation: request.generation, scope,
         initialization: { readinessToken: 'ADMIN_READY', sources,
+          ...(request.auditTransport ? { auditTransport: request.auditTransport } : {}),
           bootstrapAuthorization: { ...authorization, verified: false, purpose: 'one-time-admin-initialization' } } },
-      prompt: buildAdminInitPrompt(scope),
+      prompt: buildAdminInitPrompt(scope, request.auditTransport),
       endpoint,
     };
     const sourceMap = Object.fromEntries(sources.map(source => [source.id, source.ref]));

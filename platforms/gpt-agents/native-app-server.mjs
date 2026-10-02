@@ -1,7 +1,9 @@
 /**
  * Native Codex app-server transport, called explicitly by lifecycle controllers.
  * connectNativeAppServer({socketPath}) connects to an existing Unix control socket,
- * performs RFC6455 Upgrade and JSON-RPC initialization, and returns request/close.
+ * performs RFC6455 Upgrade and JSON-RPC initialization, and returns request/close
+ * plus explicitly registered server-request handlers for controller-owned tools.
+ * Other server requests still require the caller's handler; none auto-approve.
  * This helper never starts a daemon or creates agents: effects depend on the exact
  * RPC method supplied by its caller. Request deadlines and frame sizes are bounded.
  */
@@ -73,6 +75,7 @@ export async function connectNativeAppServer({ socketPath, timeoutMs = 15000, ma
   const accept = createHash('sha1').update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
   let buffer = Buffer.alloc(0), upgraded = false, closed = false, sequence = 0, fragments = null, fragmentBytes = 0;
   const pending = new Map();
+  const handlers = new Map();
   let resolveUpgrade, rejectUpgrade;
   const upgrade = new Promise((resolve, reject) => { resolveUpgrade = resolve; rejectUpgrade = reject; });
   const timer = setTimeout(() => fail(new Error('Native app-server handshake timed out')), timeoutMs);
@@ -83,7 +86,12 @@ export async function connectNativeAppServer({ socketPath, timeoutMs = 15000, ma
   }
   function message(payload) {
     const body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(payload));
-    routeNativeRpcMessage(body, { pending, onServerRequest, sendResponse(response) {
+    routeNativeRpcMessage(body, { pending, onServerRequest: request => {
+      const handler = handlers.get(request.method);
+      if (handler) return handler(request);
+      if (typeof onServerRequest === 'function') return onServerRequest(request);
+      throw new Error('Native server request requires a trusted controller handler');
+    }, sendResponse(response) {
       if (!closed) socket.write(encodeFrame(JSON.stringify(response)));
     } }).catch(fail);
   }
@@ -136,5 +144,12 @@ export async function connectNativeAppServer({ socketPath, timeoutMs = 15000, ma
     await request('initialize', { clientInfo, capabilities: { experimentalApi: true } });
     socket.write(encodeFrame(JSON.stringify({ method: 'initialized' })));
   } catch (error) { fail(error); throw error; }
-  return { request, close() { if (!closed) { socket.write(encodeFrame(Buffer.alloc(0), 8)); fail(new Error('Native transport closed by caller')); } } };
+  return { request,
+    registerServerRequestHandler(method, handler) {
+      if (closed || typeof method !== 'string' || typeof handler !== 'function' || handlers.has(method))
+        throw new Error('Native server handler registration invalid or already owned');
+      handlers.set(method, handler);
+      return () => { if (handlers.get(method) === handler) handlers.delete(method); };
+    },
+    close() { if (!closed) { socket.write(encodeFrame(Buffer.alloc(0), 8)); fail(new Error('Native transport closed by caller')); } } };
 }

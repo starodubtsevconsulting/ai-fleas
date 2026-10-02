@@ -2,7 +2,9 @@
  * Purpose: derive readiness evidence only from a matching pending initialization turn.
  * Caller: agent-bootstrap-hook.mjs on the exact registry-keyed task's prompt/Stop events.
  * Inputs: trusted pending binding and host event; output: completion fields or null.
- * Effects: none. This proves prompt/turn/token matching, not source-loading or project identity;
+ * Effects: none. Ephemeral INIT also requires the exact controller-recorded passed
+ * audit and exited-worker receipt. This proves receipt/prompt/turn/token matching,
+ * not source-loading or project identity;
  * the lifecycle controller must independently verify the live task and its scope.
  */
 import { createHash } from 'node:crypto';
@@ -26,5 +28,13 @@ export function initializationCompletion(binding, event, now = new Date()) {
       binding.initialization.turnId !== event.turn_id ||
       typeof binding.initialization.readinessToken !== 'string' || !binding.initialization.readinessToken ||
       String(event.last_assistant_message ?? '').trim() !== binding.initialization.readinessToken) return null;
+  if (binding.initialization.auditTransport === 'ephemeral-process') {
+    const audit = binding.initialization.audit;
+    if (audit?.transport !== 'ephemeral-process' || audit.turnId !== event.turn_id ||
+        audit.generation !== binding.generation || audit.workerClosed !== true || audit.exitCode !== 0 ||
+        audit.verdict !== 'pass' || typeof audit.callId !== 'string' || !audit.callId ||
+        typeof audit.workerThreadId !== 'string' || !audit.workerThreadId ||
+        !Number.isFinite(Date.parse(audit.completedAt))) return null;
+  } else if (binding.initialization.auditTransport != null && binding.initialization.auditTransport !== 'native-child') return null;
   return { completedTurnId: event.turn_id, completedAt: now.toISOString() };
 }

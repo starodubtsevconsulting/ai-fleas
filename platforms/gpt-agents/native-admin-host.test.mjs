@@ -30,6 +30,25 @@ function fixture() {
   return { host: buildNativeAdminHost(client, options), client, options, calls, binding, task, audit };
 }
 const request = { role: 'admin', platform: 'codex-app', scope: { projects: [{ id: 'records', savedProjectId: 'project', root: '/fictional/data' }] } };
+test('ephemeral readiness correlates exact native call and rejects persistent children or forged receipt', async () => {
+  for (const mutation of [null, 'child', 'call', 'receipt', 'verdict']) {
+    const f = fixture(), original = f.client.request;
+    f.client.request = async (method, params) => method === 'thread/list'
+      ? { data: params.archived ? [] : mutation === 'child' ? [f.task, f.audit] : [f.task] }
+      : original(method, params);
+    f.binding.generation = 1;
+    const audit = { transport: 'ephemeral-process', turnId: 'turn', generation: 1, callId: 'exact-call',
+      workerThreadId: 'utility', workerClosed: true, exitCode: 0, verdict: 'pass', completedAt: '2026-01-01T00:00:00Z' };
+    Object.assign(f.binding.initialization, { auditTransport: 'ephemeral-process', audit });
+    f.task.turns[0].items[1] = { type: 'dynamicToolCall', tool: 'ai_fleas_init_audit', id: 'exact-call',
+      status: 'completed', success: true, contentItems: [{ type: 'inputText', text: JSON.stringify({ audit, result: { verdict: 'pass' } }) }] };
+    if (mutation === 'call') f.task.turns[0].items[1].id = 'wrong';
+    if (mutation === 'receipt') audit.workerThreadId = 'forged';
+    if (mutation === 'verdict') audit.verdict = 'blocked';
+    if (mutation) await assert.rejects(f.host.wait({ taskId: 'task', timeoutMs: 1 }), /ADMIN_INIT_EPHEMERAL_/);
+    else assert.equal((await f.host.wait({ taskId: 'task', timeoutMs: 1 })).token, 'ADMIN_READY');
+  }
+});
 test('class owns host dependencies and independent staged creation state', async () => {
   const f = fixture();
   const first = new NativeAdminHost(f.client, f.options);
