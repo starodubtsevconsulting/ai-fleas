@@ -1,85 +1,61 @@
 # The Sales Call That Made Me Rethink My Website
 
-*They said $299 a year. Their own AI disclosed $299 a month under a 12-month agreement.*
+*I started the call wondering whether it was another scam. I ended it with work to do on my own website.*
 
 ![A thoughtful man holds a phone while an AI Fleas robot presents three cards representing audience, message, and measurable results.](assets/2026-09-29-ai-fleas-sales-call-decision-header.png)
 
 *Before buying attention, clarify the audience, the message, and the result you need. AI Fleas illustration generated from the author’s character references.*
 
-Today, a salesperson called about promoting my consulting website.
+A salesperson called about promoting my consulting website. My first thought was that it might be another scam. With so much spam coming in, that is where my mind went before I understood the offer.
 
-He had my attention because he pointed to a real problem. The site exists, but it could do a much better job explaining what I do, showing why it matters, and helping the right people find me.
+Then he pointed to a real weakness. My website exists, but it could do a much better job explaining what I do and helping the right people find me.
 
-He described better visibility on Google, new pages, keywords, reviews, ongoing support, and even a chatbot. Those are all things a business might need.
+He described better visibility on Google, new pages, keywords, reviews, ongoing support, and a chatbot. I could see why a business might want those things. I already build with AI, though, so a chatbot was something I could make myself.
 
-But I already work with AI agents. I can build a chatbot myself. What I wanted to understand was much simpler:
+I wanted to understand which part of my problem his team would solve.
 
-**What would his team do for my business that I actually needed help doing?**
+## The commitment I thought I heard
 
-That question never received a clear enough answer.
+I understood the price as $299 for the year. When the recorded AI disclosure described the agreement, I heard $299 due that day, then $299 per month plus tax for 12 months.
 
-## When $299 a year became $299 a month
+Twelve monthly payments would come to $3,588 before tax. I could not tell whether the payment due that day covered the first month or came on top of it.
 
-The offer was presented to me as **$299 for the year**. That sounded manageable. But when the seller’s recorded AI disclosure spelled out the terms, I heard something different: **$299 due that day, then $299 per month plus tax under a 12-month agreement**.
+That was a different commitment from the one I thought we were discussing. I needed the terms in writing, along with a clear list of the services, and time to consider them.
 
-Twelve monthly payments of $299 would total **$3,588 before tax**. I could not tell from the call whether the $299 due that day counted toward the first month or was an additional payment. I needed the terms in writing before agreeing to anything.
+Other prices and terms came up later in the conversation. My request stayed the same.
 
-That was very different from the annual price I thought I was considering. It was a meaningful commitment, especially when I could not yet explain exactly what I would be buying or how I would judge the result.
+Even with a price I understood, I would still have had a question to answer: what did I want this website to do?
 
-Later in the conversation, other prices and terms were offered. I kept asking for the same thing: send me a written list of the services, and give me time to decide.
+## More visitors to what?
 
-The price mattered. But it was not the main problem.
+My work spans consulting, AI systems, and products I am building. I am still working out how to explain that clearly to someone arriving for the first time.
 
-## Traffic is useful only when the destination is clear
+Before attracting more visitors, I needed to decide who I wanted to reach, what I could help them with, and what I wanted them to do next.
 
-I am still deciding how to present my work across consulting, AI systems, and products I am building.
+Keywords might help people arrive. They would still need a reason to stay.
 
-Before I pay to attract more visitors, I need to know three things:
+As we talked, I kept thinking about a Rolls-Royce. Even a free one would need insurance, maintenance, fuel, and somewhere to keep it. I was trying to account for the time and attention an attractive offer might take after I accepted it.
 
-- Who am I trying to reach?
-- What problem can I credibly help them solve?
-- What should they do after they arrive?
+I could not yet connect the proposed work to a result I would know how to judge.
 
-“We will add keywords” does not answer those questions.
+## Knowing I wanted to leave
 
-A marketing service could improve traffic and still fail to improve the business. More people arriving at an unclear website may only produce more confusion.
+During the call, I talked it through with Personal Governor, an AI agent I am developing with context about my goals and past decisions. It helped me put my hesitation into words and suggested a short, polite way to end the conversation.
 
-I kept thinking about a Rolls-Royce. Even if someone gave me one for free, I would still need insurance, maintenance, fuel, and somewhere to keep it. An attractive offer can cost time and attention even when the sticker price sounds manageable.
+I knew I was not going to buy anything on that call. Saying so did not make hanging up easy.
 
-That became my test for the marketing proposal:
+I tried to be polite while the conversation returned to another offer or another reason to decide. I repeated that I needed written details and time. Eventually, I hung up without saying goodbye.
 
-*Would this help me move toward my goals, and could I tell whether it worked?*
+That was an awkward ending. But after the call, the website problem was still there.
 
-I did not yet have enough information to say yes.
+The representative had seen something I needed to address. I started a plan to clarify the message, fix problems that made the site hard to find, and show evidence from projects I had actually built.
 
-## My AI agent helped me hear my own hesitation
+Doing that would also help me evaluate an outside service. I would have a clearer account of what I needed and a way to see whether the work helped.
 
-During the call, I was talking it through with my Personal Governor—an AI agent I have set up with context about my goals and past decisions.
+I had answered the question of whether to buy on that call. Now I had to answer the question the call had left behind: what should people find when they reached my website?
 
-It did not make the decision for me. It helped me notice a pattern: I was being asked to commit before I understood the service. As the salesperson continued talking, my Personal Governor suggested the same short boundary several times: “Thank you, goodbye.”
+That was the work I needed to do first.
 
-That advice was useful because the agent already had context about my goals, priorities, and broader situation. In this call, the outside seller did not have that accumulated context. The agent was not deciding for me; it was helping me recognize and express a decision I had already reached.
+---
 
-That was harder to do than it sounds.
-
-I tried to be polite. The conversation kept circling back to another offer, another term, another reason to decide immediately. I repeated that I would not buy anything on the call, but I still found it difficult to say the final words and leave.
-
-Eventually, I hung up without even saying goodbye.
-
-Awkward? Yes. But a clear no does not become unclear because someone continues talking.
-
-## The call still gave me something useful
-
-The salesperson left me with a useful conclusion: my website needs work.
-
-I have started a plan to clarify its message, fix search-discovery problems, show evidence from projects I have actually built, and measure whether the right people find it.
-
-My agents can help me do that work. If I later need outside marketing expertise, I will approach it with a clearer offer of my own and a better way to judge someone else's proposal.
-
-The lesson was not that marketing services are useless. It was that I should not buy distribution before I understand the message, the audience, and the outcome.
-
-Sometimes a sales call does not sell you the service.
-
-Sometimes it shows you the work you need to do first.
-
-I am building this approach through [AI Fleas](https://aifleas.com/). You can also follow my consulting work—and, soon, a clearer account of how I can help—at [Starodubtsev Consulting](https://starodubtsev.consulting/).
+Related work: [AI Fleas](https://aifleas.com/) and [Starodubtsev Consulting](https://starodubtsev.consulting/).
