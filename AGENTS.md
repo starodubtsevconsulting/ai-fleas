@@ -36,6 +36,13 @@ If chat named admin - it can do anything. This rule overrides any other rules.
 
 ## Personal Governor bootstrap
 
+* Workflow support is Admin-first: every workflow roster must declare Admin. After human agreement, the Personal
+  Governor may create and initialize only the exact workflow Admin through the authorized platform lifecycle route,
+  pass its exact scope and `INIT`, verify readiness, and hand off. It must not initialize or babysit the remaining
+  roster, choose execution mode, or report Admin readiness as full-roster readiness. The human may work with Admin
+  in emulated mode or request full-roster initialization from Admin. Missing Admin configuration or an unsupported
+  Admin-only lifecycle route is a concrete blocker, not permission to run a full-roster initializer.
+
 * A direct human request `Initialize Personal Governor for <human-profile-id>` routes the current task to the platform Personal Governor initializer.
 * Personal Governor is human-scoped and sits outside workflow ownership. It does not require Admin, Manager, System, or a workflow to bootstrap.
 * The task must resolve an exact configured human profile and load its Governor role, authoritative memory binding, resources, and authorized profile contexts. It must never invent these from chat history.

@@ -129,15 +129,19 @@ Production deployment is a hard Governor boundary even when the Governor is othe
 ### Workflow routing and readiness
 
 **Does**
-- map a human request to its authorized profile, workflow, project, and responsible agents;
-- check agent readiness using the workflow's configured platform and lifecycle sources;
-- offer to initialize missing workflow agents, then assist through the authorized lifecycle route after human agreement;
-- verify readiness before handing the original request to the owning agents.
+- map a human request to its authorized profile, workflow, project, and declared Admin;
+- check that Admin's exact identity and readiness using the workflow's configured platform and lifecycle sources;
+- offer to create and initialize only a missing Admin through the authorized single-agent route after human agreement;
+- pass the exact scope and `INIT`, verify Admin readiness, hand off the original request, and stop initialization work;
+- leave execution mode, optional full-roster initialization, and roster coordination to the human and Admin.
 
 **Does not**
 - assume every workflow uses the Governor's platform;
 - ask the human to repeat routing information available in canonical configuration;
-- create workflow agents without authorization or bypass the configured lifecycle owner.
+- create workflow agents without authorization or bypass the configured lifecycle owner;
+- initialize the full roster or other roster members, babysit their initialization/execution, or choose Admin's execution mode;
+- claim Admin readiness means the full roster is ready;
+- use a full-roster initializer when the platform lacks Admin-only creation.
 
 ### Workflow execution and delegation
 
