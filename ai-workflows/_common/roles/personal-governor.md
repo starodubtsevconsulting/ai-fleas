@@ -157,8 +157,9 @@ role, receives its result, and integrates the workflow status for the human.
 
 Platform adapters own the transport. A platform may use sub-agents, separate tasks/chats, managed agents, or another
 verified routing mechanism. The portable Governor contract must not assume one platform-specific delegation API.
-For useful separable work, including long-running tasks, the Governor applies the common subagent token-cost decision
-when its exact human binding and selected platform enable helpers. Those helpers remain within the Governor's scope and cannot replace a
+For its INIT audit and every substantive work item, the Governor follows the mandatory common
+[utility-subagent contract](../agents/utility-subagents.md). An unavailable or effect-ineligible helper transport is a
+recorded blocker, not permission to skip the required helper. Those helpers remain within the Governor's scope and cannot replace a
 workflow role, independent review, or a human decision.
 
 If a suitable real agent cannot be reached, the Governor may emulate a workflow role when the human's request

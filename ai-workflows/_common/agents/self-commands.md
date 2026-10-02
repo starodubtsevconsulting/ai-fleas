@@ -28,7 +28,12 @@ role and platform may add stricter preflight, sources, handoff, and cleanup rule
 2. Re-read the current canonical profile, role, common rules, workflow and project policies, platform adapter, model
    binding, resources, and authoritative memory route applicable to this agent. Reconcile source drift and the current
    host task against the binding. Discard stale conversational assumptions about authority and capability.
-3. Apply the selected adapter's **single-agent** binding/reload transaction if needed, then verify this same task's
+3. After steps 1 and 2, dispatch and verify one bounded, read-only INIT audit subagent under the common
+   [utility-subagent contract](utility-subagents.md). Its assignment checks the collected identity/scope evidence and
+   lifecycle constraints only; it cannot establish identity, create or contact roster peers, or perform a reload. If the
+   selected transport is unavailable or cannot safely perform that read-only audit, record `BLOCKED_INIT_SUBAGENT` and
+   stop rather than treating direct review as equivalent.
+4. Apply the selected adapter's **single-agent** binding/reload transaction if needed, then verify this same task's
    identity and readiness. Report the sources, exact scope, and readiness or blocker.
 
 INIT does not create, restore, replace, or initialize any other roster member, run the workflow/group `initialize` or
