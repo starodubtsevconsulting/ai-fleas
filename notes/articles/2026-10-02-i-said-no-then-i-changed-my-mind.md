@@ -36,6 +36,10 @@ I did not need to assign a financial value to that possibility. I needed to reco
 
 ## The third conversation: I finally saw the alternative
 
+![The human speaks with an anonymous illustrated caller by phone while the AI Fleas robot listens beside him and gives a thumbs-up.](assets/2026-10-02-outsourcing-phone-call-concept-v1.png)
+
+*A different conversation, with room to reconsider. AI-generated illustration; the other caller is fictional.*
+
 In the third conversation, the representative screen-shared the workflow and integrations behind the service. I could see more concretely what they proposed to manage.
 
 Meanwhile, I had spent roughly two days working on my own online visibility: clarifying the website, presenting my products, and using AI to help build the machinery around discovery and promotion.
