@@ -46,6 +46,11 @@ platforms need their own supported lifecycle route; there is no automatic fallba
 Use exported `initializeNativeAdmin(request, options)` from
 `platforms/gpt-agents/initialize-native-admin.mjs`, or the six-port
 `initializeWorkflowAdmin(preparedPlan, host)` contract documented in the procedure.
+For human-approved agent use, the reusable CLI is
+`node platforms/gpt-agents/initialize-admin-command.mjs --request REQUEST.json`
+or `--request -` for stdin. It discovers trusted native runtime/hook paths and
+supplies the exact-scope approval verifier; checking the caller's human approval
+attestation remains a controller-followed rule, not an automated human-proof check.
 There is no effectful `launcher.mjs initialize-admin` CLI. Its `preflight-admin`
 command only builds and validates a plan. Hook installation does not automatically
 run either controller API.
@@ -61,6 +66,10 @@ tool call. Missing executable/tool capability blocks without spawning another ro
 or switching platforms. Installed readiness code must match the reviewed source;
 changing source alone does not deploy the plugin.
 
+For a newly created verified Admin only, the native handoff archives/unarchives
+the stopped exact INIT chat, preserving identity/history and closing its native
+writer before human ownership. Reuse does not run this cycle; no resume or later
+message is sent. This is a supported lifecycle effect, not a daemon restart.
 No automatic END/archive integration is added by this audit transport. Successful
 worker exit, parent controller release, and human UI archival are separate checks.
 

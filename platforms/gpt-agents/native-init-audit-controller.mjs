@@ -36,7 +36,7 @@ export class NativeInitAuditController {
         binding.generation !== this.#plan.bootstrapPayload.binding.generation ||
         !isDeepStrictEqual(normalizeAdminScope(binding.scope), normalizeAdminScope(this.#plan.scope)))
       fail('INIT_AUDIT_TASK_AUTHORIZATION_INVALID');
-    this.#tasks.set(taskId, { generation: binding.generation });
+    this.#tasks.set(taskId, { generation: binding.generation, authorizedAt: Date.now() });
   }
 
   #readBinding(taskId, turnId) {
@@ -46,6 +46,9 @@ export class NativeInitAuditController {
         binding.platformAdapter !== 'codex-app' || binding.generation !== authorized.generation ||
         binding.initialization?.auditTransport !== 'ephemeral-process' ||
         binding.initialization.turnId !== turnId || !binding.initialization.nonce ||
+        !Number.isFinite(Date.parse(binding.registeredAt)) ||
+        Date.parse(binding.registeredAt) < authorized.authorizedAt - 1000 || Date.parse(binding.registeredAt) > Date.now() ||
+        Object.values(registry.instances).filter(item => item.initialization?.nonce === binding.initialization.nonce).length !== 1 ||
         !Number.isFinite(Date.parse(binding.initialization.expiresAt)) ||
         Date.parse(binding.initialization.expiresAt) <= Date.now() ||
         !isDeepStrictEqual(binding.initialization.sources, this.#plan.bootstrapPayload.binding.initialization.sources) ||
@@ -68,7 +71,7 @@ export class NativeInitAuditController {
     if (this.#calls.has(params.threadId) || binding.initialization.audit) fail('INIT_AUDIT_DUPLICATE_FORBIDDEN');
     this.#calls.add(params.threadId); // reserve before any await; uncertainty never authorizes resend
     const parent = (await this.#client.request('thread/read', { threadId: params.threadId, includeTurns: true }))?.thread;
-    if (parent?.id !== params.threadId || parent.projectId !== this.#plan.scope.projects[0].savedProjectId ||
+    if (parent?.id !== params.threadId || parent.status?.type !== 'active' || parent.projectId !== this.#plan.scope.projects[0].savedProjectId ||
         parent.cwd !== this.#plan.scope.projects[0].root ||
         parent.turns?.filter(turn => turn.id === params.turnId && turn.status === 'inProgress').length !== 1)
       fail('INIT_AUDIT_PARENT_TURN_UNVERIFIED');
@@ -83,11 +86,18 @@ export class NativeInitAuditController {
         bootstrapAuthorization: this.#plan.approval, canonicalSourceReferences: this.#plan.bootstrapPayload.binding.initialization.sources,
         contracts, parentPreflightSummary: args.preflightSummary,
         controllerVerifiedHostEvidence: {
-          task: { id: parent.id, savedProjectId: parent.projectId, cwd: parent.cwd },
+          task: { id: parent.id, savedProjectId: parent.projectId, cwd: parent.cwd, status: parent.status },
+          host: { capability: 'trusted native app-server client used for this exact task creation/read',
+            savedProjectIdentityVerified: true, activeTaskCatalogVerifiedBeforeSubmission: true },
+          checkout: { observedCwd: parent.cwd, authorizedProjectRoots: this.#plan.scope.projects.map(project => project.root),
+            exactRootMatch: true, completeAttachedRootPreflightVerified: true },
           initializationTurn: { id: params.turnId, status: 'inProgress' },
           exactBinding: { taskId: params.threadId, agentId: binding.agentId, platformAdapter: binding.platformAdapter,
             status: binding.status, generation: binding.generation, scope: binding.scope },
           oneUsePermit: { noncePresent: true, expiresAt: binding.initialization.expiresAt,
+            observedAt: new Date().toISOString(), unexpiredAtObservation: true,
+            nonceUniqueInBindingRegistry: true, freshRegistrationForExactGeneration: true,
+            registeredAt: binding.registeredAt,
             consumedByTurnId: binding.initialization.turnId, startedAt: binding.initialization.startedAt,
             auditCallReserved: true, previousAuditAbsent: true },
           canonicalPreflight: 'Prepared scope verified against the complete native saved-project attached roots; exact parent read matched the pending binding and current turn.' },

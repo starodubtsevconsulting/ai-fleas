@@ -12,6 +12,9 @@ The initialization machinery is composed from responsibility-specific objects:
 - `WorkflowAdminInitializer` owns the six-port host and executes the fail-closed creation/reuse transaction.
 - `NativeAdminLifecycle` coordinates native initialization, explicit retry, submission, and controller release.
 - `AppAdminLifecycle` coordinates explicitly selected owning-app submission and retry.
+- `NativeInitAuditController` authenticates the one-use dynamic audit call and records its exited-worker evidence.
+- `EphemeralInitAudit` owns the isolated one-shot inference process and effect limits.
+- `AdminControllerCommand` discovers trusted native runtime paths and invokes the supported Admin-only transaction.
 
 Constructors do not perform host or filesystem IO. Call the object's operation
 explicitly to perform its documented effects. Existing named function exports are
@@ -35,8 +38,19 @@ not add a platform selection to the portable roster. Financial Insights is the
 tested example, not evidence that every existing roster already meets these
 prerequisites or that other platform adapters implement this transaction.
 
-The effectful controller API is the exported `initializeNativeAdmin(request, options)`
-in `initialize-native-admin.mjs`; it is not a standalone executable command. For a
+The reusable effectful command is
+`node platforms/gpt-agents/initialize-admin-command.mjs --request REQUEST.json`
+(use `--request -` to read JSON from stdin without a request file). Governor may
+invoke it only after the exact direct human agreement described above. It discovers
+the installed executable, native control socket, complete saved-project scope, and
+trusted hook location; it never installs plugins or restarts the app. Its JSON
+`authorization` is the caller's attestation of the human request, not cryptographic
+proof. Checking that the human actually agreed remains the Governor/controller's
+responsibility. Inspect both `status` and `controllerReleased`; a ready token alone
+does not prove handoff or UI archival.
+
+The injectable controller API remains `initializeNativeAdmin(request, options)`
+in `initialize-native-admin.mjs`. For a
 fictional `example` profile and `sample-workflow`, the request shape is:
 
 ```js
@@ -85,11 +99,20 @@ any persistent descendant. A worker failure or blocked verdict cannot become
 an owning child-close operation and verified release; neither route falls back.
 Ephemeral same-task retry is currently unsupported and stops before delivery.
 
+Newly created native Admin handoff also verifies a stopped, completed exact INIT,
+then uses `thread/archive` to close the owning native writer and `thread/unarchive`
+to restore the same initialized chat for the human. It preserves the task ID,
+binding and history, sends no message, and does not resume the chat. Verified
+`notLoaded` state and complete loaded-catalog exclusion are required afterward.
+An existing ready Admin is reused without this cycle. Failure is a concrete handoff
+blocker with the exact task ID, not permission to restart or delete anything.
+
 This removes the INIT audit's persistent child/writer dependency. It does **not**
 implement automatic END, guarantee UI archival, or repair a shared-daemon writer
 held by another chat. Report controller-release and archive evidence separately.
 
-There is no effectful `launcher.mjs initialize-admin` command. The launcher offers
+There is no effectful `launcher.mjs initialize-admin` command; use the separate
+`initialize-admin-command.mjs` above. The launcher offers
 only `preflight-admin`, which validates/builds a plan without creating or messaging
 a task. Do not substitute a full-roster launcher or compose an ad-hoc task creation
 and readiness claim. A controller without the required host ports must report the

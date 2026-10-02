@@ -4,7 +4,10 @@
  * NativeAdminLifecycle owns dependencies; named exports remain compatibility APIs.
  * Construction performs no IO; only explicit initialize/retry/submit/release calls act.
  * Effects: native discovery; at most one Admin create and INIT; generic binding
- * registration and an exact INIT-only ephemeral utility audit. The trusted caller
+ * registration and an exact INIT-only ephemeral utility audit. Newly created
+ * verified Admin handoff archives/unarchives that stopped chat to release its writer
+ * without resuming or messaging it. Existing Admin reuse does not perform this cycle.
+ * The trusted caller
  * supplies auditExecutable (absolute installed executable); no platform fallback.
  * No plugin deployment, daemon restart, roster, or later messages.
  */
@@ -211,10 +214,49 @@ export class NativeAdminLifecycle {
         return { ...result, ...cleanup };
       }
       // A human-facing Admin must not remain leased by this controller's client.
-      const release = await this.release(result.taskId,plan.scope.projects[0].savedProjectId);
-      return { ...result, ...release };
+      try {
+        const release = result.mode === 'created' && audit
+          ? await this.#handoffAfterInitialization(result.taskId, plan.scope)
+          : await this.release(result.taskId,plan.scope.projects[0].savedProjectId);
+        return { ...result, ...release };
+      } catch (error) {
+        return { status: 'blocked', reason: error.message, orphanTaskId: result.taskId,
+          controllerReleased: false };
+      }
     } catch (error) { return { status: 'blocked', reason: error.message }; }
     finally { unregisterAudit?.(); }
+  }
+
+  /** Native archive closes the stopped writer; unarchive preserves the exact
+   * initialized chat for human ownership without resuming or sending a message.
+   * Used only for this connection's newly created, verified ephemeral INIT.
+   */
+  async #handoffAfterInitialization(taskId, scope) {
+    const client = this.#client, { pluginData, io = fs } = this.#options;
+    const expectedProjectId = scope.projects[0].savedProjectId;
+    const binding = JSON.parse(io.readFileSync(path.join(pluginData, 'agent-bindings.json'), 'utf8')).instances?.[taskId];
+    const init = binding?.initialization;
+    if (binding?.status !== 'active' || binding.agentId !== 'admin' || binding.platformAdapter !== 'codex-app' ||
+        JSON.stringify(normalizeAdminScope(binding.scope)) !== JSON.stringify(normalizeAdminScope(scope)) ||
+        init?.auditTransport !== 'ephemeral-process' || init.audit?.verdict !== 'pass' ||
+        init.audit.workerClosed !== true || init.audit.exitCode !== 0 ||
+        init.audit.turnId !== init.completedTurnId || init.audit.generation !== binding.generation)
+      throw new Error('ADMIN_HANDOFF_BINDING_UNVERIFIED');
+    const read = await client.request('thread/read', { threadId: taskId, includeTurns: true });
+    const task = read?.thread, turn = task?.turns?.at(-1);
+    if (task?.id !== taskId || task.projectId !== expectedProjectId || task.cwd !== scope.projects[0].root ||
+        !['idle', 'notLoaded'].includes(task.status?.type) || task.turns.some(item => item.status === 'inProgress') ||
+        turn?.id !== init.completedTurnId || turn.status !== 'completed' ||
+        turn.items?.filter(item => item.type === 'agentMessage').at(-1)?.text?.trim() !== 'ADMIN_READY')
+      throw new Error('ADMIN_HANDOFF_STOPPED_INIT_UNVERIFIED');
+    await client.request('thread/archive', { threadId: taskId });
+    const archived = (await client.request('thread/read', { threadId: taskId, includeTurns: false }))?.thread;
+    if (archived?.id !== taskId || archived.projectId !== expectedProjectId || archived.status?.type !== 'notLoaded')
+      throw new Error('ADMIN_HANDOFF_ARCHIVE_RELEASE_UNVERIFIED');
+    const restored = (await client.request('thread/unarchive', { threadId: taskId }))?.thread;
+    if (restored?.id !== taskId || restored.projectId !== expectedProjectId || restored.status?.type !== 'notLoaded')
+      throw new Error('ADMIN_HANDOFF_UNARCHIVE_UNVERIFIED');
+    return { ...await this.release(taskId, expectedProjectId), handoffStrategy: 'verified-native-archive-cycle' };
   }
 
   /** Release our failed creation only after fresh exact idle/terminated evidence. */

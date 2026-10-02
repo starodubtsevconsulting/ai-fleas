@@ -10,7 +10,7 @@ import { NativeInitAuditController } from './native-init-audit-controller.mjs';
 function fixture() {
   const scope = { kind: 'workflow', profileId: 'example', workflowId: 'sample', logicalProjectId: 'example-sample',
     savedProjectId: 'project', runtimeScope: 'example-sample', projects: [{ id: 'records', savedProjectId: 'project', root: '/fictional/data' }] };
-  const binding = { agentId: 'admin', platformAdapter: 'codex-app', status: 'pending', generation: 1, scope,
+  const binding = { agentId: 'admin', platformAdapter: 'codex-app', status: 'pending', generation: 1, scope, registeredAt: new Date().toISOString(),
     initialization: { auditTransport: 'ephemeral-process', sources: [{ id: 'rules', ref: '/fictional/rules' }],
       nonce: 'exact-nonce', turnId: 'turn', expiresAt: '2099-01-01T00:00:00Z' } };
   const registry = { instances: { task: binding } }, writes = [], runs = [];
@@ -18,7 +18,7 @@ function fixture() {
   const io = { readFileSync: ref => ref.endsWith('agent-bindings.json') ? JSON.stringify(registry) : 'fictional canonical contract',
     writeFileSync: (ref, value) => { serialized = value; writes.push(ref); },
     renameSync: () => { Object.assign(registry, JSON.parse(serialized)); } };
-  const parent = { id: 'task', projectId: 'project', cwd: '/fictional/data', turns: [{ id: 'turn', status: 'inProgress' }] };
+  const parent = { id: 'task', status: { type: 'active' }, projectId: 'project', cwd: '/fictional/data', turns: [{ id: 'turn', status: 'inProgress' }] };
   const client = { request: async method => { assert.equal(method, 'thread/read'); return { thread: parent }; } };
   const workerResult = { result: { verdict: 'pass', findings: [] }, workerThreadId: 'utility', workerClosed: true, exitCode: 0 };
   const worker = { run: async input => { runs.push(input); assert.equal(writes.length, 0); return workerResult; } };
@@ -58,6 +58,9 @@ test('invalid call identity, caller parameters, permit and canonical sources sto
     f => { delete f.registry.instances.task.initialization.expiresAt; },
     f => { f.registry.instances.task.initialization.expiresAt = '2000-01-01T00:00:00Z'; },
     f => { f.registry.instances.task.initialization.sources = []; },
+    f => { f.registry.instances.task.registeredAt = '2000-01-01T00:00:00Z'; },
+    f => { f.registry.instances.other = structuredClone(f.registry.instances.task); },
+    f => { f.parent.status.type = 'idle'; },
     f => { f.parent.projectId = 'foreign'; }, f => { f.parent.turns[0].status = 'completed'; },
   ]) {
     const f = fixture(); mutate(f);
