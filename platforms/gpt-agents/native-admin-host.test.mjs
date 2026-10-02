@@ -4,7 +4,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildNativeAdminHost } from './native-admin-host.mjs';
+import { buildNativeAdminHost, NativeAdminHost } from './native-admin-host.mjs';
 function fixture() {
   const calls = [];
   const binding = { agentId: 'admin', platformAdapter: 'codex-app', status: 'active', initialization: { readinessToken: 'ADMIN_READY', completedTurnId: 'turn', completedAt: 'date' } };
@@ -26,6 +26,19 @@ function fixture() {
   return { host: buildNativeAdminHost(client, options), client, options, calls, binding, task };
 }
 const request = { role: 'admin', platform: 'codex-app', scope: { projects: [{ id: 'records', savedProjectId: 'project', root: '/fictional/data' }] } };
+test('class owns host dependencies and independent staged creation state', async () => {
+  const f = fixture();
+  const first = new NativeAdminHost(f.client, f.options);
+  const second = new NativeAdminHost(f.client, f.options);
+  assert.ok(f.host instanceof NativeAdminHost);
+  assert.equal(first.stagedCreates, undefined);
+  assert.equal(second.stagedCreates, undefined);
+  assert.equal(first.bindings, undefined);
+  assert.equal(first.tasks, undefined);
+  assert.equal((await first.catalog()).complete, true);
+  assert.equal((await first.wait({ taskId: 'task', timeoutMs: 1 })).token, 'ADMIN_READY');
+  assert.throws(() => new NativeAdminHost(null, f.options), /CONFIGURATION_INVALID/);
+});
 test('complete catalogs include archived enumeration and generic receipt identity', async () => {
   const f = fixture(), catalog = await f.host.catalog();
   assert.equal(catalog.complete, true);

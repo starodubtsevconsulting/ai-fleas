@@ -63,109 +63,124 @@ function verifyAdmin(catalog, binding, scope, completion) {
     fail('ADMIN_READINESS_UNVERIFIED');
 }
 
-export async function initializeWorkflowAdmin(input, host) {
-  let createdTaskId;
-  try {
-    if (ports.some(p => typeof host?.[p] !== 'function')) fail('ADMIN_ONLY_HOST_PORT_UNSUPPORTED');
-    const { profile, workflow, registry, manifest, adapter, approval, sources } = input;
-    const scope = normalizeAdminScope(input.scope);
-    const canonicalWorkflows = profile?.workflows?.filter(w => w.path === workflow?.path) || [];
-    if (profile?.name !== scope.profileId || manifest?.workflowId !== scope.workflowId ||
-        canonicalWorkflows.length !== 1 || !exact(canonicalWorkflows[0], workflow) ||
-        workflow.path !== scope.workflowId + '.workflow.md')
-      fail('CANONICAL_SCOPE_MISMATCH');
-    const admin = manifest.initializer;
-    if (admin?.agentId !== 'admin' || admin.roleDefinition !== '../_common/roles/admin.md' ||
-        admin.lifecycle !== 'persistent-control' || admin.humanFacing !== 'human-owned' ||
-        admin.communicationMode !== 'direct-human-administration-only' ||
-        admin.readinessToken !== 'ADMIN_READY' || manifest.agents?.some(a => a.agentId === 'admin'))
-      fail('CANONICAL_ADMIN_DECLARATION_MISSING');
-    selectLifecycleRole(profile, workflow, registry, manifest, adapter, 'admin');
-    if (adapter.workflow !== scope.workflowId) fail('ADAPTER_WORKFLOW_MISMATCH');
-    if (!sources || ['profile', 'workflow', 'manifest', 'adapter', 'adminContract', 'selfCommands', 'lifecycle', 'platformContract', 'rules', 'registry', 'initializer'].some(k =>
-      typeof sources[k] !== 'string' || !sources[k])) fail('CANONICAL_SOURCE_REFERENCES_MISSING');
-    if (!Array.isArray(sources.projectManifests) || sources.projectManifests.length !== scope.projects.length ||
-        sources.projectManifests.some(p => typeof p !== 'string' || !p)) fail('PROJECT_SOURCE_REFERENCES_MISSING');
-    const payload = input.bootstrapPayload;
-    if (payload?.binding?.agentId !== 'admin' || payload.binding.platformAdapter !== 'codex-app' ||
-        !exact(normalizeAdminScope(payload.binding.scope), scope) ||
-        payload.binding.initialization?.readinessToken !== 'ADMIN_READY' ||
-        payload.prompt !== buildAdminInitPrompt(payload.binding.scope)) fail('ADMIN_BOOTSTRAP_PAYLOAD_INVALID');
-    const expectedSources = [
-      ['portable-role', sources.adminContract], ['portable-manifest', sources.manifest], ['platform-adapter', sources.adapter],
-      ['work-profile', sources.profile], ['platform-registry', sources.registry], ['workflow', sources.workflow],
-      ['lifecycle', sources.lifecycle], ['self-commands', sources.selfCommands], ['admin-only-initializer', sources.initializer],
-      ['platform-contract', sources.platformContract], ['rules', sources.rules],
-      ...(sources.commandConfig ? [['gpt-command-config', sources.commandConfig]] : []),
-      ...scope.projects.map((p, i) => ['project-' + p.id, sources.projectManifests[i]]),
-    ].map(([id, ref]) => ({ id, ref }));
-    if (!exact(payload.binding.initialization.sources, expectedSources) ||
-        !exact(payload.binding.initialization.bootstrapAuthorization,
-          { ...approval, verified: false, purpose: 'one-time-admin-initialization' }))
-      fail('ADMIN_BOOTSTRAP_CANONICAL_DATA_MISMATCH');
-    for (const [index, project] of scope.projects.entries()) {
-      const refs = input.projectDeclarations?.filter(p => p.id === project.id) || [];
-      if (refs.length !== 1 || !workflow.projects?.some(p => p.ref === refs[0].declaredRef) ||
-          refs[0].ref !== sources.projectManifests[index] ||
-          !path.isAbsolute(refs[0].root || '') || path.resolve(refs[0].root) !== project.root)
-        fail('PROJECT_NOT_AUTHORIZED');
-    }
-    if (await host.verifyApproval({ approval, scope, operation: 'initialize-admin-only' }) !== true)
-      fail('HUMAN_APPROVAL_UNVERIFIED');
-    if (await host.prerequisites({ scope, platform: 'codex-app', sources }) !== true)
-      fail('PLATFORM_PREREQUISITES_UNAVAILABLE');
-    let catalog = await host.catalog();
-    const matches = inspectCatalog(catalog, scope);
-    // Scope-bearing unbound host tasks are not safe evidence of absence. Titles
-    // are deliberately ignored; the controller must resolve exact host identity.
-    if (catalog.tasks.some(t => t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope) &&
-        !matches.some(b => b.taskId === t.id))) fail('ADMIN_IDENTITY_UNBOUND');
-    // Presentation can reveal a possible unbound Admin, never prove reuse.
-    // Do not create a duplicate simply because native tasks lack role metadata.
-    if (catalog.tasks.some(t => t.status === 'active' && t.projectId === scope.projects[0].savedProjectId &&
-        t.name === payload.endpoint?.title && typeof t.name === 'string' &&
-        !catalog.bindings.some(b => b.taskId === t.id))) fail('ADMIN_IDENTITY_UNBOUND');
-    if (matches.length > 1) fail('ADMIN_IDENTITY_AMBIGUOUS');
-    if (matches.length === 1) {
-      verifyAdmin(catalog, matches[0], scope);
-      const completion = await host.wait({ taskId: matches[0].taskId, timeoutMs: 60000 });
-      if (completion?.status !== 'complete' || completion.taskId !== matches[0].taskId)
-        fail('ADMIN_READINESS_UNVERIFIED');
-      catalog = await host.catalog();
-      const verified = inspectCatalog(catalog, scope);
-      if (verified.length !== 1 || verified[0].taskId !== matches[0].taskId) fail('ADMIN_IDENTITY_UNVERIFIED');
-      verifyAdmin(catalog, verified[0], scope, completion);
-      return { status: 'ready', mode: 'reused', taskId: matches[0].taskId, token: 'ADMIN_READY', scope };
-    }
-    const request = { role: 'admin', platform: 'codex-app', scope, sources,
-      roleDefinition: admin.roleDefinition, bootstrap: { approval, command: 'INIT', humanOnly: true },
-      readinessToken: 'ADMIN_READY' };
-    const existingTaskIds = new Set([...catalog.tasks.map(t => t.id), ...catalog.bindings.map(b => b.taskId)]);
-    const task = await host.create(request);
-    createdTaskId = task?.taskId;
-    if (!createdTaskId || task.status !== 'created') fail('ADMIN_CREATION_UNCERTAIN');
-    if (existingTaskIds.has(createdTaskId))
-      fail('ADMIN_CREATED_TASK_NOT_FRESH');
-    // Never queue INIT against an unverified ID merely because create returned it.
-    const fresh = await host.catalog();
-    const competing = inspectCatalog(fresh, scope);
-    const createdTasks = fresh.tasks.filter(t => t.id === createdTaskId);
-    if (createdTasks.length !== 1 || createdTasks[0].status !== 'active' ||
-        createdTasks[0].projectId !== scope.projects[0].savedProjectId || competing.length ||
-        fresh.bindings.some(b => b.taskId === createdTaskId) || fresh.tasks.some(t =>
-          t.id !== createdTaskId && t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope)))
-      fail('ADMIN_CREATED_TASK_UNVERIFIED');
-    const initialized = await host.initialize({ taskId: createdTaskId, payload });
-    if (initialized?.taskId !== createdTaskId || initialized.status !== 'submitted') fail('ADMIN_INIT_UNCERTAIN');
-    const completion = await host.wait({ taskId: createdTaskId, timeoutMs: 60000 });
-    if (completion?.taskId !== createdTaskId || completion.status !== 'complete') fail('ADMIN_READINESS_UNVERIFIED');
-    catalog = await host.catalog();
-    const active = inspectCatalog(catalog, scope);
-    if (active.length !== 1 || active[0].taskId !== createdTaskId) fail('ADMIN_IDENTITY_UNVERIFIED');
-    verifyAdmin(catalog, active[0], scope, completion);
-    return { status: 'ready', mode: 'created', taskId: createdTaskId, token: 'ADMIN_READY', scope };
-  } catch (error) {
-    createdTaskId ||= error.createdTaskId;
-    return { status: 'blocked', reason: error.message, ...(createdTaskId ? { orphanTaskId: createdTaskId } : {}) };
+/** Owns the six lifecycle ports; each initialize call keeps transaction state local. */
+export class WorkflowAdminInitializer {
+  #host;
+  constructor(host) {
+    this.#host = host;
   }
+
+  /** Validate before effects, reuse exact readiness, or create only one Admin. */
+  async initialize(input) {
+    const host = this.#host;
+    let createdTaskId;
+    try {
+      if (ports.some(p => typeof host?.[p] !== 'function')) fail('ADMIN_ONLY_HOST_PORT_UNSUPPORTED');
+      const { profile, workflow, registry, manifest, adapter, approval, sources } = input;
+      const scope = normalizeAdminScope(input.scope);
+      const canonicalWorkflows = profile?.workflows?.filter(w => w.path === workflow?.path) || [];
+      if (profile?.name !== scope.profileId || manifest?.workflowId !== scope.workflowId ||
+          canonicalWorkflows.length !== 1 || !exact(canonicalWorkflows[0], workflow) ||
+          workflow.path !== scope.workflowId + '.workflow.md')
+        fail('CANONICAL_SCOPE_MISMATCH');
+      const admin = manifest.initializer;
+      if (admin?.agentId !== 'admin' || admin.roleDefinition !== '../_common/roles/admin.md' ||
+          admin.lifecycle !== 'persistent-control' || admin.humanFacing !== 'human-owned' ||
+          admin.communicationMode !== 'direct-human-administration-only' ||
+          admin.readinessToken !== 'ADMIN_READY' || manifest.agents?.some(a => a.agentId === 'admin'))
+        fail('CANONICAL_ADMIN_DECLARATION_MISSING');
+      selectLifecycleRole(profile, workflow, registry, manifest, adapter, 'admin');
+      if (adapter.workflow !== scope.workflowId) fail('ADAPTER_WORKFLOW_MISMATCH');
+      if (!sources || ['profile', 'workflow', 'manifest', 'adapter', 'adminContract', 'selfCommands', 'lifecycle', 'platformContract', 'rules', 'registry', 'initializer'].some(k =>
+        typeof sources[k] !== 'string' || !sources[k])) fail('CANONICAL_SOURCE_REFERENCES_MISSING');
+      if (!Array.isArray(sources.projectManifests) || sources.projectManifests.length !== scope.projects.length ||
+          sources.projectManifests.some(p => typeof p !== 'string' || !p)) fail('PROJECT_SOURCE_REFERENCES_MISSING');
+      const payload = input.bootstrapPayload;
+      if (payload?.binding?.agentId !== 'admin' || payload.binding.platformAdapter !== 'codex-app' ||
+          !exact(normalizeAdminScope(payload.binding.scope), scope) ||
+          payload.binding.initialization?.readinessToken !== 'ADMIN_READY' ||
+          payload.prompt !== buildAdminInitPrompt(payload.binding.scope)) fail('ADMIN_BOOTSTRAP_PAYLOAD_INVALID');
+      const expectedSources = [
+        ['portable-role', sources.adminContract], ['portable-manifest', sources.manifest], ['platform-adapter', sources.adapter],
+        ['work-profile', sources.profile], ['platform-registry', sources.registry], ['workflow', sources.workflow],
+        ['lifecycle', sources.lifecycle], ['self-commands', sources.selfCommands], ['admin-only-initializer', sources.initializer],
+        ['platform-contract', sources.platformContract], ['rules', sources.rules],
+        ...(sources.commandConfig ? [['gpt-command-config', sources.commandConfig]] : []),
+        ...scope.projects.map((p, i) => ['project-' + p.id, sources.projectManifests[i]]),
+      ].map(([id, ref]) => ({ id, ref }));
+      if (!exact(payload.binding.initialization.sources, expectedSources) ||
+          !exact(payload.binding.initialization.bootstrapAuthorization,
+            { ...approval, verified: false, purpose: 'one-time-admin-initialization' }))
+        fail('ADMIN_BOOTSTRAP_CANONICAL_DATA_MISMATCH');
+      for (const [index, project] of scope.projects.entries()) {
+        const refs = input.projectDeclarations?.filter(p => p.id === project.id) || [];
+        if (refs.length !== 1 || !workflow.projects?.some(p => p.ref === refs[0].declaredRef) ||
+            refs[0].ref !== sources.projectManifests[index] ||
+            !path.isAbsolute(refs[0].root || '') || path.resolve(refs[0].root) !== project.root)
+          fail('PROJECT_NOT_AUTHORIZED');
+      }
+      if (await host.verifyApproval({ approval, scope, operation: 'initialize-admin-only' }) !== true)
+        fail('HUMAN_APPROVAL_UNVERIFIED');
+      if (await host.prerequisites({ scope, platform: 'codex-app', sources }) !== true)
+        fail('PLATFORM_PREREQUISITES_UNAVAILABLE');
+      let catalog = await host.catalog();
+      const matches = inspectCatalog(catalog, scope);
+      // Scope-bearing unbound host tasks are not safe evidence of absence. Titles
+      // are deliberately ignored; the controller must resolve exact host identity.
+      if (catalog.tasks.some(t => t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope) &&
+          !matches.some(b => b.taskId === t.id))) fail('ADMIN_IDENTITY_UNBOUND');
+      // Presentation can reveal a possible unbound Admin, never prove reuse.
+      // Do not create a duplicate simply because native tasks lack role metadata.
+      if (catalog.tasks.some(t => t.status === 'active' && t.projectId === scope.projects[0].savedProjectId &&
+          t.name === payload.endpoint?.title && typeof t.name === 'string' &&
+          !catalog.bindings.some(b => b.taskId === t.id))) fail('ADMIN_IDENTITY_UNBOUND');
+      if (matches.length > 1) fail('ADMIN_IDENTITY_AMBIGUOUS');
+      if (matches.length === 1) {
+        verifyAdmin(catalog, matches[0], scope);
+        const completion = await host.wait({ taskId: matches[0].taskId, timeoutMs: 60000 });
+        if (completion?.status !== 'complete' || completion.taskId !== matches[0].taskId)
+          fail('ADMIN_READINESS_UNVERIFIED');
+        catalog = await host.catalog();
+        const verified = inspectCatalog(catalog, scope);
+        if (verified.length !== 1 || verified[0].taskId !== matches[0].taskId) fail('ADMIN_IDENTITY_UNVERIFIED');
+        verifyAdmin(catalog, verified[0], scope, completion);
+        return { status: 'ready', mode: 'reused', taskId: matches[0].taskId, token: 'ADMIN_READY', scope };
+      }
+      const request = { role: 'admin', platform: 'codex-app', scope, sources,
+        roleDefinition: admin.roleDefinition, bootstrap: { approval, command: 'INIT', humanOnly: true },
+        readinessToken: 'ADMIN_READY' };
+      const existingTaskIds = new Set([...catalog.tasks.map(t => t.id), ...catalog.bindings.map(b => b.taskId)]);
+      const task = await host.create(request);
+      createdTaskId = task?.taskId;
+      if (!createdTaskId || task.status !== 'created') fail('ADMIN_CREATION_UNCERTAIN');
+      if (existingTaskIds.has(createdTaskId))
+        fail('ADMIN_CREATED_TASK_NOT_FRESH');
+      // Never queue INIT against an unverified ID merely because create returned it.
+      const fresh = await host.catalog();
+      const competing = inspectCatalog(fresh, scope);
+      const createdTasks = fresh.tasks.filter(t => t.id === createdTaskId);
+      if (createdTasks.length !== 1 || createdTasks[0].status !== 'active' ||
+          createdTasks[0].projectId !== scope.projects[0].savedProjectId || competing.length ||
+          fresh.bindings.some(b => b.taskId === createdTaskId) || fresh.tasks.some(t =>
+            t.id !== createdTaskId && t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope)))
+        fail('ADMIN_CREATED_TASK_UNVERIFIED');
+      const initialized = await host.initialize({ taskId: createdTaskId, payload });
+      if (initialized?.taskId !== createdTaskId || initialized.status !== 'submitted') fail('ADMIN_INIT_UNCERTAIN');
+      const completion = await host.wait({ taskId: createdTaskId, timeoutMs: 60000 });
+      if (completion?.taskId !== createdTaskId || completion.status !== 'complete') fail('ADMIN_READINESS_UNVERIFIED');
+      catalog = await host.catalog();
+      const active = inspectCatalog(catalog, scope);
+      if (active.length !== 1 || active[0].taskId !== createdTaskId) fail('ADMIN_IDENTITY_UNVERIFIED');
+      verifyAdmin(catalog, active[0], scope, completion);
+      return { status: 'ready', mode: 'created', taskId: createdTaskId, token: 'ADMIN_READY', scope };
+    } catch (error) {
+      createdTaskId ||= error.createdTaskId;
+      return { status: 'blocked', reason: error.message, ...(createdTaskId ? { orphanTaskId: createdTaskId } : {}) };
+    }
+  }
+}
+
+/** Compatibility entry point, backed by the lifecycle transaction object. */
+export async function initializeWorkflowAdmin(input, host) {
+  return new WorkflowAdminInitializer(host).initialize(input);
 }

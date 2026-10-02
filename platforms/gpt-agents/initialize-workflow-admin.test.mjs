@@ -5,7 +5,7 @@
  * real task readiness, source loading, or live full-roster dispatch.
  */
 import assert from 'node:assert/strict';
-import { initializeWorkflowAdmin } from './initialize-workflow-admin.mjs';
+import { initializeWorkflowAdmin, WorkflowAdminInitializer } from './initialize-workflow-admin.mjs';
 import { buildAdminInitPrompt } from './admin-initialization.mjs';
 
 function fixture() {
@@ -51,6 +51,14 @@ function fixture() {
   return { input, host, calls, catalog, binding, syncSources };
 }
 let f = fixture();
+const classFixture = fixture();
+const initializer = new WorkflowAdminInitializer(classFixture.host);
+assert.equal((await initializer.initialize(classFixture.input)).mode, 'created');
+classFixture.calls.length = 0;
+assert.equal((await initializer.initialize(classFixture.input)).mode, 'reused');
+assert.equal(classFixture.calls.length, 0);
+assert.equal((await new WorkflowAdminInitializer({}).initialize(classFixture.input)).reason,
+  'ADMIN_ONLY_HOST_PORT_UNSUPPORTED');
 assert.equal((await initializeWorkflowAdmin(f.input, f.host)).mode, 'created');
 assert.deepEqual(f.calls.map(c => [c[0], c[1].role || c[1].payload.binding.agentId]), [['create', 'admin'], ['initialize', 'admin']]);
 assert.equal(f.calls[1][1].payload, f.input.bootstrapPayload);
