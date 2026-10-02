@@ -51,6 +51,13 @@ It verifies that instance's exact identity, scope, and `ADMIN_READY`; it neither
 full-roster readiness. Governor-originated bootstrap stops at verified readiness and direct human access to Admin;
 it does not grant ongoing permission to message a human-only initialized Admin.
 
+The authorized lifecycle controller may deliver only the exact self-scoped `INIT` under that approval. Its host-side
+pending permit must bind the exact task and scope, carry a fresh nonce and expiry, and be consumed once. Verify these
+conditions before delivery and before readiness. This exception grants no ordinary workflow instructions, follow-up
+messages, or other self-commands; reject other task-to-Admin instructions. Explicit evidence-return and blocker routes
+within existing human-authorized orchestration remain subject to their declared contract. Admin readiness still
+requires its complete identity, source, scope, and bounded INIT-audit verification, not a requested token alone.
+
 When a human requests full reinitialization including Admin, the active Admin creates one successor Admin in the same
 runtime scope, verifies its exact returned instance ID, contract, source, runtime configuration, and `ADMIN_READY`
 acknowledgement, and deactivates the predecessor only after the successor is ready. A failed successor leaves the

@@ -21,9 +21,10 @@ platform prerequisites. Reuse only an exact active Admin with matching identity,
 scope and verified `ADMIN_READY`. Conflicting or ambiguous identity blocks rather
 than creating another Admin. When absent, create one task with the canonical source
 references, exact scope, human bootstrap authorization and `INIT` prompt returned
-by the builder. Register and queue that initial prompt using the host plugin's
-existing `queue-agent-initialization.mjs` transaction, then verify the actual task,
-binding and readiness. Queue acceptance or a pending binding is not readiness.
+by the builder. Register the exact binding through the existing generic plugin
+registration API, then submit the prompt once. The native route uses `turn/start`;
+the queue CLI is a separate transport, not an additional delivery step. Verify the
+actual task, binding and readiness. Submission or a pending binding is not readiness.
 
 Controller integration imports `initializeWorkflowAdmin(preparedPlan, host)`;
 the prepared plan may be JSON-serialized. The host must implement all six ports:
@@ -34,11 +35,62 @@ the prepared plan may be JSON-serialized. The host must implement all six ports:
 - `initialize` queues the supplied exact binding and prompt and returns `{taskId, status: 'submitted'}`.
 - `wait` returns `{taskId, status: 'complete', turnId, token: 'ADMIN_READY'}`; the fresh active binding must independently carry matching `completedTurnId` and `completedAt` evidence.
 
-No bundled native desktop transport implements these ports yet. The exported
-transaction automates checks and sequencing only when a trusted controller supplies
-them. Human-only follow-up and actual reading of sources remain controller/role
+`native-app-server.mjs` connects to the existing native app-server control socket,
+without starting another daemon. `native-project-catalog.mjs` uses native
+`project/list` and `project/read` to discover immutable project IDs and complete
+attached roots. Do not mix these IDs with presentation/wrapper IDs returned by a
+different API. `prepare-native-admin.mjs` resolves a unique canonical project
+automatically and discovers its native ID. `initialize-native-admin.mjs` connects
+the plan to `native-admin-host.mjs`: complete active/archived catalogs, one narrow
+read-only Admin creation, generic binding registration, exact native INIT delivery,
+and matching completed-turn proof for creation and reuse. The caller must still
+attest actual human approval and verify the bootstrap plugin is active/trusted;
+an untrusted JSON flag cannot replace those attestations. Human-only follow-up and actual reading of sources remain controller/role
 instructions, not a message firewall or source-reading attestation. Older active
 receipts without completion evidence cannot be silently reused or duplicated.
+
+`retryNativeAdminInitialization` is an explicit, human-authorized recovery route,
+not an automatic resend. It verifies the same pending Admin, scope, catalog and
+terminated INIT before renewing the permit and resuming that exact task. A completed
+attempt qualifies only with an expired permit and an explicit
+`BLOCKED_INIT_PERMIT_EXPIRED` final response. An uncertain or still-running attempt
+must be inspected, not duplicated. Native permission requests require a trusted
+controller handler and actual human approval; the transport never approves them.
+After verified readiness, unsubscribe the controller and verify that the exact task
+is unloaded and absent from the complete loaded catalog. `controllerReleased`
+proves lease release, not that the human has opened or typed into the UI.
+A chat still locked to another client is not a completed controller handoff.
+
+The app's `send_message_to_thread` tool supplies inter-task steering, not the native
+user-prompt lifecycle event. It cannot activate INIT through the native prompt
+route. The explicitly selected `app-admin-initialization.mjs` adapter instead uses
+an INIT-only nonce handshake: the trusted controller registers an exact pending
+permit, sends once, and correlates the actual Admin's exact nonce acknowledgement
+to one new host turn. It then binds only that pending turn; the standard Stop hook
+and completed-turn checks remain responsible for activation. The actor must verify
+its own immutable turn matches the acknowledged receipt before readiness. An ACK
+is delivery evidence, not Admin readiness, human approval, or proof of source reads.
+Timeout, changed/expired receipt, wrong nonce, prior active turn, or ambiguous
+acknowledgement stops without automatic resend or replacement creation.
+This is the authorized controller-INIT exception in the common Admin contract;
+all other task instructions remain rejected. An existing app writer can prevent
+native resume; select the supported app adapter explicitly rather than competing
+with the writer or silently falling back to it.
+
+`retryAppAdminInitialization` performs the app-owned same-task recovery preflight,
+including actual human approval, installed/trusted hooks, complete native scope,
+unique pending Admin identity, and owning-app idle status. Its trusted callbacks
+send the single INIT and read the owning app's actual live turn. Native persisted
+turn status alone is insufficient for app-owned execution. After delivery, verify
+the matching completed turn, active receipt, and owning-app idle state; do not send
+another message to the initialized Admin as part of that verification.
+
+The generic registry uses atomic file replacement, not cross-process
+compare-and-swap. Controllers must serialize lifecycle registry mutations;
+concurrent lifecycle writers are unsupported. Source reading, actual human
+approval, and rejection of ordinary task instructions remain controller/role
+obligations rather than a host message firewall. Tests and live readiness evidence
+must not be described as proving those stronger capabilities.
 
 Resolve the human-named profile/workflow and platform from canonical configuration;
 use its naming convention to locate the saved-project candidate, then verify its
@@ -48,8 +100,9 @@ root, not just the primary checkout; extra host folders do not grant workflow
 authority. If folder enumeration is unavailable, report
 `SAVED_PROJECT_ROOTS_UNVERIFIED`, not `SAVED_PROJECT_MISMATCH`, and do not tell the
 human to replace an otherwise valid primary folder. The current `list_projects`
-tool exposes a primary path but not complete attached folders; by itself it cannot
-satisfy this prerequisite. A screenshot is a discovery hint, not host verification.
+tool exposes a primary path but not complete attached folders; use native
+`project/list` and `project/read` instead. A screenshot is a discovery hint, not
+host verification.
 
 The launcher preflight itself performs no task creation, registration or delivery.
 The existing queue helper registers a pending exact binding and queues one prompt;
