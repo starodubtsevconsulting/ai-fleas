@@ -6,50 +6,82 @@
 
 *Choosing where attention belongs. Original AI-generated illustration using the author's AI Fleas character references.*
 
-I hung up on the first call. By the third, I had agreed in principle to try a smaller service at CAD 199 a month.
+In an earlier article, I described hanging up on a salesperson. The offer was unclear, the conversation kept circling, and I would not commit under pressure.
 
-Meanwhile, I spent roughly two days doing my own online visibility work. AI helped. That was part of the problem.
+After two more conversations, I agreed in principle to a smaller service.
 
-I could improve the website, explain my products, and build the machinery to help people find them. Each task was within reach. Together, they took me away from the products I wanted people to find.
+That sounds like a reversal. It was. But I had not decided that the first call was fine after all. I had learned something about the service—and something less comfortable about the cost of doing everything myself.
 
-If you build with AI, you may recognize how easily “I can do that” becomes “I should.”
+If you use AI to build, write, research, or run a small business, you may recognize the trap: “I can do that” starts sounding like “I should.”
 
-## Three calls, three different decisions
+## The first conversation: no was the right answer
 
-The first conversation kept circling. I could not connect the offer to a clear outcome, and the pricing and commitment needed clarification. I asked for written details and time to think. Eventually, I ended the call.
+During the first call, I could not connect the proposed work to a clear outcome for my business. The pricing and commitment also needed clarification. I asked for written details and time to consider them.
 
-I would make that decision again. Having a weak online presence did not mean I had to accept an unclear offer under pressure.
+Eventually, I hung up.
 
-On the second call, the representative introduced me to a potential client. Until then, I had been thinking about website and marketing tasks. The introduction gave me another reason to pay attention: this person might connect me with people I would not reach on my own.
+I still think that was the right decision for that conversation. A real problem with my online presence did not make an unclear proposal the right solution. Nor did it oblige me to decide immediately.
 
-For the products I am building, a conversation with someone who understands several properties could teach me more than another batch of anonymous website visits.
+Changing my mind later did not erase that boundary. It meant I had more information on which to make a different decision.
 
-On the third call, I saw how the service worked.
+## The second conversation: the relationship had another dimension
+
+The representative introduced me to a potential client.
+
+That was not a sale, a contract, or proof that a paid service would work. But it changed how I looked at the relationship. I had been evaluating a set of marketing tasks. Now I could also see possible access to people I would not have met on my own.
+
+For someone building products, one relevant connection can matter more than a larger number of anonymous visitors. An introduction to a property operator, for example, could help me understand needs across several properties rather than only my own experience.
+
+I did not need to assign a financial value to that possibility. I needed to recognize it without confusing a possibility with a result.
+
+## The third conversation: I finally saw the alternative
 
 ![The human speaks with an anonymous illustrated caller by phone while the AI Fleas robot listens beside him and gives a thumbs-up.](assets/2026-10-02-outsourcing-phone-call-concept-v1.png)
 
 *A different conversation, with room to reconsider. AI-generated illustration; the other caller is fictional.*
 
-The representative shared their screen and walked through the workflow and integrations. I could finally see what they proposed to manage.
+In the third conversation, the representative screen-shared the workflow and integrations behind the service. I could see more concretely what they proposed to manage.
 
-My own two-day effort was fresh in my mind. It had been useful: I had made myself explain what I was building and who it could help. But the AI usage alone felt close to the monthly price of the smaller offer. That was a rough personal estimate.
+Meanwhile, I had spent roughly two days working on my own online visibility: clarifying the website, presenting my products, and using AI to help build the machinery around discovery and promotion.
 
-Then there was my time.
+Some of that work was valuable. It forced me to explain what I was building and who it might help. But it also made the cost visible. A short burst of AI usage felt as though it was already approaching a month's price for the service I was considering.
 
-I had been asking what they could do that I could not. Looking at the screen, I started asking what they could take off my plate.
+That was my estimate, not an audited comparison. My attention was another cost, and harder to put on an invoice.
 
-## What I wanted to buy back
+I had started by asking what the provider could do that I could not. The demonstration suggested a more useful question: what could they take off my plate that did not need to remain there?
 
-I can build and host a website. I also know how a website project can grow into a continuing job: revise the copy, adjust the presentation, work on discovery, then do it again.
+The combination mattered. A demo alone might not have persuaded me. My own costly experiment alone might only have encouraged me to optimize it. Together, they made outsourcing a concrete alternative.
 
-The smaller offer covered another continuing job: maintaining my presence in relevant online sources, monitoring it, and following up periodically. At CAD 199 a month, it gave me a concrete alternative to managing that layer myself.
+## Keep the capability. Stop owning every task.
 
-I want people to be able to find me and understand who is behind the work on my [products page](https://starodubtsev.consulting/products). But some of those products are still being built and tested. Filling my calendar with consulting calls would not necessarily move them forward.
+I can build and host my own websites. That was not the capability I needed to buy.
 
-The time I hoped to recover already had a job: improve the products and test what they could deliver.
+The smaller offer, at about CAD 199 per month, was closer to routine visibility and credibility management than a full advertising campaign: maintaining relevant online sources, monitoring presence, and having periodic follow-up.
 
-Personal Governor, the agent I am developing through [AI Fleas](https://aifleas.com/), helped me carry that decision into my monthly plan and the roadmap for the next quarter. Paying someone to free up time would mean little if I immediately filled it with another side project.
+I agreed in principle to try that layer. This was not proof of value, and it was not a reason to hand over everything.
 
-I’ll see whether the service earns its place. For now, I have products to get back to.
+My website and product work remained useful. They gave me a clearer destination. Outsourcing some ongoing visibility work could help me stop rebuilding the operation around it.
+
+You can retain a capability without making it a permanent personal responsibility.
+
+## Credibility first. Product promotion later.
+
+My [products page](https://starodubtsev.consulting/products) includes Personal Governor, which is still in development, alongside AI Fleas and other projects. Chalet Whisper currently has one live chalet while the broader platform is being built.
+
+Those distinctions matter. A product page is not evidence that every product is ready for broad promotion.
+
+I need enough public credibility for someone to find me and understand who is behind the work. I do not need to turn that into a campaign to fill every available hour with consulting calls.
+
+The attention I recover belongs first to improving the products and testing what they can honestly deliver. Upcoming conversations about promotion can then focus on the right audience and stage, rather than simply asking for more traffic.
+
+This changed my monthly allocation and quarter-ahead roadmap. Personal Governor—the AI Fleas agent I use to review goals, commitments, and evidence—helped me carry the decision into planning. I made the choice; the agent helped connect it to what should happen next.
+
+That is the transferable part: a spending decision should change your allocation if its purpose is to release capacity.
+
+## This is an experiment, not a success story
+
+After roughly two or three months, I want to evaluate delivered work, visibility, useful introductions or opportunities, and the human attention and AI cost saved. I can then decide whether to continue, reduce, or stop, subject to the actual agreement.
+
+I am exploring this kind of decision support through [AI Fleas](https://aifleas.com/). The useful question is not how many tasks AI lets us take on, but which ones deserve to stay ours.
 
 The question was no longer whether I could do it myself. It was whether I should.
