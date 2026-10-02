@@ -9,6 +9,43 @@ Use this skill only within an initialized Financial Insights scope whose profile
 provider, account alias, and visible browser route. Invoking the skill authorizes neither a new payment nor final
 submission. Confirm the exact payment the human wants prepared before changing a bank form.
 
+```mermaid
+flowchart TD
+    E0[/Evidence: canonical PDF + JSON/]
+    R{Evidence ready?}
+    S[Agent: stop — review required]
+    E1[/Evidence: PDF open beside form/]
+    O{Evidence: OCR-only fields?}
+    H1([Human: verify one OCR field])
+    V{Human: field matched?}
+    A1[Agent: enter one bank field]
+    B{Evidence: readback matched?}
+    H2([Human: final review])
+    F{Human: all values matched?}
+    H3([Human only: submit])
+    A2[Agent: normalize confirmation]
+    P{Evidence: posted bank settlement?}
+    W[Agent: keep settlement pending]
+    X[Agent: record settled]
+
+    E0 --> R
+    R -- No --> S
+    R -- Yes --> E1 --> O
+    O -- Yes --> H1 --> V
+    V -- More fields --> H1
+    V -- Mismatch --> S
+    V -- All verified --> A1
+    O -- No --> A1
+    A1 --> B
+    B -- No --> S
+    B -- More fields --> A1
+    B -- Complete --> H2 --> F
+    F -- No --> S
+    F -- Yes --> H3 --> A2 --> P
+    P -- Not yet --> W
+    P -- Yes --> X
+```
+
 ## Establish the evidence view
 
 1. Follow the [`tax-payment` flow](../../flows/tax-payment.flow.md). Resolve the exact source remittance PDF from the
@@ -17,6 +54,10 @@ submission. Confirm the exact payment the human wants prepared before changing a
    profile-authorized `financial-records` normalization path. Require the sidecar to be schema-versioned and bound to
    the exact canonical PDF content hash. The sidecar supplies reviewed field candidates but does not replace the PDF
    as source evidence.
+   OCR-derived values are candidates, never exact or payment-ready by themselves. If the preparation identifies
+   `ocrVerificationRequired` fields, keep the authoritative original PDF open side by side and have the human verify
+   every field in that exact bounded list before creating the review artifact. The attestation must remain bound to
+   the same source hash and proposal revision; do not accept free-form notes or copied values as attestation.
 2. If the filename or sidecar is missing or invalid, run the authorized prepare, review, apply, and reconcile path
    first. Treat canonical naming and sidecar publication as one logical transaction, not two optional cleanup steps.
    If the current processor does not support the document, stop as `processing pending / review required`; do not
@@ -61,4 +102,6 @@ separate confirmation PDF, normalize it into the existing reporting-period tax-c
 submission-confirmation filename and adjacent JSON sidecar. Use the actual submission/confirmation date in its
 filename; keep any scheduled execution date in structured data. Never add `_payed`, `_paid`, or another mutable-status
 suffix. Preserve provider confirmation identifiers only in the authorized private financial-records store; never
-place real identifiers or screenshots in the public skill.
+place real identifiers or screenshots in normalized JSON or the public skill. Record only the bounded
+`confirmationReferencePresent` boolean when the normalization contract requires it. The final bank submit remains a
+human-only action even after all OCR-only fields have been verified.

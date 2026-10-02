@@ -55,6 +55,7 @@ const FIXED_COMMAND_ERRORS = new Set([
   'REVIEW_MISMATCH',
   'INVALID_SIDECAR',
   'CLOSED_PERIOD',
+  'OCR_VERIFICATION_REQUIRED',
   'PREVIEW_MISMATCH',
   'SOURCE_CHANGED',
   'PUBLICATION_COLLISION',
@@ -452,11 +453,14 @@ export class FinancialRecordsCommand {
   }
 
   reviewTaxProposal(args) {
-    const options = this._parseNamedOptions(args, new Set(['root', 'proposal']), ['root', 'proposal']);
+    const options = this._parseNamedOptions(args, new Set(['root', 'proposal', 'verify-ocr-fields']), ['root', 'proposal']);
     const { root, file: proposalPath } = this._resolveContainedFile(options.root, options.proposal,
       'INVALID_PROPOSAL');
     const proposal = this._readBoundedJson(proposalPath, 'INVALID_PROPOSAL');
-    const review = buildTaxReviewArtifact(proposal);
+    const required = proposal.extraction?.ocrVerificationRequired || [];
+    const verified = options['verify-ocr-fields'] ? options['verify-ocr-fields'].split(',') : [];
+    if (required.length > 0 && !options['verify-ocr-fields']) throw new Error('OCR_VERIFICATION_REQUIRED');
+    const review = buildTaxReviewArtifact(proposal, verified);
     if (!review || proposal.proposalRevision !== review.proposalRevision) throw new Error('INVALID_PROPOSAL');
     return { operation: 'review-tax-proposal', ...review, authorizedRootBound: true,
       operationalDestination: proposal.proposedDestination };
@@ -486,7 +490,7 @@ export class FinancialRecordsCommand {
       '--root', root, '--source', source, '--branch', options.branch, '--year', options.year,
       '--quarter', options.quarter, '--section', options.section,
     ]);
-    if (prepared.status !== 'prepared' || prepared.applyEligible !== true) throw new Error('REVIEW_REQUIRED');
+    if (prepared.status !== 'prepared' || prepared.reviewEligible !== true) throw new Error('REVIEW_REQUIRED');
     if (!reviewMatchesPrepared(review, prepared, options['expected-proposal-revision'])) {
       throw new Error('REVIEW_MISMATCH');
     }

@@ -6,7 +6,7 @@
  * Effects: validation and planning only; this helper never writes, renames, submits, or settles records.
  */
 
-const ADAPTER = Object.freeze({ id: 'canadian-payroll-tax', version: 1 });
+const ADAPTER = Object.freeze({ id: 'canadian-payroll-tax', version: 2 });
 const MONEY = '(\\d{1,3}(?:[ ,]\\d{3})*(?:[.,]\\d{2}))';
 const ISO_DATE = '(\\d{4}-\\d{2}-\\d{2})';
 const TEXT_DATE = '(\\d{4}\\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\\s+\\d{1,2})';
@@ -16,6 +16,7 @@ export class PayrollTaxSourceRecognition {
   evaluate(pdf, context) {
     if (!validContext(context)) return review('invalid-context');
     const text = bounded(pdf?.normalizedText);
+    const evidence = new FieldEvidenceSelector(pdf, text);
     const compact = String(pdf?.compactText || '').toLowerCase();
     if (!text || !Number.isInteger(pdf?.pageCount)) return review('unsupported-document');
     if (hasConflictingLabelValues(text)) return review('conflicting-evidence');
@@ -28,7 +29,7 @@ export class PayrollTaxSourceRecognition {
     ].filter(Boolean);
     if (families.length !== 1) return review(families.length ? 'ambiguous-document-role' : 'unsupported-document');
 
-    const parsed = families[0](text, pdf.pageCount, compact, pdf.layoutTokens || [], context);
+    const parsed = families[0](text, pdf.pageCount, compact, pdf.layoutTokens || [], context, evidence);
     if (parsed.error) return review(parsed.error);
     if (parsed.completeness.expectedPageCount < parsed.completeness.physicalPageCount) {
       return review('conflicting-page-evidence');
@@ -44,8 +45,15 @@ export class PayrollTaxSourceRecognition {
     const destination = [context.year, context.branchId, context.quarter, 'out', 'taxes',
       'payroll-remittances', parsed.jurisdiction, parsed.reportingPeriod.end].join('/');
     const incomplete = parsed.completeness.physicalPageCount < parsed.completeness.expectedPageCount;
+    const fieldProvenance = { ...parsed.evidence,
+      documentRole: evidence.classification(parsed),
+      jurisdiction: evidence.classification(parsed),
+      'obligationLifecycle.state': { source: 'derived-rule', confidence: 'exact' },
+      'obligationLifecycle.settlement': { source: 'derived-rule', confidence: 'exact' } };
+    const critical = new PaymentCriticalEvidence(parsed, fieldProvenance);
+    const { ocrVerificationRequired, unresolvedCriticalFields } = critical;
     const extraction = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       recordType: 'payroll-tax-document',
       recordId: `sha256:${sourceSha256}`,
       adapter: ADAPTER,
@@ -65,17 +73,21 @@ export class PayrollTaxSourceRecognition {
       processing: { state: incomplete ? 'incomplete' : 'processing-pending', reviewRequired: true },
       obligationLifecycle: parsed.obligationLifecycle,
       relations: parsed.relations,
-      provenance: parsed.provenance,
+      provenance: fieldProvenance,
+      ocrVerificationRequired,
+      unresolvedCriticalFields,
       ...(parsed.confirmationReferencePresent === true ? { confirmationReferencePresent: true } : {}),
     };
+    const unresolved = unresolvedCriticalFields.length > 0;
     return {
-      status: incomplete ? 'review-required' : 'prepared',
-      reason: incomplete ? 'incomplete-pages' : undefined,
+      status: incomplete || unresolved ? 'review-required' : 'prepared',
+      reason: incomplete ? 'incomplete-pages' : (unresolved ? 'unresolved-critical-evidence' : undefined),
       proposedDestination: destination,
       proposedFilename,
       proposedSidecarFilename: `${proposedFilename}.json`,
       extraction,
-      applyEligible: !incomplete,
+      reviewEligible: !incomplete && unresolvedCriticalFields.length === 0,
+      applyEligible: !incomplete && unresolvedCriticalFields.length === 0 && ocrVerificationRequired.length === 0,
     };
   }
 }
@@ -114,22 +126,28 @@ function detectQuebecObligation(text, compact) {
   return parseQuebecObligation;
 }
 
-function parseFederalObligation(text, physicalPageCount, compact, layoutTokens, context) {
-  const end = fieldDate(text, ['period end', 'remittance period end', 'fin de la période'])
-    || federalPeriodEnd(text, compact, context?.quarter);
-  const embedded = layoutTokens.filter((token) => token.source === 'embedded-pdf-text' && token.page === 1);
-  const grossPayroll = fieldMoney(text, ['gross payroll']) || centsToken(embedded, { xMin: 0.60, xMax: 0.76, yMin: 0.62, yMax: 0.72 });
-  const employeeCount = fieldInteger(text, ['number of employees'])
-    ?? integerToken(embedded, { xMin: 0.80, xMax: 0.90, yMin: 0.62, yMax: 0.72 });
-  const total = fieldMoney(text, ['amount payable', 'amount paid', 'total remittance', 'total'])
-    || centsToken(embedded, { xMin: 0.47, xMax: 0.60, yMin: 0.62, yMax: 0.72 });
+function parseFederalObligation(text, physicalPageCount, compact, layoutTokens, context, evidence) {
+  const endField = evidence.read((value) => fieldDate(value,
+    ['period end', 'remittance period end', 'fin de la période']))
+    || evidence.read((value) => federalPeriodEnd(value, '', context?.quarter));
+  const embedded = layoutTokens.filter((token) => ['embedded-layout', 'embedded-pdf-text'].includes(token.source) && token.page === 1);
+  const grossField = evidence.read((value) => fieldMoney(value, ['gross payroll']))
+    || evidence.token(embedded, { xMin: 0.60, xMax: 0.76, yMin: 0.62, yMax: 0.72 });
+  const employeeField = evidence.read((value) => fieldInteger(value, ['number of employees']))
+    || evidence.token(embedded, { xMin: 0.80, xMax: 0.90, yMin: 0.62, yMax: 0.72 }, true);
+  const totalField = evidence.read((value) => fieldMoney(value,
+    ['amount payable', 'amount paid', 'total remittance']))
+    || evidence.token(embedded, { xMin: 0.47, xMax: 0.60, yMin: 0.62, yMax: 0.72 });
+  const dueField = evidence.read((value) => fieldDate(value, ['due date']));
+  const end = endField?.value; const grossPayroll = grossField?.value;
+  const employeeCount = employeeField?.value; const total = totalField?.value;
   if (!end) return { error: 'missing-reporting-period' };
   if (grossPayroll === undefined || employeeCount === undefined) return { error: 'missing-required-field' };
   if (total === undefined) return { error: 'missing-total' };
   const expectedPageCount = expectedPages(text, compact) || physicalPageCount;
   return {
     documentRole: 'obligation', jurisdiction: 'ca-federal',
-    reportingPeriod: { start: undefined, end }, dates: { dueDate: fieldDate(text, ['due date']) },
+    reportingPeriod: { start: undefined, end }, dates: { dueDate: dueField?.value },
     amounts: {
       components: { grossPayroll, employeeCount },
       arithmetic: { total, computedTotal: total, matches: true },
@@ -137,25 +155,37 @@ function parseFederalObligation(text, physicalPageCount, compact, layoutTokens, 
     completeness: { physicalPageCount, expectedPageCount },
     obligationLifecycle: { state: 'obligation-recorded', settlement: 'pending' },
     relations: [],
-    provenance: provenance(['reportingPeriod.end', 'amounts.components.grossPayroll',
-      'amounts.components.employeeCount', 'amounts.arithmetic.total']),
+    evidence: { 'reportingPeriod.end': endField.evidence,
+      'amounts.components.grossPayroll': grossField.evidence,
+      'amounts.components.employeeCount': employeeField.evidence,
+      'amounts.arithmetic.total': totalField.evidence,
+      'amounts.arithmetic.computedTotal': { source: 'derived-arithmetic', confidence: 'exact' },
+      ...(dueField ? { 'dates.dueDate': dueField.evidence } : {}) },
   };
 }
 
-function parseFederalConfirmation(text, physicalPageCount, compact, layoutTokens) {
-  const end = employeePaymentPeriodEnd(text);
-  const submissionDate = fieldDate(text, ['print date', 'confirmation date', 'submission date']);
-  const dueDate = fieldDate(text, ['due date']);
-  const scheduledExecutionDate = fieldDate(text, ['payment date', 'scheduled execution', 'execution date']);
-  const embedded = layoutTokens.filter((token) => token.source === 'embedded-pdf-text' && token.page === 1);
-  const grossPayroll = fieldMoney(text, ['gross payroll'])
-    || centsToken(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.52, yMax: 0.57 });
-  const employeeCount = fieldInteger(text, ['number of employees'])
-    ?? integerToken(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.56, yMax: 0.59 });
-  const total = fieldMoney(text, ['amount payable', 'payment total', 'total payment', 'total'])
-    || centsToken(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.59, yMax: 0.64 });
-  const providerStatus = /to be processed/i.test(text) ? 'to-be-processed' : undefined;
-  const confirmationReferencePresent = /confirmation number[^a-z0-9]{0,20}[a-z0-9-]{4,}/i.test(text);
+function parseFederalConfirmation(text, physicalPageCount, compact, layoutTokens, context, evidence) {
+  const endField = evidence.read(employeePaymentPeriodEnd);
+  const submissionField = evidence.read((value) => fieldDate(value,
+    ['print date', 'confirmation date', 'submission date']));
+  const dueField = evidence.read((value) => fieldDate(value, ['due date']));
+  const scheduledField = evidence.read((value) => fieldDate(value,
+    ['payment date', 'scheduled execution', 'execution date']));
+  const embedded = layoutTokens.filter((token) => ['embedded-layout', 'embedded-pdf-text'].includes(token.source) && token.page === 1);
+  const grossField = evidence.read((value) => fieldMoney(value, ['gross payroll']))
+    || evidence.token(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.52, yMax: 0.57 });
+  const employeeField = evidence.read((value) => fieldInteger(value, ['number of employees']))
+    || evidence.token(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.56, yMax: 0.59 }, true);
+  const totalField = evidence.read((value) => fieldMoney(value,
+    ['amount payable', 'payment total', 'total payment']))
+    || evidence.token(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.59, yMax: 0.64 });
+  const statusField = evidence.read((value) => /to be processed/i.test(value) ? 'to-be-processed' : undefined);
+  const referenceField = evidence.read((value) =>
+    /confirmation number[^a-z0-9]{0,20}[a-z0-9-]{4,}/i.test(value) ? true : undefined);
+  const end = endField?.value; const submissionDate = submissionField?.value; const dueDate = dueField?.value;
+  const scheduledExecutionDate = scheduledField?.value; const grossPayroll = grossField?.value;
+  const employeeCount = employeeField?.value; const total = totalField?.value;
+  const providerStatus = statusField?.value; const confirmationReferencePresent = referenceField?.value;
   if (!end) return { error: 'missing-reporting-period' };
   if (!submissionDate || !dueDate || !scheduledExecutionDate || grossPayroll === undefined
     || employeeCount === undefined || !providerStatus || !confirmationReferencePresent) {
@@ -171,45 +201,55 @@ function parseFederalConfirmation(text, physicalPageCount, compact, layoutTokens
     obligationLifecycle: { state: 'scheduled', providerStatus, settlement: 'pending' },
     relations: [{ type: 'confirms-submission-of', targetRef: `tax-obligation:ca-federal:${end}` }],
     confirmationReferencePresent,
-    provenance: provenance(['reportingPeriod.end', 'dates.submissionDate', 'dates.dueDate',
-      'dates.scheduledExecutionDate', 'amounts.components.grossPayroll', 'amounts.components.employeeCount',
-      'amounts.arithmetic.total', 'obligationLifecycle.providerStatus', 'confirmationReferencePresent']),
+    evidence: { 'reportingPeriod.end': endField.evidence, 'dates.submissionDate': submissionField.evidence,
+      'dates.dueDate': dueField.evidence, 'dates.scheduledExecutionDate': scheduledField.evidence,
+      'amounts.components.grossPayroll': grossField.evidence,
+      'amounts.components.employeeCount': employeeField.evidence,
+      'amounts.arithmetic.total': totalField.evidence,
+      'amounts.arithmetic.computedTotal': { source: 'derived-arithmetic', confidence: 'exact' },
+      'obligationLifecycle.providerStatus': statusField.evidence,
+      confirmationReferencePresent: referenceField.evidence },
   };
 }
 
-function parseQuebecObligation(text, physicalPageCount, compact, layoutTokens, context) {
-  const range = frenchPeriodRange(text);
-  const quarterDates = isoDates(text).filter((date) => date.startsWith(`${context?.year}-`));
-  const labelledStart = fieldDate(text, ['period start', 'reporting period start', 'début de la période']);
-  const labelledEnd = fieldDate(text, ['period end', 'reporting period end', 'fin de la période']);
-  const start = (labelledStart?.startsWith(`${context?.year}-`) ? labelledStart : undefined) || range?.start
-    || quarterDates.find((date) => [1, 4, 7, 10].includes(Number(date.slice(5, 7))));
-  const end = (labelledEnd?.startsWith(`${context?.year}-`) ? labelledEnd : undefined) || range?.end
-    || quarterDates.find((date) => [3, 6, 9, 12].includes(Number(date.slice(5, 7))));
-  const dueDate = fieldDate(text, ['due date', 'date limite', 'date d’échéance', "date d'echeance"])
-    || quarterDates.find((date) => end && date > end);
-  let components = {
-    incomeTax: fieldMoney(text, ['income tax', 'quebec income tax']),
-    qpp: fieldMoney(text, ['qpp', 'quebec pension plan']),
-    healthServicesFund: fieldMoney(text, ['health services fund', 'hsf']),
-    qpip: fieldMoney(text, ['qpip', 'quebec parental insurance plan']),
-    cnesst: fieldMoney(text, ['cnesst']),
+function parseQuebecObligation(text, physicalPageCount, compact, layoutTokens, context, evidence) {
+  const rangeField = evidence.read(frenchPeriodRange);
+  const startField = evidence.read((value) => fieldDate(value,
+    ['period start', 'reporting period start', 'début de la période']))
+    || (rangeField && { value: rangeField.value.start, evidence: rangeField.evidence });
+  const endField = evidence.read((value) => fieldDate(value,
+    ['period end', 'reporting period end', 'fin de la période']))
+    || (rangeField && { value: rangeField.value.end, evidence: rangeField.evidence });
+  const dueField = evidence.read((value) => fieldDate(value,
+    ['due date', 'date limite', 'date d’échéance', "date d'echeance"]));
+  let componentFields = {
+    incomeTax: evidence.read((value) => fieldMoney(value, ['income tax', 'quebec income tax'])),
+    qpp: evidence.read((value) => fieldMoney(value, ['qpp', 'quebec pension plan'])),
+    healthServicesFund: evidence.read((value) => fieldMoney(value, ['health services fund', 'hsf'])),
+    qpip: evidence.read((value) => fieldMoney(value, ['qpip', 'quebec parental insurance plan'])),
+    cnesst: evidence.read((value) => fieldMoney(value, ['cnesst'])),
   };
-  if (Object.values(components).some((value) => value === undefined)) {
-    const ocr = layoutTokens.filter((token) => token.source === 'local-ocr' && token.page === 1);
-    components = {
-      incomeTax: centsToken(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.75, yMax: 0.785 }),
-      qpp: centsToken(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.785, yMax: 0.815 }),
-      healthServicesFund: centsToken(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.815, yMax: 0.85 }),
-      qpip: centsToken(ocr, { xMin: 0.66, xMax: 0.82, yMin: 0.75, yMax: 0.785 }),
-      cnesst: centsToken(ocr, { xMin: 0.85, xMax: 0.94, yMin: 0.79, yMax: 0.82 }),
+  if (Object.values(componentFields).some((value) => !value)) {
+    const ocr = layoutTokens.filter((token) => ['ocr-layout', 'local-ocr'].includes(token.source) && token.page === 1);
+    componentFields = {
+      incomeTax: evidence.token(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.75, yMax: 0.785 }),
+      qpp: evidence.token(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.785, yMax: 0.815 }),
+      healthServicesFund: evidence.token(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.815, yMax: 0.85 }),
+      qpip: evidence.token(ocr, { xMin: 0.66, xMax: 0.82, yMin: 0.75, yMax: 0.785 }),
+      cnesst: evidence.token(ocr, { xMin: 0.85, xMax: 0.94, yMin: 0.79, yMax: 0.82 }),
     };
   }
+  const start = startField?.value; const end = endField?.value; const dueDate = dueField?.value;
+  const components = Object.fromEntries(Object.entries(componentFields).map(([key, item]) => [key, item?.value]));
   if (!start || !end) return { error: 'missing-reporting-period' };
   if (Object.values(components).some((value) => value === undefined)) return { error: 'missing-required-field' };
-  const total = fieldMoney(text, ['total remittance', 'amount payable', 'total à remettre', 'total a remettre', 'total'])
-    || centsToken(layoutTokens.filter((token) => token.source === 'local-ocr'),
-      { xMin: 0.82, xMax: 0.98, yMin: 0.72, yMax: 0.89 });
+  const totalField = evidence.read((value) => fieldMoney(value,
+    ['total remittance', 'amount payable', 'total à remettre', 'total a remettre']))
+    // This form's OCR layout map is defined only for page 1; filter page/source before field-local bounds selection.
+    || evidence.token(layoutTokens.filter((token) => token.page === 1
+      && ['ocr-layout', 'local-ocr'].includes(token.source)),
+      { xMin: 0.82, xMax: 0.98, yMin: 0.72, yMax: 0.79 }, false);
+  const total = totalField?.value;
   if (total === undefined) return { error: 'missing-total' };
   const computedTotal = money(Object.values(components).reduce((sum, value) => sum + value, 0));
   if (computedTotal !== total) return { error: 'arithmetic-mismatch' };
@@ -219,31 +259,58 @@ function parseQuebecObligation(text, physicalPageCount, compact, layoutTokens, c
     amounts: { components, arithmetic: { total, computedTotal, matches: true } },
     completeness: { physicalPageCount, expectedPageCount: expectedPages(text, compact) || physicalPageCount },
     obligationLifecycle: { state: 'obligation-recorded', settlement: 'pending' }, relations: [],
-    provenance: provenance(['reportingPeriod.start', 'reportingPeriod.end', 'dates.dueDate',
-      ...Object.keys(components).map((key) => `amounts.components.${key}`), 'amounts.arithmetic.total']),
+    evidence: { 'reportingPeriod.start': startField.evidence, 'reportingPeriod.end': endField.evidence,
+      'dates.dueDate': dueField?.evidence || { source: 'unresolved' },
+      ...Object.fromEntries(Object.entries(componentFields).map(([key, item]) =>
+        [`amounts.components.${key}`, item.evidence])),
+      'amounts.arithmetic.total': totalField.evidence,
+      'amounts.arithmetic.computedTotal': { source: 'derived-arithmetic', confidence: 'exact' } },
   };
 }
 
-function parseQuebecConfirmation(text, physicalPageCount, compact, layoutTokens) {
-  const end = fieldDate(text, ['period end', 'reporting period end', 'remittance period']);
-  const submissionDate = fieldDate(text, ['confirmation date', 'submission date', 'print date']);
-  const scheduledExecutionDate = fieldDate(text, ['scheduled execution', 'payment date', 'execution date']);
-  const total = fieldMoney(text, ['payment total', 'total payment', 'amount payable', 'amount', 'total'])
-    || centsToken(layoutTokens, { xMin: 0.55, xMax: 0.70, yMin: 0.62, yMax: 0.78 });
-  const providerStatus = /to be processed/i.test(text) ? 'to-be-processed' : undefined;
+function parseQuebecConfirmation(text, physicalPageCount, compact, layoutTokens, context, evidence) {
+  const endField = evidence.read((value) => fieldDate(value,
+    ['period end', 'reporting period end', 'remittance period']));
+  const startField = evidence.read((value) => fieldDate(value,
+    ['period start', 'reporting period start']));
+  const submissionField = evidence.read((value) => fieldDate(value,
+    ['confirmation date', 'submission date', 'print date']));
+  const scheduledField = evidence.read((value) => fieldDate(value,
+    ['scheduled execution', 'payment date', 'execution date']));
+  const totalField = evidence.read((value) => fieldMoney(value,
+    ['payment total', 'total payment', 'amount payable']))
+    // Confirmation layout coordinates are page-1-specific and cannot borrow an equal token from another page.
+    || evidence.token(layoutTokens.filter((token) => token.page === 1
+      && ['embedded-layout', 'embedded-pdf-text', 'ocr-layout', 'local-ocr'].includes(token.source)),
+    { xMin: 0.55, xMax: 0.70, yMin: 0.62, yMax: 0.78 }, false);
+  const statusField = evidence.read((value) => /to be processed/i.test(value) ? 'to-be-processed' : undefined);
+  const referenceField = evidence.read((value) =>
+    /confirmation (?:number|reference)[^a-z0-9]{0,20}[a-z0-9-]{4,}/i.test(value) ? true : undefined);
+  const end = endField?.value; const submissionDate = submissionField?.value;
+  const scheduledExecutionDate = scheduledField?.value; const total = totalField?.value;
+  const providerStatus = statusField?.value;
   if (!end) return { error: 'missing-reporting-period' };
-  if (!submissionDate || !scheduledExecutionDate || !providerStatus) return { error: 'missing-required-field' };
+  if (!submissionDate || !scheduledExecutionDate || !providerStatus || !referenceField) {
+    return { error: 'missing-required-field' };
+  }
   if (total === undefined) return { error: 'missing-total' };
   return {
     documentRole: 'submission-confirmation', jurisdiction: 'ca-qc',
-    reportingPeriod: { start: fieldDate(text, ['period start', 'reporting period start']), end },
+    reportingPeriod: { start: startField?.value, end },
     dates: { submissionDate, scheduledExecutionDate },
     amounts: { components: {}, arithmetic: { total, computedTotal: total, matches: true } },
     completeness: { physicalPageCount, expectedPageCount: expectedPages(text, compact) || physicalPageCount },
     obligationLifecycle: { state: 'scheduled', providerStatus, settlement: 'pending' },
     relations: [{ type: 'confirms-submission-of', targetRef: `tax-obligation:ca-qc:${end}` }],
-    provenance: provenance(['reportingPeriod.end', 'dates.submissionDate',
-      'dates.scheduledExecutionDate', 'amounts.arithmetic.total', 'obligationLifecycle.providerStatus']),
+    confirmationReferencePresent: true,
+    evidence: { 'reportingPeriod.end': endField.evidence,
+      ...(startField ? { 'reportingPeriod.start': startField.evidence } : {}),
+      'dates.submissionDate': submissionField.evidence,
+      'dates.scheduledExecutionDate': scheduledField.evidence,
+      'amounts.arithmetic.total': totalField.evidence,
+      'amounts.arithmetic.computedTotal': { source: 'derived-arithmetic', confidence: 'exact' },
+      'obligationLifecycle.providerStatus': statusField.evidence,
+      confirmationReferencePresent: referenceField.evidence },
   };
 }
 
@@ -322,19 +389,30 @@ function employeePaymentPeriodEnd(text) {
 function isoDates(text) { return [...text.matchAll(/\b\d{4}-\d{2}-\d{2}\b/g)].map((match) => match[0]).filter(validDate); }
 
 function centsToken(tokens, bounds) {
+  return centsTokenEvidence(tokens, bounds)?.value;
+}
+
+function centsTokenEvidence(tokens, bounds) {
   const candidates = tokens.filter((token) => inBounds(token, bounds) && token.value.length >= 3)
     .map((token) => ({ ...token, amount: Number(token.value) / 100 }))
     .filter((token) => Number.isFinite(token.amount));
-  return candidates.length ? money(candidates.sort((a, b) => b.amount - a.amount)[0].amount) : undefined;
+  const token = candidates.sort((a, b) => b.amount - a.amount)[0];
+  return token ? { value: money(token.amount), token } : undefined;
 }
 
 function integerToken(tokens, bounds) {
-  const candidate = tokens.find((token) => inBounds(token, bounds) && /^\d{1,3}$/.test(token.value));
-  return candidate ? Number(candidate.value) : undefined;
+  return integerTokenEvidence(tokens, bounds)?.value;
+}
+
+function integerTokenEvidence(tokens, bounds) {
+  const token = tokens.find((candidate) => inBounds(candidate, bounds) && /^\d{1,3}$/.test(candidate.value));
+  return token ? { value: Number(token.value), token } : undefined;
 }
 
 function inBounds(token, bounds) {
-  return token.x >= bounds.xMin && token.x <= bounds.xMax && token.y >= bounds.yMin && token.y <= bounds.yMax;
+  const x = token.bbox?.x ?? token.x;
+  const y = token.bbox?.y ?? token.y;
+  return x >= bounds.xMin && x <= bounds.xMax && y >= bounds.yMin && y <= bounds.yMax;
 }
 
 function normalizeDate(value) {
@@ -373,10 +451,103 @@ function hasConflictingLabelValues(text) {
   });
 }
 
-function provenance(fields) {
-  return Object.fromEntries(fields.map((name) => [name, {
-    source: 'source-pdf-visible-content', location: 'labelled-field-or-bounded-form-layout', confidence: 'exact',
-  }]));
+/**
+ * Separates authoritative embedded text from OCR candidates. A mixed source without explicit channels is intentionally
+ * empty: combined text cannot prove which channel supplied a payment value, so callers must fail closed.
+ */
+class EvidenceChannels {
+  #embedded;
+  #ocr;
+
+  constructor(pdf, combinedText) {
+    if (pdf?.evidenceChannels && typeof pdf.evidenceChannels === 'object') {
+      this.#embedded = bounded(pdf.evidenceChannels.embeddedText);
+      this.#ocr = bounded(pdf.evidenceChannels.ocrText);
+    } else if (pdf?.textSource === 'local-ocr') {
+      this.#embedded = '';
+      this.#ocr = combinedText;
+    } else if (String(pdf?.textSource || '').includes('+local-ocr')) {
+      this.#embedded = '';
+      this.#ocr = '';
+    } else {
+      this.#embedded = combinedText;
+      this.#ocr = '';
+    }
+  }
+
+  select(reader) {
+    const embeddedValue = reader(this.#embedded);
+    if (embeddedValue !== undefined) return { value: embeddedValue,
+      evidence: { source: 'labelled-embedded-text', confidence: 'exact' } };
+    const ocrValue = reader(this.#ocr);
+    return ocrValue === undefined ? undefined
+      : { value: ocrValue, evidence: { source: 'ocr-text', confidence: 'candidate' } };
+  }
+
+  classification(parsed) {
+    if (familyTextMatches(this.#embedded, parsed)) return { source: 'labelled-embedded-text', confidence: 'exact' };
+    if (familyTextMatches(this.#ocr, parsed)) return { source: 'ocr-text', confidence: 'candidate' };
+    return { source: 'unresolved' };
+  }
+}
+
+/**
+ * Selects within caller-prefiltered tokens and field-local bounds. Callers own page/source filtering; OCR selections
+ * remain candidate evidence even when their coordinates match.
+ */
+class FieldEvidenceSelector {
+  #channels;
+
+  constructor(pdf, combinedText) { this.#channels = new EvidenceChannels(pdf, combinedText); }
+  read(reader) { return this.#channels.select(reader); }
+  classification(parsed) { return this.#channels.classification(parsed); }
+
+  token(tokens, bounds, integer = false) {
+    const selected = integer ? integerTokenEvidence(tokens, bounds) : centsTokenEvidence(tokens, bounds);
+    if (!selected) return undefined;
+    const isOcr = ['ocr-layout', 'local-ocr'].includes(selected.token.source);
+    return { value: selected.value, evidence: { source: isOcr ? 'ocr-layout' : 'embedded-layout',
+      confidence: isOcr ? boundedConfidence(selected.token.confidence) : 'exact',
+      page: selected.token.page, bbox: boundedBbox(selected.token) } };
+  }
+}
+
+/** Computes the complete critical set and the inverse OCR/unresolved lists from one provenance map. */
+class PaymentCriticalEvidence {
+  #fields;
+  constructor(parsed, provenance) {
+    const fields = ['documentRole', 'jurisdiction', 'reportingPeriod.end',
+      ...Object.keys(parsed.dates || {}).map((key) => `dates.${key}`),
+      ...Object.keys(parsed.amounts?.components || {}).map((key) => `amounts.components.${key}`),
+      'amounts.arithmetic.total', 'obligationLifecycle.state', 'obligationLifecycle.settlement'];
+    if (parsed.reportingPeriod.start) fields.push('reportingPeriod.start');
+    if (parsed.obligationLifecycle?.providerStatus) fields.push('obligationLifecycle.providerStatus');
+    if (parsed.documentRole === 'submission-confirmation' && parsed.confirmationReferencePresent === true) {
+      fields.push('confirmationReferencePresent');
+    }
+    this.#fields = [...new Set(fields)].sort();
+    this.ocrVerificationRequired = this.#fields.filter((field) =>
+      ['ocr-text', 'ocr-layout'].includes(provenance[field]?.source));
+    this.unresolvedCriticalFields = this.#fields.filter((field) => !provenance[field]
+      || provenance[field].source === 'unresolved');
+  }
+}
+
+function familyTextMatches(text, parsed) {
+  if (!text) return false;
+  const jurisdiction = parsed.jurisdiction === 'ca-federal' ? /pd7a|federal payroll|f[eé]d[eé]ral/i
+    : /revenu qu[eé]bec|qu[eé]bec payroll|tpz-1015/i;
+  const role = parsed.documentRole === 'submission-confirmation'
+    ? /confirmation|to be processed/i
+    : /remittance|retenues|versement|source deductions|p[eé]riode\s+vis[eé]e|total\s+[aà]\s+remettre/i;
+  return jurisdiction.test(text) && role.test(text);
+}
+
+function boundedConfidence(value) { return Math.max(0, Math.min(1, Number(value || 0))); }
+function boundedBbox(token) {
+  const source = token.bbox || { x: token.x, y: token.y, width: 0, height: 0 };
+  return Object.fromEntries(['x', 'y', 'width', 'height'].map((key) =>
+    [key, Math.max(0, Math.min(1, Number(source[key] || 0))) ]));
 }
 
 function periodMatches(end, year, quarter) {
