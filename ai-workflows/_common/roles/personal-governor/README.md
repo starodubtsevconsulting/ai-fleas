@@ -128,6 +128,9 @@ Production deployment is a hard Governor boundary even when the Governor is othe
 
 ### Workflow routing and readiness
 
+See the role's [workflow-support procedure and related contracts](../personal-governor.md#related-contracts-and-navigation)
+for direct links to request mapping, common identity/scope/lifecycle, self INIT, Admin, communication, and platform initialization rules.
+
 **Does**
 - map a human request to its authorized profile, workflow, project, and declared Admin;
 - check that Admin's exact identity and readiness using the workflow's configured platform and lifecycle sources;

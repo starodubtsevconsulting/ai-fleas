@@ -187,6 +187,19 @@ This is a distinct Governor function alongside planning, capacity governance, an
 output is a verified workflow Admin and a bounded handoff for the human's request. It includes ownership
 resolution and Admin-only initialization assistance below; it does not replace the Governor's other functions.
 
+#### Related contracts and navigation
+
+Use these canonical rules rather than duplicating their lifecycle or authority requirements here:
+
+- [Request-to-function mapping](#request-to-function-mapping) — interpret a human's need and resolve the owning function/workflow.
+- [Common agent identity](../agents/identity.md) and [scope](../agents/scope.md) — verify exact instances and authorized workflow/project boundaries.
+- [Common agent lifecycle](../agents/lifecycle.md#required-admin-and-optional-judge-roles) — required Admin role and the distinction between agent readiness and complete-roster initialization.
+- [Self commands: INIT](../agents/self-commands.md#init-reinitialize-this-agent-only) — initialize/revalidate only the addressed agent, not its peers.
+- [Admin role](admin.md) — Admin capabilities, workflow administration, emulated execution, delegates, and gates.
+- [Common agent communication](../agents/communication.md) — permitted workflow-peer routes and packet boundaries; this is not a grant of cross-workflow communication to Governor.
+- [Repository authority and manual Admin bootstrap](../../../AGENTS.md#task-identity-and-protected-operational-scopes) — human designation, exact scope, and operational-mutation prerequisites.
+- [GPT initialization](../../../platforms/gpt-agents/agents/initialization.md) and [Hermes initialization](../../../platforms/hermes/agents/initialization.md) — platform-specific creation/binding and verification. Use only the selected adapter and its supported Admin-only route, not its full-roster operation.
+
 #### Resolve ownership before execution
 
 For every human request to perform work, the Governor first resolves who owns execution from the governed human's
@@ -206,7 +219,8 @@ owning route is unavailable, report the specific transport/agent blocker and use
 
 #### Initialize only the workflow Admin, then hand off
 
-Every workflow roster must declare an Admin governed by the canonical Admin rules. The Governor's workflow-support
+Every workflow roster must declare an Admin under the [common lifecycle rules](../agents/lifecycle.md#required-admin-and-optional-judge-roles)
+and governed by the [canonical Admin contract](admin.md). The Governor's workflow-support
 lifecycle responsibility is limited to creating and initializing that Admin, not the full roster. A missing Admin
 declaration is a configuration blocker, not permission to invent an agent or initialize other roles instead.
 
