@@ -8,8 +8,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
-import { initializationCompletion } from './readiness-evidence.mjs';
+import { initializationCompletion, initializationPromptMatches } from './readiness-evidence.mjs';
 import {
   AgentBindingRegistry,
   PersonalGovernorOnboarding,
@@ -41,9 +40,6 @@ function atomicWrite(file, value) {
   fs.renameSync(temporary, file);
 }
 
-function digest(value) {
-  return createHash('sha256').update(String(value ?? '')).digest('hex');
-}
 
 function expired(binding) {
   const expiry = Date.parse(binding?.initialization?.expiresAt ?? '');
@@ -155,7 +151,7 @@ if (!binding) {
       },
     });
   } else {
-    const matchedPrompt = digest(input.prompt) === binding.initialization.promptSha256;
+    const matchedPrompt = initializationPromptMatches(binding, input);
     if (matchedPrompt) {
       binding.initialization.turnId = input.turn_id ?? null;
       binding.initialization.startedAt = new Date().toISOString();
