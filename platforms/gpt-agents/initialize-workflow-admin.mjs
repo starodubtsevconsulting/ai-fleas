@@ -47,7 +47,15 @@ function inspectCatalog(catalog, scope) {
     if (!authorized)
       fail('SAVED_PROJECT_MISMATCH');
   }
-  return catalog.bindings.filter(b => b.agentId === 'admin' && scopeKey(b.scope || {}) === scopeKey(scope));
+  return catalog.bindings.filter(b => {
+    if (b.agentId !== 'admin' || scopeKey(b.scope || {}) !== scopeKey(scope)) return false;
+    // A receipt is not live authority. Preserve archived history, but do not
+    // reuse it or let it block a newly human-authorized initialization. Only
+    // one exact archived host entry proves retirement; missing or duplicate
+    // entries remain candidates and fail closed below.
+    const tasks = catalog.tasks.filter(t => t.id === b.taskId);
+    return !(tasks.length === 1 && tasks[0].status === 'archived');
+  });
 }
 
 function verifyAdmin(catalog, binding, scope, completion) {
@@ -127,7 +135,7 @@ export class WorkflowAdminInitializer {
       const matches = inspectCatalog(catalog, scope);
       // Scope-bearing unbound host tasks are not safe evidence of absence. Titles
       // are deliberately ignored; the controller must resolve exact host identity.
-      if (catalog.tasks.some(t => t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope) &&
+      if (catalog.tasks.some(t => t.status !== 'archived' && t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope) &&
           !matches.some(b => b.taskId === t.id))) fail('ADMIN_IDENTITY_UNBOUND');
       // Presentation can reveal a possible unbound Admin, never prove reuse.
       // Do not create a duplicate simply because native tasks lack role metadata.
@@ -162,7 +170,7 @@ export class WorkflowAdminInitializer {
       if (createdTasks.length !== 1 || createdTasks[0].status !== 'active' ||
           createdTasks[0].projectId !== scope.projects[0].savedProjectId || competing.length ||
           fresh.bindings.some(b => b.taskId === createdTaskId) || fresh.tasks.some(t =>
-            t.id !== createdTaskId && t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope)))
+            t.status !== 'archived' && t.id !== createdTaskId && t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope)))
         fail('ADMIN_CREATED_TASK_UNVERIFIED');
       const initialized = await host.initialize({ taskId: createdTaskId, payload });
       if (initialized?.taskId !== createdTaskId || initialized.status !== 'submitted') fail('ADMIN_INIT_UNCERTAIN');
