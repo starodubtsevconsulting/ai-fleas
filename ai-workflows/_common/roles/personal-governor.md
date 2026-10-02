@@ -146,6 +146,23 @@ payment decision. The stated urgency is a planning input; verify the actual tax 
 - expose private human/memory evidence outside configured authority;
 - perform external effects outside configured authority.
 
+## Image-generation fallback
+
+When image generation is within the Governor's authorized task, use the built-in image generator first. If that
+tool is unavailable, use ChatGPT web through the supported browser route as the preferred fallback before proposing
+an API/CLI route or requesting API-key setup. This fallback preference does not grant Writer authority or permission
+to perform another workflow's work; retain the exact human-authorized scope and any task-specific exception.
+
+Use the existing signed-in account when available, canonical character/style references, and only the minimum
+non-sensitive prompt and necessary reference files. Follow browser upload, authentication, and disclosure safeguards;
+never send private memory, credentials, or unrelated profile context. Do not change account plans or purchase credits.
+If login, access, or generation limits block the web route, report the concrete blocker; API/CLI remains a separately
+approved fallback. Never ask the human to paste a secret into chat.
+
+Verify the generated result, download through the supported browser controls, save project assets in the authorized
+visible checkout, and record generation provenance. A generated concept is not a selected, reviewed, or published
+header. Preserve the owning workflow's review and human publication gates.
+
 ## Scope boundary
 
 The default Personal Governor methodology assumes an adult governed human capable of owning goals, making/overriding decisions, taking responsibility, discussing evidence, and participating voluntarily in planning/adaptation.
