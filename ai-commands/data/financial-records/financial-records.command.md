@@ -84,6 +84,13 @@ source SHA-256, schema and adapter versions, jurisdiction, reporting period, dat
 page completeness, separate processing and obligation lifecycle states, relations, field provenance, and a canonical
 bundle destination/filename proposal.
 
+The shared PDF reader remains domain-neutral and plan-driven. Generic callers use the bounded generic plan without
+numeric layout-token extraction. Payroll-tax preparation explicitly selects the payroll-tax read plan, which owns its
+OCR trigger, language, page-segmentation mode, page/text/token limits, and numeric layout-token policy.
+Plans also impose explicit per-page and cumulative rendered-pixel budgets before any canvas allocation. The current
+local runtime supports the `eng` OCR data package and PSM values `3`, `4`, `6`, and `11`; other languages or modes fail
+plan validation rather than reaching Tesseract implicitly.
+
 Unsupported, ambiguous, wrong-period, wrong-section, missing-total, arithmetic-mismatched, or conflicting evidence
 fails closed. An incomplete federal page set may return an extraction for review, but remains `incomplete`,
 `review-required`, and ineligible for apply. A provider status such as `to be processed` is submission/scheduling

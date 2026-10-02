@@ -50,7 +50,8 @@ await assert.rejects(fromSource('invalid.json'), /INVALID_SOURCE_NOT_PDF/);
 console.log('financial-records prepare-from-source: PASS');
 
 const taxCommand = new FinancialRecordsCommand();
-taxCommand.pdfReader = { async read() {
+taxCommand.pdfReader = { async read(_source, readPlan) {
+  assert.equal(readPlan?.id, 'payroll-tax');
   const normalizedText = [
     'Revenu Quebec payroll source deductions', 'Reporting period start: 2031-07-01',
     'Reporting period end: 2031-09-30', 'Due date: 2031-10-18', 'Income tax: 1,234.56',
