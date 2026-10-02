@@ -8,12 +8,22 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildAdminInitialization } from './admin-initialization.mjs';
+import { buildAdminInitialization, resolveProjectRoot } from './admin-initialization.mjs';
 import { initializeWorkflowAdmin } from './initialize-workflow-admin.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const profilePath = path.join(root, 'fictional-profile.yml');
 const projectPath = path.join(root, 'fictional-project.yml');
+test('resolves current-home, absolute and manifest-relative paths without shell expansion', () => {
+  const home = '/fictional/home';
+  assert.equal(resolveProjectRoot('~/records', projectPath, home), '/fictional/home/records');
+  assert.equal(resolveProjectRoot('~', projectPath, home), home);
+  assert.equal(resolveProjectRoot('/fictional/records', projectPath, home), '/fictional/records');
+  assert.equal(resolveProjectRoot('.', projectPath, home), root);
+  assert.equal(resolveProjectRoot('$HOME/records', projectPath, home), path.join(root, '$HOME/records'));
+  assert.throws(() => resolveProjectRoot('~someone/records', projectPath, home), /PROJECT_HOME_SYNTAX_UNSUPPORTED/);
+  assert.throws(() => resolveProjectRoot(null, projectPath, home), /PROJECT_ROOT_INVALID/);
+});
 function fixture() {
   const profile = { name: 'fictional', platforms: { default: 'codex-app', available: ['codex-app'] },
     ai_workflows_root: 'ai-workflows', ai_platforms_root: 'platforms',

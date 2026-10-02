@@ -8,6 +8,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { loadRegistry } from '../dispatch-plan.mjs';
@@ -16,6 +17,17 @@ import { selectLifecycleRole } from './agents/select-role-initialization.mjs';
 const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const sameSet = (a, b) => Array.isArray(a) && Array.isArray(b) &&
   a.length === b.length && new Set(a).size === a.length && a.every(x => b.includes(x));
+
+/** Expand only the current user's home shorthand; never evaluate shell syntax. */
+export function resolveProjectRoot(value, manifestPath, homeDirectory = os.homedir()) {
+  if (typeof value !== 'string' || !value.trim()) throw new Error('PROJECT_ROOT_INVALID');
+  if (value === '~' || value.startsWith('~/')) {
+    if (!path.isAbsolute(homeDirectory)) throw new Error('PROJECT_HOME_INVALID');
+    return path.resolve(homeDirectory, value === '~' ? '.' : value.slice(2));
+  }
+  if (value.startsWith('~')) throw new Error('PROJECT_HOME_SYNTAX_UNSUPPORTED');
+  return path.resolve(path.dirname(manifestPath), value);
+}
 
 export function buildAdminInitialization(request, options = {}) {
   const io = options.fs || fs;
@@ -62,7 +74,7 @@ export function buildAdminInitialization(request, options = {}) {
   const projects = request.projectIds.map(id => {
     const project = authorized.find(p => p.id === id);
     if (!project?.root) throw new Error('PROJECT_NOT_AUTHORIZED');
-    const root = io.realpathSync(path.resolve(path.dirname(project.ref), project.root));
+    const root = io.realpathSync(resolveProjectRoot(project.root, project.ref));
     if (!io.statSync(root).isDirectory()) throw new Error('PROJECT_ROOT_UNUSABLE');
     return { ...project, root };
   });
