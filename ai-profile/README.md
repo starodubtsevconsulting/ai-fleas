@@ -105,8 +105,13 @@ The work-profile file commonly defines `default_agent`, `agent_login_method`, `d
 bindings, catalog locations, organization metadata, environments, and app-mode settings. Runtime selection may use
 `WORK_PROFILE_ID`, and session state remains scoped under `session-root/<work-profile>/...`.
 
-`agent_platform` selects the exact adapter that realizes logical workflow agents, while `ai_platforms_root` selects its
-registry. The profile runtime resolves the adapter contract explicitly and fails closed when it is absent. A workflow may
+Lifecycle platform selection follows profile `agent_platforms.default`, workflow `agent_platform`, then profile-owned
+workflow `agent_overrides[agentId].agent_platform`. `agent_platforms.available` is a whitelist; every declared selection,
+including overridden values, must be registered and available. `ai_platforms_root` selects the registry. Missing or
+conflicting selection fails closed; an initializer command verifies the resolved adapter rather than overriding it.
+The typed host exposes `agentPlatformFor(workflowId, agentId)`. Mixed-platform roster orchestration is unsupported;
+single-agent selection resolves only the requested logical role. See [dispatch contract](../platforms/DISPATCH_PLAN.md).
+A workflow may
 still select a command-execution harness independently; an agent platform defines agent identity and lifecycle, while a
 harness defines how an agent executes a particular workload.
 

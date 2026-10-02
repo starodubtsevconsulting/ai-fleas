@@ -2,9 +2,7 @@
 
 AI Fleas workflows define logical roles, authority, collaboration, and required outcomes. A platform defines how those logical agents are realized and run. It may use a UI, terminal, launcher, service, or another runtime mechanism.
 
-A profile declares multiple available platforms under `agent_platforms.available`. Starting a profile selects one platform
-for that run: an explicit command/runtime selection takes precedence, otherwise `agent_platforms.default` is used. The
-selected platform must be available in the profile and registered; the profile itself is not permanently bound to one platform.
+A profile resolves lifecycle platform selection from `agent_platforms.default`, then workflow `agent_platform`, then workflow `agent_overrides[agentId].agent_platform`. Every declaration must be registered and available. Runtime initializer selection verifies the effective platform; it does not override configuration. Workload harness selection remains independent. See [dispatch contract](DISPATCH_PLAN.md). Mixed-platform roster orchestration is unsupported.
 
 Built-in public platform contracts are registered in `registry.yml`. External implementations are resolved only through explicit host configuration; AI Fleas never discovers sibling repositories by name or location.
 
