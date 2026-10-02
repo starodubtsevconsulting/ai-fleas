@@ -1,3 +1,14 @@
+/**
+ * Purpose: resolve profile-owned lifecycle platform selection into a dispatch plan.
+ * Callers: the Hermes workflow-scope resolver and the GPT role-selection helper.
+ * Usage: import resolveDispatchPlan(); this module has no command-line entry point.
+ * Inputs: profile/workflow configuration, platform registry, and an explicit role request.
+ * Result: selected agents, platform IDs, adapter contracts, and selection sources.
+ * Effects: loadRegistry() reads registry/contract files; planning creates no agents and
+ * writes no configuration. A plan is selection evidence, not proof of initialization.
+ * Runtime wiring: Hermes invokes this through its resolver. GPT uses it only when
+ * its controller runs the documented role-selection helper, not automatically on INIT.
+ */
 import fs from 'node:fs';
 import { parse } from 'yaml';
 import path from 'node:path';

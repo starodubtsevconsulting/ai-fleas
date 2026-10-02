@@ -10,7 +10,15 @@ trap cleanup EXIT INT TERM
 mkdir -p "${test_root}/profiles/example/workflows-config/youtube" \
   "${test_root}/profiles/example/projects/youtube/channel" \
   "${test_root}/workflows/youtube/flows" "${test_root}/workflows/_common/roles" \
-  "${test_root}/commands/writing" "${test_root}/workspace"
+  "${test_root}/commands/writing" "${test_root}/workspace" "${test_root}/platforms/hermes"
+
+# Lifecycle selection requires a registered adapter even though this test only resolves scope.
+cat >"${test_root}/platforms/registry.yml" <<'YAML'
+platforms:
+  - id: hermes
+    contract: hermes/platform.yml
+YAML
+printf 'id: hermes\n' >"${test_root}/platforms/hermes/platform.yml"
 
 printf '# YouTube\n' >"${test_root}/workflows/youtube/youtube.workflow.md"
 printf '# Worker\n' >"${test_root}/workflows/_common/roles/worker.md"
@@ -34,9 +42,10 @@ YAML
 cat >"${test_root}/profiles/example/example-work-profile.yml" <<YAML
 name: example
 default_workflow: youtube.workflow.md
-agent_platforms: { available: [hermes] }
+agent_platforms: { default: hermes, available: [hermes] }
 ai_commands_root: ../../commands
 ai_workflows_root: ../../workflows
+ai_platforms_root: ../../platforms
 workflows:
   - path: youtube.workflow.md
     local_ai: { providers_config: providers.yml, provider: openai-service, model: gpt-sol }

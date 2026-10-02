@@ -1,5 +1,13 @@
+/**
+ * Purpose: regression checks for lifecycle platform precedence and dispatch boundaries.
+ * Caller: developers/verification agents run node platforms/dispatch-plan.test.mjs.
+ * Effects: reads the public registry/contracts and uses in-memory configuration;
+ * creates no agents or runtime state. A pass proves selection checks, not live dispatch.
+ */
 import assert from 'node:assert/strict';
 import { resolveDispatchPlan, requireAdapter, loadRegistry } from './dispatch-plan.mjs';
+import fs from 'node:fs';
+import { parse } from 'yaml';
 const registry = loadRegistry(new URL('./registry.yml', import.meta.url));
 const base = { agent_platforms: { default: 'gpt-agents', available: ['gpt-agents', 'hermes', 'sc'] } };
 const single = { operation: 'single-agent', requestedAgentId: 'admin', declaredAgentIds: ['admin', 'coder'] };
@@ -29,4 +37,12 @@ assert.throws(() => run(base, { agent_overrides: [] }), /CONFIG_INVALID/);
 assert.throws(() => run(base, { agent_overrides: { unknown: {} } }), /UNKNOWN_AGENT_OVERRIDE/);
 assert.throws(() => run(base, {}, { declaredAgentIds: ['admin'] }), /OPERATION_REQUIRED/);
 assert.throws(() => run({ agent_platforms: { default: 'gpt-agents', available: [] } }), /AVAILABLE_INVALID/);
+const example = parse(fs.readFileSync(new URL('../ai-profile/example/example-work-profile.yml', import.meta.url), 'utf8'));
+const financial = example.workflows.find(w => w.path === 'financial-insights.workflow.md');
+const financialManifest = parse(fs.readFileSync(new URL('../ai-workflows/financial-insights/agents.yml', import.meta.url), 'utf8'));
+const financialPlan = resolveDispatchPlan(example, financial, registry, {
+  operation: 'full-roster', declaredAgentIds: [financialManifest.initializer, ...financialManifest.agents].filter(Boolean).map(r => r.agentId),
+});
+assert.ok(financialPlan.agents.every(a => a.platformId === 'hermes' && a.source === 'workflow'));
+requireAdapter(financialPlan, 'hermes');
 console.log('Lifecycle platform resolution and dispatch: PASS');

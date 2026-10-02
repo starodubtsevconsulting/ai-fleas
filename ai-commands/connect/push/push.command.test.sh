@@ -33,7 +33,7 @@ printf '%s\n' \
   'command: source-control' \
   'capability: git' \
   'registered_command: git' \
-  'command_path: git/git.command.sh' \
+  'command_path: connect/git/git.command.sh' \
   "identity_name: $CURRENT_NAME" \
   "identity_email: $CURRENT_EMAIL" \
   'credential_scope: remote_host' \
@@ -63,7 +63,7 @@ printf '%s\n' \
   'command: source-control' \
   'capability: git' \
   'registered_command: git' \
-  'command_path: git/git.command.sh' \
+  'command_path: connect/git/git.command.sh' \
   'identity_name: Push Test' \
   "identity_email: $CURRENT_EMAIL" \
   'credential_scope: remote_host' \

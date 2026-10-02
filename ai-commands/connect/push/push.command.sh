@@ -274,7 +274,7 @@ if [ "$scm_provider" != "git" ]; then
   echo "Profile '${expected_profile}' uses source-control provider '$scm_provider', not Git." >&2
   exit 1
 fi
-if [ "$registered_command" != "git" ] || [ "$command_path" != "git/git.command.sh" ]; then
+if [ "$registered_command" != "git" ] || [ "$command_path" != "connect/git/git.command.sh" ]; then
   echo "Profile '${expected_profile}' has an invalid Git provider command binding." >&2
   exit 1
 fi

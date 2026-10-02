@@ -1,6 +1,29 @@
+/**
+ * Purpose: validate a GPT lifecycle role or full roster before initialization.
+ * Caller: the AI lifecycle controller following gpt-agents.command.md. The desktop
+ * launcher does not automatically invoke this file when a user sends INIT.
+ * Usage: node select-role-initialization.mjs MANIFEST ADAPTER ROLE PROFILE WORKFLOW REGISTRY
+ * Use full-roster as ROLE for initialize/reconcile preflight; mixed-platform plans fail.
+ * It can also be imported by tests or a controller via selectLifecycleRole().
+ * Result: JSON metadata for exactly the requested Admin or supported independent role.
+ * Effects: reads YAML and checks platform/role contracts; creates no chats, bindings,
+ * schedules, or roster. The controller must perform a supported lifecycle transaction
+ * and verify the actual task before claiming readiness.
+ */
 import fs from 'node:fs';
 import { parse } from 'yaml';
 import { resolveDispatchPlan, requireAdapter, loadRegistry } from '../../dispatch-plan.mjs';
+
+export function selectLifecycleRoster(profile, workflow, registry, manifest, adapter) {
+  const declaredAgentIds = [manifest?.initializer, ...(manifest?.agents || [])].filter(Boolean).map(role => role.agentId);
+  const plan = requireAdapter(resolveDispatchPlan(profile, workflow, registry,
+    { operation: 'full-roster', declaredAgentIds }), 'gpt-agents');
+  if (adapter?.platform !== 'gpt-agents') throw new Error('LIFECYCLE_ADAPTER_MISMATCH');
+  const bindings = [...(adapter.role_endpoints || []), ...(adapter.role_routes || [])].map(e => e.role);
+  if (bindings.length !== declaredAgentIds.length || new Set(bindings).size !== bindings.length ||
+      declaredAgentIds.some(id => !bindings.includes(id))) throw new Error('ROSTER_ADAPTER_MISMATCH');
+  return plan;
+}
 
 export function selectLifecycleRole(profile, workflow, registry, manifest, adapter, roleId) {
   const declaredAgentIds = [manifest?.initializer, ...(manifest?.agents || [])].filter(Boolean).map(role => role.agentId);
@@ -52,7 +75,11 @@ if (process.argv[1]?.endsWith('/select-role-initialization.mjs')) {
     const profile = parse(fs.readFileSync(profilePath, 'utf8'));
     const workflows = profile.workflows?.filter(w => w.path === workflowId || w.path === workflowId + '.workflow.md') || [];
     if (workflows.length !== 1) throw new Error('WORKFLOW_SELECTION_AMBIGUOUS');
-    process.stdout.write(`${JSON.stringify(selectLifecycleRole(profile, workflows[0], loadRegistry(registryPath), manifest, adapter, roleId))}\n`);
+    const registry = loadRegistry(registryPath);
+    const selected = roleId === 'full-roster'
+      ? selectLifecycleRoster(profile, workflows[0], registry, manifest, adapter)
+      : selectLifecycleRole(profile, workflows[0], registry, manifest, adapter, roleId);
+    process.stdout.write(`${JSON.stringify(selected)}\n`);
   } catch (error) {
     process.stderr.write(`${error.message}\n`);
     process.exitCode = 1;

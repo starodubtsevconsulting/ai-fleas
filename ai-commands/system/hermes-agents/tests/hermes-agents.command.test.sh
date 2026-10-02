@@ -37,7 +37,6 @@ cat >"${test_root}/ai-profile/example/example-work-profile.yml" <<YAML
 version: 3
 name: example
 default_workflow: dev.workflow.md
-agent_platform: hermes
 agent_platforms:
   default: hermes
   available:

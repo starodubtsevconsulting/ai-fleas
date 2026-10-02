@@ -1,4 +1,16 @@
 #!/usr/bin/env node
+/**
+ * Purpose: validate and resolve a profile-owned Hermes workflow before lifecycle work.
+ * Caller: hermes-agents.command.sh runs this automatically during initialization and
+ * connection selection; this is an executable preflight, not an agent instruction file.
+ * Usage: node resolve-workflow-scope.mjs PROFILE_ROOT PROFILE_ID WORKFLOW PROJECT CONNECTION
+ * The final three selectors may be omitted where their configured defaults apply.
+ * Result: tab-separated resolved scope and role/provider settings for the shell caller.
+ * Effects: reads canonical configuration and environment bindings; writes no profiles
+ * and creates no agents. Its shell caller owns subsequent initialization effects.
+ * Platform gate: rejects an adapter mismatch or unsupported mixed-platform roster
+ * before the caller can realize roles. Workload harness does not choose lifecycle.
+ */
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';

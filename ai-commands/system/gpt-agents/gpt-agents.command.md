@@ -60,7 +60,7 @@ therefore changes profile configuration rather than the portable workflow roster
 
 | Input | Required | Source | Description |
 |---|---|---|---|
-| Active AI Profile | Yes | Host activation | Must list `gpt-agents` as available. The invocation may explicitly select it; otherwise the profile default is used. |
+| Active AI Profile | Yes | Host activation | Must list `gpt-agents` as available. Workflow lifecycle selection follows profile default → workflow override → per-agent override; invocation flags verify the effective selection. |
 | Ordered selected project subset and complete logical project | Yes | User and profile | Select one or more project/work targets from those registered to the workflow. Registration authorizes availability but does not make every project mandatory. The first selected project is primary and hosts the rules, commands, workflow definitions, and Codex agents; remaining selected projects are associated work projects. |
 | GPT role overrides | No | Profile-owned `commands[].config` | Override supported model, reasoning, title, or elastic-pool realization values without changing role authority. |
 | Grouping policy | No | Profile-owned `commands[].config` | Defines the saved-project name template and deterministic collision suffix policy. |
@@ -85,8 +85,8 @@ available, resolve its platform contract, load the workflow's registered project
 pre-existing exact folder-backed saved Codex project named for the logical project/group before workflow-task mutation. Verify its
 ordered scoped folders from the selected profile-authorized project records. The first selected folder is primary. Registered but
 unselected projects are not required roots. The primary project hosts the control plane and agent launch context. An explicit
-command-level `--agent-platform gpt-agents` selection takes precedence over the profile default but must still be listed by
-the profile. System lifecycle resolves the profile/platform binding without belonging to a workflow logical project.
+command-level `--agent-platform gpt-agents` verifies the effective profile-owned selection; it cannot override the
+profile/workflow/agent hierarchy. System lifecycle resolves the profile/platform binding without belonging to a workflow logical project.
 
 Committed configuration template: `gpt-agents/gpt-agents.command.example.config`. Copy it into the selected profile, set only supported command value overrides, reference the copied file through `commands[].config`, and let the host expose it as `AI_COMMAND_CONFIG_PATH`. The committed example is documentation and must never be used as operational configuration.
 
@@ -238,9 +238,12 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    selected entry must resolve to a project registered by that workflow. The first selected entry is the primary project
    and must contain or resolve the group's rules, commands, and workflow definitions; later selected entries are associated
    work projects. Registered but unselected projects are available choices, not required scoped folders.
-2. Resolve the invocation-selected platform, or otherwise the profile default, through `platforms/registry.yml`; require
-   that it is listed in `agent_platforms.available` and equals `gpt-agents` for this command.
-3. Load the portable workflow agent manifest and the GPT workflow role bindings completely.
+2. Resolve profile-owned lifecycle selection through `platforms/registry.yml`: profile default, then workflow override,
+   then per-agent override. Invocation flags verify that selection; they never override it.
+3. Load the portable workflow agent manifest and the GPT workflow role bindings completely. Before any task creation,
+   run `node platforms/gpt-agents/agents/select-role-initialization.mjs MANIFEST ADAPTER full-roster PROFILE WORKFLOW REGISTRY`.
+   Require a successful complete GPT plan; missing selection, adapter mismatch, or mixed-platform roster stops initialization
+   with zero task mutation. This gate applies to initialize and roster reconcile/reinitialize alike.
 4. Resolve every selected project record in selected order to one canonical folder root. Require one pre-existing folder-backed
    Codex project named `<profile>-<workflow>[-<suffix>]`; this is the GPT-platform prerequisite implied by an initialize
    request. Verify its immutable ID, logical-project name, primary root, and complete ordered selected scoped-folder list, then

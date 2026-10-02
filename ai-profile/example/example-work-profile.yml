@@ -266,6 +266,7 @@ workflows:
       - ref: projects-config/writing/example-writing/project.yml
       - ref: projects-config/writing/example-articles/project.yml
   - path: financial-insights.workflow.md
+    agent_platform: hermes
     harness: hermes
     local_ai:
       providers_config: local-ai-providers.yml
