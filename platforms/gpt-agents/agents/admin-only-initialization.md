@@ -65,6 +65,13 @@ is available, supply the human-authorized non-empty subset. Optional
 Inspect `status`, exact identity, readiness evidence, and release result before
 handing off. A blocked result is not partial success.
 
+New INIT requires a supported owning audit-close operation before spawning its
+read-only child. Missing support returns `BLOCKED_INIT_AUDIT_CLEANUP_UNSUPPORTED`
+without creating that child. The native controller also checks the complete task
+catalog with explicit source kinds, exact descendant links, completed audit turns,
+actual `notLoaded` state and complete loaded-catalog exclusion before accepting
+`ADMIN_READY`. Prompt compliance alone cannot hide a retained audit writer.
+
 There is no effectful `launcher.mjs initialize-admin` command. The launcher offers
 only `preflight-admin`, which validates/builds a plan without creating or messaging
 a task. Do not substitute a full-roster launcher or compose an ad-hoc task creation
@@ -98,6 +105,12 @@ by the builder. Register the exact binding through the existing generic plugin
 registration API, then submit the prompt once. The native route uses `turn/start`;
 the queue CLI is a separate transport, not an additional delivery step. Verify the
 actual task, binding and readiness. Submission or a pending binding is not readiness.
+
+A uniquely verified archived host task is historical, even when its retained
+receipt still says active or pending. A new human-approved initialization may
+create a fresh Admin while preserving that receipt and archived history. A missing
+or ambiguous host task does not qualify for this exclusion. Never restore or
+message the archived predecessor implicitly.
 
 Controller integration imports `initializeWorkflowAdmin(preparedPlan, host)`;
 the prepared plan may be JSON-serialized. The host must implement all six ports:
@@ -133,6 +146,14 @@ After verified readiness, unsubscribe the controller and verify that the exact t
 is unloaded and absent from the complete loaded catalog. `controllerReleased`
 proves lease release, not that the human has opened or typed into the UI.
 A chat still locked to another client is not a completed controller handoff.
+
+For a failed newly-created INIT, the native initializer attempts to release only
+its own lease after fresh exact stopped-task evidence. It never interrupts or
+resends a running attempt. Inspect `controllerReleased` and `releaseBlocker` on
+blocked results; no cleanup success is implied. Recoverable archive is a separate
+human-authorized action. Use the owning daemon's native `thread/archive` route
+when a separate archive client conflicts with its writer; first verify the exact
+task, stopped turn and released descendants, then verify archived membership.
 
 The app's `send_message_to_thread` tool supplies inter-task steering, not the native
 user-prompt lifecycle event. It cannot activate INIT through the native prompt

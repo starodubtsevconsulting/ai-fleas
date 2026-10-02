@@ -54,7 +54,12 @@ exact child identity, its verified parent relationship, observed state, remainin
 action. Do not claim cleanup success or silently force release. A current connection's unsubscribe may release only
 its own subscription, not another owner's writer.
 
-INIT readiness and archival eligibility are separate outcomes. A role can pass its identity/readiness checks while
-an already-completed audit child still blocks archival. The handoff must explain that distinction and any outstanding
-cleanup limitation so the human is not left with an unexplained archive failure. These are parent/controller-followed
-instructions, not an automatic host cleanup service or a guarantee that the app's archive button will succeed.
+For new INIT audits, verify an actual owning child-close capability before dispatch. Missing support blocks the audit
+before spawning; do not knowingly create a child the transport cannot release. After verifying the result, close and
+verify release before claiming readiness. Report `BLOCKED_INIT_AUDIT_CLEANUP_UNSUPPORTED` for missing capability or
+`BLOCKED_INIT_AUDIT_RELEASE_UNVERIFIED` for missing release evidence. Readiness does not establish disabled delivery
+or full END, even after this audit cleanup succeeds.
+
+For legacy tasks with an already-completed but still-loaded child, report its outstanding cleanup limitation so the
+human is not left with an unexplained archive failure. These are parent/controller-followed instructions, not an
+automatic host cleanup service or a guarantee that the app's raw archive button will succeed.

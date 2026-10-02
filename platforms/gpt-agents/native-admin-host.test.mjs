@@ -10,20 +10,24 @@ function fixture() {
   const binding = { agentId: 'admin', platformAdapter: 'codex-app', status: 'active', initialization: { readinessToken: 'ADMIN_READY', completedTurnId: 'turn', completedAt: 'date' } };
   const project = { id: 'project', name: 'fictional-financial-insights', roots: [{ path: '/fictional/code' }, { path: '/fictional/data' }] };
   const task = { id: 'task', projectId: 'project', cwd: '/fictional/data', status: { type: 'idle' }, turns: [{ id: 'turn', status: 'completed', items: [{ type: 'agentMessage', text: 'ADMIN_READY' }] }] };
+  task.turns[0].items.push({ type: 'collabAgentToolCall', tool: 'spawnAgent', status: 'completed',
+    senderThreadId: 'task', receiverThreadIds: ['audit'] });
+  const audit = { id: 'audit', source: { subAgent: { thread_spawn: { parent_thread_id: 'task' } } },
+    status: { type: 'notLoaded' }, turns: [{ id: 'audit-turn', status: 'completed', items: [] }] };
   const client = { request: async (method, params) => {
     calls.push({ method, params });
     if (method === 'project/list') return { data: [project] };
     if (method === 'project/read') return { project };
-    if (method === 'thread/list') return { data: params.archived ? [] : [task] };
+    if (method === 'thread/list') return { data: params.archived ? [] : [task, audit] };
     if (method === 'thread/loaded/list') return { data: ['task'] };
     if (method === 'thread/metadata/update') { task.projectId = params.projectId; return { thread: task }; }
     if (method === 'thread/start') { task.cwd = params.cwd; return { thread: task }; }
-    if (method === 'thread/read') return { thread: task };
+    if (method === 'thread/read') return { thread: params.threadId === 'audit' ? audit : task };
     throw new Error('Unexpected RPC');
   } };
   const options = { pluginData: '/fictional/plugin', io: { existsSync: () => true, readFileSync: () => JSON.stringify({ instances: { task: binding } }), realpathSync: value => value },
     queueInitialization: async ({ taskId }) => ({ taskId, status: 'submitted' }), verifyApproval: async () => true, prerequisites: async () => true };
-  return { host: buildNativeAdminHost(client, options), client, options, calls, binding, task };
+  return { host: buildNativeAdminHost(client, options), client, options, calls, binding, task, audit };
 }
 const request = { role: 'admin', platform: 'codex-app', scope: { projects: [{ id: 'records', savedProjectId: 'project', root: '/fictional/data' }] } };
 test('class owns host dependencies and independent staged creation state', async () => {
@@ -68,6 +72,21 @@ test('readiness requires matching live completed turn and final token', async ()
   f.task.turns[0].items[0].text = 'ADMIN_READY';
   f.task.turns[0].status = 'failed';
   await assert.rejects(f.host.wait({ taskId: 'task', timeoutMs: 1 }), /READINESS_UNVERIFIED/);
+});
+test('ADMIN_READY cannot hide a missing, loaded, running or changed-parent audit', async () => {
+  for (const mutate of [
+    f => { f.task.turns[0].items.pop(); }, // old released child is not this INIT audit
+    f => { f.task.turns[0].items[1].senderThreadId = 'foreign'; },
+    f => { f.task.turns[0].items[1].receiverThreadIds = ['foreign']; },
+    f => { f.audit.status.type = 'idle'; },
+    f => { f.audit.turns[0].status = 'inProgress'; },
+    f => { f.audit.source.subAgent.thread_spawn.parent_thread_id = 'foreign'; },
+    f => { const original = f.client.request; f.client.request = async (method, params) =>
+      method === 'thread/loaded/list' ? { data: ['task', 'audit'] } : original(method, params); },
+  ]) {
+    const f = fixture(); mutate(f);
+    await assert.rejects(f.host.wait({ taskId: 'task', timeoutMs: 1 }), /ADMIN_INIT_AUDIT_/);
+  }
 });
 test('authorized subfolder creation remains narrow and rejects sibling-prefix paths', async () => {
   const f = fixture();

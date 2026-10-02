@@ -25,6 +25,10 @@ export function buildAdminInitPrompt(scope) {
     'This is human-designated Admin bootstrap authorization, not permission for subsequent Governor messages. ' +
     'INIT. Read and verify every canonical source and your exact host binding and task identity. ' +
     'Initialize only yourself; do not create any other role, Router or System. ' +
+    'Before spawning the required read-only INIT audit, verify that your actual transport provides an owning child-close operation. ' +
+    'If unavailable, report BLOCKED_INIT_AUDIT_CLEANUP_UNSUPPORTED without spawning. ' +
+    'After verifying the audit result, close your exact child through that operation and verify it is notLoaded and absent from the complete loaded catalog before ADMIN_READY. ' +
+    'A completed audit is not released; never use a daemon restart, deletion, or another connection unsubscribe as child cleanup. ' +
     'Report ADMIN_READY only after all identity, scope and prerequisite checks pass; otherwise report a concrete blocker. ' +
     'Admin readiness is not full-roster readiness. Subsequent direction must come from the human.';
 }

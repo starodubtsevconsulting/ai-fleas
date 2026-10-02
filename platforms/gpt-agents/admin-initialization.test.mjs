@@ -76,6 +76,8 @@ test('prepares exactly one canonical Admin payload without host effects', () => 
   assert.equal(result.bootstrapPayload.binding.initialization.readinessToken, 'ADMIN_READY');
   assert.deepEqual(result.scope.projects, [{ id: 'fictional-records', savedProjectId: 'fictional-host-project', root }]);
   assert.match(result.bootstrapPayload.prompt, /INIT\./);
+  assert.match(result.bootstrapPayload.prompt, /BLOCKED_INIT_AUDIT_CLEANUP_UNSUPPORTED without spawning/);
+  assert.match(result.bootstrapPayload.prompt, /absent from the complete loaded catalog before ADMIN_READY/);
   assert.equal(result.bootstrapPayload.prompt, buildAdminInitPrompt(result.bootstrapPayload.binding.scope));
   assert.equal(result.sources.adminContract, path.join(root, 'ai-workflows/_common/roles/admin.md'));
   assert.equal(result.sources.projectManifests.length, 1);

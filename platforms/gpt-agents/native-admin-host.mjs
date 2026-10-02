@@ -43,7 +43,10 @@ export class NativeAdminHost {
       let cursor;
       const cursors = new Set();
       do {
-        const page = await client.request('thread/list', { archived, ...(cursor === undefined ? {} : { cursor }) });
+        const page = await client.request('thread/list', { archived,
+          sourceKinds: ['cli', 'vscode', 'exec', 'appServer', 'subAgent', 'subAgentReview',
+            'subAgentCompact', 'subAgentThreadSpawn', 'subAgentOther', 'unknown'],
+          ...(cursor === undefined ? {} : { cursor }) });
         if (!Array.isArray(page?.data)) fail('HOST_TASK_CATALOG_INVALID');
         for (const task of page.data) {
           if (!task?.id || ids.has(task.id)) fail('HOST_TASK_ID_AMBIGUOUS');
@@ -146,6 +149,54 @@ export class NativeAdminHost {
     return result;
   }
 
+  /** Verify actual parent-owned INIT audit release, not merely its final message. */
+  async verifyAuditRelease(taskId, initializationTurn) {
+    const tasks = await this.#tasks();
+    const parentId = task => task.source?.subAgent?.thread_spawn?.parent_thread_id;
+    const descendants = new Set(), ancestors = new Set([taskId]);
+    let changed;
+    do {
+      changed = false;
+      for (const task of tasks) if (!ancestors.has(task.id) && ancestors.has(parentId(task))) {
+        ancestors.add(task.id); descendants.add(task.id); changed = true;
+      }
+    } while (changed);
+    if (!descendants.size) fail('ADMIN_INIT_AUDIT_UNVERIFIED');
+    // Old released children cannot stand in for the audit of this exact INIT.
+    // Use the host's structured spawn item, never text mentioning an agent ID.
+    const spawns = initializationTurn?.status === 'completed' && Array.isArray(initializationTurn.items)
+      ? initializationTurn.items.filter(item => item.type === 'collabAgentToolCall' &&
+        item.tool === 'spawnAgent' && item.status === 'completed' && item.senderThreadId === taskId)
+      : [];
+    const auditIds = spawns.flatMap(item => Array.isArray(item.receiverThreadIds) ? item.receiverThreadIds : []);
+    if (!auditIds.length || auditIds.some(id => !descendants.has(id) ||
+        parentId(tasks.find(task => task.id === id)) !== taskId)) fail('ADMIN_INIT_AUDIT_TURN_UNVERIFIED');
+    for (const id of descendants) {
+      const response = await this.#client.request('thread/read', { threadId: id, includeTurns: true });
+      const task = response?.thread;
+      if (task?.id !== id || parentId(task) !== parentId(tasks.find(item => item.id === id)) ||
+          !ancestors.has(parentId(task)) || parentId(task) === id ||
+          task.status?.type !== 'notLoaded' || !Array.isArray(task.turns) || !task.turns.length ||
+          task.turns.at(-1).status !== 'completed' ||
+          task.turns.some(turn => turn.status === 'inProgress')) fail('ADMIN_INIT_AUDIT_RELEASE_UNVERIFIED');
+    }
+    const seen = new Set(), cursors = new Set(); let cursor;
+    do {
+      const page = await this.#client.request('thread/loaded/list', cursor === undefined ? {} : { cursor });
+      if (!Array.isArray(page?.data)) fail('ADMIN_INIT_AUDIT_RELEASE_UNVERIFIED');
+      for (const id of page.data) {
+        if (typeof id !== 'string' || !id || seen.has(id) || descendants.has(id))
+          fail('ADMIN_INIT_AUDIT_RELEASE_UNVERIFIED');
+        seen.add(id);
+      }
+      cursor = page.nextCursor;
+      if (cursor === undefined || cursor === null) break;
+      if (typeof cursor !== 'string' || !cursor || cursors.has(cursor)) fail('ADMIN_INIT_AUDIT_RELEASE_UNVERIFIED');
+      cursors.add(cursor);
+    } while (true);
+    return { released: true, taskIds: [...descendants] };
+  }
+
   /** Require active receipt plus matching completed native turn and final token. */
   async wait({ taskId, timeoutMs }) {
     const client = this.#client;
@@ -171,6 +222,7 @@ export class NativeAdminHost {
         }
         const messages = turns[0].items?.filter(item => item.type === 'agentMessage');
         if (!messages?.length || messages.at(-1).text?.trim() !== 'ADMIN_READY') fail('ADMIN_READINESS_UNVERIFIED');
+        await this.verifyAuditRelease(taskId, turns[0]);
         return { status: 'complete', taskId, turnId: evidence.completedTurnId, token: 'ADMIN_READY' };
       }
       if (binding.status !== 'pending') fail('ADMIN_READINESS_UNVERIFIED');
