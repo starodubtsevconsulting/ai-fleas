@@ -47,30 +47,35 @@ After readiness, pin the exact Personal Governor task in the global pinned area 
 
 ## GPT utility-subagent routing
 
-Activate this policy only when the selected platform resolves to the exact adapter ID `gpt-agents`, that adapter declares
-`utility-subagent-delegation`, and the human Governor binding sets
-`platformBindings.gpt-agents.utilitySubagents.enabled: true`. Do not infer the platform from a task title, visible UI, or
-conversation history. On another platform, leave this policy inactive and use that platform's own contract.
+The common utility-subagent obligation applies to every Governor `INIT` audit and substantive work item. This section
+selects GPT execution mechanics only when the selected platform resolves to the exact adapter ID `gpt-agents`, that
+adapter declares `utility-subagent-delegation`, and the human Governor binding sets
+`platformBindings.gpt-agents.utilitySubagents.enabled: true`. Do not infer the platform from a task title, visible UI,
+or conversation history. On another platform, use that platform's safe helper transport; if none is available or it
+cannot safely perform the bounded supporting effect, record the concrete blocker rather than treating this obligation
+as inactive.
 
 At the start of each request, separate Governor judgment from bounded execution. The Governor retains scope, authority,
-privacy, prioritization, integration, and final verification. It should prefer a native GPT utility subagent when the work:
+privacy, prioritization, integration, and final verification. It MUST dispatch a native GPT utility subagent for the
+required audit or a safe bounded supporting task. The dispatch must:
 
-- is an independently describable, read-only evidence task allowed by the portable utility-subagent contract;
-- has a crisp input boundary, expected output, and stop condition;
-- can use the binding's lower-capability route without weakening correctness; and
-- is large enough that delegation is useful, including repository inventory, targeted reference checks, factual comparison,
-  log/test-output analysis, or parallel evidence collection.
+- be an independently describable, read-only evidence task allowed by the portable utility-subagent contract;
+- have a crisp input boundary, expected output, and stop condition;
+- use the binding's lower-capability route without weakening correctness; and
+- support the parent decision without taking its final judgment, for example repository inventory, targeted reference
+  checks, factual comparison, log/test-output analysis, or parallel evidence collection.
 
 Use the exact model and reasoning pair from the enabled human binding. `routine` is for mechanical inspection and factual
 extraction. `boundedAnalysis` is for a self-contained analysis that needs more synthesis but not Governor-level strategic
 reasoning. If the configured pair is unavailable or its selection cannot be verified, use an available route that still
 meets the task's capability requirement and report the fallback; never claim an unverified model or saving.
 
-Do not delegate merely to wrap one immediate command whose coordination cost exceeds the work, tightly coupled steps that
-the Governor must observe directly, secret-bearing or approval interactions, destructive/effectful actions, ambiguous or
-high-stakes decisions, final synthesis, or completion judgment. For implementation or other mutations, prefer the real
-authorized workflow agent rather than broadening a utility helper's authority. A utility subagent never substitutes for an
-independent workflow role or acceptance gate.
+The helper must not receive secret-bearing or approval interactions, destructive/effectful actions, ambiguous or
+high-stakes decisions, final synthesis, or completion judgment. Those limits do not waive the required dispatch: select
+a safe read-only supporting task such as evidence extraction or contract checking. If no safe bounded supporting task is
+available, record the transport/effect blocker and stop dependent work. For implementation or other mutations, prefer
+the real authorized workflow agent rather than broadening a utility helper's authority. A utility subagent never
+substitutes for an independent workflow role or acceptance gate.
 
 Every dispatch must provide only the minimum relevant context, preserve the caller's scope and privacy, obey configured and
 platform concurrency, and require evidence that the Governor can verify. The Governor integrates the result and remains

@@ -23,7 +23,7 @@ Existing focused policies remain independently authoritative where applicable:
 - [agent continuity](_common/agents/continuity.md)
 - [knowledge transfer](_common/agents/knowledge-transfer.md)
 - [agent scheduling](_common/agents/scheduling.md)
-- [bounded subagents](_common/agents/utility-subagents.md), available for role-owned work when useful delegation is expected to save total tokens
+- [bounded subagents](_common/agents/utility-subagents.md), required for INIT audits and substantive role-owned work unless the contract records a transport/effect blocker
 
 ## Composition rule
 

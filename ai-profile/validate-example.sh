@@ -22,6 +22,7 @@ grep -Fq 'config: agent-identities.yml' "${PROFILE}" || fail "Example must refer
 python3 "${ROOT}/example/validate-agent-identities.py" "${ROOT}/example/agent-identities.yml" example.com
 node "${ROOT}/validate-human-access.mjs"
 node "${ROOT}/validate-profile-structure.mjs" "${PROFILE}"
+node "${ROOT}/../ai-workflows/_common/agents/utility-subagents-policy.test.mjs"
 node "${ROOT}/../ai-workflows/writing/agents/validate.mjs"
 
 echo 'AI Profile example: PASS'

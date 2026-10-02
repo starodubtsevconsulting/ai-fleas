@@ -66,8 +66,8 @@ Judge is isolated from the workflow agents and communicates only with the human.
 
 ## Utility helpers
 
-Every Dev Agent applies the common [subagent token-cost decision](../../_common/agents/utility-subagents.md) to useful,
-separable role-owned work, including long-running tasks, when the platform supports it. Dev's configured Coder and
+Every Dev Agent follows the mandatory common [utility-subagent contract](../../_common/agents/utility-subagents.md) for
+its INIT audit and each substantive role-owned work item. Dev's configured Coder and
 Command Runner routes retain their mandatory precedence. Dev additionally sets Admin's concurrency limit
 through `initializer.utilitySubagents` in [agents.yml](../agents.yml); that field is an Admin-specific limit, not the
 source of the common permission for other roles. Helpers are not workflow Agents or matrix
