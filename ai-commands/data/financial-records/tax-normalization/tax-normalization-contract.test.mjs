@@ -41,6 +41,16 @@ const proposal = {
 };
 proposal.proposalRevision = taxProposalRevision(proposal);
 const review = buildTaxReviewArtifact(proposal);
+const originalBind = Function.prototype.bind;
+let revisionDuringGlobalMutation;
+try {
+  Function.prototype.bind = () => () => 'prototype-mutation';
+  revisionDuringGlobalMutation = taxProposalRevision(proposal);
+} finally {
+  Function.prototype.bind = originalBind;
+}
+assert.equal(revisionDuringGlobalMutation, proposal.proposalRevision,
+  'captured contract wrappers must ignore later global binding mutation');
 assert.equal(review.proposalRevision, proposal.proposalRevision);
 assert.equal(reviewMatchesPrepared(review, proposal, proposal.proposalRevision), true);
 assert.equal(reviewMatchesPrepared(review, { ...proposal, proposedDestination: proposal.proposedDestination.replace('/q4/', '/q3/') },

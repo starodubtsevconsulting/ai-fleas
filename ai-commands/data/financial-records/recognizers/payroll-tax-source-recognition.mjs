@@ -16,7 +16,7 @@ export class PayrollTaxSourceRecognition {
   evaluate(pdf, context) {
     if (!validContext(context)) return review('invalid-context');
     const text = bounded(pdf?.normalizedText);
-    const channels = evidenceChannels(pdf, text);
+    const evidence = new FieldEvidenceSelector(pdf, text);
     const compact = String(pdf?.compactText || '').toLowerCase();
     if (!text || !Number.isInteger(pdf?.pageCount)) return review('unsupported-document');
     if (hasConflictingLabelValues(text)) return review('conflicting-evidence');
@@ -29,7 +29,7 @@ export class PayrollTaxSourceRecognition {
     ].filter(Boolean);
     if (families.length !== 1) return review(families.length ? 'ambiguous-document-role' : 'unsupported-document');
 
-    const parsed = families[0](text, pdf.pageCount, compact, pdf.layoutTokens || [], context, channels);
+    const parsed = families[0](text, pdf.pageCount, compact, pdf.layoutTokens || [], context, evidence);
     if (parsed.error) return review(parsed.error);
     if (parsed.completeness.expectedPageCount < parsed.completeness.physicalPageCount) {
       return review('conflicting-page-evidence');
@@ -46,15 +46,12 @@ export class PayrollTaxSourceRecognition {
       'payroll-remittances', parsed.jurisdiction, parsed.reportingPeriod.end].join('/');
     const incomplete = parsed.completeness.physicalPageCount < parsed.completeness.expectedPageCount;
     const fieldProvenance = { ...parsed.evidence,
-      documentRole: classificationEvidence(channels, parsed),
-      jurisdiction: classificationEvidence(channels, parsed),
+      documentRole: evidence.classification(parsed),
+      jurisdiction: evidence.classification(parsed),
       'obligationLifecycle.state': { source: 'derived-rule', confidence: 'exact' },
       'obligationLifecycle.settlement': { source: 'derived-rule', confidence: 'exact' } };
-    const criticalFields = paymentCriticalFields(parsed);
-    const ocrVerificationRequired = criticalFields.filter((field) =>
-      ['ocr-text', 'ocr-layout'].includes(fieldProvenance[field]?.source));
-    const unresolvedCriticalFields = criticalFields.filter((field) => !fieldProvenance[field]
-      || fieldProvenance[field].source === 'unresolved');
+    const critical = new PaymentCriticalEvidence(parsed, fieldProvenance);
+    const { ocrVerificationRequired, unresolvedCriticalFields } = critical;
     const extraction = {
       schemaVersion: 2,
       recordType: 'payroll-tax-document',
@@ -129,19 +126,19 @@ function detectQuebecObligation(text, compact) {
   return parseQuebecObligation;
 }
 
-function parseFederalObligation(text, physicalPageCount, compact, layoutTokens, context, channels) {
-  const endField = readAcross(channels, (value) => fieldDate(value,
+function parseFederalObligation(text, physicalPageCount, compact, layoutTokens, context, evidence) {
+  const endField = evidence.read((value) => fieldDate(value,
     ['period end', 'remittance period end', 'fin de la période']))
-    || readAcross(channels, (value) => federalPeriodEnd(value, '', context?.quarter));
+    || evidence.read((value) => federalPeriodEnd(value, '', context?.quarter));
   const embedded = layoutTokens.filter((token) => ['embedded-layout', 'embedded-pdf-text'].includes(token.source) && token.page === 1);
-  const grossField = readAcross(channels, (value) => fieldMoney(value, ['gross payroll']))
-    || tokenField(embedded, { xMin: 0.60, xMax: 0.76, yMin: 0.62, yMax: 0.72 }, false);
-  const employeeField = readAcross(channels, (value) => fieldInteger(value, ['number of employees']))
-    || tokenField(embedded, { xMin: 0.80, xMax: 0.90, yMin: 0.62, yMax: 0.72 }, true);
-  const totalField = readAcross(channels, (value) => fieldMoney(value,
+  const grossField = evidence.read((value) => fieldMoney(value, ['gross payroll']))
+    || evidence.token(embedded, { xMin: 0.60, xMax: 0.76, yMin: 0.62, yMax: 0.72 });
+  const employeeField = evidence.read((value) => fieldInteger(value, ['number of employees']))
+    || evidence.token(embedded, { xMin: 0.80, xMax: 0.90, yMin: 0.62, yMax: 0.72 }, true);
+  const totalField = evidence.read((value) => fieldMoney(value,
     ['amount payable', 'amount paid', 'total remittance']))
-    || tokenField(embedded, { xMin: 0.47, xMax: 0.60, yMin: 0.62, yMax: 0.72 }, false);
-  const dueField = readAcross(channels, (value) => fieldDate(value, ['due date']));
+    || evidence.token(embedded, { xMin: 0.47, xMax: 0.60, yMin: 0.62, yMax: 0.72 });
+  const dueField = evidence.read((value) => fieldDate(value, ['due date']));
   const end = endField?.value; const grossPayroll = grossField?.value;
   const employeeCount = employeeField?.value; const total = totalField?.value;
   if (!end) return { error: 'missing-reporting-period' };
@@ -167,23 +164,23 @@ function parseFederalObligation(text, physicalPageCount, compact, layoutTokens, 
   };
 }
 
-function parseFederalConfirmation(text, physicalPageCount, compact, layoutTokens, context, channels) {
-  const endField = readAcross(channels, employeePaymentPeriodEnd);
-  const submissionField = readAcross(channels, (value) => fieldDate(value,
+function parseFederalConfirmation(text, physicalPageCount, compact, layoutTokens, context, evidence) {
+  const endField = evidence.read(employeePaymentPeriodEnd);
+  const submissionField = evidence.read((value) => fieldDate(value,
     ['print date', 'confirmation date', 'submission date']));
-  const dueField = readAcross(channels, (value) => fieldDate(value, ['due date']));
-  const scheduledField = readAcross(channels, (value) => fieldDate(value,
+  const dueField = evidence.read((value) => fieldDate(value, ['due date']));
+  const scheduledField = evidence.read((value) => fieldDate(value,
     ['payment date', 'scheduled execution', 'execution date']));
   const embedded = layoutTokens.filter((token) => ['embedded-layout', 'embedded-pdf-text'].includes(token.source) && token.page === 1);
-  const grossField = readAcross(channels, (value) => fieldMoney(value, ['gross payroll']))
-    || tokenField(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.52, yMax: 0.57 }, false);
-  const employeeField = readAcross(channels, (value) => fieldInteger(value, ['number of employees']))
-    || tokenField(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.56, yMax: 0.59 }, true);
-  const totalField = readAcross(channels, (value) => fieldMoney(value,
+  const grossField = evidence.read((value) => fieldMoney(value, ['gross payroll']))
+    || evidence.token(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.52, yMax: 0.57 });
+  const employeeField = evidence.read((value) => fieldInteger(value, ['number of employees']))
+    || evidence.token(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.56, yMax: 0.59 }, true);
+  const totalField = evidence.read((value) => fieldMoney(value,
     ['amount payable', 'payment total', 'total payment']))
-    || tokenField(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.59, yMax: 0.64 }, false);
-  const statusField = readAcross(channels, (value) => /to be processed/i.test(value) ? 'to-be-processed' : undefined);
-  const referenceField = readAcross(channels, (value) =>
+    || evidence.token(embedded, { xMin: 0.36, xMax: 0.50, yMin: 0.59, yMax: 0.64 });
+  const statusField = evidence.read((value) => /to be processed/i.test(value) ? 'to-be-processed' : undefined);
+  const referenceField = evidence.read((value) =>
     /confirmation number[^a-z0-9]{0,20}[a-z0-9-]{4,}/i.test(value) ? true : undefined);
   const end = endField?.value; const submissionDate = submissionField?.value; const dueDate = dueField?.value;
   const scheduledExecutionDate = scheduledField?.value; const grossPayroll = grossField?.value;
@@ -215,40 +212,41 @@ function parseFederalConfirmation(text, physicalPageCount, compact, layoutTokens
   };
 }
 
-function parseQuebecObligation(text, physicalPageCount, compact, layoutTokens, context, channels) {
-  const rangeField = readAcross(channels, frenchPeriodRange);
-  const startField = readAcross(channels, (value) => fieldDate(value,
+function parseQuebecObligation(text, physicalPageCount, compact, layoutTokens, context, evidence) {
+  const rangeField = evidence.read(frenchPeriodRange);
+  const startField = evidence.read((value) => fieldDate(value,
     ['period start', 'reporting period start', 'début de la période']))
     || (rangeField && { value: rangeField.value.start, evidence: rangeField.evidence });
-  const endField = readAcross(channels, (value) => fieldDate(value,
+  const endField = evidence.read((value) => fieldDate(value,
     ['period end', 'reporting period end', 'fin de la période']))
     || (rangeField && { value: rangeField.value.end, evidence: rangeField.evidence });
-  const dueField = readAcross(channels, (value) => fieldDate(value,
+  const dueField = evidence.read((value) => fieldDate(value,
     ['due date', 'date limite', 'date d’échéance', "date d'echeance"]));
   let componentFields = {
-    incomeTax: readAcross(channels, (value) => fieldMoney(value, ['income tax', 'quebec income tax'])),
-    qpp: readAcross(channels, (value) => fieldMoney(value, ['qpp', 'quebec pension plan'])),
-    healthServicesFund: readAcross(channels, (value) => fieldMoney(value, ['health services fund', 'hsf'])),
-    qpip: readAcross(channels, (value) => fieldMoney(value, ['qpip', 'quebec parental insurance plan'])),
-    cnesst: readAcross(channels, (value) => fieldMoney(value, ['cnesst'])),
+    incomeTax: evidence.read((value) => fieldMoney(value, ['income tax', 'quebec income tax'])),
+    qpp: evidence.read((value) => fieldMoney(value, ['qpp', 'quebec pension plan'])),
+    healthServicesFund: evidence.read((value) => fieldMoney(value, ['health services fund', 'hsf'])),
+    qpip: evidence.read((value) => fieldMoney(value, ['qpip', 'quebec parental insurance plan'])),
+    cnesst: evidence.read((value) => fieldMoney(value, ['cnesst'])),
   };
   if (Object.values(componentFields).some((value) => !value)) {
     const ocr = layoutTokens.filter((token) => ['ocr-layout', 'local-ocr'].includes(token.source) && token.page === 1);
     componentFields = {
-      incomeTax: tokenField(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.75, yMax: 0.785 }, false),
-      qpp: tokenField(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.785, yMax: 0.815 }, false),
-      healthServicesFund: tokenField(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.815, yMax: 0.85 }, false),
-      qpip: tokenField(ocr, { xMin: 0.66, xMax: 0.82, yMin: 0.75, yMax: 0.785 }, false),
-      cnesst: tokenField(ocr, { xMin: 0.85, xMax: 0.94, yMin: 0.79, yMax: 0.82 }, false),
+      incomeTax: evidence.token(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.75, yMax: 0.785 }),
+      qpp: evidence.token(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.785, yMax: 0.815 }),
+      healthServicesFund: evidence.token(ocr, { xMin: 0.50, xMax: 0.66, yMin: 0.815, yMax: 0.85 }),
+      qpip: evidence.token(ocr, { xMin: 0.66, xMax: 0.82, yMin: 0.75, yMax: 0.785 }),
+      cnesst: evidence.token(ocr, { xMin: 0.85, xMax: 0.94, yMin: 0.79, yMax: 0.82 }),
     };
   }
   const start = startField?.value; const end = endField?.value; const dueDate = dueField?.value;
   const components = Object.fromEntries(Object.entries(componentFields).map(([key, item]) => [key, item?.value]));
   if (!start || !end) return { error: 'missing-reporting-period' };
   if (Object.values(components).some((value) => value === undefined)) return { error: 'missing-required-field' };
-  const totalField = readAcross(channels, (value) => fieldMoney(value,
+  const totalField = evidence.read((value) => fieldMoney(value,
     ['total remittance', 'amount payable', 'total à remettre', 'total a remettre']))
-    || tokenField(layoutTokens.filter((token) => token.page === 1
+    // This form's OCR layout map is defined only for page 1; filter page/source before field-local bounds selection.
+    || evidence.token(layoutTokens.filter((token) => token.page === 1
       && ['ocr-layout', 'local-ocr'].includes(token.source)),
       { xMin: 0.82, xMax: 0.98, yMin: 0.72, yMax: 0.79 }, false);
   const total = totalField?.value;
@@ -270,22 +268,23 @@ function parseQuebecObligation(text, physicalPageCount, compact, layoutTokens, c
   };
 }
 
-function parseQuebecConfirmation(text, physicalPageCount, compact, layoutTokens, context, channels) {
-  const endField = readAcross(channels, (value) => fieldDate(value,
+function parseQuebecConfirmation(text, physicalPageCount, compact, layoutTokens, context, evidence) {
+  const endField = evidence.read((value) => fieldDate(value,
     ['period end', 'reporting period end', 'remittance period']));
-  const startField = readAcross(channels, (value) => fieldDate(value,
+  const startField = evidence.read((value) => fieldDate(value,
     ['period start', 'reporting period start']));
-  const submissionField = readAcross(channels, (value) => fieldDate(value,
+  const submissionField = evidence.read((value) => fieldDate(value,
     ['confirmation date', 'submission date', 'print date']));
-  const scheduledField = readAcross(channels, (value) => fieldDate(value,
+  const scheduledField = evidence.read((value) => fieldDate(value,
     ['scheduled execution', 'payment date', 'execution date']));
-  const totalField = readAcross(channels, (value) => fieldMoney(value,
+  const totalField = evidence.read((value) => fieldMoney(value,
     ['payment total', 'total payment', 'amount payable']))
-    || tokenField(layoutTokens.filter((token) => token.page === 1
+    // Confirmation layout coordinates are page-1-specific and cannot borrow an equal token from another page.
+    || evidence.token(layoutTokens.filter((token) => token.page === 1
       && ['embedded-layout', 'embedded-pdf-text', 'ocr-layout', 'local-ocr'].includes(token.source)),
     { xMin: 0.55, xMax: 0.70, yMin: 0.62, yMax: 0.78 }, false);
-  const statusField = readAcross(channels, (value) => /to be processed/i.test(value) ? 'to-be-processed' : undefined);
-  const referenceField = readAcross(channels, (value) =>
+  const statusField = evidence.read((value) => /to be processed/i.test(value) ? 'to-be-processed' : undefined);
+  const referenceField = evidence.read((value) =>
     /confirmation (?:number|reference)[^a-z0-9]{0,20}[a-z0-9-]{4,}/i.test(value) ? true : undefined);
   const end = endField?.value; const submissionDate = submissionField?.value;
   const scheduledExecutionDate = scheduledField?.value; const total = totalField?.value;
@@ -452,51 +451,86 @@ function hasConflictingLabelValues(text) {
   });
 }
 
-function evidenceChannels(pdf, combinedText) {
-  if (pdf?.evidenceChannels && typeof pdf.evidenceChannels === 'object') {
-    return { embedded: bounded(pdf.evidenceChannels.embeddedText), ocr: bounded(pdf.evidenceChannels.ocrText) };
+/**
+ * Separates authoritative embedded text from OCR candidates. A mixed source without explicit channels is intentionally
+ * empty: combined text cannot prove which channel supplied a payment value, so callers must fail closed.
+ */
+class EvidenceChannels {
+  #embedded;
+  #ocr;
+
+  constructor(pdf, combinedText) {
+    if (pdf?.evidenceChannels && typeof pdf.evidenceChannels === 'object') {
+      this.#embedded = bounded(pdf.evidenceChannels.embeddedText);
+      this.#ocr = bounded(pdf.evidenceChannels.ocrText);
+    } else if (pdf?.textSource === 'local-ocr') {
+      this.#embedded = '';
+      this.#ocr = combinedText;
+    } else if (String(pdf?.textSource || '').includes('+local-ocr')) {
+      this.#embedded = '';
+      this.#ocr = '';
+    } else {
+      this.#embedded = combinedText;
+      this.#ocr = '';
+    }
   }
-  if (pdf?.textSource === 'local-ocr') return { embedded: '', ocr: combinedText };
-  if (String(pdf?.textSource || '').includes('+local-ocr')) return { embedded: '', ocr: '' };
-  return { embedded: combinedText, ocr: '' };
-}
 
-function readAcross(channels, reader) {
-  const embeddedValue = reader(channels.embedded);
-  if (embeddedValue !== undefined) return { value: embeddedValue,
-    evidence: { source: 'labelled-embedded-text', confidence: 'exact' } };
-  const ocrValue = reader(channels.ocr);
-  if (ocrValue !== undefined) return { value: ocrValue, evidence: { source: 'ocr-text', confidence: 'candidate' } };
-  return undefined;
-}
-
-function tokenField(tokens, bounds, integer) {
-  const selected = integer ? integerTokenEvidence(tokens, bounds) : centsTokenEvidence(tokens, bounds);
-  if (!selected) return undefined;
-  const isOcr = ['ocr-layout', 'local-ocr'].includes(selected.token.source);
-  return { value: selected.value, evidence: { source: isOcr ? 'ocr-layout' : 'embedded-layout',
-    confidence: isOcr ? boundedConfidence(selected.token.confidence) : 'exact',
-    page: selected.token.page, bbox: boundedBbox(selected.token) } };
-}
-
-function classificationEvidence(channels, parsed) {
-  if (familyTextMatches(channels.embedded, parsed)) return { source: 'labelled-embedded-text', confidence: 'exact' };
-  if (familyTextMatches(channels.ocr, parsed)) return { source: 'ocr-text', confidence: 'candidate' };
-  return { source: 'unresolved' };
-}
-
-function paymentCriticalFields(parsed) {
-  const fields = ['documentRole', 'jurisdiction', 'reportingPeriod.end',
-    ...Object.keys(parsed.dates || {}).map((key) => `dates.${key}`),
-    ...Object.keys(parsed.amounts?.components || {}).map((key) => `amounts.components.${key}`),
-    'amounts.arithmetic.total'];
-  if (parsed.reportingPeriod.start) fields.push('reportingPeriod.start');
-  if (parsed.obligationLifecycle?.providerStatus) fields.push('obligationLifecycle.providerStatus');
-  fields.push('obligationLifecycle.state', 'obligationLifecycle.settlement');
-  if (parsed.documentRole === 'submission-confirmation' && parsed.confirmationReferencePresent === true) {
-    fields.push('confirmationReferencePresent');
+  select(reader) {
+    const embeddedValue = reader(this.#embedded);
+    if (embeddedValue !== undefined) return { value: embeddedValue,
+      evidence: { source: 'labelled-embedded-text', confidence: 'exact' } };
+    const ocrValue = reader(this.#ocr);
+    return ocrValue === undefined ? undefined
+      : { value: ocrValue, evidence: { source: 'ocr-text', confidence: 'candidate' } };
   }
-  return [...new Set(fields)].sort();
+
+  classification(parsed) {
+    if (familyTextMatches(this.#embedded, parsed)) return { source: 'labelled-embedded-text', confidence: 'exact' };
+    if (familyTextMatches(this.#ocr, parsed)) return { source: 'ocr-text', confidence: 'candidate' };
+    return { source: 'unresolved' };
+  }
+}
+
+/**
+ * Selects within caller-prefiltered tokens and field-local bounds. Callers own page/source filtering; OCR selections
+ * remain candidate evidence even when their coordinates match.
+ */
+class FieldEvidenceSelector {
+  #channels;
+
+  constructor(pdf, combinedText) { this.#channels = new EvidenceChannels(pdf, combinedText); }
+  read(reader) { return this.#channels.select(reader); }
+  classification(parsed) { return this.#channels.classification(parsed); }
+
+  token(tokens, bounds, integer = false) {
+    const selected = integer ? integerTokenEvidence(tokens, bounds) : centsTokenEvidence(tokens, bounds);
+    if (!selected) return undefined;
+    const isOcr = ['ocr-layout', 'local-ocr'].includes(selected.token.source);
+    return { value: selected.value, evidence: { source: isOcr ? 'ocr-layout' : 'embedded-layout',
+      confidence: isOcr ? boundedConfidence(selected.token.confidence) : 'exact',
+      page: selected.token.page, bbox: boundedBbox(selected.token) } };
+  }
+}
+
+/** Computes the complete critical set and the inverse OCR/unresolved lists from one provenance map. */
+class PaymentCriticalEvidence {
+  #fields;
+  constructor(parsed, provenance) {
+    const fields = ['documentRole', 'jurisdiction', 'reportingPeriod.end',
+      ...Object.keys(parsed.dates || {}).map((key) => `dates.${key}`),
+      ...Object.keys(parsed.amounts?.components || {}).map((key) => `amounts.components.${key}`),
+      'amounts.arithmetic.total', 'obligationLifecycle.state', 'obligationLifecycle.settlement'];
+    if (parsed.reportingPeriod.start) fields.push('reportingPeriod.start');
+    if (parsed.obligationLifecycle?.providerStatus) fields.push('obligationLifecycle.providerStatus');
+    if (parsed.documentRole === 'submission-confirmation' && parsed.confirmationReferencePresent === true) {
+      fields.push('confirmationReferencePresent');
+    }
+    this.#fields = [...new Set(fields)].sort();
+    this.ocrVerificationRequired = this.#fields.filter((field) =>
+      ['ocr-text', 'ocr-layout'].includes(provenance[field]?.source));
+    this.unresolvedCriticalFields = this.#fields.filter((field) => !provenance[field]
+      || provenance[field].source === 'unresolved');
+  }
 }
 
 function familyTextMatches(text, parsed) {

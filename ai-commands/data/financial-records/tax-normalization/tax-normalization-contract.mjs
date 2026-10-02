@@ -11,103 +11,127 @@ const ADAPTER_ID = 'canadian-payroll-tax';
 const ADAPTER_VERSION = 2;
 const EXTRACTION_SCHEMA_VERSION = 2;
 
-export function taxExtractionRevision(extraction) {
-  const persisted = JSON.parse(JSON.stringify(extractionCore(extraction)));
-  return createHash('sha256').update(stableJson(persisted)).digest('hex');
-}
-
-export function taxProposalRevision(proposal) {
-  const bounded = proposalCore(proposal);
-  // Proposal files are the review boundary. Canonicalize with JSON persistence semantics first so optional
-  // undefined-valued object fields (which JSON omits) cannot change the revision after save/read round trips.
-  const persisted = JSON.parse(JSON.stringify(bounded));
-  return createHash('sha256').update(stableJson(persisted)).digest('hex');
-}
-
-export function buildTaxReviewArtifact(proposal, verifiedOcrFields = []) {
-  if (!validPreparedProposal(proposal)) return undefined;
-  const requiredFields = normalizedFieldList(proposal.extraction.ocrVerificationRequired || []);
-  const verifiedFields = normalizedFieldList(verifiedOcrFields);
-  if (!requiredFields || !verifiedFields || !sameList(requiredFields, verifiedFields)) return undefined;
-  const proposalRevision = taxProposalRevision(proposal);
-  const extractionRevision = taxExtractionRevision(proposal.extraction);
-  return {
-    schemaVersion: 2,
-    artifactType: 'payroll-tax-normalization-review',
-    reviewState: 'reviewed',
-    proposalRevision,
-    extractionRevision,
-    sourceSha256: proposal.extraction.source.sha256,
-    adapter: { id: ADAPTER_ID, version: ADAPTER_VERSION },
-    extractionSchemaVersion: proposal.extraction.schemaVersion,
-    proposedDestination: proposal.proposedDestination,
-    proposedFilename: proposal.proposedFilename,
-    proposedSidecarFilename: proposal.proposedSidecarFilename,
-    ocrVerification: { requiredFields, attested: requiredFields.length > 0 },
-  };
-}
-
-export function reviewMatchesPrepared(review, proposal, expectedRevision) {
-  if (!review || review.schemaVersion !== 2 || review.artifactType !== 'payroll-tax-normalization-review'
-    || review.reviewState !== 'reviewed' || review.adapter?.id !== ADAPTER_ID
-    || review.adapter?.version !== ADAPTER_VERSION || review.extractionSchemaVersion !== EXTRACTION_SCHEMA_VERSION
-    || !/^[a-f0-9]{64}$/.test(String(review.sourceSha256 || ''))
-    || !/^[a-f0-9]{64}$/.test(String(review.proposalRevision || ''))
-    || !/^[a-f0-9]{64}$/.test(String(review.extractionRevision || ''))) return false;
-  const revision = taxProposalRevision(proposal);
-  const requiredFields = normalizedFieldList(proposal.extraction?.ocrVerificationRequired || []);
-  const attestedFields = normalizedFieldList(review.ocrVerification?.requiredFields || []);
-  return proposal.reviewEligible === true && proposal.status === 'prepared'
-    && requiredFields && attestedFields && sameList(requiredFields, attestedFields)
-    && review.ocrVerification?.attested === (requiredFields.length > 0)
-    && expectedRevision === revision && review.proposalRevision === revision
-    && review.extractionRevision === taxExtractionRevision(proposal.extraction)
-    && review.sourceSha256 === proposal.extraction.source.sha256
-    && review.proposedDestination === proposal.proposedDestination
-    && review.proposedFilename === proposal.proposedFilename
-    && review.proposedSidecarFilename === proposal.proposedSidecarFilename;
-}
-
-export function normalizedTaxExtraction(extraction, review) {
-  if (!extraction || review?.reviewState !== 'reviewed') return undefined;
-  return {
-    ...structuredClone(extraction),
-    processing: { state: 'normalized', reviewRequired: false },
-    normalization: {
-      schemaVersion: 1,
-      proposalRevision: review.proposalRevision,
-      extractionRevision: review.extractionRevision,
-      reviewed: true,
-      ocrVerification: structuredClone(review.ocrVerification),
-    },
-  };
-}
-
-export function reconcileTaxExtraction({ extraction, pdfSha256, pdfFilename }) {
-  if (extraction?.schemaVersion === 1 || extraction?.adapter?.version === 1) {
-    return { status: 'review-required', reason: 'legacy-renormalization-required' };
+/**
+ * Owns the pure review, normalization, and reconciliation contract. The original PDF remains authoritative; this
+ * class only binds reviewed structured evidence and never reads, writes, publishes, or submits anything.
+ */
+class TaxNormalizationContract {
+  extractionRevision(extraction) {
+    const persisted = JSON.parse(JSON.stringify(extractionCore(extraction)));
+    return createHash('sha256').update(stableJson(persisted)).digest('hex');
   }
-  if (!extraction || extraction.schemaVersion !== EXTRACTION_SCHEMA_VERSION
-    || extraction.recordType !== 'payroll-tax-document'
-    || extraction.adapter?.id !== ADAPTER_ID || extraction.adapter?.version !== ADAPTER_VERSION
-    || extraction.source?.sha256 !== pdfSha256 || extraction.source?.mediaType !== 'application/pdf'
-    || extraction.processing?.state !== 'normalized' || extraction.processing?.reviewRequired !== false
-    || extraction.normalization?.schemaVersion !== 1 || extraction.normalization?.reviewed !== true
-    || !/^[a-f0-9]{64}$/.test(String(extraction.normalization?.proposalRevision || ''))
-    || extraction.normalization?.extractionRevision !== taxExtractionRevision(extraction)
-    || !validProvenance(extraction.provenance)
-    || !validOcrAttestation(extraction)) return { status: 'review-required', reason: 'invalid-sidecar' };
-  const expected = canonicalFilename(extraction);
-  if (!expected || expected !== pdfFilename) return { status: 'review-required', reason: 'filename-mismatch' };
-  if (extraction.documentRole === 'submission-confirmation') {
-    const relation = extraction.relations?.find((item) => item?.type === 'confirms-submission-of');
-    if (!relation?.targetRef || extraction.obligationLifecycle?.settlement !== 'pending') {
-      return { status: 'review-required', reason: 'invalid-confirmation-lifecycle' };
+
+  proposalRevision(proposal) {
+    const bounded = proposalCore(proposal);
+    // Match JSON persistence semantics so omitted optional fields cannot change a saved proposal's revision.
+    const persisted = JSON.parse(JSON.stringify(bounded));
+    return createHash('sha256').update(stableJson(persisted)).digest('hex');
+  }
+
+  buildReviewArtifact(proposal, verifiedOcrFields = []) {
+    if (!validPreparedProposal(proposal)) return undefined;
+    const requiredFields = normalizedFieldList(proposal.extraction.ocrVerificationRequired || []);
+    const verifiedFields = normalizedFieldList(verifiedOcrFields);
+    if (!requiredFields || !verifiedFields || !sameList(requiredFields, verifiedFields)) return undefined;
+    const proposalRevision = this.proposalRevision(proposal);
+    const extractionRevision = this.extractionRevision(proposal.extraction);
+    return {
+      schemaVersion: 2,
+      artifactType: 'payroll-tax-normalization-review',
+      reviewState: 'reviewed',
+      proposalRevision,
+      extractionRevision,
+      sourceSha256: proposal.extraction.source.sha256,
+      adapter: { id: ADAPTER_ID, version: ADAPTER_VERSION },
+      extractionSchemaVersion: proposal.extraction.schemaVersion,
+      proposedDestination: proposal.proposedDestination,
+      proposedFilename: proposal.proposedFilename,
+      proposedSidecarFilename: proposal.proposedSidecarFilename,
+      ocrVerification: { requiredFields, attested: requiredFields.length > 0 },
+    };
+  }
+
+  reviewMatchesPrepared(review, proposal, expectedRevision) {
+    if (!review || review.schemaVersion !== 2 || review.artifactType !== 'payroll-tax-normalization-review'
+      || review.reviewState !== 'reviewed' || review.adapter?.id !== ADAPTER_ID
+      || review.adapter?.version !== ADAPTER_VERSION || review.extractionSchemaVersion !== EXTRACTION_SCHEMA_VERSION
+      || !/^[a-f0-9]{64}$/.test(String(review.sourceSha256 || ''))
+      || !/^[a-f0-9]{64}$/.test(String(review.proposalRevision || ''))
+      || !/^[a-f0-9]{64}$/.test(String(review.extractionRevision || ''))) return false;
+    const revision = this.proposalRevision(proposal);
+    const requiredFields = normalizedFieldList(proposal.extraction?.ocrVerificationRequired || []);
+    const attestedFields = normalizedFieldList(review.ocrVerification?.requiredFields || []);
+    return proposal.reviewEligible === true && proposal.status === 'prepared'
+      && requiredFields && attestedFields && sameList(requiredFields, attestedFields)
+      && review.ocrVerification?.attested === (requiredFields.length > 0)
+      && expectedRevision === revision && review.proposalRevision === revision
+      && review.extractionRevision === this.extractionRevision(proposal.extraction)
+      && review.sourceSha256 === proposal.extraction.source.sha256
+      && review.proposedDestination === proposal.proposedDestination
+      && review.proposedFilename === proposal.proposedFilename
+      && review.proposedSidecarFilename === proposal.proposedSidecarFilename;
+  }
+
+  normalize(extraction, review) {
+    if (!extraction || review?.reviewState !== 'reviewed') return undefined;
+    return {
+      ...structuredClone(extraction),
+      processing: { state: 'normalized', reviewRequired: false },
+      normalization: {
+        schemaVersion: 1,
+        proposalRevision: review.proposalRevision,
+        extractionRevision: review.extractionRevision,
+        reviewed: true,
+        ocrVerification: structuredClone(review.ocrVerification),
+      },
+    };
+  }
+
+  reconcile({ extraction, pdfSha256, pdfFilename }) {
+    // Version 1 lacked field-local evidence and content binding; regenerate it rather than upgrading in place.
+    if (extraction?.schemaVersion === 1 || extraction?.adapter?.version === 1) {
+      return { status: 'review-required', reason: 'legacy-renormalization-required' };
     }
+    if (!extraction || extraction.schemaVersion !== EXTRACTION_SCHEMA_VERSION
+      || extraction.recordType !== 'payroll-tax-document'
+      || extraction.adapter?.id !== ADAPTER_ID || extraction.adapter?.version !== ADAPTER_VERSION
+      || extraction.source?.sha256 !== pdfSha256 || extraction.source?.mediaType !== 'application/pdf'
+      || extraction.processing?.state !== 'normalized' || extraction.processing?.reviewRequired !== false
+      || extraction.normalization?.schemaVersion !== 1 || extraction.normalization?.reviewed !== true
+      || !/^[a-f0-9]{64}$/.test(String(extraction.normalization?.proposalRevision || ''))
+      || extraction.normalization?.extractionRevision !== this.extractionRevision(extraction)
+      || !validProvenance(extraction.provenance)
+      || !validOcrAttestation(extraction)) return { status: 'review-required', reason: 'invalid-sidecar' };
+    const expected = canonicalFilename(extraction);
+    if (!expected || expected !== pdfFilename) return { status: 'review-required', reason: 'filename-mismatch' };
+    if (extraction.documentRole === 'submission-confirmation') {
+      const relation = extraction.relations?.find((item) => item?.type === 'confirms-submission-of');
+      if (!relation?.targetRef || extraction.obligationLifecycle?.settlement !== 'pending') {
+        return { status: 'review-required', reason: 'invalid-confirmation-lifecycle' };
+      }
+    }
+    if (extraction.completeness?.complete !== true) return { status: 'incomplete', reason: 'incomplete-pages' };
+    return { status: 'normalized', documentRole: extraction.documentRole, jurisdiction: extraction.jurisdiction };
   }
-  if (extraction.completeness?.complete !== true) return { status: 'incomplete', reason: 'incomplete-pages' };
-  return { status: 'normalized', documentRole: extraction.documentRole, jurisdiction: extraction.jurisdiction };
 }
+
+Object.freeze(TaxNormalizationContract.prototype);
+const taxContract = Object.freeze(new TaxNormalizationContract());
+const boundExtractionRevision = taxContract.extractionRevision.bind(taxContract);
+const boundProposalRevision = taxContract.proposalRevision.bind(taxContract);
+const boundBuildReview = taxContract.buildReviewArtifact.bind(taxContract);
+const boundReviewMatches = taxContract.reviewMatchesPrepared.bind(taxContract);
+const boundNormalize = taxContract.normalize.bind(taxContract);
+const boundReconcile = taxContract.reconcile.bind(taxContract);
+
+// Captured bound references keep the public functional API independent of later global/prototype mutation.
+export const taxExtractionRevision = (extraction) => boundExtractionRevision(extraction);
+export const taxProposalRevision = (proposal) => boundProposalRevision(proposal);
+export const buildTaxReviewArtifact = (proposal, fields = []) => boundBuildReview(proposal, fields);
+export const reviewMatchesPrepared = (review, proposal, revision) =>
+  boundReviewMatches(review, proposal, revision);
+export const normalizedTaxExtraction = (extraction, review) => boundNormalize(extraction, review);
+export const reconcileTaxExtraction = (input) => boundReconcile(input);
 
 function validPreparedProposal(proposal) {
   return proposal?.schemaVersion === 1 && proposal.operation === 'prepare-tax-from-source'
@@ -123,6 +147,7 @@ function validPreparedProposal(proposal) {
 
 function extractionCore(extraction) {
   if (!extraction || typeof extraction !== 'object') return extraction;
+  // Only the review publication wrapper and its processing transition may change after human review.
   const { normalization, processing, ...material } = extraction;
   return material;
 }
@@ -184,6 +209,7 @@ function validOcrAttestation(extraction) {
     ['ocr-text', 'ocr-layout'].includes(extraction.provenance?.[field]?.source)));
   const expectedUnresolved = normalizedFieldList(critical.filter((field) =>
     extraction.provenance?.[field]?.source === 'unresolved' || !extraction.provenance?.[field]));
+  // Validate both directions: no OCR critical field may escape attestation, and no attested path may lack OCR evidence.
   return required && attested && unresolved && expectedOcr && expectedUnresolved
     && expectedUnresolved.length === 0 && sameList(unresolved, expectedUnresolved)
     && sameList(required, expectedOcr) && sameList(required, attested)
