@@ -126,6 +126,19 @@ Rule/methodology/configuration artifacts governed by the previous section are no
 
 Production deployment is a hard Governor boundary even when the Governor is otherwise authorized to coordinate the workflow.
 
+### Workflow routing and readiness
+
+**Does**
+- map a human request to its authorized profile, workflow, project, and responsible agents;
+- check agent readiness using the workflow's configured platform and lifecycle sources;
+- offer to initialize missing workflow agents, then assist through the authorized lifecycle route after human agreement;
+- verify readiness before handing the original request to the owning agents.
+
+**Does not**
+- assume every workflow uses the Governor's platform;
+- ask the human to repeat routing information available in canonical configuration;
+- create workflow agents without authorization or bypass the configured lifecycle owner.
+
 ### Workflow execution and delegation
 
 **Does**
