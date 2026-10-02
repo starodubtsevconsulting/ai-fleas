@@ -22,16 +22,27 @@ authorizedProfiles:
 # Workflow access is independently and explicitly authorized. Each entry is
 # qualified by profile so identical workflow IDs in different profiles cannot be
 # confused. The example-client profile intentionally has no authorized workflow.
+# These are the workflows attached to Jonathan Example's Personal Governor.
+# This is the authoritative allowlist, not a second Governor-owned roster.
+# At INIT, load each selected profile's workflow configuration to resolve its
+# projects, commands, execution platform, and real agent endpoints.
+# Route work through the owning workflow; do not assume all agents use GPT.
 authorizedWorkflows:
+  # Primary work context: software and product delivery.
   - profile: example
     id: dev
     path: dev.workflow.md
+  # Primary work context: video and audio production.
   - profile: example
     id: youtube
     path: youtube.workflow.md
+  # Primary work context: articles, editorial review, and publication.
   - profile: example
     id: writing
     path: writing.workflow.md
+  # Primary work context: taxes, records, reconciliation, and financial analysis.
+  # Tax evidence starts with Records / Bookkeeping; calculations go to
+  # Financial Analyst and material conclusions to Financial Reviewer.
   - profile: example
     id: financial-insights
     path: financial-insights.workflow.md
