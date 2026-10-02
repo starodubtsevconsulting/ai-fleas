@@ -31,6 +31,24 @@ test('explicit submission options replace outer lifecycle options rather than wi
   await lifecycle.submit(transaction,{pluginData:'/fictional',register:()=>{effects.push('exact-register');return {};}});
   assert.deepEqual(effects,['exact-register','turn/start']);
 });
+test('failed INIT releases only our exact stopped task, never a running or uncertain task', async()=>{
+  for (const state of ['idle','notLoaded','active','foreign','missing-turns']) {
+    const calls=[];
+    const lifecycle=new NativeAdminLifecycle({request:async method=>{
+      calls.push(method);
+      if(method==='thread/read')return {thread:{id:'task',projectId:state==='foreign'?'foreign':'project',
+        status:{type:state==='notLoaded'||calls.includes('thread/unsubscribe')?'notLoaded':state==='active'?'active':'idle'},
+        turns:state==='missing-turns'?undefined:[{id:'init',status:state==='active'?'inProgress':'completed'}]}};
+      if(method==='thread/unsubscribe')return {status:'unsubscribed'};
+      if(method==='thread/loaded/list')return {data:[]};
+      throw Error('forbidden effect');
+    }});
+    const result=await lifecycle.releaseStoppedInitialization('task','project');
+    assert.equal(result.controllerReleased,['idle','notLoaded'].includes(state));
+    assert.equal(calls.includes('thread/unsubscribe'),['idle','notLoaded'].includes(state));
+    assert.ok(!calls.includes('turn/start')&&!calls.includes('thread/resume'));
+  }
+});
 test('registers generic receipt before exactly one native turn/start', async () => {
   const effects = [];
   const options = { pluginData: '/fictional/plugin', register: x => { effects.push('register'); assert.equal(x.sessionId, transaction.taskId); return {}; } };

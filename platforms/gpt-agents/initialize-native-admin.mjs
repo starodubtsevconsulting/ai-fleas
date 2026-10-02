@@ -181,11 +181,34 @@ export class NativeAdminLifecycle {
           return true;
         } });
       const result = await initializeWorkflowAdmin(plan, host);
-      if (result.status !== 'ready') return result;
+      if (result.status !== 'ready') {
+        if (!result.orphanTaskId) return result;
+        // This connection created the exact task. A stopped rejected INIT must
+        // release that lease too; do not abandon it merely because readiness
+        // failed. A running/uncertain turn is never interrupted or resent here.
+        const cleanup = await this.releaseStoppedInitialization(result.orphanTaskId,
+          plan.scope.projects[0].savedProjectId);
+        return { ...result, ...cleanup };
+      }
       // A human-facing Admin must not remain leased by this controller's client.
       const release = await this.release(result.taskId,plan.scope.projects[0].savedProjectId);
       return { ...result, ...release };
     } catch (error) { return { status: 'blocked', reason: error.message }; }
+  }
+
+  /** Release our failed creation only after fresh exact idle/terminated evidence. */
+  async releaseStoppedInitialization(taskId, expectedProjectId) {
+    try {
+      const response = await this.#client.request('thread/read', { threadId: taskId, includeTurns: true });
+      const task = response?.thread;
+      if (task?.id !== taskId || task.projectId !== expectedProjectId ||
+          !['idle', 'notLoaded'].includes(task.status?.type) || !Array.isArray(task.turns) ||
+          task.turns.some(turn => turn.status === 'inProgress'))
+        throw new Error('ADMIN_FAILED_INIT_STILL_RUNNING_OR_UNVERIFIED');
+      return await this.release(taskId, expectedProjectId);
+    } catch (error) {
+      return { controllerReleased: false, releaseBlocker: error.message };
+    }
   }
 
   /** Prove this controller released its native lease, not that UI input was tested. */
