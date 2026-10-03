@@ -26,67 +26,6 @@ export class NativeAdminHost {
     this.#options = { pluginData, queueInitialization, verifyApproval, prerequisites, createParams, selectedProjectIds, io, sleep, now };
   }
 
-  /** Read the generic plugin registry; it is evidence, not live task authority. */
-  #bindings() {
-    const { pluginData, io } = this.#options;
-    const file = path.join(pluginData, 'agent-bindings.json');
-    if (!io.existsSync(file)) return [];
-    const registry = JSON.parse(io.readFileSync(file, 'utf8'));
-    if (!registry.instances || typeof registry.instances !== 'object' || Array.isArray(registry.instances)) fail('INVALID_HOST_BINDINGS');
-    return Object.entries(registry.instances).map(([taskId, binding]) => ({ ...binding, taskId }));
-  }
-  /** Enumerate persistent and loaded tasks, retaining same-connection blank evidence. */
-  async #tasks() {
-    const client = this.#client, stagedCreates = this.#stagedCreates;
-    const { io } = this.#options;
-    const result = [], ids = new Set();
-    for (const archived of [false, true]) {
-      let cursor;
-      const cursors = new Set();
-      do {
-        const page = await client.request('thread/list', { archived,
-          sourceKinds: ['cli', 'vscode', 'exec', 'appServer', 'subAgent', 'subAgentReview',
-            'subAgentCompact', 'subAgentThreadSpawn', 'subAgentOther', 'unknown'],
-          ...(cursor === undefined ? {} : { cursor }) });
-        if (!Array.isArray(page?.data)) fail('HOST_TASK_CATALOG_INVALID');
-        for (const task of page.data) {
-          if (!task?.id || ids.has(task.id)) fail('HOST_TASK_ID_AMBIGUOUS');
-          ids.add(task.id);
-          result.push({ ...task, status: archived ? 'archived' : 'active' });
-        }
-        cursor = page.nextCursor;
-        if (cursor === undefined || cursor === null) break;
-        if (typeof cursor !== 'string' || !cursor || cursors.has(cursor)) fail('HOST_TASK_CURSOR_INVALID');
-        cursors.add(cursor);
-      } while (true);
-    }
-    // Fresh blank sessions may exist only in the supported in-memory catalog.
-    // Stored/loaded overlap is expected; duplicate loaded IDs are not.
-    let cursor;
-    const loadedIds = new Set(), cursors = new Set();
-    do {
-      const page = await client.request('thread/loaded/list', cursor === undefined ? {} : { cursor });
-      if (!Array.isArray(page?.data)) fail('HOST_TASK_CATALOG_INVALID');
-      for (const id of page.data) {
-        if (typeof id !== 'string' || !id || loadedIds.has(id)) fail('HOST_TASK_ID_AMBIGUOUS');
-        loadedIds.add(id);
-        if (ids.has(id)) continue;
-        const response = await client.request('thread/read', { threadId: id, includeTurns: false });
-        if (response?.thread?.id !== id) fail('HOST_TASK_IDENTITY_MISMATCH');
-        ids.add(id);
-        const staged = stagedCreates.get(id);
-        if (staged && response.thread.projectId == null && !this.#bindings().some(binding => binding.taskId === id) &&
-            io.realpathSync(response.thread.cwd) === staged.cwd) {
-          result.push({ ...response.thread, projectId: staged.projectId, projectAssignmentPending: true, status: 'active' });
-        } else result.push({ ...response.thread, status: 'active' });
-      }
-      cursor = page.nextCursor;
-      if (cursor === undefined || cursor === null) break;
-      if (typeof cursor !== 'string' || !cursor || cursors.has(cursor)) fail('HOST_TASK_CURSOR_INVALID');
-      cursors.add(cursor);
-    } while (true);
-    return result;
-  }
   /** Delegate trusted approval without changing its request or result. */
   verifyApproval(request) {
     return this.#options.verifyApproval.call(this, request);
@@ -140,14 +79,42 @@ export class NativeAdminHost {
 
   /** Submit exactly the supplied bootstrap through the trusted queue port. */
   async initialize({ taskId, payload }) {
-    const client = this.#client, stagedCreates = this.#stagedCreates;
+    const stagedCreates = this.#stagedCreates;
     const { queueInitialization } = this.#options;
     const result = await queueInitialization({ taskId, payload });
     if (result?.taskId !== taskId || result.status !== 'submitted') fail('ADMIN_INIT_UNCERTAIN');
     stagedCreates.delete(taskId);
-    if (typeof payload.endpoint?.title === 'string' && payload.endpoint.title.trim())
-      await client.request('thread/name/set', { threadId: taskId, name: payload.endpoint.title });
     return result;
+  }
+
+  /** Apply presentation metadata only after exact durable task identity exists.
+   * A title cannot establish identity or readiness.  In particular, an accepted
+   * INIT is never retried, rolled back, or hidden when this bounded recovery
+   * cannot name its task yet.
+   */
+  async applyTitle({ taskId, title, attempts = 3, retryDelayMs = 100 } = {}) {
+    if (typeof title !== 'string' || !title.trim()) return { status: 'not-requested', attempts: 0 };
+    const limit = Number.isInteger(attempts) && attempts > 0 ? Math.min(attempts, 5) : 3;
+    let lastReason = 'ADMIN_TITLE_DURABILITY_UNVERIFIED', lastKind = 'deferred';
+    for (let attempt = 1; attempt <= limit; attempt++) {
+      try {
+        // A completed readiness check writes an active receipt, but require a
+        // fresh catalog entry as well before touching host presentation state.
+        const bindings = this.#bindings().filter(binding => binding.taskId === taskId);
+        const tasks = (await this.#tasks()).filter(task => task.id === taskId && task.status === 'active' &&
+          task.projectAssignmentPending !== true);
+        if (bindings.length !== 1 || tasks.length !== 1) {
+          lastReason = 'ADMIN_TITLE_DURABILITY_UNVERIFIED'; lastKind = 'deferred';
+        } else {
+          await this.#client.request('thread/name/set', { threadId: taskId, name: title.trim() });
+          return { status: 'applied', attempts: attempt };
+        }
+      } catch (error) {
+        lastReason = error?.message || 'ADMIN_TITLE_SET_FAILED'; lastKind = 'failed';
+      }
+      if (attempt < limit) await this.#options.sleep(Math.max(0, Math.min(retryDelayMs, 1000)));
+    }
+    return { status: lastKind, attempts: limit, reason: lastReason };
   }
 
   /** Verify actual parent-owned INIT audit release, not merely its final message. */
@@ -256,6 +223,70 @@ export class NativeAdminHost {
       await sleep(Math.min(1000, deadline - now()));
     } while (now() <= deadline);
     return { status: 'timeout', taskId };
+  }
+
+  // Private implementation
+
+  /** Read the generic plugin registry; it is evidence, not live task authority. */
+  #bindings() {
+    const { pluginData, io } = this.#options;
+    const file = path.join(pluginData, 'agent-bindings.json');
+    if (!io.existsSync(file)) return [];
+    const registry = JSON.parse(io.readFileSync(file, 'utf8'));
+    if (!registry.instances || typeof registry.instances !== 'object' || Array.isArray(registry.instances)) fail('INVALID_HOST_BINDINGS');
+    return Object.entries(registry.instances).map(([taskId, binding]) => ({ ...binding, taskId }));
+  }
+  /** Enumerate persistent and loaded tasks, retaining same-connection blank evidence. */
+  async #tasks() {
+    const client = this.#client, stagedCreates = this.#stagedCreates;
+    const { io } = this.#options;
+    const result = [], ids = new Set();
+    for (const archived of [false, true]) {
+      let cursor;
+      const cursors = new Set();
+      do {
+        const page = await client.request('thread/list', { archived,
+          sourceKinds: ['cli', 'vscode', 'exec', 'appServer', 'subAgent', 'subAgentReview',
+            'subAgentCompact', 'subAgentThreadSpawn', 'subAgentOther', 'unknown'],
+          ...(cursor === undefined ? {} : { cursor }) });
+        if (!Array.isArray(page?.data)) fail('HOST_TASK_CATALOG_INVALID');
+        for (const task of page.data) {
+          if (!task?.id || ids.has(task.id)) fail('HOST_TASK_ID_AMBIGUOUS');
+          ids.add(task.id);
+          result.push({ ...task, status: archived ? 'archived' : 'active' });
+        }
+        cursor = page.nextCursor;
+        if (cursor === undefined || cursor === null) break;
+        if (typeof cursor !== 'string' || !cursor || cursors.has(cursor)) fail('HOST_TASK_CURSOR_INVALID');
+        cursors.add(cursor);
+      } while (true);
+    }
+    // Fresh blank sessions may exist only in the supported in-memory catalog.
+    // Stored/loaded overlap is expected; duplicate loaded IDs are not.
+    let cursor;
+    const loadedIds = new Set(), cursors = new Set();
+    do {
+      const page = await client.request('thread/loaded/list', cursor === undefined ? {} : { cursor });
+      if (!Array.isArray(page?.data)) fail('HOST_TASK_CATALOG_INVALID');
+      for (const id of page.data) {
+        if (typeof id !== 'string' || !id || loadedIds.has(id)) fail('HOST_TASK_ID_AMBIGUOUS');
+        loadedIds.add(id);
+        if (ids.has(id)) continue;
+        const response = await client.request('thread/read', { threadId: id, includeTurns: false });
+        if (response?.thread?.id !== id) fail('HOST_TASK_IDENTITY_MISMATCH');
+        ids.add(id);
+        const staged = stagedCreates.get(id);
+        if (staged && response.thread.projectId == null && !this.#bindings().some(binding => binding.taskId === id) &&
+            io.realpathSync(response.thread.cwd) === staged.cwd) {
+          result.push({ ...response.thread, projectId: staged.projectId, projectAssignmentPending: true, status: 'active' });
+        } else result.push({ ...response.thread, status: 'active' });
+      }
+      cursor = page.nextCursor;
+      if (cursor === undefined || cursor === null) break;
+      if (typeof cursor !== 'string' || !cursor || cursors.has(cursor)) fail('HOST_TASK_CURSOR_INVALID');
+      cursors.add(cursor);
+    } while (true);
+    return result;
   }
 }
 

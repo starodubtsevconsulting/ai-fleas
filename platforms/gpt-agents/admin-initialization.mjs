@@ -63,18 +63,6 @@ export class AdminInitializationBuilder {
     this.#registryLoader = registryLoader;
   }
 
-  /** Resolve an existing canonical file; no writes or directory creation. */
-  #canonicalFile(value) {
-    const result = this.#io.realpathSync(value);
-    if (!this.#io.statSync(result).isFile()) throw new Error('CANONICAL_FILE_REQUIRED');
-    return result;
-  }
-
-  /** Read current YAML, deliberately avoiding a stale cross-request cache. */
-  #readYaml(value) {
-    return parse(this.#io.readFileSync(value, 'utf8'));
-  }
-
   /** Validate one approved scope and return its payload, without initializing it. */
   build(request) {
     const io = this.#io;
@@ -190,6 +178,20 @@ export class AdminInitializationBuilder {
       sources: preparedSources, scope,
       projectDeclarations: projects.map(p => ({ id: p.id, ref: p.ref, declaredRef: p.declaredRef, root: p.root })),
       bootstrapPayload };
+  }
+
+  // Private implementation
+
+  /** Resolve an existing canonical file; no writes or directory creation. */
+  #canonicalFile(value) {
+    const result = this.#io.realpathSync(value);
+    if (!this.#io.statSync(result).isFile()) throw new Error('CANONICAL_FILE_REQUIRED');
+    return result;
+  }
+
+  /** Read current YAML, deliberately avoiding a stale cross-request cache. */
+  #readYaml(value) {
+    return parse(this.#io.readFileSync(value, 'utf8'));
   }
 }
 

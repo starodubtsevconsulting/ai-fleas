@@ -28,11 +28,11 @@ fieldModel:
   scope:
     kind:
       type: enum
-      values: [workflow, cross-workflow, profile, platform, system]
+      values: [workflow, cross-workflow, profile, platform, system, governed-human]
       required: true
     bindingOwner:
       type: enum
-      values: [workflow, profile, platform, profile-platform, binding]
+      values: [workflow, profile, platform, profile-platform, binding, governed-human]
       required: true
 
   humanFacing:

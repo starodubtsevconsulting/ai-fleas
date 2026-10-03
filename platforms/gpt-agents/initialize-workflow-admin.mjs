@@ -61,6 +61,7 @@ function inspectCatalog(catalog, scope) {
 function verifyAdmin(catalog, binding, scope, completion) {
   const tasks = catalog.tasks.filter(t => t.id === binding.taskId);
   if (tasks.length !== 1 || tasks[0].status !== 'active' || binding.status !== 'active' ||
+      !Number.isInteger(binding.generation) || binding.generation < 1 ||
       tasks[0].projectAssignmentPending === true ||
       binding.platformAdapter !== 'codex-app' || !exact(normalizeAdminScope(binding.scope), scope) ||
       scope.projects[0].savedProjectId !== tasks[0].projectId) fail('ADMIN_IDENTITY_UNVERIFIED');
@@ -69,6 +70,7 @@ function verifyAdmin(catalog, binding, scope, completion) {
       (completion && (completion.taskId !== binding.taskId ||
       completion.turnId !== evidence.completedTurnId || completion.token !== 'ADMIN_READY' || completion.status !== 'complete')))
     fail('ADMIN_READINESS_UNVERIFIED');
+  return { turnId: evidence.completedTurnId, generation: binding.generation };
 }
 
 /** Owns the six lifecycle ports; each initialize call keeps transaction state local. */
@@ -82,6 +84,7 @@ export class WorkflowAdminInitializer {
   async initialize(input) {
     const host = this.#host;
     let createdTaskId;
+    let acceptedInit;
     try {
       if (ports.some(p => typeof host?.[p] !== 'function')) fail('ADMIN_ONLY_HOST_PORT_UNSUPPORTED');
       const { profile, workflow, registry, manifest, adapter, approval, sources } = input;
@@ -105,6 +108,7 @@ export class WorkflowAdminInitializer {
           sources.projectManifests.some(p => typeof p !== 'string' || !p)) fail('PROJECT_SOURCE_REFERENCES_MISSING');
       const payload = input.bootstrapPayload;
       if (payload?.binding?.agentId !== 'admin' || payload.binding.platformAdapter !== 'codex-app' ||
+          !Number.isInteger(payload.binding.generation) || payload.binding.generation < 1 ||
           !exact(normalizeAdminScope(payload.binding.scope), scope) ||
           payload.binding.initialization?.readinessToken !== 'ADMIN_READY' ||
           payload.prompt !== buildAdminInitPrompt(payload.binding.scope, payload.binding.initialization?.auditTransport)) fail('ADMIN_BOOTSTRAP_PAYLOAD_INVALID');
@@ -151,8 +155,9 @@ export class WorkflowAdminInitializer {
         catalog = await host.catalog();
         const verified = inspectCatalog(catalog, scope);
         if (verified.length !== 1 || verified[0].taskId !== matches[0].taskId) fail('ADMIN_IDENTITY_UNVERIFIED');
-        verifyAdmin(catalog, verified[0], scope, completion);
-        return { status: 'ready', mode: 'reused', taskId: matches[0].taskId, token: 'ADMIN_READY', scope };
+        const readiness = verifyAdmin(catalog, verified[0], scope, completion);
+        return { status: 'ready', mode: 'reused', taskId: matches[0].taskId,
+          token: 'ADMIN_READY', scope, ...readiness };
       }
       const request = { role: 'admin', platform: 'codex-app', scope, sources,
         roleDefinition: admin.roleDefinition, bootstrap: { approval, command: 'INIT', humanOnly: true },
@@ -173,18 +178,30 @@ export class WorkflowAdminInitializer {
             t.status !== 'archived' && t.id !== createdTaskId && t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope)))
         fail('ADMIN_CREATED_TASK_UNVERIFIED');
       const initialized = await host.initialize({ taskId: createdTaskId, payload });
-      if (initialized?.taskId !== createdTaskId || initialized.status !== 'submitted') fail('ADMIN_INIT_UNCERTAIN');
+      if (initialized?.taskId !== createdTaskId || initialized.status !== 'submitted' ||
+          typeof initialized.turnId !== 'string' || !initialized.turnId) fail('ADMIN_INIT_UNCERTAIN');
+      // A later wait/catalog failure cannot erase the acknowledged exact INIT.
+      // This is submission evidence only, never proof of completed readiness.
+      acceptedInit = { taskId: createdTaskId, mode: 'created', scope,
+        generation: payload.binding.generation, turnId: initialized.turnId,
+        acceptedInitTurnId: initialized.turnId, initSubmissionStatus: 'accepted',
+        bindingEvidence: { taskId: createdTaskId, agentId: 'admin',
+          platformAdapter: 'codex-app', generation: payload.binding.generation, scope } };
       const completion = await host.wait({ taskId: createdTaskId,
         timeoutMs: payload.binding.initialization.auditTransport === 'ephemeral-process' ? 300000 : 60000 });
-      if (completion?.taskId !== createdTaskId || completion.status !== 'complete') fail('ADMIN_READINESS_UNVERIFIED');
+      if (completion?.taskId !== createdTaskId || completion.status !== 'complete' ||
+          completion.turnId !== acceptedInit.turnId) fail('ADMIN_READINESS_UNVERIFIED');
       catalog = await host.catalog();
       const active = inspectCatalog(catalog, scope);
       if (active.length !== 1 || active[0].taskId !== createdTaskId) fail('ADMIN_IDENTITY_UNVERIFIED');
-      verifyAdmin(catalog, active[0], scope, completion);
-      return { status: 'ready', mode: 'created', taskId: createdTaskId, token: 'ADMIN_READY', scope };
+      const readiness = verifyAdmin(catalog, active[0], scope, completion);
+      return { status: 'ready', mode: 'created', taskId: createdTaskId,
+        token: 'ADMIN_READY', scope, ...readiness };
     } catch (error) {
       createdTaskId ||= error.createdTaskId;
-      return { status: 'blocked', reason: error.message, ...(createdTaskId ? { orphanTaskId: createdTaskId } : {}) };
+      return { status: 'blocked', reason: error.message,
+        ...(createdTaskId ? { orphanTaskId: createdTaskId } : {}),
+        ...(acceptedInit ? { ...acceptedInit, readinessStatus: 'unverified' } : {}) };
     }
   }
 }

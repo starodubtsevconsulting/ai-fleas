@@ -44,7 +44,7 @@ This is analogous to an interface/abstract class and its implementation:
 
 `_role.yml` defines the common structural vocabulary and template. A concrete `<role-id>.yml` specializes that vocabulary with the role's own fixed values and role-specific fields/bindings. It should not repeat common explanatory text merely to restate `_role.yml`.
 
-Most existing roles are initialized inside one workflow through that workflow's `agents.yml`. A role may instead declare a broader binding scope. For example, a cross-workflow role can be profile-bound and initialized outside one workflow while still governing configured workflows.
+Most existing roles are initialized inside one workflow through that workflow's `agents.yml`. A role may instead declare a broader binding scope. For example, a cross-workflow role can be profile-bound and initialized outside one workflow while still governing configured workflows. A Personal Governor may use the distinct `governed-human` scope and binding owner; that identifies its human subject rather than a profile, platform, or workflow.
 
 A concrete Agent must not override fields declared fixed by the role. Missing required bindings, unsupported fields, invalid cardinality, or conflicting ownership should fail closed in the consuming validator/runtime.
 

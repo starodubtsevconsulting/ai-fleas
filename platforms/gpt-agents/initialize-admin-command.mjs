@@ -34,45 +34,6 @@ export class AdminControllerCommand {
     this.#verifyAppProject = verifyAppProject;
   }
 
-  /** Native authority and app presentation use different immutable project IDs.
-   * Only a trusted owning-app adapter may join them; request JSON, names, cwd,
-   * and native projectId alone never prove sidebar attachment. No repair effects
-   * are performed here. A failed check preserves the initialized task for repair.
-   */
-  async #verifyHandoff(result, scope) {
-    if (result.status !== 'ready' || result.controllerReleased !== true) return result;
-    try {
-      if (typeof this.#verifyAppProject !== 'function') throw new Error('ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED');
-      const evidence = await this.#verifyAppProject({ taskId: result.taskId, scope });
-      if (!result.taskId || evidence?.taskId !== result.taskId || evidence.attached !== true ||
-          evidence.nativeProjectId !== scope.projects[0].savedProjectId ||
-          evidence.logicalProjectId !== scope.logicalProjectId ||
-          typeof evidence.appProjectId !== 'string' || !evidence.appProjectId.trim())
-        throw new Error('ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED');
-      return { ...result, appProjectAttached: true, appProjectId: evidence.appProjectId };
-    } catch {
-      // Do not expose the native token as an overall success token on failure.
-      const { token, ...retained } = result;
-      return { ...retained, status: 'blocked', reason: 'ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED',
-        adminInitialized: true, appProjectAttached: false };
-    }
-  }
-
-  #executable() {
-    const app = this.#env.AI_FLEAS_CHATGPT_APP || '/Applications/ChatGPT.app';
-    const candidates = this.#env.AI_FLEAS_CODEX_BIN ? [this.#env.AI_FLEAS_CODEX_BIN] : [
-      path.join(app, 'Contents/Resources/codex-cli/bin/codex'),
-      path.join(app, 'Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex'),
-      path.join(app, 'Contents/Resources/codex'),
-      path.join(this.#home, 'Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex'),
-    ];
-    for (const candidate of candidates) {
-      if (!path.isAbsolute(candidate)) continue;
-      try { this.#io.accessSync(candidate, fs.constants.X_OK); return this.#io.realpathSync(candidate); } catch {}
-    }
-    throw new Error('INIT_AUDIT_EXECUTABLE_UNAVAILABLE');
-  }
-
   /** Explicit operation only; never infers approval from a title or saved project. */
   async run(request) {
     const approval = request?.authorization;
@@ -107,6 +68,49 @@ export class AdminControllerCommand {
       return await this.#verifyHandoff(result, plan.scope);
     } catch (error) { return { status: 'blocked', reason: error.message }; }
     finally { client?.close(); }
+  }
+
+  // Private implementation
+
+  /** Native authority and app presentation use different immutable project IDs.
+   * Only a trusted owning-app adapter may join them; request JSON, names, cwd,
+   * and native projectId alone never prove sidebar attachment. No repair effects
+   * are performed here. A failed check preserves the initialized task for repair.
+   */
+  async #verifyHandoff(result, scope) {
+    if (result.status !== 'ready' || result.controllerReleased !== true)
+      return { ...result, appProjectAttached: false, appProjectAttachmentStatus: 'not-verified' };
+    try {
+      if (typeof this.#verifyAppProject !== 'function') throw new Error('ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED');
+      const evidence = await this.#verifyAppProject({ taskId: result.taskId, scope });
+      if (!result.taskId || evidence?.taskId !== result.taskId || evidence.attached !== true ||
+          evidence.nativeProjectId !== scope.projects[0].savedProjectId ||
+          evidence.logicalProjectId !== scope.logicalProjectId ||
+          typeof evidence.appProjectId !== 'string' || !evidence.appProjectId.trim())
+        throw new Error('ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED');
+      return { ...result, appProjectAttached: true, appProjectAttachmentStatus: 'verified',
+        appProjectId: evidence.appProjectId };
+    } catch {
+      // Do not expose the native token as an overall success token on failure.
+      const { token, ...retained } = result;
+      return { ...retained, status: 'blocked', reason: 'ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED',
+        adminInitialized: true, appProjectAttached: false, appProjectAttachmentStatus: 'blocked' };
+    }
+  }
+
+  #executable() {
+    const app = this.#env.AI_FLEAS_CHATGPT_APP || '/Applications/ChatGPT.app';
+    const candidates = this.#env.AI_FLEAS_CODEX_BIN ? [this.#env.AI_FLEAS_CODEX_BIN] : [
+      path.join(app, 'Contents/Resources/codex-cli/bin/codex'),
+      path.join(app, 'Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex'),
+      path.join(app, 'Contents/Resources/codex'),
+      path.join(this.#home, 'Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex'),
+    ];
+    for (const candidate of candidates) {
+      if (!path.isAbsolute(candidate)) continue;
+      try { this.#io.accessSync(candidate, fs.constants.X_OK); return this.#io.realpathSync(candidate); } catch {}
+    }
+    throw new Error('INIT_AUDIT_EXECUTABLE_UNAVAILABLE');
   }
 }
 

@@ -76,6 +76,16 @@ using the supported app tools:
    report complete success and link the existing Admin. Otherwise report the
    attachment blocker with the existing task ID, without retrying initialization.
 
+Task naming is presentation metadata, not task identity, delivery, or readiness
+evidence. After native `turn/start` acceptance, the controller keeps the exact
+audit handler registered through readiness verification and native handoff. It
+attempts the configured title only after fresh durable task and binding metadata
+are available, with a small bounded retry. A title result is reported separately
+as `titleStatus` (`applied`, `deferred`, or `failed`); it never causes another
+task, binding registration, or INIT submission. Native readiness, controller
+release, and owning-app attachment remain separate results (`readinessStatus`,
+`controllerReleaseStatus`/`controllerReleased`, and `appProjectAttached`).
+
 This is controller-followed orchestration: the CLI cannot call the desktop tool
 on its own, and the native archive cycle does not verify app catalog placement.
 

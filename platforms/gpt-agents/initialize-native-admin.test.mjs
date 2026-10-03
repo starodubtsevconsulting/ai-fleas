@@ -81,6 +81,65 @@ test('missing or invalid turn acceptance retains pending receipt without resendi
     assert.equal(count,1); assert.equal(rollbacks, 0);
   }
 });
+test('accepted INIT keeps its audit handler through title recovery and reports title separately', async () => {
+  let handlerActive = false, unregistered = false, titleCalls = 0, submissions = 0;
+  const scope = { kind: 'workflow', profileId: 'fictional', workflowId: 'financial-insights',
+    logicalProjectId: 'fictional-financial-insights', runtimeScope: 'fictional',
+    projects: [{ id: 'records', savedProjectId: 'project', root: '/fictional/records' }] };
+  const plan = { scope, bootstrapPayload: { endpoint: { model: 'fictional-model', reasoning: 'medium', title: 'Admin' },
+    binding: { agentId: 'admin', generation: 1, scope,
+      initialization: { auditTransport: 'ephemeral-process' } } }, sources: {}, manifest: {}, approval: {} };
+  const client = { registerServerRequestHandler: () => { handlerActive = true; return () => { handlerActive = false; unregistered = true; }; },
+    request: async method => {
+      if (method === 'thread/unsubscribe') return { status: 'notLoaded' };
+      if (method === 'thread/read') return { thread: { id: 'task', projectId: 'project', status: { type: 'notLoaded' } } };
+      if (method === 'thread/loaded/list') return { data: [], nextCursor: null };
+      throw new Error(`unexpected ${method}`);
+    } };
+  const host = { applyTitle: async () => {
+    titleCalls++; assert.equal(handlerActive, true);
+    return { status: 'failed', attempts: 3, reason: 'empty rollout file' };
+  } };
+  const lifecycle = new NativeAdminLifecycle(client, { pluginData: '/fictional/plugin', auditExecutable: '/fictional/codex',
+    verifyApproval: async () => true, verifyPluginActive: async () => true,
+    prepare: async () => ({ plan }), buildHost: () => host,
+    initializeWorkflow: async () => { submissions++; assert.equal(handlerActive, true); return {
+      status: 'ready', mode: 'reused', taskId: 'task', token: 'ADMIN_READY', scope }; } });
+  const result = await lifecycle.initialize({});
+  assert.equal(submissions, 1); assert.equal(titleCalls, 1);
+  assert.equal(result.status, 'ready'); assert.equal(result.readinessStatus, 'ready');
+  assert.deepEqual(result.titleStatus, { status: 'failed', attempts: 3, reason: 'empty rollout file' });
+  assert.equal(result.controllerReleased, true); assert.equal(result.controllerReleaseStatus, 'released');
+  assert.equal(unregistered, true); assert.equal(handlerActive, false);
+});
+test('release failure after accepted INIT retains exact readiness and binding evidence separately', async () => {
+  let unregisterCount = 0, releaseCount = 0;
+  const scope = { kind: 'workflow', profileId: 'fictional', workflowId: 'sample',
+    logicalProjectId: 'fictional-sample', runtimeScope: 'fictional',
+    projects: [{ id: 'records', savedProjectId: 'project', root: '/fictional/records' }] };
+  const plan = { scope, bootstrapPayload: { endpoint: { model: 'model', reasoning: 'medium', title: 'Admin' },
+    binding: { agentId: 'admin', generation: 4, scope,
+      initialization: { auditTransport: 'ephemeral-process' } } } };
+  const lifecycle = new NativeAdminLifecycle({
+    registerServerRequestHandler: () => () => { unregisterCount++; },
+    request: async method => { if (method === 'thread/unsubscribe') { releaseCount++; throw new Error('writer busy'); }
+      throw new Error(`unexpected ${method}`); },
+  }, { pluginData: '/fictional/plugin', auditExecutable: '/fictional/codex',
+    verifyApproval: async () => true, verifyPluginActive: async () => true,
+    prepare: async () => ({ plan }), buildHost: () => ({ applyTitle: async () => ({ status: 'applied', attempts: 1 }) }),
+    initializeWorkflow: async () => ({ status: 'ready', mode: 'reused', taskId: 'exact-task',
+      token: 'ADMIN_READY', scope, turnId: 'accepted-turn', generation: 4 }) });
+  const result = await lifecycle.initialize({});
+  assert.equal(result.status, 'blocked'); assert.equal(result.reason, 'writer busy');
+  assert.equal(result.taskId, 'exact-task'); assert.equal(result.orphanTaskId, 'exact-task');
+  assert.equal(result.mode, 'reused'); assert.deepEqual(result.scope, scope);
+  assert.equal(result.turnId, 'accepted-turn'); assert.equal(result.generation, 4);
+  assert.equal(result.token, undefined); assert.equal(result.readinessStatus, 'ready');
+  assert.deepEqual(result.titleStatus, { status: 'applied', attempts: 1 });
+  assert.equal(result.controllerReleased, false); assert.equal(result.controllerReleaseStatus, 'blocked');
+  assert.equal(result.appProjectAttached, false); assert.equal(result.appProjectAttachmentStatus, 'not-verified');
+  assert.equal(releaseCount, 1); assert.equal(unregisterCount, 1);
+});
 test('unverified plugin location fails without reading or lifecycle effects', () => {
   assert.throws(() => verifyInstalledBootstrap('relative'), /BOOTSTRAP_PLUGIN_LOCATION_UNVERIFIED/);
 });

@@ -126,7 +126,7 @@ test('builder payload survives JSON transport and creates/reuses only verified A
       effects.push(['initialize', payload.binding.agentId]);
       catalog.bindings.push({ ...payload.binding, taskId, status: 'active',
         initialization: { ...payload.binding.initialization, completedTurnId: 'fictional-turn', completedAt: '2026-01-01T00:00:00Z' } });
-      return { taskId, status: 'submitted' };
+      return { taskId, status: 'submitted', turnId: 'fictional-turn' };
     },
     wait: async ({ taskId }) => ({ taskId, status: 'complete', turnId: 'fictional-turn', token: 'ADMIN_READY' }),
   };

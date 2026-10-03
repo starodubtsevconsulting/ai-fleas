@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { AdminControllerCommand } from './initialize-admin-command.mjs';
 const request = { profileId: 'example', workflowId: 'sample', profilePath: '/fictional/profile.yml',
   authorization: { humanApproved: true, profileId: 'example', workflowId: 'sample', projectIds: ['records'], logicalProjectId: 'example-sample' } };
-function fixture({ verifyAppProject = async ({ taskId, scope }) => ({ taskId, attached: true,
+function fixture({ initializeResult, verifyAppProject = async ({ taskId, scope }) => ({ taskId, attached: true,
   nativeProjectId: scope.projects[0].savedProjectId, logicalProjectId: scope.logicalProjectId,
   appProjectId: 'app-project' }) } = {}) {
   const calls = [], scope = { kind: 'workflow', profileId: 'example', workflowId: 'sample',
@@ -29,7 +29,7 @@ function fixture({ verifyAppProject = async ({ taskId, scope }) => ({ taskId, at
       assert.equal(await options.verifyApproval({ approval: request.authorization, scope, operation: 'initialize-admin-only' }), true);
       assert.equal(await options.verifyApproval({ approval: request.authorization, scope, operation: 'ordinary-work' }), false);
       calls.push('initialize');
-      return { status: 'ready', taskId: 'admin-task', token: 'ADMIN_READY', controllerReleased: true };
+      return initializeResult || { status: 'ready', taskId: 'admin-task', token: 'ADMIN_READY', controllerReleased: true };
     } });
   return { command, calls, client };
 }
@@ -67,6 +67,23 @@ test('app catalog failure cannot become native-only success', async () => {
   const f = fixture({ verifyAppProject: async () => { throw new Error('catalog unavailable'); } });
   assert.equal((await f.command.run(request)).reason, 'ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED');
   assert.equal(f.calls.at(-1), 'close');
+});
+test('release blocker preserves accepted INIT evidence and reports attachment as not verified', async () => {
+  let appChecks = 0;
+  const result = await fixture({
+    initializeResult: { status: 'blocked', reason: 'writer busy', taskId: 'admin-task',
+      turnId: 'accepted-turn', generation: 4, mode: 'created', readinessStatus: 'ready',
+      titleStatus: { status: 'failed', reason: 'blank rollout' }, controllerReleased: false,
+      controllerReleaseStatus: 'blocked' },
+    verifyAppProject: async () => { appChecks++; return { attached: true }; },
+  }).command.run(request);
+  assert.equal(result.status, 'blocked'); assert.equal(result.reason, 'writer busy');
+  assert.equal(result.taskId, 'admin-task'); assert.equal(result.turnId, 'accepted-turn');
+  assert.equal(result.generation, 4); assert.equal(result.mode, 'created');
+  assert.equal(result.readinessStatus, 'ready'); assert.equal(result.titleStatus.status, 'failed');
+  assert.equal(result.controllerReleaseStatus, 'blocked');
+  assert.equal(result.appProjectAttached, false); assert.equal(result.appProjectAttachmentStatus, 'not-verified');
+  assert.equal(appChecks, 0);
 });
 test('untrusted, ambiguous or missing hook location blocks before creation', async () => {
   const f = fixture(); f.client.request = async () => ({ data: [{ cwd: '/fictional/data', hooks: [] }] });

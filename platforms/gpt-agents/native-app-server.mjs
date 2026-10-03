@@ -55,6 +55,23 @@ export function decodeFrame(buffer, maxFrameBytes = 8 * 1024 * 1024) {
   if (size === 127) {
     if (buffer.length < 10) return null;
     const big = buffer.readBigUInt64BE(2);
+    // The desktop host has emitted a 127-byte JSON-RPC reply with the 64-bit
+    // marker followed by a *16-bit* length. Recognize only that exact shape;
+    // normal 64-bit frames continue through the strict RFC6455 path below.
+    if (big > BigInt(maxFrameBytes) && maxFrameBytes >= 127 && opcode === 1 && fin &&
+        buffer[2] === 0 && buffer[3] === 127 &&
+        buffer.subarray(4, 10).equals(Buffer.from('{"id":'))) {
+      if (buffer.length < 131) return null;
+      const payload = buffer.subarray(4, 131);
+      let body;
+      try { body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(payload)); }
+      catch { /* Reject malformed data as the oversized 64-bit frame it is. */ }
+      if (body && typeof body === 'object' && !Array.isArray(body) &&
+          (typeof body.id === 'number' || typeof body.id === 'string') &&
+          (Object.hasOwn(body, 'result') || Object.hasOwn(body, 'error')) &&
+          !Object.hasOwn(body, 'method'))
+        return { opcode, fin, payload, consumed: 131 };
+    }
     if (big > BigInt(maxFrameBytes))
       throw new Error(`WebSocket frame exceeds limit (${big} > ${maxFrameBytes} bytes)`);
     size = Number(big); offset = 10;

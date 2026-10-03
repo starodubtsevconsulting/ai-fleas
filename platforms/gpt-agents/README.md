@@ -151,6 +151,10 @@ There are three separate responsibilities:
 
 ## GPT plugin development
 
+For the initialization race, queue/bundle, welcome, archive, and host/UI lessons learned during a live recovery, see
+[`INITIALIZATION-INCIDENT-LESSONS.md`](INITIALIZATION-INCIDENT-LESSONS.md). It distinguishes the verified Governor path
+from the Admin path that still needs a separate live test.
+
 The installable GPT plugin package is tracked under `platforms/gpt-agents/plugins/`, but its readable source and tests
 are private in the sibling `ai-fleas-platform/gpt-plugin/src/` checkout. The public package is generated, not the
 authoritative implementation. Installed plugin copies, Codex caches, marketplace state, task bindings, and dispatch

@@ -66,6 +66,14 @@ tool call. Missing executable/tool capability blocks without spawning another ro
 or switching platforms. Installed readiness code must match the reviewed source;
 changing source alone does not deploy the plugin.
 
+The Admin chat title is presentation metadata. A native controller sets it only
+after accepted INIT has reached verified readiness and a fresh task/binding catalog
+is durable enough to address the exact task. A bounded title retry is classified
+separately in `titleStatus`; failure does not unregister the INIT audit handler,
+cancel readiness monitoring, retry delivery, create a replacement task, or weaken
+the exact readiness correlation. Callers report title, readiness, controller
+release, and owning-app attachment independently.
+
 For a newly created verified Admin only, the native handoff archives/unarchives
 the stopped exact INIT chat, preserving identity/history and closing its native
 writer before human ownership. Reuse does not run this cycle; no resume or later

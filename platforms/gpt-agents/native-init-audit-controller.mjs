@@ -39,24 +39,6 @@ export class NativeInitAuditController {
     this.#tasks.set(taskId, { generation: binding.generation, authorizedAt: Date.now() });
   }
 
-  #readBinding(taskId, turnId) {
-    const registry = JSON.parse(this.#io.readFileSync(this.#registryPath, 'utf8'));
-    const binding = registry.instances?.[taskId], authorized = this.#tasks.get(taskId);
-    if (!authorized || binding?.status !== 'pending' || binding.agentId !== 'admin' ||
-        binding.platformAdapter !== 'codex-app' || binding.generation !== authorized.generation ||
-        binding.initialization?.auditTransport !== 'ephemeral-process' ||
-        binding.initialization.turnId !== turnId || !binding.initialization.nonce ||
-        !Number.isFinite(Date.parse(binding.registeredAt)) ||
-        Date.parse(binding.registeredAt) < authorized.authorizedAt - 1000 || Date.parse(binding.registeredAt) > Date.now() ||
-        Object.values(registry.instances).filter(item => item.initialization?.nonce === binding.initialization.nonce).length !== 1 ||
-        !Number.isFinite(Date.parse(binding.initialization.expiresAt)) ||
-        Date.parse(binding.initialization.expiresAt) <= Date.now() ||
-        !isDeepStrictEqual(binding.initialization.sources, this.#plan.bootstrapPayload.binding.initialization.sources) ||
-        !isDeepStrictEqual(normalizeAdminScope(binding.scope), normalizeAdminScope(this.#plan.scope)))
-      fail('INIT_AUDIT_EXACT_BINDING_UNVERIFIED');
-    return { registry, binding };
-  }
-
   /** Actual native tool requests only; no arbitrary controller/model callback. */
   async handle(request) {
     const params = request.params;
@@ -117,5 +99,25 @@ export class NativeInitAuditController {
     return { success: true, contentItems: [{ type: 'inputText', text: JSON.stringify({
       audit: receipt, result: result.result,
       instruction: 'Verify these findings before readiness. This utility worker has exited; do not spawn a persistent replacement or claim full-roster readiness.' }) }] };
+  }
+
+  // Private implementation
+
+  #readBinding(taskId, turnId) {
+    const registry = JSON.parse(this.#io.readFileSync(this.#registryPath, 'utf8'));
+    const binding = registry.instances?.[taskId], authorized = this.#tasks.get(taskId);
+    if (!authorized || binding?.status !== 'pending' || binding.agentId !== 'admin' ||
+        binding.platformAdapter !== 'codex-app' || binding.generation !== authorized.generation ||
+        binding.initialization?.auditTransport !== 'ephemeral-process' ||
+        binding.initialization.turnId !== turnId || !binding.initialization.nonce ||
+        !Number.isFinite(Date.parse(binding.registeredAt)) ||
+        Date.parse(binding.registeredAt) < authorized.authorizedAt - 1000 || Date.parse(binding.registeredAt) > Date.now() ||
+        Object.values(registry.instances).filter(item => item.initialization?.nonce === binding.initialization.nonce).length !== 1 ||
+        !Number.isFinite(Date.parse(binding.initialization.expiresAt)) ||
+        Date.parse(binding.initialization.expiresAt) <= Date.now() ||
+        !isDeepStrictEqual(binding.initialization.sources, this.#plan.bootstrapPayload.binding.initialization.sources) ||
+        !isDeepStrictEqual(normalizeAdminScope(binding.scope), normalizeAdminScope(this.#plan.scope)))
+      fail('INIT_AUDIT_EXACT_BINDING_UNVERIFIED');
+    return { registry, binding };
   }
 }

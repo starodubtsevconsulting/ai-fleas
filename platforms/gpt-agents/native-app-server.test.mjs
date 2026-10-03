@@ -30,6 +30,38 @@ test('invalid masked, extension, binary, oversized and control frames fail', () 
   assert.throws(() => decodeFrame(Buffer.from([129, 5]), 4), /limit/);
   assert.throws(() => decodeFrame(Buffer.from([129, 127, 127, 255, 255, 255, 255, 255, 255, 255])), /limit/);
 });
+test('desktop malformed 127-byte JSON-RPC reply decodes at request ID 10 without widening frame acceptance', () => {
+  const prefix = '{"id":10,"result":';
+  const payload = Buffer.from(prefix + '"' + 'x'.repeat(127 - Buffer.byteLength(prefix) - 3) + '"}');
+  assert.equal(payload.length, 127);
+  const frame = Buffer.concat([Buffer.from([0x81, 0x7f, 0x00, 0x7f]), payload]);
+  assert.equal(decodeFrame(frame.subarray(0, 10)), null);
+  assert.equal(decodeFrame(frame.subarray(0, 130)), null);
+  assert.deepEqual(decodeFrame(frame), { opcode: 1, fin: true, payload, consumed: 131 });
+  const following = Buffer.concat([frame, Buffer.from([0x81, 1, 65])]);
+  assert.equal(decodeFrame(following).consumed, 131);
+  assert.deepEqual(decodeFrame(following.subarray(131)).payload, Buffer.from('A'));
+
+  const invalid = Buffer.from(frame);
+  invalid[130] = 0x5d; // Invalid JSON, despite the expected length and prefix.
+  assert.throws(() => decodeFrame(invalid), /limit/);
+  const notification = Buffer.from(frame);
+  notification.write('{"foo":', 4);
+  assert.throws(() => decodeFrame(notification), /limit/);
+  const masked = Buffer.from(frame); masked[1] |= 0x80;
+  assert.throws(() => decodeFrame(masked), /unmasked/);
+  const binary = Buffer.from(frame); binary[0] = 0x82;
+  assert.throws(() => decodeFrame(binary), /limit/);
+  const fragmented = Buffer.from(frame); fragmented[0] = 0x01;
+  assert.throws(() => decodeFrame(fragmented), /limit/);
+  const proper64 = Buffer.concat([Buffer.from([0x81, 0x7f]), Buffer.alloc(8), Buffer.alloc(65536, 65)]);
+  proper64.writeBigUInt64BE(65536n, 2);
+  assert.equal(decodeFrame(proper64).payload.length, 65536);
+  const genuineLarge = Buffer.alloc(10);
+  genuineLarge[0] = 0x81; genuineLarge[1] = 0x7f;
+  genuineLarge.writeBigUInt64BE(67108865n, 2);
+  assert.throws(() => decodeFrame(genuineLarge, 67108864), /limit/);
+});
 test('transport rejects unsafe connection configuration before dialing', async () => {
   await assert.rejects(connectNativeAppServer({ socketPath: 'relative' }), /Absolute/);
   await assert.rejects(connectNativeAppServer({ socketPath: '/unused', timeoutMs: 0 }), /timeout/);

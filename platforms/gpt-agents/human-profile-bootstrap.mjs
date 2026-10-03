@@ -20,30 +20,6 @@ export function assertHumanProfileId(humanId) {
 export class HumanProfileBootstrap {
   constructor(io = fs) { this.io = io; }
 
-  #catalog(humansDir) {
-    if (!humansDir) throw new Error('GOVERNOR_HUMAN_CATALOG_NOT_CONFIGURED');
-    let catalog;
-    try { catalog = this.io.realpathSync(humansDir); }
-    catch (error) {
-      if (error.code === 'ENOENT') throw new Error('GOVERNOR_HUMAN_CATALOG_NOT_FOUND', { cause: error });
-      throw error;
-    }
-    if (!this.io.statSync(catalog).isDirectory())
-      throw new Error('GOVERNOR_HUMAN_CATALOG_NOT_DIRECTORY');
-    return catalog;
-  }
-
-  #existingProfile(target) {
-    if (!this.io.lstatSync(target).isDirectory())
-      throw new Error('GOVERNOR_EXISTING_HUMAN_PROFILE_INCOMPLETE');
-    // Existing profiles may declare different Governor and memory filenames.
-    // The Governor preflight validates their exact declarations after this check.
-    const profileFile = path.join(target, 'profile.yml');
-    if (!this.io.existsSync(profileFile) || !this.io.lstatSync(profileFile).isFile())
-      throw new Error('GOVERNOR_EXISTING_HUMAN_PROFILE_INCOMPLETE');
-    return { humanDir: this.io.realpathSync(target), created: false };
-  }
-
   render(humanId) {
     assertHumanProfileId(humanId);
     const memoryPath = 'memory/governor-memory.md';
@@ -94,5 +70,31 @@ export class HumanProfileBootstrap {
     for (const [relative, content] of files)
       this.io.writeFileSync(path.join(target, relative), content, { flag: 'wx', mode: 0o600 });
     return { humanDir: target, created: true };
+  }
+
+  // Private implementation
+
+  #catalog(humansDir) {
+    if (!humansDir) throw new Error('GOVERNOR_HUMAN_CATALOG_NOT_CONFIGURED');
+    let catalog;
+    try { catalog = this.io.realpathSync(humansDir); }
+    catch (error) {
+      if (error.code === 'ENOENT') throw new Error('GOVERNOR_HUMAN_CATALOG_NOT_FOUND', { cause: error });
+      throw error;
+    }
+    if (!this.io.statSync(catalog).isDirectory())
+      throw new Error('GOVERNOR_HUMAN_CATALOG_NOT_DIRECTORY');
+    return catalog;
+  }
+
+  #existingProfile(target) {
+    if (!this.io.lstatSync(target).isDirectory())
+      throw new Error('GOVERNOR_EXISTING_HUMAN_PROFILE_INCOMPLETE');
+    // Existing profiles may declare different Governor and memory filenames.
+    // The Governor preflight validates their exact declarations after this check.
+    const profileFile = path.join(target, 'profile.yml');
+    if (!this.io.existsSync(profileFile) || !this.io.lstatSync(profileFile).isFile())
+      throw new Error('GOVERNOR_EXISTING_HUMAN_PROFILE_INCOMPLETE');
+    return { humanDir: this.io.realpathSync(target), created: false };
   }
 }
