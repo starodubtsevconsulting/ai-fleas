@@ -69,7 +69,17 @@ before claiming future silence.
 
 Load the portable Personal Governor role/policies, then the selected human profile's Governor and memory bindings. Require the Governor binding and memory manifest to name the same authoritative provider. For `git-profile-memory`, resolve the manifest's `path` against the human profile directory, require a readable and writable Markdown file inside that profile's `memory/` directory, and verify that the Governor cutover chain resolves to that exact file. Verify that the current task environment can open that authoritative file for writing before claiming full readiness. This private Git file is the only authoritative writable Governor memory. A Synology backup target is not a second authority and is not a destination for Governor memory writes. For a legacy `permanent-memory-synology` binding, resolve its declared `providerConfig` against the human profile directory and check that provider's read/write status. A matching file in another profile, an old Git revision, or a readable local folder cannot replace a missing declared source. Do not infer storage from paths or conversation history. Report a missing or conflicting declared binding as a binding error. Report a file-write or network permission denial as a restriction of the current task environment; it does not revoke Governor memory authority or establish that GitHub is unavailable machine-wide.
 
-For each authorized workflow context, match its declared `path` to the selected work profile's workflow entry, then resolve the workflow definition at `<ai_workflows_root>/<workflow-id>/<declared-path>`, with `ai_workflows_root` relative to that work profile's directory. A root-relative lookup without the workflow-ID directory is not the canonical layout and must not be reported as a missing workflow. Check the exact resolved file and project references; never substitute a same-named workflow from another profile.
+For each entry in the human profile's `authorizedProfiles`, resolve the work profile at
+`<profile-catalog-root>/<authorized-profile-id>/<authorized-profile-id>-work-profile.yml`.
+The catalog root is two directories above the selected human's `profile.yml` (the parent of `humans/`),
+not the AI Fleas repository root. Do **not** assume `profile.yml` exists under an authorized work-profile
+directory. Read that work profile's own `ai_workflows_root` and `workflows` entries; do not invent their
+paths from profile names. For each `authorizedWorkflows` entry, match its declared `path` to the selected
+work profile's workflow entry, then resolve the workflow definition at
+`<ai_workflows_root>/<workflow-id>/<declared-path>`, with `ai_workflows_root` relative to that work
+profile's directory. A root-relative lookup without the workflow-ID directory is not the canonical layout
+and must not be reported as a missing workflow. Check the exact resolved file and project references;
+never substitute a same-named workflow from another profile.
 
 The Governor may initialize itself because no workflow or profile Admin owns it. Self-bootstrap grants only the
 authority declared by the human profile. Bootstrap and pending-binding recovery end at host-verified Governor
