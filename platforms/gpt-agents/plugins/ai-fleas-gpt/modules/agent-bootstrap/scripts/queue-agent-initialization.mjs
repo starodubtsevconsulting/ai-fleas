@@ -1,8 +1,11 @@
+/** Explicit controller queue transaction for an exact initialized task.
+ * Caller: lifecycle controller CLI with PLUGIN_DATA, task ID, binding and prompt files.
+ * Effects: registers one pending receipt, queues its exact prompt, and rolls back only
+ * that unchanged receipt if delivery fails. It does not create or recover a task.
+ */
 import fs from 'node:fs';
-import path from 'node:path';
-import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { registerAgentInitialization, rollbackAgentInitialization } from './register-agent-initialization.mjs';
 
 function fail(message) {
   process.stderr.write(`${message}\n`);
@@ -14,20 +17,14 @@ if (!process.env.PLUGIN_DATA || !sessionId || !bindingFile || !promptFile) {
   fail('usage: PLUGIN_DATA=<dir> node queue-agent-initialization.mjs <session-id> <binding.json> <prompt.txt>');
 }
 
-const registryPath = path.join(process.env.PLUGIN_DATA, 'agent-bindings.json');
-const previousRegistry = fs.existsSync(registryPath)
-  ? fs.readFileSync(registryPath, 'utf8')
-  : null;
-
-const registerScript = fileURLToPath(new URL('./register-agent-initialization.mjs', import.meta.url));
-const registration = spawnSync(process.execPath, [registerScript, sessionId, bindingFile, promptFile], {
-  env: process.env,
-  encoding: 'utf8',
-});
-if (registration.status !== 0) fail(registration.stderr.trim() || 'agent initialization registration failed');
-
 const prompt = fs.readFileSync(promptFile, 'utf8').trimEnd();
-const promptSha256 = createHash('sha256').update(prompt).digest('hex');
+let registration;
+try {
+  registration = registerAgentInitialization({
+    sessionId, binding: JSON.parse(fs.readFileSync(bindingFile, 'utf8')),
+    prompt, dataRoot: process.env.PLUGIN_DATA,
+  });
+} catch (error) { fail(error.message); }
 let delivery;
 if (process.env.AGENT_BOOTSTRAP_QUEUE_LOG) {
   fs.appendFileSync(process.env.AGENT_BOOTSTRAP_QUEUE_LOG, `${JSON.stringify({ thread: sessionId, message: prompt })}\n`);
@@ -41,21 +38,9 @@ if (process.env.AGENT_BOOTSTRAP_QUEUE_LOG) {
 }
 
 if (delivery.error || delivery.status !== 0) {
-  const currentRegistry = fs.existsSync(registryPath)
-    ? JSON.parse(fs.readFileSync(registryPath, 'utf8'))
-    : null;
-  const registeredBinding = currentRegistry?.instances?.[sessionId];
-  const safeToRollback = registeredBinding?.status === 'pending' &&
-    registeredBinding?.initialization?.promptSha256 === promptSha256;
-  if (safeToRollback) {
-    if (previousRegistry === null) {
-      fs.rmSync(registryPath, { force: true });
-    } else {
-      const temporary = `${registryPath}.${process.pid}.rollback.tmp`;
-      fs.writeFileSync(temporary, previousRegistry, { mode: 0o600 });
-      fs.renameSync(temporary, registryPath);
-    }
-  }
+  let safeToRollback = false;
+  try { safeToRollback = rollbackAgentInitialization(registration.rollbackReceipt); }
+  catch (error) { fail(`queue delivery failed and rollback could not be verified: ${error.message}`); }
   const reason = delivery.error?.message || delivery.stderr?.trim() || delivery.stdout?.trim()
     || `queue exited ${delivery.status}`;
   fail(safeToRollback ? reason : `${reason}; pending receipt changed concurrently and was not rolled back`);

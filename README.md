@@ -47,8 +47,13 @@ Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes o
 
 Open the cloned repository, Control-click **`Install AI Fleas.command`**, and choose **Open**.
 
-That is all. It installs AI Fleas GPT, adds it to your Dock, and opens ChatGPT. Afterward, click **AI Fleas GPT** in the
-Dock whenever you want to use ChatGPT with AI Fleas.
+That installs AI Fleas GPT and adds **AI Fleas GPT** to your Dock. Afterward, clicking that launcher is the easiest way
+to start AI Fleas on the GPT/Codex platform. It opens your existing verified Personal Governor; if none is ready, it
+tries to initialize one in a fresh projectless task. It asks only for the exact human profile ID when that cannot be
+resolved from trusted lifecycle receipts. It never reopens an archived Governor or creates a second active one.
+
+For a first-ever installation with no Governor receipt, configure the private human-profile catalog once as described
+in the [GPT Agents guide](platforms/gpt-agents/). The launcher will not guess where private profiles live.
 
 See the [GPT Agents guide](platforms/gpt-agents/) for Personal Governor setup and terminal commands.
 

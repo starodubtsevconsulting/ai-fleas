@@ -55,10 +55,12 @@ export function decodeFrame(buffer, maxFrameBytes = 8 * 1024 * 1024) {
   if (size === 127) {
     if (buffer.length < 10) return null;
     const big = buffer.readBigUInt64BE(2);
-    if (big > BigInt(maxFrameBytes)) throw new Error('WebSocket frame exceeds limit');
+    if (big > BigInt(maxFrameBytes))
+      throw new Error(`WebSocket frame exceeds limit (${big} > ${maxFrameBytes} bytes)`);
     size = Number(big); offset = 10;
   }
-  if (size > maxFrameBytes) throw new Error('WebSocket frame exceeds limit');
+  if (size > maxFrameBytes)
+    throw new Error(`WebSocket frame exceeds limit (${size} > ${maxFrameBytes} bytes)`);
   if (opcode >= 8 && (!fin || size > 125)) throw new Error('Invalid WebSocket control frame');
   if (![0, 1, 8, 9, 10].includes(opcode)) throw new Error('Unsupported WebSocket opcode');
   if (buffer.length < offset + size) return null;

@@ -133,8 +133,9 @@ test('an explicit Personal Governor INIT turns a fresh chat into a verified succ
   assert.match(instructions, /state=explicit-init-successor/);
   assert.match(instructions, /humanProfileId=example-human/);
   assert.match(instructions, /Canonical human profile source: \/private\/humans\/example-human\/profile.yml/);
-  assert.match(instructions, /Do not reopen the predecessor/);
-  assert.match(instructions, /do not ask the human to repeat this exact profile ID/);
+  assert.match(instructions, /create a separate fresh-history projectless Governor task/);
+  assert.match(instructions, /predecessor stays active until that task has host-verified readiness/);
+  assert.match(instructions, /Do not ask for Admin or repeat this exact profile ID/);
 });
 
 test('the plugin starter resumes a pending Governor instead of creating a duplicate', () => {
@@ -149,7 +150,7 @@ test('the plugin starter resumes a pending Governor instead of creating a duplic
   assert.match(onboardingInstructions, /state=pending/);
   assert.match(onboardingInstructions, /taskId=pending-governor-task/);
   assert.match(onboardingInstructions, /Check the exact pending task ID in the host active and archived catalogs/);
-  assert.match(onboardingInstructions, /Do not create a duplicate or claim readiness while a matching live task is pending/);
+  assert.match(onboardingInstructions, /Do not create a duplicate or claim readiness from the receipt alone/);
 });
 
 test('the plugin starter fails closed when the lifecycle registry is malformed', () => {
@@ -379,7 +380,8 @@ test('queue helper rolls back a newly registered receipt when delivery fails', (
   });
   assert.equal(result.status, 1);
   assert.match(result.stderr, /task is archived/);
-  assert.equal(fs.existsSync(path.join(root, 'agent-bindings.json')), false);
+  const registry = JSON.parse(fs.readFileSync(path.join(root, 'agent-bindings.json'), 'utf8'));
+  assert.equal(Object.hasOwn(registry.instances, 'governor-task'), false);
 });
 
 test('queue helper restores the previous registry when replacement delivery fails', () => {

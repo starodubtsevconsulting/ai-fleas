@@ -9,23 +9,51 @@ adds it to your Dock, and opens ChatGPT.
 
 ## Daily use
 
-Click **AI Fleas GPT** in the Dock. It prepares AI Fleas, launches ChatGPT, asks the trusted Personal Governor for a
-read-only platform and agent status check, and opens that exact Governor task. If no trusted Governor exists, ChatGPT
-opens a fresh onboarding chat so you can select AI Fleas GPT and use its safe Personal Governor action. If the lifecycle
-registry still calls a Governor active but the host reports that its task is archived, the launcher records that exact
-receipt as archived and routes to the same onboarding chat.
+Click **AI Fleas GPT** in the Dock. It prepares AI Fleas and ensures the Personal Governor for the selected human is
+initialized. If one verified Governor is already active, it opens that task without sending a new message;
+repeated clicks do not create replacements. If no Governor is active, it reconciles an exact pending task or creates a
+fresh-history projectless task, queues the one-time activation, waits for exact readiness, then runs a separate welcome
+`INIT` in the active Governor chat. That welcome reports the verified memory and actual scheduled follow-ups (or their
+limitations); it must not claim a schedule exists without scheduler evidence. The launcher pins only a verified active Governor.
+Archived Governors are terminal and are never reopened. When no unique human ID can be resolved from lifecycle
+receipts, the launcher asks only for the exact human profile ID.
+
+Initialization can take several minutes. The Governor may first appear in **Recents** while its activation turn is
+running; it moves to **Pinned** only after the host verifies the active binding. On macOS the launcher keeps a
+dismissible progress window with the bundled human-and-robot logo while it verifies activation and prepares the welcome; hiding that window does not
+stop initialization. It also sends best-effort progress and completion notifications. If a run remains pending,
+launch AI Fleas GPT again to reconcile
+that exact task; do not assume that a chat title or an early Recents entry means initialization succeeded.
+
+For Dock-launch troubleshooting, the launcher records lifecycle decisions and navigation requests in
+`~/.config/ai-fleas/gpt-agents/launcher.log` (owner-readable only). A `navigation-sent` entry confirms macOS accepted
+the app-link request; it does not prove which chat the desktop ultimately displayed. The log does not contain profile
+contents or memory text.
+
+For a first-ever installation with no Governor receipt, configure the private human-profile catalog once during
+setup (the launcher will not guess its path):
+
+```sh
+platforms/gpt-agents/setup.sh --humans-dir /absolute/path/to/ai-profile/humans
+```
+
+This saves the catalog directory in local launcher configuration, not in the public repository. A later Dock launch
+can then ask for just the human ID and resolve its canonical directory from that catalog.
 
 The launcher sets the desktop **Follow-up behavior** to **Queue** before opening ChatGPT. Sending a message while a task
 is working then waits for the next turn; use the app's one-message Steer shortcut when you intentionally want to redirect
 the current turn. This is a global Codex desktop preference in `~/.codex/config.toml`, not an isolated setting for AI Fleas
 chats. If ChatGPT was already running when the launcher changed it, restart ChatGPT once to load the new default.
 
-To initialize your Personal Governor, start a new Codex task and ask:
+To initialize your Personal Governor, ask from any Codex task or chat, including an existing workflow/project chat:
 
-> Initialize Personal Governor for `<human-profile-id>` using the GPT Agents controller.
+> Initialize Personal Governor for `<human-profile-id>`.
 
-The controller creates a fresh, projectless task with the host's new-task operation, then runs the checked-in
-initializer with that exact task ID and the selected human profile directory:
+The requesting chat stays in its existing role and project. No Admin is required. If the exact human profile ID is not
+already resolved by a trusted host selection or uniquely verified Governor receipt, that ID is the only setup detail
+the controller may ask the human to provide. The controller checks exact active/pending receipts, creates or
+reconciles a separate fresh-history projectless task as required, then runs the checked-in initializer with that exact
+task ID and the selected human profile directory:
 
 ```sh
 node platforms/gpt-agents/launcher.mjs initialize-governor \
@@ -35,10 +63,11 @@ node platforms/gpt-agents/launcher.mjs initialize-governor \
 ```
 
 The initializer checks the declared Governor role, memory provider, and source files; it then registers a pending
-binding in the GPT plugin's host data and queues the exact initialization prompt. Wait for the task to return only
-`PERSONAL_GOVERNOR_READY`, verify the plugin binding is `active` for that task ID, and pin the task. The command
-does not create, adopt, or pin a task by title. If it reports another active or pending Governor binding, verify that
-exact task in the host catalog and reconcile it before making a replacement.
+binding in the GPT plugin's host data and queues the exact activation prompt. The first turn returns only
+`PERSONAL_GOVERNOR_READY`; after the binding is verified active, the launcher sends a separate welcome `INIT` turn.
+That turn should greet the verified human and report memory and scheduling checks in plain language. The command
+does not create, adopt, or pin a task by title. The controller reconciles exact active/pending receipts against the
+host catalog. An archived Governor is terminal and a later initialization uses a fresh projectless task.
 
 The **Try now** button is only a connection check; it does not create a Personal Governor.
 
@@ -63,7 +92,8 @@ node platforms/gpt-agents/launcher.mjs launch
 
 ## What the launcher does
 
-The launcher prepares and opens the GPT/Codex platform; it does not assign an agent identity to every new task. Identity
+The launcher prepares and opens the GPT/Codex platform and ensures only the selected Personal Governor. It does not
+assign an agent identity to every new task. Identity
 is receipt-backed so that an arbitrary chat cannot claim to be a Personal Governor, Coder, Writer, or another agent merely
 through its title or prompt.
 
@@ -75,18 +105,18 @@ flowchart TD
     D -- Yes --> E[Stop and require explicit migration]
     D -- No --> F[Open or focus ChatGPT]
 
-    F --> G[Open or create a Codex task]
-    G --> H[Agent Bootstrap hook runs]
-    H --> I{Exact active task binding exists?}
-    I -- Yes --> J[Restore the task's existing agent identity and sources]
-    I -- No --> K{Exact pending initialization transaction exists?}
-    K -- No --> L[Leave the task unbound; inject no agent identity]
-    K -- Yes --> M[Verify task ID, prompt, sources, and readiness token]
-    M --> N[Activate the bound agent identity]
-
-    L --> O[Explicitly request Personal Governor initialization for a human profile]
-    O --> P[GPT Agents controller creates and binds the Personal Governor task]
-    P --> Q[Personal Governor becomes the human-scoped entry point]
+    F --> G{Exact human ID resolved?}
+    G -- No --> H[Ask only for the human profile ID]
+    G -- Yes --> I[Verify canonical human profile and host receipts]
+    H --> I
+    I --> J{Verified active Governor?}
+    J -- Yes --> K[Open exact task without a new message]
+    J -- No --> L{Unarchived pending Governor?}
+    L -- Yes --> M[Reconcile or retry exact pending INIT]
+    L -- No --> N[Create fresh projectless task and queue INIT]
+    M --> O[Verify exact readiness and pin]
+    N --> O
+    O --> Q[Personal Governor becomes the human-scoped entry point]
     Q --> R[Select an authorized profile and workflow]
     R --> S[Controller initializes workflow-owned agents]
     S --> T[Coder]

@@ -1,8 +1,12 @@
+/** Run: node --test platforms/gpt-agents/initialize-governor.test.mjs.
+ * In-process fixtures verify canonical preflight and host task-state decisions.
+ * Passing does not prove live task creation, queue delivery, or readiness activation.
+ */
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { buildGovernorInitialization } from './initialize-governor.mjs';
+import { buildGovernorInitialization, hostTaskState } from './initialize-governor.mjs';
 
 const humanDir = fileURLToPath(new URL('./fixtures/governor/example-human/', import.meta.url));
 const gitHumanDir = fileURLToPath(new URL('./fixtures/governor/git-human/', import.meta.url));
@@ -44,4 +48,53 @@ test('reports a task sandbox denial separately from an invalid memory binding', 
   assert.throws(() => buildGovernorInitialization(humanDir, 'example-human', 1, {
     checkProvider: () => ({ status: 1, stdout: '', stderr: 'network access denied' }),
   }), /current task environment blocks checking the declared memory provider: network access denied/);
+});
+
+test('agent-created projectless task is verified through exact host state when hidden from list', async () => {
+  const taskId = '00000000-0000-4000-8000-000000000001';
+  const client = { request: async (method) => method === 'thread/list'
+    ? { data: [], nextCursor: null }
+    : { thread: { id: taskId, threadSource: 'agent_created_thread',
+      cwd: '/projectless/task', projectId: null } } };
+  const row = { id: taskId, thread_source: 'agent_created_thread',
+    cwd: '/projectless/task', archived: 0 };
+  const active = await hostTaskState(client, taskId, { readAgentCreatedRecord: () => row });
+  assert.equal(active.archived, false);
+  const archived = await hostTaskState(client, taskId, {
+    readAgentCreatedRecord: () => ({ ...row, archived: 1 }),
+  });
+  assert.equal(archived.archived, true);
+  await assert.rejects(() => hostTaskState(client, taskId, {
+    readAgentCreatedRecord: () => ({ ...row, cwd: '/different-task' }),
+  }), /GOVERNOR_HOST_STATE_UNVERIFIED/);
+});
+
+test('newly started projectless task can be verified while loaded but not yet listed', async () => {
+  const taskId = '00000000-0000-4000-8000-000000000003';
+  const client = { request: async method => method === 'thread/list'
+    ? { data: [], nextCursor: null }
+    : method === 'thread/loaded/list'
+      ? { data: [taskId] }
+      : { thread: { id: taskId, cwd: '/projectless/task', projectId: null, ephemeral: false } } };
+  const result = await hostTaskState(client, taskId, { readAgentCreatedRecord: () => null });
+  assert.equal(result.archived, false);
+  assert.equal(result.task.id, taskId);
+  const nativeRow = { id: taskId, thread_source: null, cwd: '/projectless/task', archived: 0 };
+  const nativeResult = await hostTaskState(client, taskId,
+    { readAgentCreatedRecord: () => nativeRow });
+  assert.equal(nativeResult.archived, false);
+  assert.equal(nativeResult.task.id, taskId);
+});
+
+test('exact native task row avoids oversized catalog scans', async () => {
+  const taskId = '00000000-0000-4000-8000-000000000008';
+  const client = { request: async (method) => {
+    if (method === 'thread/list') throw new Error('WebSocket frame exceeds limit');
+    if (method === 'thread/read') return { thread: { id: taskId,
+      cwd: '/projectless/task', projectId: null, ephemeral: false } };
+    throw new Error(`unexpected ${method}`);
+  } };
+  const result = await hostTaskState(client, taskId, { readAgentCreatedRecord: () =>
+    ({ id: taskId, archived: 0, thread_source: null, cwd: '/projectless/task' }) });
+  assert.equal(result.archived, false);
 });
