@@ -18,8 +18,10 @@ the requesting chat's saved project.
 That direct request is sufficient to select the Personal Governor bootstrap route, but not sufficient to invent
 identity or resources. When the request originates in any chat and exactly one verified Governor receipt resolves the
 human, use that receipt's exact human profile and canonical human-profile source; do not ask the human to repeat the
-profile ID or reopen the predecessor. Otherwise resolve the exact human profile under the activated private profile
-catalog and verify:
+profile ID or reopen the predecessor. Otherwise resolve the exact human profile through the GPT adapter's local
+profile store. For an exact new ID, first run `launcher.mjs prepare-human-profile --human <exact-id>`; this may create only
+a minimal private profile with local Markdown memory and empty access lists, never copy fictional example authority
+or overwrite existing files. Then verify:
 
 - `type: human`;
 - exact human profile ID;
@@ -30,8 +32,10 @@ catalog and verify:
 
 ### Bootstrap question policy
 
-From the requesting chat through target-task INIT, ask the human **only** for the exact human profile ID, and only
-when no unique verified Governor receipt or trusted host profile selection resolves it. Do not ask for a role,
+From the requesting chat through target-task INIT, ask the human **only** for the exact human profile ID. The
+human-initiated GPT launcher asks on each launch, prefilled with a unique recorded ID when available so another
+human can be selected through the GUI. Noninteractive callers may use a uniquely verified Governor receipt or
+trusted host profile selection without asking. Do not ask for a role,
 workflow, project, platform, memory provider, memory path, title, pinning preference, prior-chat disposition, or other
 setup detail: resolve those from the selected human profile and platform contract. If any declared source is absent,
 ambiguous, unusable, or conflicts with the binding, report the concrete blocker rather than turning configuration
@@ -55,7 +59,8 @@ fresh-history projectless task. Never reopen, retry, recover, or reactivate an a
 binding is stale or conflicting, report the blocker and use only the lifecycle controller's supported reconciliation
 path; do not self-certify activation or invent a repair.
 
-If the human profile is absent, ambiguous, or conflicting, stop read-only.
+If an existing profile is incomplete, ambiguous, or conflicting, stop before task creation. A genuinely missing
+exact human ID may be scaffolded in the GPT adapter's home-folder store or an explicit location override.
 
 ## Initialization
 
@@ -67,7 +72,7 @@ transactional successor route; if unavailable, return `BLOCKED_CLONE_CAPABILITY`
 or archiving the predecessor first. `END`/`STOP` preserves memory, then requires host-verified archival/routing disablement
 before claiming future silence.
 
-Load the portable Personal Governor role/policies, then the selected human profile's Governor and memory bindings. Require the Governor binding and memory manifest to name the same authoritative provider. For `git-profile-memory`, resolve the manifest's `path` against the human profile directory, require a readable and writable Markdown file inside that profile's `memory/` directory, and verify that the Governor cutover chain resolves to that exact file. Verify that the current task environment can open that authoritative file for writing before claiming full readiness. This private Git file is the only authoritative writable Governor memory. A Synology backup target is not a second authority and is not a destination for Governor memory writes. For a legacy `permanent-memory-synology` binding, resolve its declared `providerConfig` against the human profile directory and check that provider's read/write status. A matching file in another profile, an old Git revision, or a readable local folder cannot replace a missing declared source. Do not infer storage from paths or conversation history. Report a missing or conflicting declared binding as a binding error. Report a file-write or network permission denial as a restriction of the current task environment; it does not revoke Governor memory authority or establish that GitHub is unavailable machine-wide.
+Load the portable Personal Governor role/policies, then the selected human profile's Governor and memory bindings. Require the Governor binding and memory manifest to name the same authoritative provider. For `git-profile-memory` or `local-profile-memory`, resolve the manifest's `path` against the human profile directory, require a readable and writable Markdown file inside that profile's `memory/` directory, and verify that the Governor cutover chain resolves to that exact file. Verify that the current task environment can open that authoritative file for writing before claiming full readiness. This declared file is the only authoritative writable Governor memory; the local variant does not require Git. A Synology backup target is not a second authority and is not a destination for Governor memory writes. For a legacy `permanent-memory-synology` binding, resolve its declared `providerConfig` against the human profile directory and check that provider's read/write status. A matching file in another profile, an old Git revision, or a readable local folder cannot replace a missing declared source. Do not infer storage from paths or conversation history. Report a missing or conflicting declared binding as a binding error. Report a file-write or network permission denial as a restriction of the current task environment; it does not revoke Governor memory authority or establish that GitHub is unavailable machine-wide.
 
 For each entry in the human profile's `authorizedProfiles`, resolve the work profile at
 `<profile-catalog-root>/<authorized-profile-id>/<authorized-profile-id>-work-profile.yml`.

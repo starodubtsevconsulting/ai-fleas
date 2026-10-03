@@ -3,47 +3,11 @@
  * Effects: registers one pending receipt, queues its exact prompt, and rolls back only
  * that unchanged receipt if delivery fails. It does not create or recover a task.
  */
-import fs from 'node:fs';
-import { spawnSync } from 'node:child_process';
-import { registerAgentInitialization, rollbackAgentInitialization } from './register-agent-initialization.mjs';
-
-function fail(message) {
-  process.stderr.write(`${message}\n`);
-  process.exit(1);
-}
-
-const [sessionId, bindingFile, promptFile] = process.argv.slice(2);
-if (!process.env.PLUGIN_DATA || !sessionId || !bindingFile || !promptFile) {
-  fail('usage: PLUGIN_DATA=<dir> node queue-agent-initialization.mjs <session-id> <binding.json> <prompt.txt>');
-}
-
-const prompt = fs.readFileSync(promptFile, 'utf8').trimEnd();
-let registration;
-try {
-  registration = registerAgentInitialization({
-    sessionId, binding: JSON.parse(fs.readFileSync(bindingFile, 'utf8')),
-    prompt, dataRoot: process.env.PLUGIN_DATA,
-  });
-} catch (error) { fail(error.message); }
-let delivery;
-if (process.env.AGENT_BOOTSTRAP_QUEUE_LOG) {
-  fs.appendFileSync(process.env.AGENT_BOOTSTRAP_QUEUE_LOG, `${JSON.stringify({ thread: sessionId, message: prompt })}\n`);
-  delivery = { status: 0, stdout: 'test queue accepted', stderr: '' };
-} else {
-  delivery = spawnSync(process.env.CODEX_BIN ?? 'codex', [
-    'queue',
-    '--thread', sessionId,
-    '--message', prompt,
-  ], { env: process.env, encoding: 'utf8' });
-}
-
-if (delivery.error || delivery.status !== 0) {
-  let safeToRollback = false;
-  try { safeToRollback = rollbackAgentInitialization(registration.rollbackReceipt); }
-  catch (error) { fail(`queue delivery failed and rollback could not be verified: ${error.message}`); }
-  const reason = delivery.error?.message || delivery.stderr?.trim() || delivery.stdout?.trim()
-    || `queue exited ${delivery.status}`;
-  fail(safeToRollback ? reason : `${reason}; pending receipt changed concurrently and was not rolled back`);
-}
-
-process.stdout.write(`${JSON.stringify({ sessionId, deliveryStatus: 'queued' })}\n`);
+// Generated distribution; edit the private source, not this file.
+import A from"node:fs";import{spawnSync as $}from"node:child_process";import m from"node:fs";import h from"node:path";import{createHash as F,randomUUID as R}from"node:crypto";import{fileURLToPath as D}from"node:url";import L from"node:fs";import U from"node:path";import{randomUUID as z}from"node:crypto";function v(e,t,{io:r=L,now:n=Date.now}={}){if(typeof e!="string"||!e||typeof t!="function")throw new Error("GOVERNOR_LOCK_ARGUMENTS_INVALID");let i=`${e}.governor.lock`,p=z(),l;r.mkdirSync(U.dirname(e),{recursive:!0});try{l=r.openSync(i,"wx",384)}catch(a){if(a?.code!=="EEXIST")throw a;let d=!1;try{d=n()-r.statSync(i).mtimeMs>6e4}catch{}if(!d)throw new Error("GOVERNOR_LIFECYCLE_BUSY");r.unlinkSync(i),l=r.openSync(i,"wx",384)}try{return r.writeFileSync(l,p),t()}finally{r.closeSync(l);try{r.readFileSync(i,"utf8")===p&&r.unlinkSync(i)}catch{}}}function s(e){throw new Error(e)}function w(e,t,r){r.mkdirSync(h.dirname(e),{recursive:!0});let n=`${e}.${process.pid}.tmp`;r.writeFileSync(n,`${JSON.stringify(t,null,2)}
+`,{mode:384}),r.renameSync(n,e)}function P(e){return e&&typeof e.id=="string"&&e.id&&typeof e.ref=="string"&&e.ref}function I({sessionId:e,binding:t,prompt:r,dataRoot:n},{fs:i=m,now:p=new Date}={}){(!e||typeof e!="string"||!n||typeof n!="string")&&s("sessionId and dataRoot are required"),(!t||typeof r!="string")&&s("binding and prompt are required");let l=r.trimEnd();l||s("initialization prompt must not be empty"),t.platformAdapter!=="codex-app"&&s("binding.platformAdapter must be codex-app"),(!t.agentId||typeof t.agentId!="string")&&s("binding requires agentId"),(!Number.isInteger(t.generation)||t.generation<1)&&s("binding requires a positive integer generation"),(!t.scope?.kind||typeof t.scope.kind!="string")&&s("binding.scope requires kind"),t.initialization?.readinessToken||s("binding.initialization requires readinessToken"),(!Array.isArray(t.initialization.sources)||!t.initialization.sources.length||t.initialization.sources.some(o=>!P(o)))&&s("binding.initialization.sources must contain at least one {id,ref} source");let a=h.join(n,"agent-bindings.json"),d=()=>{let o=i.existsSync(a)?JSON.parse(i.readFileSync(a,"utf8")):{schemaVersion:1,instances:{}};o.schemaVersion=1,o.instances??={};let G=Object.hasOwn(o.instances,e)?structuredClone(o.instances[e]):null;if(o.instances[e]?.status==="active"&&s(`session ${e} already has an active agent binding`),t.agentId==="personal-governor"){let k=Object.entries(o.instances).filter(([f,S])=>f!==e&&S?.agentId==="personal-governor"&&S.scope?.humanProfileId===t.scope?.humanProfileId&&["active","pending"].includes(S.status)),u=k.filter(([,f])=>f.status==="active");(k.filter(([,f])=>f.status==="pending").length||u.length>1||u.length===1&&(t.replaces?.taskId!==u[0][0]||t.replaces?.generation!==u[0][1].generation||t.replaces?.strategy!=="successor-first")||u.length===0&&t.replaces)&&s("GOVERNOR_SINGLETON_BINDING_CONFLICT")}let N=new Date(p.getTime()+600*1e3).toISOString();return o.instances[e]={...t,status:"pending",initialization:{...t.initialization,nonce:t.initialization.delivery?.nonce||R(),promptSha256:F("sha256").update(l).digest("hex"),expiresAt:N},registeredAt:p.toISOString()},w(a,o,i),{sessionId:e,status:"pending",expiresAt:N,rollbackReceipt:{registryPath:a,sessionId:e,previousBinding:G,registeredBinding:structuredClone(o.instances[e])}}};return t.agentId==="personal-governor"?v(a,d,{io:i}):d()}function _(e,{fs:t=m}={}){(!e?.registryPath||!e.sessionId||!e.registeredBinding)&&s("Invalid rollback receipt");let r=()=>{if(!t.existsSync(e.registryPath))return!1;let n=JSON.parse(t.readFileSync(e.registryPath,"utf8")),i=n.instances?.[e.sessionId];return i?.status!=="pending"||JSON.stringify(i)!==JSON.stringify(e.registeredBinding)?!1:(e.previousBinding===null?delete n.instances[e.sessionId]:n.instances[e.sessionId]=e.previousBinding,w(e.registryPath,n,t),!0)};return e.registeredBinding.agentId==="personal-governor"?v(e.registryPath,r,{io:t}):r()}if(process.argv[1]&&h.resolve(process.argv[1])===D(import.meta.url))try{let[e,t,r]=process.argv.slice(2);(!e||!t||!r||!process.env.PLUGIN_DATA)&&s("usage: PLUGIN_DATA=<dir> node register-agent-initialization.mjs <session-id> <binding.json> <prompt.txt>");let n=I({sessionId:e,binding:JSON.parse(m.readFileSync(t,"utf8")),prompt:m.readFileSync(r,"utf8"),dataRoot:process.env.PLUGIN_DATA});process.stdout.write(`${JSON.stringify({sessionId:n.sessionId,status:n.status,expiresAt:n.expiresAt})}
+`)}catch(e){process.stderr.write(`${e.message}
+`),process.exitCode=1}function y(e){process.stderr.write(`${e}
+`),process.exit(1)}var[g,E,T]=process.argv.slice(2);(!process.env.PLUGIN_DATA||!g||!E||!T)&&y("usage: PLUGIN_DATA=<dir> node queue-agent-initialization.mjs <session-id> <binding.json> <prompt.txt>");var O=A.readFileSync(T,"utf8").trimEnd(),x;try{x=I({sessionId:g,binding:JSON.parse(A.readFileSync(E,"utf8")),prompt:O,dataRoot:process.env.PLUGIN_DATA})}catch(e){y(e.message)}var c;process.env.AGENT_BOOTSTRAP_QUEUE_LOG?(A.appendFileSync(process.env.AGENT_BOOTSTRAP_QUEUE_LOG,`${JSON.stringify({thread:g,message:O})}
+`),c={status:0,stdout:"test queue accepted",stderr:""}):c=$(process.env.CODEX_BIN??"codex",["queue","--thread",g,"--message",O],{env:process.env,encoding:"utf8"});if(c.error||c.status!==0){let e=!1;try{e=_(x.rollbackReceipt)}catch(r){y(`queue delivery failed and rollback could not be verified: ${r.message}`)}let t=c.error?.message||c.stderr?.trim()||c.stdout?.trim()||`queue exited ${c.status}`;y(e?t:`${t}; pending receipt changed concurrently and was not rolled back`)}process.stdout.write(`${JSON.stringify({sessionId:g,deliveryStatus:"queued"})}
+`);

@@ -21,6 +21,23 @@ test('unique verified human receipt avoids another bootstrap question', () => {
     fileURLToPath(new URL('./fixtures/governor/example-human/', import.meta.url)).replace(/\/$/, ''));
 });
 
+test('explicit choose-human asks for a different exact ID despite one receipt', () => {
+  const registry = { instances: { current: { agentId: 'personal-governor', status: 'active',
+    scope: { kind: 'governed-human', humanProfileId: 'example-human' } } } };
+  assert.equal(selectGovernorHuman(registry, null, suggested => {
+    assert.equal(suggested, 'example-human');
+    return 'another-human';
+  },
+    { chooseHuman: true }), 'another-human');
+  assert.throws(() => selectGovernorHuman(registry, null, () => null,
+    { chooseHuman: true }), /GOVERNOR_HUMAN_ID_REQUIRED/);
+});
+
+test('human selection accepts an exact underscore ID', () => {
+  assert.equal(selectGovernorHuman({ instances: {} }, null, () => 'example_human_2',
+    { chooseHuman: true }), 'example_human_2');
+});
+
 test('ambiguous humans require only an exact ID and a configured catalog can resolve it', () => {
   const registry = { instances: {
     one: { agentId: 'personal-governor', status: 'active', scope: { kind: 'governed-human', humanProfileId: 'first' } },

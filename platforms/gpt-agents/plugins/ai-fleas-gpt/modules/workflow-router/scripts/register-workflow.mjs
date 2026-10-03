@@ -1,54 +1,10 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
-function fail(message) {
-  process.stderr.write(`${message}\n`);
-  process.exit(1);
-}
-
-const [workflowFile, runtimeFile] = process.argv.slice(2);
-const dataRoot = process.env.PLUGIN_DATA;
-if (!workflowFile || !dataRoot) {
-  fail('usage: PLUGIN_DATA=<dir> node register-workflow.mjs <workflow-map.json> [runtime-scope-and-endpoints.json]');
-}
-
-const projection = JSON.parse(fs.readFileSync(workflowFile, 'utf8'));
-const runtime = runtimeFile ? JSON.parse(fs.readFileSync(runtimeFile, 'utf8')) : {};
-const workflow = { ...projection, ...runtime, stages: projection.stages };
-for (const field of ['profileId', 'workflowId', 'logicalProjectId', 'runtimeScopeId']) {
-  if (!workflow.scope?.[field]) fail(`workflow.scope requires ${field}`);
-}
-if (!workflow.stages || !workflow.endpoints) fail('workflow requires stages and endpoints');
-for (const [stageId, stage] of Object.entries(workflow.stages)) {
-  if (!stage.role || !stage.transitions) fail(`stage ${stageId} requires role and transitions`);
-}
-for (const [role, route] of Object.entries(workflow.routes ?? {})) {
-  if (!Object.values(workflow.stages).some((stage) => stage.role === role)
-    || workflow.endpoints[role]
-    || !route || typeof route !== 'object' || Array.isArray(route)
-    || Object.keys(route).some((key) => !['id', 'callerRole', 'projectId'].includes(key))
-    || !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(route.id ?? '')
-    || !/^[a-z0-9][a-z0-9-]*$/.test(route.projectId ?? '')
-    || typeof route.callerRole !== 'string'
-    || typeof workflow.endpoints[route.callerRole] !== 'string'
-    || !workflow.endpoints[route.callerRole]) {
-    fail(`workflow route ${role} requires a declared stage, route and project IDs, and endpoint-backed caller`);
-  }
-}
-
-fs.mkdirSync(dataRoot, { recursive: true });
-const registryPath = path.join(dataRoot, 'bindings.json');
-const registry = fs.existsSync(registryPath)
-  ? JSON.parse(fs.readFileSync(registryPath, 'utf8'))
-  : { schemaVersion: 2, sessions: {}, workflows: {} };
-registry.schemaVersion = 2;
-registry.sessions ??= {};
-registry.workflows ??= {};
-const key = ['profileId', 'workflowId', 'logicalProjectId', 'runtimeScopeId']
-  .map((field) => workflow.scope[field]).join(':');
-registry.workflows[key] = workflow;
-
-const temporary = `${registryPath}.${process.pid}.tmp`;
-fs.writeFileSync(temporary, `${JSON.stringify(registry, null, 2)}\n`, { mode: 0o600 });
-fs.renameSync(temporary, registryPath);
-process.stdout.write(`${key}\n`);
+/** Purpose: register a validated workflow map and runtime endpoints for the Router.
+ * Caller: authorized controller CLI, not an automatic hook.
+ * Inputs: PLUGIN_DATA, workflow-map JSON, optional runtime JSON; output: receipt.
+ * Effects: writes only the selected workflow's plugin runtime registry entry.
+ */
+// Generated distribution; edit the private source, not this file.
+import r from"node:fs";import u from"node:path";function t(e){process.stderr.write(`${e}
+`),process.exit(1)}var[p,l]=process.argv.slice(2),a=process.env.PLUGIN_DATA;(!p||!a)&&t("usage: PLUGIN_DATA=<dir> node register-workflow.mjs <workflow-map.json> [runtime-scope-and-endpoints.json]");var d=JSON.parse(r.readFileSync(p,"utf8")),g=l?JSON.parse(r.readFileSync(l,"utf8")):{},s={...d,...g,stages:d.stages};for(let e of["profileId","workflowId","logicalProjectId","runtimeScopeId"])s.scope?.[e]||t(`workflow.scope requires ${e}`);(!s.stages||!s.endpoints)&&t("workflow requires stages and endpoints");for(let[e,o]of Object.entries(s.stages))(!o.role||!o.transitions)&&t(`stage ${e} requires role and transitions`);for(let[e,o]of Object.entries(s.routes??{}))(!Object.values(s.stages).some(c=>c.role===e)||s.endpoints[e]||!o||typeof o!="object"||Array.isArray(o)||Object.keys(o).some(c=>!["id","callerRole","projectId"].includes(c))||!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(o.id??"")||!/^[a-z0-9][a-z0-9-]*$/.test(o.projectId??"")||typeof o.callerRole!="string"||typeof s.endpoints[o.callerRole]!="string"||!s.endpoints[o.callerRole])&&t(`workflow route ${e} requires a declared stage, route and project IDs, and endpoint-backed caller`);r.mkdirSync(a,{recursive:!0});var i=u.join(a,"bindings.json"),n=r.existsSync(i)?JSON.parse(r.readFileSync(i,"utf8")):{schemaVersion:2,sessions:{},workflows:{}};n.schemaVersion=2;n.sessions??={};n.workflows??={};var f=["profileId","workflowId","logicalProjectId","runtimeScopeId"].map(e=>s.scope[e]).join(":");n.workflows[f]=s;var w=`${i}.${process.pid}.tmp`;r.writeFileSync(w,`${JSON.stringify(n,null,2)}
+`,{mode:384});r.renameSync(w,i);process.stdout.write(`${f}
+`);

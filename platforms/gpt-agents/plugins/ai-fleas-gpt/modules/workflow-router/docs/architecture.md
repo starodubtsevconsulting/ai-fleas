@@ -145,7 +145,7 @@ Every change must preserve these rules:
 
 Before reinstalling a local change:
 
-1. Run `node --test scripts/*.test.mjs`.
+1. Run the workflow-router tests in private `ai-fleas-platform/gpt-plugin/src/`.
 2. Validate the plugin with the plugin-creator validator.
 3. Update the single manifest cachebuster and reinstall from the configured local marketplace.
 4. Start or use tasks that have loaded the new plugin version.

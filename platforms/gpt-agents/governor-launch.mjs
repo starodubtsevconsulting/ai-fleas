@@ -18,7 +18,7 @@ import { buildGovernorInitialization, hostTaskState,
 import { withGovernorRegistryLock } from './plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/governor-registry-lock.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const humanIdPattern = /^[a-z][a-z0-9-]*$/;
+const humanIdPattern = /^[a-z][a-z0-9_-]*$/;
 const governorTitle = '🧭 Personal Governor';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const welcomePrompt = [
@@ -172,7 +172,7 @@ export function readGovernorRegistry(registryFile, io = fs) {
   return registry;
 }
 
-export function selectGovernorHuman(registry, requestedHuman, askHuman) {
+export function selectGovernorHuman(registry, requestedHuman, askHuman, { chooseHuman = false } = {}) {
   const receipts = Object.values(registry.instances).filter(binding =>
     binding?.agentId === 'personal-governor' &&
     binding.scope?.kind === 'governed-human' &&
@@ -180,7 +180,8 @@ export function selectGovernorHuman(registry, requestedHuman, askHuman) {
   const current = [...new Set(receipts.filter(binding => ['active', 'pending'].includes(binding.status))
     .map(binding => binding.scope.humanProfileId))];
   const known = [...new Set(receipts.map(binding => binding.scope.humanProfileId))];
-  const human = requestedHuman || (current.length === 1 ? current[0] :
+  const human = requestedHuman || (chooseHuman ? askHuman(current.length === 1 ? current[0] :
+    known.length === 1 ? known[0] : '') : current.length === 1 ? current[0] :
     current.length === 0 && known.length === 1 ? known[0] : askHuman());
   if (!humanIdPattern.test(human ?? '')) throw new Error('GOVERNOR_HUMAN_ID_REQUIRED');
   return human;

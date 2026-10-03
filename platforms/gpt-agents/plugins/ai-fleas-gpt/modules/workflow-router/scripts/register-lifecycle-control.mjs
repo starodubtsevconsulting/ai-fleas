@@ -1,39 +1,10 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { createHash } from 'node:crypto';
-
-function fail(message) {
-  process.stderr.write(`${message}\n`);
-  process.exit(1);
-}
-
-const [sessionId, promptFile, expectedReadiness, action = 'initialize'] = process.argv.slice(2);
-const dataRoot = process.env.PLUGIN_DATA;
-if (!dataRoot || !sessionId || !promptFile || !expectedReadiness) {
-  fail('usage: PLUGIN_DATA=<dir> node register-lifecycle-control.mjs <session-id> <prompt-file> <expected-readiness> [action]');
-}
-if (!/^[A-Z][A-Z0-9_]*_READY$/.test(expectedReadiness)) {
-  fail('expected-readiness must be an uppercase *_READY token');
-}
-if (!/^[a-z][a-z0-9-]*$/.test(action)) fail('action must be lower-case hyphen-case');
-
-const registryPath = path.join(dataRoot, 'bindings.json');
-if (!fs.existsSync(registryPath)) fail('workflow Router registry does not exist');
-const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
-if (registry.sessions?.[sessionId]?.status !== 'active') fail('session does not have an active Router binding');
-
-const prompt = fs.readFileSync(promptFile, 'utf8');
-if (!prompt.trim()) fail('lifecycle prompt must not be empty');
-const permit = {
-  action,
-  expectedReadiness,
-  promptSha256: createHash('sha256').update(prompt).digest('hex'),
-  issuedAt: new Date().toISOString(),
-  expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-};
-const permitFile = path.join(dataRoot, 'lifecycle-controls', `${sessionId}.json`);
-fs.mkdirSync(path.dirname(permitFile), { recursive: true });
-const temporary = `${permitFile}.${process.pid}.tmp`;
-fs.writeFileSync(temporary, `${JSON.stringify(permit)}\n`, { mode: 0o600 });
-fs.renameSync(temporary, permitFile);
-process.stdout.write(`${sessionId}\n`);
+/** Purpose: register a pending control turn for an already bound Router task.
+ * Caller: queue-lifecycle-control.mjs or an authorized controller CLI.
+ * Inputs: PLUGIN_DATA, task ID, prompt file, readiness token, and action.
+ * Output: registration receipt; effects: updates only the exact runtime binding.
+ */
+// Generated distribution; edit the private source, not this file.
+import e from"node:fs";import i from"node:path";import{createHash as l}from"node:crypto";function t(f){process.stderr.write(`${f}
+`),process.exit(1)}var[s,c,o,a="initialize"]=process.argv.slice(2),r=process.env.PLUGIN_DATA;(!r||!s||!c||!o)&&t("usage: PLUGIN_DATA=<dir> node register-lifecycle-control.mjs <session-id> <prompt-file> <expected-readiness> [action]");/^[A-Z][A-Z0-9_]*_READY$/.test(o)||t("expected-readiness must be an uppercase *_READY token");/^[a-z][a-z0-9-]*$/.test(a)||t("action must be lower-case hyphen-case");var p=i.join(r,"bindings.json");e.existsSync(p)||t("workflow Router registry does not exist");var u=JSON.parse(e.readFileSync(p,"utf8"));u.sessions?.[s]?.status!=="active"&&t("session does not have an active Router binding");var d=e.readFileSync(c,"utf8");d.trim()||t("lifecycle prompt must not be empty");var y={action:a,expectedReadiness:o,promptSha256:l("sha256").update(d).digest("hex"),issuedAt:new Date().toISOString(),expiresAt:new Date(Date.now()+600*1e3).toISOString()},n=i.join(r,"lifecycle-controls",`${s}.json`);e.mkdirSync(i.dirname(n),{recursive:!0});var m=`${n}.${process.pid}.tmp`;e.writeFileSync(m,`${JSON.stringify(y)}
+`,{mode:384});e.renameSync(m,n);process.stdout.write(`${s}
+`);

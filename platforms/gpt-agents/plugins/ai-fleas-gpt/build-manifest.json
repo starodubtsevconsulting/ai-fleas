@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "source": "ai-fleas-platform/gpt-plugin",
+  "artifacts": [
+    {
+      "path": ".codex-plugin/plugin.json",
+      "sha256": "3535f45c33c894888f3693b25e843db38b1e171f5c61c8884fb5dd5672b8a322"
+    },
+    {
+      "path": "hooks/hooks.json",
+      "sha256": "3d0ee03656ea6f54a5e4bc4ebbe5e5d94ab2f0a16013628ac9dca2f48e663ed1"
+    },
+    {
+      "path": "modules/agent-bootstrap/scripts/agent-bootstrap-hook.mjs",
+      "sha256": "15e78ef82d3704cb1f377f78456caad4bcf79bbd86add7c2d7a19d7b9f5d6ff8"
+    },
+    {
+      "path": "modules/agent-bootstrap/scripts/governor-registry-lock.mjs",
+      "sha256": "38d03c6874142bab7593f86148da9887532c373dc17df2efff73c4e3e6bee660"
+    },
+    {
+      "path": "modules/agent-bootstrap/scripts/list-agent-bindings.mjs",
+      "sha256": "23e40a0606f5ac11945e7d56c0f50f605a1b809f3ef49bb0f94196478f764310"
+    },
+    {
+      "path": "modules/agent-bootstrap/scripts/personal-governor-onboarding.mjs",
+      "sha256": "67a18e83312ada31dd2b5e6882efd2c65ac44aa84f24a946a4101ecdd3fd9f96"
+    },
+    {
+      "path": "modules/agent-bootstrap/scripts/queue-agent-initialization.mjs",
+      "sha256": "bec843a4f5338fd238df520f1145e935b4eafcce505ece0c3dfb0a74432ce069"
+    },
+    {
+      "path": "modules/agent-bootstrap/scripts/readiness-evidence.mjs",
+      "sha256": "933507782394bc0361ebf57ca0e125754bc65932d7824b3df781e529061d162c"
+    },
+    {
+      "path": "modules/agent-bootstrap/scripts/register-agent-initialization.mjs",
+      "sha256": "8fafc09a5cac248df6032beec97060680681a2247d48fc379fc2465b7a0c9e59"
+    },
+    {
+      "path": "modules/workflow-router/scripts/queue-lifecycle-control.mjs",
+      "sha256": "62b58bad7a1f478b5f2c3a4aadb9d9232fb31dc45ad7a95a3e25d76b5fcd35ed"
+    },
+    {
+      "path": "modules/workflow-router/scripts/register-binding.mjs",
+      "sha256": "aee4a7ed132a7f38d98a072dd0885aa476551e859cb6629f54c5b7402b66ad58"
+    },
+    {
+      "path": "modules/workflow-router/scripts/register-lifecycle-control.mjs",
+      "sha256": "15962329bae1ac9f226a197a38526f396afcdf163cf49415a614a8b080bf25fa"
+    },
+    {
+      "path": "modules/workflow-router/scripts/register-workflow.mjs",
+      "sha256": "4bd3a56114f71852eba6621e4371be0a0fd54b1cff47abd39bcc6764ca8ed932"
+    },
+    {
+      "path": "modules/workflow-router/scripts/workflow-router-dispatch-worker.mjs",
+      "sha256": "302104d622a23eadaf64c20620a93e079c818f363b7d9d05dde9d65865a06aef"
+    },
+    {
+      "path": "modules/workflow-router/scripts/workflow-router-hook.mjs",
+      "sha256": "d5c53c44d23330de49c4d422544dfcf2334c19f4faa7b7caf46e1353cd7033e4"
+    },
+    {
+      "path": "modules/workflow-router/scripts/workflow-transition-packet.mjs",
+      "sha256": "a8ee8927f63c232ca9fdd7080f36de23c670a775cafb9d4aa8727e5f42630a6c"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+schemaVersion: profile-memory.v0-draft
+permanentMemory:
+  governor:
+    provider: local-profile-memory
+    authoritative: true
+    writableAuthority: true
+    path: memory/governor-memory.md
+    format: markdown
+    humanInterface: markdown
+    access: read-write
+    sourceOfTruth: true
+retrieval:
+  sourcePermanentMemoryRef: governor
+  writableAuthorityCount: 1
+consumers:
+  personalGovernor:
+    permanentMemoryRef: governor

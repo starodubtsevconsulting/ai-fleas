@@ -48,12 +48,14 @@ Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes o
 Open the cloned repository, Control-click **`Install AI Fleas.command`**, and choose **Open**.
 
 That installs AI Fleas GPT and adds **AI Fleas GPT** to your Dock. Afterward, clicking that launcher is the easiest way
-to start AI Fleas on the GPT/Codex platform. It opens your existing verified Personal Governor; if none is ready, it
-tries to initialize one in a fresh projectless task. It asks only for the exact human profile ID when that cannot be
-resolved from trusted lifecycle receipts. It never reopens an archived Governor or creates a second active one.
+to start AI Fleas on the GPT/Codex platform. It asks for the exact human profile ID in a macOS dialog, prefilled
+from an existing receipt when available. It opens that human's verified Personal Governor; if none is ready, it
+tries to initialize one in a fresh projectless task. If that exact ID does not yet exist, it creates a minimal private human
+profile with local Markdown memory and no workflow access before initializing the Governor. It never reopens an
+archived Governor or creates a second active one.
 
-For a first-ever installation with no Governor receipt, configure the private human-profile catalog once as described
-in the [GPT Agents guide](platforms/gpt-agents/). The launcher will not guess where private profiles live.
+On first use, the GPT adapter stores a new human profile in a private directory under the user's home folder.
+An explicit location override is optional; see the [GPT Agents guide](platforms/gpt-agents/).
 
 See the [GPT Agents guide](platforms/gpt-agents/) for Personal Governor setup and terminal commands.
 

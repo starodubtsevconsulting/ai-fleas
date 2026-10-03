@@ -1,42 +1,9 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
-const idPattern = /^[a-z][a-z0-9-]*$/;
-
-export function listAgentBindingCandidates(registry, filterKind, filterId) {
-  if (!['profile', 'human'].includes(filterKind) || !idPattern.test(filterId)) {
-    throw new Error('FILTER_REQUIRED');
-  }
-  if (!registry || typeof registry !== 'object' || Array.isArray(registry) ||
-      !registry.instances || typeof registry.instances !== 'object' || Array.isArray(registry.instances)) {
-    throw new Error('INVALID_HOST_BINDINGS');
-  }
-  const scopeField = filterKind === 'human' ? 'humanProfileId' : 'profileId';
-  return Object.entries(registry.instances)
-    .filter(([, binding]) => binding?.scope?.[scopeField] === filterId)
-    .map(([taskId, binding]) => ({
-      taskId,
-      agentId: binding.agentId,
-      generation: binding.generation,
-      statusClaim: binding.status,
-      scope: binding.scope,
-    }))
-    .sort((left, right) => left.taskId.localeCompare(right.taskId));
-}
-
-if (process.argv[1]?.endsWith('/list-agent-bindings.mjs')) {
-  try {
-    const [filterKind, filterId] = process.argv.slice(2);
-    const dataRoot = process.env.PLUGIN_DATA;
-    if (!dataRoot) throw new Error('PLUGIN_DATA_REQUIRED');
-    const registryPath = path.join(dataRoot, 'agent-bindings.json');
-    const registry = fs.existsSync(registryPath)
-      ? JSON.parse(fs.readFileSync(registryPath, 'utf8'))
-      : { instances: {} };
-    const candidates = listAgentBindingCandidates(registry, filterKind, filterId);
-    process.stdout.write(`${JSON.stringify({ candidates, liveStatus: 'unverified' })}\n`);
-  } catch (error) {
-    process.stderr.write(`${error.message}\n`);
-    process.exitCode = 1;
-  }
-}
+/** Purpose: list exact profile/human binding candidates from the plugin registry.
+ * Caller: a controller or CLI inspecting host receipts; never an automatic lifecycle hook.
+ * Inputs: registry, filter kind, and exact ID; output: sorted candidate summaries.
+ * Effects: validates and reads supplied data only; it creates no task or binding.
+ */
+// Generated distribution; edit the private source, not this file.
+import a from"node:fs";import i from"node:path";var c=/^[a-z][a-z0-9_-]*$/;function p(t,r,n){if(!["profile","human"].includes(r)||!c.test(n))throw new Error("FILTER_REQUIRED");if(!t||typeof t!="object"||Array.isArray(t)||!t.instances||typeof t.instances!="object"||Array.isArray(t.instances))throw new Error("INVALID_HOST_BINDINGS");let o=r==="human"?"humanProfileId":"profileId";return Object.entries(t.instances).filter(([,s])=>s?.scope?.[o]===n).map(([s,e])=>({taskId:s,agentId:e.agentId,generation:e.generation,statusClaim:e.status,scope:e.scope})).sort((s,e)=>s.taskId.localeCompare(e.taskId))}if(process.argv[1]?.endsWith("/list-agent-bindings.mjs"))try{let[t,r]=process.argv.slice(2),n=process.env.PLUGIN_DATA;if(!n)throw new Error("PLUGIN_DATA_REQUIRED");let o=i.join(n,"agent-bindings.json"),s=a.existsSync(o)?JSON.parse(a.readFileSync(o,"utf8")):{instances:{}},e=p(s,t,r);process.stdout.write(`${JSON.stringify({candidates:e,liveStatus:"unverified"})}
+`)}catch(t){process.stderr.write(`${t.message}
+`),process.exitCode=1}export{p as listAgentBindingCandidates};

@@ -20,10 +20,10 @@ update_ai_fleas() {
   fi
 
   dirty="$("$git_bin" -C "$repository_root" status --porcelain)"
-  [[ -z "$dirty" ]] || {
-    print -u2 "AI_FLEAS_GPT_BLOCKED: automatic updates require a clean AI Fleas checkout."
-    exit 1
-  }
+  if [[ -n "$dirty" ]]; then
+    print "AI Fleas source update skipped: the visible checkout has local changes. Launching the checked-out version without altering them."
+    return
+  fi
 
   before="$("$git_bin" -C "$repository_root" rev-parse HEAD)"
   "$git_bin" -C "$repository_root" fetch origin main
@@ -39,12 +39,24 @@ update_ai_fleas() {
   fi
 }
 
+ensure_gpt_runtime_dependencies() {
+  if node -e 'const { createRequire } = require("node:module"); const load = createRequire(process.argv[1] + "/package.json"); process.exit(load("yaml/package.json").version === "2.9.0" ? 0 : 1)' "$gpt_agents_root" 2>/dev/null; then
+    return
+  fi
+  command -v npm >/dev/null || {
+    print -u2 "AI_FLEAS_GPT_BLOCKED: npm is required to install the GPT adapter's pinned YAML runtime."
+    exit 1
+  }
+  npm ci --prefix "$gpt_agents_root" --omit=dev --ignore-scripts --no-audit
+}
+
 enable_trusted_chatgpt_updates() {
   "$defaults_bin" write com.openai.codex SUEnableAutomaticChecks -bool true
   "$defaults_bin" write com.openai.codex SUAutomaticallyUpdate -bool true
 }
 
 update_ai_fleas "$@"
+ensure_gpt_runtime_dependencies
 enable_trusted_chatgpt_updates
 
 node "$launcher" setup --migrate "$@"

@@ -5,7 +5,9 @@ This connects AI Fleas to the ChatGPT/Codex desktop app on macOS.
 ## Setup
 
 Open the cloned repository, Control-click **`Install AI Fleas.command`**, and choose **Open**. It installs AI Fleas GPT,
-adds it to your Dock, and opens ChatGPT.
+adds it to your Dock, and opens ChatGPT. The daily launcher checks the adapter's pinned YAML runtime and installs it
+with npm when missing. On a checkout with local changes, it skips source updates and launches that visible version
+without altering those changes.
 
 ## Daily use
 
@@ -15,8 +17,9 @@ repeated clicks do not create replacements. If no Governor is active, it reconci
 fresh-history projectless task, queues the one-time activation, waits for exact readiness, then runs a separate welcome
 `INIT` in the active Governor chat. That welcome reports the verified memory and actual scheduled follow-ups (or their
 limitations); it must not claim a schedule exists without scheduler evidence. The launcher pins only a verified active Governor.
-Archived Governors are terminal and are never reopened. When no unique human ID can be resolved from lifecycle
-receipts, the launcher asks only for the exact human profile ID.
+Archived Governors are terminal and are never reopened. The human-initiated launcher always asks for the exact
+human profile ID in a macOS dialog, prefilled with the uniquely recorded ID when available. Confirming the same
+ID reopens its Governor; a new exact ID starts private-profile preparation and initialization.
 
 Initialization can take several minutes. The Governor may first appear in **Recents** while its activation turn is
 running; it moves to **Pinned** only after the host verifies the active binding. On macOS the launcher keeps a
@@ -30,15 +33,16 @@ For Dock-launch troubleshooting, the launcher records lifecycle decisions and na
 the app-link request; it does not prove which chat the desktop ultimately displayed. The log does not contain profile
 contents or memory text.
 
-For a first-ever installation with no Governor receipt, configure the private human-profile catalog once during
-setup (the launcher will not guess its path):
+On first use, the GPT adapter creates a private human-profile store at
+`~/.local/share/ai-fleas/humans/`. No paid-platform catalog or separate setup is required. To use an existing
+profile directory instead, explicitly select it during setup:
 
 ```sh
 platforms/gpt-agents/setup.sh --humans-dir /absolute/path/to/ai-profile/humans
 ```
 
-This saves the catalog directory in local launcher configuration, not in the public repository. A later Dock launch
-can then ask for just the human ID and resolve its canonical directory from that catalog.
+This saves the override in local launcher configuration, not in the public repository. A verified existing Governor
+receipt continues to use its original human profile directory; an override cannot silently relocate it.
 
 The launcher sets the desktop **Follow-up behavior** to **Queue** before opening ChatGPT. Sending a message while a task
 is working then waits for the next turn; use the app's one-message Steer shortcut when you intentionally want to redirect
@@ -51,9 +55,19 @@ To initialize your Personal Governor, ask from any Codex task or chat, including
 
 The requesting chat stays in its existing role and project. No Admin is required. If the exact human profile ID is not
 already resolved by a trusted host selection or uniquely verified Governor receipt, that ID is the only setup detail
-the controller may ask the human to provide. The controller checks exact active/pending receipts, creates or
-reconciles a separate fresh-history projectless task as required, then runs the checked-in initializer with that exact
-task ID and the selected human profile directory:
+the controller may ask the human to provide. The controller checks exact active/pending receipts. It verifies an
+existing receipt-backed profile or scaffolds a missing exact ID in the local store from a safe minimal version of
+the public example. New profiles have local Markdown memory and no authorized profiles or workflows; fictional
+example permissions are not copied. Existing profiles are not overwritten. Generated profiles use a stable
+`ai-fleas://roles/personal-governor` reference; the adapter resolves it to the installed role file during preflight,
+so moving the checkout does not strand the profile. Before creating a fresh-history projectless task, run:
+
+```sh
+node platforms/gpt-agents/launcher.mjs prepare-human-profile --human <human-profile-id>
+```
+
+The command returns the exact `humanDir`. The controller then creates or reconciles the task and runs the checked-in
+initializer with that exact task ID and directory:
 
 ```sh
 node platforms/gpt-agents/launcher.mjs initialize-governor \
@@ -89,6 +103,10 @@ Diagnostics:
 node platforms/gpt-agents/launcher.mjs doctor
 node platforms/gpt-agents/launcher.mjs launch
 ```
+
+The normal Dock launcher opens the macOS ID dialog; no Terminal command is needed.
+Canceling it creates nothing. Entering a new exact ID safely scaffolds a private
+home-folder profile before Governor initialization.
 
 ## What the launcher does
 
@@ -133,19 +151,18 @@ There are three separate responsibilities:
 
 ## GPT plugin development
 
-GPT-specific plugins are source-controlled under `platforms/gpt-agents/plugins/`. That directory is authoritative.
-Installed plugin copies, Codex caches, marketplace state, task bindings, and dispatch receipts are local runtime
-artifacts; do not develop against them or copy them back into the repository as source.
+The installable GPT plugin package is tracked under `platforms/gpt-agents/plugins/`, but its readable source and tests
+are private in the sibling `ai-fleas-platform/gpt-plugin/src/` checkout. The public package is generated, not the
+authoritative implementation. Installed plugin copies, Codex caches, marketplace state, task bindings, and dispatch
+receipts are local runtime artifacts; do not copy them back as source.
 
 Use this sequence for every plugin implementation or hook change:
 
-1. Edit the plugin under `platforms/gpt-agents/plugins/<plugin-id>/`.
-2. Run every test in that plugin's `scripts/` directory.
-3. Validate the tracked plugin manifest with the plugin-creator validator.
-4. Update the tracked manifest's single Codex cachebuster.
-5. Install the tracked plugin through the configured local marketplace.
-6. Start a new Codex task and verify the affected lifecycle path.
-7. Commit the tracked source, tests, documentation, and manifest together.
+1. Edit and test source in the private `ai-fleas-platform/gpt-plugin/src/` checkout.
+2. Build the public package with `npm run build` from private `gpt-plugin/` and verify it with `npm run check`.
+3. Validate the tracked plugin manifest and update its Codex cachebuster when deploying a new installed snapshot.
+4. Install the tracked package through the configured local marketplace and verify the affected lifecycle path.
+5. Commit private source/tests and the public generated package together, in their respective repositories.
 
 Workflow maps and runtime bindings are different concerns: portable maps remain under `ai-workflows/`, while exact
 task IDs and runtime receipts remain local and must be reconciled separately on each machine.
@@ -156,7 +173,8 @@ Repository ownership is uniform for every GPT integration:
 | --- | --- |
 | portable role, flow, state machine, and runtime logic | `ai-workflows/` |
 | explicit operator/controller action | `ai-commands/system/gpt-agents/` |
-| automatic GPT/Codex lifecycle hook or delivery adapter | `platforms/gpt-agents/plugins/` |
+| automatic GPT/Codex lifecycle hook or delivery adapter source | private `ai-fleas-platform/gpt-plugin/src/` |
+| generated GPT/Codex installable plugin package | `platforms/gpt-agents/plugins/` |
 | GPT-specific workflow or role mapping | `platforms/gpt-agents/workflows/` and `platforms/gpt-agents/agents/` |
 | installed plugin, cache, task binding, permit, or receipt | local runtime data; never authoritative source |
 
