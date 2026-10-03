@@ -457,7 +457,7 @@ async function launch() {
         launchEvent('governor-progress', { taskId, stage });
         if (stage === 'activation-started') {
           progressDialog = governorProgressDialog(
-            'Personal Governor is initializing. This can take several minutes. It will appear in Pinned only after activation is verified. You may hide this window; work will continue.',
+            'Personal Governor is initializing. This run will check activation for up to 10 minutes. The chat moves to Pinned only after verification. You may hide this window; work will continue.',
             () => { progressHidden = true; });
           governorNotice('Personal Governor initialization started. It can take several minutes; the chat will be pinned after verification.');
         } else if (stage === 'activation-pending')
@@ -466,7 +466,7 @@ async function launch() {
           progressDialog?.kill();
           if (!progressHidden)
             progressDialog = governorProgressDialog(
-              'Personal Governor is active. Its welcome INIT is checking memory and schedules now. You may hide this window; work will continue.',
+              'Personal Governor is active. Its welcome INIT is checking memory and schedules for up to 3 minutes. You may hide this window; work will continue.',
               () => { progressHidden = true; });
           governorNotice('Personal Governor activated. Preparing its welcome and memory/schedule report.');
         }
