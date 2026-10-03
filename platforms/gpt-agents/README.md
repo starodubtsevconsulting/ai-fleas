@@ -151,19 +151,18 @@ There are three separate responsibilities:
 
 ## GPT plugin development
 
-GPT-specific plugins are source-controlled under `platforms/gpt-agents/plugins/`. That directory is authoritative.
-Installed plugin copies, Codex caches, marketplace state, task bindings, and dispatch receipts are local runtime
-artifacts; do not develop against them or copy them back into the repository as source.
+The installable GPT plugin package is tracked under `platforms/gpt-agents/plugins/`, but its readable source and tests
+are private in the sibling `ai-fleas-platform/gpt-plugin/src/` checkout. The public package is generated, not the
+authoritative implementation. Installed plugin copies, Codex caches, marketplace state, task bindings, and dispatch
+receipts are local runtime artifacts; do not copy them back as source.
 
 Use this sequence for every plugin implementation or hook change:
 
-1. Edit the plugin under `platforms/gpt-agents/plugins/<plugin-id>/`.
-2. Run every test in that plugin's `scripts/` directory.
-3. Validate the tracked plugin manifest with the plugin-creator validator.
-4. Update the tracked manifest's single Codex cachebuster.
-5. Install the tracked plugin through the configured local marketplace.
-6. Start a new Codex task and verify the affected lifecycle path.
-7. Commit the tracked source, tests, documentation, and manifest together.
+1. Edit and test source in the private `ai-fleas-platform/gpt-plugin/src/` checkout.
+2. Build the public package with `npm run build` from private `gpt-plugin/` and verify it with `npm run check`.
+3. Validate the tracked plugin manifest and update its Codex cachebuster when deploying a new installed snapshot.
+4. Install the tracked package through the configured local marketplace and verify the affected lifecycle path.
+5. Commit private source/tests and the public generated package together, in their respective repositories.
 
 Workflow maps and runtime bindings are different concerns: portable maps remain under `ai-workflows/`, while exact
 task IDs and runtime receipts remain local and must be reconciled separately on each machine.
@@ -174,7 +173,8 @@ Repository ownership is uniform for every GPT integration:
 | --- | --- |
 | portable role, flow, state machine, and runtime logic | `ai-workflows/` |
 | explicit operator/controller action | `ai-commands/system/gpt-agents/` |
-| automatic GPT/Codex lifecycle hook or delivery adapter | `platforms/gpt-agents/plugins/` |
+| automatic GPT/Codex lifecycle hook or delivery adapter source | private `ai-fleas-platform/gpt-plugin/src/` |
+| generated GPT/Codex installable plugin package | `platforms/gpt-agents/plugins/` |
 | GPT-specific workflow or role mapping | `platforms/gpt-agents/workflows/` and `platforms/gpt-agents/agents/` |
 | installed plugin, cache, task binding, permit, or receipt | local runtime data; never authoritative source |
 

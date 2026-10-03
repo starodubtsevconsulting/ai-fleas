@@ -185,6 +185,5 @@ disconnecting the UI released all descendant sessions.
 
 ## Test
 
-```sh
-node --test scripts/agent-bootstrap-hook.test.mjs
-```
+The readable hook tests live in the private `ai-fleas-platform/gpt-plugin/src/`
+checkout. Run them there before rebuilding this generated public package.

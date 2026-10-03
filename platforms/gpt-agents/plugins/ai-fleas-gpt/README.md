@@ -1,5 +1,12 @@
 # AI Fleas GPT
 
+This directory is the generated installable distribution. Its readable source
+and tests are maintained in the private `ai-fleas-platform/gpt-plugin/src/`
+checkout. The compiled Node ESM modules retain stable entry points for the
+public launcher and Codex hooks. Do not edit generated modules here; the
+`build-manifest.json` records their hashes. The distributed JavaScript is
+inspectable on a user's machine even though its source repository is private.
+
 This is the single user-facing GPT/Codex plugin for AI Fleas. Install and trust this one plugin; its internal modules keep the two lifecycle responsibilities separate:
 
 - `modules/agent-bootstrap/` restores or activates an exact receipt-backed agent identity.
@@ -32,9 +39,5 @@ Profiles and workflows are deliberately deferred until the mandatory Governor is
 
 Local Hermes is a separate optional integration. It is not installed, enabled, or required by this plugin.
 
-## Verify
-
-```sh
-node --test modules/agent-bootstrap/scripts/*.test.mjs
-node --test modules/workflow-router/scripts/*.test.mjs
-```
+Tests run against private source before building, and the private build's
+`--check` mode verifies that this package matches it byte-for-byte.
