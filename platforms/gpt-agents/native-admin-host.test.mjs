@@ -149,3 +149,36 @@ test('blank task uses same-connection staged assignment only before initializati
   };
   await assert.rejects(f.host.create(request), error => error.createdTaskId === 'task' && error.message === 'read failed');
 });
+test('title recovery is presentation-only, bounded, and never resubmits INIT', async () => {
+  const f = fixture(), original = f.client.request;
+  let titleCalls = 0;
+  f.client.request = async (method, params) => {
+    if (method === 'thread/name/set') {
+      titleCalls++;
+      if (titleCalls === 1) throw new Error('empty rollout file');
+      assert.deepEqual(params, { threadId: 'task', name: 'Admin' });
+      return {};
+    }
+    return original(method, params);
+  };
+  const submitted = await f.host.initialize({ taskId: 'task', payload: { endpoint: { title: 'Admin' } } });
+  assert.equal(submitted.status, 'submitted');
+  assert.equal(titleCalls, 0);
+  assert.deepEqual(await f.host.applyTitle({ taskId: 'task', title: 'Admin', attempts: 2, retryDelayMs: 0 }),
+    { status: 'applied', attempts: 2 });
+  assert.equal(titleCalls, 2);
+  assert.equal(f.calls.filter(call => call.method === 'turn/start').length, 0);
+});
+test('permanent title failure is classified without changing exact INIT evidence', async () => {
+  const f = fixture(), original = f.client.request;
+  let titleCalls = 0;
+  f.client.request = async (method, params) => {
+    if (method === 'thread/name/set') { titleCalls++; throw new Error('empty rollout file'); }
+    return original(method, params);
+  };
+  const result = await f.host.applyTitle({ taskId: 'task', title: 'Admin', attempts: 2, retryDelayMs: 0 });
+  assert.deepEqual(result, { status: 'failed', attempts: 2, reason: 'empty rollout file' });
+  assert.equal(titleCalls, 2);
+  assert.equal(f.binding.initialization.completedTurnId, 'turn');
+  assert.equal(f.calls.filter(call => call.method === 'turn/start').length, 0);
+});

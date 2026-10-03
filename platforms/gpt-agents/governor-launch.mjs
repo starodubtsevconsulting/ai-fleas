@@ -1,23 +1,20 @@
 /** Purpose: let the macOS GPT launcher ensure one human-scoped Governor without Admin.
  * Caller: launcher.mjs after plugin/setup checks, never an automatic background hook.
  * Inputs: exact host client, plugin registry, selected human ID, canonical human directory.
- * Output: existing, pending, or verified ready task ID and welcome INIT status.
+ * Output: existing, pending, verified ready, or classified blocked task evidence
+ * and welcome INIT status. New-task visibility is read-only and bounded to 20s.
  * Effects: reconciles archived receipts, may create one projectless host task, queue
  * its exact activation through the checked-in initializer, run a separate welcome
  * INIT turn after activation, record its receipt, and pin only verified readiness.
  */
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
-import { buildGovernorInitialization, hostTaskState,
+import { buildGovernorInitialization, hostTaskState, initializeGovernor, verifyFreshGovernorHostTask,
   reconcileUnavailableGovernorReceipts } from './initialize-governor.mjs';
 import { withGovernorRegistryLock } from './plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/governor-registry-lock.mjs';
 
-const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const humanIdPattern = /^[a-z][a-z0-9_-]*$/;
 const governorTitle = '🧭 Personal Governor';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -60,11 +57,35 @@ export async function runGovernorWelcome(client, registryFile, taskId, humanId, 
     // Do not steal the bootstrap turn's writer or send a second INIT while it
     // is still completing, even if the Stop hook has already activated us.
     let idle = false;
+    let resumedOnce = false;
     while (now() < deadline) {
-      const state = await client.request('thread/read', { threadId: taskId, includeTurns: false });
+      const state = await client.request('thread/read', { threadId: taskId, includeTurns: true });
       if (state?.thread?.id !== taskId || state.thread.projectId != null)
         throw new Error('GOVERNOR_WELCOME_HOST_TASK_UNVERIFIED');
       if (state.thread.status?.type === 'idle') { idle = true; break; }
+      if (state.thread.status?.type === 'notLoaded') {
+        if (resumedOnce)
+          return { status: 'pending', reason: 'GOVERNOR_WELCOME_RESUME_NOT_IDLE' };
+        const turns = state.thread.turns;
+        if (!Array.isArray(turns) || !turns.some(turn =>
+          turn.id === binding.initialization.completedTurnId && turn.status === 'completed') ||
+          turns.some(turn => turn.status === 'inProgress'))
+          throw new Error('GOVERNOR_WELCOME_BOOTSTRAP_TURN_UNVERIFIED');
+        let resumed;
+        try {
+          resumed = await client.request('thread/resume', { threadId: taskId });
+        } catch (error) {
+          // The desktop app may still own the rollout writer after activation.
+          // It has not accepted a welcome request, so keep this task unchanged.
+          if (/\balready has an active writer\b/i.test(error?.message ?? ''))
+            return { status: 'pending', reason: 'GOVERNOR_WELCOME_FOREIGN_WRITER_ACTIVE' };
+          throw error;
+        }
+        if (resumed?.thread?.id !== taskId || resumed.thread.projectId != null)
+          throw new Error('GOVERNOR_WELCOME_RESUME_UNVERIFIED');
+        resumedOnce = true;
+        continue;
+      }
       await pause(2000);
     }
     if (!idle) return { status: 'pending', reason: 'GOVERNOR_BOOTSTRAP_WRITER_NOT_RELEASED' };
@@ -208,14 +229,11 @@ export function resolveGovernorHumanDir(registry, humanId, { humansDir, io = fs 
   return exact;
 }
 
-function runInitializer(humanId, humanDir, taskId, registryFile, { spawn = spawnSync } = {}) {
-  const result = spawn(process.execPath, [path.join(scriptDir, 'initialize-governor.mjs'),
-    '--human', humanId, '--human-dir', humanDir, '--thread', taskId], {
-    encoding: 'utf8', env: { ...process.env, PLUGIN_DATA: path.dirname(registryFile) },
-  });
-  if (result.error || result.status !== 0)
-    throw new Error(result.error?.message || result.stderr?.trim() || 'GOVERNOR_INITIALIZATION_FAILED');
-  const parsed = JSON.parse(result.stdout);
+async function runInitializer(humanId, humanDir, taskId, registryFile, { client, bootstrapPermit } = {}) {
+  // Keep the creation connection alive until the exact queued INIT persists.
+  // An in-memory blank-task permit cannot cross a subprocess or be reused.
+  const parsed = await initializeGovernor({ humanId, humanDir, taskId, registryFile,
+    client, bootstrapPermit });
   if (parsed.threadId !== taskId || !['pending', 'active'].includes(parsed.status))
     throw new Error('GOVERNOR_INITIALIZER_RESULT_UNVERIFIED');
   return parsed;
@@ -244,6 +262,51 @@ async function verifyAndPresentActiveGovernor(client, taskId, binding, hostState
   await client.request('thread/name/set', { threadId: taskId, name: governorTitle });
   await pinReadyGovernor(client, taskId);
   return turnId;
+}
+
+async function verifyCreatedGovernorTask(client, taskId, humanDir, {
+  pause = sleep, now = Date.now, timeoutMs = 20_000, pollMs = 1000,
+  hostState = hostTaskState, startedThread,
+} = {}) {
+  // Bound only read availability. A fresh loaded blank task need not have a
+  // stored log yet; its one-use permit belongs to this exact connection.
+  const deadline = now() + timeoutMs;
+  let attempts = 0;
+  let classification = 'partial-metadata';
+  let detail;
+  const blocked = (reason, exhausted = false) => ({ status: 'blocked', taskId,
+    reason, classification, recovery: { attempts, timeoutMs, exhausted },
+    ...(detail ? { detail } : {}) });
+  do {
+    attempts++;
+    classification = 'partial-metadata';
+    detail = undefined;
+    try {
+      const entry = await verifyFreshGovernorHostTask(client, taskId, humanDir, startedThread, { hostState });
+      return { status: 'verified', taskId, ...(entry.bootstrapPermit
+        ? { bootstrapPermit: entry.bootstrapPermit } : {}) };
+    } catch (error) {
+      detail = error.message;
+      if (error.message === 'GOVERNOR_CREATED_TASK_METADATA_UNAVAILABLE') {
+        classification = 'partial-metadata';
+        detail = undefined;
+      } else {
+        classification = error.message === 'GOVERNOR_CREATED_TASK_ARCHIVED' ? 'archived-task'
+          : error.message === 'GOVERNOR_CREATED_TASK_CATALOG_MISMATCH' ? 'catalog-metadata-mismatch'
+          : error.message === 'GOVERNOR_CREATED_TASK_NOT_LOADED' ? 'complete-catalog-omission'
+          : /METADATA_MISMATCH|START_MISMATCH/.test(error.message) ? 'metadata-mismatch'
+          : 'catalog-evidence-unverified';
+        return blocked(classification === 'metadata-mismatch'
+          ? error.message : 'GOVERNOR_PROJECTLESS_HOST_TASK_UNVERIFIED');
+      }
+    }
+    const remainingMs = deadline - now();
+    if (remainingMs <= 0) break;
+    await pause(Math.min(pollMs, remainingMs));
+  } while (now() < deadline);
+  return blocked(classification === 'complete-catalog-omission'
+    ? 'GOVERNOR_PROJECTLESS_HOST_TASK_UNVERIFIED'
+    : 'GOVERNOR_CREATED_TASK_METADATA_UNAVAILABLE', true);
 }
 
 export async function waitForGovernor(client, registryFile, taskId, { humanId,
@@ -280,7 +343,9 @@ export async function ensurePersonalGovernor({ client, registryFile, humanId, hu
   welcome = runGovernorWelcome,
   onProgress = () => {},
   preflight = buildGovernorInitialization, readRegistry = readGovernorRegistry,
-  reconcile = reconcileUnavailableGovernorReceipts, hostState = hostTaskState }) {
+  reconcile = reconcileUnavailableGovernorReceipts, hostState = hostTaskState,
+  verifyCreatedTask = verifyCreatedGovernorTask,
+  createdTaskVerification = {} }) {
   const canonical = preflight(humanDir, humanId, 1);
   let registry = readRegistry(registryFile);
   registry = await reconcile(registryFile, registry, client, humanId);
@@ -305,12 +370,15 @@ export async function ensurePersonalGovernor({ client, registryFile, humanId, hu
     if (!host || host.archived || host.task.projectId != null)
       throw new Error('GOVERNOR_ACTIVE_TASK_UNVERIFIED');
     await verifyAndPresentActiveGovernor(client, taskId, binding, hostState);
-    const followUp = binding.initialization?.welcome
-      ? await welcome(client, registryFile, taskId, humanId) : null;
-    return { status: 'existing', taskId,
-      ...(followUp ? { welcomeStatus: followUp.status, welcomeReason: followUp.reason } : {}) };
+    // Activation can succeed just before the launcher exits. A missing welcome
+    // receipt is therefore recoverable on this same verified task; the welcome
+    // helper records its request before sending and refuses uncertain replay.
+    const followUp = await welcome(client, registryFile, taskId, humanId);
+    return { status: 'existing', taskId, welcomeStatus: followUp.status,
+      ...(followUp.reason ? { welcomeReason: followUp.reason } : {}) };
   }
   let taskId;
+  let bootstrapPermit;
   if (pending.length) {
     taskId = pending[0][0];
   } else {
@@ -319,15 +387,25 @@ export async function ensurePersonalGovernor({ client, registryFile, humanId, hu
       runtimeWorkspaceRoots: workspaceRoots, ephemeral: false,
       sandbox: 'workspace-write', approvalPolicy: 'never' });
     taskId = started?.thread?.id;
-    if (!taskId || started.thread.projectId != null || started.thread.ephemeral === true ||
-        started.thread.forkedFromId || started.thread.parentThreadId ||
-        fs.realpathSync(started.thread.cwd) !== fs.realpathSync(humanDir))
-      throw new Error('GOVERNOR_CREATED_TASK_UNVERIFIED');
+    if (!taskId)
+      return { status: 'blocked', reason: 'GOVERNOR_CREATED_TASK_ID_UNAVAILABLE' };
+    const verified = await verifyCreatedTask(client, taskId, humanDir,
+      { hostState, ...createdTaskVerification, startedThread: started.thread });
+    if (verified.status !== 'verified') return verified;
+    bootstrapPermit = verified.bootstrapPermit;
   }
-  // A pending task is not yet Governor-authorized, but its presentation title
-  // should never be a temporary label that the desktop can cache indefinitely.
-  await client.request('thread/name/set', { threadId: taskId, name: governorTitle });
-  initialize(humanId, humanDir, taskId, registryFile);
+  // Keep presentation out of the one-use activation transaction. New native
+  // sessions can reject metadata writes before their first accepted turn is
+  // durable; waitForGovernor applies and verifies the title and pin only after
+  // the exact binding becomes active.
+  try {
+    await initialize(humanId, humanDir, taskId, registryFile, { client, bootstrapPermit });
+  } catch (error) {
+    // Queue rejection and uncertain acceptance both terminate this transaction
+    // with its exact task evidence. Never create or submit again here.
+    return { status: 'blocked', taskId, reason: error.message || 'GOVERNOR_INITIALIZER_FAILED',
+      classification: 'initializer-failure' };
+  }
   onProgress({ taskId, stage: 'activation-started' });
   const settled = await wait(client, registryFile, taskId,
     { humanId, humanDir, initialize, onProgress });

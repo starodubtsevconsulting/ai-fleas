@@ -17,7 +17,7 @@ mkdir -p "$applications_dir"
   -e 'on run' \
   -e "set launcher to \"$launcher\"" \
   -e 'try' \
-  -e 'do shell script "/bin/zsh -lic " & quoted form of (quoted form of launcher)' \
+  -e 'do shell script "/bin/zsh -lc " & quoted form of (quoted form of launcher)' \
   -e 'on error errorMessage' \
   -e 'display dialog "AI Fleas GPT could not start:" & return & return & errorMessage buttons {"OK"} default button "OK" with icon stop' \
   -e 'end try' \

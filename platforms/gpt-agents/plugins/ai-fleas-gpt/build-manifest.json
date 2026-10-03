@@ -28,7 +28,7 @@
     },
     {
       "path": "modules/agent-bootstrap/scripts/queue-agent-initialization.mjs",
-      "sha256": "bec843a4f5338fd238df520f1145e935b4eafcce505ece0c3dfb0a74432ce069"
+      "sha256": "aca2b2a9db42514791c4502e3e7a08d574a4bd78da5e12390f837f58f1a7881d"
     },
     {
       "path": "modules/agent-bootstrap/scripts/readiness-evidence.mjs",
@@ -36,7 +36,7 @@
     },
     {
       "path": "modules/agent-bootstrap/scripts/register-agent-initialization.mjs",
-      "sha256": "8fafc09a5cac248df6032beec97060680681a2247d48fc379fc2465b7a0c9e59"
+      "sha256": "abdbbbb2596ff22d66a667dd8779fe2eca17ed924466223d99d557503e469b02"
     },
     {
       "path": "modules/workflow-router/scripts/queue-lifecycle-control.mjs",

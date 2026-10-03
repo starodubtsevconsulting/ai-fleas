@@ -23,7 +23,7 @@ function fixture() {
     approval: 'one-time-human-approval', sources: Object.fromEntries(['profile', 'workflow', 'manifest', 'adapter',
       'adminContract', 'selfCommands', 'lifecycle', 'platformContract', 'rules', 'registry', 'initializer'].map(k => [k, 'canonical/' + k])) };
   input.sources.projectManifests = ['projects/example.yml'];
-  input.bootstrapPayload = { binding: { agentId: 'admin', platformAdapter: 'codex-app', scope,
+  input.bootstrapPayload = { binding: { agentId: 'admin', platformAdapter: 'codex-app', generation: 1, scope,
     initialization: { readinessToken: 'ADMIN_READY', bootstrapAuthorization: { ...input.approval, verified: false,
       purpose: 'one-time-admin-initialization' } } }, prompt: buildAdminInitPrompt(scope) };
   const syncSources = () => {
@@ -39,23 +39,26 @@ function fixture() {
   syncSources();
   const catalog = { complete: true, projects: [{ id: 'saved-example', rootsComplete: true,
     roots: ['/fictional/project'] }], tasks: [], bindings: [] };
-  const binding = () => ({ agentId: 'admin', taskId: 'task-example', status: 'active', platformAdapter: 'codex-app', scope,
+  const binding = () => ({ agentId: 'admin', taskId: 'task-example', status: 'active', generation: 1,
+    platformAdapter: 'codex-app', scope,
     initialization: { readinessToken: 'ADMIN_READY', completedTurnId: 'turn-example', completedAt: '2026-01-01T00:00:00Z' } });
   const calls = [];
   const host = { catalog: async () => structuredClone(catalog), prerequisites: async () => true, verifyApproval: async () => true,
     create: async r => { calls.push(['create', r]); catalog.tasks.push({ id: 'task-example', status: 'active', projectId: 'saved-example' });
       return { taskId: 'task-example', status: 'created' }; },
     initialize: async r => { calls.push(['initialize', r]);
-      catalog.bindings.push(binding()); return { taskId: r.taskId, status: 'submitted' }; },
+      catalog.bindings.push(binding()); return { taskId: r.taskId, status: 'submitted', turnId: 'turn-example' }; },
     wait: async () => ({ taskId: 'task-example', turnId: 'turn-example', status: 'complete', token: 'ADMIN_READY' }) };
   return { input, host, calls, catalog, binding, syncSources };
 }
 let f = fixture();
 const classFixture = fixture();
 const initializer = new WorkflowAdminInitializer(classFixture.host);
-assert.equal((await initializer.initialize(classFixture.input)).mode, 'created');
+const created = await initializer.initialize(classFixture.input);
+assert.equal(created.mode, 'created'); assert.equal(created.turnId, 'turn-example'); assert.equal(created.generation, 1);
 classFixture.calls.length = 0;
-assert.equal((await initializer.initialize(classFixture.input)).mode, 'reused');
+const reused = await initializer.initialize(classFixture.input);
+assert.equal(reused.mode, 'reused'); assert.equal(reused.turnId, 'turn-example'); assert.equal(reused.generation, 1);
 assert.equal(classFixture.calls.length, 0);
 assert.equal((await new WorkflowAdminInitializer({}).initialize(classFixture.input)).reason,
   'ADMIN_ONLY_HOST_PORT_UNSUPPORTED');
@@ -95,6 +98,8 @@ for (const mutate of [
   x => { x.input.bootstrapPayload.binding.initialization.bootstrapAuthorization.purpose = 'all-roster'; },
   x => { x.input.bootstrapPayload.binding.initialization.bootstrapAuthorization.verified = true; },
   x => { x.catalog.bindings.push(x.binding(), x.binding()); },
+  x => { const b = x.binding(); delete b.generation; x.catalog.bindings.push(b);
+    x.catalog.tasks.push({ id: 'task-example', status: 'active', projectId: 'saved-example' }); },
   x => { x.catalog.bindings.push(x.binding()); }, // stale binding, absent task
   x => { x.catalog.bindings.push(x.binding()); x.catalog.tasks.push(
     { id: 'task-example', status: 'archived' }, { id: 'task-example', status: 'active' }); },
@@ -111,7 +116,14 @@ for (const completion of [{ taskId: 'other', status: 'complete' },
   f = fixture(); f.host.wait = async () => completion;
   const result = await initializeWorkflowAdmin(f.input, f.host);
   assert.equal(result.status, 'blocked'); assert.equal(result.orphanTaskId, 'task-example'); assert.equal(result.token, undefined);
+  assert.equal(result.taskId, 'task-example'); assert.equal(result.turnId, 'turn-example');
+  assert.equal(result.acceptedInitTurnId, 'turn-example'); assert.equal(result.initSubmissionStatus, 'accepted');
+  assert.equal(result.generation, 1); assert.deepEqual(result.scope, f.input.scope);
+  assert.deepEqual(result.bindingEvidence, { taskId: 'task-example', agentId: 'admin',
+    platformAdapter: 'codex-app', generation: 1, scope: f.input.scope });
+  assert.equal(result.readinessStatus, 'unverified');
   assert.equal(f.calls.filter(c => c[0] === 'create').length, 1);
+  assert.equal(f.calls.filter(c => c[0] === 'initialize').length, 1);
 }
 for (const change of [
   x => { x.catalog.tasks.push({ id: 'task-example', status: 'active', projectId: 'foreign-project' }); },

@@ -176,10 +176,13 @@ export class NativeAdminLifecycle {
   async initialize(request) {
     const client = this.#client;
     const { pluginData, installedScripts, verifyApproval,
-      verifyPluginActive, createParams = {}, submitInitialization = (client, transaction, options) => this.submit(transaction, options) } = this.#options;
+      verifyPluginActive, createParams = {}, prepare = prepareNativeAdmin,
+      initializeWorkflow = initializeWorkflowAdmin,
+      buildHost = buildNativeAdminHost,
+      submitInitialization = (client, transaction, options) => this.submit(transaction, options) } = this.#options;
     let unregisterAudit;
     try {
-      const { plan } = await prepareNativeAdmin({ ...request, auditTransport: request.auditTransport || 'ephemeral-process' }, client);
+      const { plan } = await prepare({ ...request, auditTransport: request.auditTransport || 'ephemeral-process' }, client);
       if (typeof verifyApproval !== 'function' || typeof verifyPluginActive !== 'function')
         throw new Error('NATIVE_ADMIN_TRUSTED_CONTROLLER_REQUIRED');
       const endpoint = plan.bootstrapPayload.endpoint;
@@ -190,7 +193,7 @@ export class NativeAdminLifecycle {
           worker: new EphemeralInitAudit({ executable: this.#options.auditExecutable }) });
         unregisterAudit = client.registerServerRequestHandler('item/tool/call', request => audit.handle(request));
       }
-      const host = buildNativeAdminHost(client, { pluginData, verifyApproval,
+      const host = buildHost(client, { pluginData, verifyApproval,
         selectedProjectIds: [...new Set(plan.scope.projects.map(project => project.savedProjectId))],
         createParams: { ...createParams, model: endpoint.model, config: { ...createParams.config, model_reasoning_effort: endpoint.reasoning },
           ...(audit ? { dynamicTools: [initAuditTool] } : {}) },
@@ -203,7 +206,7 @@ export class NativeAdminLifecycle {
           if (await verifyPluginActive() !== true) throw new Error('BOOTSTRAP_PLUGIN_ACTIVE_UNVERIFIED');
           return true;
         } });
-      const result = await initializeWorkflowAdmin(plan, host);
+      const result = await initializeWorkflow(plan, host);
       if (result.status !== 'ready') {
         if (!result.orphanTaskId) return result;
         // This connection created the exact task. A stopped rejected INIT must
@@ -213,50 +216,35 @@ export class NativeAdminLifecycle {
           plan.scope.projects[0].savedProjectId);
         return { ...result, ...cleanup };
       }
+      // Naming is presentation-only.  It starts only after the exact binding,
+      // completed turn, and fresh catalog have proved readiness.  Do not let a
+      // delayed/blank rollout turn an accepted INIT into a failed transaction.
+      let titleStatus;
+      try {
+        titleStatus = typeof host.applyTitle === 'function'
+          ? await host.applyTitle({ taskId: result.taskId, title: plan.bootstrapPayload.endpoint?.title })
+          : { status: 'not-supported', attempts: 0, reason: 'ADMIN_TITLE_PORT_UNSUPPORTED' };
+      } catch (error) {
+        titleStatus = { status: 'failed', attempts: 0, reason: error?.message || 'ADMIN_TITLE_SET_FAILED' };
+      }
       // A human-facing Admin must not remain leased by this controller's client.
       try {
         const release = result.mode === 'created' && audit
           ? await this.#handoffAfterInitialization(result.taskId, plan.scope)
           : await this.release(result.taskId,plan.scope.projects[0].savedProjectId);
-        return { ...result, ...release };
+        return { ...result, readinessStatus: 'ready', titleStatus,
+          controllerReleaseStatus: 'released', ...release };
       } catch (error) {
-        return { status: 'blocked', reason: error.message, orphanTaskId: result.taskId,
-          controllerReleased: false };
+        // The native handoff failed after readiness was proved. Keep the exact
+        // verified result for recovery; only overall handoff is blocked.
+        const { token, ...verified } = result;
+        return { ...verified, status: 'blocked', reason: error.message,
+          orphanTaskId: result.taskId, adminInitialized: true, readinessStatus: 'ready',
+          titleStatus, controllerReleased: false, controllerReleaseStatus: 'blocked',
+          appProjectAttached: false, appProjectAttachmentStatus: 'not-verified' };
       }
     } catch (error) { return { status: 'blocked', reason: error.message }; }
     finally { unregisterAudit?.(); }
-  }
-
-  /** Native archive closes the stopped writer; unarchive preserves the exact
-   * initialized chat for human ownership without resuming or sending a message.
-   * Used only for this connection's newly created, verified ephemeral INIT.
-   */
-  async #handoffAfterInitialization(taskId, scope) {
-    const client = this.#client, { pluginData, io = fs } = this.#options;
-    const expectedProjectId = scope.projects[0].savedProjectId;
-    const binding = JSON.parse(io.readFileSync(path.join(pluginData, 'agent-bindings.json'), 'utf8')).instances?.[taskId];
-    const init = binding?.initialization;
-    if (binding?.status !== 'active' || binding.agentId !== 'admin' || binding.platformAdapter !== 'codex-app' ||
-        JSON.stringify(normalizeAdminScope(binding.scope)) !== JSON.stringify(normalizeAdminScope(scope)) ||
-        init?.auditTransport !== 'ephemeral-process' || init.audit?.verdict !== 'pass' ||
-        init.audit.workerClosed !== true || init.audit.exitCode !== 0 ||
-        init.audit.turnId !== init.completedTurnId || init.audit.generation !== binding.generation)
-      throw new Error('ADMIN_HANDOFF_BINDING_UNVERIFIED');
-    const read = await client.request('thread/read', { threadId: taskId, includeTurns: true });
-    const task = read?.thread, turn = task?.turns?.at(-1);
-    if (task?.id !== taskId || task.projectId !== expectedProjectId || task.cwd !== scope.projects[0].root ||
-        !['idle', 'notLoaded'].includes(task.status?.type) || task.turns.some(item => item.status === 'inProgress') ||
-        turn?.id !== init.completedTurnId || turn.status !== 'completed' ||
-        turn.items?.filter(item => item.type === 'agentMessage').at(-1)?.text?.trim() !== 'ADMIN_READY')
-      throw new Error('ADMIN_HANDOFF_STOPPED_INIT_UNVERIFIED');
-    await client.request('thread/archive', { threadId: taskId });
-    const archived = (await client.request('thread/read', { threadId: taskId, includeTurns: false }))?.thread;
-    if (archived?.id !== taskId || archived.projectId !== expectedProjectId || archived.status?.type !== 'notLoaded')
-      throw new Error('ADMIN_HANDOFF_ARCHIVE_RELEASE_UNVERIFIED');
-    const restored = (await client.request('thread/unarchive', { threadId: taskId }))?.thread;
-    if (restored?.id !== taskId || restored.projectId !== expectedProjectId || restored.status?.type !== 'notLoaded')
-      throw new Error('ADMIN_HANDOFF_UNARCHIVE_UNVERIFIED');
-    return { ...await this.release(taskId, expectedProjectId), handoffStrategy: 'verified-native-archive-cycle' };
   }
 
   /** Release our failed creation only after fresh exact idle/terminated evidence. */
@@ -297,6 +285,40 @@ export class NativeAdminLifecycle {
       cursors.add(cursor);
     }while(true);
     return {controllerReleased:true};
+  }
+
+  // Private implementation
+
+  /** Native archive closes the stopped writer; unarchive preserves the exact
+   * initialized chat for human ownership without resuming or sending a message.
+   * Used only for this connection's newly created, verified ephemeral INIT.
+   */
+  async #handoffAfterInitialization(taskId, scope) {
+    const client = this.#client, { pluginData, io = fs } = this.#options;
+    const expectedProjectId = scope.projects[0].savedProjectId;
+    const binding = JSON.parse(io.readFileSync(path.join(pluginData, 'agent-bindings.json'), 'utf8')).instances?.[taskId];
+    const init = binding?.initialization;
+    if (binding?.status !== 'active' || binding.agentId !== 'admin' || binding.platformAdapter !== 'codex-app' ||
+        JSON.stringify(normalizeAdminScope(binding.scope)) !== JSON.stringify(normalizeAdminScope(scope)) ||
+        init?.auditTransport !== 'ephemeral-process' || init.audit?.verdict !== 'pass' ||
+        init.audit.workerClosed !== true || init.audit.exitCode !== 0 ||
+        init.audit.turnId !== init.completedTurnId || init.audit.generation !== binding.generation)
+      throw new Error('ADMIN_HANDOFF_BINDING_UNVERIFIED');
+    const read = await client.request('thread/read', { threadId: taskId, includeTurns: true });
+    const task = read?.thread, turn = task?.turns?.at(-1);
+    if (task?.id !== taskId || task.projectId !== expectedProjectId || task.cwd !== scope.projects[0].root ||
+        !['idle', 'notLoaded'].includes(task.status?.type) || task.turns.some(item => item.status === 'inProgress') ||
+        turn?.id !== init.completedTurnId || turn.status !== 'completed' ||
+        turn.items?.filter(item => item.type === 'agentMessage').at(-1)?.text?.trim() !== 'ADMIN_READY')
+      throw new Error('ADMIN_HANDOFF_STOPPED_INIT_UNVERIFIED');
+    await client.request('thread/archive', { threadId: taskId });
+    const archived = (await client.request('thread/read', { threadId: taskId, includeTurns: false }))?.thread;
+    if (archived?.id !== taskId || archived.projectId !== expectedProjectId || archived.status?.type !== 'notLoaded')
+      throw new Error('ADMIN_HANDOFF_ARCHIVE_RELEASE_UNVERIFIED');
+    const restored = (await client.request('thread/unarchive', { threadId: taskId }))?.thread;
+    if (restored?.id !== taskId || restored.projectId !== expectedProjectId || restored.status?.type !== 'notLoaded')
+      throw new Error('ADMIN_HANDOFF_UNARCHIVE_UNVERIFIED');
+    return { ...await this.release(taskId, expectedProjectId), handoffStrategy: 'verified-native-archive-cycle' };
   }
 }
 

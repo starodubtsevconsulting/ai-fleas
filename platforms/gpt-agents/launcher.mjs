@@ -269,6 +269,8 @@ class AgentStatusNavigator {
     return { destination: 'personal-governor', taskId };
   }
 
+  // Private implementation
+
   #openOnboarding() {
     run(openBin, ['codex://threads/new']);
     return { destination: 'plugin-onboarding' };
@@ -424,6 +426,34 @@ function doctor() {
   if (result.status !== 'ready') process.exitCode = 2;
 }
 
+// Presentation only: classify a controller result without host or registry effects.
+export function governorLaunchReport(result) {
+  if (result.status === 'blocked') {
+    const task = result.taskId ? ` for task ${result.taskId}` : ' before a task ID was verified';
+    return {
+      platformStatus: 'AI Fleas GPT is blocked.',
+      destination: `Personal Governor initialization is blocked${task}: ${result.reason || 'GOVERNOR_BLOCK_REASON_UNAVAILABLE'}${result.classification ? ` (classification: ${result.classification})` : ''}. Readiness was not verified.`,
+    };
+  }
+  const foreignWriter = result.welcomeReason === 'GOVERNOR_WELCOME_FOREIGN_WRITER_ACTIVE';
+  const destination = foreignWriter
+    ? 'Personal Governor activation is verified, but its welcome INIT was not sent because another host process owns the session writer. Keep the exact Governor chat active: do not close, archive, unarchive, or replace it. Verify the writer owner and release it through a supported host action, or obtain separate authorization for an app/service restart after confirming no turn is running. Do not retry the launcher until the writer is released; no duplicate turn was sent.'
+    : result.welcomeStatus === 'blocked'
+    ? `Personal Governor is active, but its welcome INIT is blocked: ${result.welcomeReason}. No duplicate turn was sent.`
+    : result.welcomeStatus === 'pending'
+      ? `Personal Governor is active; its welcome INIT is still pending (${result.welcomeReason}). Run the launcher again to verify completion.`
+      : result.status === 'existing'
+        ? result.welcomeStatus === 'completed'
+          ? 'Existing Personal Governor readiness and welcome completion were verified; no activation INIT was queued.'
+          : 'Existing Personal Governor readiness was verified, but welcome completion was not verified.'
+        : result.status === 'ready'
+          ? 'Personal Governor activation and welcome INIT completed; the verified task is pinned.'
+          : 'Personal Governor initialization is still pending; the task will not be opened until a later launcher run verifies readiness.';
+  const platformStatus = result.status === 'pending' ||
+    ['pending', 'blocked'].includes(result.welcomeStatus) ? 'AI Fleas GPT is pending.' : 'AI Fleas GPT is ready.';
+  return { platformStatus, destination };
+}
+
 async function launch() {
   launchEvent('launch-start');
   const app = prerequisites();
@@ -497,27 +527,22 @@ async function launch() {
       } });
   } finally { client.close(); progressDialog?.kill(); }
   launchEvent('governor-resolved', { taskId: result.taskId, status: result.status,
+    reason: result.reason, classification: result.classification,
     welcomeStatus: result.welcomeStatus, welcomeReason: result.welcomeReason });
   if (result.status === 'existing' && (!result.welcomeStatus || result.welcomeStatus === 'completed')) {
     openLocalGovernor(result.taskId);
   }
-  const destination = result.welcomeStatus === 'blocked'
-    ? `Personal Governor is active, but its welcome INIT is blocked: ${result.welcomeReason}. No duplicate turn was sent.`
-    : result.welcomeStatus === 'pending'
-      ? `Personal Governor is active; its welcome INIT is still pending (${result.welcomeReason}). Run the launcher again to verify completion.`
-      : result.status === 'existing'
-    ? 'Navigation to the trusted Personal Governor was requested; no initialization or platform-health check was queued.'
-    : result.status === 'ready'
-      ? 'Personal Governor activation and welcome INIT completed; the verified task is pinned.'
-      : 'Personal Governor initialization is still pending; the task will not be opened until a later launcher run verifies readiness.';
+  const { platformStatus, destination } = governorLaunchReport(result);
   if (result.status === 'ready' && result.welcomeStatus === 'completed')
     governorNotice('Personal Governor is ready and pinned. Its welcome report is in the chat.');
+  else if (result.welcomeReason === 'GOVERNOR_WELCOME_FOREIGN_WRITER_ACTIVE')
+    governorNotice(destination);
   else if (result.status === 'pending' || result.welcomeStatus === 'pending')
     governorNotice('Personal Governor is still pending. Run AI Fleas GPT again to resume verification.');
-  const platformStatus = result.status === 'pending' ||
-    ['pending', 'blocked'].includes(result.welcomeStatus) ? 'AI Fleas GPT is pending.' : 'AI Fleas GPT is ready.';
+  else if (result.status === 'blocked') governorNotice(destination);
   process.stdout.write(`${platformStatus} Follow-up behavior: Queue${followUps.changed ? ' (updated)' : ''}. ${destination}\n`);
   launchEvent('launch-finished', { taskId: result.taskId, status: result.status,
+    reason: result.reason, classification: result.classification,
     welcomeStatus: result.welcomeStatus });
 }
 
@@ -530,6 +555,7 @@ let humanDir = null;
 let humansDir = null;
 let thread = null;
 let requestFile = null;
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
 while (args.length) {
   const option = args.shift();
   if (option === '--profile' && args.length) profile = args.shift();
@@ -572,3 +598,4 @@ else if (action === 'initialize-governor') {
     '--human', human, '--human-dir', humanDir, '--thread', thread,
   ]));
 } else fail(`unknown action: ${action}; expected setup, doctor, launch, prepare-human-profile, initialize-governor, or preflight-admin`);
+}

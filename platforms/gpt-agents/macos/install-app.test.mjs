@@ -1,3 +1,9 @@
+/**
+ * Tests the macOS installer with stubbed host commands. Run with
+ * `node --test platforms/gpt-agents/macos/install-app.test.mjs`.
+ * Passing verifies generated wrapper arguments and install/pin/open calls;
+ * it does not install a live app or verify a live Governor initialization.
+ */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -72,6 +78,19 @@ test('root installer creates, pins, and launches the macOS app', () => {
   assert.match(calls, /defaults write com\.apple\.dock persistent-apps -array-add/);
   assert.match(calls, /killall Dock/);
   assert.match(calls, /open .*AI Fleas GPT\.app/);
+});
+
+test('Dock wrapper uses a noninteractive login shell and retains startup errors', () => {
+  const item = fixture();
+  const result = spawnSync('/bin/zsh', [rootInstaller], { encoding: 'utf8', env: item.env });
+  assert.equal(result.status, 0, result.stderr);
+  const calls = fs.readFileSync(item.log, 'utf8');
+  const compilation = calls.split('\n').find((line) => line.startsWith('osacompile '));
+  assert.ok(compilation, 'the installer must compile the Dock wrapper');
+  assert.match(compilation, /do shell script "\/bin\/zsh -lc " & quoted form of \(quoted form of launcher\)/);
+  assert.doesNotMatch(compilation, /\/bin\/zsh\s+-[a-z]*i[a-z]*/);
+  assert.match(compilation, /on error errorMessage/);
+  assert.match(compilation, /display dialog "AI Fleas GPT could not start:"/);
 });
 
 test('root installer does not duplicate an existing Dock icon', () => {

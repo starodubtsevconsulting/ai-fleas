@@ -45,7 +45,8 @@ If an exact active Governor already exists for that human and the human requests
 initializer creates a **pending successor** rather than reopening or adopting either the old chat or the requesting
 chat. The predecessor remains active while the fresh projectless successor verifies its sources and returns
 `PERSONAL_GOVERNOR_READY`. Only the host's successful activation of that exact successor may atomically supersede the
-verified predecessor. Then pin the successor and set its presentation title to `🧭 Personal Governor`; retain the
+verified predecessor. Only after that exact readiness verification, pin the successor and set its presentation title
+to `🧭 Personal Governor`; retain the
 predecessor until the human chooses archival that preserves its history. An archived predecessor is terminal for Governor
 runtime identity. A title or pin never establishes identity.
 
@@ -95,6 +96,12 @@ Before creating a replacement, read the human profile for the desired Governor b
 
 A replacement Governor must be a fresh-history, projectless task created through the platform's new-task primitive. Never create it inside a workflow saved project or by forking, cloning, or otherwise inheriting the predecessor task. Its bootstrap payload may contain only canonical source references, durable-memory bindings, exact lifecycle identifiers, and the minimum initialization instruction. It must not contain or reconstruct the predecessor transcript, conversation summary, inherited turns, or broad conversation context. Conversation history is not Governor memory; continuity comes only from canonical configuration and the declared authoritative memory route. The predecessor task ID may be retained solely for verified cutover and history-preserving archival.
 
+After one new-task request returns an exact task ID, the launcher verifies that response and reads the same task's metadata, confirming projectless, non-ephemeral, non-forked identity, empty history, and the exact workspace. It enumerates both complete stored host catalogs. A new blank task may have no stored log until its first turn: in that case the exact ID must occur once in `thread/loaded/list`, and a fresh `thread/read` on the creation connection must corroborate the same blank identity. Reads use `includeTurns: false` before INIT because fetching stored turn items from a blank rollout can fail. The fresh-history `thread/start` response supplies the history evidence. This produces a one-use in-memory permit bound to the original client, exact task ID, and human directory. A missing or ambiguous loaded ID, conflicting identity, archived entry, or unverified catalog blocks with exact task evidence. Partial metadata has a bounded 20-second read budget at one-second intervals. The controller never creates another task in this transaction.
+
+The start response may omit summary fields such as `cwd`, `projectId`, and `turns`; exact ID and absence of explicit conflicts suffice for that fresh allocation witness. The subsequent read must still supply the exact cwd, `projectId: null`, and `ephemeral: false`; omitted fields there do not establish identity.
+
+The launcher invokes the initializer in process and keeps the original app-server connection open through the exact INIT queue and readiness wait. For a new unbound blank task only, the initializer consumes the permit, rechecks the stored catalogs and loaded/read identity, then registers and queues one INIT. The permit is consumed before queue effects, including a queue failure or uncertain acceptance; it cannot authorize replay, another task, another client, or an existing receipt. The queue helper retains its own binding transaction and rollback rules. No permit is persisted in a receipt. The standalone initializer, pending retry/reconciliation, active reuse, and post-INIT readiness still require authoritative stored catalog evidence. Standalone new-task verification allows three complete catalog enumerations at 500 ms intervals; exhaustion retains `GOVERNOR_PROJECTLESS_HOST_TASK_UNVERIFIED`. Title/pin and readiness remain separate from blank-task acceptance.
+
 ## Post-activation INIT scheduler discovery
 
 For a later INIT or the launcher's separate welcome turn on `codex-app`, discover the host's native automation
@@ -121,9 +128,20 @@ The welcome report distinguishes configured cadence, discovered definitions, hos
 changes made, and concrete limitations. If only discovery succeeded, say so rather than claiming reconciliation
 or activation. This procedure is post-activation; it does not expand the one-time readiness-token transaction.
 
+If the separate welcome turn cannot start because `thread/resume` reports an active foreign session writer, leave
+the exact active Governor and its welcome receipt unchanged. Report activation readiness and welcome status
+separately. Do **not** tell the human to close the Governor chat or tab: in the desktop app that action can
+archive the exact task, and an archived Governor is terminal. Do not unarchive, resume, retry, or recover an
+archived Governor. For an active task, identify the writer owner through supported host evidence and arrange a
+supported release; an app/service restart requires separate authorization and a check that no turn is running.
+Do not repeatedly relaunch while the foreign writer remains or send another welcome/activation INIT.
+
 ## GPT presentation
 
-After readiness, pin the exact Personal Governor task in the global pinned area when the host supports pinning. Recommended title: `🧭 Personal Governor`. Title and pin state are presentation only, never identity.
+After readiness, pin the exact Personal Governor task in the global pinned area when the host supports pinning and
+apply the recommended title: `🧭 Personal Governor`. Do not name a new Governor before its activation transaction:
+blank host sessions can defer presentation metadata. Title and pin state are presentation only, never identity; their
+write and verification must not create another task or resend the activation INIT.
 
 ## GPT utility-subagent routing
 

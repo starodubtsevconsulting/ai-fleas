@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 /** Human/controller-invoked Governor initializer, called by launcher.mjs.
  * Inputs: exact human profile directory, human ID and task ID; output: binding readiness.
+ * The launcher calls initializeGovernor on its creation connection; the CLI
+ * requires a stored host task. Inputs may include a one-use in-memory permit
+ * for a newly created blank task, never a persisted identity exemption.
  * Effects: validates declared sources; queues, retries, or reconciles the exact
  * host-backed Governor binding through the plugin's lifecycle registry.
  * It does not create tasks or initialize a workflow roster.
@@ -19,6 +22,90 @@ import { withGovernorRegistryLock } from './plugins/ai-fleas-gpt/modules/agent-b
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const freshTaskPermits = new WeakMap();
+
+function blankGovernorTaskMatches(task, taskId, humanDir) {
+  if (task?.id !== taskId || task.projectId !== null || task.ephemeral !== false ||
+      task.forkedFromId || task.parentThreadId ||
+      (Object.hasOwn(task, 'turns') && (!Array.isArray(task.turns) || task.turns.length !== 0))) return false;
+  try {
+    return typeof task.cwd === 'string' &&
+      fs.realpathSync(task.cwd) === fs.realpathSync(humanDir);
+  } catch { return false; }
+}
+
+function freshGovernorStartMatches(task, taskId, humanDir) {
+  // Start responses may omit summary fields (including cwd/projectId). Only
+  // this fresh allocation witness permits omission; the subsequent read must
+  // supply and verify the complete projectless identity.
+  if (task?.id !== taskId || (Object.hasOwn(task, 'projectId') && task.projectId !== null) ||
+      (Object.hasOwn(task, 'ephemeral') && task.ephemeral !== false) ||
+      task.forkedFromId || task.parentThreadId ||
+      (Object.hasOwn(task, 'turns') && (!Array.isArray(task.turns) || task.turns.length !== 0))) return false;
+  if (!Object.hasOwn(task, 'cwd')) return true;
+  try {
+    return typeof task.cwd === 'string' &&
+      fs.realpathSync(task.cwd) === fs.realpathSync(humanDir);
+  } catch { return false; }
+}
+
+async function verifyLoadedBlankTask(client, taskId, humanDir) {
+  const loaded = await client.request('thread/loaded/list', {});
+  if (!Array.isArray(loaded?.data) || loaded.data.some(id => typeof id !== 'string'))
+    throw new Error('GOVERNOR_LOADED_CATALOG_UNVERIFIED');
+  if (loaded.data.filter(id => id === taskId).length !== 1)
+    throw new Error('GOVERNOR_CREATED_TASK_NOT_LOADED');
+  const response = await client.request('thread/read', { threadId: taskId, includeTurns: false });
+  if (!blankGovernorTaskMatches(response?.thread, taskId, humanDir))
+    throw new Error('GOVERNOR_CREATED_TASK_METADATA_MISMATCH');
+  return response.thread;
+}
+
+export async function verifyFreshGovernorHostTask(client, taskId, humanDir, startedThread, {
+  hostState = hostTaskState,
+} = {}) {
+  // thread/list enumerates stored logs. A blank thread can exist only in this
+  // connection's loaded catalog until its first turn writes the log. The exact
+  // start response plus fresh loaded/read evidence authorizes that first INIT.
+  if (!freshGovernorStartMatches(startedThread, taskId, humanDir))
+    throw new Error('GOVERNOR_CREATED_TASK_START_MISMATCH');
+  const response = await client.request('thread/read', { threadId: taskId, includeTurns: false });
+  const task = response?.thread;
+  if (!blankGovernorTaskMatches(task, taskId, humanDir)) {
+    const conflict = (task?.id && task.id !== taskId) || task?.projectId != null ||
+      task?.ephemeral === true || task?.forkedFromId || task?.parentThreadId ||
+      (task && Object.hasOwn(task, 'turns') && (!Array.isArray(task.turns) || task.turns.length !== 0)) ||
+      (typeof task?.cwd === 'string' && task.cwd !== humanDir);
+    throw new Error(conflict ? 'GOVERNOR_CREATED_TASK_METADATA_MISMATCH'
+      : 'GOVERNOR_CREATED_TASK_METADATA_UNAVAILABLE');
+  }
+  const host = await hostState(client, taskId);
+  if (host && (host.archived || host.task?.id !== taskId || host.task.projectId != null ||
+      host.task.ephemeral === true || host.task.forkedFromId || host.task.parentThreadId ||
+      (host.task.cwd != null && host.task.cwd !== task.cwd)))
+    throw new Error(host.archived ? 'GOVERNOR_CREATED_TASK_ARCHIVED'
+      : 'GOVERNOR_CREATED_TASK_CATALOG_MISMATCH');
+  if (host) return { task, archived: false };
+  await verifyLoadedBlankTask(client, taskId, humanDir);
+  const bootstrapPermit = Object.freeze({});
+  freshTaskPermits.set(bootstrapPermit, { client, taskId, humanDir });
+  return { task, archived: false, bootstrapPermit };
+}
+
+async function consumeFreshTaskPermit(permit, client, taskId, humanDir, hostState) {
+  const evidence = permit && freshTaskPermits.get(permit);
+  if (!evidence || evidence.client !== client || evidence.taskId !== taskId ||
+      evidence.humanDir !== humanDir) throw new Error('GOVERNOR_BOOTSTRAP_PERMIT_UNVERIFIED');
+  // Consume before any queue effect, including an uncertain queue failure.
+  freshTaskPermits.delete(permit);
+  const host = await hostState(client, taskId);
+  if (host && (host.archived || host.task.projectId != null || host.task.id !== taskId ||
+      host.task.ephemeral === true || host.task.forkedFromId || host.task.parentThreadId ||
+      (host.task.cwd != null && fs.realpathSync(host.task.cwd) !== fs.realpathSync(humanDir))))
+    throw new Error('GOVERNOR_PROJECTLESS_HOST_TASK_UNVERIFIED');
+  const task = await verifyLoadedBlankTask(client, taskId, humanDir);
+  return { task, archived: false };
+}
 
 function requireFile(file, label) {
   const resolved = fs.realpathSync(file);
@@ -189,25 +276,14 @@ function agentCreatedStateRecord(taskId) {
 }
 
 export async function hostTaskState(client, taskId, { readAgentCreatedRecord = agentCreatedStateRecord } = {}) {
-  // Exact local host-state evidence avoids unbounded native catalog pages. The
-  // catalog remains the fallback when the exact state row is unavailable.
-  if (uuid.test(taskId)) {
-    const row = readAgentCreatedRecord(taskId);
-    if (row) {
-      if (row.id !== taskId || ![0, 1].includes(row.archived) ||
-          !['agent_created_thread', null].includes(row.thread_source) ||
-          typeof row.cwd !== 'string' || !row.cwd)
-        throw new Error('GOVERNOR_HOST_STATE_UNVERIFIED');
-      const response = await client.request('thread/read', { threadId: taskId, includeTurns: false });
-      const task = response?.thread;
-      if (task?.id !== taskId || task.cwd !== row.cwd || task.projectId != null ||
-          task.ephemeral === true ||
-          (row.thread_source === 'agent_created_thread' && row.archived === 0 &&
-            task.threadSource !== 'agent_created_thread'))
-        throw new Error('GOVERNOR_HOST_STATE_UNVERIFIED');
-      return { task, archived: row.archived === 1 };
-    }
-  }
+  // SQLite can corroborate task identity and CWD, but it is a local cache and
+  // never decides whether a Governor is active or archived.  Enumerate both
+  // authoritative host catalogs before making any lifecycle decision.
+  const row = uuid.test(taskId) ? readAgentCreatedRecord(taskId) : null;
+  if (row && (row.id !== taskId || ![0, 1].includes(row.archived) ||
+      !['agent_created_thread', null].includes(row.thread_source) ||
+      typeof row.cwd !== 'string' || !row.cwd))
+    throw new Error('GOVERNOR_HOST_STATE_UNVERIFIED');
   let found = null;
   for (const archived of [false, true]) {
     let cursor;
@@ -231,18 +307,45 @@ export async function hostTaskState(client, taskId, { readAgentCreatedRecord = a
       visited.add(cursor);
     } while (true);
   }
-  if (!found && uuid.test(taskId)) {
-    const loaded = await client.request('thread/loaded/list', {});
-    if (!Array.isArray(loaded?.data)) throw new Error('GOVERNOR_HOST_CATALOG_UNVERIFIED');
-    if (loaded.data.some(item => (typeof item === 'string' ? item : item?.id) === taskId)) {
-      const response = await client.request('thread/read', { threadId: taskId, includeTurns: false });
-      const task = response?.thread;
-      if (task?.id !== taskId || task.projectId != null || task.ephemeral === true)
-        throw new Error('GOVERNOR_HOST_STATE_UNVERIFIED');
-      found = { task, archived: false };
-    }
+  if (!found) return null;
+  if (row) {
+    const response = await client.request('thread/read', { threadId: taskId, includeTurns: false });
+    const task = response?.thread;
+    if (task?.id !== taskId || task.cwd !== row.cwd || task.projectId != null ||
+        task.ephemeral === true ||
+        (row.thread_source === 'agent_created_thread' && task.threadSource !== 'agent_created_thread'))
+      throw new Error('GOVERNOR_HOST_STATE_UNVERIFIED');
+    // Read payload corroborates the cache-only identity fields; catalog status
+    // remains authoritative even when cached `archived` is stale.
+    if (found.task.projectId !== task.projectId)
+      throw new Error('GOVERNOR_HOST_STATE_UNVERIFIED');
+    found.task = task;
   }
   return found;
+}
+
+export async function verifyNewGovernorHostTask(client, taskId, {
+  readAgentCreatedRecord = agentCreatedStateRecord,
+  pause = ms => new Promise(resolve => setTimeout(resolve, ms)),
+} = {}) {
+  // The launcher already read this newly allocated exact task, but thread/list
+  // can lag behind thread/read. Only omission from two complete catalogs is
+  // recoverable here: re-enumerate the same ID at most three times, without
+  // creating a task, registering a binding, or submitting INIT. Catalog errors
+  // and conflicting lifecycle evidence retain their immediate fail-closed path.
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const entry = await hostTaskState(client, taskId, { readAgentCreatedRecord });
+    if (entry) {
+      if (entry.archived || entry.task.projectId != null)
+        throw new Error('GOVERNOR_PROJECTLESS_HOST_TASK_UNVERIFIED');
+      return entry;
+    }
+    if (attempt < 3) await pause(500);
+  }
+  const error = new Error('GOVERNOR_PROJECTLESS_HOST_TASK_UNVERIFIED');
+  error.taskId = taskId;
+  error.recovery = { classification: 'complete-catalog-omission', attempts: 3, exhausted: true };
+  throw error;
 }
 
 function queueGovernorPayload(dataDir, taskId, payload) {
@@ -341,100 +444,113 @@ export async function reconcileUnavailableGovernorReceipts(registryFile, registr
   });
 }
 
+export async function initializeGovernor({ humanId, humanDir, taskId, registryFile,
+  client, bootstrapPermit }, {
+  readRegistry = file => fs.existsSync(file)
+    ? JSON.parse(fs.readFileSync(file, 'utf8')) : { instances: {} },
+  preflight = buildGovernorInitialization, queue = queueGovernorPayload,
+  reconcile = reconcileUnavailableGovernorReceipts, hostState = hostTaskState,
+  verifyNewTask = verifyNewGovernorHostTask,
+} = {}) {
+  const dataDir = path.dirname(registryFile);
+  let registry = readRegistry(registryFile);
+  preflight(humanDir, humanId, 1);
+  registry = await reconcile(registryFile, registry, client, humanId);
+  const exact = registry.instances?.[taskId];
+  if (exact && (exact.agentId !== 'personal-governor' ||
+      exact.scope?.humanProfileId !== humanId ||
+      !['active', 'pending'].includes(exact.status)))
+    throw new Error('GOVERNOR_EXACT_TASK_BINDING_CONFLICT');
+  if (exact && bootstrapPermit) throw new Error('GOVERNOR_BOOTSTRAP_PERMIT_BINDING_CONFLICT');
+  const hostEntry = exact
+    ? await hostState(client, taskId)
+    : bootstrapPermit
+      ? await consumeFreshTaskPermit(bootstrapPermit, client, taskId, humanDir, hostState)
+      : await verifyNewTask(client, taskId);
+  if (!hostEntry || hostEntry.archived || hostEntry.task.projectId != null)
+    throw new Error('GOVERNOR_PROJECTLESS_HOST_TASK_UNVERIFIED');
+  const response = await client.request('thread/read', { threadId: taskId,
+    includeTurns: !bootstrapPermit });
+  const thread = response?.thread;
+  if (thread?.id !== taskId || thread.projectId != null ||
+      (bootstrapPermit && !blankGovernorTaskMatches(thread, taskId, humanDir)))
+    throw new Error('GOVERNOR_PROJECTLESS_HOST_TASK_UNVERIFIED');
+  if (exact?.status === 'active') {
+    preflight(humanDir, humanId, exact.generation);
+    return { threadId: taskId, status: 'active', alreadyInitialized: true };
+  }
+  if (exact?.status === 'pending') {
+    const canonical = preflight(humanDir, humanId, exact.generation);
+    if (JSON.stringify(exact.initialization?.sources) !==
+          JSON.stringify(canonical.binding.initialization.sources) ||
+        exact.initialization?.memoryBinding !== canonical.binding.initialization.memoryBinding)
+      throw new Error('GOVERNOR_CANONICAL_SOURCES_CHANGED');
+    const decision = inspectGovernorPending({
+      registry, taskId, humanId,
+      binding: exact, prompt: canonical.prompt, thread,
+    });
+    if (decision.status === 'blocked') throw new Error(decision.reason);
+    if (decision.status === 'wait') {
+      return { threadId: taskId, status: 'pending', alreadyQueued: true, reason: decision.reason };
+    }
+    if (exact.replaces) {
+      const predecessor = await hostState(client, exact.replaces.taskId);
+      if (!predecessor || predecessor.task.projectId != null ||
+          predecessor.archived !==
+            (registry.instances?.[exact.replaces.taskId]?.status === 'archived'))
+        throw new Error('GOVERNOR_PREDECESSOR_HOST_UNVERIFIED');
+    }
+    if (decision.status === 'ready') {
+      activateReconciledGovernor(registryFile, exact, taskId, decision);
+      return { threadId: taskId, status: 'active', reconciled: true,
+        completedTurnId: decision.completedTurnId };
+    }
+    const next = preflight(humanDir, humanId, exact.generation + 1);
+    if (exact.replaces) next.binding.replaces = exact.replaces;
+    queue(dataDir, taskId, next);
+    return { threadId: taskId, status: 'pending', retried: true, generation: next.binding.generation };
+  }
+  if (thread.turns?.some(turn => turn.status === 'inProgress'))
+    throw new Error('GOVERNOR_HOST_TASK_RUNNING');
+  const sameHuman = Object.entries(registry.instances ?? {}).filter(([id, item]) =>
+    id !== taskId && item?.agentId === 'personal-governor' &&
+    item?.scope?.humanProfileId === humanId && ['active', 'pending'].includes(item.status));
+  const pending = sameHuman.filter(([, item]) => item.status === 'pending');
+  const active = sameHuman.filter(([, item]) => item.status === 'active');
+  if (pending.length || active.length > 1) {
+    throw new Error('Governor lifecycle state is ambiguous; reconcile exact host tasks before replacement');
+  }
+  const generation = 1 + Math.max(0, ...Object.values(registry.instances ?? {})
+    .filter(item => item?.agentId === 'personal-governor' && item?.scope?.humanProfileId === humanId)
+    .map(item => Number.isInteger(item.generation) ? item.generation : 0));
+  const payload = preflight(humanDir, humanId, generation);
+  if (active.length === 1) {
+    const [predecessorTaskId, predecessor] = active[0];
+    payload.binding.replaces = {
+      taskId: predecessorTaskId,
+      generation: predecessor.generation,
+      strategy: 'successor-first',
+    };
+  }
+  if (bootstrapPermit && readRegistry(registryFile).instances?.[taskId])
+    throw new Error('GOVERNOR_BOOTSTRAP_PERMIT_BINDING_CONFLICT');
+  queue(dataDir, taskId, payload);
+  return { threadId: taskId, status: 'pending', generation };
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const dataDir = process.env.PLUGIN_DATA || path.join(
-    process.env.CODEX_HOME || path.join(os.homedir(), '.codex'),
-    'plugins/data/ai-fleas-gpt-ai-fleas',
-  );
-  const registryFile = path.join(dataDir, 'agent-bindings.json');
-  let registry = fs.existsSync(registryFile)
-    ? JSON.parse(fs.readFileSync(registryFile, 'utf8')) : { instances: {} };
-  buildGovernorInitialization(options['human-dir'], options.human, 1);
+    process.env.CODEX_HOME || path.join(os.homedir(), '.codex'), 'plugins/data/ai-fleas-gpt-ai-fleas');
   const runtimeHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex');
   const client = await connectNativeAppServer({
     socketPath: path.join(runtimeHome, 'app-server-control/app-server-control.sock'),
   });
   try {
-    registry = await reconcileUnavailableGovernorReceipts(registryFile, registry, client, options.human);
-    const exact = registry.instances?.[options.thread];
-    if (exact && (exact.agentId !== 'personal-governor' ||
-        exact.scope?.humanProfileId !== options.human ||
-        !['active', 'pending'].includes(exact.status)))
-      throw new Error('GOVERNOR_EXACT_TASK_BINDING_CONFLICT');
-    const hostEntry = await hostTaskState(client, options.thread);
-    if (!hostEntry || hostEntry.archived || hostEntry.task.projectId != null)
-      throw new Error('GOVERNOR_PROJECTLESS_HOST_TASK_UNVERIFIED');
-    const response = await client.request('thread/read', { threadId: options.thread, includeTurns: true });
-    const thread = response?.thread;
-    if (thread?.id !== options.thread || thread.projectId != null)
-      throw new Error('GOVERNOR_PROJECTLESS_HOST_TASK_UNVERIFIED');
-    if (exact?.status === 'active') {
-      buildGovernorInitialization(options['human-dir'], options.human, exact.generation);
-      process.stdout.write(`${JSON.stringify({ threadId: options.thread, status: 'active',
-        alreadyInitialized: true })}\n`);
-      return;
-    }
-    if (exact?.status === 'pending') {
-      const canonical = buildGovernorInitialization(options['human-dir'], options.human, exact.generation);
-      if (JSON.stringify(exact.initialization?.sources) !==
-            JSON.stringify(canonical.binding.initialization.sources) ||
-          exact.initialization?.memoryBinding !== canonical.binding.initialization.memoryBinding)
-        throw new Error('GOVERNOR_CANONICAL_SOURCES_CHANGED');
-      const decision = inspectGovernorPending({
-        registry, taskId: options.thread, humanId: options.human,
-        binding: exact, prompt: canonical.prompt, thread,
-      });
-      if (decision.status === 'blocked') throw new Error(decision.reason);
-      if (decision.status === 'wait') {
-        process.stdout.write(`${JSON.stringify({ threadId: options.thread, status: 'pending',
-          alreadyQueued: true, reason: decision.reason })}\n`);
-        return;
-      }
-      if (exact.replaces) {
-        const predecessor = await hostTaskState(client, exact.replaces.taskId);
-        if (!predecessor || predecessor.task.projectId != null ||
-            predecessor.archived !==
-              (registry.instances?.[exact.replaces.taskId]?.status === 'archived'))
-          throw new Error('GOVERNOR_PREDECESSOR_HOST_UNVERIFIED');
-      }
-      if (decision.status === 'ready') {
-        activateReconciledGovernor(registryFile, exact, options.thread, decision);
-        process.stdout.write(`${JSON.stringify({ threadId: options.thread, status: 'active',
-          reconciled: true, completedTurnId: decision.completedTurnId })}\n`);
-        return;
-      }
-      const next = buildGovernorInitialization(options['human-dir'], options.human, exact.generation + 1);
-      if (exact.replaces) next.binding.replaces = exact.replaces;
-      queueGovernorPayload(dataDir, options.thread, next);
-      process.stdout.write(`${JSON.stringify({ threadId: options.thread, status: 'pending',
-        retried: true, generation: next.binding.generation })}\n`);
-      return;
-    }
-    if (thread.turns?.some(turn => turn.status === 'inProgress'))
-      throw new Error('GOVERNOR_HOST_TASK_RUNNING');
-    const sameHuman = Object.entries(registry.instances ?? {}).filter(([id, item]) =>
-      id !== options.thread && item?.agentId === 'personal-governor' &&
-      item?.scope?.humanProfileId === options.human && ['active', 'pending'].includes(item.status));
-    const pending = sameHuman.filter(([, item]) => item.status === 'pending');
-    const active = sameHuman.filter(([, item]) => item.status === 'active');
-    if (pending.length || active.length > 1) {
-      throw new Error('Governor lifecycle state is ambiguous; reconcile exact host tasks before replacement');
-    }
-    const generation = 1 + Math.max(0, ...Object.values(registry.instances ?? {})
-      .filter(item => item?.agentId === 'personal-governor' && item?.scope?.humanProfileId === options.human)
-      .map(item => Number.isInteger(item.generation) ? item.generation : 0));
-    const payload = buildGovernorInitialization(options['human-dir'], options.human, generation);
-    if (active.length === 1) {
-      const [predecessorTaskId, predecessor] = active[0];
-      payload.binding.replaces = {
-        taskId: predecessorTaskId,
-        generation: predecessor.generation,
-        strategy: 'successor-first',
-      };
-    }
-    queueGovernorPayload(dataDir, options.thread, payload);
-    process.stdout.write(`${JSON.stringify({ threadId: options.thread, status: 'pending', generation })}\n`);
+    const result = await initializeGovernor({ humanId: options.human,
+      humanDir: options['human-dir'], taskId: options.thread,
+      registryFile: path.join(dataDir, 'agent-bindings.json'), client });
+    process.stdout.write(`${JSON.stringify(result)}\n`);
   } finally {
     client.close();
   }
