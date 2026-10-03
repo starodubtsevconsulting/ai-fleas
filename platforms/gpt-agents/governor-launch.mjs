@@ -1,23 +1,122 @@
 /** Purpose: let the macOS GPT launcher ensure one human-scoped Governor without Admin.
  * Caller: launcher.mjs after plugin/setup checks, never an automatic background hook.
  * Inputs: exact host client, plugin registry, selected human ID, canonical human directory.
- * Output: existing, pending, or verified ready task ID.
+ * Output: existing, pending, or verified ready task ID and welcome INIT status.
  * Effects: reconciles archived receipts, may create one projectless host task, queue
- * its exact INIT through the checked-in initializer, and pin only verified readiness.
+ * its exact activation through the checked-in initializer, run a separate welcome
+ * INIT turn after activation, record its receipt, and pin only verified readiness.
  */
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 import { buildGovernorInitialization, hostTaskState,
   reconcileUnavailableGovernorReceipts } from './initialize-governor.mjs';
+import { withGovernorRegistryLock } from './plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/governor-registry-lock.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const humanIdPattern = /^[a-z][a-z0-9-]*$/;
 const governorTitle = '🧭 Personal Governor';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const welcomePrompt = [
+  'This is a NEW post-bootstrap Personal Governor INIT turn, not the one-time activation transaction.',
+  'The earlier instruction to reply with exactly PERSONAL_GOVERNOR_READY applied only to that activation turn; do not repeat the token now.',
+  'Revalidate this exact active Governor binding and canonical sources. Load authoritative memory, current plans, commitments, and the minimum near-future context.',
+  'Inspect configured Governor-owned scheduled follow-ups and actual platform scheduler state. Reconcile only triggers authorized by the human profile and selected adapter; never invent a schedule or claim a callback is active without host evidence.',
+  'Give the human a concise welcome using the verified profile name. Say what memory and schedules you actually verified, what you changed, and any limitation or blocker.',
+].join(' ');
+
+function updateWelcomeReceipt(registryFile, taskId, expected, next) {
+  withGovernorRegistryLock(registryFile, () => {
+    const registry = JSON.parse(fs.readFileSync(registryFile, 'utf8'));
+    const binding = registry.instances?.[taskId];
+    if (binding?.agentId !== 'personal-governor' || binding.status !== 'active' ||
+        JSON.stringify(binding.initialization?.welcome ?? null) !== JSON.stringify(expected))
+      throw new Error('GOVERNOR_WELCOME_RECEIPT_CHANGED');
+    binding.initialization.welcome = next;
+    const swap = `${registryFile}.${process.pid}.welcome.tmp`;
+    fs.writeFileSync(swap, `${JSON.stringify(registry, null, 2)}\n`, { mode: 0o600 });
+    fs.renameSync(swap, registryFile);
+  });
+}
+
+export async function runGovernorWelcome(client, registryFile, taskId, humanId, {
+  readRegistry = readGovernorRegistry, updateReceipt = updateWelcomeReceipt,
+  pause = sleep, now = Date.now, timeoutMs = 180_000, requestId = randomUUID,
+} = {}) {
+  const binding = readRegistry(registryFile).instances?.[taskId];
+  if (binding?.status !== 'active' || binding.agentId !== 'personal-governor' ||
+      binding.scope?.humanProfileId !== humanId ||
+      !binding.initialization?.completedTurnId)
+    throw new Error('GOVERNOR_WELCOME_BINDING_UNVERIFIED');
+  let welcome = binding.initialization.welcome ?? null;
+  if (welcome?.status === 'completed') return { status: 'completed', turnId: welcome.turnId };
+  if (welcome?.status === 'blocked') return { status: 'blocked', reason: welcome.reason };
+  const deadline = now() + timeoutMs;
+  if (!welcome) {
+    // Do not steal the bootstrap turn's writer or send a second INIT while it
+    // is still completing, even if the Stop hook has already activated us.
+    let idle = false;
+    while (now() < deadline) {
+      const state = await client.request('thread/read', { threadId: taskId, includeTurns: false });
+      if (state?.thread?.id !== taskId || state.thread.projectId != null)
+        throw new Error('GOVERNOR_WELCOME_HOST_TASK_UNVERIFIED');
+      if (state.thread.status?.type === 'idle') { idle = true; break; }
+      await pause(2000);
+    }
+    if (!idle) return { status: 'pending', reason: 'GOVERNOR_BOOTSTRAP_WRITER_NOT_RELEASED' };
+    welcome = { status: 'requested', requestId: requestId(), requestedAt: new Date().toISOString() };
+    updateReceipt(registryFile, taskId, null, welcome);
+    let submitted;
+    try {
+      submitted = await client.request('turn/start', { threadId: taskId,
+        clientUserMessageId: welcome.requestId,
+        input: [{ type: 'text', text: welcomePrompt }] });
+    } catch (error) {
+      // A lost response might hide an accepted turn. Keep the request ID and
+      // never blindly submit a duplicate on the next launcher run.
+      return { status: 'blocked', reason: `GOVERNOR_WELCOME_SUBMISSION_UNCERTAIN: ${error.message}` };
+    }
+    const turnId = submitted?.turn?.id;
+    if (!turnId || !['inProgress', 'completed'].includes(submitted.turn.status))
+      return { status: 'blocked', reason: 'GOVERNOR_WELCOME_ACCEPTANCE_UNVERIFIED' };
+    const next = { ...welcome, status: 'inProgress', turnId };
+    updateReceipt(registryFile, taskId, welcome, next);
+    welcome = next;
+  }
+  if (welcome.status === 'requested')
+    return { status: 'blocked', reason: 'GOVERNOR_WELCOME_SUBMISSION_UNCERTAIN' };
+  if (welcome.status !== 'inProgress' || !welcome.turnId)
+    throw new Error('GOVERNOR_WELCOME_RECEIPT_UNVERIFIED');
+  while (now() < deadline) {
+    const read = await client.request('thread/read', { threadId: taskId, includeTurns: true });
+    const turn = read?.thread?.turns?.find(item => item.id === welcome.turnId);
+    if (read?.thread?.id !== taskId || read.thread.projectId != null || !turn)
+      throw new Error('GOVERNOR_WELCOME_TURN_UNVERIFIED');
+    if (turn.status === 'completed') {
+      const final = turn.items?.filter(item => item.type === 'agentMessage' &&
+        item.phase === 'final_answer').at(-1)?.text?.trim();
+      if (!final || final === 'PERSONAL_GOVERNOR_READY') {
+        const blocked = { ...welcome, status: 'blocked', reason: 'GOVERNOR_WELCOME_REPORT_MISSING' };
+        updateReceipt(registryFile, taskId, welcome, blocked);
+        return { status: 'blocked', reason: blocked.reason };
+      }
+      updateReceipt(registryFile, taskId, welcome,
+        { ...welcome, status: 'completed', completedAt: new Date().toISOString() });
+      return { status: 'completed', turnId: welcome.turnId };
+    }
+    if (['failed', 'interrupted'].includes(turn.status)) {
+      const blocked = { ...welcome, status: 'blocked', reason: `GOVERNOR_WELCOME_TURN_${turn.status.toUpperCase()}` };
+      updateReceipt(registryFile, taskId, welcome, blocked);
+      return { status: 'blocked', reason: blocked.reason };
+    }
+    await pause(2000);
+  }
+  return { status: 'pending', reason: 'GOVERNOR_WELCOME_TURN_STILL_RUNNING' };
+}
 
 export function governorWorkspaceRoots(humanDir, canonical) {
   const sources = canonical?.binding?.initialization?.sources;
@@ -171,6 +270,7 @@ export async function waitForGovernor(client, registryFile, taskId, { humanId,
 
 export async function ensurePersonalGovernor({ client, registryFile, humanId, humanDir,
   openTask, initialize = runInitializer, wait = waitForGovernor,
+  welcome = runGovernorWelcome,
   preflight = buildGovernorInitialization, readRegistry = readGovernorRegistry,
   reconcile = reconcileUnavailableGovernorReceipts, hostState = hostTaskState }) {
   const canonical = preflight(humanDir, humanId, 1);
@@ -197,7 +297,10 @@ export async function ensurePersonalGovernor({ client, registryFile, humanId, hu
     if (!host || host.archived || host.task.projectId != null)
       throw new Error('GOVERNOR_ACTIVE_TASK_UNVERIFIED');
     await verifyAndPresentActiveGovernor(client, taskId, binding, hostState);
-    return { status: 'existing', taskId };
+    const followUp = binding.initialization?.welcome
+      ? await welcome(client, registryFile, taskId, humanId) : null;
+    return { status: 'existing', taskId,
+      ...(followUp ? { welcomeStatus: followUp.status, welcomeReason: followUp.reason } : {}) };
   }
   let taskId;
   if (pending.length) {
@@ -220,6 +323,9 @@ export async function ensurePersonalGovernor({ client, registryFile, humanId, hu
   const settled = await wait(client, registryFile, taskId, { humanId, humanDir, initialize });
   // The queue transport owns the task until its turn completes. Opening a
   // still-pending task presents a misleading "open in another app" lock.
-  if (settled.status === 'ready') openTask(taskId);
-  return settled;
+  if (settled.status !== 'ready') return settled;
+  const followUp = await welcome(client, registryFile, taskId, humanId);
+  if (followUp.status === 'completed') openTask(taskId);
+  return { ...settled, welcomeStatus: followUp.status,
+    ...(followUp.reason ? { welcomeReason: followUp.reason } : {}) };
 }

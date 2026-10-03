@@ -12,7 +12,9 @@ adds it to your Dock, and opens ChatGPT.
 Click **AI Fleas GPT** in the Dock. It prepares AI Fleas and ensures the Personal Governor for the selected human is
 initialized. If one verified Governor is already active, it opens that task without sending a new message;
 repeated clicks do not create replacements. If no Governor is active, it reconciles an exact pending task or creates a
-fresh-history projectless task, queues `INIT`, waits for exact readiness, and pins only a verified active Governor.
+fresh-history projectless task, queues the one-time activation, waits for exact readiness, then runs a separate welcome
+`INIT` in the active Governor chat. That welcome reports the verified memory and actual scheduled follow-ups (or their
+limitations); it must not claim a schedule exists without scheduler evidence. The launcher pins only a verified active Governor.
 Archived Governors are terminal and are never reopened. When no unique human ID can be resolved from lifecycle
 receipts, the launcher asks only for the exact human profile ID.
 
@@ -54,8 +56,9 @@ node platforms/gpt-agents/launcher.mjs initialize-governor \
 ```
 
 The initializer checks the declared Governor role, memory provider, and source files; it then registers a pending
-binding in the GPT plugin's host data and queues the exact initialization prompt. Wait for the task to return only
-`PERSONAL_GOVERNOR_READY`, verify the plugin binding is `active` for that task ID, and pin the task. The command
+binding in the GPT plugin's host data and queues the exact activation prompt. The first turn returns only
+`PERSONAL_GOVERNOR_READY`; after the binding is verified active, the launcher sends a separate welcome `INIT` turn.
+That turn should greet the verified human and report memory and scheduling checks in plain language. The command
 does not create, adopt, or pin a task by title. The controller reconciles exact active/pending receipts against the
 host catalog. An archived Governor is terminal and a later initialization uses a fresh projectless task.
 

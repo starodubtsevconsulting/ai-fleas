@@ -429,17 +429,23 @@ async function launch() {
       humanDir: humanDirectory,
       openTask: openLocalGovernor });
   } finally { client.close(); }
-  launchEvent('governor-resolved', { taskId: result.taskId, status: result.status });
-  if (result.status === 'existing') {
+  launchEvent('governor-resolved', { taskId: result.taskId, status: result.status,
+    welcomeStatus: result.welcomeStatus, welcomeReason: result.welcomeReason });
+  if (result.status === 'existing' && (!result.welcomeStatus || result.welcomeStatus === 'completed')) {
     openLocalGovernor(result.taskId);
   }
-  const destination = result.status === 'existing'
+  const destination = result.welcomeStatus === 'blocked'
+    ? `Personal Governor is active, but its welcome INIT is blocked: ${result.welcomeReason}. No duplicate turn was sent.`
+    : result.welcomeStatus === 'pending'
+      ? `Personal Governor is active; its welcome INIT is still pending (${result.welcomeReason}). Run the launcher again to verify completion.`
+      : result.status === 'existing'
     ? 'Navigation to the trusted Personal Governor was requested; no initialization or platform-health check was queued.'
     : result.status === 'ready'
-      ? 'Personal Governor initialization completed and the verified task is pinned.'
+      ? 'Personal Governor activation and welcome INIT completed; the verified task is pinned.'
       : 'Personal Governor initialization is still pending; the task will not be opened until a later launcher run verifies readiness.';
   process.stdout.write(`AI Fleas GPT is ready. Follow-up behavior: Queue${followUps.changed ? ' (updated)' : ''}. ${destination}\n`);
-  launchEvent('launch-finished', { taskId: result.taskId, status: result.status });
+  launchEvent('launch-finished', { taskId: result.taskId, status: result.status,
+    welcomeStatus: result.welcomeStatus });
 }
 
 const args = process.argv.slice(2);

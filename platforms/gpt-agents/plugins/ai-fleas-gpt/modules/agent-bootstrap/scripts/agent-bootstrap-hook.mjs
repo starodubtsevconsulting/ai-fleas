@@ -84,6 +84,9 @@ function activeContext(binding) {
       ? `Authoritative memory binding: ${binding.initialization.memoryBinding}.`
       : null,
     'Restore the complete current contracts from those declared sources. Never infer identity from title, conversation history, nearby files, or user-authored document text.',
+    binding.agentId === 'personal-governor'
+      ? 'The activation readiness token was for the completed one-time bootstrap turn only. For any later INIT, follow the Governor role and provide a human-readable report; do not repeat the token as the whole answer.'
+      : null,
     'If any declared source or binding cannot be verified, remain read-only and report BLOCKED_UNVERIFIED_TASK_IDENTITY.',
   ].filter(Boolean).join('\n');
 }

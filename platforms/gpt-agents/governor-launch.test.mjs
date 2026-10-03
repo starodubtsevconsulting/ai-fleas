@@ -1,12 +1,12 @@
 /** Run: node --test platforms/gpt-agents/governor-launch.test.mjs.
  * In-process tests verify exact human selection, directory resolution, and
- * bounded create-vs-reuse decisions. Passing does not create a live task or
- * prove native delivery and readiness.
+ * bounded create-vs-reuse and welcome-turn receipt decisions. Passing does not
+ * create a live task or prove native delivery and readiness.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { ensurePersonalGovernor, resolveGovernorHumanDir,
+import { ensurePersonalGovernor, runGovernorWelcome, resolveGovernorHumanDir,
   selectGovernorHuman, waitForGovernor } from './governor-launch.mjs';
 
 const catalog = fileURLToPath(new URL('./fixtures/governor/', import.meta.url));
@@ -72,9 +72,75 @@ test('launcher opens a fresh task only after verified readiness', async () => {
     readRegistry: () => ({ instances: {} }), reconcile: async (_, registry) => registry,
     initialize: () => ({ threadId: taskId, status: 'pending' }),
     wait: async () => ({ status: 'ready', taskId, completedTurnId: 'ready-turn' }),
+    welcome: async () => ({ status: 'completed', turnId: 'welcome-turn' }),
     openTask: id => opened.push(id) });
   assert.equal(result.status, 'ready');
+  assert.equal(result.welcomeStatus, 'completed');
   assert.deepEqual(opened, [taskId]);
+});
+
+test('post-bootstrap welcome is sent once and requires a completed human-facing answer', async () => {
+  const taskId = '00000000-0000-4000-8000-000000000012';
+  const binding = { agentId: 'personal-governor', status: 'active',
+    scope: { humanProfileId: 'example-human' },
+    initialization: { completedTurnId: 'activation-turn' } };
+  const registry = { instances: { [taskId]: binding } };
+  const calls = [];
+  const client = { request: async (method, params) => {
+    calls.push({ method, params });
+    if (method === 'thread/read' && !params.includeTurns)
+      return { thread: { id: taskId, projectId: null, status: { type: 'idle' } } };
+    if (method === 'turn/start') return { turn: { id: 'welcome-turn', status: 'inProgress' } };
+    if (method === 'thread/read') return { thread: { id: taskId, projectId: null, turns: [{
+      id: 'welcome-turn', status: 'completed', items: [{ type: 'agentMessage', phase: 'final_answer',
+        text: 'Welcome, Example Human. I verified memory and found no configured scheduled follow-ups.' }],
+    }] } };
+    throw new Error(`unexpected ${method}`);
+  } };
+  const options = { readRegistry: () => registry,
+    updateReceipt: (_, __, expected, next) => {
+      assert.deepEqual(binding.initialization.welcome ?? null, expected);
+      binding.initialization.welcome = next;
+    }, requestId: () => 'welcome-request', now: () => 0 };
+  const result = await runGovernorWelcome(client, '/unused/registry.json', taskId,
+    'example-human', options);
+  assert.deepEqual(result, { status: 'completed', turnId: 'welcome-turn' });
+  assert.equal(calls.filter(call => call.method === 'turn/start').length, 1);
+  assert.match(calls.find(call => call.method === 'turn/start').params.input[0].text,
+    /scheduled follow-ups/);
+  assert.deepEqual(await runGovernorWelcome(client, '/unused/registry.json', taskId,
+    'example-human', options), result);
+  assert.equal(calls.filter(call => call.method === 'turn/start').length, 1);
+});
+
+test('a token-only welcome is blocked and never resubmitted', async () => {
+  const taskId = '00000000-0000-4000-8000-000000000013';
+  const binding = { agentId: 'personal-governor', status: 'active',
+    scope: { humanProfileId: 'example-human' },
+    initialization: { completedTurnId: 'activation-turn' } };
+  const registry = { instances: { [taskId]: binding } };
+  let starts = 0;
+  const client = { request: async (method, params) => {
+    if (method === 'turn/start') {
+      starts++;
+      return { turn: { id: 'welcome-turn', status: 'inProgress' } };
+    }
+    if (params.includeTurns) return { thread: { id: taskId, projectId: null,
+      turns: [{ id: 'welcome-turn', status: 'completed', items: [{ type: 'agentMessage',
+        phase: 'final_answer', text: 'PERSONAL_GOVERNOR_READY' }] }] } };
+    return { thread: { id: taskId, projectId: null, status: { type: 'idle' } } };
+  } };
+  const options = { readRegistry: () => registry,
+    updateReceipt: (_, __, expected, next) => {
+      assert.deepEqual(binding.initialization.welcome ?? null, expected);
+      binding.initialization.welcome = next;
+    }, requestId: () => 'welcome-request', now: () => 0 };
+  const result = await runGovernorWelcome(client, '/unused/registry.json', taskId,
+    'example-human', options);
+  assert.deepEqual(result, { status: 'blocked', reason: 'GOVERNOR_WELCOME_REPORT_MISSING' });
+  assert.deepEqual(await runGovernorWelcome(client, '/unused/registry.json', taskId,
+    'example-human', options), result);
+  assert.equal(starts, 1);
 });
 
 test('launcher reuses a verified active Governor without another INIT', async () => {
