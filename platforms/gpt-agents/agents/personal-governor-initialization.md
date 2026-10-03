@@ -1,12 +1,25 @@
 # GPT Personal Governor initialization
 
-The Personal Governor is a persistent human-scoped agent. It is not owned by a workflow profile and does not require Admin, Manager, or System to initialize it.
+The Personal Governor is a persistent human-scoped agent. It is not owned by a workflow profile and does not require
+a workflow Admin, profile Admin, Manager, or System to initialize it. `INIT`, self-bootstrap, and recovery of this
+exact task's own pending lifecycle binding remain on this Governor lifecycle route; they do not enter workflow Admin
+initialization or readiness checks.
 
 ## Manual bootstrap
 
-A human may create a fresh GPT task/chat and explicitly request `Personal Governor INIT`, `Initialize Personal Governor`, or `Initialize Personal Governor for <human-profile-id>`.
+A human may explicitly request `Personal Governor INIT`, `Initialize Personal Governor`, or `Initialize Personal
+Governor for <human-profile-id>` from any GPT task/chat, including an unbound chat or an existing workflow/project
+chat. The receiving chat routes that request to the existing Personal Governor plugin/controller; it does not become
+the Governor, abandon or broaden its current identity, or require a workflow/profile Admin. The controller checks the
+host's exact active and pending Governor receipts, then creates a fresh-history projectless Governor task or reconciles
+the exact existing projectless target as the verified lifecycle state requires. It never creates the Governor inside
+the requesting chat's saved project.
 
-That direct request is sufficient to select the Personal Governor bootstrap route, but not sufficient to invent identity or resources. When an explicit INIT is made in a fresh chat and exactly one verified active Governor receipt exists, use that receipt's exact human profile and canonical human-profile source; do not ask the human to repeat the profile ID or reopen the predecessor. Otherwise resolve the exact human profile under the activated private profile catalog and verify:
+That direct request is sufficient to select the Personal Governor bootstrap route, but not sufficient to invent
+identity or resources. When the request originates in any chat and exactly one verified Governor receipt resolves the
+human, use that receipt's exact human profile and canonical human-profile source; do not ask the human to repeat the
+profile ID or reopen the predecessor. Otherwise resolve the exact human profile under the activated private profile
+catalog and verify:
 
 - `type: human`;
 - exact human profile ID;
@@ -17,9 +30,30 @@ That direct request is sufficient to select the Personal Governor bootstrap rout
 
 ### Bootstrap question policy
 
-During Personal Governor INIT, ask the human **only** for the exact human profile ID, and only when no unique verified Governor receipt or trusted host profile selection resolves it. Do not ask for a role, workflow, project, platform, memory provider, memory path, title, pinning preference, prior-chat disposition, or other setup detail: resolve those from the selected human profile and platform contract. If any declared source is absent, ambiguous, unusable, or conflicts with the binding, report the concrete blocker rather than turning configuration discovery into a questionnaire.
+From the requesting chat through target-task INIT, ask the human **only** for the exact human profile ID, and only
+when no unique verified Governor receipt or trusted host profile selection resolves it. Do not ask for a role,
+workflow, project, platform, memory provider, memory path, title, pinning preference, prior-chat disposition, or other
+setup detail: resolve those from the selected human profile and platform contract. If any declared source is absent,
+ambiguous, unusable, or conflicts with the binding, report the concrete blocker rather than turning configuration
+discovery into a questionnaire.
 
-If an exact active Governor already exists for that human and the human uses this fresh chat to initialize a replacement, the initializer creates a **pending successor** rather than reopening or adopting the old chat. The predecessor remains active while the successor verifies its sources and returns `PERSONAL_GOVERNOR_READY`. Only the host's successful activation of that exact successor may atomically supersede the verified predecessor. Then pin the successor and set its presentation title to `🧭 Personal Governor`; retain the predecessor until the human chooses recoverable archival. A title or pin never establishes identity.
+If an exact active Governor already exists for that human and the human requests a replacement from any chat, the
+initializer creates a **pending successor** rather than reopening or adopting either the old chat or the requesting
+chat. The predecessor remains active while the fresh projectless successor verifies its sources and returns
+`PERSONAL_GOVERNOR_READY`. Only the host's successful activation of that exact successor may atomically supersede the
+verified predecessor. Then pin the successor and set its presentation title to `🧭 Personal Governor`; retain the
+predecessor until the human chooses archival that preserves its history. An archived predecessor is terminal for Governor
+runtime identity. A title or pin never establishes identity.
+
+If this exact task already has a trusted pending Governor binding, resume only its host-authorized initialization
+transaction through the platform lifecycle controller. Do not create a duplicate, seek Admin approval, or treat a
+different task's receipt as authority. A pending receipt is not active identity: the task remains limited to bootstrap
+verification until a matching initialization turn verifies the canonical human profile, authoritative memory route,
+and authorized contexts, returns the exact readiness token, and the host activates that exact binding. If the pending
+task is archived, record that exact archived state through the lifecycle controller and initialize a separate
+fresh-history projectless task. Never reopen, retry, recover, or reactivate an archived Governor. If an unarchived
+binding is stale or conflicting, report the blocker and use only the lifecycle controller's supported reconciliation
+path; do not self-certify activation or invent a repair.
 
 If the human profile is absent, ambiguous, or conflicting, stop read-only.
 
@@ -35,11 +69,16 @@ before claiming future silence.
 
 Load the portable Personal Governor role/policies, then the selected human profile's Governor and memory bindings. Require the Governor binding and memory manifest to name the same authoritative provider. For `git-profile-memory`, resolve the manifest's `path` against the human profile directory, require a readable and writable Markdown file inside that profile's `memory/` directory, and verify that the Governor cutover chain resolves to that exact file. Verify that the current task environment can open that authoritative file for writing before claiming full readiness. This private Git file is the only authoritative writable Governor memory. A Synology backup target is not a second authority and is not a destination for Governor memory writes. For a legacy `permanent-memory-synology` binding, resolve its declared `providerConfig` against the human profile directory and check that provider's read/write status. A matching file in another profile, an old Git revision, or a readable local folder cannot replace a missing declared source. Do not infer storage from paths or conversation history. Report a missing or conflicting declared binding as a binding error. Report a file-write or network permission denial as a restriction of the current task environment; it does not revoke Governor memory authority or establish that GitHub is unavailable machine-wide.
 
-The Governor may initialize itself because no workflow/profile Admin owns it. Self-bootstrap grants only the authority declared by the human profile.
+For each authorized workflow context, match its declared `path` to the selected work profile's workflow entry, then resolve the workflow definition at `<ai_workflows_root>/<workflow-id>/<declared-path>`, with `ai_workflows_root` relative to that work profile's directory. A root-relative lookup without the workflow-ID directory is not the canonical layout and must not be reported as a missing workflow. Check the exact resolved file and project references; never substitute a same-named workflow from another profile.
+
+The Governor may initialize itself because no workflow or profile Admin owns it. Self-bootstrap grants only the
+authority declared by the human profile. Bootstrap and pending-binding recovery end at host-verified Governor
+readiness; they do not run the portable role's request-to-function mapping or its workflow-routing/Admin-readiness
+steps. Those steps apply only to a later ordinary request that actually requires workflow-owned work.
 
 Before creating a replacement, read the human profile for the desired Governor binding and check the host's active and archived task catalogs for the actual task. The GPT host plugin can supply an exact task ID for lookup, but its stored binding does not automatically observe host-side deletion. Confirm the exact task ID with the host and recheck its declared memory route. If the host cannot find it in either catalog, report a stale plugin binding and reconcile it through the platform lifecycle procedure before replacement. Do not call the missing task active, reuse it, or infer another task's identity from its title. Reinitialization is transactional: create/reconcile successor, initialize canonical config and memory, verify readiness, pin successor, then archive a predecessor only when it exists and is eligible for archival. Never archive the predecessor before successor readiness.
 
-A replacement Governor must be a fresh-history, projectless task created through the platform's new-task primitive. Never create it inside a workflow saved project or by forking, cloning, or otherwise inheriting the predecessor task. Its bootstrap payload may contain only canonical source references, durable-memory bindings, exact lifecycle identifiers, and the minimum initialization instruction. It must not contain or reconstruct the predecessor transcript, conversation summary, inherited turns, or broad conversation context. Conversation history is not Governor memory; continuity comes only from canonical configuration and the declared authoritative memory route. The predecessor task ID may be retained solely for verified cutover and recoverable archival.
+A replacement Governor must be a fresh-history, projectless task created through the platform's new-task primitive. Never create it inside a workflow saved project or by forking, cloning, or otherwise inheriting the predecessor task. Its bootstrap payload may contain only canonical source references, durable-memory bindings, exact lifecycle identifiers, and the minimum initialization instruction. It must not contain or reconstruct the predecessor transcript, conversation summary, inherited turns, or broad conversation context. Conversation history is not Governor memory; continuity comes only from canonical configuration and the declared authoritative memory route. The predecessor task ID may be retained solely for verified cutover and history-preserving archival.
 
 ## GPT presentation
 

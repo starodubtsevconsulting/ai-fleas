@@ -8,7 +8,21 @@ import assert from 'node:assert/strict';
 import { registerAgentInitialization, rollbackAgentInitialization } from './register-agent-initialization.mjs';
 function memory() {
   const files = new Map();
-  return {files, fs: {existsSync: file => files.has(file), readFileSync: file => files.get(file), mkdirSync() {}, writeFileSync: (file, data) => files.set(file, data), renameSync: (from,to) => {files.set(to, files.get(from)); files.delete(from);}}};
+  return {files, fs: {
+    existsSync: file => files.has(file),
+    readFileSync: file => files.get(file),
+    mkdirSync() {},
+    openSync: file => {
+      if (files.has(file)) throw Object.assign(new Error('exists'), { code: 'EEXIST' });
+      files.set(file, '');
+      return { path: file };
+    },
+    closeSync() {},
+    unlinkSync: file => files.delete(file),
+    statSync: () => ({ mtimeMs: Date.now() }),
+    writeFileSync: (file, data) => files.set(typeof file === 'object' ? file.path : file, data),
+    renameSync: (from,to) => {files.set(to, files.get(from)); files.delete(from);},
+  }};
 }
 const binding = {platformAdapter:'codex-app', agentId:'admin', generation:1, scope:{kind:'workflow'}, initialization:{readinessToken:'ADMIN_READY', sources:[{id:'rules',ref:'/fictional/rules.md'}]}};
 function register(io) { return registerAgentInitialization({sessionId:'task-one',binding,prompt:'INIT\n',dataRoot:'/fictional/runtime'}, {fs:io.fs,now:new Date('2026-01-01T00:00:00Z')}); }
@@ -43,4 +57,46 @@ test('renewed registration receives a distinct cryptographic one-use permit nonc
   assert.match(a, /^[0-9a-f-]{36}$/);
   assert.match(b, /^[0-9a-f-]{36}$/);
   assert.notEqual(a, b);
+});
+
+test('Governor registration permits only one pending successor for one active human', () => {
+  const io = memory();
+  const file = '/fictional/runtime/agent-bindings.json';
+  const governor = { platformAdapter: 'codex-app', agentId: 'personal-governor', generation: 2,
+    scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+    replaces: { taskId: 'old', generation: 1, strategy: 'successor-first' },
+    initialization: { readinessToken: 'PERSONAL_GOVERNOR_READY',
+      sources: [{ id: 'role', ref: '/fictional/role.md' }] } };
+  io.files.set(file, JSON.stringify({ instances: { old: {
+    status: 'active', agentId: 'personal-governor', generation: 1,
+    scope: { humanProfileId: 'example-human' },
+  } } }));
+  const create = (sessionId, candidate) => registerAgentInitialization({
+    sessionId, binding: candidate, prompt: 'INIT', dataRoot: '/fictional/runtime',
+  }, { fs: io.fs, now: new Date('2026-01-01T00:00:00Z') });
+  assert.equal(create('successor', governor).status, 'pending');
+  assert.throws(() => create('another', governor), /GOVERNOR_SINGLETON_BINDING_CONFLICT/);
+  const registry = JSON.parse(io.files.get(file));
+  registry.instances.successor.status = 'archived';
+  registry.instances.old.status = 'archived';
+  io.files.set(file, JSON.stringify(registry));
+  assert.equal(create('fresh', { ...governor, generation: 3, replaces: undefined }).status, 'pending');
+});
+
+test('Governor failed delivery rolls back only its unchanged receipt under the shared lock', () => {
+  const io = memory();
+  const governor = { platformAdapter: 'codex-app', agentId: 'personal-governor', generation: 1,
+    scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+    initialization: { readinessToken: 'PERSONAL_GOVERNOR_READY',
+      sources: [{ id: 'role', ref: '/fictional/role.md' }] } };
+  const registration = registerAgentInitialization({ sessionId: 'fresh', binding: governor,
+    prompt: 'INIT', dataRoot: '/fictional/runtime' }, { fs: io.fs });
+  const file = registration.rollbackReceipt.registryPath;
+  const registry = JSON.parse(io.files.get(file));
+  registry.instances.other = { status: 'active', agentId: 'admin' };
+  io.files.set(file, JSON.stringify(registry));
+  assert.equal(rollbackAgentInitialization(registration.rollbackReceipt, { fs: io.fs }), true);
+  assert.deepEqual(JSON.parse(io.files.get(file)).instances,
+    { other: { status: 'active', agentId: 'admin' } });
+  assert.equal(io.files.has(`${file}.governor.lock`), false);
 });

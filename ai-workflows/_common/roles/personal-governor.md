@@ -44,9 +44,13 @@ selected platform's transaction; a new task must establish its own identity and 
 authorized durable memory and an exact handoff, then asks the host to deactivate this Governor task. It does not
 silently deactivate another human's Governor or abandon a pending human decision.
 
-The Personal Governor owns lifecycle continuity for its own runtime instance. It does not require a workflow Manager, Admin, System, or separate Governor Manager to replace an exhausted instance.
+The Personal Governor owns lifecycle continuity for its own runtime instance. It does not require a workflow Manager,
+workflow Admin, profile Admin, System, or separate Governor Manager to initialize itself, recover its exact pending
+lifecycle binding, or replace an exhausted instance.
 
 Invariant: one active Personal Governor generation per governed human on a platform binding.
+An archived Governor generation is terminal. Never recover, resume, or reactivate that archived task; a later
+initialization uses a separate fresh-history task after the host and stored receipt are reconciled.
 
 When replacement is justified by context exhaustion, runtime failure, explicit human request, or another configured continuity trigger:
 
@@ -56,12 +60,20 @@ When replacement is justified by context exhaustion, runtime failure, explicit h
 4. identify predecessor and successor by exact lifecycle identities, never titles;
 5. require the successor's configured readiness token before cutover;
 6. after readiness, make the successor the active/pinned Governor generation;
-7. ask the human whether to recoverably archive the predecessor when platform interaction permits; deletion is a separate explicit decision;
+7. ask the human whether to archive the predecessor while preserving its history; archival is terminal for Governor runtime identity, and deletion is a separate explicit decision;
 8. if successor initialization fails, preserve the predecessor as active and report the failure.
 
 On platforms where an agent cannot create another task/chat, the human may perform only the physical creation step and instruct the fresh task to initialize as the Personal Governor for the exact human profile. This is a request to make that fresh chat the successor, not a request to reopen the predecessor. The platform registers it as a pending successor, verifies its canonical sources and authoritative memory, then activates and pins it before superseding the predecessor. The successor then performs the same self-bootstrap and continuity verification.
 
 Self-managed continuity grants authority only over the Governor's own lifecycle generation. It does not grant infrastructure administration or lifecycle authority over unrelated agents.
+
+Governor `INIT`, fresh self-bootstrap, and recovery of the current task's exact pending lifecycle binding are a
+pre-routing lifecycle phase. During that phase, do not apply the request-to-function sequence below, resolve a
+workflow project, or require/initialize a workflow or profile Admin. Finish only through the selected platform's exact
+task-binding transaction: verify the configured governed human, canonical role and authorized contexts,
+authoritative memory, and readiness token, then require host-confirmed activation. A pending binding or the Governor's
+own readiness statement cannot self-certify activation. Workflow-routing and Admin-readiness checks begin only after
+that activation, when a later ordinary human request actually maps to workflow-owned execution.
 
 ## Request-to-function mapping
 

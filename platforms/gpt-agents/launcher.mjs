@@ -2,7 +2,8 @@
 /** GPT host launcher, invoked by setup scripts or the human/controller CLI.
  * Inputs: setup/doctor/launch/initialize-governor/preflight-admin arguments and declared configuration.
  * Output: diagnostics or launch status. Effects: may install/update host components,
- * change desktop preferences, launch the app, or invoke the Governor binding transaction.
+ * change desktop preferences, launch the app, ask for an exact human ID, create one
+ * projectless Governor task when needed, or invoke its binding transaction.
  * The platform ID is codex-app; gpt-agents remains the command/directory name.
  */
 import fs from 'node:fs';
@@ -11,6 +12,11 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { ensureQueuedFollowUps } from './desktop-preferences.mjs';
+import { connectNativeAppServer } from './native-app-server.mjs';
+import { hostTaskState } from './initialize-governor.mjs';
+import { withGovernorRegistryLock } from './plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/governor-registry-lock.mjs';
+import { ensurePersonalGovernor, readGovernorRegistry, resolveGovernorHumanDir,
+  selectGovernorHuman } from './governor-launch.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = fs.realpathSync(path.resolve(scriptDir, '../..'));
@@ -19,6 +25,7 @@ const requiredPlugins = ['ai-fleas-gpt'];
 const legacyPlugins = ['ai-fleas-agent-bootstrap', 'ai-fleas-workflow-router'];
 const codexHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex');
 const openBin = process.env.AI_FLEAS_OPEN_BIN || 'open';
+const osascriptBin = process.env.AI_FLEAS_OSASCRIPT_BIN || 'osascript';
 const platform = process.env.AI_FLEAS_OS || process.platform;
 const agentStatusPrompt = [
   'Check AI Fleas status now.',
@@ -27,7 +34,28 @@ const agentStatusPrompt = [
   'Do not create, reinitialize, archive, or otherwise mutate agents.',
 ].join(' ');
 
+function launchLogFile() {
+  return path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'),
+    'ai-fleas', 'gpt-agents', 'launcher.log');
+}
+
+function launchEvent(event, details = {}) {
+  try {
+    const file = launchLogFile();
+    fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
+    const descriptor = fs.openSync(file, 'a', 0o600);
+    try {
+      fs.fchmodSync(descriptor, 0o600);
+      fs.writeSync(descriptor, `${JSON.stringify({ at: new Date().toISOString(), pid: process.pid,
+        event, ...details })}\n`);
+    } finally { fs.closeSync(descriptor); }
+  } catch (error) {
+    process.stderr.write(`AI_FLEAS_GPT_LOG_WARNING: ${error.message}\n`);
+  }
+}
+
 function fail(message) {
+  launchEvent('blocked', { message: String(message).slice(0, 1000) });
   process.stderr.write(`AI_FLEAS_GPT_BLOCKED: ${message}\n`);
   process.exit(1);
 }
@@ -169,10 +197,27 @@ class AgentStatusNavigator {
     this.agentBindingsFile = agentBindingsFile;
   }
 
-  open() {
+  async open(taskId) {
     run(openBin, ['-a', 'ChatGPT']);
-    const taskId = this.#activeGovernorTaskId();
     if (!taskId) return this.#openOnboarding();
+
+    let client;
+    let observed;
+    try {
+      client = await connectNativeAppServer({
+        socketPath: path.join(codexHome, 'app-server-control/app-server-control.sock'),
+      });
+      observed = await hostTaskState(client, taskId);
+    } catch (error) {
+      process.stderr.write(`AI_FLEAS_GPT_STATUS_WARNING: Governor host catalog could not be verified: ${error.message}.\n`);
+      return this.#openOnboarding();
+    } finally {
+      client?.close();
+    }
+    if (!observed || observed.archived) {
+      this.#recordUnavailableGovernor(taskId, observed?.archived ? 'archived' : 'missing');
+      return this.#openOnboarding();
+    }
 
     let queueResult;
     for (let attempt = 0; attempt < 8; attempt += 1) {
@@ -187,7 +232,6 @@ class AgentStatusNavigator {
 
     if (queueResult?.error || queueResult?.status !== 0) {
       const detail = queueResult?.error?.message || queueResult?.stderr?.trim() || queueResult?.stdout?.trim() || '';
-      if (/\bis archived\b/i.test(detail)) this.#recordArchivedGovernor(taskId);
       process.stderr.write('AI_FLEAS_GPT_STATUS_WARNING: The recorded Governor is unavailable; opening Personal Governor onboarding.\n');
       return this.#openOnboarding();
     }
@@ -201,38 +245,64 @@ class AgentStatusNavigator {
     return { destination: 'plugin-onboarding' };
   }
 
-  #recordArchivedGovernor(taskId) {
-    let registry;
-    try {
-      registry = JSON.parse(fs.readFileSync(this.agentBindingsFile, 'utf8'));
-    } catch {
-      return;
-    }
-    const binding = registry?.instances?.[taskId];
-    if (binding?.status !== 'active') return;
-    binding.status = 'archived';
-    binding.archivedAt = new Date().toISOString();
-    binding.archiveObservedBy = 'launcher-queue';
-    const temporary = `${this.agentBindingsFile}.${process.pid}.tmp`;
-    fs.writeFileSync(temporary, `${JSON.stringify(registry, null, 2)}\n`, { mode: 0o600 });
-    fs.renameSync(temporary, this.agentBindingsFile);
+  #recordUnavailableGovernor(taskId, status) {
+    withGovernorRegistryLock(this.agentBindingsFile, () => {
+      let registry;
+      try { registry = JSON.parse(fs.readFileSync(this.agentBindingsFile, 'utf8')); }
+      catch { return; }
+      const binding = registry?.instances?.[taskId];
+      if (binding?.status !== 'active') return;
+      binding.status = status;
+      binding.unavailableAt = new Date().toISOString();
+      binding.unavailableObservedBy = 'launcher-host-catalog';
+      const temporary = `${this.agentBindingsFile}.${process.pid}.tmp`;
+      fs.writeFileSync(temporary, `${JSON.stringify(registry, null, 2)}\n`, { mode: 0o600 });
+      fs.renameSync(temporary, this.agentBindingsFile);
+    });
   }
 
-  #activeGovernorTaskId() {
-    if (!fs.existsSync(this.agentBindingsFile)) return null;
-    let registry;
-    try {
-      registry = JSON.parse(fs.readFileSync(this.agentBindingsFile, 'utf8'));
-    } catch {
-      return null;
-    }
-    const activeTaskIds = Object.entries(registry?.instances ?? {})
-      .filter(([, binding]) => binding?.agentId === 'personal-governor' &&
-        binding?.scope?.kind === 'governed-human' &&
-        binding?.status === 'active')
-      .map(([taskId]) => taskId);
-    return activeTaskIds.length === 1 ? activeTaskIds[0] : null;
+}
+
+function humanCatalogConfigFile() {
+  return path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'),
+    'ai-fleas', 'gpt-agents', 'humans-dir');
+}
+
+function configuredHumansDir() {
+  if (process.env.AI_FLEAS_HUMANS_DIR) return process.env.AI_FLEAS_HUMANS_DIR;
+  const file = humanCatalogConfigFile();
+  return fs.existsSync(file) ? fs.readFileSync(file, 'utf8').trim() : null;
+}
+
+function saveHumansDir(directory) {
+  if (!directory) return null;
+  const resolved = fs.realpathSync(directory);
+  if (!fs.statSync(resolved).isDirectory()) fail(`human profile catalog is not a directory: ${directory}`);
+  const file = humanCatalogConfigFile();
+  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
+  fs.writeFileSync(file, `${resolved}\n`, { mode: 0o600 });
+  return resolved;
+}
+
+function askHumanProfileId() {
+  const result = spawnSync(osascriptBin, ['-e',
+    'text returned of (display dialog "Which human profile should own the Personal Governor? Enter its exact ID." default answer "" buttons {"Cancel", "Initialize"} default button "Initialize")',
+  ], { encoding: 'utf8' });
+  if (result.status !== 0) {
+    if (/User canceled|(-128)/i.test(result.stderr ?? '')) return null;
+    throw new Error(result.error?.message || result.stderr?.trim() || 'GOVERNOR_HUMAN_SELECTION_FAILED');
   }
+  return result.stdout.trim();
+}
+
+function openLocalGovernor(taskId) {
+  // Target the installed desktop app and local host explicitly. An untargeted
+  // codex:// URL can be handled by a different app/window registration.
+  const app = chatGptApp();
+  if (!app) fail('ChatGPT.app is unavailable for Governor navigation');
+  launchEvent('navigation-request', { taskId });
+  run(openBin, ['-a', app, `codex://threads/${taskId}?hostId=local`]);
+  launchEvent('navigation-sent', { taskId });
 }
 
 function saveProfile(profileArg) {
@@ -246,7 +316,7 @@ function saveProfile(profileArg) {
   return resolved;
 }
 
-function setup(profileArg, migrate) {
+function setup(profileArg, migrate, humansDirArg) {
   prerequisites();
   const conflicts = conflictingPlugins();
   let marketplace = marketplaceState();
@@ -274,9 +344,11 @@ function setup(profileArg, migrate) {
     run(codexBin, ['plugin', 'remove', pluginId]);
   }
   const profile = saveProfile(profileArg);
+  const humansDir = saveHumansDir(humansDirArg);
   process.stdout.write([
     'AI Fleas GPT is installed as one user-facing plugin.',
     profile ? `Selected profile: ${profile}` : 'No private profile selected yet.',
+    humansDir ? `Selected human profile catalog: ${humansDir}` : 'Human profile catalog unchanged.',
     'If ChatGPT is running, quit it completely so it releases its cached plugin snapshot.',
     'Run the daily launcher, review and trust the AI Fleas GPT hooks, then start a new Codex task.',
   ].join('\n') + '\n');
@@ -305,7 +377,8 @@ function doctor() {
   if (result.status !== 'ready') process.exitCode = 2;
 }
 
-function launch() {
+async function launch() {
+  launchEvent('launch-start');
   const app = prerequisites();
   const conflicts = conflictingPlugins();
   if (conflicts.length) {
@@ -320,15 +393,53 @@ function launch() {
     fail(`setup is incomplete; run ${path.join(scriptDir, 'launcher.mjs')} setup first`);
   }
   const followUps = ensureQueuedFollowUps(path.join(codexHome, 'config.toml'));
-  const statusNavigator = new AgentStatusNavigator(path.join(
+  const registryFile = path.join(
     pluginDataDirectory(`ai-fleas-gpt@${marketplaceName}`),
     'agent-bindings.json',
-  ));
-  const navigation = statusNavigator.open();
-  const destination = navigation.destination === 'personal-governor'
-    ? 'The trusted Personal Governor is checking AI Fleas status.'
-    : 'A new onboarding chat is open. Select AI Fleas GPT and use its Personal Governor action.';
+  );
+  run(openBin, ['-a', 'ChatGPT']);
+  const registry = readGovernorRegistry(registryFile);
+  launchEvent('registry-read', { governorReceipts: Object.values(registry.instances).filter(item =>
+    item?.agentId === 'personal-governor').length });
+  let selectedHuman;
+  try { selectedHuman = selectGovernorHuman(registry, human, askHumanProfileId); }
+  catch (error) {
+    if (error.message === 'GOVERNOR_HUMAN_ID_REQUIRED') {
+      process.stdout.write('Personal Governor initialization canceled; no task was created.\n');
+      return;
+    }
+    throw error;
+  }
+  const humanDirectory = resolveGovernorHumanDir(registry, selectedHuman,
+    { humansDir: configuredHumansDir() });
+  const client = await connectNativeAppServer({
+    socketPath: path.join(codexHome, 'app-server-control/app-server-control.sock'),
+    maxFrameBytes: 64 * 1024 * 1024,
+  });
+  const tracedClient = { ...client, async request(method, params) {
+    try { return await client.request(method, params); }
+    catch (error) {
+      launchEvent('host-request-failed', { method, message: error.message.slice(0, 500) });
+      throw error;
+    }
+  } };
+  let result;
+  try {
+    result = await ensurePersonalGovernor({ client: tracedClient, registryFile, humanId: selectedHuman,
+      humanDir: humanDirectory,
+      openTask: openLocalGovernor });
+  } finally { client.close(); }
+  launchEvent('governor-resolved', { taskId: result.taskId, status: result.status });
+  if (result.status === 'existing') {
+    openLocalGovernor(result.taskId);
+  }
+  const destination = result.status === 'existing'
+    ? 'Navigation to the trusted Personal Governor was requested; no initialization or platform-health check was queued.'
+    : result.status === 'ready'
+      ? 'Personal Governor initialization completed and the verified task is pinned.'
+      : 'Personal Governor initialization is pending in the opened task.';
   process.stdout.write(`AI Fleas GPT is ready. Follow-up behavior: Queue${followUps.changed ? ' (updated)' : ''}. ${destination}\n`);
+  launchEvent('launch-finished', { taskId: result.taskId, status: result.status });
 }
 
 const args = process.argv.slice(2);
@@ -337,6 +448,7 @@ let profile = null;
 let migrate = false;
 let human = null;
 let humanDir = null;
+let humansDir = null;
 let thread = null;
 let requestFile = null;
 while (args.length) {
@@ -345,20 +457,22 @@ while (args.length) {
   else if (option === '--migrate') migrate = true;
   else if (option === '--human' && args.length) human = args.shift();
   else if (option === '--human-dir' && args.length) humanDir = args.shift();
+  else if (option === '--humans-dir' && args.length) humansDir = args.shift();
   else if (option === '--thread' && args.length) thread = args.shift();
   else if (option === '--request' && args.length) requestFile = args.shift();
   else fail(`unknown or incomplete option: ${option}`);
 }
 
 if (requestFile && action !== 'preflight-admin') fail('--request is only valid for preflight-admin');
+if (humansDir && action !== 'setup') fail('--humans-dir is only valid for setup');
 if (action === 'preflight-admin') {
   if (!requestFile || profile || migrate || human || humanDir || thread) {
     fail('usage: launcher.mjs preflight-admin --request REQUEST.json');
   }
   process.stdout.write(run(process.execPath, [path.join(scriptDir, 'admin-initialization.mjs'), requestFile]));
-} else if (action === 'setup') setup(profile, migrate);
+} else if (action === 'setup') setup(profile, migrate, humansDir);
 else if (action === 'doctor') doctor();
-else if (action === 'launch') launch();
+else if (action === 'launch') launch().catch(error => fail(error.message));
 else if (action === 'initialize-governor') {
   if (!human || !humanDir || !thread || profile || migrate) {
     fail('usage: launcher.mjs initialize-governor --human ID --human-dir PATH --thread TASK_ID');

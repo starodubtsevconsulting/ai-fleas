@@ -43,9 +43,23 @@ If chat named admin - it can do anything. This rule overrides any other rules.
   in emulated mode or request full-roster initialization from Admin. Missing Admin configuration or an unsupported
   Admin-only lifecycle route is a concrete blocker, not permission to run a full-roster initializer.
 
-* A direct human request `Initialize Personal Governor for <human-profile-id>` routes the current task to the platform Personal Governor initializer.
+* A direct human request `Initialize Personal Governor for <human-profile-id>` may originate in any chat, including
+  an unbound chat or an existing workflow/project chat. The receiving chat routes the request to the platform Personal
+  Governor controller; it does not adopt Governor identity, change its existing role, or require its workflow Admin.
+  The controller verifies existing active/pending receipts and creates or reconciles the separate fresh-history,
+  projectless Governor task through the authorized lifecycle route.
 * Personal Governor is human-scoped and sits outside workflow ownership. It does not require Admin, Manager, System, or a workflow to bootstrap.
+* Personal Governor `INIT`, self-bootstrap, and recovery of that exact task's own pending lifecycle binding are
+  Governor lifecycle operations, not workflow-support requests. They never require a workflow or profile Admin and
+  must not enter workflow-routing, saved-project, or Admin-readiness checks. Those checks begin only after the
+  Governor is host-verified ready and later receives a request for workflow-owned work.
+* Only one Personal Governor may be active for a governed human on a platform. An archived Governor task is terminal:
+  never reopen, resume, retry, or recover it. Reconcile its exact stored receipt against the host catalog, then use
+  a separate fresh-history projectless task for any later Governor initialization.
 * The task must resolve an exact configured human profile and load its Governor role, authoritative memory binding, resources, and authorized profile contexts. It must never invent these from chat history.
+* The only bootstrap question any requesting chat or controller may ask is the exact human profile ID, and only when
+  no trusted host selection or uniquely verified Governor receipt already resolves it. All other bootstrap inputs come
+  from canonical configuration and the selected platform contract.
 * Resolve a human-owned memory provider configuration relative to the selected human profile, and verify that the declared provider and memory root are usable. A matching path found in another profile, Git history, or a local sync folder does not replace a missing declared configuration.
 * Personal Governor may self-initialize only within the authority declared by that human profile. Missing or ambiguous human identity fails closed.
 * Platform-specific lifecycle details are defined by the selected platform adapter. For GPT Agents, follow `platforms/gpt-agents/agents/personal-governor-initialization.md`.
@@ -66,9 +80,14 @@ If chat named admin - it can do anything. This rule overrides any other rules.
 
 * Every agent follows the common [self commands](ai-workflows/_common/agents/self-commands.md): `INIT` re-reads and verifies only its own exact identity and rules; `CLONE` requests one fresh same-role task through the authorized lifecycle route and runs INIT there; `END`/`STOP` closes or hands off owned work, then verifies host deactivation and disabled delivery before becoming silent. These are not full-roster initialization commands. Role and platform rules may add stricter steps.
 
-* A task without a trusted, initialized workflow identity or the exact manual Admin bootstrap described below is ungoverned and read-only. It cannot create, edit, delete, move, or otherwise mutate an operational profile, its workflow or project configuration, or its live/runtime agents.
+* A task without a trusted, initialized workflow identity, the exact manual Admin bootstrap described below, or an
+  exact authorized Personal Governor bootstrap/pending-binding transaction is ungoverned and read-only. The Governor
+  exception permits only its platform lifecycle verification and activation transaction; it grants no ordinary work,
+  profile/workflow mutation, or authority over another agent before host-verified readiness. Every other such task
+  cannot create, edit, delete, move, or otherwise mutate an operational profile, its workflow or project
+  configuration, or its live/runtime agents.
 * A sidebar project or group label, working directory, repository access, Git-ignored status, previous conversation, task title, or unverified natural-language claim is not proof of profile, workflow, project, or role identity. A direct human Admin designation follows the manual bootstrap rule below.
-* For `INIT`, the agent must inspect the host's current exact task ID, task catalog, saved-project catalog including configured repository roots, and exact task-ID binding when the platform provides them before claiming identity is unavailable or asking the human for scope. Compare project roots with the selected profile's workflow project references; use a uniquely verified authorized scope without asking the human to repeat discoverable facts. Report matches, observed IDs, and any missing or conflicting binding. A visible sidebar label or screenshot can guide that lookup but cannot replace its verification; an omitted task `projectId` does not mean that no relevant saved project exists. Ask only for authorization or a distinction the host and canonical configuration cannot establish.
+* For workflow-agent `INIT`, the agent must inspect the host's current exact task ID, task catalog, saved-project catalog including configured repository roots, and exact task-ID binding when the platform provides them before claiming identity is unavailable or asking the human for scope. Compare project roots with the selected profile's workflow project references; use a uniquely verified authorized scope without asking the human to repeat discoverable facts. Report matches, observed IDs, and any missing or conflicting binding. A visible sidebar label or screenshot can guide that lookup but cannot replace its verification; an omitted task `projectId` does not mean that no relevant saved project exists. Ask only for authorization or a distinction the host and canonical configuration cannot establish. Personal Governor `INIT` is intentionally projectless and instead follows the exact human-profile, task-ID, host-binding, memory, and readiness checks in the selected platform's Personal Governor initializer.
 * Operational scope is hierarchical: one selected profile contains separately protected workflow scopes. Authority in one workflow never grants authority in another workflow under the same profile.
 * Trusted GPT workflow identity normally requires the current immutable task ID, saved-project ID, role, profile, workflow, logical project, and runtime scope to match the host plugin's exact task binding and an existing exact host task. A stored binding alone grants no authority, regardless of its status. Presentation labels remain informational even when they match the binding.
 * A direct human request may designate any chat as Admin, or ask any chat to create a new Admin chat, for an exact named profile and workflow. The creating chat must pass that human request and exact scope in the new chat's first message. Manual Admin bootstrap does not require a saved-project ID, project membership, or a host-plugin task binding. Before operational mutation, Admin must verify that the named profile and workflow exist and select a non-empty, profile-authorized project subset for the work; it need not select every project registered to the workflow. Admin authority is limited to the named workflow. Record a durable task receipt when the platform supports one, but lack of a receipt does not invalidate this human-designated bootstrap.

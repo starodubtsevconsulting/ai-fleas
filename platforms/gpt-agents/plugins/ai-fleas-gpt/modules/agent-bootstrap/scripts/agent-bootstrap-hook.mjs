@@ -9,9 +9,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { initializationCompletion, initializationPromptMatches } from './readiness-evidence.mjs';
+import { withGovernorRegistryLock } from './governor-registry-lock.mjs';
 import {
   AgentBindingRegistry,
   PersonalGovernorOnboarding,
+  personalGovernorInitRequest,
 } from './personal-governor-onboarding.mjs';
 
 function readInput() {
@@ -112,15 +114,19 @@ const binding = bindingFor(registry, input.session_id);
 const personalGovernorOnboarding = new PersonalGovernorOnboarding(
   new AgentBindingRegistry(registryPath()),
 );
-const explicitGovernorInit = /^(?:personal governor\s+init|init(?:ialize)?\s+personal governor)$/i
-  .test(String(input.prompt ?? '').trim());
+const governorInit = personalGovernorInitRequest(input.prompt);
+const governorOnboarding = personalGovernorOnboarding.isOnboardingRequest(input);
+const onboardingContext = () => personalGovernorOnboarding.buildOnboardingInstructions({
+  isExplicitInit: governorInit !== null,
+  humanProfileId: governorInit?.humanProfileId ?? null,
+});
 
 if (!binding) {
-  if (personalGovernorOnboarding.isOnboardingRequest(input)) {
+  if (governorOnboarding) {
     emit({
       hookSpecificOutput: {
         hookEventName: input.hook_event_name,
-        additionalContext: personalGovernorOnboarding.buildOnboardingInstructions({ isExplicitInit: explicitGovernorInit }),
+        additionalContext: onboardingContext(),
       },
     });
   } else {
@@ -130,7 +136,11 @@ if (!binding) {
   emit({
     hookSpecificOutput: {
       hookEventName: input.hook_event_name,
-      additionalContext: 'AI_FLEAS_AGENT_INITIALIZATION_EXPIRED\nThe pending host initialization permit expired. This task remains unbound and read-only until the lifecycle controller issues a new permit.',
+      additionalContext: [
+        'AI_FLEAS_AGENT_INITIALIZATION_EXPIRED',
+        'The pending host initialization permit expired. This task remains unbound and read-only until the lifecycle controller reconciles or issues a new permit.',
+        governorOnboarding ? onboardingContext() : null,
+      ].filter(Boolean).join('\n'),
     },
   });
 } else if (input.hook_event_name === 'SessionStart') {
@@ -147,23 +157,82 @@ if (!binding) {
     emit({
       hookSpecificOutput: {
         hookEventName: input.hook_event_name,
-        additionalContext: activeContext(binding),
+        additionalContext: governorOnboarding
+          ? `${activeContext(binding)}\n${onboardingContext()}`
+          : activeContext(binding),
       },
     });
   } else {
-    const matchedPrompt = initializationPromptMatches(binding, input);
+    let matchedPrompt = initializationPromptMatches(binding, input);
     if (matchedPrompt) {
-      binding.initialization.turnId = input.turn_id ?? null;
-      binding.initialization.startedAt = new Date().toISOString();
-      atomicWrite(registryPath(), registry);
+      const recordTurn = () => {
+        const latest = readRegistry();
+        const current = latest?.instances?.[input.session_id];
+        if (current?.status !== 'pending' ||
+            JSON.stringify(current) !== JSON.stringify(binding) ||
+            !initializationPromptMatches(current, input)) return false;
+        current.initialization.turnId = input.turn_id ?? null;
+        current.initialization.startedAt = new Date().toISOString();
+        atomicWrite(registryPath(), latest);
+        return true;
+      };
+      try {
+        matchedPrompt = binding.agentId === 'personal-governor'
+          ? withGovernorRegistryLock(registryPath(), recordTurn)
+          : recordTurn();
+      } catch {
+        matchedPrompt = false;
+      }
     }
     emit({
       hookSpecificOutput: {
         hookEventName: input.hook_event_name,
-        additionalContext: pendingContext(binding, matchedPrompt),
+        additionalContext: governorOnboarding
+          ? `${pendingContext(binding, matchedPrompt)}\n${onboardingContext()}`
+          : pendingContext(binding, matchedPrompt),
       },
     });
   }
+} else if (input.hook_event_name === 'Stop' && binding.status === 'pending' &&
+    binding.agentId === 'personal-governor') {
+  let systemMessage;
+  try {
+    systemMessage = withGovernorRegistryLock(registryPath(), () => {
+      const latest = readRegistry();
+      const current = latest?.instances?.[input.session_id];
+      if (current?.status !== 'pending' || current.agentId !== 'personal-governor' ||
+          JSON.stringify(current) !== JSON.stringify(binding))
+        return 'Governor binding changed before readiness activation; reconcile exact lifecycle state.';
+      const completion = initializationCompletion(current, input);
+      if (!completion) return 'Governor initialization remains pending; reconcile the exact authorized turn and readiness evidence.';
+      const competing = Object.entries(latest.instances).some(([id, item]) =>
+        id !== input.session_id && id !== current.replaces?.taskId &&
+        item?.agentId === 'personal-governor' &&
+        item.scope?.humanProfileId === current.scope?.humanProfileId &&
+        item.status === 'active');
+      if (competing) return 'Another active Governor exists for this governed human; activation remains pending.';
+      const predecessor = replacementPredecessor(latest, current);
+      if (current.replaces && !predecessor)
+        return 'Governor predecessor could not be verified; activation remains pending.';
+      current.status = 'active';
+      current.activatedAt = new Date().toISOString();
+      Object.assign(current.initialization, completion);
+      delete current.initialization.promptSha256;
+      delete current.initialization.expiresAt;
+      delete current.initialization.turnId;
+      delete current.initialization.startedAt;
+      if (predecessor) {
+        predecessor.status = 'superseded';
+        predecessor.supersededBy = input.session_id;
+        predecessor.supersededAt = current.activatedAt;
+      }
+      atomicWrite(registryPath(), latest);
+      return `AI Fleas activated the exact personal-governor task binding for generation ${current.generation}${predecessor ? ' and superseded its verified predecessor' : ''}.`;
+    });
+  } catch (error) {
+    systemMessage = `Governor lifecycle activation remains pending: ${error.message}.`;
+  }
+  emit({ systemMessage });
 } else if (input.hook_event_name === 'Stop' && binding.status === 'pending') {
   const completion = initializationCompletion(binding, input);
   if (completion) {
