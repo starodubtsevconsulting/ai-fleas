@@ -3,13 +3,14 @@
  * Inputs: setup/doctor/launch/initialize-governor/preflight-admin arguments and declared configuration.
  * Output: diagnostics or launch status. Effects: may install/update host components,
  * change desktop preferences, launch the app, ask for an exact human ID, create one
- * projectless Governor task when needed, or invoke its binding transaction.
+ * projectless Governor task when needed, invoke its binding transaction, and
+ * show a dismissible macOS progress window during slow initialization.
  * The platform ID is codex-app; gpt-agents remains the command/directory name.
  */
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { ensureQueuedFollowUps } from './desktop-preferences.mjs';
 import { connectNativeAppServer } from './native-app-server.mjs';
@@ -77,6 +78,18 @@ function governorNotice(message) {
   const result = spawnSync(osascriptBin, ['-e', script], { encoding: 'utf8' });
   if (result.error || result.status !== 0)
     launchEvent('notification-unavailable', { message: result.error?.message || result.stderr?.trim() });
+}
+
+function governorProgressDialog(message, onHide) {
+  if (platform !== 'darwin') return null;
+  // The Dock launcher has no terminal. Keep one visible, dismissible window
+  // while its synchronous lifecycle work is running; never block the lifecycle
+  // on a user click or claim that this window is readiness evidence.
+  const script = `display dialog ${JSON.stringify(message)} with title "AI Fleas GPT" buttons {"Hide"} default button "Hide" giving up after 600`;
+  const child = spawn(osascriptBin, ['-e', script], { stdio: 'ignore' });
+  child.on('error', error => launchEvent('progress-dialog-unavailable', { message: error.message }));
+  child.on('exit', (code, signal) => { if (code === 0 && !signal) onHide(); });
+  return child;
 }
 
 function json(command, args) {
@@ -434,20 +447,31 @@ async function launch() {
     }
   } };
   let result;
+  let progressDialog = null;
+  let progressHidden = false;
   try {
     result = await ensurePersonalGovernor({ client: tracedClient, registryFile, humanId: selectedHuman,
       humanDir: humanDirectory,
       openTask: openLocalGovernor,
       onProgress: ({ taskId, stage }) => {
         launchEvent('governor-progress', { taskId, stage });
-        if (stage === 'activation-started')
+        if (stage === 'activation-started') {
+          progressDialog = governorProgressDialog(
+            'Personal Governor is initializing. This can take several minutes. It will appear in Pinned only after activation is verified. You may hide this window; work will continue.',
+            () => { progressHidden = true; });
           governorNotice('Personal Governor initialization started. It can take several minutes; the chat will be pinned after verification.');
-        else if (stage === 'activation-pending')
+        } else if (stage === 'activation-pending')
           governorNotice('Personal Governor is still initializing. AI Fleas GPT is monitoring this exact task.');
-        else if (stage === 'welcome-started')
+        else if (stage === 'welcome-started') {
+          progressDialog?.kill();
+          if (!progressHidden)
+            progressDialog = governorProgressDialog(
+              'Personal Governor is active. Its welcome INIT is checking memory and schedules now. You may hide this window; work will continue.',
+              () => { progressHidden = true; });
           governorNotice('Personal Governor activated. Preparing its welcome and memory/schedule report.');
+        }
       } });
-  } finally { client.close(); }
+  } finally { client.close(); progressDialog?.kill(); }
   launchEvent('governor-resolved', { taskId: result.taskId, status: result.status,
     welcomeStatus: result.welcomeStatus, welcomeReason: result.welcomeReason });
   if (result.status === 'existing' && (!result.welcomeStatus || result.welcomeStatus === 'completed')) {

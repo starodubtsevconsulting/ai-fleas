@@ -19,8 +19,10 @@ Archived Governors are terminal and are never reopened. When no unique human ID 
 receipts, the launcher asks only for the exact human profile ID.
 
 Initialization can take several minutes. The Governor may first appear in **Recents** while its activation turn is
-running; it moves to **Pinned** only after the host verifies the active binding. On macOS the launcher sends
-best-effort progress and completion notifications. If a run remains pending, launch AI Fleas GPT again to reconcile
+running; it moves to **Pinned** only after the host verifies the active binding. On macOS the launcher keeps a
+dismissible progress window visible while it verifies activation and prepares the welcome; hiding that window does not
+stop initialization. It also sends best-effort progress and completion notifications. If a run remains pending,
+launch AI Fleas GPT again to reconcile
 that exact task; do not assume that a chat title or an early Recents entry means initialization succeeded.
 
 For Dock-launch troubleshooting, the launcher records lifecycle decisions and navigation requests in
