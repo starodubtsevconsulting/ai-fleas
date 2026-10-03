@@ -85,7 +85,10 @@ function governorProgressDialog(message, onHide) {
   // The Dock launcher has no terminal. Keep one visible, dismissible window
   // while its synchronous lifecycle work is running; never block the lifecycle
   // on a user click or claim that this window is readiness evidence.
-  const script = `display dialog ${JSON.stringify(message)} with title "AI Fleas GPT" buttons {"Hide"} default button "Hide" giving up after 600`;
+  const logo = path.join(repoRoot, 'img/ai-fleas-human-robot-logo.png');
+  const icon = fs.existsSync(logo) ? ` with icon POSIX file ${JSON.stringify(logo)}` : '';
+  if (!icon) launchEvent('progress-logo-unavailable', { path: logo });
+  const script = `display dialog ${JSON.stringify(message)} with title "AI Fleas GPT"${icon} buttons {"Hide"} default button "Hide" giving up after 600`;
   const child = spawn(osascriptBin, ['-e', script], { stdio: 'ignore' });
   child.on('error', error => launchEvent('progress-dialog-unavailable', { message: error.message }));
   child.on('exit', (code, signal) => { if (code === 0 && !signal) onHide(); });
