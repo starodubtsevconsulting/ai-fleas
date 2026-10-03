@@ -95,6 +95,32 @@ Before creating a replacement, read the human profile for the desired Governor b
 
 A replacement Governor must be a fresh-history, projectless task created through the platform's new-task primitive. Never create it inside a workflow saved project or by forking, cloning, or otherwise inheriting the predecessor task. Its bootstrap payload may contain only canonical source references, durable-memory bindings, exact lifecycle identifiers, and the minimum initialization instruction. It must not contain or reconstruct the predecessor transcript, conversation summary, inherited turns, or broad conversation context. Conversation history is not Governor memory; continuity comes only from canonical configuration and the declared authoritative memory route. The predecessor task ID may be retained solely for verified cutover and history-preserving archival.
 
+## Post-activation INIT scheduler discovery
+
+For a later INIT or the launcher's separate welcome turn on `codex-app`, discover the host's native automation
+capabilities before reporting scheduler access as unavailable. Search available tool names and descriptions for
+`automation`, `heartbeat`, and `scheduler`; a search for `schedule` alone is insufficient. Native automation
+inspection does not require controlling the Codex desktop UI through computer use.
+
+When the host provides `automation_update`, follow its discovery contract: inspect the configured Codex home
+`automations/*/automation.toml` definitions read-only, identify Governor-owned entries from their exact task/human
+binding and purpose, then use `mode: view` with each discovered automation ID for host readback. Do not treat an
+absent or empty local directory as proof that no cloud, remote-host, or other-platform schedules exist. Report the
+scope actually inspected and any missing inventory capability. A local definition alone does not prove that a
+callback is active or will run.
+
+Compare verified host state with explicitly authorized profile follow-ups. A method cadence, preferred calendar
+window, or ordinary calendar event does not supply an exact callback schedule. Create or reconcile only entries
+whose timing, purpose, ownership, and supported adapter route are established; otherwise report the missing
+configuration without inventing times. Prefer native thread heartbeat automation for current-thread follow-ups
+when its tool contract selects that route. Never substitute standalone cron jobs for thread callbacks without
+explicit human authorization. Preserve stable logical identities, verify writes through host readback, and
+ensure successor/END handling cannot leave callbacks targeting a superseded or terminal Governor task.
+
+The welcome report distinguishes configured cadence, discovered definitions, host-verified active callbacks,
+changes made, and concrete limitations. If only discovery succeeded, say so rather than claiming reconciliation
+or activation. This procedure is post-activation; it does not expand the one-time readiness-token transaction.
+
 ## GPT presentation
 
 After readiness, pin the exact Personal Governor task in the global pinned area when the host supports pinning. Recommended title: `🧭 Personal Governor`. Title and pin state are presentation only, never identity.
