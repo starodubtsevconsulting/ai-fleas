@@ -186,18 +186,18 @@ test('one-step setup fast-forwards AI Fleas and re-executes the updated launcher
   assert.match(calls, /open -a ChatGPT/);
 });
 
-test('one-step setup refuses to update a dirty checkout', () => {
+test('one-step setup skips source update on a dirty checkout and launches local changes', () => {
   const item = fixture();
   const result = spawnSync('/bin/zsh', [setupScript], {
     encoding: 'utf8',
     env: testEnvironment(item, { sourceUpdate: true, dirtyCheckout: true }),
   });
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /require a clean AI Fleas checkout/);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /source update skipped: the visible checkout has local changes/);
   const calls = fs.readFileSync(item.log, 'utf8');
   assert.doesNotMatch(calls, /fetch origin main/);
-  assert.doesNotMatch(calls, /plugin add/);
-  assert.doesNotMatch(calls, /open -a ChatGPT/);
+  assert.match(calls, /plugin add ai-fleas-gpt@ai-fleas/);
+  assert.match(calls, /open -a ChatGPT/);
 });
 
 test('one-step setup launches the checked-out version from a development branch', () => {

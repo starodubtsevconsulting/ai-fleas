@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const idPattern = /^[a-z][a-z0-9-]*$/;
+const idPattern = /^[a-z][a-z0-9_-]*$/;
 
 export function listAgentBindingCandidates(registry, filterKind, filterId) {
   if (!['profile', 'human'].includes(filterKind) || !idPattern.test(filterId)) {

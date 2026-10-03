@@ -1,0 +1,25 @@
+schemaVersion: profile-agent-binding.v1
+agentId: personal-governor
+roleDefinition: ai-fleas://roles/personal-governor
+scope: governed-human
+lifecycle: persistent
+humanFacing: true
+readinessToken: PERSONAL_GOVERNOR_READY
+subject:
+  id: bootstrap-human
+  name: bootstrap-human
+platformBindings:
+  codex-app: {}
+memory:
+  - name: governor
+    uri: profile-memory://governor
+    authority: source-of-truth
+    access: read-write
+    provider: local-profile-memory
+cutover:
+  authoritativeMemory: profile-memory://governor
+  writableAuthorityCount: 1
+  resolutionChain:
+    - profile-memory://governor
+    - local-profile-memory
+    - memory/governor-memory.md

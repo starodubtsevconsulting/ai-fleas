@@ -10,6 +10,8 @@ import { buildGovernorInitialization, hostTaskState } from './initialize-governo
 
 const humanDir = fileURLToPath(new URL('./fixtures/governor/example-human/', import.meta.url));
 const gitHumanDir = fileURLToPath(new URL('./fixtures/governor/git-human/', import.meta.url));
+const localHumanDir = fileURLToPath(new URL('./fixtures/governor/local-human/', import.meta.url));
+const bootstrapHumanDir = fileURLToPath(new URL('./fixtures/governor/bootstrap-human/', import.meta.url));
 const usableProvider = () => ({
   status: 0,
   stdout: 'provider=synology\nreachable=true\naccess=read-write\nwritable=true\n',
@@ -36,6 +38,20 @@ test('rejects identity mismatch and unusable memory before registering a task', 
   assert.throws(() => buildGovernorInitialization(humanDir, 'example-human', 1, {
     checkProvider: () => ({ status: 0, stdout: 'provider=synology\nreachable=true\naccess=read-write\nwritable=false\n' }),
   }), /memory is not usable/);
+});
+
+test('minimal local-memory human profile passes Governor preflight without workflow access', () => {
+  const { binding } = buildGovernorInitialization(localHumanDir, 'local-human', 1);
+  assert.equal(binding.scope.humanProfileId, 'local-human');
+  assert.equal(binding.initialization.sources.find(source => source.id === 'memory-provider').ref,
+    path.join(localHumanDir, 'memory/governor-memory.md'));
+});
+
+test('generated human uses a portable role reference that resolves from this installation', () => {
+  const { binding } = buildGovernorInitialization(bootstrapHumanDir, 'bootstrap-human', 1);
+  const role = binding.initialization.sources.find(source => source.id === 'portable-role');
+  assert.equal(path.basename(role.ref), 'personal-governor.yml');
+  assert.ok(path.isAbsolute(role.ref));
 });
 
 test('reports a task sandbox denial separately from an invalid memory binding', () => {

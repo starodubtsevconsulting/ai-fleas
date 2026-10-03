@@ -1,0 +1,13 @@
+schemaVersion: human-profile.v1
+id: local-human
+type: human
+name: local-human
+governor:
+  config: governor.yml
+  role: personal-governor
+  lifecycle: persistent
+  readinessToken: PERSONAL_GOVERNOR_READY
+memory:
+  config: memory.yml
+authorizedProfiles: []
+authorizedWorkflows: []

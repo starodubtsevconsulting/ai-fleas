@@ -35,6 +35,12 @@ function declaredFile(base, ref, label) {
   return requireFile(path.resolve(base, ref), label);
 }
 
+function governorRoleFile(governorFile, roleDefinition) {
+  if (roleDefinition === 'ai-fleas://roles/personal-governor')
+    return requireFile(path.join(repoRoot, 'ai-workflows/_common/roles/personal-governor.yml'), 'Governor role');
+  return declaredFile(path.dirname(governorFile), roleDefinition, 'Governor role');
+}
+
 function taskAccessError(operation, error) {
   if (['EACCES', 'EPERM', 'EROFS'].includes(error?.code)) {
     return new Error(`current task environment blocks ${operation}: ${error.message}`, { cause: error });
@@ -53,21 +59,22 @@ function verifyMemoryWrite(file, options) {
 }
 
 function resolveGovernorMemory(dir, permanent, memory, governor, options) {
-  if (permanent.provider === 'git-profile-memory') {
-    const memoryFile = declaredFile(dir, permanent.path, 'authoritative Git memory');
+  if (['git-profile-memory', 'local-profile-memory'].includes(permanent.provider)) {
+    const memoryFile = declaredFile(dir, permanent.path, 'authoritative profile memory');
     const relative = path.relative(dir, memoryFile);
     if (!relative.startsWith(`memory${path.sep}`) ||
-        permanent.format !== 'markdown' || permanent.humanInterface !== 'git' ||
+        permanent.format !== 'markdown' ||
+        permanent.humanInterface !== (permanent.provider === 'git-profile-memory' ? 'git' : 'markdown') ||
         permanent.access !== 'read-write' || permanent.sourceOfTruth !== true ||
         memory.retrieval?.sourcePermanentMemoryRef !== 'governor' ||
         memory.retrieval?.writableAuthorityCount !== 1) {
-      throw new Error('authoritative Git memory binding is invalid');
+      throw new Error('authoritative profile memory binding is invalid');
     }
-    const expectedChain = ['profile-memory://governor', 'git-profile-memory', permanent.path];
+    const expectedChain = ['profile-memory://governor', permanent.provider, permanent.path];
     if (governor.cutover?.authoritativeMemory !== expectedChain[0] ||
         governor.cutover?.writableAuthorityCount !== 1 ||
         JSON.stringify(governor.cutover?.resolutionChain) !== JSON.stringify(expectedChain)) {
-      throw new Error('Governor cutover conflicts with authoritative Git memory');
+      throw new Error('Governor cutover conflicts with authoritative profile memory');
     }
     verifyMemoryWrite(memoryFile, options);
     return memoryFile;
@@ -97,7 +104,7 @@ function resolveGovernorMemory(dir, permanent, memory, governor, options) {
 }
 
 export function buildGovernorInitialization(humanDir, humanId, generation, options = {}) {
-  if (!/^[a-z][a-z0-9-]*$/.test(humanId)) throw new Error('exact human profile ID required');
+  if (!/^[a-z][a-z0-9_-]*$/.test(humanId)) throw new Error('exact human profile ID required');
   const dir = fs.realpathSync(humanDir);
   const profileFile = requireFile(path.join(dir, 'profile.yml'), 'human profile');
   const profile = readYaml(profileFile, 'human profile');
@@ -115,7 +122,7 @@ export function buildGovernorInitialization(humanDir, humanId, generation, optio
       !governor.platformBindings?.['codex-app']) {
     throw new Error('Personal Governor role, subject, readiness, or platform binding conflicts');
   }
-  const roleFile = declaredFile(path.dirname(governorFile), governor.roleDefinition, 'Governor role');
+  const roleFile = governorRoleFile(governorFile, governor.roleDefinition);
   for (const [name, settings] of Object.entries(governor.governorStrategy?.methodSettings ?? {})) {
     if (settings?.enabled && settings.method) declaredFile(path.dirname(governorFile), settings.method, `${name} method`);
   }

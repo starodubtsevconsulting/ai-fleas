@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /** GPT host launcher, invoked by setup scripts or the human/controller CLI.
- * Inputs: setup/doctor/launch/initialize-governor/preflight-admin arguments and declared configuration.
+ * Inputs: setup/doctor/launch/prepare-human-profile/initialize-governor/preflight-admin arguments and declared configuration.
  * Output: diagnostics or launch status. Effects: may install/update host components,
- * change desktop preferences, launch the app, ask for an exact human ID, create one
+ * change desktop preferences, launch the app, ask for an exact human ID, scaffold
+ * one missing private human profile from the minimal example contract, create one
  * projectless Governor task when needed, invoke its binding transaction, and
  * show a dismissible macOS progress window during slow initialization.
  * The platform ID is codex-app; gpt-agents remains the command/directory name.
@@ -14,10 +15,12 @@ import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { ensureQueuedFollowUps } from './desktop-preferences.mjs';
 import { connectNativeAppServer } from './native-app-server.mjs';
-import { hostTaskState } from './initialize-governor.mjs';
+import { buildGovernorInitialization, hostTaskState } from './initialize-governor.mjs';
+import { GovernorHumanResolver } from './governor-human-resolver.mjs';
+import { assertHumanProfileId } from './human-profile-bootstrap.mjs';
+import { HumanProfileStore } from './human-profile-store.mjs';
 import { withGovernorRegistryLock } from './plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/governor-registry-lock.mjs';
-import { ensurePersonalGovernor, readGovernorRegistry, resolveGovernorHumanDir,
-  selectGovernorHuman } from './governor-launch.mjs';
+import { ensurePersonalGovernor, readGovernorRegistry, selectGovernorHuman } from './governor-launch.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = fs.realpathSync(path.resolve(scriptDir, '../..'));
@@ -290,14 +293,7 @@ class AgentStatusNavigator {
 }
 
 function humanCatalogConfigFile() {
-  return path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'),
-    'ai-fleas', 'gpt-agents', 'humans-dir');
-}
-
-function configuredHumansDir() {
-  if (process.env.AI_FLEAS_HUMANS_DIR) return process.env.AI_FLEAS_HUMANS_DIR;
-  const file = humanCatalogConfigFile();
-  return fs.existsSync(file) ? fs.readFileSync(file, 'utf8').trim() : null;
+  return new HumanProfileStore().configFile();
 }
 
 function saveHumansDir(directory) {
@@ -310,15 +306,26 @@ function saveHumansDir(directory) {
   return resolved;
 }
 
-function askHumanProfileId() {
-  const result = spawnSync(osascriptBin, ['-e',
-    'text returned of (display dialog "Which human profile should own the Personal Governor? Enter its exact ID." default answer "" buttons {"Cancel", "Initialize"} default button "Initialize")',
-  ], { encoding: 'utf8' });
-  if (result.status !== 0) {
-    if (/User canceled|(-128)/i.test(result.stderr ?? '')) return null;
-    throw new Error(result.error?.message || result.stderr?.trim() || 'GOVERNOR_HUMAN_SELECTION_FAILED');
+function askHumanProfileId(suggestedId = '') {
+  let answer = suggestedId;
+  for (;;) {
+    const result = spawnSync(osascriptBin, ['-e',
+      `text returned of (display dialog "Which human profile should own the Personal Governor? Enter its exact ID." default answer ${JSON.stringify(answer)} buttons {"Cancel", "Continue"} default button "Continue")`,
+    ], { encoding: 'utf8' });
+    if (result.status !== 0) {
+      if (/User canceled|(-128)/i.test(result.stderr ?? '')) return null;
+      throw new Error(result.error?.message || result.stderr?.trim() || 'GOVERNOR_HUMAN_SELECTION_FAILED');
+    }
+    answer = result.stdout.trim();
+    try { return assertHumanProfileId(answer); }
+    catch {
+      const alert = spawnSync(osascriptBin, ['-e',
+        'display dialog "Human ID must start with a lowercase letter and contain only lowercase letters, digits, hyphens, or underscores. No profile was created." with title "AI Fleas GPT" buttons {"Try Again"} default button "Try Again"',
+      ], { encoding: 'utf8' });
+      if (alert.error || alert.status !== 0)
+        throw new Error(alert.error?.message || alert.stderr?.trim() || 'GOVERNOR_HUMAN_SELECTION_FAILED');
+    }
   }
-  return result.stdout.trim();
 }
 
 function openLocalGovernor(taskId) {
@@ -371,10 +378,13 @@ function setup(profileArg, migrate, humansDirArg) {
   }
   const profile = saveProfile(profileArg);
   const humansDir = saveHumansDir(humansDirArg);
+  const humanStore = new HumanProfileStore();
+  const profileLocation = humanStore.resolve();
   process.stdout.write([
     'AI Fleas GPT is installed as one user-facing plugin.',
-    profile ? `Selected profile: ${profile}` : 'No private profile selected yet.',
-    humansDir ? `Selected human profile catalog: ${humansDir}` : 'Human profile catalog unchanged.',
+    profile ? `Selected workflow profile: ${profile}` : 'No workflow profile selected; Personal Governor can still initialize.',
+    `Human profile location: ${profileLocation}${humansDir ? ' (selected override)' :
+      humanStore.explicitLocation() ? ' (existing override)' : ' (home-folder default; created on first use)'}.`,
     'If ChatGPT is running, quit it completely so it releases its cached plugin snapshot.',
     'Run the daily launcher, review and trust the AI Fleas GPT hooks, then start a new Codex task.',
   ].join('\n') + '\n');
@@ -386,8 +396,17 @@ function doctor() {
   const rootMismatch = marketplaceRootMismatch(marketplace);
   const missing = marketplace ? missingPlugins() : requiredPlugins;
   const conflicts = conflictingPlugins();
+  const humanStore = new HumanProfileStore();
+  let humanProfileLocation = null;
+  let humanProfileError = null;
+  try {
+    humanProfileLocation = humanStore.resolve();
+    const explicit = humanStore.explicitLocation();
+    if (explicit && !fs.existsSync(explicit)) humanProfileError = 'GOVERNOR_HUMAN_CATALOG_NOT_FOUND';
+  } catch (error) { humanProfileError = error.message; }
   const result = {
-    status: conflicts.length || rootMismatch ? 'migration-required' : marketplace && missing.length === 0 ? 'ready' : 'setup-required',
+    status: conflicts.length || rootMismatch ? 'migration-required' :
+      marketplace && missing.length === 0 && !humanProfileError ? 'ready' : 'setup-required',
     platform: 'codex-app',
     operatingSystem: 'macOS',
     chatGptApp: app,
@@ -397,6 +416,8 @@ function doctor() {
     marketplaceRootMismatch: rootMismatch,
     missingPlugins: missing,
     conflictingPlugins: conflicts,
+    humanProfileLocation,
+    humanProfileError,
     hookTrust: 'verify-in-chatgpt',
   };
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
@@ -428,7 +449,8 @@ async function launch() {
   launchEvent('registry-read', { governorReceipts: Object.values(registry.instances).filter(item =>
     item?.agentId === 'personal-governor').length });
   let selectedHuman;
-  try { selectedHuman = selectGovernorHuman(registry, human, askHumanProfileId); }
+  try { selectedHuman = selectGovernorHuman(registry, human, askHumanProfileId,
+    { chooseHuman: !human }); }
   catch (error) {
     if (error.message === 'GOVERNOR_HUMAN_ID_REQUIRED') {
       process.stdout.write('Personal Governor initialization canceled; no task was created.\n');
@@ -436,8 +458,7 @@ async function launch() {
     }
     throw error;
   }
-  const humanDirectory = resolveGovernorHumanDir(registry, selectedHuman,
-    { humansDir: configuredHumansDir() });
+  const { humanDir: humanDirectory } = new GovernorHumanResolver().resolve(registry, selectedHuman);
   const client = await connectNativeAppServer({
     socketPath: path.join(codexHome, 'app-server-control/app-server-control.sock'),
     maxFrameBytes: 64 * 1024 * 1024,
@@ -531,6 +552,17 @@ if (action === 'preflight-admin') {
 } else if (action === 'setup') setup(profile, migrate, humansDir);
 else if (action === 'doctor') doctor();
 else if (action === 'launch') launch().catch(error => fail(error.message));
+else if (action === 'prepare-human-profile') {
+  if (!human || humanDir || thread || profile || migrate || humansDir)
+    fail('usage: launcher.mjs prepare-human-profile --human ID');
+  try {
+    const registryFile = path.join(pluginDataDirectory(`ai-fleas-gpt@${marketplaceName}`),
+      'agent-bindings.json');
+    const result = new GovernorHumanResolver().resolve(readGovernorRegistry(registryFile), human);
+    buildGovernorInitialization(result.humanDir, human, 1);
+    process.stdout.write(`${JSON.stringify(result)}\n`);
+  } catch (error) { fail(error.message); }
+}
 else if (action === 'initialize-governor') {
   if (!human || !humanDir || !thread || profile || migrate) {
     fail('usage: launcher.mjs initialize-governor --human ID --human-dir PATH --thread TASK_ID');
@@ -539,4 +571,4 @@ else if (action === 'initialize-governor') {
     path.join(scriptDir, 'initialize-governor.mjs'),
     '--human', human, '--human-dir', humanDir, '--thread', thread,
   ]));
-} else fail(`unknown action: ${action}; expected setup, doctor, launch, initialize-governor, or preflight-admin`);
+} else fail(`unknown action: ${action}; expected setup, doctor, launch, prepare-human-profile, initialize-governor, or preflight-admin`);

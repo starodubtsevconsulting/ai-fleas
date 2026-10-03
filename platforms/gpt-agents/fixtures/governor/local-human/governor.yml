@@ -1,0 +1,25 @@
+schemaVersion: profile-agent-binding.v1
+agentId: personal-governor
+roleDefinition: ../../../../../ai-workflows/_common/roles/personal-governor.yml
+scope: governed-human
+lifecycle: persistent
+humanFacing: true
+readinessToken: PERSONAL_GOVERNOR_READY
+subject:
+  id: local-human
+  name: local-human
+platformBindings:
+  codex-app: {}
+memory:
+  - name: governor
+    uri: profile-memory://governor
+    authority: source-of-truth
+    access: read-write
+    provider: local-profile-memory
+cutover:
+  authoritativeMemory: profile-memory://governor
+  writableAuthorityCount: 1
+  resolutionChain:
+    - profile-memory://governor
+    - local-profile-memory
+    - memory/governor-memory.md

@@ -1,0 +1,9 @@
+{
+  "name": "ai-fleas-gpt-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pinned runtime dependencies for the AI Fleas GPT adapter",
+  "dependencies": {
+    "yaml": "2.9.0"
+  }
+}
