@@ -54,7 +54,27 @@ test('launcher creates one fresh projectless task only when no current Governor 
   assert.equal(calls.filter(call => call.method === 'thread/start').length, 1);
   assert.equal(calls.find(call => call.method === 'thread/start').params.projectId, null);
   assert.equal(calls.find(call => call.method === 'initialize').args[2], taskId);
-  assert.equal(calls.find(call => call.method === 'open').id, taskId);
+  const titleAt = calls.findIndex(call => call.method === 'thread/name/set');
+  const initAt = calls.findIndex(call => call.method === 'initialize');
+  assert.ok(titleAt >= 0 && titleAt < initAt);
+  assert.equal(calls[titleAt].params.name, '🧭 Personal Governor');
+  assert.equal(calls.some(call => call.method === 'open'), false);
+});
+
+test('launcher opens a fresh task only after verified readiness', async () => {
+  const humanDir = fileURLToPath(new URL('./fixtures/governor/example-human/', import.meta.url)).replace(/\/$/, '');
+  const taskId = '00000000-0000-4000-8000-000000000011';
+  const opened = [];
+  const client = { request: async method => method === 'thread/start'
+    ? { thread: { id: taskId, projectId: null, ephemeral: false, cwd: humanDir } } : {} };
+  const result = await ensurePersonalGovernor({ client, registryFile: '/unused/registry.json',
+    humanId: 'example-human', humanDir, preflight: () => {},
+    readRegistry: () => ({ instances: {} }), reconcile: async (_, registry) => registry,
+    initialize: () => ({ threadId: taskId, status: 'pending' }),
+    wait: async () => ({ status: 'ready', taskId, completedTurnId: 'ready-turn' }),
+    openTask: id => opened.push(id) });
+  assert.equal(result.status, 'ready');
+  assert.deepEqual(opened, [taskId]);
 });
 
 test('launcher reuses a verified active Governor without another INIT', async () => {
@@ -68,7 +88,7 @@ test('launcher reuses a verified active Governor without another INIT', async ()
   const client = { request: async (method, params) => {
     calls.push({ method, params });
     if (method === 'threadSection/list') return { data: [{ id: pinnedId, name: 'Pinned' }] };
-    if (method === 'thread/read') return { thread: { section: { id: pinnedId } } };
+    if (method === 'thread/read') return { thread: { name: '🧭 Personal Governor', section: { id: pinnedId } } };
     return {};
   } };
   const result = await ensurePersonalGovernor({ client, registryFile: '/unused/registry.json',
@@ -113,7 +133,7 @@ test('readiness polling uses the activation receipt without a large transcript r
   const client = { request: async (method, params) => {
     calls.push({ method, params });
     if (method === 'threadSection/list') return { data: [{ id: 'pin', name: 'Pinned' }] };
-    if (method === 'thread/read') return { thread: { section: { id: 'pin' } } };
+    if (method === 'thread/read') return { thread: { name: '🧭 Personal Governor', section: { id: 'pin' } } };
     return {};
   } };
   let reads = 0;
@@ -129,4 +149,23 @@ test('readiness polling uses the activation receipt without a large transcript r
   });
   assert.deepEqual(result, { status: 'ready', taskId, completedTurnId: 'ready-turn' });
   assert.equal(calls.some(call => call.method === 'thread/read' && call.params.includeTurns === true), false);
+});
+
+test('a ready receipt is not presented as finished when the host title is wrong', async () => {
+  const taskId = '00000000-0000-4000-8000-000000000010';
+  const client = { request: async method => {
+    if (method === 'threadSection/list') return { data: [{ id: 'pin', name: 'Pinned' }] };
+    if (method === 'thread/read') return { thread: {
+      name: 'Personal Governor initialization', section: { id: 'pin' } } };
+    return {};
+  } };
+  await assert.rejects(waitForGovernor(client, '/unused/registry.json', taskId, {
+    humanId: 'example-human', now: () => 0, timeoutMs: 100,
+    readRegistry: () => ({ instances: { [taskId]: {
+      agentId: 'personal-governor', scope: { kind: 'governed-human', humanProfileId: 'example-human' },
+      status: 'active', activatedAt: '2026-10-03T12:00:00Z',
+      initialization: { completedTurnId: 'ready-turn', readinessToken: 'PERSONAL_GOVERNOR_READY' },
+    } } }),
+    hostState: async () => ({ task: { projectId: null }, archived: false }),
+  }), /GOVERNOR_PRESENTATION_UNVERIFIED/);
 });

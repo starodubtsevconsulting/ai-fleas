@@ -16,6 +16,7 @@ import { buildGovernorInitialization, hostTaskState,
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const humanIdPattern = /^[a-z][a-z0-9-]*$/;
+const governorTitle = '🧭 Personal Governor';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export function governorWorkspaceRoots(humanDir, canonical) {
@@ -126,7 +127,8 @@ async function pinReadyGovernor(client, taskId) {
   if (pinned?.length !== 1) throw new Error('GOVERNOR_PINNED_SECTION_UNVERIFIED');
   await client.request('thread/section/move', { threadId: taskId, sectionId: pinned[0].id });
   const read = await client.request('thread/read', { threadId: taskId, includeTurns: false });
-  if (read?.thread?.section?.id !== pinned[0].id) throw new Error('GOVERNOR_PIN_UNVERIFIED');
+  if (read?.thread?.section?.id !== pinned[0].id || read.thread.name !== governorTitle)
+    throw new Error('GOVERNOR_PRESENTATION_UNVERIFIED');
 }
 
 async function verifyAndPresentActiveGovernor(client, taskId, binding, hostState = hostTaskState) {
@@ -139,7 +141,7 @@ async function verifyAndPresentActiveGovernor(client, taskId, binding, hostState
   if (!turnId || binding.initialization?.readinessToken !== 'PERSONAL_GOVERNOR_READY' ||
       !binding.activatedAt)
     throw new Error('GOVERNOR_READY_RECEIPT_UNVERIFIED');
-  await client.request('thread/name/set', { threadId: taskId, name: '🧭 Personal Governor' });
+  await client.request('thread/name/set', { threadId: taskId, name: governorTitle });
   await pinReadyGovernor(client, taskId);
   return turnId;
 }
@@ -210,10 +212,14 @@ export async function ensurePersonalGovernor({ client, registryFile, humanId, hu
         started.thread.forkedFromId || started.thread.parentThreadId ||
         fs.realpathSync(started.thread.cwd) !== fs.realpathSync(humanDir))
       throw new Error('GOVERNOR_CREATED_TASK_UNVERIFIED');
-    await client.request('thread/name/set', { threadId: taskId, name: 'Personal Governor initialization' });
   }
+  // A pending task is not yet Governor-authorized, but its presentation title
+  // should never be a temporary label that the desktop can cache indefinitely.
+  await client.request('thread/name/set', { threadId: taskId, name: governorTitle });
   initialize(humanId, humanDir, taskId, registryFile);
   const settled = await wait(client, registryFile, taskId, { humanId, humanDir, initialize });
-  openTask(taskId);
+  // The queue transport owns the task until its turn completes. Opening a
+  // still-pending task presents a misleading "open in another app" lock.
+  if (settled.status === 'ready') openTask(taskId);
   return settled;
 }

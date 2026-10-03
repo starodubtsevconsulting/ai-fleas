@@ -437,7 +437,7 @@ async function launch() {
     ? 'Navigation to the trusted Personal Governor was requested; no initialization or platform-health check was queued.'
     : result.status === 'ready'
       ? 'Personal Governor initialization completed and the verified task is pinned.'
-      : 'Personal Governor initialization is pending in the opened task.';
+      : 'Personal Governor initialization is still pending; the task will not be opened until a later launcher run verifies readiness.';
   process.stdout.write(`AI Fleas GPT is ready. Follow-up behavior: Queue${followUps.changed ? ' (updated)' : ''}. ${destination}\n`);
   launchEvent('launch-finished', { taskId: result.taskId, status: result.status });
 }
