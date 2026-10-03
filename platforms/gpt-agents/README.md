@@ -18,6 +18,11 @@ limitations); it must not claim a schedule exists without scheduler evidence. Th
 Archived Governors are terminal and are never reopened. When no unique human ID can be resolved from lifecycle
 receipts, the launcher asks only for the exact human profile ID.
 
+Initialization can take several minutes. The Governor may first appear in **Recents** while its activation turn is
+running; it moves to **Pinned** only after the host verifies the active binding. On macOS the launcher sends
+best-effort progress and completion notifications. If a run remains pending, launch AI Fleas GPT again to reconcile
+that exact task; do not assume that a chat title or an early Recents entry means initialization succeeded.
+
 For Dock-launch troubleshooting, the launcher records lifecycle decisions and navigation requests in
 `~/.config/ai-fleas/gpt-agents/launcher.log` (owner-readable only). A `navigation-sent` entry confirms macOS accepted
 the app-link request; it does not prove which chat the desktop ultimately displayed. The log does not contain profile

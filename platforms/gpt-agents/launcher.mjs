@@ -69,6 +69,16 @@ function run(command, args, options = {}) {
   return result.stdout;
 }
 
+function governorNotice(message) {
+  if (platform !== 'darwin') return;
+  // Notification delivery is best-effort; lifecycle verification never depends
+  // on a macOS notification or permission granted to the launcher app.
+  const script = `display notification ${JSON.stringify(message)} with title "AI Fleas GPT"`;
+  const result = spawnSync(osascriptBin, ['-e', script], { encoding: 'utf8' });
+  if (result.error || result.status !== 0)
+    launchEvent('notification-unavailable', { message: result.error?.message || result.stderr?.trim() });
+}
+
 function json(command, args) {
   const output = run(command, args);
   try {
@@ -427,7 +437,16 @@ async function launch() {
   try {
     result = await ensurePersonalGovernor({ client: tracedClient, registryFile, humanId: selectedHuman,
       humanDir: humanDirectory,
-      openTask: openLocalGovernor });
+      openTask: openLocalGovernor,
+      onProgress: ({ taskId, stage }) => {
+        launchEvent('governor-progress', { taskId, stage });
+        if (stage === 'activation-started')
+          governorNotice('Personal Governor initialization started. It can take several minutes; the chat will be pinned after verification.');
+        else if (stage === 'activation-pending')
+          governorNotice('Personal Governor is still initializing. AI Fleas GPT is monitoring this exact task.');
+        else if (stage === 'welcome-started')
+          governorNotice('Personal Governor activated. Preparing its welcome and memory/schedule report.');
+      } });
   } finally { client.close(); }
   launchEvent('governor-resolved', { taskId: result.taskId, status: result.status,
     welcomeStatus: result.welcomeStatus, welcomeReason: result.welcomeReason });
@@ -443,7 +462,13 @@ async function launch() {
     : result.status === 'ready'
       ? 'Personal Governor activation and welcome INIT completed; the verified task is pinned.'
       : 'Personal Governor initialization is still pending; the task will not be opened until a later launcher run verifies readiness.';
-  process.stdout.write(`AI Fleas GPT is ready. Follow-up behavior: Queue${followUps.changed ? ' (updated)' : ''}. ${destination}\n`);
+  if (result.status === 'ready' && result.welcomeStatus === 'completed')
+    governorNotice('Personal Governor is ready and pinned. Its welcome report is in the chat.');
+  else if (result.status === 'pending' || result.welcomeStatus === 'pending')
+    governorNotice('Personal Governor is still pending. Run AI Fleas GPT again to resume verification.');
+  const platformStatus = result.status === 'pending' ||
+    ['pending', 'blocked'].includes(result.welcomeStatus) ? 'AI Fleas GPT is pending.' : 'AI Fleas GPT is ready.';
+  process.stdout.write(`${platformStatus} Follow-up behavior: Queue${followUps.changed ? ' (updated)' : ''}. ${destination}\n`);
   launchEvent('launch-finished', { taskId: result.taskId, status: result.status,
     welcomeStatus: result.welcomeStatus });
 }

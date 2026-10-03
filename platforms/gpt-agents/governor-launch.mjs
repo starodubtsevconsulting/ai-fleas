@@ -247,8 +247,10 @@ async function verifyAndPresentActiveGovernor(client, taskId, binding, hostState
 
 export async function waitForGovernor(client, registryFile, taskId, { humanId,
   readRegistry = readGovernorRegistry, hostState = hostTaskState,
-  now = Date.now, pause = sleep, timeoutMs = 120_000 } = {}) {
+  now = Date.now, pause = sleep, timeoutMs = 600_000,
+  onProgress = () => {}, progressEveryMs = 60_000 } = {}) {
   const deadline = now() + timeoutMs;
+  let nextProgressAt = now() + progressEveryMs;
   while (now() < deadline) {
     const binding = readRegistry(registryFile).instances[taskId];
     if (binding?.agentId !== 'personal-governor' ||
@@ -263,6 +265,10 @@ export async function waitForGovernor(client, registryFile, taskId, { humanId,
     // Do not fetch an in-progress transcript: command output can exceed the
     // control socket's bounded frame size. The trusted Stop hook publishes the
     // exact active receipt after a completed readiness turn.
+    if (now() >= nextProgressAt) {
+      onProgress({ taskId, stage: 'activation-pending' });
+      nextProgressAt = now() + progressEveryMs;
+    }
     await pause(2000);
   }
   return { status: 'pending', taskId };
@@ -271,6 +277,7 @@ export async function waitForGovernor(client, registryFile, taskId, { humanId,
 export async function ensurePersonalGovernor({ client, registryFile, humanId, humanDir,
   openTask, initialize = runInitializer, wait = waitForGovernor,
   welcome = runGovernorWelcome,
+  onProgress = () => {},
   preflight = buildGovernorInitialization, readRegistry = readGovernorRegistry,
   reconcile = reconcileUnavailableGovernorReceipts, hostState = hostTaskState }) {
   const canonical = preflight(humanDir, humanId, 1);
@@ -320,10 +327,13 @@ export async function ensurePersonalGovernor({ client, registryFile, humanId, hu
   // should never be a temporary label that the desktop can cache indefinitely.
   await client.request('thread/name/set', { threadId: taskId, name: governorTitle });
   initialize(humanId, humanDir, taskId, registryFile);
-  const settled = await wait(client, registryFile, taskId, { humanId, humanDir, initialize });
+  onProgress({ taskId, stage: 'activation-started' });
+  const settled = await wait(client, registryFile, taskId,
+    { humanId, humanDir, initialize, onProgress });
   // The queue transport owns the task until its turn completes. Opening a
   // still-pending task presents a misleading "open in another app" lock.
   if (settled.status !== 'ready') return settled;
+  onProgress({ taskId, stage: 'welcome-started' });
   const followUp = await welcome(client, registryFile, taskId, humanId);
   if (followUp.status === 'completed') openTask(taskId);
   return { ...settled, welcomeStatus: followUp.status,

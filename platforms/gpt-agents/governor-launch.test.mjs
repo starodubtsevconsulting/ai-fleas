@@ -65,6 +65,7 @@ test('launcher opens a fresh task only after verified readiness', async () => {
   const humanDir = fileURLToPath(new URL('./fixtures/governor/example-human/', import.meta.url)).replace(/\/$/, '');
   const taskId = '00000000-0000-4000-8000-000000000011';
   const opened = [];
+  const progress = [];
   const client = { request: async method => method === 'thread/start'
     ? { thread: { id: taskId, projectId: null, ephemeral: false, cwd: humanDir } } : {} };
   const result = await ensurePersonalGovernor({ client, registryFile: '/unused/registry.json',
@@ -73,9 +74,11 @@ test('launcher opens a fresh task only after verified readiness', async () => {
     initialize: () => ({ threadId: taskId, status: 'pending' }),
     wait: async () => ({ status: 'ready', taskId, completedTurnId: 'ready-turn' }),
     welcome: async () => ({ status: 'completed', turnId: 'welcome-turn' }),
+    onProgress: event => progress.push(event.stage),
     openTask: id => opened.push(id) });
   assert.equal(result.status, 'ready');
   assert.equal(result.welcomeStatus, 'completed');
+  assert.deepEqual(progress, ['activation-started', 'welcome-started']);
   assert.deepEqual(opened, [taskId]);
 });
 
@@ -215,6 +218,24 @@ test('readiness polling uses the activation receipt without a large transcript r
   });
   assert.deepEqual(result, { status: 'ready', taskId, completedTurnId: 'ready-turn' });
   assert.equal(calls.some(call => call.method === 'thread/read' && call.params.includeTurns === true), false);
+});
+
+test('slow activation emits bounded progress while retaining the exact pending task', async () => {
+  const taskId = '00000000-0000-4000-8000-000000000014';
+  let clock = 0;
+  const progress = [];
+  const result = await waitForGovernor({ request: async () => { throw new Error('unexpected host read'); } },
+    '/unused/registry.json', taskId, {
+      humanId: 'example-human', now: () => clock, timeoutMs: 11, progressEveryMs: 4,
+      pause: async () => { clock += 2; },
+      onProgress: event => progress.push(event),
+      readRegistry: () => ({ instances: { [taskId]: { agentId: 'personal-governor',
+        scope: { kind: 'governed-human', humanProfileId: 'example-human' }, status: 'pending' } } }),
+    });
+  assert.deepEqual(result, { status: 'pending', taskId });
+  assert.deepEqual(progress, [
+    { taskId, stage: 'activation-pending' }, { taskId, stage: 'activation-pending' },
+  ]);
 });
 
 test('a ready receipt is not presented as finished when the host title is wrong', async () => {
