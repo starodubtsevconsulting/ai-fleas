@@ -14,19 +14,19 @@ role_endpoints:
   - role: admin
     title: "🔑 Admin"
     model: gpt-5.6-sol
-    reasoning: high
+    reasoning: low
   - role: financial-analyst
     title: "📊 Financial Analyst"
     model: gpt-5.6-sol
-    reasoning: high
+    reasoning: low
   - role: records-bookkeeping
     title: "📒 Records / Bookkeeping"
     model: gpt-5.6-sol
-    reasoning: high
+    reasoning: low
   - role: financial-reviewer
     title: "🔎 Financial Reviewer"
     model: gpt-5.6-sol
-    reasoning: high
+    reasoning: low
 
 role_contracts:
   admin: ../../../../ai-workflows/_common/roles/admin.md

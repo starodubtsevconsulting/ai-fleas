@@ -15,7 +15,7 @@ platformBindings:
       enabled: true
       routing:
         routine: { model: gpt-6-luna, reasoning: low }
-        boundedAnalysis: { model: gpt-6-sol, reasoning: medium }
+        boundedAnalysis: { model: gpt-6-sol, reasoning: low }
 memory:
   - name: governor
     uri: profile-memory://governor

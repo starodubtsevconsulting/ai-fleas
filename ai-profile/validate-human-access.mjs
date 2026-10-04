@@ -34,7 +34,7 @@ const utilitySubagents = governor.platformBindings?.['codex-app']?.utilitySubage
 assert.equal(utilitySubagents?.enabled, true, 'GPT utility subagents must be explicitly enabled by the human binding');
 assert.deepEqual(utilitySubagents.routing, {
   routine: { model: 'gpt-6-luna', reasoning: 'low' },
-  boundedAnalysis: { model: 'gpt-6-sol', reasoning: 'medium' },
+  boundedAnalysis: { model: 'gpt-6-sol', reasoning: 'low' },
 });
 
 const authorizedProfileIds = new Set();

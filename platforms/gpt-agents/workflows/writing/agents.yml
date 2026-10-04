@@ -23,7 +23,7 @@ role_endpoints:
   - role: admin
     title: "🔑 Admin"
     model: gpt-5.6-sol
-    reasoning: high
+    reasoning: low
   - role: writer
     title: "✍️ Writer"
     model: gpt-5.6-terra
