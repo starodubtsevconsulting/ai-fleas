@@ -22,14 +22,40 @@ Some may also hear **AI Fleas** as **AI fleets** — many AIs working together. 
 
 ## What is inside
 
-AI Fleas provides a portable structure for AI-assisted work built around a few reusable pieces:
+AI Fleas separates persistent governance from the workflows and capabilities that perform work:
 
-- **[Profile](https://github.com/starodubtsevconsulting/ai-profile)** — the context you work from: personal, organization-specific or client-specific.
-- **[Workflows](ai-workflows/)** — how a kind of work is organized, including roles and operating rules.
-- **[Commands](ai-commands/)** — reusable executable capabilities that workflows can call.
-- **Roles and conventions** — common definitions for how agents participate and collaborate.
+- **[Personal Governor](ai-workflows/_common/roles/personal-governor.md)** — persistent human-scoped governance across goals, rules, memory, knowledge, current evidence, profiles, workflows and capacity. It decides what deserves attention and keeps work aligned over time; it is not another workflow.
+- **[Profile](https://github.com/starodubtsevconsulting/ai-profile)** — the context/configuration boundary for a person, organization or client. A governed human may participate in several profiles.
+- **[Workflows](ai-workflows/)** — reusable ways of doing a kind of work, including roles, operating rules and collaboration.
+- **[Commands](ai-commands/)** — bounded reusable executable capabilities that workflows can call.
 
-These definitions can be adapted to ChatGPT/Codex, Claude Code, Hermes, local models and other harnesses. The diagram below shows how the pieces fit together.
+Roles, agents, models and platform adapters realize these concepts at runtime. The portable definitions can be adapted to ChatGPT/Codex, Claude Code, Hermes, local models and other harnesses.
+
+### Personal Governor
+
+The Personal Governor is the continuity layer above individual workflows. It combines human-owned direction with durable context, external knowledge and current evidence before making governance recommendations.
+
+```mermaid
+flowchart TD
+    U[Human] --> G[Personal Governor]
+    Goals[Goals & Strategy] --> G
+    Rules[Rules & Guardrails] --> G
+    Memory[Memory<br/>What is true about me?] --> G
+    Knowledge[Knowledge<br/>What is known about this problem?] --> G
+    Evidence[Current Evidence<br/>What is true now?] --> G
+    G --> Reasoning[Governance Reasoning]
+    Reasoning --> Decision[Recommendation / Decision]
+    Decision --> U
+    G --> Profiles[Authorized Profiles]
+    Profiles --> Workflows[Workflows]
+    Workflows --> Commands[Commands / Tools]
+```
+
+`Goals + Rules + Memory + Knowledge + Current Evidence → Reasoning → Governance`
+
+**Memory and Knowledge are deliberately different.** Memory preserves personal/project history and decisions; Knowledge supplies curated external expertise. The public contract does not require a particular database, retrieval engine or AI platform.
+
+The existing workflow-suite diagram remains useful for the execution layer:
 
 ![AI Workflow Suite](img/ai_workflow_suite.png)
 
@@ -67,7 +93,7 @@ After the platform is running, add the context and workflow you want it to use:
 2. **Choose a [Workflow](ai-workflows/).** Pick the kind of work you want to do, or create your own.
 3. **Ask it to initialize the workflow for your project.** The AI can use the mappings and rules in these definitions to create the appropriate team for that platform.
 
-`Profile + Workflow + Commands + Platform Skills -> Your AI Team`
+`Personal Governor → Profile → Workflow → Roles/Agents → Commands/Tools → Result`
 
 ### What happens during initialization?
 
@@ -101,6 +127,8 @@ These are the main building blocks used across the public collection.
 
 | Term | Simple meaning | Reference |
 | --- | --- | --- |
+| **Personal Governor** | Persistent human-scoped governance across goals, memory, knowledge, evidence, capacity and authorized workflows. | [Governor role](ai-workflows/_common/roles/personal-governor.md) |
+| **Knowledge** | Curated external expertise retrieved when materially relevant; distinct from personal/project Memory. | [Governor role](ai-workflows/_common/roles/personal-governor.md) |
 | **Command** | A reusable executable AI capability with a defined contract, inputs and outputs. | [AI Commands](ai-commands/) |
 | **Workflow** | A reusable process for a kind of work. It defines roles, rules, collaboration and capabilities. | [AI Workflows](ai-workflows/) |
 | **Flow / route** | The path work follows inside a workflow. | [AI Workflows](ai-workflows/) |
@@ -114,7 +142,7 @@ These are the main building blocks used across the public collection.
 
 A useful mental model is:
 
-`Profile -> Workflow -> Role -> Agent -> Model -> Deployment -> Commands/Tools -> Result`
+`Personal Governor -> Profile -> Workflow -> Role -> Agent -> Model -> Deployment -> Commands/Tools -> Result`
 
 ## AI vocabulary
 
