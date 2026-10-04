@@ -279,6 +279,52 @@ It also does not mean a confidence number makes a risky action safe. Consequence
 
 The point is to stop treating expensive reasoning as the universal entry point.
 
+## Could System 2 teach System 1?
+
+There may be one more step in this design.
+
+The boundary between fast and slow thinking produces data of its own.
+
+Every time System 1 handles something, escalates it, or gets overridden by System 2, we have a small piece of operational evidence:
+
+```text
+input
+  ↓
+System 1 decision + confidence
+  ↓
+handle cheaply ───────────────→ outcome
+  │
+  └─ escalate → System 2 decision → outcome
+                         │
+                         └────────→ learning data
+```
+
+Over time, we could ask useful questions of that history.
+
+Which situations does System 1 keep escalating?
+
+Which of those receive essentially the same System 2 answer every time?
+
+Where was System 1 confident but wrong?
+
+Where did System 2 add real value, and where did it merely confirm an obvious route?
+
+That history could become training material for the next version of the fast layer. A repeated System 2 problem might become a deterministic rule, a better classifier, a new LoRA adapter, or part of a fine-tuning/distillation dataset.
+
+In other words, **today's System 2 problem could become tomorrow's System 1 pattern.**
+
+That creates a feedback loop rather than a fixed hierarchy:
+
+```text
+System 1 → System 2 → outcome
+    ↑                    │
+    └──── learn ─────────┘
+```
+
+We should be careful with that idea. Predictability alone should not move consequential decisions into an automatic layer. Some decisions may always require deliberate reasoning or a human gate regardless of how accurately System 1 learns to predict them.
+
+And I would not claim that this loop reproduces biological learning. The brain analogy simply gives us another engineering question worth testing: **can the expensive layer teach the cheaper layers when experience shows that a class of decisions has become routine?**
+
 ## What I am testing next
 
 I have added System 1 / System 2 to the public Personal Governor architecture in AI Fleas.
