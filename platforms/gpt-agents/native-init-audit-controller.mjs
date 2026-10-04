@@ -9,13 +9,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
+import { createHash } from 'node:crypto';
 import { normalizeAdminScope } from './initialize-workflow-admin.mjs';
 
 export const initAuditTool = {
   type: 'function', name: 'ai_fleas_init_audit',
   description: 'Run the mandatory bounded read-only INIT audit through the bootstrap controller. Only the exact current INIT is authorized; the worker exits before results return.',
   inputSchema: { type: 'object', additionalProperties: false,
-    properties: { preflightSummary: { type: 'string', minLength: 1, maxLength: 12000 } }, required: ['preflightSummary'] },
+    properties: { preflightSummary: { type: 'string', minLength: 1, maxLength: 12000 },
+      preflight: { type: 'object', additionalProperties: false,
+        properties: { completed: { type: 'boolean', const: true },
+          sourceRefs: { type: 'array', minItems: 1, uniqueItems: true, items: { type: 'string' } },
+          effectiveModel: { type: 'string' }, reasoning: { type: 'string' } },
+        required: ['completed', 'sourceRefs', 'effectiveModel', 'reasoning'] } },
+    required: ['preflightSummary', 'preflight'] },
 };
 const fail = reason => { throw new Error(reason); };
 
@@ -46,15 +53,25 @@ export class NativeInitAuditController {
         params.namespace != null || !params.threadId || !params.turnId || !params.callId)
       fail('INIT_AUDIT_TOOL_REQUEST_INVALID');
     const args = typeof params.arguments === 'string' ? JSON.parse(params.arguments) : params.arguments;
-    if (!args || Object.keys(args).length !== 1 || !Object.hasOwn(args, 'preflightSummary') || typeof args.preflightSummary !== 'string' ||
+    if (!args || Object.keys(args).length !== 2 || !Object.hasOwn(args, 'preflightSummary') || typeof args.preflightSummary !== 'string' ||
         !args.preflightSummary.trim() || args.preflightSummary.length > 12000)
       fail('INIT_AUDIT_ARGUMENTS_INVALID');
     const { binding } = this.#readBinding(params.threadId, params.turnId);
+    const endpoint = this.#plan.bootstrapPayload.endpoint;
+    const expectedRefs = binding.initialization.sources.map(source => source.ref).sort();
+    const preflight = args.preflight;
+    if (preflight?.completed !== true || Object.keys(preflight).length !== 4 ||
+        !Array.isArray(preflight.sourceRefs) || new Set(preflight.sourceRefs).size !== expectedRefs.length ||
+        !isDeepStrictEqual([...preflight.sourceRefs].sort(), expectedRefs) ||
+        preflight.effectiveModel !== endpoint.model || preflight.reasoning !== endpoint.reasoning ||
+        /\b(?:I|we)\s+(?:will|plan to|intend to)\s+(?:read|verify|check)\b/i.test(args.preflightSummary))
+      fail('INIT_AUDIT_PREFLIGHT_INCOMPLETE');
     if (this.#calls.has(params.threadId) || binding.initialization.audit) fail('INIT_AUDIT_DUPLICATE_FORBIDDEN');
     this.#calls.add(params.threadId); // reserve before any await; uncertainty never authorizes resend
     const parent = (await this.#client.request('thread/read', { threadId: params.threadId, includeTurns: true }))?.thread;
     if (parent?.id !== params.threadId || parent.status?.type !== 'active' || parent.projectId !== this.#plan.scope.projects[0].savedProjectId ||
-        parent.cwd !== this.#plan.scope.projects[0].root ||
+        parent.cwd !== this.#plan.scope.projects[0].root || parent.model !== endpoint.model ||
+        parent.reasoningEffort !== endpoint.reasoning ||
         parent.turns?.filter(turn => turn.id === params.turnId && turn.status === 'inProgress').length !== 1)
       fail('INIT_AUDIT_PARENT_TURN_UNVERIFIED');
     const commonAdminContract = this.#plan.sources.commonAdminContract || this.#plan.sources.adminContract;
@@ -62,13 +79,25 @@ export class NativeInitAuditController {
       this.#plan.sources.selfCommands, this.#plan.sources.lifecycle,
       path.resolve(path.dirname(commonAdminContract), '../agents/utility-subagents.md')])]
       .map(ref => ({ ref, text: this.#io.readFileSync(ref, 'utf8') }));
-    const endpoint = this.#plan.bootstrapPayload.endpoint;
+    const canonicalSources = binding.initialization.sources.map(source => {
+      const text = this.#io.readFileSync(source.ref, 'utf8');
+      return { ...source, text, sha256: createHash('sha256').update(text).digest('hex') };
+    });
+    const invocation = { cwd: parent.cwd, model: endpoint.model, reasoning: endpoint.reasoning };
+    const workerArguments = this.#worker.arguments(invocation);
     const result = await this.#worker.run({ cwd: this.#plan.scope.projects[0].root,
       model: endpoint.model, reasoning: endpoint.reasoning,
       evidence: { scope: this.#plan.scope, selectedPlatform: 'codex-app', effectiveModel: endpoint.model,
         reasoning: endpoint.reasoning, adminDeclaration: this.#plan.manifest.initializer,
         bootstrapAuthorization: this.#plan.approval, canonicalSourceReferences: this.#plan.bootstrapPayload.binding.initialization.sources,
-        contracts, parentPreflightSummary: args.preflightSummary,
+        contracts, canonicalSources, parentPreflight: preflight, parentPreflightSummary: args.preflightSummary,
+        controllerVerifiedModelBinding: { adapterSource: this.#plan.sources.adapter,
+          commandOverrideSource: this.#plan.sources.commandConfig || null,
+          precedence: 'profile role_overrides.admin model/reasoning override adapter Admin endpoint',
+          preparedEndpoint: endpoint, observedTaskModel: parent.model,
+          observedTaskReasoning: parent.reasoningEffort, exactMatch: true },
+        controllerVerifiedAuditInvocation: { executablePolicy: 'controller-owned EphemeralInitAudit',
+          arguments: workerArguments, ...invocation, receiptRequiredAfterProcessExit: true },
         controllerVerifiedHostEvidence: {
           task: { id: parent.id, savedProjectId: parent.projectId, cwd: parent.cwd, status: parent.status },
           host: { capability: 'trusted native app-server client used for this exact task creation/read',
