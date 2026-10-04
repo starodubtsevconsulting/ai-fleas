@@ -192,9 +192,15 @@ This is another place where the brain analogy is useful—as long as it remains 
 
 Kahneman's System 1 and System 2 are psychological abstractions, not two anatomical boxes. Still, some functions we associate with fast, automatic behavior involve circuits including the basal ganglia and sensorimotor systems, while deliberate cognitive control relies heavily on distributed prefrontal and frontoparietal networks. The biology is considerably richer than a two-box diagram.
 
-I am not trying to reproduce that biology in software.
+We probably should not think of the Governor as a brain in the sense of trying to build another human. That would be the wrong goal.
 
-I am borrowing a design lesson from a system that already works remarkably well: **do not spend expensive deliberation on every signal.**
+But there is a design lesson worth borrowing from the brain: **expensive deliberation is not the default path for every signal.** Human cognition has ways to recognize, react and act without bringing the full machinery of deliberate reasoning into every moment.
+
+Could we make the Governor economical in a similar way?
+
+Instead of putting a frontier model at the entrance to every decision, we could map cheaper models, classifiers and deterministic mechanisms to cheaper cognitive operations. A fast layer could recognize familiar situations, classify events, route work and clear bounded decisions. In many cases, the expensive model would never need to wake up. In others, System 1 would reduce the problem first and escalate only what actually deserves System 2.
+
+That gives us a different optimization target. We are not merely trying to make inference cheaper. We are trying to spend **cognitive cost in proportion to the decision**—and potentially get an answer faster at the same time.
 
 For the Governor, that suggests a useful separation:
 
