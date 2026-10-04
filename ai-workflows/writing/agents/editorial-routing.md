@@ -1,6 +1,6 @@
 # Writing Router routing
 
-The hidden Workflow Router is the Writing workflow runtime. Writer, Reviewer, and Release Coordinator are independent
+The hidden Workflow Router is the Writing workflow runtime. Only Writer, Reviewer, and Release Coordinator are routed
 role endpoints: they do not contact one another and they do not return workflow packets to Admin. The Router observes
 each endpoint's terminal result, validates its evidence references, and advances only through transitions declared by
 the [Writing workflow](../writing.workflow.md).
@@ -72,11 +72,13 @@ Reviewer stage. `HUMAN_ACTION_REQUIRED` pauses without agent dispatch. A release
 diagnosis, and verified diagnosis transitions back to Release Coordinator. The Router never creates a specialist
 verdict, human acceptance, or publication-target choice.
 
-Admin may inspect the Router state, bindings, correlations, and evidence references and may perform authorized endpoint
-lifecycle repair. Admin cannot impersonate the runtime by manually relaying workflow packets. Dispatch acceptance is
+Admin is outside the Router state machine. It may inspect the Router state, bindings, correlations, and evidence references
+and may perform authorized endpoint lifecycle repair, but it cannot impersonate the runtime by manually relaying workflow
+packets. Dispatch acceptance is
 not completion: the Router advances only after the host observes the exact endpoint turn and validates its terminal
 event. Empty or unacknowledged turns produce `BLOCKED_DELIVERY_UNACKNOWLEDGED` and do not satisfy a gate.
 
-Every endpoint must echo the Router-owned `correlationId`, stage, and role byte-for-byte in its terminal
+Every routed worker endpoint must echo the Router-owned `correlationId`, stage, and role byte-for-byte in its terminal
 `WORKFLOW_ROUTER_RESULT`. It must begin with `COPY THAT`; it may not shorten an attempt correlation or derive a new one.
-The host rejects a missing acknowledgement or any identity mismatch without advancing the Writing run.
+Admin never emits a Router result. The host rejects a missing acknowledgement or any identity mismatch from a routed worker
+without advancing the Writing run.

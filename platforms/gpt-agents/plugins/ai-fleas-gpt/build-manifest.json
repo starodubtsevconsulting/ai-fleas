@@ -60,7 +60,7 @@
     },
     {
       "path": "modules/workflow-router/scripts/workflow-router-hook.mjs",
-      "sha256": "d5c53c44d23330de49c4d422544dfcf2334c19f4faa7b7caf46e1353cd7033e4"
+      "sha256": "2e45d1d01dba9d1e3d923651fdf3291d6c4a92f24edf3839dbbbede5d2562f91"
     },
     {
       "path": "modules/workflow-router/scripts/workflow-transition-packet.mjs",

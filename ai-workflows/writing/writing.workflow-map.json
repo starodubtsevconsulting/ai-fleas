@@ -4,7 +4,6 @@
   "source": "writing.workflow.md",
   "initialStage": "drafting",
   "capabilityOwners": {
-    "workflow_orchestration": "admin",
     "article_drafting": "writer",
     "independent_critique": "reviewer",
     "critique_disposition": "writer",
@@ -18,38 +17,6 @@
     "published_reconciliation": "writer"
   },
   "stages": {
-    "administration": {
-      "role": "admin",
-      "capability": "workflow_orchestration",
-      "transitions": {
-        "route-required": {
-          "to": "drafting",
-          "visualLabel": "route-required: send article request to Writer",
-          "requiredReferenceKinds": ["revision", "work-request"]
-        },
-        "published-update-required": {
-          "to": "published_revision",
-          "visualLabel": "published-update-required: revise existing story",
-          "requiredReferenceKinds": ["published-story", "work-request"]
-        },
-        "review-required": {
-          "to": "review",
-          "visualLabel": "review-required: recheck delegated release",
-          "requiredReferenceKinds": ["revision", "review-packet", "work-request"]
-        },
-        "handled": {
-          "to": "administration_complete",
-          "visualLabel": "handled: administration complete",
-          "terminal": true,
-          "requiredReferenceKinds": []
-        }
-      }
-    },
-    "administration_complete": {
-      "role": "admin",
-      "capability": "workflow_orchestration",
-      "transitions": {}
-    },
     "published_revision": {
       "role": "writer",
       "capability": "published_revision",
@@ -90,11 +57,17 @@
           "requiredReferenceKinds": ["findings"]
         },
         "blocked": {
-          "to": "administration",
-          "visualLabel": "blocked: Admin inspects destination obstacle",
+          "to": "published_blocked",
+          "visualLabel": "blocked: terminal destination obstacle",
+          "terminal": true,
           "requiredReferenceKinds": ["blocker", "published-story"]
         }
       }
+    },
+    "published_blocked": {
+      "role": "release-coordinator",
+      "capability": "published_apply",
+      "transitions": {}
     },
     "published_verification": {
       "role": "reviewer",
@@ -157,8 +130,9 @@
           "requiredReferenceKinds": ["findings"]
         },
         "admin_decision_required": {
-          "to": "admin_release_review",
-          "visualLabel": "admin_decision_required: exact delegated verdict",
+          "to": "human_review",
+          "visualLabel": "admin_decision_required: wait for direct Admin decision",
+          "waitForHuman": true,
           "requiredReferenceKinds": ["review", "destination-review", "work-request"]
         },
         "human_action_required": {
@@ -173,27 +147,6 @@
       "role": "reviewer",
       "capability": "independent_critique",
       "transitions": {}
-    },
-    "admin_release_review": {
-      "role": "admin",
-      "capability": "workflow_orchestration",
-      "transitions": {
-        "approved": {
-          "to": "release",
-          "visualLabel": "approved: Admin-delegated release decision",
-          "requiredReferenceKinds": ["review", "destination-review", "release-delegation"]
-        },
-        "changes_required": {
-          "to": "correction",
-          "requiredReferenceKinds": ["findings"]
-        },
-        "decision_missing": {
-          "to": "human_review",
-          "visualLabel": "decision_missing: wait for author",
-          "waitForHuman": true,
-          "requiredReferenceKinds": ["human-action"]
-        }
-      }
     },
     "human_review": {
       "role": "reviewer",

@@ -23,7 +23,9 @@ const sameSet = (a, b) => Array.isArray(a) && Array.isArray(b) &&
 export function buildAdminInitPrompt(scope, auditTransport = 'native-child') {
   if (!['native-child', 'ephemeral-process'].includes(auditTransport)) throw new Error('INIT_AUDIT_TRANSPORT_UNSUPPORTED');
   const auditInstructions = auditTransport === 'ephemeral-process'
-    ? 'After completing your own canonical identity and scope preflight, call the controller-provided ai_fleas_init_audit tool exactly once with your bounded preflightSummary. ' +
+    ? 'FIRST read every canonical source and complete your exact identity, scope and effective model/reasoning verification. Do not call the audit while verification is planned, incomplete, or in future tense. ' +
+      'ONLY AFTER those reads, call ai_fleas_init_audit exactly once with preflightSummary describing completed findings and preflight={completed:true,sourceRefs:[every exact canonical source ref from your binding],effectiveModel:the resolved model,reasoning:the resolved effort}. ' +
+      'The source list is your completed-read attestation, not a claim that the controller can observe your cognition. Use the profile command override over the adapter default when resolving the model. ' +
       'This is the required bounded utility subagent audit: the controller uses your configured model and reasoning in a tool-disabled ephemeral process and verifies process exit before returning. ' +
       'Do not spawn a persistent audit child or replace this transport. If the tool is absent, fails, or returns a blocked verdict, report a concrete blocker without ADMIN_READY. Verify its findings and exact audit receipt before readiness. '
     : 'Before spawning the required read-only INIT audit, verify that your actual transport provides an owning child-close operation. ' +

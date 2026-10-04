@@ -166,8 +166,13 @@ Inspect `status`, exact identity, readiness evidence, and release result before
 handing off. A blocked result is not partial success.
 
 The default native INIT provides exactly one `ai_fleas_init_audit` dynamic tool to
-the new Admin. After its own canonical preflight, Admin supplies only a bounded
-`preflightSummary`. The owning controller authenticates the actual task, INIT turn,
+the new Admin. After reading every canonical source and completing its own preflight, Admin supplies a bounded
+`preflightSummary` plus `preflight` containing `completed: true`, the exact complete `sourceRefs`,
+and the resolved `effectiveModel` and `reasoning`. This is a completed-read attestation, not proof
+of cognition or host-observed reads. Incomplete, future-tense, wrong-source or wrong-model attestations
+are rejected before inference. The controller supplies its own canonical source snapshots and digests,
+observed task model/effort, endpoint precedence and fixed ephemeral process arguments to the auditor.
+The owning controller authenticates the actual task, INIT turn,
 generation, nonce, source references and authorized scope, then runs a process-owned
 `codex exec --ephemeral` utility with the configured Admin model and reasoning.
 Inherited configuration, connectors, execution tools and nested agents are disabled;

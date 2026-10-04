@@ -8,8 +8,7 @@ editorial project, permanent archive, repository mirror, and destination binding
 
 ## Entry
 
-Admin supplies a durable `work-request` and the exact `published-story` URL through
-`administration/published-update-required`. The request identifies the requested change, selected project, destination
+Admin supplies a durable `work-request` and the exact `published-story` URL outside the Router. The request identifies the requested change, selected project, destination
 account, and the human's approval or applicable delegated authority to edit that live story. An article title alone
 does not identify the story. Writer reads the live story, archive, and remote repository record before changing any
 copy or asset, and records their current revisions and publication status.
