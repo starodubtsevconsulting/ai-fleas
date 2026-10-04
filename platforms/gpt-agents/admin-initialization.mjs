@@ -91,7 +91,12 @@ export class AdminInitializationBuilder {
     const rolePath = file(path.resolve(path.dirname(manifestPath), manifest.initializer.roleDefinition));
     const adapterRole = file(path.resolve(path.dirname(adapterPath), adapter.role_contracts?.admin || ''));
     const canonicalRole = file(path.join(repository, 'ai-workflows/_common/roles/admin.md'));
-    if (rolePath !== canonicalRole || adapterRole !== canonicalRole) throw new Error('ADMIN_CONTRACT_MISMATCH');
+    if (rolePath !== adapterRole) throw new Error('ADMIN_CONTRACT_MISMATCH');
+    const commonAdminContract = rolePath === canonicalRole ? null :
+      manifest.initializer.commonRoleDefinition
+        ? file(path.resolve(path.dirname(manifestPath), manifest.initializer.commonRoleDefinition)) : null;
+    if (rolePath !== canonicalRole && commonAdminContract !== canonicalRole)
+      throw new Error('ADMIN_COMMON_CONTRACT_REQUIRED');
     const registry = this.#registry || this.#registryLoader(registryPath);
     selectLifecycleRole(profile, workflow, registry, manifest, adapter, 'admin');
     const commandDeclarations = profile.commands?.filter(command => command.id === 'gpt-agents') || [];
@@ -146,6 +151,7 @@ export class AdminInitializationBuilder {
       runtimeScope: request.runtimeScope, projects: scopedProjects };
     const sources = [
       ['portable-role', rolePath], ['portable-manifest', manifestPath], ['platform-adapter', adapterPath],
+      ...(commonAdminContract ? [['common-admin-role', commonAdminContract]] : []),
       ['work-profile', profilePath], ['platform-registry', registryPath],
       ['workflow', file(path.join(workflowRoot, request.workflowId, `${request.workflowId}.workflow.md`))],
       ['lifecycle', file(path.join(workflowRoot, '_common/agents/lifecycle.md'))],
@@ -164,10 +170,23 @@ export class AdminInitializationBuilder {
       prompt: buildAdminInitPrompt(scope, request.auditTransport),
       endpoint,
     };
+    // Replacement is a separately human-approved, exact predecessor transaction,
+    // never an automatic response to missing presentation or uncertain INIT.
+    if (request.replaceTaskId !== undefined || request.replaceGeneration !== undefined) {
+      if (typeof request.replaceTaskId !== 'string' || !request.replaceTaskId ||
+          !Number.isInteger(request.replaceGeneration) || request.replaceGeneration < 1 ||
+          authorization.replaceTaskId !== request.replaceTaskId ||
+          authorization.replaceGeneration !== request.replaceGeneration ||
+          request.generation !== request.replaceGeneration + 1)
+        throw new Error('ADMIN_REPLACEMENT_APPROVAL_REQUIRED');
+      bootstrapPayload.binding.replaces = { taskId: request.replaceTaskId,
+        generation: request.replaceGeneration, strategy: 'successor-first' };
+    }
     const sourceMap = Object.fromEntries(sources.map(source => [source.id, source.ref]));
     const preparedSources = {
       profile: profilePath, workflow: sourceMap.workflow, manifest: manifestPath, adapter: adapterPath,
       adminContract: rolePath, selfCommands: sourceMap['self-commands'], lifecycle: sourceMap.lifecycle,
+      ...(commonAdminContract ? { commonAdminContract } : {}),
       platformContract: file(path.join(platformRoot, 'gpt-agents/platform.yml')),
       registry: registryPath, initializer: sourceMap['admin-only-initializer'],
       rules: file(path.join(repository, 'AGENTS.md')),

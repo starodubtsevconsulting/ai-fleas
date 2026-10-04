@@ -23,6 +23,10 @@ function fixture() {
     approval: 'one-time-human-approval', sources: Object.fromEntries(['profile', 'workflow', 'manifest', 'adapter',
       'adminContract', 'selfCommands', 'lifecycle', 'platformContract', 'rules', 'registry', 'initializer'].map(k => [k, 'canonical/' + k])) };
   input.sources.projectManifests = ['projects/example.yml'];
+  input.sources.manifest = '/fictional/ai-workflows/financial-insights/agents.yml';
+  input.sources.adapter = '/fictional/platforms/gpt-agents/workflows/financial-insights/agents.yml';
+  input.sources.adminContract = '/fictional/ai-workflows/_common/roles/admin.md';
+  input.adapter.role_contracts.admin = '../../../../ai-workflows/_common/roles/admin.md';
   input.bootstrapPayload = { binding: { agentId: 'admin', platformAdapter: 'codex-app', generation: 1, scope,
     initialization: { readinessToken: 'ADMIN_READY', bootstrapAuthorization: { ...input.approval, verified: false,
       purpose: 'one-time-admin-initialization' } } }, prompt: buildAdminInitPrompt(scope) };
@@ -52,6 +56,42 @@ function fixture() {
   return { input, host, calls, catalog, binding, syncSources };
 }
 let f = fixture();
+for (const mutation of [null, 'unapproved', 'wrong-generation', 'archived', 'competing', 'failed-successor']) {
+  const r = fixture();
+  const predecessor = { ...r.binding(), taskId: 'previous', initialization: {
+    readinessToken: 'ADMIN_READY', completedTurnId: 'old-turn', completedAt: '2026-01-01T00:00:00Z' } };
+  r.catalog.bindings.push(predecessor);
+  r.catalog.tasks.push({ id: 'previous', status: 'active', projectId: 'saved-example' });
+  r.input.approval = { humanApproved: true, replaceTaskId: 'previous', replaceGeneration: 1 };
+  Object.assign(r.input.bootstrapPayload.binding, { generation: 2,
+    replaces: { taskId: 'previous', generation: 1, strategy: 'successor-first' } });
+  r.input.bootstrapPayload.binding.initialization.bootstrapAuthorization = {
+    ...r.input.approval, verified: false, purpose: 'one-time-admin-initialization' };
+  r.host.wait = async ({ taskId }) => ({ taskId, status: 'complete', token: 'ADMIN_READY',
+    turnId: taskId === 'previous' ? 'old-turn' : 'turn-example' });
+  r.host.initialize = async request => {
+    r.calls.push(['initialize', request]);
+    if (mutation !== 'failed-successor') {
+      r.catalog.bindings.push({ ...r.binding(), generation: 2, replaces: request.payload.binding.replaces });
+      predecessor.status = 'superseded'; predecessor.supersededBy = 'task-example';
+    }
+    return { taskId: request.taskId, status: 'submitted', turnId: 'turn-example' };
+  };
+  if (mutation === 'unapproved') delete r.input.approval.replaceTaskId;
+  if (mutation === 'wrong-generation') predecessor.generation = 3;
+  if (mutation === 'archived') r.catalog.tasks[0].status = 'archived';
+  if (mutation === 'competing') r.catalog.bindings.push({ ...r.binding(), taskId: 'competitor' });
+  const result = await initializeWorkflowAdmin(r.input, r.host);
+  assert.equal(result.status, mutation ? 'blocked' : 'ready');
+  if (!mutation) {
+    assert.equal(result.replacedTaskId, 'previous');
+    assert.deepEqual(r.calls.map(c => c[0]), ['create', 'initialize']);
+    assert.equal(predecessor.status, 'superseded');
+  } else {
+    assert.equal(predecessor.status, 'active');
+    if (mutation !== 'failed-successor') assert.equal(r.calls.length, 0);
+  }
+}
 const classFixture = fixture();
 const initializer = new WorkflowAdminInitializer(classFixture.host);
 const created = await initializer.initialize(classFixture.input);
@@ -168,4 +208,18 @@ blocked = await initializeWorkflowAdmin(f.input, f.host);
 assert.equal(blocked.reason, 'SAVED_PROJECT_MISMATCH'); assert.equal(f.calls.length, 0);
 f = fixture(); f.input = JSON.parse(JSON.stringify(f.input));
 assert.equal((await initializeWorkflowAdmin(f.input, f.host)).status, 'ready');
+f = fixture();
+f.input.manifest.initializer.roleDefinition = 'agents/roles/admin.md';
+f.input.manifest.initializer.commonRoleDefinition = '../_common/roles/admin.md';
+f.input.sources.commonAdminContract = f.input.sources.adminContract;
+f.input.sources.adminContract = '/fictional/ai-workflows/financial-insights/agents/roles/admin.md';
+f.input.adapter.role_contracts.admin = '../../../../ai-workflows/financial-insights/agents/roles/admin.md';
+f.syncSources();
+f.input.bootstrapPayload.binding.initialization.sources.splice(3, 0,
+  { id: 'common-admin-role', ref: f.input.sources.commonAdminContract });
+assert.equal((await initializeWorkflowAdmin(f.input, f.host)).mode, 'created');
+f = fixture();
+f.input.adapter.role_contracts.admin = '../../../../ai-workflows/_common/roles/worker.md';
+assert.equal((await initializeWorkflowAdmin(f.input, f.host)).reason, 'ADMIN_CONTRACT_MISMATCH');
+assert.equal(f.calls.length, 0);
 console.log('Admin-only injected-host transaction: PASS');

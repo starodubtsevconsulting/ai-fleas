@@ -38,6 +38,15 @@ not add a platform selection to the portable roster. Financial Insights is the
 tested example, not evidence that every existing roster already meets these
 prerequisites or that other platform adapters implement this transaction.
 
+The Admin may use the common role directly or a workflow-specific Admin contract.
+For a specialization, its portable initializer must explicitly declare
+`commonRoleDefinition` resolving to the canonical common Admin contract, and the
+portable `roleDefinition` and adapter `role_contracts.admin` must resolve to the
+same specialization. The builder includes both contracts in the canonical INIT
+sources; the serialized-plan controller verifies these declarations and sources
+again before effects. A Markdown link or an Admin title alone does not declare
+this composition.
+
 The reusable effectful command is
 `node platforms/gpt-agents/initialize-admin-command.mjs --request REQUEST.json`
 (use `--request -` to read JSON from stdin without a request file). Governor may
@@ -50,7 +59,14 @@ responsibility. Native readiness and controller release do not prove that the ap
 placed the chat in its sidebar project. Complete success also requires
 `appProjectAttached: true` from the trusted owning-app verifier.
 
-`AdminControllerCommand` accepts a `verifyAppProject({taskId, scope})` adapter.
+`AdminControllerCommand` requires trusted `resolveAppProject({scope})` and
+`verifyAppProject({taskId, scope})` adapters. The resolver reads fresh complete app
+catalogs before lifecycle effects and returns
+`{nativeProjectId, logicalProjectId, appProjectId}` for the exact selected scope.
+The command retains that immutable app ID and requires exactly the same ID after
+readiness; a different nonempty project ID is a failed handoff, even with the same
+working directory. Missing adapters block before connection or lifecycle effects;
+an invalid mapping blocks before allocation or INIT.
 It must freshly verify the exact task's app project association and the mapping
 between the expected native saved project and immutable app project ID. Return
 `{taskId, attached: true, nativeProjectId, logicalProjectId, appProjectId}` only
@@ -58,8 +74,10 @@ after checking the owning-app catalogs. App and native project IDs are distinct;
 matching titles or working directories are not mapping evidence. Request JSON
 cannot supply this verifier or attest that attachment occurred.
 
-For an app-tool controller such as Governor, finish the native command's handoff
-using the supported app tools:
+For an app-tool controller such as Governor, a trusted bridge supplying both
+callbacks is required; the standalone CLI is not an effectful substitute. For
+an existing task created before this preflight gate, inspect the handoff using
+supported app tools:
 
 1. Retain the command's exact `taskId`; do not create another Admin or resend INIT.
 2. Open that existing chat with `navigate_to_codex_page({threadId: taskId})`.
@@ -87,16 +105,33 @@ release, and owning-app attachment remain separate results (`readinessStatus`,
 `controllerReleaseStatus`/`controllerReleased`, and `appProjectAttached`).
 
 This is controller-followed orchestration: the CLI cannot call the desktop tool
-on its own, and the native archive cycle does not verify app catalog placement.
+on its own, and native writer release does not verify app catalog placement.
 
 The standalone CLI currently has no supported owning-app catalog bridge. It
-therefore reports `ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED` after native readiness
-and release, retaining `taskId` and `adminInitialized: true`, without an overall
-success token. The controller must inspect that exact chat in the app catalog;
+therefore reports `ADMIN_APP_PROJECT_BRIDGE_UNAVAILABLE` before connection,
+task allocation, retry, or INIT, with `lifecycleStarted: false`. An integration
+must provide a trusted owning-app verifier before using this command. If that
+verifier fails after native readiness and release, the controller instead reports
+`ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED`, retaining the exact `taskId` and
+`adminInitialized: true`, without an overall success token.
+The controller must inspect that exact chat in the app catalog;
 never report a complete handoff from the native result alone. If it is projectless,
 repair that existing chat through a supported app operation, not by creating a
 duplicate. If opening does not reconcile it and no supported attachment operation exists, report that concrete
 capability gap. Do not edit host databases, retry INIT, or silently change scope.
+
+A separately human-authorized replacement uses `replaceTaskId` and
+`replaceGeneration` in both request and authorization, and sets successor
+`generation` to predecessor generation plus one. The builder emits the exact
+`replaces` successor-first receipt. The controller verifies the sole live ready
+predecessor, its full original authorized scope and saved project, then allocates
+one fresh successor with the newly approved canonical subset. Only that exact
+predecessor may be excluded from duplicate checks. Stop activation supersedes it
+only after successor readiness; an unrelated, changed, missing, archived or
+ambiguous predecessor blocks. Retire the old host chat only after verified
+successor readiness, controller release and exact owning-app attachment. This
+is not automatic presentation repair, restoration, or permission to send an
+operational message to either Admin.
 
 The injectable controller API remains `initializeNativeAdmin(request, options)`
 in `initialize-native-admin.mjs`. For a
@@ -146,15 +181,22 @@ also compares it with the exact completed native dynamic-tool call and rejects
 any persistent descendant. A worker failure or blocked verdict cannot become
 `ADMIN_READY`. The older explicitly selected `native-child` route still requires
 an owning child-close operation and verified release; neither route falls back.
-Ephemeral same-task retry is currently unsupported and stops before delivery.
+An explicitly authorized same-task retry may renew a stopped pending INIT whose
+single ephemeral audit tool call failed and whose final response is
+`BLOCKED_INIT_SUBAGENT`, provided no audit receipt or readiness exists. The
+controller verifies the exact completed attempt and complete catalogs, installs
+a fresh audit handler, and increments the generation before one new INIT. It
+never retries a running, uncertain, successful, or audit-blocked attempt.
 
-Newly created native Admin handoff also verifies a stopped, completed exact INIT,
-then uses `thread/archive` to close the owning native writer and `thread/unarchive`
-to restore the same initialized chat for the human. It preserves the task ID,
-binding and history, sends no message, and does not resume the chat. Verified
-`notLoaded` state and complete loaded-catalog exclusion are required afterward.
-An existing ready Admin is reused without this cycle. Failure is a concrete handoff
-blocker with the exact task ID, not permission to restart or delete anything.
+Newly created native Admin handoff verifies a stopped, completed exact INIT and
+uses only a supported non-archiving writer-release route. Archive/unarchive cycles
+are prohibited: archival is terminal, including during initialization handoff.
+The native controller verifies the stopped INIT and calls `thread/unsubscribe`;
+it never uses archival as writer release. The host may retain an unsubscribed
+thread for its inactivity grace period; unsubscribe alone is not verified unload.
+Verified `notLoaded` state and complete loaded-catalog exclusion are required
+after release. Failure preserves the unarchived exact task and reports the actual
+missing release capability; it never authorizes restoration or another INIT.
 
 This removes the INIT audit's persistent child/writer dependency. It does **not**
 implement automatic END, guarantee UI archival, or repair a shared-daemon writer
@@ -195,11 +237,13 @@ registration API, then submit the prompt once. The native route uses `turn/start
 the queue CLI is a separate transport, not an additional delivery step. Verify the
 actual task, binding and readiness. Submission or a pending binding is not readiness.
 
-A uniquely verified archived host task is historical, even when its retained
-receipt still says active or pending. A new human-approved initialization may
-create a fresh Admin while preserving that receipt and archived history. A missing
-or ambiguous host task does not qualify for this exclusion. Never restore or
-message the archived predecessor implicitly.
+An archived Admin is permanently retired, even when its retained receipt says
+active or pending. Select only live, unarchived candidates. Do not search archived
+chats, read their transcripts, offer restoration, or treat archived versions as
+duplicates or blockers. A minimal exact-ID status check may exclude a stale
+receipt; then continue the approved fresh initialization without asking about the
+retired chat. Never restore, unarchive, resume, retry, rebind, or message it.
+A missing or ambiguous host task is not verified archived status.
 
 Controller integration imports `initializeWorkflowAdmin(preparedPlan, host)`;
 the prepared plan may be JSON-serialized. The host must implement all six ports:
@@ -224,11 +268,17 @@ an untrusted JSON flag cannot replace those attestations. Human-only follow-up a
 instructions, not a message firewall or source-reading attestation. Older active
 receipts without completion evidence cannot be silently reused or duplicated.
 
+For CLI recovery, include the exact `retryTaskId` in both the request and its
+human-authorized `authorization`; the controller invokes the same-task retry API
+rather than creating another Admin. This is an explicit recovery action after a
+verified failure, not an automatic resend on timeout.
+
 `retryNativeAdminInitialization` is an explicit, human-authorized recovery route,
 not an automatic resend. It verifies the same pending Admin, scope, catalog and
 terminated INIT before renewing the permit and resuming that exact task. A completed
-attempt qualifies only with an expired permit and an explicit
-`BLOCKED_INIT_PERMIT_EXPIRED` final response. An uncertain or still-running attempt
+attempt qualifies with an expired permit and an explicit
+`BLOCKED_INIT_PERMIT_EXPIRED` final response, or the exact failed ephemeral-audit
+case described above. An uncertain or still-running attempt
 must be inspected, not duplicated. Native permission requests require a trusted
 controller handler and actual human approval; the transport never approves them.
 After verified readiness, unsubscribe the controller and verify that the exact task

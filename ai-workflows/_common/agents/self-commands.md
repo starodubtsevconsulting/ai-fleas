@@ -7,6 +7,10 @@ current agent must verify its exact host task/instance ID and canonical identity
 any effect. A title, cwd, remembered conversation, or another agent's binding is not identity evidence. The selected
 role and platform may add stricter preflight, sources, handoff, and cleanup rules but cannot widen the common scope.
 
+An archived agent is terminal under the [common lifecycle](lifecycle.md). None of these commands permits
+restoring, unarchiving, resuming, retrying, or cloning it. Initialize a fresh instance when the human requests
+that role again; do not offer the archived chat as an option.
+
 ## INIT: reinitialize this agent only
 
 For a human-owned Admin, an authorized platform lifecycle controller may deliver the exact `INIT` under verified
@@ -98,8 +102,9 @@ physical closeout only after that turn completes; it must not archive a running 
 verify post-turn closeout, report `STOP_PENDING_DEACTIVATION` instead of claiming END was completed by a final message.
 
 If closeout or host deactivation cannot be verified, report `STOP_PENDING_DEACTIVATION` with the exact blocker. Do not
-claim the agent is silent while the host still routes messages to it. A later direct human request to resume requires
-the platform's explicit restore/reinitialization path; silence or a title change is not a restore.
+claim the agent is silent while the host still routes messages to it. A later request for an archived role requires
+a fresh initialized instance, not restoration. Recovery of a failed closeout is allowed only while the exact task
+remains unarchived and authorized; silence or a title change is not verified lifecycle state.
 
 ## Extensions and precedence
 

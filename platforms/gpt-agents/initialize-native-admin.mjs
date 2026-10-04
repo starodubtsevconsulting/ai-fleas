@@ -5,8 +5,8 @@
  * Construction performs no IO; only explicit initialize/retry/submit/release calls act.
  * Effects: native discovery; at most one Admin create and INIT; generic binding
  * registration and an exact INIT-only ephemeral utility audit. Newly created
- * verified Admin handoff archives/unarchives that stopped chat to release its writer
- * without resuming or messaging it. Existing Admin reuse does not perform this cycle.
+ * verified Admin handoff uses only native unsubscribe and verifies actual unload.
+ * Archival is terminal; no archive/unarchive handoff is permitted.
  * The trusted caller
  * supplies auditExecutable (absolute installed executable); no platform fallback.
  * No plugin deployment, daemon restart, roster, or later messages.
@@ -45,7 +45,14 @@ export function validateNativeAdminRetry(taskId, plan, binding, thread, canonica
     Number.isFinite(now) && expires <= now &&
     /^BLOCKED_INIT_PERMIT_EXPIRED(?::|$)/.test(messages.at(-1)?.text?.trim() || '') &&
     !messages.some(message=>message.text?.trim() === 'ADMIN_READY');
-  if (!['interrupted','failed'].includes(turn.status) && !expiredPermitFailure)
+  const auditCalls = turn.items?.filter(item => item.type === 'dynamicToolCall' &&
+    item.tool === initAuditTool.name) || [];
+  const failedAudit = binding.initialization?.auditTransport === 'ephemeral-process' &&
+    !binding.initialization.audit && turn.status === 'completed' &&
+    /^BLOCKED_INIT_SUBAGENT(?::|$)/.test(messages.at(-1)?.text?.trim() || '') &&
+    !messages.some(message => message.text?.trim() === 'ADMIN_READY') &&
+    auditCalls.length === 1 && auditCalls[0].status === 'failed' && auditCalls[0].success === false;
+  if (!['interrupted','failed'].includes(turn.status) && !expiredPermitFailure && !failedAudit)
     throw new Error('ADMIN_RETRY_TURN_NOT_STOPPED');
   return binding.generation + 1;
 }
@@ -90,12 +97,11 @@ export class NativeAdminLifecycle {
       verifyApproval, verifyPluginActive, io = fs, prepare = prepareNativeAdmin,
       verifyInstalled = verifyInstalledBootstrap, submit = (client, transaction, options) => this.submit(transaction, options),
       buildHost = buildNativeAdminHost, now = Date.now } = this.#options;
+    let unregisterAudit;
     try {
       const {plan} = await prepare(request, client);
       // Recovery must not send INIT until the existing task's audit tool and
       // fresh controller generation can both be verified. No native fallback.
-      if (plan.bootstrapPayload.binding.initialization?.auditTransport === 'ephemeral-process')
-        throw new Error('EPHEMERAL_ADMIN_RETRY_NOT_SUPPORTED');
       if (typeof verifyApproval !== 'function' || typeof verifyPluginActive !== 'function' ||
           await verifyApproval({approval:plan.approval,scope:plan.scope,operation:'retry-admin-only'}) !== true)
         throw new Error('HUMAN_BOOTSTRAP_APPROVAL_UNVERIFIED');
@@ -106,6 +112,7 @@ export class NativeAdminLifecycle {
       const response = await client.request('thread/read',{threadId:taskId,includeTurns:true});
       const generation = validateNativeAdminRetry(taskId,plan,binding,response?.thread,value=>io.realpathSync(value),now());
       const host = buildHost(client,{pluginData,io,verifyApproval,prerequisites:async()=>true,
+        selectedScope: plan.scope,
         selectedProjectIds:[...new Set(plan.scope.projects.map(project=>project.savedProjectId))],
         queueInitialization:()=>{throw new Error('ADMIN_RETRY_DUPLICATE_SUBMISSION_FORBIDDEN');}});
       const before = await host.catalog();
@@ -122,8 +129,15 @@ export class NativeAdminLifecycle {
           exactTasks[0].projectId !== plan.scope.projects[0].savedProjectId)
         throw new Error('ADMIN_RETRY_CATALOG_UNVERIFIED');
       plan.bootstrapPayload.binding.generation = generation;
+      if (plan.bootstrapPayload.binding.initialization?.auditTransport === 'ephemeral-process') {
+        if (typeof client.registerServerRequestHandler !== 'function') throw new Error('INIT_AUDIT_NATIVE_TOOL_UNAVAILABLE');
+        const audit = new NativeInitAuditController(client, { plan, pluginData,
+          worker: new EphemeralInitAudit({ executable: this.#options.auditExecutable }) });
+        audit.bindTask(taskId, plan.bootstrapPayload.binding);
+        unregisterAudit = client.registerServerRequestHandler('item/tool/call', call => audit.handle(call));
+      }
       const submitted = await submit(client,{taskId,payload:plan.bootstrapPayload},{pluginData,resume:true,canonicalize:value=>io.realpathSync(value)});
-      const completion = await host.wait({taskId,timeoutMs:60000});
+      const completion = await host.wait({taskId,timeoutMs:300000});
       const catalog = await host.catalog();
       const current = catalog.bindings.filter(item=>item.taskId===taskId);
       const tasks = catalog.tasks.filter(item=>item.id===taskId);
@@ -133,9 +147,12 @@ export class NativeAdminLifecycle {
           JSON.stringify(normalizeAdminScope(current[0].scope)) !== JSON.stringify(normalizeAdminScope(plan.scope)) ||
           tasks.length !== 1 || tasks[0].status !== 'active' || tasks[0].projectId !== plan.scope.projects[0].savedProjectId)
         throw new Error('ADMIN_RETRY_READINESS_UNVERIFIED');
-      const release = await this.release(taskId,plan.scope.projects[0].savedProjectId);
+      const release = plan.bootstrapPayload.binding.initialization?.auditTransport === 'ephemeral-process'
+        ? await this.#handoffAfterInitialization(taskId, plan.scope)
+        : await this.release(taskId,plan.scope.projects[0].savedProjectId);
       return {status:'ready',taskId,turnId:submitted.turnId,readinessToken:'ADMIN_READY',...release};
     } catch(error) {return {status:'blocked',reason:error.message,taskId};}
+    finally { unregisterAudit?.(); }
   }
 
   /** Register and deliver once; preserve pending evidence when acceptance is uncertain. */
@@ -194,6 +211,7 @@ export class NativeAdminLifecycle {
         unregisterAudit = client.registerServerRequestHandler('item/tool/call', request => audit.handle(request));
       }
       const host = buildHost(client, { pluginData, verifyApproval,
+        selectedScope: plan.scope,
         selectedProjectIds: [...new Set(plan.scope.projects.map(project => project.savedProjectId))],
         createParams: { ...createParams, model: endpoint.model, config: { ...createParams.config, model_reasoning_effort: endpoint.reasoning },
           ...(audit ? { dynamicTools: [initAuditTool] } : {}) },
@@ -289,9 +307,10 @@ export class NativeAdminLifecycle {
 
   // Private implementation
 
-  /** Native archive closes the stopped writer; unarchive preserves the exact
-   * initialized chat for human ownership without resuming or sending a message.
-   * Used only for this connection's newly created, verified ephemeral INIT.
+  /** Verify the exact stopped INIT, then attempt a nonarchiving release.
+   * Unsubscribe may leave a host-owned inactivity grace period. In that case
+   * retain this unarchived task and report the release blocker, never restore,
+   * resend INIT, or allocate a replacement as an automatic workaround.
    */
   async #handoffAfterInitialization(taskId, scope) {
     const client = this.#client, { pluginData, io = fs } = this.#options;
@@ -311,14 +330,7 @@ export class NativeAdminLifecycle {
         turn?.id !== init.completedTurnId || turn.status !== 'completed' ||
         turn.items?.filter(item => item.type === 'agentMessage').at(-1)?.text?.trim() !== 'ADMIN_READY')
       throw new Error('ADMIN_HANDOFF_STOPPED_INIT_UNVERIFIED');
-    await client.request('thread/archive', { threadId: taskId });
-    const archived = (await client.request('thread/read', { threadId: taskId, includeTurns: false }))?.thread;
-    if (archived?.id !== taskId || archived.projectId !== expectedProjectId || archived.status?.type !== 'notLoaded')
-      throw new Error('ADMIN_HANDOFF_ARCHIVE_RELEASE_UNVERIFIED');
-    const restored = (await client.request('thread/unarchive', { threadId: taskId }))?.thread;
-    if (restored?.id !== taskId || restored.projectId !== expectedProjectId || restored.status?.type !== 'notLoaded')
-      throw new Error('ADMIN_HANDOFF_UNARCHIVE_UNVERIFIED');
-    return { ...await this.release(taskId, expectedProjectId), handoffStrategy: 'verified-native-archive-cycle' };
+    return { ...await this.release(taskId, expectedProjectId), handoffStrategy: 'verified-native-unsubscribe' };
   }
 }
 

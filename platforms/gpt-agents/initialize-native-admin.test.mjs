@@ -6,6 +6,47 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { NativeAdminLifecycle, submitNativeAdminInitialization, retryNativeAdminInitialization, verifyInstalledBootstrap, validateNativeAdminRetry, releaseNativeAdminControl } from './initialize-native-admin.mjs';
 const transaction = { taskId: 'fictional-task', payload: { binding: { agentId: 'admin' }, prompt: 'INIT' } };
+test('fresh audited Admin handoff never archives or restores, including host grace-period failure', async () => {
+  for (const state of ['released', 'grace-period', 'wrong-turn']) {
+    const calls = [];
+    const scope = { kind: 'workflow', profileId: 'example', workflowId: 'writing',
+      logicalProjectId: 'example-writing', runtimeScope: 'example-writing',
+      projects: [{ id: 'articles', root: '/example/articles', savedProjectId: 'project' },
+        { id: 'mirror', root: '/example/mirror', savedProjectId: 'project' }] };
+    const binding = { status: 'active', agentId: 'admin', platformAdapter: 'codex-app', generation: 1, scope,
+      initialization: { auditTransport: 'ephemeral-process', completedTurnId: 'init',
+        audit: { verdict: 'pass', workerClosed: true, exitCode: 0, turnId: 'init', generation: 1 } } };
+    const plan = { scope, bootstrapPayload: { endpoint: { model: 'model', reasoning: 'medium', title: 'Admin' }, binding } };
+    const lifecycle = new NativeAdminLifecycle({
+      registerServerRequestHandler: () => () => {},
+      request: async (method, params) => {
+        calls.push(method);
+        if (method === 'thread/read') return { thread: { id: 'task', projectId: 'project', cwd: '/example/articles',
+          status: { type: !params.includeTurns && state === 'released' ? 'notLoaded' : 'idle' },
+          turns: [{ id: state === 'wrong-turn' ? 'other' : 'init', status: 'completed',
+            items: [{ type: 'agentMessage', text: 'ADMIN_READY' }] }] } };
+        if (method === 'thread/unsubscribe') return { status: 'unsubscribed' };
+        if (method === 'thread/loaded/list') return { data: [], nextCursor: null };
+        throw new Error(`Forbidden handoff effect: ${method}`);
+      },
+    }, { pluginData: '/example/plugin', auditExecutable: '/example/codex',
+      io: { readFileSync: () => JSON.stringify({ instances: { task: binding } }) },
+      verifyApproval: async () => true, verifyPluginActive: async () => true,
+      prepare: async () => ({ plan }), buildHost: () => ({ applyTitle: async () => ({ status: 'applied' }) }),
+      initializeWorkflow: async () => ({ status: 'ready', mode: 'created', taskId: 'task', token: 'ADMIN_READY', scope }) });
+    const result = await lifecycle.initialize({});
+    assert.equal(result.status, state === 'released' ? 'ready' : 'blocked');
+    if (state === 'released') assert.equal(result.handoffStrategy, 'verified-native-unsubscribe');
+    else {
+      assert.equal(result.taskId, 'task');
+      assert.equal(result.adminInitialized, true);
+      assert.equal(result.controllerReleased, false);
+      assert.equal(result.token, undefined);
+    }
+    assert.equal(calls.includes('thread/unsubscribe'), state !== 'wrong-turn');
+    assert.ok(!calls.some(method => ['thread/archive', 'thread/unarchive', 'thread/resume', 'turn/start', 'thread/start'].includes(method)));
+  }
+});
 test('native lifecycle construction has no IO and direct submit/release own dependencies', async () => {
   const calls = [];
   const client = { request: async method => {
@@ -179,6 +220,26 @@ test('explicit recovery registers before exact resume and starts only a verified
     await assert.rejects(submitNativeAdminInitialization({request:async(method)=>{effects.push(method);return {thread};}},{taskId:'task',payload},options),/RESUME_UNVERIFIED/);
     assert.deepEqual(effects,['register','thread/resume']);
   }
+});
+test('ephemeral audit retry requires a completed failed call and no readiness or audit receipt', () => {
+  const scope = { kind: 'workflow', profileId: 'example', workflowId: 'writing', logicalProjectId: 'example-writing',
+    runtimeScope: 'example-writing', projects: [{ id: 'source', savedProjectId: 'project', root: '/fictional/source' }] };
+  const binding = { status: 'pending', agentId: 'admin', platformAdapter: 'codex-app', generation: 1, scope,
+    initialization: { turnId: 'old', auditTransport: 'ephemeral-process' } };
+  const turn = { id: 'old', status: 'completed', items: [
+    { type: 'dynamicToolCall', tool: 'ai_fleas_init_audit', status: 'failed', success: false },
+    { type: 'agentMessage', text: 'BLOCKED_INIT_SUBAGENT: dynamic tool failed' }] };
+  const thread = { id: 'task', projectId: 'project', cwd: '/fictional/source', turns: [turn] };
+  const validate = () => validateNativeAdminRetry('task', { scope }, binding, thread, x => x);
+  assert.equal(validate(), 2);
+  turn.items[0].status = 'inProgress';
+  assert.throws(validate, /TURN_NOT_STOPPED/);
+  turn.items[0].status = 'failed';
+  binding.initialization.audit = { verdict: 'pass' };
+  assert.throws(validate, /TURN_NOT_STOPPED/);
+  delete binding.initialization.audit;
+  turn.items.push({ type: 'agentMessage', text: 'ADMIN_READY' });
+  assert.throws(validate, /TURN_NOT_STOPPED/);
 });
 test('controller release accepts notLoaded with nullable input only after exhaustive loaded exclusion',async()=>{
   const effects=[];
