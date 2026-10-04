@@ -325,6 +325,18 @@ We should be careful with that idea. Predictability alone should not move conseq
 
 And I would not claim that this loop reproduces biological learning. The brain analogy simply gives us another engineering question worth testing: **can the expensive layer teach the cheaper layers when experience shows that a class of decisions has become routine?**
 
+## What are we actually building toward?
+
+The point of this exploration is not to make a clever router.
+
+The broader question behind the [Personal Governor](https://starodubtsev.consulting/products/personal-governor) is whether an AI system can help a person maintain direction over time: goals, strategy, memory, knowledge, current evidence and the work competing for attention.
+
+If that is the product, then cognitive cost matters. A Governor that invokes its most expensive reasoning machinery for every small signal may be intelligent, but it is not necessarily well designed. A useful Governor should know when a cheap reaction is enough, when deeper reasoning is justified, and when the human must remain the decision-maker.
+
+That is why System 1 / System 2 matters here. It is not primarily an optimization trick. It is one possible way to make the Governor more responsive, economical and scalable without pretending that every decision deserves the same amount of intelligence.
+
+The public architecture and experiments live in [AI Fleas](https://github.com/starodubtsevconsulting/ai-fleas). The product direction for the Governor is described on the [Personal Governor product page](https://starodubtsev.consulting/products/personal-governor).
+
 ## What I am testing next
 
 I have added System 1 / System 2 to the public Personal Governor architecture in AI Fleas.
@@ -355,6 +367,8 @@ That is what I like about the design.
 - [Jeff — open-source System 1 decision model](https://github.com/firelex/jeff)
 - [TypeSafe AI — Introducing System One Models & Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev)
 - [*Thinking, Fast and Slow* — Daniel Kahneman](https://www.penguinrandomhouse.com/books/89308/thinking-fast-and-slow-by-daniel-kahneman/)
+- [Personal Governor — Starodubtsev Consulting](https://starodubtsev.consulting/products/personal-governor)
+- [Starodubtsev Consulting](https://starodubtsev.consulting/)
 - [AI Fleas](https://github.com/starodubtsevconsulting/ai-fleas)
 
 ## Sources and implementation notes
