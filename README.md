@@ -55,6 +55,25 @@ flowchart TD
 
 **Memory and Knowledge are deliberately different.** Memory preserves personal/project history and decisions; Knowledge supplies curated external expertise. The public contract does not require a particular database, retrieval engine or AI platform.
 
+
+#### Fast and deliberate governance
+
+The Governor may use more than one model or decision mechanism. AI Fleas borrows the **System 1 / System 2** abstraction from *Thinking, Fast and Slow* as a useful design model; it does not claim these are literal separable brain systems.
+
+- **System 1 — fast/bounded:** classification, routing, familiar signal detection and other low-cost decisions inside explicit limits.
+- **System 2 — deliberate:** consequential, novel, ambiguous or conflicting decisions that require deeper reasoning, planning or trade-off analysis.
+- **Escalation:** uncertainty, novelty, policy conflict, low confidence or material consequence moves work from System 1 to System 2.
+
+These are cognitive layers, not model names. A Governor may implement System 1 with deterministic rules, classifiers or small local models and System 2 with one or more larger reasoning/specialist models. The Governor remains one persistent role/identity while its cognitive resources can vary by platform.
+
+```mermaid
+flowchart LR
+    I[Event / Request] --> S1[System 1<br/>Fast · bounded]
+    S1 -->|confident + low consequence| A[Route / bounded action]
+    S1 -->|uncertain · novel · consequential| S2[System 2<br/>Deliberate reasoning]
+    S2 --> D[Governor decision]
+```
+
 The existing workflow-suite diagram remains useful for the execution layer:
 
 ![AI Workflow Suite](img/ai_workflow_suite.png)
