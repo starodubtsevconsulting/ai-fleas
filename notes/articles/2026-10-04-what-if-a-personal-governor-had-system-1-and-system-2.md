@@ -1,22 +1,38 @@
-# What If a Personal Governor Had System 1 and System 2?
+# Why Is Your Most Expensive AI Model Making the Easiest Decisions?
 
-*I started with a small routing model. I ended up with a better way to think about the Governor itself.*
+*I started with a tiny routing model. It changed how I think about the Personal Governor itself.*
 
-I went outside, talked with a few people about what they were building, and came back thinking about a model called Jeff.
+In many agent systems, the smartest model sits at the top.
 
-That sounds like a small technical detail. Jeff is a tiny open model designed to make fast choices rather than write long answers. You describe a situation, give it options, and it returns probabilities. It is explicitly positioned as a "System 1" model: fast decisions in front of a larger model that can do the slower work.
+Every request reaches it first. It decides what the request means, which agent should handle it, whether a tool is needed, and where the work should go.
 
-But the interesting part was not Jeff.
+That feels logical. Put the smartest model in charge.
 
-The interesting part was what happened when I stopped thinking about it as a router and started thinking about the **Personal Governor** as a brain.
+But humans do not work like that.
+
+You do not deliberate about pulling your hand away from a hot surface. You do not carefully reason through every familiar sound, every routine choice, every signal you already know how to recognize. Much of the time, something fast reacts first. Deliberation gets involved when the situation deserves it.
+
+That made me wonder whether I had been thinking about my **Personal Governor** backwards.
 
 I have been building the Personal Governor inside AI Fleas as a persistent governance layer: something that knows the goals, remembers decisions, sees current evidence, consults knowledge, and helps decide what deserves attention next.
 
-Until now, it was easy to imagine one sufficiently capable model sitting at the top.
+I had been treating it as a sufficiently intelligent agent sitting above everything else.
 
-The more I work with agents, the less convinced I am that this is the right shape.
+Then, after a conversation outside and some investigation into a tiny open model called [Jeff](https://github.com/firelex/jeff), the abstraction clicked: perhaps the Governor should not have one speed of thought.
 
-## Why should the biggest model answer first?
+Perhaps it needs something closer to two.
+
+A fast **System 1** that reacts, classifies and routes.
+
+A slower **System 2** that wakes up when actual deliberation is required.
+
+Jeff did not create that idea. The terminology comes from Daniel Kahneman's [*Thinking, Fast and Slow*](https://www.penguinrandomhouse.com/books/89308/thinking-fast-and-slow-by-daniel-kahneman/), and [TypeSafe AI's Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) applies the System One framing directly to machine decision-making.
+
+But Jeff made the architecture concrete enough for me to ask a different question:
+
+**Why should the biggest model answer first?**
+
+## The default architecture may be backwards
 
 A common agent architecture puts the most capable model at the top.
 
@@ -75,7 +91,7 @@ The expensive model does not have to wake up for everything.
 
 This is where Jeff became interesting.
 
-Jeff is an independent open-source project inspired by the same System One direction as TypeSafe AI's Jev. The current Jeff project describes its Qwen-based 0.8B model as a fast decision model, not a planner. It takes a situation and candidate options and returns calibrated probabilities rather than generated prose.
+[Jeff](https://github.com/firelex/jeff) is an independent open-source project inspired by the same System One direction as [TypeSafe AI's Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev). The current Jeff project describes its Qwen-based 0.8B model as a fast decision model, not a planner. It takes a situation and candidate options and returns calibrated probabilities rather than generated prose.
 
 That distinction matters.
 
@@ -248,6 +264,13 @@ That is what I like about the design.
 **System 1 and System 2 describe the Governor I want. Jeff is only one candidate for part of its brain.**
 
 ---
+
+## Links
+
+- [Jeff — open-source System 1 decision model](https://github.com/firelex/jeff)
+- [TypeSafe AI — Introducing System One Models & Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev)
+- [*Thinking, Fast and Slow* — Daniel Kahneman](https://www.penguinrandomhouse.com/books/89308/thinking-fast-and-slow-by-daniel-kahneman/)
+- [AI Fleas](https://github.com/starodubtsevconsulting/ai-fleas)
 
 ## Sources and implementation notes
 
