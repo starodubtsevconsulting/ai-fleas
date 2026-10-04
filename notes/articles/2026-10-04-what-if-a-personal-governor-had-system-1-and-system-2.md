@@ -180,6 +180,39 @@ System 1 can absorb that repetitive cognitive traffic.
 
 System 2 can remain relatively lazy—and therefore available for the decisions where deliberation actually matters.
 
+## The Governor is not another person
+
+There is a trap in the name *Personal Governor*: it can sound like I am trying to put another little person above the human.
+
+That is not how I want to think about it.
+
+The human remains the source of goals, values, authority and final judgment. The Governor is closer to an **external cognitive and executive layer** serving that human. It remembers, notices, retrieves, challenges, routes and deliberates, but it does not become the owner of the person it supports.
+
+This is another place where the brain analogy is useful—as long as it remains an analogy.
+
+Kahneman's System 1 and System 2 are psychological abstractions, not two anatomical boxes. Still, some functions we associate with fast, automatic behavior involve circuits including the basal ganglia and sensorimotor systems, while deliberate cognitive control relies heavily on distributed prefrontal and frontoparietal networks. The biology is considerably richer than a two-box diagram.
+
+I am not trying to reproduce that biology in software.
+
+I am borrowing a design lesson from a system that already works remarkably well: **do not spend expensive deliberation on every signal.**
+
+For the Governor, that suggests a useful separation:
+
+```text
+Human
+  └─ goals · values · authority
+        ↓
+Personal Governor
+  ├─ System 1 — recognize / route / react
+  ├─ System 2 — deliberate / plan / resolve
+  ├─ Memory — preserve personal continuity
+  └─ Knowledge — retrieve external expertise
+        ↓
+Workflows / actions
+```
+
+The Governor can therefore use brain-inspired abstractions without pretending to be another human—or pretending that an AI model is a literal brain.
+
 ## A Governor is more than two models
 
 I do not want to reduce the Personal Governor to a clever router.
