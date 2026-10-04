@@ -108,6 +108,55 @@ the urgent commitment. Resolve the authorized financial workflow and its Admin, 
 initialize only Admin when authorized, hand off the tax request, then integrate supported evidence for the human's
 payment decision. The stated urgency is a planning input; verify the actual tax deadline from evidence.
 
+## Governance inputs and knowledge grounding
+
+A production Personal Governor should reason from distinct authoritative inputs rather than treating model training or
+personal memory as sufficient knowledge:
+
+- **Goals and strategy** — what the governed human is trying to achieve and why.
+- **Rules and guardrails** — authority, constraints, policies, and decision boundaries.
+- **Memory** — durable personal/contextual history: what is known about this human, their decisions, commitments,
+  relationships, assets, outcomes, and prior evidence.
+- **Knowledge** — curated external expertise relevant to the decision domain, such as books, papers, research,
+  frameworks, manuals, or other attributable sources.
+- **Current evidence** — what is true now from authorized systems such as calendars, trackers, repositories, metrics,
+  current external sources, and direct human report.
+- **Reasoning** — transparent synthesis of those inputs into governance recommendations and decisions.
+
+Memory and Knowledge are separate capabilities. Memory makes governance personal; Knowledge grounds it in external
+expertise. Where established domain knowledge is material to a consequential recommendation, personal memory or the
+underlying model's latent training alone is not sufficient grounding. The Governor should retrieve appropriate
+configured Knowledge, preserve source/provenance information, distinguish retrieved knowledge from personal evidence,
+and state material uncertainty or disagreement.
+
+The portable role requires the **Knowledge capability**, not a particular vector database, embedding model, retrieval
+engine, or agent platform. Profiles/platform adapters may select and version their own Knowledge providers and
+collections. This keeps the contract portable across GPT, Hermes, local agents, and future platforms.
+
+```mermaid
+flowchart TD
+    U[Human] --> G[Personal Governor]
+
+    Goals[Goals & Strategy] --> G
+    Rules[Rules & Guardrails] --> G
+    Memory[Memory<br/>What is true about me?] --> G
+    Knowledge[Knowledge<br/>What is known about this problem?] --> G
+    Evidence[Current Evidence<br/>What is true now?] --> G
+
+    G --> Reasoning[Governance Reasoning]
+    Reasoning --> Decision[Recommendation / Decision]
+    Decision --> U
+
+    Knowledge --> KB[(Knowledge Service)]
+    KB --> Sources[Books · Papers · Research<br/>Frameworks · Domain Sources]
+
+    Memory --> MM[(Durable Personal Memory)]
+
+    Evidence --> Systems[Calendar · Tracker · Repositories<br/>Metrics · Web · Other Systems]
+```
+
+**Base capability contract:** `Goals + Rules + Memory + Knowledge + Current Evidence → Reasoning → Governance`.
+
 ## Responsibilities
 
 - provide **workflow routing and readiness**: map human requests to their authorized profile, workflow, project, and Admin; after human agreement, initialize only a missing Admin through the authorized lifecycle route, verify readiness, and hand off; do not initialize or supervise the remaining roster;
