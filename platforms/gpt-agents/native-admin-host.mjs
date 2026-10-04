@@ -1,7 +1,8 @@
 /** Native Admin-only host ports used explicitly by the lifecycle controller.
  * Inputs: supported RPC client and trusted approval/prerequisite/queue callbacks,
  * generic plugin data directory; outputs complete catalogs and exact task receipts.
- * Effects: reads host/project/binding state, creates one task on explicit create,
+ * Effects: reads live host/project/binding state and minimal exact-ID metadata
+ * for stale selected receipts, never browses archived histories; creates one task on explicit create,
  * and queues INIT only through the supplied generic plugin bridge. No role registry,
  * project edits, alternate platform fallback, or follow-up messages are implemented.
  */
@@ -17,13 +18,13 @@ export class NativeAdminHost {
   #options;
   #stagedCreates = new Map();
   constructor(client, { pluginData, queueInitialization, verifyApproval, prerequisites,
-    createParams = {}, selectedProjectIds, io = fs, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), now = Date.now } = {}) {
+    createParams = {}, selectedProjectIds, selectedScope, io = fs, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), now = Date.now } = {}) {
     if (typeof client?.request !== 'function' || typeof queueInitialization !== 'function' ||
         typeof verifyApproval !== 'function' || typeof prerequisites !== 'function' || !path.isAbsolute(pluginData || ''))
       fail('NATIVE_ADMIN_HOST_CONFIGURATION_INVALID');
     // Same-connection creation evidence only; never a durable identity registry.
     this.#client = client;
-    this.#options = { pluginData, queueInitialization, verifyApproval, prerequisites, createParams, selectedProjectIds, io, sleep, now };
+    this.#options = { pluginData, queueInitialization, verifyApproval, prerequisites, createParams, selectedProjectIds, selectedScope, io, sleep, now };
   }
 
   /** Delegate trusted approval without changing its request or result. */
@@ -241,7 +242,7 @@ export class NativeAdminHost {
     const client = this.#client, stagedCreates = this.#stagedCreates;
     const { io } = this.#options;
     const result = [], ids = new Set();
-    for (const archived of [false, true]) {
+    for (const archived of [false]) {
       let cursor;
       const cursors = new Set();
       do {
@@ -286,6 +287,24 @@ export class NativeAdminHost {
       if (typeof cursor !== 'string' || !cursor || cursors.has(cursor)) fail('HOST_TASK_CURSOR_INVALID');
       cursors.add(cursor);
     } while (true);
+    // A selected stale receipt requires only exact metadata to prove retirement.
+    // Never enumerate the archive or read an archived transcript. A missing or
+    // ambiguous witness remains absent and fails closed at identity verification.
+    const { selectedScope, pluginData } = this.#options;
+    if (selectedScope) for (const binding of this.#bindings()) {
+      if (ids.has(binding.taskId) || binding.agentId !== 'admin' || binding.platformAdapter !== 'codex-app' ||
+          ['profileId', 'workflowId', 'logicalProjectId', 'runtimeScope'].some(k => binding.scope?.[k] !== selectedScope[k])) continue;
+      const read = await client.request('thread/read', { threadId: binding.taskId, includeTurns: false });
+      const task = read?.thread;
+      const archiveRoot = path.resolve(pluginData, '../../..', 'archived_sessions');
+      if (task?.id === binding.taskId && task.status?.type === 'notLoaded' &&
+          typeof task.path === 'string' && path.dirname(task.path) === archiveRoot &&
+          path.basename(task.path).endsWith(`-${binding.taskId}.jsonl`)) {
+        ids.add(task.id);
+        // Retain only the retirement witness, not title/preview/history.
+        result.push({ id: task.id, status: 'archived' });
+      }
+    }
     return result;
   }
 }

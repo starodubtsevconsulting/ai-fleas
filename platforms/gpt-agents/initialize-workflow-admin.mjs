@@ -5,7 +5,9 @@
  * Inputs: canonical parsed sources, exact scope, one-time human approval, and
  * injected host ports. Output: ready (created/reused) or a concrete blocked result.
  * Effects: reads complete host catalogs and generic bindings; creates at most one
- * Admin and submits its single bootstrap INIT. Never messages an initialized Admin.
+ * Admin and submits its single bootstrap INIT. An explicitly approved exact live
+ * predecessor remains untouched until the plugin activates its ready successor.
+ * Never messages an initialized Admin or retires a predecessor before readiness.
  * Ports must bridge the real host; in-memory tests do not prove native support.
  */
 import path from 'node:path';
@@ -95,7 +97,7 @@ export class WorkflowAdminInitializer {
           workflow.path !== scope.workflowId + '.workflow.md')
         fail('CANONICAL_SCOPE_MISMATCH');
       const admin = manifest.initializer;
-      if (admin?.agentId !== 'admin' || admin.roleDefinition !== '../_common/roles/admin.md' ||
+      if (admin?.agentId !== 'admin' || typeof admin.roleDefinition !== 'string' || !admin.roleDefinition ||
           admin.lifecycle !== 'persistent-control' || admin.humanFacing !== 'human-owned' ||
           admin.communicationMode !== 'direct-human-administration-only' ||
           admin.readinessToken !== 'ADMIN_READY' || manifest.agents?.some(a => a.agentId === 'admin'))
@@ -106,6 +108,15 @@ export class WorkflowAdminInitializer {
         typeof sources[k] !== 'string' || !sources[k])) fail('CANONICAL_SOURCE_REFERENCES_MISSING');
       if (!Array.isArray(sources.projectManifests) || sources.projectManifests.length !== scope.projects.length ||
           sources.projectManifests.some(p => typeof p !== 'string' || !p)) fail('PROJECT_SOURCE_REFERENCES_MISSING');
+      const commonAdminPath = path.resolve(path.dirname(sources.manifest), '../_common/roles/admin.md');
+      if (sources.commonAdminContract && sources.commonAdminContract !== commonAdminPath)
+        fail('ADMIN_CONTRACT_MISMATCH');
+      if (path.resolve(path.dirname(sources.manifest), admin.roleDefinition) !== sources.adminContract ||
+          path.resolve(path.dirname(sources.adapter), adapter.role_contracts.admin) !== sources.adminContract ||
+          (sources.adminContract !== commonAdminPath &&
+            (!admin.commonRoleDefinition || sources.commonAdminContract !== commonAdminPath ||
+              path.resolve(path.dirname(sources.manifest), admin.commonRoleDefinition) !== commonAdminPath)))
+        fail('ADMIN_CONTRACT_MISMATCH');
       const payload = input.bootstrapPayload;
       if (payload?.binding?.agentId !== 'admin' || payload.binding.platformAdapter !== 'codex-app' ||
           !Number.isInteger(payload.binding.generation) || payload.binding.generation < 1 ||
@@ -114,6 +125,7 @@ export class WorkflowAdminInitializer {
           payload.prompt !== buildAdminInitPrompt(payload.binding.scope, payload.binding.initialization?.auditTransport)) fail('ADMIN_BOOTSTRAP_PAYLOAD_INVALID');
       const expectedSources = [
         ['portable-role', sources.adminContract], ['portable-manifest', sources.manifest], ['platform-adapter', sources.adapter],
+        ...(sources.commonAdminContract ? [['common-admin-role', sources.commonAdminContract]] : []),
         ['work-profile', sources.profile], ['platform-registry', sources.registry], ['workflow', sources.workflow],
         ['lifecycle', sources.lifecycle], ['self-commands', sources.selfCommands], ['admin-only-initializer', sources.initializer],
         ['platform-contract', sources.platformContract], ['rules', sources.rules],
@@ -136,7 +148,41 @@ export class WorkflowAdminInitializer {
       if (await host.prerequisites({ scope, platform: 'codex-app', sources }) !== true)
         fail('PLATFORM_PREREQUISITES_UNAVAILABLE');
       let catalog = await host.catalog();
-      const matches = inspectCatalog(catalog, scope);
+      const replacement = payload.binding.replaces;
+      let predecessor;
+      if (replacement) {
+        const candidates = inspectCatalog(catalog, scope);
+        if (replacement.strategy !== 'successor-first' ||
+            approval?.humanApproved !== true || approval.replaceTaskId !== replacement.taskId ||
+            approval.replaceGeneration !== replacement.generation ||
+            payload.binding.generation !== replacement.generation + 1 ||
+            candidates.length !== 1 || candidates[0].taskId !== replacement.taskId ||
+            candidates[0].generation !== replacement.generation)
+          fail('ADMIN_REPLACEMENT_PREDECESSOR_UNVERIFIED');
+        predecessor = structuredClone(candidates[0]);
+        const oldScope = normalizeAdminScope(predecessor.scope);
+        if (scopeKey(oldScope) !== scopeKey(scope) ||
+            oldScope.projects.some(p => p.savedProjectId !== scope.projects[0].savedProjectId))
+          fail('ADMIN_REPLACEMENT_SCOPE_MISMATCH');
+        verifyAdmin(catalog, predecessor, oldScope);
+        const oldReady = await host.wait({ taskId: predecessor.taskId, timeoutMs: 60000 });
+        catalog = await host.catalog();
+        verifyAdmin(catalog, predecessor, oldScope, oldReady);
+      } else if (approval?.replaceTaskId !== undefined || approval?.replaceGeneration !== undefined) {
+        fail('ADMIN_REPLACEMENT_APPROVAL_REQUIRED');
+      }
+      const candidatesFor = current => {
+        const candidates = inspectCatalog(current, scope);
+        if (!predecessor) return candidates;
+        const old = current.bindings.filter(b => b.taskId === predecessor.taskId);
+        if (old.length !== 1 || old[0].agentId !== 'admin' ||
+            old[0].platformAdapter !== 'codex-app' || old[0].generation !== predecessor.generation ||
+            !exact(normalizeAdminScope(old[0].scope), normalizeAdminScope(predecessor.scope)) ||
+            !(old[0].status === 'active' || (old[0].status === 'superseded' && old[0].supersededBy === createdTaskId)))
+          fail('ADMIN_REPLACEMENT_PREDECESSOR_CHANGED');
+        return candidates.filter(b => b.taskId !== predecessor.taskId);
+      };
+      const matches = candidatesFor(catalog);
       // Scope-bearing unbound host tasks are not safe evidence of absence. Titles
       // are deliberately ignored; the controller must resolve exact host identity.
       if (catalog.tasks.some(t => t.status !== 'archived' && t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope) &&
@@ -170,12 +216,13 @@ export class WorkflowAdminInitializer {
         fail('ADMIN_CREATED_TASK_NOT_FRESH');
       // Never queue INIT against an unverified ID merely because create returned it.
       const fresh = await host.catalog();
-      const competing = inspectCatalog(fresh, scope);
+      const competing = candidatesFor(fresh);
       const createdTasks = fresh.tasks.filter(t => t.id === createdTaskId);
       if (createdTasks.length !== 1 || createdTasks[0].status !== 'active' ||
           createdTasks[0].projectId !== scope.projects[0].savedProjectId || competing.length ||
           fresh.bindings.some(b => b.taskId === createdTaskId) || fresh.tasks.some(t =>
-            t.status !== 'archived' && t.id !== createdTaskId && t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope)))
+            t.status !== 'archived' && t.id !== createdTaskId && t.id !== predecessor?.taskId &&
+            t.agentId === 'admin' && scopeKey(t.scope || {}) === scopeKey(scope)))
         fail('ADMIN_CREATED_TASK_UNVERIFIED');
       const initialized = await host.initialize({ taskId: createdTaskId, payload });
       if (initialized?.taskId !== createdTaskId || initialized.status !== 'submitted' ||
@@ -192,11 +239,14 @@ export class WorkflowAdminInitializer {
       if (completion?.taskId !== createdTaskId || completion.status !== 'complete' ||
           completion.turnId !== acceptedInit.turnId) fail('ADMIN_READINESS_UNVERIFIED');
       catalog = await host.catalog();
-      const active = inspectCatalog(catalog, scope);
+      const active = candidatesFor(catalog);
       if (active.length !== 1 || active[0].taskId !== createdTaskId) fail('ADMIN_IDENTITY_UNVERIFIED');
       const readiness = verifyAdmin(catalog, active[0], scope, completion);
+      if (predecessor && (catalog.bindings.find(b => b.taskId === predecessor.taskId)?.status !== 'superseded' ||
+          !exact(active[0].replaces, replacement))) fail('ADMIN_REPLACEMENT_CUTOVER_UNVERIFIED');
       return { status: 'ready', mode: 'created', taskId: createdTaskId,
-        token: 'ADMIN_READY', scope, ...readiness };
+        token: 'ADMIN_READY', scope, ...readiness,
+        ...(predecessor ? { replacedTaskId: predecessor.taskId } : {}) };
     } catch (error) {
       createdTaskId ||= error.createdTaskId;
       return { status: 'blocked', reason: error.message,

@@ -59,17 +59,15 @@ flowchart TD
 
 ## What if every workflow task is archived?
 
-That is a normal recovery state. `initialize` reads both active and archived catalogs to exhaustion, matches only exact
-trusted task receipts for the requested profile/workflow/logical-project scope, and restores all matching tasks together.
-It does not interpret an empty active catalog as an empty roster and does not create replacements for receipt-backed
-archived tasks. After unarchiving, it rereads the active project catalog, refreshes readiness, and continues normal Router
-registration and smoke tests only where the adapter declares that runtime.
+The live roster is empty. Archived agents are terminal and irrelevant to candidate selection: initialize fresh
+tasks for the declared roles in the exact approved scope. Never restore old tasks, offer them as options, or read
+their transcripts for initialization. Only verified live, unarchived receipts may be reused. Minimal exact-ID
+status checks may exclude stale receipts; verified archived receipts do not block fresh initialization.
 
-The adapter feeds these inventories to `reconcile-roster.mjs`. Its `restore-all` result is the mechanical proof that every
-declared role has one exact archived receipt in the correct saved project; no title or model judgment participates.
+Any adapter result proposing restoration is incompatible with the common lifecycle. Do not execute it.
 
 ```text
-all exact receipt-backed tasks archived -> batch unarchive -> verify project -> refresh readiness
+no live roster -> create fresh declared tasks -> verify exact project -> initialize
 ```
 
 ## Who knows which agent should go next?
@@ -252,8 +250,8 @@ Agent -> human_action_required -> PAUSE -> listen_pending OR human_listened / hu
 ## In what order is the workflow initialized?
 
 1. Validate the exact scope, saved project, roots, workflow source, portable map, diagram, and roster.
-2. Enumerate active and archived tasks to exhaustion. Reuse active exact receipts, batch-unarchive exact receipt-backed
-   archived roles (including a fully archived roster), create only roles that remain genuinely missing, and, for an
+2. Enumerate the live, unarchived catalog to exhaustion. Reuse verified active exact receipts; create fresh tasks
+   for roles with no live instance. Never restore archived roles, including a fully archived roster. For an
    explicitly authorized roster contraction, recoverably archive every active task in the removed role's exact durable
    receipt history. Never infer retired tasks from titles.
 3. Reread the host catalog and verify every task under the exact saved-project ID.

@@ -6,12 +6,17 @@ In every workflow contract, **active Agent** means one exact initialized agent i
 as active and routable. A deactivated instance is not a roster member, worker candidate, communication target,
 initialization target, or clone source.
 
-It remains inactive unless the human explicitly authorizes a lifecycle operation that includes it. An exact workflow
-`initialize` or `reconcile` request naming the profile, workflow, and logical project authorizes reactivation of that
-scope's exact receipt-backed archived roster members; the human does not need to repeat every immutable instance ID.
-This authorization never extends to unrecorded, ambiguous, foreign-scope, superseded, or merely same-titled tasks.
-Generic retry, repair, replacement, cloning, or staffing language still supplies no reactivation authority. Visibility
-and preservation mechanics are platform concerns.
+Archival is terminal for agent lifecycle identity. An archived task is retired, never an initialization target,
+reactivation candidate, reuse candidate, clone source, or recovery option. Never restore, unarchive, resume, retry,
+rebind, or message an archived agent, and never offer restoration to the human. A request to initialize, reconcile,
+repair, or replace does not change this rule. Archive means discard and forget for operational purposes; the host
+may retain history physically, but that history supplies no current agent authority.
+
+Initialization selects only live, unarchived instances. Do not browse archived chats or read their transcripts to
+find candidates. A retained receipt for an absent live task may require a minimal exact-ID host status check to
+exclude stale authority; if that exact task is archived, classify it as retired and proceed without surfacing it
+as a candidate or blocker. Archived receipts do not occupy active-role cardinality. Missing or ambiguous host
+evidence still requires verification; it is not permission to guess an identity.
 
 ## Readiness and contract inheritance
 
@@ -74,10 +79,14 @@ Reinitialization then reconciles roster-owned scheduled triggers, deactivates th
 an inactive barrier, creates one fresh complete roster, binds platform-returned instance IDs, and verifies every readiness
 token.
 
-Ordinary `initialize` is idempotent recovery, not forced generation rotation. It first restores exact archived tasks from
-trusted receipts when their scope and platform project binding still match, including when the complete roster is
-archived. Fresh task creation is reserved for roles with no valid active or archived receipt-backed instance. An explicit
-replacement or full reinitialization continues to use successor-first generation rotation.
+Ordinary `initialize` is idempotent for exact live, unarchived instances. Reuse a verified ready live instance;
+initialize a fresh task for a missing role. If the entire previous roster was archived, the live roster is empty:
+initialize a fresh declared roster, never restore the old one. Archived history is not a duplicate or a reason to
+ask about restoration. Explicit replacement of a live instance or full reinitialization remains successor-first.
+
+Do not archive and then unarchive an agent as a temporary initialization, writer-release, title, attachment,
+or handoff mechanism. Use a supported non-archiving release route. If that route is unavailable, preserve the
+unarchived candidate and report the actual missing capability rather than violating terminal archival.
 
 Human words such as archive, remove, or delete request deactivation; the selected adapter defines the safest supported
 preservation mechanic. Partial generations, implicit profile selection, label-only identity, hidden substitutes, and

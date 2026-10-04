@@ -28,8 +28,21 @@ function fixture() {
   const controller = new NativeInitAuditController(client, { worker, plan, pluginData: '/fictional/plugin', io });
   controller.bindTask('task', binding);
   const request = { method: 'item/tool/call', params: { threadId: 'task', turnId: 'turn', callId: 'call', tool: 'ai_fleas_init_audit', arguments: { preflightSummary: 'Verified exact canonical identity and scope.' } } };
-  return { controller, request, registry, parent, workerResult, runs, writes, client };
+  return { controller, request, registry, parent, workerResult, runs, writes, client, plan, io };
 }
+test('specialized Admin audits both roles and resolves utilities from the common contract', async () => {
+  const f = fixture();
+  f.plan.sources.commonAdminContract = '/fictional/roles/admin.md';
+  f.plan.sources.adminContract = '/fictional/writing/agents/roles/admin.md';
+  const read = f.io.readFileSync;
+  const refs = [];
+  f.io.readFileSync = ref => { refs.push(ref); return read(ref); };
+  await f.controller.handle(f.request);
+  assert.ok(refs.includes('/fictional/agents/utility-subagents.md'));
+  assert.ok(refs.includes('/fictional/roles/admin.md'));
+  assert.ok(refs.includes('/fictional/writing/agents/roles/admin.md'));
+  assert.ok(!refs.includes('/fictional/writing/agents/agents/utility-subagents.md'));
+});
 test('concurrent calls reserve authorization before awaiting native evidence', async () => {
   const f = fixture(); let release;
   f.client.request = () => new Promise(resolve => { release = () => resolve({ thread: f.parent }); });

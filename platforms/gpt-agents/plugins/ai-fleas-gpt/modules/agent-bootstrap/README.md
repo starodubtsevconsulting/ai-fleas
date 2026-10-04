@@ -74,25 +74,36 @@ cancel readiness monitoring, retry delivery, create a replacement task, or weake
 the exact readiness correlation. Callers report title, readiness, controller
 release, and owning-app attachment independently.
 
-For a newly created verified Admin only, the native handoff archives/unarchives
-the stopped exact INIT chat, preserving identity/history and closing its native
-writer before human ownership. Reuse does not run this cycle; no resume or later
-message is sent. This is a supported lifecycle effect, not a daemon restart.
+Archival is terminal for every agent. Never restore archived instances or offer
+them as initialization candidates. Initialize a fresh instance when no verified
+live unarchived instance exists. Retained archived receipts do not occupy live
+cardinality. Minimal exact-ID status checks may reject stale authority; archived
+chat history is not initialization context.
+
+Native handoff must use a supported non-archiving writer-release route. The prior
+archive/unarchive cycle is prohibited by the common lifecycle and must not be
+selected. Missing release capability preserves the unarchived candidate and is
+reported honestly; it never authorizes restoring an archived agent.
 No automatic END/archive integration is added by this audit transport. Successful
 worker exit, parent controller release, and human UI archival are separate checks.
 
 Sidebar placement is another separate check: the native saved-project ID is not
 the desktop app's project ID. `AdminControllerCommand` requires a trusted
-`verifyAppProject` adapter before overall success. Without it, the CLI retains the
-initialized exact task and returns `ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED`, not
-a complete handoff. An app-tool controller opens that existing task through
+`resolveAppProject` and `verifyAppProject` adapters before lifecycle effects and
+overall success. Without them, the CLI returns `ADMIN_APP_PROJECT_BRIDGE_UNAVAILABLE`
+before creating or initializing a task. A later attachment failure retains the
+unarchived exact task. An app-tool controller opens that existing task through
 `navigate_to_codex_page`, then verifies its expected project association in fresh
 app catalogs, following the [Admin-only procedure](../../../../agents/admin-only-initialization.md).
 Opening reconciled the association in the live regression, but is not itself
-proof of attachment. Do not create a replacement or resend INIT for this failure.
+proof of attachment. Do not automatically create a replacement or resend INIT
+for this failure. A separately approved exact live predecessor may use the
+successor-first replacement procedure in the Admin-only contract.
 
-The transaction verifies fresh complete saved-project roots and active/archived
-task catalogs. It reuses only an exact active ready Admin, otherwise creates only
+The transaction verifies fresh complete saved-project roots and live task
+catalogs. It reads only minimal exact-ID metadata when a selected stale receipt
+needs retirement evidence; it never enumerates the archive or opens old history.
+It reuses only an exact active ready Admin, otherwise creates only
 one Admin with canonical references and the approved project subset. It registers
 the exact permit, submits INIT once, and requires both the active receipt and the
 actual completed host turn to prove `ADMIN_READY`. Missing configuration, ambiguous

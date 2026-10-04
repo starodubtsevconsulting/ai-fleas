@@ -57,8 +57,10 @@ export class NativeInitAuditController {
         parent.cwd !== this.#plan.scope.projects[0].root ||
         parent.turns?.filter(turn => turn.id === params.turnId && turn.status === 'inProgress').length !== 1)
       fail('INIT_AUDIT_PARENT_TURN_UNVERIFIED');
-    const contracts = [this.#plan.sources.adminContract, this.#plan.sources.selfCommands, this.#plan.sources.lifecycle,
-      path.resolve(path.dirname(this.#plan.sources.adminContract), '../agents/utility-subagents.md')]
+    const commonAdminContract = this.#plan.sources.commonAdminContract || this.#plan.sources.adminContract;
+    const contracts = [...new Set([this.#plan.sources.adminContract, commonAdminContract,
+      this.#plan.sources.selfCommands, this.#plan.sources.lifecycle,
+      path.resolve(path.dirname(commonAdminContract), '../agents/utility-subagents.md')])]
       .map(ref => ({ ref, text: this.#io.readFileSync(ref, 'utf8') }));
     const endpoint = this.#plan.bootstrapPayload.endpoint;
     const result = await this.#worker.run({ cwd: this.#plan.scope.projects[0].root,

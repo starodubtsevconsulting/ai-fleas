@@ -19,6 +19,7 @@ initializer:
   agentId: admin
   matrixColumn: admin
   roleDefinition: agents/roles/admin.md
+  commonRoleDefinition: ../_common/roles/admin.md
   scope: workflow
   lifecycle: persistent-control
   humanFacing: human-owned

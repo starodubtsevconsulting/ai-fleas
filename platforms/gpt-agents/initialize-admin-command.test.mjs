@@ -8,7 +8,10 @@ import assert from 'node:assert/strict';
 import { AdminControllerCommand } from './initialize-admin-command.mjs';
 const request = { profileId: 'example', workflowId: 'sample', profilePath: '/fictional/profile.yml',
   authorization: { humanApproved: true, profileId: 'example', workflowId: 'sample', projectIds: ['records'], logicalProjectId: 'example-sample' } };
-function fixture({ initializeResult, verifyAppProject = async ({ taskId, scope }) => ({ taskId, attached: true,
+function fixture({ initializeResult, retry,
+  resolveAppProject = async ({ scope }) => ({ nativeProjectId: scope.projects[0].savedProjectId,
+    logicalProjectId: scope.logicalProjectId, appProjectId: 'app-project' }),
+  verifyAppProject = async ({ taskId, scope }) => ({ taskId, attached: true,
   nativeProjectId: scope.projects[0].savedProjectId, logicalProjectId: scope.logicalProjectId,
   appProjectId: 'app-project' }) } = {}) {
   const calls = [], scope = { kind: 'workflow', profileId: 'example', workflowId: 'sample',
@@ -22,7 +25,8 @@ function fixture({ initializeResult, verifyAppProject = async ({ taskId, scope }
     io: { accessSync: () => {}, realpathSync: value => value },
     connect: async options => { calls.push(options); return client; },
     prepare: async selected => { assert.deepEqual(selected.projectIds, ['records']); return { plan: { scope } }; },
-    verifyAppProject,
+    verifyAppProject, resolveAppProject,
+    ...(retry ? { retry } : {}),
     initialize: async (selected, options) => {
       assert.equal(selected.auditTransport, 'ephemeral-process');
       assert.equal(options.installedScripts, '/fictional/plugin/scripts');
@@ -40,20 +44,21 @@ test('requires approval before discovery and closes owned connection after suppo
   assert.equal((await f.command.run(request)).status, 'ready');
   assert.equal(f.calls.at(-1), 'close');
 });
-test('missing owning-app verifier preserves task but blocks complete success', async () => {
+test('missing owning-app bridge blocks before connection, creation, retry or INIT', async () => {
   const f = fixture({ verifyAppProject: null });
   const result = await f.command.run(request);
   assert.equal(result.status, 'blocked');
-  assert.equal(result.reason, 'ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED');
-  assert.equal(result.taskId, 'admin-task');
-  assert.equal(result.controllerReleased, true);
-  assert.equal(result.adminInitialized, true);
+  assert.equal(result.reason, 'ADMIN_APP_PROJECT_BRIDGE_UNAVAILABLE');
+  assert.equal(result.taskId, undefined);
+  assert.equal(result.lifecycleStarted, false);
   assert.equal(result.token, undefined);
-  assert.equal(f.calls.filter(call => call === 'initialize').length, 1);
+  assert.deepEqual(f.calls, []);
+  assert.equal((await f.command.run({ ...request, retryTaskId: 'admin-task' })).lifecycleStarted, false);
+  assert.deepEqual(f.calls, []);
 });
 test('exact owning-app attachment is required; native project ID is not app attachment', async () => {
   for (const change of [{ attached: false }, { taskId: 'other' }, { nativeProjectId: 'other' },
-    { logicalProjectId: 'other' }, { appProjectId: null }]) {
+    { logicalProjectId: 'other' }, { appProjectId: null }, { appProjectId: 'wrong-app-project-same-cwd' }]) {
     const f = fixture({ verifyAppProject: async () => ({ taskId: 'admin-task', attached: true,
       nativeProjectId: 'project', logicalProjectId: 'example-sample', appProjectId: 'app-project', ...change }) });
     assert.equal((await f.command.run(request)).status, 'blocked');
@@ -62,6 +67,19 @@ test('exact owning-app attachment is required; native project ID is not app atta
   assert.equal(success.status, 'ready');
   assert.equal(success.appProjectAttached, true);
   assert.equal(success.appProjectId, 'app-project');
+});
+test('immutable app project mapping must be resolved before any lifecycle effect', async () => {
+  for (const change of [{ nativeProjectId: 'other' }, { logicalProjectId: 'other' }, { appProjectId: null }]) {
+    const f = fixture({ resolveAppProject: async () => ({ nativeProjectId: 'project',
+      logicalProjectId: 'example-sample', appProjectId: 'app-project', ...change }) });
+    assert.equal((await f.command.run(request)).reason, 'ADMIN_APP_PROJECT_MAPPING_UNVERIFIED');
+    assert.ok(!f.calls.includes('initialize'));
+    assert.ok(!f.calls.includes('hooks/list'));
+    assert.equal(f.calls.at(-1), 'close');
+  }
+  const missing = fixture({ resolveAppProject: null });
+  assert.equal((await missing.command.run(request)).reason, 'ADMIN_APP_PROJECT_BRIDGE_UNAVAILABLE');
+  assert.deepEqual(missing.calls, []);
 });
 test('app catalog failure cannot become native-only success', async () => {
   const f = fixture({ verifyAppProject: async () => { throw new Error('catalog unavailable'); } });
@@ -89,4 +107,23 @@ test('untrusted, ambiguous or missing hook location blocks before creation', asy
   const f = fixture(); f.client.request = async () => ({ data: [{ cwd: '/fictional/data', hooks: [] }] });
   assert.equal((await f.command.run(request)).reason, 'BOOTSTRAP_PLUGIN_LOCATION_UNVERIFIED');
   assert.equal(f.calls.at(-1), 'close');
+});
+test('explicit exact-task recovery invokes retry only and requires matching authorization', async () => {
+  const recovery = { ...request, retryTaskId: 'admin-task',
+    authorization: { ...request.authorization, retryTaskId: 'admin-task' } };
+  let retries = 0;
+  const f = fixture({ retry: async (id, selected, options) => {
+    retries++;
+    assert.equal(id, 'admin-task');
+    assert.equal(await options.verifyApproval({ approval: selected.authorization,
+      scope: { kind: 'workflow', profileId: 'example', workflowId: 'sample', logicalProjectId: 'example-sample',
+        runtimeScope: 'example-sample', projects: [{ id: 'records', savedProjectId: 'project', root: '/fictional/data' }] },
+      operation: 'retry-admin-only' }), true);
+    return { status: 'ready', taskId: id, controllerReleased: true };
+  } });
+  assert.equal((await f.command.run({ ...recovery, authorization: request.authorization })).reason, 'ADMIN_RETRY_APPROVAL_REQUIRED');
+  assert.equal(retries, 0);
+  assert.equal((await f.command.run(recovery)).status, 'ready');
+  assert.equal(retries, 1);
+  assert.ok(!f.calls.includes('initialize'));
 });

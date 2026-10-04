@@ -143,6 +143,69 @@ apply the recommended title: `🧭 Personal Governor`. Do not name a new Governo
 blank host sessions can defer presentation metadata. Title and pin state are presentation only, never identity; their
 write and verification must not create another task or resend the activation INIT.
 
+## Governor-owned workflow Admin initialization
+
+Archived agents are terminal, not lifecycle candidates. For Admin or roster
+initialization, discover only live unarchived tasks; never search old chats for
+restoration, offer restoration, ask whether to restore, or perform unarchive,
+resume, retry, rebind, or reuse of an archived agent. A minimal exact-ID status
+check may reject stale receipt authority without reading archived history.
+Verified archived versions do not block a fresh approved initialization or count
+against live cardinality. Never use archive/unarchive as a temporary handoff.
+This applies to every agent, not only Governor. See the
+[common lifecycle](../../../ai-workflows/_common/agents/lifecycle.md).
+
+After activation, a direct human request to initialize an Admin for an authorized existing workflow is a
+Governor workflow-routing/readiness operation. Follow the portable Governor's
+[approved Admin initialization procedure](../../../ai-workflows/_common/roles/personal-governor.md#carry-an-approved-admin-initialization-to-completion).
+The request supplies the human authorization for this bounded transaction; do not ask for it again.
+
+For a workflow whose effective configured platform is `codex-app`, read the
+[GPT plugin bootstrap procedure](../plugins/ai-fleas-gpt/modules/agent-bootstrap/README.md) and
+[Admin-only initialization contract](admin-only-initialization.md). Use the checked-in
+`platforms/gpt-agents/initialize-admin-command.mjs --request REQUEST.json` (or `--request -` for stdin),
+which discovers native scope and trusted plugin support and performs the supported transaction.
+`launcher.mjs preflight-admin` is read-only; completing it is not completion of the human's request.
+There is no effectful `launcher.mjs initialize-admin` command. Do not substitute ad-hoc task creation,
+ordinary cross-task messaging, full-roster initialization, or a different platform.
+
+The standalone Admin command currently lacks an owning-app project bridge and
+fails before lifecycle effects. Do not bypass that gate by calling its lower-level
+native initializer directly. A trusted integration must resolve the intended
+immutable app project ID before allocation/INIT and verify the same ID after
+readiness; native saved-project IDs and shared filesystem roots cannot substitute
+for that association. A request for `example-writing` must not initialize or attach to
+`example-dev`, even when both projects use the same directory. General support testing
+does not authorize live initialization in another scope. Without a supported
+exact-target bridge, report the concrete capability gap and retain any existing
+candidate for same-task attachment repair without re-INIT.
+
+A subsequent explicit human authorization to replace the unusable live Admin may
+use the Admin controller's exact-predecessor successor-first transaction. Supply
+matching `replaceTaskId` and `replaceGeneration` in request and approval, and the
+next generation. Verify the old live scoped identity and stopped audited readiness;
+create only one new Admin with canonical sources and the approved project subset.
+Do not retire the old host chat until the successor's readiness, nonarchiving
+release and exact owning-app project are verified. This is not automatic repair
+or permission to reuse an archived task or initialize another workflow.
+
+Resolve the exact authorized profile/workflow, selected project roots, logical scope, and existing saved
+project through canonical configuration and fresh complete host catalogs. Use a uniquely verified configured
+scope without asking for already discoverable values. Human authorization must be checked by the controller;
+a generated `humanApproved` field alone is not independent evidence. Check the Admin-only prerequisites:
+unrelated full-roster prose does not override a valid single-Admin preflight.
+
+Continue through the controller's readiness and release checks. When native initialization returns an exact
+initialized task with `ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED`, retain that task, open it with
+`navigate_to_codex_page`, and verify its immutable app project association through fresh app catalogs as the
+Admin-only contract directs. Opening alone does not prove attachment. Do not repeat INIT or create another
+Admin to repair presentation. Report success only after the required identity, audited readiness, release,
+and app attachment evidence passes; provide the human direct access and send no later operational instruction.
+
+A concrete controller rejection remains a blocker. Inspect the producing check and report its exact evidence
+and remaining owner/action. Do not infer that plugin support is absent from an unrelated documentation mismatch,
+weaken validation, or patch lifecycle implementation code under Governor rule-maintenance authority.
+
 ## GPT utility-subagent routing
 
 The common utility-subagent obligation applies to every Governor `INIT` audit and substantive work item. This section

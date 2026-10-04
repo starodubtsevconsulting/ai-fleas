@@ -62,12 +62,32 @@ test('class owns host dependencies and independent staged creation state', async
   assert.equal((await first.wait({ taskId: 'task', timeoutMs: 1 })).token, 'ADMIN_READY');
   assert.throws(() => new NativeAdminHost(null, f.options), /CONFIGURATION_INVALID/);
 });
-test('complete catalogs include archived enumeration and generic receipt identity', async () => {
+test('complete live catalogs never enumerate archived chats', async () => {
   const f = fixture(), catalog = await f.host.catalog();
   assert.equal(catalog.complete, true);
   assert.equal(catalog.tasks[0].status, 'active');
   assert.equal(catalog.bindings[0].taskId, 'task');
-  assert.deepEqual(f.calls.filter(call => call.method === 'thread/list').map(call => call.params.archived), [false, true]);
+  assert.deepEqual(f.calls.filter(call => call.method === 'thread/list').map(call => call.params.archived), [false]);
+});
+test('only selected stale receipt gets a minimal exact-ID retirement check, never archived turns', async () => {
+  const f = fixture(), original = f.client.request;
+  const scope = { profileId: 'example', workflowId: 'writing', logicalProjectId: 'example-writing', runtimeScope: 'example-writing' };
+  f.binding.scope = scope;
+  f.options.selectedScope = scope;
+  f.options.pluginData = '/example/runtime/plugins/data/plugin';
+  f.client.request = async (method, params) => {
+    if (method === 'thread/list' || method === 'thread/loaded/list') return { data: [] };
+    if (method === 'thread/read') {
+      f.calls.push({ method, params });
+      assert.equal(params.includeTurns, false);
+      return { thread: { id: 'task', status: { type: 'notLoaded' },
+        path: '/example/runtime/archived_sessions/rollout-task.jsonl', preview: 'must not retain' } };
+    }
+    return original(method, params);
+  };
+  const host = buildNativeAdminHost(f.client, f.options);
+  assert.deepEqual((await host.catalog()).tasks, [{ id: 'task', status: 'archived' }]);
+  assert.equal(f.calls.filter(c => c.method === 'thread/read').length, 1);
 });
 test('creates only Admin with authorized data roots, not unrelated saved roots', async () => {
   const f = fixture();

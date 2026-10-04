@@ -259,8 +259,9 @@ declaration is a configuration blocker, not permission to invent an agent or ini
 1. Resolve the exact authorized profile, workflow, project subset, Admin contract, and configured platform.
 2. Verify whether an exact initialized Admin exists using that platform's binding and live lifecycle sources. Reuse
    a verified Admin; do not duplicate it or infer its identity from a title or another platform's catalog.
-3. If absent, offer to initialize **only Admin**. Ordinary workflow work does not itself authorize agent creation.
-   After human agreement, use the platform's authorized single-agent creation/bootstrap route. Pass the human's
+3. If absent and the human has requested Admin initialization, execute **only Admin** initialization without
+   asking for the same approval again. Otherwise offer initialization; ordinary workflow work alone does not
+   authorize agent creation. Use the platform's authorized single-agent creation/bootstrap route. Pass the human's
    authorization, exact scope, canonical source references, and an explicit `INIT` instruction to the new Admin.
    Admin's INIT is self-scoped under the [common self commands](../agents/self-commands.md), not roster initialization.
 4. Verify that exact Admin's identity, scope, and readiness through the platform before handing off. A chat name,
@@ -268,6 +269,66 @@ declaration is a configuration blocker, not permission to invent an agent or ini
    full-roster initialization, report the unsupported Admin-only capability; do not invoke it as a fallback.
 5. Stop initialization at verified Admin readiness and show the human how to work with Admin directly. Prepare the
    original request for the human to deliver; do not relay it to a human-only Admin.
+
+#### Carry an approved Admin initialization to completion
+
+A direct human request such as "initialize the Admin for example-writing" supplies approval for the
+Admin-only lifecycle transaction in that exact authorized profile/workflow. Resolve minor spelling errors from
+the unique authorized context. Do not ask the human to approve the same action again or finish a turn merely
+by describing the next preflight. Preserve that authorization across follow-up turns unless revoked or the
+target/action materially changes.
+
+Archived agents are permanently retired, not recovery candidates. Never suggest, ask about, or perform their
+restoration, unarchival, resume, retry, rebind, or reuse. Search only live, unarchived agents for initialization.
+Do not report old archived versions as options or blockers. A minimal exact-ID check needed to retire a stale
+receipt is not an archive search or permission to read old chat history. If no verified live Admin exists,
+initialize a fresh Admin for the exact approved scope; archived versions do not count against cardinality.
+Do not use an archive/unarchive cycle to release a newly initialized Admin.
+
+Resolve the platform from the current profile hierarchy and the project subset from canonical project
+references and the saved project's complete verified attached roots. A uniquely matching authorized subset
+does not require a question. Ask only when multiple materially different scopes remain after supported
+read-only discovery; never ask for discoverable IDs, paths, model settings, or screenshots.
+
+The human-selected profile, workflow, project subset, and owning-app project are
+transaction invariants, not suggestions. For example, "init Admin for example-writing"
+authorizes Writing only; proving support for other workflows does not authorize
+creating or initializing example-dev or any other roster. Never substitute another
+project because it shares a directory, is recent, has an existing Admin, or is
+easier for the host to select. Resolve the exact immutable owning-app project ID
+before allocation or INIT when the adapter requires app attachment, and verify
+that same ID afterward. If the adapter cannot select or verify that exact target,
+report the missing capability before effects; do not use native readiness as
+permission to accept another app project. Preserve an existing incorrectly
+attached candidate for supported same-task repair; do not repeat INIT or create
+a replacement to hide the mismatch. A subsequent direct human request explicitly
+authorizing replacement may select a supported exact-predecessor, successor-first
+Admin-only transaction instead. Verify the old live task and generation, retain
+it until the new Admin has audited readiness, and retire it only after exact
+owning-app attachment and handoff pass. Never apply this exception to archived
+tasks, another workflow, or a failed/uncertain INIT without that new authority.
+
+Admin initialization for an existing authorized workflow is a Governor-owned workflow-routing/readiness job.
+Do not redirect the human to initialize it themselves, require a Manager or complete roster to bootstrap Admin,
+or treat installed plugin support as unavailable before reading its declared controller procedure.
+
+Load the selected adapter's Admin-only contract and run its supported preflight/controller. Evaluate only
+the prerequisites required by this transaction. A full-roster documentation discrepancy does not itself
+block Admin-only initialization when the Admin declaration, scope, and controller preflight agree. Never
+invent a missing role or expand the request into full-roster initialization.
+
+Continue through exact-task readiness, controller release, and required owning-app attachment verification.
+Retain any returned task ID through partial failure; inspect or repair that same candidate only through a
+supported, authorized route. Do not create another task or repeat INIT to overcome uncertain completion.
+After verification, provide direct access to the initialized Admin; subsequent operational direction
+remains human-only.
+
+If the controller rejects the request, report its actual error and the check that produced it. Distinguish
+observed rejection from a proposed diagnosis. Exhaust safe, relevant discovery before declaring a blocker;
+do not weaken identity, source, scope, audit, or host checks to obtain readiness. A defect in lifecycle code
+requires the owning development route; Governor may maintain authorized rules but may not patch implementation
+code as an implicit bootstrap step. Report the remaining owner/action concretely rather than asking for
+authorization already given or promising that a rule change guarantees runtime success.
 
 #### Human approval and communication boundary
 

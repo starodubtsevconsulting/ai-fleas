@@ -6,12 +6,11 @@
  * Input: canonical request with exact human approval attestation; output: JSON result.
  * Effects: discovers native scope/trusted installed hook, creates or reuses only
  * Admin, dispatches exact INIT/audit and verifies controller release. New stopped
- * Admin handoff uses a reversible native archive/unarchive cycle retaining history;
- * reuse does not perform the cycle. No ordinary
+ * Admin handoff uses nonarchiving native unsubscribe with verified unload. No ordinary
  * messages, plugin installation, restart, END, or financial-data writes.
  * Complete success also requires an injected owning-app project verifier. The
- * standalone CLI cannot inspect that catalog and reports a handoff blocker,
- * retaining the exact initialized task instead of creating a replacement.
+ * standalone CLI cannot inspect that catalog and blocks before lifecycle effects.
+ * A later attachment failure retains the exact task instead of replacing it.
  * The approval attestation is controller-followed, not cryptographic human proof.
  */
 import fs from 'node:fs';
@@ -21,17 +20,20 @@ import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { connectNativeAppServer } from './native-app-server.mjs';
 import { prepareNativeAdmin } from './prepare-native-admin.mjs';
-import { initializeNativeAdmin, verifyNativeBootstrapActive } from './initialize-native-admin.mjs';
+import { initializeNativeAdmin, retryNativeAdminInitialization, verifyNativeBootstrapActive } from './initialize-native-admin.mjs';
 import { normalizeAdminScope } from './initialize-workflow-admin.mjs';
 
 /** Owns discovery/connection dependencies; construction performs no IO. */
 export class AdminControllerCommand {
-  #io; #env; #home; #connect; #prepare; #initialize; #verifyAppProject;
+  #io; #env; #home; #connect; #prepare; #initialize; #retry; #verifyAppProject; #resolveAppProject;
   constructor({ io = fs, env = process.env, home = os.homedir(), connect = connectNativeAppServer,
-    prepare = prepareNativeAdmin, initialize = initializeNativeAdmin, verifyAppProject } = {}) {
+    prepare = prepareNativeAdmin, initialize = initializeNativeAdmin,
+    retry = retryNativeAdminInitialization, verifyAppProject, resolveAppProject } = {}) {
     this.#io = io; this.#env = env; this.#home = home;
     this.#connect = connect; this.#prepare = prepare; this.#initialize = initialize;
+    this.#retry = retry;
     this.#verifyAppProject = verifyAppProject;
+    this.#resolveAppProject = resolveAppProject;
   }
 
   /** Explicit operation only; never infers approval from a title or saved project. */
@@ -40,6 +42,12 @@ export class AdminControllerCommand {
     if (approval?.humanApproved !== true || approval.profileId !== request.profileId ||
         approval.workflowId !== request.workflowId || !Array.isArray(approval.projectIds) || !approval.projectIds.length)
       return { status: 'blocked', reason: 'HUMAN_BOOTSTRAP_APPROVAL_REQUIRED' };
+    // Missing presentation authority is discoverable before any task allocation
+    // or INIT. Do not knowingly create a task whose requested project cannot be
+    // verified, especially when multiple app projects share the same cwd.
+    if (typeof this.#verifyAppProject !== 'function' || typeof this.#resolveAppProject !== 'function')
+      return { status: 'blocked', reason: 'ADMIN_APP_PROJECT_BRIDGE_UNAVAILABLE',
+        lifecycleStarted: false, appProjectAttached: false };
     let client;
     try {
       const runtimeHome = this.#env.CODEX_HOME || path.join(this.#home, '.codex');
@@ -48,6 +56,14 @@ export class AdminControllerCommand {
       client = await this.#connect({ socketPath: path.join(runtimeHome, 'app-server-control/app-server-control.sock') });
       const selected = { ...request, projectIds: request.projectIds || approval.projectIds, auditTransport: 'ephemeral-process' };
       const { plan } = await this.#prepare(selected, client);
+      // Resolve immutable app identity before effects, then require the same ID
+      // after readiness. A different nonempty ID must never count as success.
+      const expectedApp = await this.#resolveAppProject({ scope: plan.scope });
+      if (expectedApp?.nativeProjectId !== plan.scope.projects[0].savedProjectId ||
+          expectedApp.logicalProjectId !== plan.scope.logicalProjectId ||
+          typeof expectedApp.appProjectId !== 'string' || !expectedApp.appProjectId.trim())
+        throw new Error('ADMIN_APP_PROJECT_MAPPING_UNVERIFIED');
+      const expectedAppProjectId = expectedApp.appProjectId;
       const cwd = plan.scope.projects[0].root;
       const hooks = await client.request('hooks/list', { cwds: [cwd] });
       const entries = hooks?.data?.filter(entry => entry.cwd === cwd);
@@ -60,12 +76,17 @@ export class AdminControllerCommand {
       if (commands.length !== 1 || !commands[0].startsWith('node /') || !commands[0].endsWith(suffix))
         throw new Error('BOOTSTRAP_PLUGIN_LOCATION_UNVERIFIED');
       const installedScripts = this.#io.realpathSync(path.dirname(commands[0].slice(5)));
-      const result = await this.#initialize(selected, { client, auditExecutable, installedScripts,
+      const options = { client, auditExecutable, installedScripts,
         pluginData: path.join(runtimeHome, 'plugins/data/ai-fleas-gpt-ai-fleas'),
-        verifyApproval: async evidence => evidence.operation === 'initialize-admin-only' &&
+        verifyApproval: async evidence => evidence.operation === (request.retryTaskId ? 'retry-admin-only' : 'initialize-admin-only') &&
           isDeepStrictEqual(evidence.approval, approval) && isDeepStrictEqual(normalizeAdminScope(evidence.scope), normalizeAdminScope(plan.scope)),
-        verifyPluginActive: () => verifyNativeBootstrapActive(client, { cwd, installedScripts }) });
-      return await this.#verifyHandoff(result, plan.scope);
+        verifyPluginActive: () => verifyNativeBootstrapActive(client, { cwd, installedScripts }) };
+      if (request.retryTaskId && (typeof request.retryTaskId !== 'string' ||
+          approval.retryTaskId !== request.retryTaskId)) throw new Error('ADMIN_RETRY_APPROVAL_REQUIRED');
+      const result = request.retryTaskId
+        ? await this.#retry(request.retryTaskId, selected, options)
+        : await this.#initialize(selected, options);
+      return await this.#verifyHandoff(result, plan.scope, expectedAppProjectId);
     } catch (error) { return { status: 'blocked', reason: error.message }; }
     finally { client?.close(); }
   }
@@ -77,7 +98,7 @@ export class AdminControllerCommand {
    * and native projectId alone never prove sidebar attachment. No repair effects
    * are performed here. A failed check preserves the initialized task for repair.
    */
-  async #verifyHandoff(result, scope) {
+  async #verifyHandoff(result, scope, expectedAppProjectId) {
     if (result.status !== 'ready' || result.controllerReleased !== true)
       return { ...result, appProjectAttached: false, appProjectAttachmentStatus: 'not-verified' };
     try {
@@ -86,7 +107,7 @@ export class AdminControllerCommand {
       if (!result.taskId || evidence?.taskId !== result.taskId || evidence.attached !== true ||
           evidence.nativeProjectId !== scope.projects[0].savedProjectId ||
           evidence.logicalProjectId !== scope.logicalProjectId ||
-          typeof evidence.appProjectId !== 'string' || !evidence.appProjectId.trim())
+          evidence.appProjectId !== expectedAppProjectId)
         throw new Error('ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED');
       return { ...result, appProjectAttached: true, appProjectAttachmentStatus: 'verified',
         appProjectId: evidence.appProjectId };

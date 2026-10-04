@@ -134,7 +134,8 @@ for direct links to request mapping, common identity/scope/lifecycle, self INIT,
 **Does**
 - map a human request to its authorized profile, workflow, project, and declared Admin;
 - check that Admin's exact identity and readiness using the workflow's configured platform and lifecycle sources;
-- offer to create and initialize only a missing Admin through the authorized single-agent route after human agreement;
+- create and initialize only a missing Admin through the authorized single-agent route when the human requests it;
+  the explicit request supplies approval, so execute the supported controller and verification without asking again;
 - pass the exact scope and `INIT`, verify Admin readiness, offer direct access to Admin, and stop initialization work;
 - follow the [human-approval and communication boundary](../personal-governor.md#human-approval-and-communication-boundary) for real agents; use bounded internal helpers and authorized read-only checks without separate permission, never to take over workflow-owned write work;
 - verify recipient eligibility before offering a send; prepare messages for human-only Admin for the human to deliver directly;

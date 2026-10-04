@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AdminInitializationBuilder, buildAdminInitialization, buildAdminInitPrompt, resolveProjectRoot } from './admin-initialization.mjs';
 import { initializeWorkflowAdmin } from './initialize-workflow-admin.mjs';
+import { parse } from 'yaml';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const profilePath = path.join(root, 'fictional-profile.yml');
@@ -82,10 +83,57 @@ test('prepares exactly one canonical Admin payload without host effects', () => 
   assert.equal(result.sources.adminContract, path.join(root, 'ai-workflows/_common/roles/admin.md'));
   assert.equal(result.sources.projectManifests.length, 1);
 });
+test('successor receipt requires separately approved exact predecessor and next generation', () => {
+  const f = fixture();
+  const request = { ...f.request, replaceTaskId: 'old', replaceGeneration: 2, generation: 3,
+    authorization: { ...f.request.authorization, replaceTaskId: 'old', replaceGeneration: 2 } };
+  const plan = buildAdminInitialization(request, f.options);
+  assert.deepEqual(plan.bootstrapPayload.binding.replaces, { taskId: 'old', generation: 2, strategy: 'successor-first' });
+  assert.throws(() => buildAdminInitialization({ ...request, generation: 2 }, f.options), /REPLACEMENT_APPROVAL_REQUIRED/);
+  assert.throws(() => buildAdminInitialization({ ...request, authorization: f.request.authorization }, f.options), /REPLACEMENT_APPROVAL_REQUIRED/);
+});
 test('rejects unauthorized subset and missing human approval request', () => {
   const f = fixture();
   assert.throws(() => buildAdminInitialization({ ...f.request, projectIds: ['unknown'] }, f.options), /PROJECT_NOT_AUTHORIZED/);
   assert.throws(() => buildAdminInitialization({ ...f.request, authorization: null }, f.options), /HUMAN_BOOTSTRAP_APPROVAL_REQUIRED/);
+});
+test('prepares specialized Writing Admin with an explicit common contract', () => {
+  const f = fixture();
+  f.profile.workflows[0].path = 'writing.workflow.md';
+  f.request.workflowId = 'writing';
+  f.request.logicalProjectId = 'fictional-writing';
+  f.request.authorization.workflowId = 'writing';
+  f.request.authorization.logicalProjectId = 'fictional-writing';
+  const result = buildAdminInitialization(f.request, f.options);
+  assert.equal(result.sources.adminContract, path.join(root, 'ai-workflows/writing/agents/roles/admin.md'));
+  assert.equal(result.sources.commonAdminContract, path.join(root, 'ai-workflows/_common/roles/admin.md'));
+  assert.ok(result.bootstrapPayload.binding.initialization.sources.some(s => s.id === 'common-admin-role'));
+  const manifestPath = path.join(root, 'ai-workflows/writing/agents.yml');
+  const manifest = structuredClone(result.manifest);
+  delete manifest.initializer.commonRoleDefinition;
+  f.documents.set(manifestPath, manifest);
+  assert.throws(() => buildAdminInitialization(f.request, f.options), /ADMIN_COMMON_CONTRACT_REQUIRED/);
+  manifest.initializer.commonRoleDefinition = '../_common/roles/worker.md';
+  assert.throws(() => buildAdminInitialization(f.request, f.options), /ADMIN_COMMON_CONTRACT_REQUIRED/);
+});
+test('every checked-in Codex workflow declaring Admin prepares through the same builder', () => {
+  const adaptersRoot = path.join(root, 'platforms/gpt-agents/workflows');
+  const covered = [];
+  for (const workflowId of fs.readdirSync(adaptersRoot)) {
+    const adapterPath = path.join(adaptersRoot, workflowId, 'agents.yml');
+    if (!fs.existsSync(adapterPath)) continue;
+    const adapter = parse(fs.readFileSync(adapterPath, 'utf8'));
+    if (!adapter.role_endpoints?.some(e => e.role === 'admin')) continue;
+    const f = fixture();
+    f.profile.workflows[0].path = workflowId + '.workflow.md';
+    Object.assign(f.request, { workflowId, logicalProjectId: 'fictional-' + workflowId });
+    Object.assign(f.request.authorization, { workflowId, logicalProjectId: f.request.logicalProjectId });
+    const result = buildAdminInitialization(f.request, f.options);
+    assert.equal(result.bootstrapPayload.binding.agentId, 'admin');
+    assert.equal(result.scope.workflowId, workflowId);
+    covered.push(workflowId);
+  }
+  assert.deepEqual(covered.sort(), ['dev', 'financial-insights', 'writing']);
 });
 test('rejects wrong profile, ambiguous workflow and effective platform mismatch', () => {
   const f = fixture();
