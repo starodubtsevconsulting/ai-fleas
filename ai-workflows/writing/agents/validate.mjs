@@ -32,6 +32,7 @@ const mediumPublicationSkill = fs.readFileSync(path.join(publicRoot,
 const roster = [portable.initializer, ...portable.agents];
 const ids = roster.map(({ agentId }) => agentId);
 const expected = ['admin', 'writer', 'reviewer', 'release-coordinator'];
+const workerEndpoints = ['writer', 'reviewer', 'release-coordinator'];
 
 assert.equal(portable.workflowId, 'writing');
 assert.equal(gpt.workflow, 'writing');
@@ -141,12 +142,14 @@ assert.match(reviewerRole, /Never infer completeness from one\s+successful repla
 assert.match(reviewerRole, /reconcile article-wide provenance and inventory sentences/);
 assert.match(reviewerRole, /no third-party visuals are used/);
 assert.match(routing, /hidden Workflow Router is the Writing workflow runtime/);
-assert.match(routing, /independent\s+role endpoints/);
+assert.match(routing, /Only Writer, Reviewer, and Release Coordinator are routed\s+role endpoints/);
 assert.match(routing, /Writer does not send\s+it to Reviewer, Release Coordinator, or Admin/);
 assert.match(routing, /Router assigns Reviewer/);
 assert.match(routing, /Router\s+dispatches Release Coordinator/);
 assert.match(routing, /echo the Router-owned `correlationId`, stage, and role byte-for-byte/);
 assert.match(routing, /begin with `COPY THAT`/);
+assert.match(routing, /Admin is outside the Router state machine/);
+assert.match(routing, /Admin never emits a Router result/);
 assert.match(releaseCoordinatorRole, /Never treat Medium's UI default as consent/);
 assert.match(releaseCoordinatorRole, /author's profile\/home or one\s+named authorized Publication/);
 assert.match(releaseCoordinatorRole, /Medium Publication skill/);
@@ -169,7 +172,8 @@ assert.match(sessionReleaseAuthorization, /Listen-through is a review aid, not a
 assert.match(orchestration, /supported heartbeat/);
 assert.match(orchestration, /never dispatches stages/);
 assert.match(orchestration, /creates or archives endpoints/);
-assert.match(adminRole, /starts or resumes the hidden Router/);
+assert.match(adminRole, /outside the Router state machine/);
+assert.match(adminRole, /never returns a Router result/);
 assert.match(releaseFlow, /BLOCKED_PUBLICATION_TARGET/);
 assert.match(releaseFlow, /silently fall back to profile\/home/);
 assert.match(headerImageContract, /single canonical header\/hero-image contract/);

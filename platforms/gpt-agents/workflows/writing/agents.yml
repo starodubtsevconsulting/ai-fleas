@@ -20,6 +20,8 @@ workflow_runtime:
   inspector: admin-only
 
 role_endpoints:
+  # Lifecycle metadata for the separately initialized Admin control task. The
+  # Router map deliberately contains no Admin-owned stage.
   - role: admin
     title: "🔑 Admin"
     model: gpt-5.6-sol
@@ -38,6 +40,7 @@ role_endpoints:
     reasoning: low
 
 role_contracts:
+  # Admin is initialized through the normal Admin lifecycle, not as a Router endpoint.
   admin: ../../../../ai-workflows/writing/agents/roles/admin.md
   writer: ../../../../ai-workflows/writing/agents/roles/writer.md
   reviewer: ../../../../ai-workflows/writing/agents/roles/reviewer.md

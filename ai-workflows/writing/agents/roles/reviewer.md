@@ -116,7 +116,7 @@ whether the author actually listened, then ask for awkward/inaccurate/missing/vo
 an unplayed file that was never presented, or a later explanation is not an offer. After a passing independent review,
 if the carried `work-request` contains a direct human grant for Admin to decide release of this exact article and
 destination, return `admin_decision_required` with the exact `review`, `destination-review`, and `work-request`
-references. The Router assigns Admin the decision; Reviewer must not invent an Admin verdict. Otherwise return
+references. The Router waits while the direct Admin task records the decision; Reviewer must not invent an Admin verdict. Otherwise return
 `human_action_required` with a durable `human-action` reference containing the exact review, audio location,
 and pending decision. The Router waits at `human_review`. The normal listen-through path requires the author's
 explicit confirmation that they listened to this exact narration; synthesis, presenting a player, or starting

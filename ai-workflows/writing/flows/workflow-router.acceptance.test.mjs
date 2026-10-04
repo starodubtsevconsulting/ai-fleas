@@ -39,15 +39,9 @@ assert.equal(
   'Writing Mermaid companion must be generated from the executable workflow map',
 );
 const visualMap = renderWorkflowMap(portableDefinition);
-assert.equal(portableDefinition.stages.administration.role, 'admin');
-assert.equal(portableDefinition.stages.administration.transitions['route-required'].to, 'drafting');
-assert.deepEqual(portableDefinition.stages.administration.transitions['route-required'].requiredReferenceKinds,
-  ['revision', 'work-request']);
-assert.equal(portableDefinition.stages.administration.transitions.handled.terminal, true);
-assert.match(visualMap, /administration -->\|route-required: send article request to Writer\| drafting/);
-assert.match(visualMap, /administration -->\|review-required: recheck delegated release\| review/);
-assert.match(visualMap, /review -->\|admin_decision_required: exact delegated verdict\| admin_release_review/);
-assert.match(visualMap, /admin_release_review -->\|approved: Admin-delegated release decision\| release/);
+assert.ok(Object.values(portableDefinition.stages).every(({ role }) => role !== 'admin'));
+assert.match(visualMap, /review -->\|admin_decision_required: wait for direct Admin decision\| human_review/);
+assert.doesNotMatch(visualMap, /administration|admin_release_review/);
 assert.equal(portableDefinition.stages.review.transitions.source_accepted.to, 'source_complete');
 assert.equal(portableDefinition.stages.review.transitions.source_accepted.terminal, true);
 assert.deepEqual(portableDefinition.stages.review.transitions.source_accepted.requiredReferenceKinds, ['review']);
@@ -68,7 +62,6 @@ assert.match(visualMap, /complete\["complete<br\/>writer<br\/>COMPLETE"\]/);
 assert.match(visualMap, /release -->\|released: schedule verified; archive status\| archive_update/);
 assert.match(visualMap, /diagnosis -->\|review_ready: prepared packet\| review/);
 assert.match(visualMap, /diagnosis -->\|changes_required: Writer preparation\| correction/);
-assert.match(visualMap, /administration -->\|published-update-required: revise existing story\| published_revision/);
 assert.match(visualMap, /published_apply -->\|applied: live story changed in place\| published_verification/);
 
 
@@ -92,9 +85,8 @@ const router = createWorkflowRuntime(definition, { ...scope, routerRuntimeId: 'w
 // An existing public URL follows a review/apply/verify/reconcile route, never scheduling.
 const publishedScope = { ...scope, runtimeScopeId: 'writing-published-update' };
 const published = createWorkflowRuntime({ ...definition, scope: publishedScope },
-  { ...publishedScope, routerRuntimeId: 'writing-published-update' }, { stage: 'administration' });
+  { ...publishedScope, routerRuntimeId: 'writing-published-update' }, { stage: 'published_revision' });
 const publishedSteps = [
-  ['published-update-required', 'administration', 'published_revision', ['published-story', 'work-request']],
   ['review_ready', 'published_revision', 'published_review', ['revision', 'published-story', 'review-packet']],
   ['accepted', 'published_review', 'published_apply', ['review', 'published-story', 'destination-review']],
   ['applied', 'published_apply', 'published_verification', ['published-story', 'destination-change']],
@@ -107,29 +99,6 @@ for (const [type, expectedStage, nextStage, kinds] of publishedSteps) {
   assert.equal(result.currentStage, nextStage);
   assert.notEqual(result.currentStage, 'release');
 }
-
-const adminIngress = createWorkflowRuntime(definition,
-  { ...scope, routerRuntimeId: 'writing-admin-ingress' }, { stage: 'administration' });
-assert.throws(() => adminIngress.transition({ scope, type: 'route-required', expectedStage: 'administration', references: [
-  { kind: 'revision', ref: 'article://current-revision' },
-] }), ({ code }) => code === 'BLOCKED_ROUTER_REFERENCE');
-const routedRequest = await adminIngress.route({ scope, type: 'route-required', expectedStage: 'administration', references: [
-  { kind: 'revision', ref: 'article://current-revision' },
-  { kind: 'work-request', ref: 'request://medium-home-approved' },
-] }, adapter);
-assert.equal(routedRequest.currentStage, 'drafting');
-assert.equal(dispatched.at(-1).requiredExecutionRole, 'writer');
-dispatched.length = 0;
-
-const lateIngress = createWorkflowRuntime(definition,
-  { ...scope, routerRuntimeId: 'writing-late-delegation' }, { stage: 'administration' });
-const lateReview = await lateIngress.route({ scope, type: 'review-required', expectedStage: 'administration', references: [
-  { kind: 'revision', ref: 'article://late-revision' },
-  { kind: 'review-packet', ref: 'review://late-packet' },
-  { kind: 'work-request', ref: 'request://late-exact-delegation' },
-] }, adapter);
-assert.equal(lateReview.currentStage, 'review');
-assert.equal(dispatched.at(-1).requiredExecutionRole, 'reviewer');
 dispatched.length = 0;
 
 const delegatedDispatches = [];
@@ -149,12 +118,9 @@ const adminDecision = await delegated.route({ scope, type: 'admin_decision_requi
   { kind: 'destination-review', ref: 'review://delegated-medium-pass' },
   { kind: 'work-request', ref: 'request://exact-delegation' },
 ] }, delegatedAdapter);
-assert.equal(adminDecision.currentStage, 'admin_release_review');
-assert.throws(() => delegated.transition({ scope, type: 'approved', expectedStage: 'admin_release_review', references: [
-  { kind: 'review', ref: 'review://delegated-pass' },
-  { kind: 'destination-review', ref: 'review://delegated-medium-pass' },
-] }), ({ code }) => code === 'BLOCKED_ROUTER_REFERENCE');
-const delegatedRelease = await delegated.route({ scope, type: 'approved', expectedStage: 'admin_release_review', references: [
+assert.equal(adminDecision.status, 'waiting-human');
+assert.equal(adminDecision.currentStage, 'human_review');
+const delegatedRelease = await delegated.route({ scope, type: 'admin_delegated', expectedStage: 'human_review', references: [
   { kind: 'review', ref: 'review://delegated-pass' },
   { kind: 'destination-review', ref: 'review://delegated-medium-pass' },
   { kind: 'release-delegation', ref: 'delegation://exact-verdict' },
@@ -168,7 +134,7 @@ const delegatedComplete = await delegated.route({ scope, type: 'archived', expec
 ] }, delegatedAdapter);
 assert.equal(delegatedComplete.status, 'completed');
 assert.deepEqual(delegatedDispatches.map(({ requiredExecutionRole }) => requiredExecutionRole),
-  ['reviewer', 'admin', 'release-coordinator', 'writer']);
+  ['reviewer', 'release-coordinator', 'writer']);
 
 const sourceDispatches = [];
 const sourceRouter = createWorkflowRuntime(definition, { ...scope, routerRuntimeId: 'writing-source-only' });

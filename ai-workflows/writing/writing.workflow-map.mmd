@@ -1,31 +1,25 @@
 flowchart LR
-    administration["administration<br/>admin"]
-    administration_complete["administration_complete<br/>admin<br/>COMPLETE"]
     published_revision["published_revision<br/>writer"]
     published_review["published_review<br/>reviewer"]
     published_apply["published_apply<br/>release-coordinator"]
+    published_blocked["published_blocked<br/>release-coordinator<br/>COMPLETE"]
     published_verification["published_verification<br/>reviewer"]
     published_reconciliation["published_reconciliation<br/>writer"]
     drafting["drafting<br/>writer<br/>START"]
     review["review<br/>reviewer"]
     source_complete["source_complete<br/>reviewer<br/>COMPLETE"]
-    admin_release_review["admin_release_review<br/>admin"]
     human_review["human_review<br/>reviewer<br/>WAITING FOR HUMAN"]
     correction["correction<br/>writer"]
     release["release<br/>release-coordinator"]
     archive_update["archive_update<br/>writer"]
     diagnosis["diagnosis<br/>reviewer"]
     complete["complete<br/>writer<br/>COMPLETE"]
-    administration -->|route-required: send article request to Writer| drafting
-    administration -->|published-update-required: revise existing story| published_revision
-    administration -->|review-required: recheck delegated release| review
-    administration -->|handled: administration complete| administration_complete
     published_revision -->|review_ready: exact replacement and preview| published_review
     published_review -->|accepted: independently reviewed update| published_apply
     published_review -->|changes_required| published_revision
     published_apply -->|applied: live story changed in place| published_verification
     published_apply -->|changes_required| published_revision
-    published_apply -->|blocked: Admin inspects destination obstacle| administration
+    published_apply -->|blocked: terminal destination obstacle| published_blocked
     published_verification -->|verified: rendered story matches review| published_reconciliation
     published_verification -->|changes_required| published_revision
     published_reconciliation -->|archived: archive and mirror reconciled| complete
@@ -33,11 +27,8 @@ flowchart LR
     review -->|source_accepted: source-only review complete| source_complete
     review -->|accepted: review passes policy| release
     review -->|changes_required| correction
-    review -->|admin_decision_required: exact delegated verdict| admin_release_review
+    review -->|admin_decision_required: wait for direct Admin decision| human_review
     review -->|human_action_required: listen or acceptance pending| human_review
-    admin_release_review -->|approved: Admin-delegated release decision| release
-    admin_release_review -->|changes_required| correction
-    admin_release_review -->|decision_missing: wait for author| human_review
     human_review -->|listen_pending: wait for confirmation| human_review
     human_review -->|changes_required: stale cross-surface evidence| correction
     human_review -->|human_listened: review passed| release
@@ -57,6 +48,6 @@ flowchart LR
     classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
     class drafting start
     class human_review waiting
-    class administration_complete done
+    class published_blocked done
     class complete done
     class source_complete done

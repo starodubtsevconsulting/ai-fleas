@@ -62,7 +62,7 @@ schedule action is that authorization. After independently verifying the account
 **Schedule to publish** and read back Medium's scheduled state in the same release turn. Do not ask Admin or the
 author to reconfirm the prepared slot unless the action or target differs from the receipt.
 An `accepted` review reference without revision-bound `human-listen` evidence does not clear an enabled listen-through
-gate. Either `admin_release_review/approved` or the recovery `human_review/admin_delegated` transition requires a verified `release-delegation` receipt under the
+gate. The recovery `human_review/admin_delegated` transition requires a verified `release-delegation` receipt under the
 [Admin-delegated release contract](../../guides/admin-delegated-release.md), bound to this revision, Medium draft,
 profile-home target, and schedule action. Record author listening as unconfirmed. If neither path is complete, return
 a precise review-gate blocker to the Router.

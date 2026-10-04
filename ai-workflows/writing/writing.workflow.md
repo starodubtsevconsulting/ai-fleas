@@ -73,14 +73,10 @@ them.
   Reviewer uses `proven` only when a fresh review and separate release-gate evidence establish that the missing
   gate is resolved. Repeating the same blocker does not dispatch another diagnosis turn.
 - The **Admin** owns roster administration, Router inspection, and authorized recovery. Admin may start or resume a
-  declared run and report its state, but does not manually relay stage packets or choose transitions. Admin does not
-  inherit editorial verdicts, human acceptance, publication-target choice, or publication authority.
-  A direct article request enters the Router through Admin's `administration/route-required` transition with an exact
-  article `revision` and durable `work-request` reference carrying the human's scope, target, and approvals; the Router
-  assigns Writer's `drafting` stage. Admin-owned work finishes through
-  `administration/handled`.
-  A request to revise an already published story uses `administration/published-update-required` with the exact
-  `published-story` and `work-request` references; it must not enter the new-article scheduling path.
+  declared run and report its state, but is outside the state machine: it neither emits Router results nor manually
+  relays stage packets or chooses transitions. Admin does not inherit editorial verdicts, human acceptance,
+  publication-target choice, or publication authority. A direct article or published-update request is preserved as a
+  durable work request and begins only through the supported worker-run control.
 - The human author may accept or reject a final revision. When the selected profile explicitly permits review-only
   Medium scheduling, a successful independent review authorizes Release Coordinator to schedule a future slot without
   another article-acceptance decision. The human performs immediate Publish or Submit actions. A Reviewer title or
@@ -112,8 +108,8 @@ them.
    That listening requirement remains even when Medium sets `requires_human_article_acceptance: false`, unless the
    author explicitly delegates this exact article's release decision to Admin under the
    [Admin-delegated release contract](guides/admin-delegated-release.md). When the durable work request carries that
-   grant, Reviewer returns `admin_decision_required` after its independent checks and narration preparation; the
-   Router assigns Admin the revision-bound release decision, then sends an `approved` result to Release Coordinator.
+   grant, Reviewer returns `admin_decision_required` after its independent checks and narration preparation; the Router
+   waits while Admin records a revision-bound release decision outside the state machine.
    For an existing run already at `human_review`, Reviewer may verify an exact Admin verdict and return
    `admin_delegated` without claiming the author listened. Otherwise,
    `human_listened` advances to release without treating listening as editorial acceptance. When acceptance is also

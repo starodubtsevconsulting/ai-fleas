@@ -5,32 +5,26 @@ project. The capability matrix and hidden Router contract remain the mechanical 
 
 ## Writing orchestration responsibility
 
-The Router registers Admin at the `administration` stage. For a direct human request concerning an article that
-belongs with Writer, record the human's requested scope in a durable `work-request` artifact: exact article revision,
-source-only or publication intent, selected profile and editorial project ID with its project-definition reference,
-applicable project-knowledge IDs and references, selected destination and target, granted approvals, and human-only actions that
-remain unconfirmed. Return `route-required` from `administration` with both that artifact and the exact `revision`
-reference. The Router then dispatches Writer at `drafting`. A bare revision does not carry publication authorization.
-For completed Admin-owned work that needs no editorial
-handoff, return `handled` from `administration`. Never claim a Writer-owned stage in an Admin result.
-For a later direct human delegation covering an article already drafted or reviewed, record the exact instruction in
-the work request and return `review-required` with the current `revision`, a durable `review-packet`, and that
-`work-request`. The Router sends Reviewer a fresh independent check; Admin does not skip it or dispatch the peer
-directly.
+Admin is outside the Router state machine and never returns a Router result. For a direct human request concerning an
+article, record the requested scope in a durable `work-request` artifact: exact article revision, source-only or
+publication intent, selected profile and editorial project ID with its project-definition reference, applicable
+knowledge, destination and target, grants, and unconfirmed human-only actions. Start or inspect a worker-owned run
+only through the supported runtime control; do not manually relay a packet or claim a Writer, Reviewer, or Release
+Coordinator stage. For a later direct delegation, preserve the exact instruction with its current `revision` and
+`review-packet`; the next Reviewer check remains independent.
 
-When the human asks Admin to run or finish a Writing workflow, Admin verifies and starts or resumes the hidden Router
-from the current durable state. The Router identifies the next declared stage, dispatches it to the exact active
-endpoint, observes its completed turn, validates evidence references, and selects the next declared transition. Admin
-inspects progress and reports the final state; it does not relay ordinary workflow messages or choose transitions.
+When the human asks Admin to run or finish a Writing workflow, Admin either starts or inspects the hidden Router through
+its supported controls, or explicitly performs an emulated role step under the common Admin contract. The Router
+identifies the next worker stage and validates worker evidence; Admin reports progress without relaying ordinary
+workflow messages or choosing transitions.
 
 When the human explicitly asks Admin to represent them for an exact article's release decision, follow the
 [Admin-delegated release contract](../../guides/admin-delegated-release.md). Record the human instruction and Admin's
-own review in a revision-bound `release-delegation` receipt at the Router-assigned `admin_release_review` stage. A
-Reviewer `admin_decision_required` result must carry the exact independent `review`, `destination-review`, and
-human-authorized `work-request`; inspect all three and the final surfaces before deciding. Return `approved` with
-those review references and the new receipt only when the exact revision and target pass. Return `changes_required`
-with durable findings for Writer-owned defects, or `decision_missing` with a human-action record when the mandate is
-absent or outside scope. This authority can approve future scheduling without
+own review in a revision-bound `release-delegation` receipt outside the Router. A Reviewer
+`admin_decision_required` wait must carry the exact independent `review`, `destination-review`, and human-authorized
+`work-request`; inspect all three and the final surfaces before deciding. Record an approval only when the exact
+revision and target pass; otherwise record Writer-owned findings or a human-action blocker. This authority can approve
+future scheduling without
 claiming that the author listened. It does not waive independent Reviewer checks, three-surface consistency, or the
 need to keep narration in the permanent archive. Do not use a delegated receipt for another article or materially
 changed revision.
@@ -43,10 +37,9 @@ silently select a publication target, publish or submit without the exact grant,
 without explicit delegation. A changed revision
 invalidates affected downstream evidence and the Router routes it through the required gates again.
 
-The Router is the sole workflow runtime. Writer, Reviewer, and Release Coordinator expose terminal results for host
-observation; they do not route work directly to one another or Admin. The Router validates each result, preserves the
-parent correlation and exact revision evidence, and creates the next bounded stage packet. Admin
-must not advance a dependent gate from a transport receipt alone: it requires visible `COPY THAT` and terminal evidence.
+The Router is the sole worker workflow runtime. Writer, Reviewer, and Release Coordinator expose terminal results for
+host observation; they do not route work directly to one another or Admin. The Router validates each worker result and
+creates the next bounded stage packet. Admin must not advance a dependent gate from a transport receipt alone.
 
 When an agent is missing, duplicated, stale-bound, or unable to receive packets, Admin performs a transactional lifecycle
 repair: resolve the exact active receipt, create at most one successor candidate, verify its readiness and identity,
