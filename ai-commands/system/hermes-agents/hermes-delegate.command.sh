@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Purpose: validate and invoke the configured Hermes Coder with its target-model strategy and extracted expertise.
+# Caller: the workflow Admin's profile launcher; inputs are check/run, project ID, and a bounded assignment.
+# Effects: check is read-only; run sends one assignment through the configured CLI or A2A transport and may edit its authorized checkout.
 set -euo pipefail
 
 profile_root="${AI_PROFILE_ROOT:?AI_PROFILE_ROOT must select the operational profile root}"
@@ -29,6 +32,8 @@ esac
 }
 
 resolved="$(HERMES_DELEGATE_PROFILE_ROOT="${profile_root}" HERMES_DELEGATE_WORK_PROFILE="${work_profile}" HERMES_DELEGATE_WORKFLOW="${workflow}" HERMES_DELEGATE_PROJECT_ID="${selected_project}" "${hermes_python}" - <<'PY'
+import base64
+import json
 import os
 import re
 import subprocess
@@ -133,6 +138,48 @@ models = [item for item in provider.get('models', []) if item.get('id') == workf
 if len(models) != 1:
     raise SystemExit('HERMES_CODER_BLOCKED: workflow model is missing or ambiguous.')
 expected_model = models[0]['provider_model']
+strategy_ref = ((models[0].get('delegation') or {}).get('strategy_config'))
+workflows_ref = work_profile.get('ai_workflows_root')
+if not isinstance(strategy_ref, str) or not strategy_ref or Path(strategy_ref).is_absolute() or '..' in Path(strategy_ref).parts:
+    raise SystemExit('HERMES_CODER_BLOCKED: target-model strategy is missing or unsafe.')
+if not isinstance(workflows_ref, str) or not workflows_ref:
+    raise SystemExit('HERMES_CODER_BLOCKED: workflow catalog root is missing.')
+workflows_root = (root / workflows_ref).resolve()
+strategy_path = (workflows_root / strategy_ref).resolve()
+if workflows_root == strategy_path or not str(strategy_path).startswith(str(workflows_root) + os.sep) or not strategy_path.is_file():
+    raise SystemExit('HERMES_CODER_BLOCKED: target-model strategy is outside the workflow catalog.')
+strategy = yaml.safe_load(strategy_path.read_text()) or {}
+if (strategy.get('applies_to') or {}).get('provider_model') != expected_model:
+    raise SystemExit('HERMES_CODER_BLOCKED: target-model strategy does not match the selected model.')
+expertise_ref = strategy.get('expertise_profile')
+if not isinstance(expertise_ref, str) or not expertise_ref or Path(expertise_ref).is_absolute():
+    raise SystemExit('HERMES_CODER_BLOCKED: target-model expertise profile is missing or unsafe.')
+repo_root = workflows_root.parent
+models_root = (repo_root / 'models').resolve()
+expertise_path = (strategy_path.parent / expertise_ref).resolve()
+if models_root == expertise_path or not str(expertise_path).startswith(str(models_root) + os.sep) or not expertise_path.is_file():
+    raise SystemExit('HERMES_CODER_BLOCKED: target-model expertise profile is outside the canonical model catalog.')
+expertise = yaml.safe_load(expertise_path.read_text()) or {}
+communication = expertise.get('communication') or {}
+required_lists = ('direct_starting_language', 'translate_first')
+required_strings = ('handoff_rule', 'verification_rule')
+provider_models = (expertise.get('applies_to') or {}).get('provider_models')
+if expertise.get('schema_version') != 'ai-fleas-model-expertise.v1' or not isinstance(expertise.get('model_family'), str) or not expertise['model_family'].strip():
+    raise SystemExit('HERMES_CODER_BLOCKED: target-model expertise identity is invalid.')
+if not isinstance(provider_models, list) or expected_model not in provider_models or any(not isinstance(item, str) or not item.strip() for item in provider_models):
+    raise SystemExit('HERMES_CODER_BLOCKED: target-model expertise does not apply to the selected model.')
+if any(not isinstance(communication.get(key), list) or not communication[key] or any(not isinstance(item, str) or not item.strip() for item in communication[key]) for key in required_lists):
+    raise SystemExit('HERMES_CODER_BLOCKED: target-model expertise communication lists are invalid.')
+if any(not isinstance(communication.get(key), str) or not communication[key].strip() for key in required_strings):
+    raise SystemExit('HERMES_CODER_BLOCKED: target-model expertise communication rules are invalid.')
+expertise_contract = {
+    'model_family': expertise['model_family'],
+    'observed_scope': communication.get('observed_scope', ''),
+    'direct_starting_language': communication['direct_starting_language'],
+    'translate_first': communication['translate_first'],
+    'handoff_rule': communication['handoff_rule'],
+    'verification_rule': communication['verification_rule'],
+}
 endpoints = {str(item.get('url') or '').rstrip('/') for item in ((provider.get('endpoint') or {}).get('connections') or {}).values()}
 hermes_home = Path(os.environ.get('HERMES_HOME') or Path.home() / '.hermes')
 runtime = yaml.safe_load((hermes_home / 'profiles' / profile_id / 'config.yaml').read_text()) or {}
@@ -159,6 +206,9 @@ print(binding['id'])
 print(transport)
 print(endpoint if transport == 'a2a' else '')
 print(agent_name if transport == 'a2a' else '')
+print(strategy_path)
+print(expertise_path)
+print(base64.urlsafe_b64encode(json.dumps(expertise_contract, ensure_ascii=True).encode()).decode())
 PY
 )"
 
@@ -170,18 +220,26 @@ delegate_id="$(printf '%s\n' "${resolved}" | sed -n '5p')"
 transport="$(printf '%s\n' "${resolved}" | sed -n '6p')"
 endpoint="$(printf '%s\n' "${resolved}" | sed -n '7p')"
 agent_name="$(printf '%s\n' "${resolved}" | sed -n '8p')"
+strategy_path="$(printf '%s\n' "${resolved}" | sed -n '9p')"
+expertise_path="$(printf '%s\n' "${resolved}" | sed -n '10p')"
+expertise_encoded="$(printf '%s\n' "${resolved}" | sed -n '11p')"
+expertise_contract="$("${hermes_python}" -c 'import base64, json, sys; data=json.loads(base64.urlsafe_b64decode(sys.argv[1]).decode()); print("Target-model expertise contract (apply throughout this assignment):\n- Model family: " + data["model_family"] + "\n- Observed scope: " + data["observed_scope"] + "\n- Direct language: " + " ".join(data["direct_starting_language"]) + "\n- Translate first: " + " ".join(data["translate_first"]) + "\n- Handoff rule: " + data["handoff_rule"] + "\n- Verification rule: " + data["verification_rule"])' "${expertise_encoded}")"
 
 if [[ "${transport}" == a2a && "${mode}" == check ]]; then
   if ! node "$(dirname "$0")/a2a-client.mjs" check "${endpoint}" "${agent_name}"; then exit 1; fi
-  printf 'HERMES_CODER_READY: id=%s profile=%s project=%s branch=%s\n' "${delegate_id}" "${profile_id}" "${project_id}" "${branch}"
+  printf 'HERMES_CODER_READY: id=%s profile=%s project=%s branch=%s strategy=%s expertise=%s\n' "${delegate_id}" "${profile_id}" "${project_id}" "${branch}" "${strategy_path}" "${expertise_path}"
   exit 0
 fi
 
-printf 'HERMES_CODER_READY: id=%s profile=%s project=%s branch=%s\n' "${delegate_id}" "${profile_id}" "${project_id}" "${branch}"
+printf 'HERMES_CODER_READY: id=%s profile=%s project=%s branch=%s strategy=%s expertise=%s\n' "${delegate_id}" "${profile_id}" "${project_id}" "${branch}" "${strategy_path}" "${expertise_path}"
 
 if [[ "${mode}" == check ]]; then exit 0; fi
 
-prompt="You are the declared Coder endpoint for a human-authorized ${work_profile} ${workflow} Admin-run assignment. Admin is emulating other roles, but your Coder work is real delegation. Write only in ${workspace} on the current named branch ${branch}; you may inspect explicitly authorized read-only reference roots named in the assignment. Use no temporary directories or worktrees. Follow the Coder role and repository rules. Investigate related files within the assignment's read scope and implement only within its write scope: ${assignment}
+prompt="You are the declared Coder endpoint for a human-authorized ${work_profile} ${workflow} Admin-run assignment. Admin is emulating other roles, but your Coder work is real delegation. Write only in ${workspace} on the current named branch ${branch}; you may inspect explicitly authorized read-only reference roots named in the assignment. Use no temporary directories or worktrees. Follow the Coder role and repository rules.
+
+${expertise_contract}
+
+Investigate related files within the assignment's read scope and implement only within its write scope: ${assignment}
 
 Do not commit, push, run builds or tests, manage tickets, edit governance rules, or claim independent review or acceptance. Edit ai-commands only when the assignment explicitly includes its target directory in the allowed write scope; otherwise do not edit ai-commands. If another write root is needed, report it instead of expanding scope. Return changed files, implementation evidence, blockers, and checks that remain for Command Runner or independent review."
 

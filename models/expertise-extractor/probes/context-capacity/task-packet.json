@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0.0",
+  "experiment_id": "qwen3-coder-next-q5km-context-capacity",
+  "status": "frozen-inputs-no-live-results",
+  "expected_model": {
+    "model_id": "Qwen3-Coder-Next",
+    "quant": "Q5_K_M"
+  },
+  "execution": {
+    "transport": "hermes-cli-oneshot",
+    "fresh_session": true,
+    "turn_cap": 20,
+    "process_deadline_ms": 180000,
+    "one_correction_per_run": true,
+    "shared_conversation_between_runs": false
+  },
+  "write_scope": {
+    "allowed": ["recognizers/snow-removal-contract-recognizer.mjs"],
+    "unexpected_write_invalidates_run": true
+  },
+  "artifacts": {
+    "task": {
+      "path": "notes/benchmarks/local-models/fixtures/hermes-financial-recognizer-coding/TASK.md",
+      "sha256": "8b79e41c8a6caf56434b4f2f86fe388d2a9d6aacf3620452dfe5fdaaae8449fe"
+    },
+    "domain_contract": {
+      "path": "notes/benchmarks/local-models/fixtures/hermes-financial-recognizer-coding/DOMAIN_CONTEXT_TRANSLATED.md",
+      "sha256": "0fa2ad7b3be314ef0233741e993b4d6ccd9814ee7b81a9659a395f6f8c121ddb",
+      "copies_per_run": 1
+    },
+    "starter": {
+      "path": "notes/benchmarks/local-models/fixtures/hermes-financial-recognizer-coding/starter/recognizers/snow-removal-contract-recognizer.mjs",
+      "sha256": "f2bd6a54760cf87b2a668772bd6bbfe8820efc9701f8b6a8ce90e0f2fcf4adf3"
+    },
+    "verifier": {
+      "path": "notes/benchmarks/local-models/fixtures/hermes-financial-recognizer-coding/verify.mjs",
+      "sha256": "41a44f7c71df3501082298f612d162b1e7a55f80d92bbd60b27ad26287e450a5",
+      "visible_to_worker": false
+    },
+    "baseline_record": {
+      "path": "models/qwen3-coder-next/benchmarks/gx10/domain-context-three-arm-2026-09-28.json",
+      "sha256": "4fd169f6b989552c25bd9d33bbca6b8f6ce0c109015bf683349d4220d306421d"
+    }
+  },
+  "domain_invariants": [
+    "normalizedText_preserves_word_boundaries",
+    "compactText_cannot_prove_exact_PAYMENT",
+    "standalone_PAYMENT_is_positive",
+    "REPAYMENT_alone_is_negative",
+    "PAYMENTS_alone_is_negative",
+    "separate_PAYMENT_beside_REPAYMENT_is_positive",
+    "preserve_French_behavior",
+    "preserve_result_contract"
+  ],
+  "correction": {
+    "template": "English PAYMENT must be a standalone word in normalizedText; reject REPAYMENT and PAYMENTS alone, accept a separate PAYMENT beside REPAYMENT, preserve French behavior and the existing result contract, and edit only the target file. Verifier feedback: {{verifier_feedback}}",
+    "allowed_feedback_fields": ["failed_assertion_ids", "unexpected_paths"],
+    "fresh_session": true,
+    "deadline_ms": 120000,
+    "promotion_uses_corrected_result": false
+  }
+}

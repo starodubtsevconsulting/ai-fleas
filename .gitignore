@@ -39,4 +39,5 @@
 
 # Local Hermes benchmark artifacts and checkout-root working copy.
 /notes/benchmarks/local-models/runs/
+/models/expertise-extractor/probes/context-capacity/manifest.json
 /recognizers/snow-removal-contract-recognizer.mjs

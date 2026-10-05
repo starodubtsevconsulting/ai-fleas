@@ -7,9 +7,9 @@ Applies when the configured `provider_model` is exactly `qwen3-coder-next-q5km` 
 Hermes. Review this profile if the model changes. Combine it with the strategy for the selected transport: A2A or
 CLI one-shot.
 
-## Education and communication model
+## Expertise and communication model
 
-This is coordinator guidance about the language of a handoff, not a measurement of the model's hidden knowledge. The [canonical education profile](../../../../../models/qwen3-coder-next/education-profile.yml) keeps source claims, local observations, and unknowns separate. Parameter count, `Q5_K_M` quantization, and context length describe architecture or this deployment; they do not establish domain education.
+This is coordinator guidance about the language of a handoff, not a measurement of the model's hidden knowledge. The [canonical expertise profile](../../../../../models/qwen3-coder-next/expertise-profile.yml) keeps local observations, inferences, and unknowns separate. Parameter count, `Q5_K_M` quantization, and context length describe architecture or this deployment; they do not establish domain expertise.
 
 ### Declared education
 

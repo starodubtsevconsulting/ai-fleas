@@ -1,5 +1,8 @@
 schema_version: ai-fleas-model-expertise.v1
 model_family: Qwen3-Coder-Next
+applies_to:
+  provider_models:
+    - qwen3-coder-next-q5km
 profile_status: evidence-backed-provisional
 purpose: Guide delegation from observed work rather than assumed hidden knowledge.
 education_reference: education.yml

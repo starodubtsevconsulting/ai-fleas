@@ -13,12 +13,13 @@ not select the strategy for a distinct Coder target. In the configured Dev route
 resolves the same provider model through its separate proposal-only strategy. The `qwen-bounded-coder` catalog entry
 retains Qwen3.6 35B for targeted comparison. GPT Admin invokes the bounded model launcher directly, with no Hermes
 caller hop. Hermes Q5 callers use the same target strategy when invoking that route.
-Where the selected strategy names an [education profile](model-profiles/README.md#education-metadata), use its
-declared orientation, scoped local observations, and unknowns to choose the handoff's vocabulary. It guides how the
-task is explained; it does not replace the selected route, strategy, or independent acceptance checks.
-GPT Admin must load and apply the target strategy before a handoff; the launcher's `check` reports its validated path.
-The launcher does not inject strategy prose into the model prompt. Its evidence notes explain the settings; they do
-not replace the profile binding or these strategy rules.
+Every model-to-model route must resolve the selected strategy's required
+[expertise profile](model-profiles/README.md#target-model-expertise) and apply its scoped `communication` guidance.
+This is a target-model contract, not a transport feature: changing between CLI, A2A, or a direct-model call must not
+drop the extracted knowledge. The launchers validate the strategy/profile binding and automatically include the
+communication contract in actual handoffs; Admin still translates the task itself so the concrete assignment follows
+that guidance. Missing or invalid target expertise blocks dispatch. The expertise does not replace the selected
+route, transport rules, file authority, or independent acceptance checks.
 
 For Hermes agent delegates, the profile's `gpt-agents` command config selects the Hermes transport. A bounded-model
 delegate instead uses its declared direct-model route; its target model strategy and runtime timeout are separate
@@ -42,9 +43,9 @@ inspect files and the active process/session before retrying either route.
 - [Goal-backed continuation](goal-backed-continuation.md): several Coder turns are useful and the transport has a
   verified persistent goal and task-status mechanism.
 
-For domain-sensitive coding tasks, the provisional [Domain Context Handoff](domain-context-handoff.md) pattern can
-augment the selected strategy. It translates the minimum domain model into invariants, examples, and a code boundary;
-it does not add file authority or replace independent acceptance checks.
+For domain-sensitive coding tasks, apply the [Domain Context Handoff](domain-context-handoff.md) when the target
+expertise profile calls for translation. It translates the minimum domain model into invariants, examples, and a code
+boundary; it does not add file authority or replace independent acceptance checks.
 
 Use read-only discovery before implementation when the write scope or required behavior is uncertain. A strategy never
 grants new file authority or transfers testing, review, or acceptance ownership to Coder. Check the launcher's actual

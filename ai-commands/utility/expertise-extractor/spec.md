@@ -32,7 +32,7 @@ Allowed states: confirmed, refined, contradicted, inferred-but-unverified, unkno
 ## Storage
 
 Canonical profile:
-`models/<model>/education-profile.yml`
+`models/<model>/expertise-profile.yml`
 
 Extraction evidence:
 `models/<model>/benchmarks/education-profile-extraction/<evidence-id>.yml`

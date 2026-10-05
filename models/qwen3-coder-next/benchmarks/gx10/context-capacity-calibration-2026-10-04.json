@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-04",
+  "status": "calibration-only-no-valid-scored-run",
+  "hardware": "ASUS Ascent GX10, NVIDIA GB10, 128 GB unified memory",
+  "model": {
+    "id": "Qwen3-Coder-Next",
+    "quant": "Q5_K_M"
+  },
+  "configuration": {
+    "server_context_tokens": 65536,
+    "hermes_context_tokens": 65536,
+    "hermes_compression_threshold": 0.25
+  },
+  "workload": {
+    "payload_tokens": 205080,
+    "sequential_turns": 53,
+    "requirement_offsets_tokens": {
+      "early": 20000,
+      "middle": 90000,
+      "late": 150000,
+      "task": 205000
+    },
+    "assertions": {
+      "total": 21,
+      "early": 6,
+      "middle": 6,
+      "late": 2,
+      "legacy": 7
+    }
+  },
+  "observations": {
+    "complete_preserved_workspaces": 2,
+    "workspaces_passing_all_assertions": 2,
+    "last_attempt": {
+      "assertions_passed": 21,
+      "assertions_total": 21,
+      "wall_time_ms": 1498728,
+      "system_peak_used_memory_bytes": 74724593664,
+      "system_minimum_available_memory_bytes": 55871455232,
+      "swap_growth_bytes": 0,
+      "session_input_tokens": 398164,
+      "session_output_tokens": 8938,
+      "model_api_calls": 72
+    }
+  },
+  "invalidating_conditions": [
+    "No attempt produced canonical valid-run evidence",
+    "One complete attempt failed on mixed non-JSON progress output after accepted code was produced",
+    "The final attempt exited nonzero on the Hermes internal run budget",
+    "The final attempt created out-of-scope helper files"
+  ],
+  "conclusion": {
+    "operationally_sufficient_for_tested_workload": true,
+    "recommended_default_context_tokens": 65536,
+    "larger_context_benefit_established": false,
+    "valid_success_rate_established": false,
+    "summary": "A 65K context with Hermes compression retained the distributed requirements well enough to produce two independently accepted targets across a 205K multi-turn workload. Keep 65K as the practical default unless a later clean matched comparison demonstrates a benefit from 128K or 262K."
+  },
+  "references": [
+    "notes/benchmarks/local-models/gx10.md",
+    "models/expertise-extractor/probes/context-capacity/calibration-results.md"
+  ]
+}

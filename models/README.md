@@ -13,7 +13,7 @@ When AI-Fleas assigns work, these concepts answer different questions:
 | **Role** | What job needs to be done? |
 | **Agent** | What executable worker is doing it? |
 | **Model** | What learned intelligence/education does that worker have? |
-| **Education profile** | What conceptual world does the model understand, and how should we talk to it? |
+| **Expertise profile** | What has the model demonstrated, and how should we talk to it? |
 | **Deployment** | How and where is this model running? |
 | **Benchmark evidence** | What happened when we actually watched it work? |
 
@@ -27,11 +27,11 @@ Think about hiring a person.
 
 Knowing that somebody has a large memory and can read a large stack of documents does not tell you whether they studied software engineering, accounting or biology. Before assigning unfamiliar work, you want to know what they already understand and what needs explanation.
 
-AI-Fleas calls that the model's **education profile**.
+AI-Fleas records the answer in the model's **expertise profile**.
 
-## Education profile
+## Expertise profile
 
-Each model eventually has an `education-profile.yml`.
+Each model used for model-to-model delegation needs an `expertise-profile.yml` before that route can run.
 
 It is both human-readable and agent-readable. It records:
 
@@ -44,7 +44,8 @@ It is both human-readable and agent-readable. It records:
 - **unknowns** — things we deliberately do not assume;
 - **evidence/provenance/confidence** — why we believe each important claim.
 
-The education profile is mainly an input to the **delegator**. Do not paste the entire profile into every worker prompt.
+The expertise profile is mainly an input to the **delegator**. The launcher injects its compact `communication`
+contract as a backstop; the delegator still adapts the concrete task rather than dumping the entire profile.
 
 ## Draft is a résumé
 
@@ -54,16 +55,16 @@ That is a résumé.
 
 It tells us what the model is supposed to have been educated for. It does not prove what this deployment can actually do.
 
-## Education Profile Extraction
+## Expertise Profile Extraction
 
-The reusable process is defined in the [Education Profile Extractor](education-profile-extractor/).
+The reusable process is defined by the [Expertise Extractor](expertise-extractor/).
 
-The Education Profile Extractor is the process that turns the résumé into evidence-backed knowledge:
+The Expertise Extractor is the process that turns initial expectations into evidence-backed knowledge:
 
 ```
 public information
       ↓
-draft education-profile.yml
+draft expertise-profile.yml
       ↓
 controlled work across task families
       ↓
@@ -71,7 +72,7 @@ independent verification
       ↓
 observations + contradictions
       ↓
-revised education-profile.yml
+revised expertise-profile.yml
 ```
 
 This is not a one-time benchmark. The profile evolves as we work with the model.
@@ -128,7 +129,7 @@ The target knowledge structure is:
 models/
   qwen3-coder-next/
     model.yml
-    education-profile.yml
+    expertise-profile.yml
     benchmarks/
       gx10/
         ...
@@ -150,9 +151,9 @@ A benchmark is evidence about the model under a particular deployment. Shared fi
 
 **Unknown education** — concepts we do not assume the model understands.
 
-**Education Profile** — structured representation of declared, observed and unknown education plus communication guidance.
+**Expertise Profile** — structured representation of observed, inferred and unknown capability plus communication guidance.
 
-**Education Profile Extraction** — iterative process for discovering/refining that profile through controlled work.
+**Expertise Profile Extraction** — iterative process for discovering/refining that profile through controlled work.
 
 **Conceptual language** — abstractions and vocabulary the model can operationalize without additional teaching.
 

@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "status": "frozen-before-live-execution",
+  "invalid_runs_allowed": 0,
+  "minimum_requirement_retention_rate": 1.0,
+  "minimum_first_pass_acceptance_improvement_absolute": 0.1,
+  "minimum_c_over_b_first_pass_acceptance_delta": 0.05,
+  "maximum_crash_count": 0,
+  "maximum_oom_count": 0,
+  "maximum_swap_growth_bytes_per_run": 8589934592,
+  "minimum_system_available_memory_bytes": 8589934592,
+  "maximum_system_memory_utilization_rate": 0.9375,
+  "maximum_task_wall_time_ms": 3600000,
+  "maximum_correction_wall_time_ms": 600000,
+  "minimum_exploratory_valid_runs_per_arm": 3,
+  "minimum_confirmation_valid_runs_per_arm": 6,
+  "promotion_rules": {
+    "B_over_A": "B must meet every safety and retention threshold and improve first-pass acceptance over A by the frozen absolute threshold.",
+    "C_over_B": "C must meet every safety and retention threshold and improve first-pass acceptance over B by the frozen C-over-B delta.",
+    "no_gain": "Retain A when larger context produces no qualifying first-pass accepted-work gain.",
+    "corrected_results": "Corrected acceptance is diagnostic only and cannot satisfy promotion."
+  }
+}
