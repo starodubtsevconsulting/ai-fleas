@@ -265,6 +265,22 @@ source of initialization truth. GPT App maps the same
 workflow governance model to its declared multi-agent roster, such as Admin, Manager, and the five governed Dev roles.
 This difference belongs to the platform adapters and must not be hardcoded as a universal agent count in either command.
 
+The normal minimal Hermes profile is one foreground agent plus both auxiliary task slots. `compression` preserves usable
+session context; `goal_judge` evaluates bounded-goal progress. They may use one shared auxiliary model, but neither slot
+is optional for a profile presented as normally configured. They do not create additional workflow agents.
+
+```mermaid
+flowchart TD
+  P[Normal minimal Hermes profile] --> F[Foreground main-model agent]
+  P --> C[Required compression auxiliary slot]
+  P --> J[Required goal_judge auxiliary slot]
+  C --> F
+  J --> F
+```
+
+See [the profile-selected worker and auxiliary contract](spec.md#profile-selected-hermes-workers-and-auxiliary-models)
+for the configuration shape and live acceptance evidence.
+
 ### Implementation structure
 
 The Hermes adapter separates resolution, validation, orchestration, and mutation so each layer has one responsibility:

@@ -129,6 +129,31 @@ allowed task names, callers, and timeouts before writing the realized caller pro
 `compression` for context handling and `goal_judge` for advisory goal evaluation; additional tasks require an explicit
 strategy/config change.
 
+Both supported slots are part of the **normal minimal Hermes profile**. A profile without either slot is a legacy or
+degraded profile and MUST NOT be described as normally configured. The auxiliary slots may share one auxiliary model,
+but they must be explicitly bound and verified; they are runtime services of the foreground profile, not extra agents.
+
+```mermaid
+flowchart LR
+  H[Human] --> A[Hermes profile<br/>foreground agent + main model]
+  A --> C[compression slot<br/>auxiliary model]
+  C --> A
+  A --> J[goal_judge slot<br/>auxiliary model]
+  J --> A
+```
+
+```mermaid
+sequenceDiagram
+  participant A as Foreground Hermes profile
+  participant C as compression auxiliary slot
+  participant J as goal_judge auxiliary slot
+  A->>C: Context approaches its working limit
+  C-->>A: Compressed session context
+  A->>J: Draft or evaluate the active goal
+  J-->>A: Advisory verdict
+  Note over A,J: One profile session; auxiliary calls return to the foreground agent
+```
+
 ```yaml
 workflow_agents:
   dev:
@@ -143,17 +168,6 @@ auxiliary_models:
       compression: { timeout_seconds: 120 }
       goal_judge: { timeout_seconds: 60 }
 ```
-
-## Completion criteria
-
-Hermes workflow initialization is complete only when every Agent selected for Hermes realization is realized exactly
-once, uses its resolved provider and model, receives its assigned Role and flow, belongs to the exact group, and appears
-in the ordered ready receipt without exposing provider credentials. The command must emit one matching aggregate
-`HERMES_WORKFLOW_READY` result. A collection of per-profile success messages is not completion.
-
-Hermes System initialization is complete only when the exact global profile is configured and pinned, the exact
-profile-scoped scheduler exists and is enabled, its gateway/ticker is running, and the final System receipt represents
-that verified state. Failure before that point must not leave a newly written ready receipt.
 
 ## Live auxiliary acceptance
 
@@ -173,3 +187,14 @@ foreground turns, where current Hermes releases do not publish the ambient accou
 Configured YAML, a UI label, or a status animation alone is not acceptance evidence. The live test changes session
 history and may let the coding goal edit its authorized workspace; use a named branch and a bounded task. The offline
 fixture is `tests/verify-auxiliary-usage.test.sh` and does not call either model.
+
+## Completion criteria
+
+Hermes workflow initialization is complete only when every Agent selected for Hermes realization is realized exactly
+once, uses its resolved provider and model, receives its assigned Role and flow, belongs to the exact group, and appears
+in the ordered ready receipt without exposing provider credentials. The command must emit one matching aggregate
+`HERMES_WORKFLOW_READY` result. A collection of per-profile success messages is not completion.
+
+Hermes System initialization is complete only when the exact global profile is configured and pinned, the exact
+profile-scoped scheduler exists and is enabled, its gateway/ticker is running, and the final System receipt represents
+that verified state. Failure before that point must not leave a newly written ready receipt.
