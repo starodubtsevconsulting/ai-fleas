@@ -11,7 +11,7 @@ Use `macos-screenshot-sorter` on macOS to move only macOS-style screenshot files
 | Active AI Profile and workflow | Yes | Host activation | Authorizes the command and exposes its selected profile-owned configuration. |
 | Source directory | Yes | Profile config | The folder macOS captures into. |
 | Destination directory | Yes | Profile config | The visible screenshot folder. It may equal the source directory. |
-| Operation | No | Invocation | `ui`, `probe`, `sort`, `migrate`, `render-launchagent`, candidate install/removal, or legacy suspend/restore. |
+| Operation | No | Invocation | `ui`, `ui --force`, `probe`, `sort`, `migrate`, `render-launchagent`, candidate install/removal, or legacy suspend/restore. |
 
 ## Outputs
 
@@ -29,6 +29,68 @@ Use `macos-screenshot-sorter` on macOS to move only macOS-style screenshot files
 
 Every invocation is profile-aware: the host verifies workflow authorization and supplies the selected profile-owned configuration as `AI_COMMAND_CONFIG_PATH`.
 
+## Run against any authorized profile
+
+Use this section when a terminal agent such as Hermes needs to run the command directly. Do not infer a profile from the current directory. Supply the exact absolute **profile project** that contains `ai-profile/`, its profile ID, and a workflow that explicitly allows `macos-screenshot-sorter`.
+
+1. In that profile’s `ai-profile/<profile-id>/<profile-id>-work-profile.yml`, bind the command to its private configuration file and list the command under the intended workflow:
+
+   ```yaml
+   commands:
+     - id: macos-screenshot-sorter
+       config: commands-config/macos-screenshot-sorter.env
+   workflows:
+     - path: <workflow>.workflow.md
+       platform: <platform-id>
+       commands:
+         - macos-screenshot-sorter
+   ```
+
+2. Copy `macos-screenshot-sorter.command.example.config` to the referenced private configuration path and set every `SCREENSHOT_SORTER_*` value to real local paths. In particular, set the source and destination directories, a unique LaunchAgent label, `/usr/bin/python3`, and an executable `SCREENSHOT_SORTER_ELECTRON_BIN` if the agent will open the UI. The command deliberately has no operational fallbacks.
+
+3. Set these five shell variables once. Replace every angle-bracket value; do not use them literally. `PROFILE_PROJECT` is the repository containing the profile—not necessarily the AI Fleas command repository.
+
+   ```bash
+   AI_FLEAS_REPO="/absolute/path/to/ai-fleas"
+   PROFILE_PROJECT="/absolute/path/to/profile-project"
+   PROFILE_ID="<profile-id>"
+   WORKFLOW="<workflow>.workflow.md"
+   PLATFORM="<platform-id>"
+   ```
+
+4. Run the activation preflight, then the command’s read-only resolved-runtime check:
+
+   ```bash
+   AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
+     bash "$AI_FLEAS_REPO/ai-commands/_runtime/profile/activate-profile.sh" \
+       --profile "$PROFILE_ID" --workflow "$WORKFLOW" --platform "$PLATFORM" --command macos-screenshot-sorter
+
+   AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
+     bash "$AI_FLEAS_REPO/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh" probe
+   ```
+
+   The first command must print an `AI_COMMAND_CONFIG_PATH` and an `AI_COMMANDS_ROOT` that resolves to this AI Fleas checkout. `AI_AGENT_PLATFORM` is optional only when the profile’s workflow can resolve its default platform. Supplying it makes an agent run reproducible. A successful `probe` prints the exact source, destination, candidate label, logs, and both timing values; it does not move files or install anything.
+
+5. Reuse the **same four context variables** for the required operation:
+
+   ```bash
+   # Open the settings/Screenshots app in the current macOS GUI session.
+   AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
+   bash "$AI_FLEAS_REPO/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh" ui
+
+   # Agent-only: close the exact existing Screenshot Sorter process and open a fresh instance.
+   AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
+     bash "$AI_FLEAS_REPO/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh" ui --force
+
+   # Scan and sort once; this is a real file-moving operation.
+   AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
+     bash "$AI_FLEAS_REPO/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh" sort
+   ```
+
+Only use `install --apply`, legacy suspension, migration, or uninstall after following [the acceptance scenario](macos-screenshot-sorter.scenario.md). A manual `sort` or `ui` run does not prove that launchd has the required Desktop/TCC access after login.
+
+Common preflight failures are intentional: `PROFILE_REQUIRED` means the profile ID or workflow was omitted; `PROFILE_BLOCKED: command is not allowed by workflow` means add the binding above; `missing profile-owned command config` means the configured private file does not exist; and `SCREENSHOT_SORTER_ELECTRON_REQUIRED` means the configured UI runtime path is not executable. Do not bypass these checks by exporting `AI_COMMAND_CONFIG_PATH` directly.
+
 ## Supported platform
 
 This command is **macOS-only**. Every operation rejects a non-macOS host; its background integration uses a per-user `launchd` LaunchAgent and its file recognition is specific to Apple screenshot names.
@@ -37,9 +99,9 @@ Committed configuration template: `macos-screenshot-sorter/macos-screenshot-sort
 
 `sort` and `migrate` are equivalent, idempotent scans. The command moves only regular, non-symlinked files named like `Screenshot …` or `Screen Shot …` with a supported image suffix. It never selects an unrelated image solely because it is a PNG.
 
-`install --apply` creates a distinct candidate LaunchAgent; it intentionally does not replace an existing personal job. `suspend-legacy --apply` unloads only the configured legacy label while preserving its script and plist, preventing a race during candidate acceptance. `restore-legacy --apply` loads that exact plist again. `uninstall --apply` removes only this command's configured candidate label and plist. Do not replace an old sorter or claim success from a manual run. Follow the live scenario first, including a real capture after logout/login in the GUI session and a TCC check for the launchd-executed Python process.
+`install --apply` creates a distinct candidate LaunchAgent; it intentionally does not replace an existing personal job. `install-app --apply` creates a lightweight Spotlight launcher at `~/Applications/Screenshot Sorter.app`. `build-app --apply` instead packages the configured Electron runtime, the renderer, sorter command, and camera app icon into a signed native `.app` at that same path; it remains bound to the active private profile configuration at runtime, so it does not copy private settings into source control or silently use defaults. Both are separate from the background LaunchAgent. `suspend-legacy --apply` unloads only the configured legacy label while preserving its script and plist, preventing a race during candidate acceptance. `restore-legacy --apply` loads that exact plist again. `uninstall --apply` removes only this command's configured candidate label and plist. Do not replace an old sorter or claim success from a manual run. Follow the live scenario first, including a real capture after logout/login in the GUI session and a TCC check for the launchd-executed Python process.
 
-`ui` opens the Electron settings app. It has **Settings** and **Screenshots** tabs, a persistent camera menu-bar icon, secure folder pickers for the capture inbox and sorted folder, both timing controls, current status, and an **Apply and reload sorter** action. The Screenshots tab groups recognized captures in real `YYYY-MM-DD` folders and displays their thumbnails; it is read-only until a future action is explicitly added. It does not expose filesystem paths to the renderer or follow symlinked folders/files. It is single-instance: launching it again reveals and focuses the existing window instead of starting a second tray process. Closing its settings window hides it; only the camera icon’s context-menu **Quit Screenshot Sorter** action exits it. Applying settings updates the active profile’s configuration, sets macOS’s screenshot location to the chosen inbox, reloads `SystemUIServer`, and regenerates the candidate LaunchAgent.
+`ui` opens the Electron settings app. It has **Settings** and **Screenshots** tabs, a persistent camera menu-bar icon, secure folder pickers for the capture inbox and sorted folder, both timing controls, current status, and an **Apply and reload sorter** action. Screenshot Sorter appears in the Dock while its settings window is open. Closing that window hides it from the Dock but keeps the `📷` status-bar item available to reopen it or choose **Quit Screenshot Sorter**. Run `build-app --apply` once to create the fully packaged Spotlight entry at `~/Applications/Screenshot Sorter.app`; after that, ⌘ Space → “Screenshot Sorter” launches it normally. The Screenshots tab groups recognized captures in real `YYYY-MM-DD` folders and displays their thumbnails; it is read-only until a future action is explicitly added. It does not expose filesystem paths to the renderer or follow symlinked folders/files. It is single-instance: launching it again reveals and focuses the existing window instead of starting a second tray process. `ui --force` terminates only processes running this exact Screenshot Sorter main script, waits for the lock to clear, and starts a fresh instance; use it only when the existing app is unresponsive. Applying settings updates the active profile’s configuration, sets macOS’s screenshot location to the chosen inbox, reloads `SystemUIServer`, and regenerates the candidate LaunchAgent.
 
 ## Settings
 
@@ -58,7 +120,7 @@ The screenshot-name/image-type recognition rule and collision-safe suffix alloca
 
 `probe` reports the resolved source, destination, LaunchAgent labels, plist locations, log locations, and recovery interval. It enables an agent to execute the live scenario without guessing any profile-specific path.
 
-The UI uses an installed Electron runtime. Set `SCREENSHOT_SORTER_ELECTRON_BIN` to a managed runtime when necessary; the command otherwise looks for its own launcher runtime and the repository’s existing macOS Electron launcher runtime.
+The UI uses the Electron runtime explicitly configured as `SCREENSHOT_SORTER_ELECTRON_BIN` in the selected profile. This avoids silently borrowing another command’s runtime.
 
 For a real background-job test, follow [the agent acceptance scenario](macos-screenshot-sorter.scenario.md) as the authoritative procedure. It distinguishes what an agent can verify in the current GUI session from the separate human logout/login gate.
 

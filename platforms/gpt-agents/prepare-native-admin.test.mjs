@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {NativeAdminPreparation,prepareNativeAdmin} from './prepare-native-admin.mjs';
+import {NativeAdminPreparation,discoverManualAdminBootstrapScope,prepareNativeAdmin} from './prepare-native-admin.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 function fixture() {
   const profilePath = path.join(root,'fictional-native-profile.yml'), projectPath = path.join(root,'fictional-native-project.yml');
@@ -64,5 +64,54 @@ test('unauthorized subset stops before host access; missing attached root stops 
 test('duplicate canonical project IDs stop before host effects',async()=>{
   const f=fixture();f.profile.workflows[0].projects.push({ref:'fictional-native-project.yml'});
   await assert.rejects(prepareNativeAdmin(f.request,f.client,{io:f.io}),/PROJECT_ID_AMBIGUOUS/);
+  assert.equal(f.calls.length,0);
+});
+test('manual bootstrap discovery intersects canonical projects with complete saved-project roots',async()=>{
+  const f=fixture();
+  const secondPath=path.join(root,'fictional-second-project.yml');
+  const read=f.io.readFileSync,realpath=f.io.realpathSync;
+  f.io.readFileSync=(value,encoding)=>value===secondPath
+    ?JSON.stringify({id:'fictional-unattached',repo_path:'/fictional/unattached'}):read(value,encoding);
+  f.io.realpathSync=value=>value===secondPath||value==='/fictional/unattached'?value:realpath(value);
+  f.profile.workflows[0].projects.push({ref:'fictional-second-project.yml'});
+  const result=await discoverManualAdminBootstrapScope({profilePath:f.request.profilePath,
+    profileId:'fictional',workflowId:'financial-insights'},f.client,{io:f.io});
+  assert.deepEqual(result.projectIds,['fictional-records']);
+  assert.deepEqual(result.projects,[{id:'fictional-records',root}]);
+  assert.equal(result.savedProject.id,'native-project');
+  assert.deepEqual(f.calls.map(call=>call.method),['project/list','project/read']);
+});
+test('manual bootstrap discovery blocks when the saved project contains no authorized project root',async()=>{
+  const f=fixture();f.projects[0].roots=[{path:'/fictional/control-plane'}];
+  await assert.rejects(discoverManualAdminBootstrapScope({profilePath:f.request.profilePath,
+    profileId:'fictional',workflowId:'financial-insights'},f.client,{io:f.io}),/PROJECT_SUBSET_NOT_ATTACHED/);
+});
+test('manual bootstrap discovery rejects malformed canonical IDs before host access',async()=>{
+  const f=fixture(),read=f.io.readFileSync;f.io.readFileSync=(value,encoding)=>value.endsWith('fictional-native-project.yml')
+    ?JSON.stringify({repo_path:'.'}):read(value,encoding);
+  await assert.rejects(discoverManualAdminBootstrapScope({profilePath:f.request.profilePath,
+    profileId:'fictional',workflowId:'financial-insights'},f.client,{io:f.io}),/PROJECT_ID_INVALID/);
+  assert.equal(f.calls.length,0);
+});
+test('manual bootstrap discovery selects multiple attached projects in declaration order',async()=>{
+  const f=fixture(),read=f.io.readFileSync,realpath=f.io.realpathSync;
+  const attachedPath=path.join(root,'fictional-attached-project.yml');
+  const outsidePath=path.join(root,'fictional-outside-project.yml');
+  f.io.readFileSync=(value,encoding)=>value===attachedPath
+    ?JSON.stringify({id:'fictional-attached',repo_path:'.'})
+    :value===outsidePath?JSON.stringify({id:'fictional-outside',repo_path:'/fictional/outside'}):read(value,encoding);
+  f.io.realpathSync=value=>[attachedPath,outsidePath,'/fictional/outside'].includes(value)
+    ?value:realpath(value);
+  f.profile.workflows[0].projects.push({ref:'fictional-attached-project.yml'},{ref:'fictional-outside-project.yml'});
+  const result=await discoverManualAdminBootstrapScope({profilePath:f.request.profilePath,
+    profileId:'fictional',workflowId:'financial-insights'},f.client,{io:f.io});
+  assert.deepEqual(result.projectIds,['fictional-records','fictional-attached']);
+  assert.deepEqual(f.calls.map(call=>call.method),['project/list','project/read']);
+});
+test('manual bootstrap discovery rejects out-of-convention logical names before host access',async()=>{
+  const f=fixture();
+  await assert.rejects(discoverManualAdminBootstrapScope({profilePath:f.request.profilePath,
+    profileId:'fictional',workflowId:'financial-insights',logicalProjectId:'foreign'},f.client,{io:f.io}),
+  /LOGICAL_PROJECT_ID_INVALID/);
   assert.equal(f.calls.length,0);
 });

@@ -22,6 +22,7 @@ import { connectNativeAppServer } from './native-app-server.mjs';
 import { prepareNativeAdmin } from './prepare-native-admin.mjs';
 import { initializeNativeAdmin, retryNativeAdminInitialization, verifyNativeBootstrapActive } from './initialize-native-admin.mjs';
 import { normalizeAdminScope } from './initialize-workflow-admin.mjs';
+import { getNativeToAppProjectMap } from './app-project-bridge.mjs';
 
 /** Owns discovery/connection dependencies; construction performs no IO. */
 export class AdminControllerCommand {
@@ -136,14 +137,21 @@ export class AdminControllerCommand {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  let client;
   try {
     const args = process.argv.slice(2);
     if (args.length !== 2 || args[0] !== '--request') throw new Error('Usage: initialize-admin-command.mjs --request REQUEST.json|-');
     const request = JSON.parse(fs.readFileSync(args[1] === '-' ? 0 : args[1], 'utf8'));
-    const result = await new AdminControllerCommand().run(request);
+    const runtimeHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex');
+    if (!path.isAbsolute(runtimeHome)) throw new Error('NATIVE_RUNTIME_HOME_INVALID');
+    client = await connectNativeAppServer({ socketPath: path.join(runtimeHome, 'app-server-control/app-server-control.sock') });
+    const { resolveAppProject, verifyAppProject } = getNativeToAppProjectMap(client);
+    const result = await new AdminControllerCommand({ resolveAppProject, verifyAppProject }).run(request);
     process.stdout.write(JSON.stringify(result) + '\n');
     if (result.status !== 'ready' || result.controllerReleased !== true) process.exitCode = 2;
   } catch (error) {
     process.stdout.write(JSON.stringify({ status: 'blocked', reason: error.message }) + '\n'); process.exitCode = 2;
+  } finally {
+    client?.close();
   }
 }

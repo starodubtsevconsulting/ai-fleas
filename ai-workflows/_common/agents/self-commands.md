@@ -30,6 +30,11 @@ Admin initialization. Never emit readiness merely because a sender requests the 
    entry omits `projectId`, and compare them with the repositories declared under candidate profile/workflow project
    references. An exact root match identifies a configured candidate scope to verify; a checkout path alone does not.
    Resolve each bound saved-project ID through the host project catalog and verify its authorized roots.
+   For a directly human-designated Admin naming a logical saved project, use the platform's read-only manual-bootstrap
+   scope resolver when available. It must select the unique exact project name, read its complete native roots, and
+   intersect those roots with the selected canonical profile/workflow project declarations. This discovered non-empty
+   subset is the bootstrap scope; a primary-path listing, screenshot, checkout, or similarly named local profile copy
+   must not replace that resolution. Resolve profile precedence first and report conflicting candidates explicitly.
    Continue through the host catalog, binding, and canonical profile checks without asking the human to repeat
    discoverable project, profile, or workflow facts. If one authorized scope is established by the applicable binding
    or manual Admin bootstrap, use it. A project label, title, screenshot, checkout path, or catalog entry without an

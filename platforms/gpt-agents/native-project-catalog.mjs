@@ -87,15 +87,20 @@ export class GptNativeCatalog {
     return projects;
   }
 
+  /** Resolve one exact saved-project name and return its complete verified roots. */
+  async readNamedProject(name) {
+    if (!nonempty(name)) fail('LOGICAL_PROJECT_ID_REQUIRED');
+    const matches = (await this.list()).filter(project => project.name === name);
+    if (matches.length !== 1) fail(matches.length ? 'HOST_PROJECT_NAME_AMBIGUOUS' : 'HOST_PROJECT_NOT_FOUND');
+    return this.read(matches[0]);
+  }
+
   /** Names discover one candidate, then identity and root containment verify scope. */
   async discoverWorkflowSavedProject({ logicalProjectId, authorizedRoots } = {}) {
     if (!nonempty(logicalProjectId)) fail('LOGICAL_PROJECT_ID_REQUIRED');
     if (!Array.isArray(authorizedRoots) || authorizedRoots.length === 0) fail('AUTHORIZED_PROJECT_ROOTS_REQUIRED');
     const required = authorizedRoots.map(root => canonicalRoot(root, this.#realpathSync));
-    const catalog = await this.list();
-    const matches = catalog.filter(project => project.name === logicalProjectId);
-    if (matches.length !== 1) fail(matches.length ? 'HOST_PROJECT_NAME_AMBIGUOUS' : 'HOST_PROJECT_NOT_FOUND');
-    const selected = await this.read(matches[0]);
+    const selected = await this.readNamedProject(logicalProjectId);
     if (required.some(root => !selected.roots.some(attached => projectRootContains(attached, root)))) fail('HOST_PROJECT_SCOPE_MISMATCH');
     return selected;
   }

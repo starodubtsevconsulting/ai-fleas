@@ -44,6 +44,13 @@ test('exhausts pagination and reads immutable IDs with complete secondary roots'
   assert.deepEqual(client.calls.map(c => c.method), ['project/list', 'project/list', 'project/read']);
   assert.deepEqual(client.calls[1].params, { cursor: 'next' });
 });
+test('exact-name reads always verify the complete native root list', async () => {
+  const catalog = new GptNativeCatalog(fixture(), { realpathSync });
+  const found = await catalog.readNamedProject('fictional-financial-insights');
+  assert.deepEqual(found.roots, ['/fictional/code', '/fictional/records']);
+  await assert.rejects(new GptNativeCatalog(fixture(), { realpathSync }).readNamedProject('missing'),
+    /HOST_PROJECT_NOT_FOUND/);
+});
 test('rejects duplicate IDs and cursor loops', async () => {
   await assert.rejects(readNativeProjectCatalog(fixture([{ data: [project('one'), project('one')] }]), { realpathSync }), /HOST_PROJECT_ID_AMBIGUOUS/);
   await assert.rejects(readNativeProjectCatalog(fixture([{ data: [], nextCursor: 'same' }, { data: [], nextCursor: 'same' }]), { realpathSync }), /HOST_PROJECT_CURSOR_INVALID/);
