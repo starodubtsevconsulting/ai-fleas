@@ -410,3 +410,4 @@ application, but it does not own or duplicate these configuration semantics.
 - Never broaden the selected workflow's command set.
 
 See [spec.md](spec.md) for acceptance requirements.
+See [tests/README.md](tests/README.md) for the human-readable architecture, evidence flow, and test instructions.
