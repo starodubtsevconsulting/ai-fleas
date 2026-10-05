@@ -177,7 +177,11 @@ if (isPrimaryInstance) {
   app.whenReady().then(() => {
     if (app.dock) app.dock.hide();
     createWindow();
-    tray = new Tray(cameraIcon()); tray.setToolTip('Screenshot Sorter');
+    tray = new Tray(cameraIcon());
+    // Keep a visible status-bar affordance even if macOS does not render the
+    // small template SVG for this unpackaged Electron app.
+    tray.setTitle('📷');
+    tray.setToolTip('Screenshot Sorter');
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: 'Show Screenshot Sorter', click: showWindow },
       { type: 'separator' },
