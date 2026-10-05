@@ -181,7 +181,9 @@ if (isPrimaryInstance) {
     tray = new Tray(cameraIcon());
     // Keep a visible status-bar affordance even if macOS does not render the
     // small template SVG for this unpackaged Electron app.
-    tray.setTitle('📷');
+    // Keep a short text title as a visible fallback on macOS variants that
+    // decline to render a programmatic template image in the status bar.
+    tray.setTitle('SS');
     tray.setToolTip('Screenshot Sorter');
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: 'Show Screenshot Sorter', click: showWindow },

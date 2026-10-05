@@ -31,6 +31,7 @@ done
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 command_dir="$(cd "$script_dir/.." && pwd -P)"
 commands_root="$(cd "$command_dir/../.." && pwd -P)"
+repository_root="$(cd "$commands_root/.." && pwd -P)"
 electron_entry="$(node -e 'process.stdout.write(require("fs").realpathSync(process.argv[1]))' "$SCREENSHOT_SORTER_ELECTRON_BIN")"
 case "$electron_entry" in
   */Electron.app/Contents/MacOS/Electron) electron_app="${electron_entry%/Contents/MacOS/Electron}" ;;
@@ -54,6 +55,9 @@ packaged_commands="$payload/ai-commands"
 mkdir -p "$packaged_commands/system" "$packaged_commands/_runtime"
 cp -R "$command_dir" "$packaged_commands/system/macos-screenshot-sorter"
 cp -R "$commands_root/_runtime/profile" "$packaged_commands/_runtime/profile"
+mkdir -p "$payload/platforms" "$payload/node_modules"
+cp "$repository_root/platforms/dispatch-plan.mjs" "$payload/platforms/dispatch-plan.mjs"
+cp -R "$repository_root/node_modules/yaml" "$payload/node_modules/yaml"
 
 # The development renderer refers to a repository article asset. Package a local copy instead.
 mkdir -p "$packaged_commands/system/macos-screenshot-sorter/launcher/renderer/assets"
