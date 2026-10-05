@@ -31,6 +31,12 @@ AI Fleas separates persistent governance from the workflows and capabilities tha
 
 Roles, agents, models and platform adapters realize these concepts at runtime. The portable definitions can be adapted to ChatGPT/Codex, Claude Code, Hermes, local models and other harnesses.
 
+### Local models and hybrid operation
+
+AI Fleas can bind workflows and agents to locally hosted models through Hermes. It also supports a hybrid pattern: a hosted GPT/Codex coordinator can delegate bounded work to local Hermes agents while retaining its own coordination role. AI Fleas provides this bridge; GPT app/web does not natively connect to local inference endpoints.
+
+Learn more: [Hermes Agents](ai-commands/system/hermes-agents/hermes-agents.command.md), [architecture](ai-commands/system/hermes-agents/tests/docs/architecture.md), [local-model benchmarks](notes/benchmarks/local-models/README.md), and [model expertise](models/README.md).
+
 ### Personal Governor
 
 The Personal Governor is the continuity layer above individual workflows. It combines human-owned direction with durable context, external knowledge and current evidence before making governance recommendations.
