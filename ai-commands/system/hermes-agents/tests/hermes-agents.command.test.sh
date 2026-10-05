@@ -6,6 +6,7 @@ readonly SOURCE_DIR="${COMMAND_DIR}/src"
 readonly COMMAND="${COMMAND_DIR}/hermes-agents.command.sh"
 bash "${TEST_DIR}/migrate-profile-sessions.test.sh" >/dev/null
 bash "${TEST_DIR}/resolve-workflow-scope.test.sh" >/dev/null
+bash "${TEST_DIR}/verify-auxiliary-usage.test.sh" >/dev/null
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/hermes-command-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM

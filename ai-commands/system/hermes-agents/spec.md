@@ -154,3 +154,22 @@ in the ordered ready receipt without exposing provider credentials. The command 
 Hermes System initialization is complete only when the exact global profile is configured and pinned, the exact
 profile-scoped scheduler exists and is enabled, its gateway/ticker is running, and the final System receipt represents
 that verified state. Failure before that point must not leave a newly written ready receipt.
+
+## Live auxiliary acceptance
+
+Use a fresh named session in the realized Coder profile. Exercise both routes in Hermes Desktop: accumulate enough
+history and run `/compress`, then start a bounded coding objective with `/goal draft <objective>` and `/goal resume`.
+After each action, obtain the session ID from `hermes -p PROFILE sessions list` and verify the exact runtime evidence:
+
+```bash
+ai-commands/system/hermes-agents/verify-auxiliary-usage.sh \
+  --profile sc-dev-coder --session SESSION_ID
+```
+
+Passing proves Hermes recorded a `compression` API call and logged both the exact resolved `goal_judge` route and a
+judge verdict using the provider, model, and endpoint currently assigned in that profile. Goal judging happens between
+foreground turns, where current Hermes releases do not publish the ambient accounting context needed for a
+`session_model_usage` row; the verifier therefore bounds goal evidence to the selected session's profile-log segment.
+Configured YAML, a UI label, or a status animation alone is not acceptance evidence. The live test changes session
+history and may let the coding goal edit its authorized workspace; use a named branch and a bounded task. The offline
+fixture is `tests/verify-auxiliary-usage.test.sh` and does not call either model.
