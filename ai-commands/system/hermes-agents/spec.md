@@ -160,8 +160,8 @@ workflow_agents:
     roles: [coder]
 auxiliary_models:
   dev:
-    provider: rtx-3080-ti-model-provider
-    model: qwen-hermes
+    provider: example-aux-provider
+    model: example-aux-model
     connection: local
     callers: [coder]
     tasks:
@@ -177,8 +177,13 @@ After each action, obtain the session ID from `hermes -p PROFILE sessions list` 
 
 ```bash
 ai-commands/system/hermes-agents/verify-auxiliary-usage.sh \
-  --profile sc-dev-coder --session SESSION_ID
+  --profile PROFILE [--session SESSION_ID]
 ```
+
+The `--session` argument is optional. When omitted, the verifier discovers the newest qualifying evidence independently
+for each task from the selected profile's state database and agent log. Compression and goal judging may therefore be
+verified from different sessions. All expected provider, model, and endpoint values come from that profile's live
+Hermes configuration; the verifier contains no operational model or machine defaults.
 
 Passing proves Hermes recorded a `compression` API call and logged both the exact resolved `goal_judge` route and a
 judge verdict using the provider, model, and endpoint currently assigned in that profile. Goal judging happens between
