@@ -79,6 +79,12 @@ case "${1:-sort}" in
     if [[ $# -eq 2 ]]; then exec "$command_dir/app.sh" --force; fi
     exec "$command_dir/app.sh"
     ;;
+  install-app)
+    [[ "${2:-}" == '--apply' && $# -eq 2 ]] || fail 'install-app requires the exact --apply flag'
+    : "${SCREENSHOT_SORTER_ELECTRON_BIN:?profile config must set SCREENSHOT_SORTER_ELECTRON_BIN for the UI}"
+    export SCREENSHOT_SORTER_ELECTRON_BIN
+    exec "$command_dir/launcher/install-macos-app.sh"
+    ;;
   sort|migrate)
     shift || true
     exec "$python_bin" "$command_dir/macos-screenshot-sorter.py" --source-dir "$SCREENSHOT_SORTER_SOURCE_DIR" --destination-dir "$SCREENSHOT_SORTER_DESTINATION_DIR" --settle-seconds "$settle_seconds" "$@"
@@ -119,6 +125,6 @@ case "${1:-sort}" in
     printf 'Restored legacy LaunchAgent: %s\n' "$legacy_label"
     ;;
   *)
-    fail 'usage: macos-screenshot-sorter.command.sh [probe|ui [--force]|sort|migrate|render-launchagent|install --apply|uninstall --apply|suspend-legacy --apply|restore-legacy --apply]'
+    fail 'usage: macos-screenshot-sorter.command.sh [probe|ui [--force]|install-app --apply|sort|migrate|render-launchagent|install --apply|uninstall --apply|suspend-legacy --apply|restore-legacy --apply]'
     ;;
 esac
