@@ -157,7 +157,7 @@ function cameraIcon() {
   // macOS menu-bar images need 2x source pixels. The prior 18px SVG became
   // nearly invisible on Retina displays even though the Tray existed.
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 18 18"><path fill="#000" d="M3 5h2l1-2h6l1 2h2c1.1 0 2 .9 2 2v7c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V7c0-1.1.9-2 2-2Zm6 2.2A3.8 3.8 0 1 0 9 14.8 3.8 3.8 0 0 0 9 7.2Zm0 1.5A2.3 2.3 0 1 1 9 13.3 2.3 2.3 0 0 1 9 8.7Z"/></svg>';
-  const icon = nativeImage.createFromBuffer(Buffer.from(svg));
+  const icon = nativeImage.createFromDataURL(`data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`);
   icon.setTemplateImage(true); return icon;
 }
 function createWindow() {
