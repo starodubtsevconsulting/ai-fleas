@@ -1,6 +1,6 @@
-# Model education profile
+# Model expertise profile
 
-An education profile answers a different question from model/runtime specifications:
+An expertise profile answers a different question from model/runtime specifications:
 
 > **What conceptual world does this model inhabit, and how should another agent communicate with it?**
 
@@ -8,10 +8,10 @@ Parameter count, context length, quantization, hardware and runtime describe cap
 
 ## Lifecycle
 
-An education profile evolves:
+An expertise profile evolves:
 
 1. **draft** — public/model-card information only; a résumé, not demonstrated competence.
-2. **provisional** — public information plus first controlled education-extraction probes.
+2. **provisional** — public information plus first controlled expertise-extraction probes.
 3. **observed** — patterns reproduced across multiple task families.
 4. **evolving** — later evidence may strengthen, weaken or contradict previous claims.
 
@@ -56,7 +56,7 @@ For a coding-oriented model, useful translations often map unfamiliar domains in
 
 ## Extraction
 
-Trello #141, Education Profile Extractor, should update these profiles from actual work:
+Trello #141, Expertise Profile Extractor, should update these profiles from actual work:
 
 ```
 public information
@@ -70,7 +70,7 @@ observations + contradictions
 profile revision with provenance/confidence
 ```
 
-A single successful fixture does not establish general education. A failed fixture does not establish global inability.
+A single successful fixture does not establish general expertise. A failed fixture does not establish global inability.
 
 The extractor should answer not merely “can it solve this benchmark?” but:
 

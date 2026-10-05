@@ -49,13 +49,13 @@ models/
     education.schema.json
   qwen3-coder-next/
     model.yml
-    education-profile.yml
+    expertise-profile.yml
     benchmarks/
       gx10/
         ...
   qwen3.5-9b/
     model.yml
-    education-profile.yml
+    expertise-profile.yml
     benchmarks/
       rtx-3080-ti/
         ...
@@ -96,7 +96,7 @@ Before constructing a handoff:
 
 1. identify the task's required concepts;
 2. resolve the target agent and model;
-3. load the model education profile;
+3. load the model expertise profile;
 4. compare required concepts with declared/observed education;
 5. speak directly for familiar concepts;
 6. use Domain Context Handoff for unfamiliar but teachable concepts;
@@ -104,7 +104,7 @@ Before constructing a handoff:
 
 The worker receives the resulting handoff, not its entire education résumé.
 
-## Education Profile Extractor
+## Expertise Extractor
 
 Trello #141 should eventually maintain these model entities:
 
@@ -128,11 +128,11 @@ Public information is the résumé. Benchmarks are education in action.
 
 GX10 Stage 1 / PR #225 is closed and merged. This branch applies the ownership migration:
 
-1. top-level `models/` owns canonical model education and model-specific benchmark evidence;
-2. canonical education files use `education-profile.yml`;
+1. top-level `models/` owns canonical model expertise and model-specific benchmark evidence;
+2. canonical education files use `expertise-profile.yml`;
 3. Dev strategy configs remain operational consumers and reference the canonical profile;
 4. shared benchmark fixtures/protocols remain reusable infrastructure;
-5. launchers still do not inject education automatically; future Education Profile Extractor/delegator work can consume the canonical registry.
+5. launchers still do not inject education automatically; future Expertise Extractor/delegator work can consume the canonical registry.
 
 ## Architectural test
 

@@ -12,14 +12,14 @@ When AI-Fleas assigns work, these concepts answer different questions:
 |---|---|
 | **Role** | What job needs to be done? |
 | **Agent** | What executable worker is doing it? |
-| **Model** | What learned intelligence/education does that worker have? |
+| **Model** | What learned capability does that worker have? |
 | **Expertise profile** | What has the model demonstrated, and how should we talk to it? |
 | **Deployment** | How and where is this model running? |
 | **Benchmark evidence** | What happened when we actually watched it work? |
 
 A model is not a role. A quantization is not an education. A benchmark score is not a personality.
 
-## Why education matters
+## Why expertise matters
 
 Model specifications tell us things such as parameter count, context size and quantization. Those numbers matter, but they do not tell a delegator what kind of conceptual language the model understands.
 
@@ -119,7 +119,7 @@ deployment:
   context_tokens: 65536
 ```
 
-Q5, Q8, NVFP4, context length, GPU layers, runtime and hardware affect execution. They do not define what the model learned.
+Q5, Q8, NVFP4, context length, GPU layers, runtime and hardware affect execution. They do not define what the model can reliably work with.
 
 ## Benchmarks belong to the model
 
@@ -145,9 +145,9 @@ A benchmark is evidence about the model under a particular deployment. Shared fi
 
 **Education** — the conceptual knowledge/language the model was trained toward and has demonstrated in work.
 
-**Declared education** — upstream/model-card claims.
+**Declared expertise** — upstream/model-card claims.
 
-**Observed education/capability** — behavior supported by controlled AI-Fleas evidence.
+**Observed expertise/capability** — behavior supported by controlled AI-Fleas evidence.
 
 **Unknown education** — concepts we do not assume the model understands.
 
@@ -174,7 +174,7 @@ This is now the canonical home of model knowledge. GX10 Stage 1 / PR #225 is clo
 See:
 
 - [First-class Models architecture](../architecture/models.md)
-- [Education Profile design](../architecture/model-education-profile.md)
-- [Qwen3-Coder-Next example](../architecture/examples/qwen3-coder-next.education-profile.yml)
+- [Expertise Profile design](../architecture/model-education-profile.md)
+- [Qwen3-Coder-Next example](../architecture/examples/qwen3-coder-next.expertise-profile.yml)
 
-Workflow/platform strategy configs reference this registry rather than owning duplicate model education.
+Workflow/platform strategy configs reference this registry rather than owning duplicate model expertise.

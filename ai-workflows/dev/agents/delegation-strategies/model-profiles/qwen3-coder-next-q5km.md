@@ -11,11 +11,11 @@ CLI one-shot.
 
 This is coordinator guidance about the language of a handoff, not a measurement of the model's hidden knowledge. The [canonical expertise profile](../../../../../models/qwen3-coder-next/expertise-profile.yml) keeps local observations, inferences, and unknowns separate. Parameter count, `Q5_K_M` quantization, and context length describe architecture or this deployment; they do not establish domain expertise.
 
-### Declared education
+### Declared expertise
 
 The [upstream model card](https://huggingface.co/Qwen/Qwen3-Coder-Next) describes Qwen3-Coder-Next as designed for coding agents and local development and highlights tool-using coding. That supports software and code concepts as the **starting vocabulary** for a handoff. It is a statement of design intent, not proof that this quantized deployment will solve a particular software task. The card does not establish knowledge of our financial-document rules or organization-specific conventions.
 
-### Observed education and capability in this deployment
+### Observed expertise and capability in this deployment
 
 These are outcomes on checked tasks, not direct measurements of what the model knew before the handoff.
 

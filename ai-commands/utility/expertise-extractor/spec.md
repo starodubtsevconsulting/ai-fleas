@@ -12,7 +12,7 @@ Running a model is a pluggable probe-runner concern. The core must not depend on
 
 ## Evidence update contract
 
-Input follows `models/education-profile-extractor/templates/profile-update.yml`.
+Input follows `models/expertise-extractor/templates/profile-update.yml`.
 
 Required:
 - claim.id
