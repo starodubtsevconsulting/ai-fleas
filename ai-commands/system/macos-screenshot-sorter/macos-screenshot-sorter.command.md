@@ -11,7 +11,7 @@ Use `macos-screenshot-sorter` on macOS to move only macOS-style screenshot files
 | Active AI Profile and workflow | Yes | Host activation | Authorizes the command and exposes its selected profile-owned configuration. |
 | Source directory | Yes | Profile config | The folder macOS captures into. |
 | Destination directory | Yes | Profile config | The visible screenshot folder. It may equal the source directory. |
-| Operation | No | Invocation | `ui`, `probe`, `sort`, `migrate`, `render-launchagent`, candidate install/removal, or legacy suspend/restore. |
+| Operation | No | Invocation | `ui`, `ui --force`, `probe`, `sort`, `migrate`, `render-launchagent`, candidate install/removal, or legacy suspend/restore. |
 
 ## Outputs
 
@@ -76,7 +76,11 @@ Use this section when a terminal agent such as Hermes needs to run the command d
    ```bash
    # Open the settings/Screenshots app in the current macOS GUI session.
    AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
-     bash "$AI_FLEAS_REPO/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh" ui
+   bash "$AI_FLEAS_REPO/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh" ui
+
+   # Agent-only: close the exact existing Screenshot Sorter process and open a fresh instance.
+   AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
+     bash "$AI_FLEAS_REPO/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh" ui --force
 
    # Scan and sort once; this is a real file-moving operation.
    AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
@@ -97,7 +101,7 @@ Committed configuration template: `macos-screenshot-sorter/macos-screenshot-sort
 
 `install --apply` creates a distinct candidate LaunchAgent; it intentionally does not replace an existing personal job. `suspend-legacy --apply` unloads only the configured legacy label while preserving its script and plist, preventing a race during candidate acceptance. `restore-legacy --apply` loads that exact plist again. `uninstall --apply` removes only this command's configured candidate label and plist. Do not replace an old sorter or claim success from a manual run. Follow the live scenario first, including a real capture after logout/login in the GUI session and a TCC check for the launchd-executed Python process.
 
-`ui` opens the Electron settings app. It has **Settings** and **Screenshots** tabs, a persistent camera menu-bar icon, secure folder pickers for the capture inbox and sorted folder, both timing controls, current status, and an **Apply and reload sorter** action. The Screenshots tab groups recognized captures in real `YYYY-MM-DD` folders and displays their thumbnails; it is read-only until a future action is explicitly added. It does not expose filesystem paths to the renderer or follow symlinked folders/files. It is single-instance: launching it again reveals and focuses the existing window instead of starting a second tray process. Closing its settings window hides it; only the camera icon’s context-menu **Quit Screenshot Sorter** action exits it. Applying settings updates the active profile’s configuration, sets macOS’s screenshot location to the chosen inbox, reloads `SystemUIServer`, and regenerates the candidate LaunchAgent.
+`ui` opens the Electron settings app. It has **Settings** and **Screenshots** tabs, a persistent camera menu-bar icon, secure folder pickers for the capture inbox and sorted folder, both timing controls, current status, and an **Apply and reload sorter** action. The Screenshots tab groups recognized captures in real `YYYY-MM-DD` folders and displays their thumbnails; it is read-only until a future action is explicitly added. It does not expose filesystem paths to the renderer or follow symlinked folders/files. It is single-instance: launching it again reveals and focuses the existing window instead of starting a second tray process. `ui --force` terminates only processes running this exact Screenshot Sorter main script, waits for the lock to clear, and starts a fresh instance; use it only when the existing app is unresponsive. Closing its settings window hides it; only the camera icon’s context-menu **Quit Screenshot Sorter** action exits it. Applying settings updates the active profile’s configuration, sets macOS’s screenshot location to the chosen inbox, reloads `SystemUIServer`, and regenerates the candidate LaunchAgent.
 
 ## Settings
 

@@ -73,9 +73,10 @@ case "${1:-sort}" in
     printf 'legacy_plist=%s\n' "$legacy_plist"
     ;;
   ui)
-    [[ $# -eq 1 ]] || fail 'ui takes no options'
+    [[ $# -eq 1 || ( $# -eq 2 && "$2" == '--force' ) ]] || fail 'ui takes no options except --force'
     : "${SCREENSHOT_SORTER_ELECTRON_BIN:?profile config must set SCREENSHOT_SORTER_ELECTRON_BIN for the UI}"
     export SCREENSHOT_SORTER_ELECTRON_BIN
+    if [[ $# -eq 2 ]]; then exec "$command_dir/app.sh" --force; fi
     exec "$command_dir/app.sh"
     ;;
   sort|migrate)
@@ -118,6 +119,6 @@ case "${1:-sort}" in
     printf 'Restored legacy LaunchAgent: %s\n' "$legacy_label"
     ;;
   *)
-    fail 'usage: macos-screenshot-sorter.command.sh [probe|ui|sort|migrate|render-launchagent|install --apply|uninstall --apply|suspend-legacy --apply|restore-legacy --apply]'
+    fail 'usage: macos-screenshot-sorter.command.sh [probe|ui [--force]|sort|migrate|render-launchagent|install --apply|uninstall --apply|suspend-legacy --apply|restore-legacy --apply]'
     ;;
 esac
