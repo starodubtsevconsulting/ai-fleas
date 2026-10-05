@@ -42,10 +42,10 @@ execution_delegates:
       transport: cli-oneshot
       strategy_transport_config: dev/agents/delegation-strategies/transports/hermes-cli-oneshot.strategy.yml
       # Used when transport is a2a; replace these illustrative endpoint details
-      # with the selected profile's live Hermes agent connection.
+      # with the selected profile's live Hermes agent connection. agent_name is
+      # omitted so A2A inherits the canonical profile value above.
       a2a:
         endpoint: http://127.0.0.1:9901/
-        agent_name: example-dev-coder
       launcher: example-hermes-coder-delegate.sh
       projects: [example-service]
       default_project: example-service

@@ -115,9 +115,87 @@ models, flows, or escaping paths fail before profile mutation.
 
 Hermes-specific code owns only the mechanics of realizing a workflow role as a Hermes profile/group member. The role set and portable role properties remain workflow-owned.
 
+## Profile-selected Hermes workers and auxiliary models
+
+The profile-owned `hermes-agents` command config may narrow one workflow's Hermes realization to existing portable
+roles with `workflow_agents.<workflow>.roles`. This does not change the portable roster or create new workflow roles;
+it selects which declared roles receive Hermes profiles. Each selected role must exist exactly once in the canonical
+workflow roster. A missing selection preserves full-roster behavior for compatibility.
+
+The same command config may route named Hermes auxiliary tasks through a separately configured model using
+`auxiliary_models.<workflow>`. An auxiliary model is not an agent, group member, registered workflow role, or
+independent reviewer. The configurator validates its provider/model endpoint, strategy, exact expertise binding,
+allowed task names, callers, and timeouts before writing the realized caller profile. Initial supported tasks are
+`compression` for context handling and `goal_judge` for advisory goal evaluation; additional tasks require an explicit
+strategy/config change.
+
+Both supported slots are part of the **normal minimal Hermes profile**. A profile without either slot is a legacy or
+degraded profile and MUST NOT be described as normally configured. The auxiliary slots may share one auxiliary model,
+but they must be explicitly bound and verified; they are runtime services of the foreground profile, not extra agents.
+
+```mermaid
+flowchart LR
+  H[Human] --> A[Hermes profile<br/>foreground agent + main model]
+  A --> C[compression slot<br/>auxiliary model]
+  C --> A
+  A --> J[goal_judge slot<br/>auxiliary model]
+  J --> A
+```
+
+```mermaid
+sequenceDiagram
+  participant A as Foreground Hermes profile
+  participant C as compression auxiliary slot
+  participant J as goal_judge auxiliary slot
+  A->>C: Context approaches its working limit
+  C-->>A: Compressed session context
+  A->>J: Draft or evaluate the active goal
+  J-->>A: Advisory verdict
+  Note over A,J: One profile session; auxiliary calls return to the foreground agent
+```
+
+```yaml
+workflow_agents:
+  dev:
+    roles: [coder]
+auxiliary_models:
+  dev:
+    provider: example-aux-provider
+    model: example-aux-model
+    connection: local
+    callers: [coder]
+    tasks:
+      compression: { timeout_seconds: 120 }
+      goal_judge: { timeout_seconds: 60 }
+```
+
+## Live auxiliary acceptance
+
+Use a fresh named session in the realized Coder profile. Exercise both routes in Hermes Desktop: accumulate enough
+history and run `/compress`, then start a bounded coding objective with `/goal draft <objective>` and `/goal resume`.
+After each action, obtain the session ID from `hermes -p PROFILE sessions list` and verify the exact runtime evidence:
+
+```bash
+ai-commands/system/hermes-agents/verify-auxiliary-usage.sh \
+  --profile PROFILE [--session SESSION_ID]
+```
+
+The `--session` argument is optional. When omitted, the verifier discovers the newest qualifying evidence independently
+for each task from the selected profile's state database and agent log. Compression and goal judging may therefore be
+verified from different sessions. All expected provider, model, and endpoint values come from that profile's live
+Hermes configuration; the verifier contains no operational model or machine defaults.
+
+Passing proves Hermes recorded a `compression` API call and logged both the exact resolved `goal_judge` route and a
+judge verdict using the provider, model, and endpoint currently assigned in that profile. Goal judging happens between
+foreground turns, where current Hermes releases do not publish the ambient accounting context needed for a
+`session_model_usage` row; the verifier therefore bounds goal evidence to the selected session's profile-log segment.
+Configured YAML, a UI label, or a status animation alone is not acceptance evidence. The live test changes session
+history and may let the coding goal edit its authorized workspace; use a named branch and a bounded task. The offline
+fixture is `tests/verify-auxiliary-usage.test.sh` and does not call either model.
+
 ## Completion criteria
 
-Hermes workflow initialization is complete only when every Agent declared by the selected workflow is realized exactly
+Hermes workflow initialization is complete only when every Agent selected for Hermes realization is realized exactly
 once, uses its resolved provider and model, receives its assigned Role and flow, belongs to the exact group, and appears
 in the ordered ready receipt without exposing provider credentials. The command must emit one matching aggregate
 `HERMES_WORKFLOW_READY` result. A collection of per-profile success messages is not completion.

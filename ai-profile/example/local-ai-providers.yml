@@ -26,6 +26,8 @@ providers:
     models:
       - id: qwen-hermes
         provider_model: qwen3.5-9b-q4_k_m
+        delegation:
+          strategy_config: dev/agents/delegation-strategies/model-profiles/qwen3.5-9b-q4km-auxiliary.strategy.yml
         hermes:
           context_window_tokens: 65536
           compression_threshold: 0.25

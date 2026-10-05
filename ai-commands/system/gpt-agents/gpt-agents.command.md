@@ -293,6 +293,9 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    returns code or guidance without modifying files; Admin reviews the proposal, applies accepted work in the visible
    checkout, and inspects the diff. A failed or unusable response blocks step 3. Testing and independent review remain
    separate gates. A direct human instruction to code locally for the current task overrides the configured route.
+   The delegate `profile` is the canonical Hermes agent identity for both CLI and A2A transports. An A2A
+   `agent_name` may be declared for compatibility, but it must equal `profile`; omit it to inherit the configured
+   profile automatically and avoid a second rename-sensitive link.
    For a configured `execution_delegates.dev.command_runner`, a Command Runner-owned step uses its launcher to check
    the exact selected project and run one exact registered command with an argument vector. A profile-selected model
    may suggest the command, but only the wrapper's exit status and terminal output count as execution evidence.

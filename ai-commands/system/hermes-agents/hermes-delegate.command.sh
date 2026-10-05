@@ -104,10 +104,14 @@ if transport == 'a2a':
     agent_name = binding['a2a'].get('agent_name')
     if not isinstance(endpoint, str) or not endpoint:
         raise SystemExit('HERMES_CODER_BLOCKED: a2a endpoint must be a nonempty string.')
-    if not isinstance(agent_name, str) or not agent_name:
-        raise SystemExit('HERMES_CODER_BLOCKED: a2a agent_name must be a nonempty string.')
-if transport == 'a2a' and agent_name != profile_id:
-    raise SystemExit('HERMES_CODER_BLOCKED: a2a agent_name must equal profile_id.')
+    # The profile is the canonical Hermes identity. An explicit A2A name remains supported for
+    # compatibility, but omission keeps CLI and A2A routes linked to the one configurable value.
+    if agent_name is None:
+        agent_name = profile_id
+    elif not isinstance(agent_name, str) or not agent_name:
+        raise SystemExit('HERMES_CODER_BLOCKED: a2a agent_name must be a nonempty string or omitted.')
+    if agent_name != profile_id:
+        raise SystemExit('HERMES_CODER_BLOCKED: a2a agent_name must equal profile_id.')
 workflow = [item for item in work_profile.get('workflows', []) if item.get('path') == f'{workflow_id}.workflow.md']
 if len(workflow) != 1:
     raise SystemExit('HERMES_CODER_BLOCKED: selected workflow is missing or ambiguous.')

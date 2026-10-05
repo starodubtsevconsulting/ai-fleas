@@ -7,7 +7,8 @@ test_root="$(mktemp -d "${TMPDIR:-/tmp}/hermes-scope-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
 
-mkdir -p "${test_root}/profiles/example/workflows-config/youtube" \
+mkdir -p "${test_root}/profiles/example/commands-config/hermes-agents" \
+  "${test_root}/profiles/example/workflows-config/youtube" \
   "${test_root}/profiles/example/projects/youtube/channel" \
   "${test_root}/workflows/youtube/flows" "${test_root}/workflows/_common/roles" \
   "${test_root}/commands/writing" "${test_root}/workspace" "${test_root}/platforms/hermes"
@@ -46,12 +47,21 @@ platforms: { default: hermes-cli, available: [hermes-cli] }
 ai_commands_root: ../../commands
 ai_workflows_root: ../../workflows
 ai_platforms_root: ../../platforms
+commands:
+  - id: hermes-agents
+    config: commands-config/hermes-agents/config.yml
 workflows:
   - path: youtube.workflow.md
     local_ai: { providers_config: providers.yml, provider: openai-service, model: gpt-sol }
     agent_providers_config: workflows-config/youtube/agents.yml
     commands: [writing]
     projects: [{ ref: projects/youtube/channel/project.yml }]
+YAML
+
+cat >"${test_root}/profiles/example/commands-config/hermes-agents/config.yml" <<'YAML'
+schema_version: hermes-agents-command-config.v1
+capability: hermes-agents
+platform: hermes-cli
 YAML
 
 cat >"${test_root}/profiles/example/providers.yml" <<'YAML'
@@ -69,7 +79,7 @@ providers:
     protocol: openai-compatible
     endpoint: { url: https://api.example.invalid/v1 }
     models:
-      - id: codex-app-sol
+      - id: gpt-sol
         provider_model: gpt-5.6-sol
         hermes: { context_window_tokens: 65536, compression_threshold: 0.25, compression_target: 0.15, protect_last_messages: 8 }
 YAML
@@ -106,6 +116,23 @@ assert audio[2] == "openai-service" and audio[7] == "gpt-5.6-sol" and audio[8] =
 assert audio[14] == "-"
 assert base64.b64decode(lyrics[13]).decode().endswith("/workflows/youtube/flows/lyrics.md")
 assert base64.b64decode(audio[13]).decode().endswith("/workflows/youtube/flows/audio.md")
+PY
+
+cat >>"${test_root}/profiles/example/commands-config/hermes-agents/config.yml" <<'YAML'
+workflow_agents:
+  youtube:
+    roles: [lyrics-script-worker]
+YAML
+
+selected_scope="$(HOME="${test_root}" node "${SOURCE_DIR}/resolve-workflow-scope.mjs" "${test_root}/profiles" example youtube channel)"
+selected_role_bindings="$(awk -F '\t' '{print $20}' <<<"${selected_scope}")"
+ROLE_BINDINGS="${selected_role_bindings}" python3 - <<'PY'
+import os
+
+records = [record.split("|") for record in os.environ["ROLE_BINDINGS"].split(",")]
+assert len(records) == 1
+assert records[0][0] == "lyrics-script-worker"
+assert records[0][1] == "lyrics-script-worker"
 PY
 
 cp "${test_root}/workflows/youtube/agents.yml" "${test_root}/workflows/youtube/agents.valid.yml"

@@ -1,0 +1,43 @@
+schema_version: ai-fleas-model-expertise.v1
+model_family: Qwen3.5-9B
+applies_to:
+  provider_models:
+    - qwen3.5-9b-q4_k_m
+profile_status: evidence-backed-provisional
+purpose: Guide bounded Hermes auxiliary tasks using the evidence currently available for this deployment.
+communication:
+  observed_scope: Qwen3.5 9B Q4_K_M on the configured RTX-hosted OpenAI-compatible route; auxiliary task quality is not yet benchmarked.
+  direct_starting_language:
+    - Give one bounded text-processing objective, the exact input, and the required output shape.
+    - State decision labels, preservation requirements, and rejection conditions explicitly.
+  translate_first:
+    - Translate workflow-specific role names and business meaning into plain criteria before asking for a judgment.
+    - For context compression, identify facts, decisions, unresolved work, and exact identifiers that must survive.
+  handoff_rule: Keep auxiliary requests bounded and schema-like; state what must be preserved or decided and exclude unsupported authority.
+  verification_rule: Treat auxiliary output as context or advice only; the owning agent independently verifies consequential decisions.
+observed:
+  demonstrated:
+    - fast-fully-gpu-resident-inference
+    - meets-served-hermes-context
+    - system-agent-candidate
+  recurring_limits:
+    - Full Hermes orchestration can dominate latency.
+    - Role and auxiliary-task quality have not been deeply benchmarked.
+  evidence:
+    - ../../notes/benchmarks/local-models/rtx-3080-ti.md
+inferred_but_unverified:
+  - Bounded compression and binary rubric decisions may fit this smaller always-available model.
+unknown:
+  - specialized-domain-knowledge
+  - organization-specific-semantics
+  - reliable context-compression fidelity
+  - reliable goal-judge accuracy
+role_fit:
+  provisional:
+    - local-system-agent
+    - micro-command-worker
+    - hermes-auxiliary-model
+  handoff_condition: Supply exact criteria and keep independent ownership of verification and effects.
+deployment_variants:
+  - id: Q4_K_M
+    note: Deployment representation; not expertise.

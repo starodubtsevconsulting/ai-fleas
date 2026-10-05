@@ -155,7 +155,7 @@ for tunnel/application ownership, service-token creation, naming, policy attachm
 |---|---|
 | `install` | Compatibility delegate to the `install/hermes` command; new callers should invoke that install command directly. |
 | `check-update` | Read-only comparison of the installed release, newest stable upstream date tag, and reviewed public installer pin; recommends an explicit upgrade when appropriate. |
-| `initialize` | Resolve the selected profile/workflow and complete ordered project set, idempotently create every platform-bound role profile, and realize their profile-workflow Hermes group. |
+| `initialize` | Resolve the selected profile/workflow and complete ordered project set, idempotently create every profile-selected Hermes role profile, realize their group, and configure any validated native auxiliary-model task routes. Without `workflow_agents.<workflow>.roles`, the compatible default remains the complete platform-bound roster. |
 | `initialize-system [--instance SLUG] [--connection NAME] [--watch-group ID]... [--every DURATION]` | Create or reconcile the canonical globally visible pinned System profile, or an explicitly suffixed test instance such as `example-system-2`. Test instances have independent schedulers and receipts and never overwrite the canonical receipt. `--connection` selects a named local or remote route from the System provider and resolves protected headers from environment variables. Without `--watch-group`, its scheduler watches every Hermes workflow declared by the selected work profile. |
 | `reinitialize-system --confirm-reinitialize [--instance SLUG] [--connection NAME] [options]` | Preflight the complete canonical or test System replacement, including the selected local or remote provider route, delete and verify that exact instance, then sequentially create its fresh profile, scheduler, gateway, and receipt. |
 | `status-system --work-profile ID [--instance SLUG]` | Verify the exact canonical or test-instance System receipt. |
@@ -264,6 +264,22 @@ Hermes runtime entry point for those resolved bindings and references; it does n
 source of initialization truth. GPT App maps the same
 workflow governance model to its declared multi-agent roster, such as Admin, Manager, and the five governed Dev roles.
 This difference belongs to the platform adapters and must not be hardcoded as a universal agent count in either command.
+
+The normal minimal Hermes profile is one foreground agent plus both auxiliary task slots. `compression` preserves usable
+session context; `goal_judge` evaluates bounded-goal progress. They may use one shared auxiliary model, but neither slot
+is optional for a profile presented as normally configured. They do not create additional workflow agents.
+
+```mermaid
+flowchart TD
+  P[Normal minimal Hermes profile] --> F[Foreground main-model agent]
+  P --> C[Required compression auxiliary slot]
+  P --> J[Required goal_judge auxiliary slot]
+  C --> F
+  J --> F
+```
+
+See [the profile-selected worker and auxiliary contract](spec.md#profile-selected-hermes-workers-and-auxiliary-models)
+for the configuration shape and live acceptance evidence.
 
 ### Implementation structure
 
@@ -394,3 +410,4 @@ application, but it does not own or duplicate these configuration semantics.
 - Never broaden the selected workflow's command set.
 
 See [spec.md](spec.md) for acceptance requirements.
+See [tests/README.md](tests/README.md) for the human-readable architecture, evidence flow, and test instructions.

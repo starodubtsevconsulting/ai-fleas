@@ -20,3 +20,17 @@ project_scope:
   ordered: true
   primary: first
   terminal_cwd: primary
+workflow_agents:
+  dev:
+    roles: [coder]
+auxiliary_models:
+  dev:
+    provider: rtx-3080-ti-model-provider
+    model: qwen-hermes
+    connection: local
+    callers: [coder]
+    tasks:
+      compression:
+        timeout_seconds: 120
+      goal_judge:
+        timeout_seconds: 60
