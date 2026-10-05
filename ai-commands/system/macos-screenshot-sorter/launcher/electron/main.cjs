@@ -152,7 +152,7 @@ function screenshotThumbnail(_event, id) {
   if (!checked || checked.realFile !== item.realFile) fail('Screenshot changed before its thumbnail could be loaded. Refresh the list and try again.');
   return nativeImage.createFromPath(checked.realFile).resize({ width:240, height:135, quality:'good' }).toDataURL();
 }
-function showWindow() { if (mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.show(); mainWindow.focus(); } }
+function showWindow() { if (mainWindow) { if (app.dock) app.dock.show(); if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.show(); mainWindow.focus(); } }
 function cameraIcon() {
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path fill="#000" d="M3 5h2l1-2h6l1 2h2c1.1 0 2 .9 2 2v7c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V7c0-1.1.9-2 2-2Zm6 2.2A3.8 3.8 0 1 0 9 14.8 3.8 3.8 0 0 0 9 7.2Zm0 1.5A2.3 2.3 0 1 1 9 13.3 2.3 2.3 0 0 1 9 8.7Z"/></svg>';
   const icon = nativeImage.createFromDataURL(`data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`);
@@ -175,7 +175,6 @@ if (isPrimaryInstance) {
   ipcMain.handle('sorter:thumbnail', screenshotThumbnail);
   app.on('second-instance', showWindow);
   app.whenReady().then(() => {
-    if (app.dock) app.dock.hide();
     createWindow();
     tray = new Tray(cameraIcon());
     // Keep a visible status-bar affordance even if macOS does not render the
