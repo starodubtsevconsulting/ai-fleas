@@ -1,36 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# ai_command_require_profile runs immediately after explicit lifecycle selections are bootstrapped below.
-
-# Initialization and reconciliation are profile bootstrap operations, so expose their explicit
-# selections to the common command guard before normal argument processing.
-if [[ "${1:-}" == initialize || "${1:-}" == initialize-system || "${1:-}" == reinitialize-system || "${1:-}" == status-system || "${1:-}" == reinitialize || "${1:-}" == re-init || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow || "${1:-}" == connection ]]; then
-  bootstrap_args=("$@")
-  for ((bootstrap_index=1; bootstrap_index<${#bootstrap_args[@]}; bootstrap_index++)); do
-    case "${bootstrap_args[bootstrap_index]}" in
-      --work-profile)
-        ((bootstrap_index + 1 < ${#bootstrap_args[@]})) || break
-        export WORK_PROFILE_ID="${bootstrap_args[bootstrap_index + 1]}"
-        export AI_WORK_PROFILE_ID="${WORK_PROFILE_ID}"
-        bootstrap_index=$((bootstrap_index + 1))
-        ;;
-      --workflow)
-        ((bootstrap_index + 1 < ${#bootstrap_args[@]})) || break
-        bootstrap_workflow="${bootstrap_args[bootstrap_index + 1]}"
-        [[ "${bootstrap_workflow}" == *.workflow.md ]] || bootstrap_workflow="${bootstrap_workflow}.workflow.md"
-        export AI_FLOW_WORKFLOW="${bootstrap_workflow}"
-        bootstrap_index=$((bootstrap_index + 1))
-        ;;
-    esac
-  done
-fi
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)/_runtime/profile/command-profile.guard.sh"
-case "${1:-}" in
-  initialize-system|reinitialize-system|status-system) ai_command_require_profile_only "hermes-agents" || exit $? ;;
-  *) ai_command_require_profile "hermes-agents" || exit $? ;;
-esac
-
 readonly COMMAND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${COMMAND_DIR}/src/bootstrap-command-profile.sh" "$@"
 readonly REPOSITORY_ROOT="$(cd "${COMMAND_DIR}/../.." && pwd)"
 readonly SETUP_SCRIPT="${COMMAND_DIR}/setup-hermes-profile.sh"
 readonly INSTALL_SCRIPT="${COMMAND_DIR}/install-agents.sh"
@@ -45,50 +16,7 @@ readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${SOURCE_DIR}/configur
 readonly AUXILIARY_CONFIGURATOR="${HERMES_AUXILIARY_CONFIGURATOR:-${COMMAND_DIR}/configure-auxiliary-models.mjs}"
 readonly PYTHON_BIN="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
 readonly HERMES_UPSTREAM_REPOSITORY="${HERMES_UPSTREAM_REPOSITORY:-https://github.com/NousResearch/hermes-agent.git}"
-
-usage() {
-  printf '%s\n' \
-    'Usage: hermes-agents.command.sh install [--dry-run]' \
-    '       hermes-agents.command.sh check-update' \
-    '       hermes-agents.command.sh initialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] [--connection NAME]' \
-    '                               [--agent-instructions FILE] [setup overrides]' \
-    '       hermes-agents.command.sh reinitialize --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
-    '                               --confirm-reinitialize [--agent-instructions FILE] [setup overrides]' \
-    '       hermes-agents.command.sh reconcile --work-profile ID [--workflow ID] [--project ID] [--instance SLUG]' \
-    '       hermes-agents.command.sh delete-workflow --work-profile ID [--workflow ID] [--project ID] [--instance SLUG] --confirm-delete' \
-    '       hermes-agents.command.sh list' \
-    '       hermes-agents.command.sh show PROFILE' \
-    '       hermes-agents.command.sh status PROFILE' \
-    '       hermes-agents.command.sh connection status|check|switch --work-profile ID --workflow ID [--instance SLUG] [--connection NAME]' \
-    '       hermes-agents.command.sh delete PROFILE --confirm-delete' \
-    '       hermes-agents.command.sh initialize-system --work-profile ID [--instance SLUG] [--connection NAME] [--watch-group ID]... [--every DURATION]' \
-    '       hermes-agents.command.sh reinitialize-system --work-profile ID [--instance SLUG] --confirm-reinitialize [--connection NAME] [--watch-group ID]... [--every DURATION]' \
-    '       hermes-agents.command.sh status-system --work-profile ID [--instance SLUG]'
-}
-
-resolve_hermes() {
-  if [[ -n "${HERMES_BIN:-}" && -x "${HERMES_BIN}" ]]; then
-    printf '%s\n' "${HERMES_BIN}"
-  elif command -v hermes >/dev/null 2>&1; then
-    command -v hermes
-  elif [[ -x "${HOME}/.local/bin/hermes" ]]; then
-    printf '%s\n' "${HOME}/.local/bin/hermes"
-  else
-    printf '%s\n' 'HERMES_CLI_MISSING: Hermes CLI was not found.' >&2
-    return 1
-  fi
-}
-
-validate_profile() {
-  [[ "$1" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || {
-    printf '%s\n' 'HERMES_INVALID_INPUT: unsafe or empty profile ID.' >&2
-    return 2
-  }
-}
-
-decode_base64() {
-  BASE64_VALUE="$1" python3 -c 'import base64, os; print(base64.b64decode(os.environ["BASE64_VALUE"], validate=True).decode("utf-8"), end="")'
-}
+source "${SOURCE_DIR}/command-shell-lib.sh"
 
 action="${1:-}"
 [[ -n "${action}" ]] || { usage >&2; exit 2; }
