@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// Purpose: validate and invoke the configured proposal-only Coder with its target-model strategy and extracted expertise.
+// Caller/invocation: the profile launcher calls check|run --project ID [assignment]; check is read-only and run performs one model request.
+// Inputs/outputs/effects: reads canonical profile/model YAML, reports validated bindings, and prints a proposal without editing repository files.
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -68,7 +71,39 @@ class BoundedCoderDelegate {
         strategy.assignment?.limits?.max_output_tokens !== this.binding.max_output_tokens) {
       throw new Error('Bounded Coder target strategy does not match the route');
     }
-    return { endpoint: connection.url, model: models[0].provider_model, strategyPath };
+    const expertiseRef = strategy.expertise_profile;
+    if (typeof expertiseRef !== 'string' || !expertiseRef || path.isAbsolute(expertiseRef)) {
+      throw new Error('Bounded Coder target expertise profile is missing or unsafe');
+    }
+    const repositoryRoot = path.dirname(workflowsRoot);
+    const modelsRoot = fs.realpathSync(path.join(repositoryRoot, 'models'));
+    const expertisePath = fs.realpathSync(path.resolve(path.dirname(strategyPath), expertiseRef));
+    const expertiseRelative = path.relative(modelsRoot, expertisePath);
+    if (!expertiseRelative || expertiseRelative === '..' || expertiseRelative.startsWith(`..${path.sep}`) ||
+        path.isAbsolute(expertiseRelative) || !fs.statSync(expertisePath).isFile()) {
+      throw new Error('Bounded Coder target expertise profile is outside the canonical model catalog');
+    }
+    const expertise = this.read(expertisePath);
+    const communication = expertise.communication;
+    const validList = (value) => Array.isArray(value) && value.length > 0 && value.every((item) => typeof item === 'string' && item.trim());
+    const expertiseModels = expertise.applies_to?.provider_models;
+    if (expertise.schema_version !== 'ai-fleas-model-expertise.v1' || typeof expertise.model_family !== 'string' || !expertise.model_family.trim() ||
+        !validList(expertiseModels) || !expertiseModels.includes(models[0].provider_model) ||
+        !communication || !validList(communication.direct_starting_language) || !validList(communication.translate_first) ||
+        typeof communication.handoff_rule !== 'string' || !communication.handoff_rule.trim() ||
+        typeof communication.verification_rule !== 'string' || !communication.verification_rule.trim()) {
+      throw new Error('Bounded Coder target expertise communication contract is invalid');
+    }
+    const expertiseContract = [
+      'Target-model expertise contract (apply throughout this assignment):',
+      `- Model family: ${expertise.model_family}`,
+      `- Observed scope: ${communication.observed_scope || ''}`,
+      `- Direct language: ${communication.direct_starting_language.join(' ')}`,
+      `- Translate first: ${communication.translate_first.join(' ')}`,
+      `- Handoff rule: ${communication.handoff_rule}`,
+      `- Verification rule: ${communication.verification_rule}`,
+    ].join('\n');
+    return { endpoint: connection.url, model: models[0].provider_model, strategyPath, expertisePath, expertiseContract };
   }
   execute(operation, projectId, assignment) {
     const project = this.project(projectId);
@@ -76,11 +111,12 @@ class BoundedCoderDelegate {
     if (operation === 'check') {
       const response = spawnSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'bounded-model.command.mjs'), 'ask', '--endpoint', target.endpoint, '--model', target.model, '--max-output-tokens', '4', ...this.sampling.commandArguments()], { input: 'Reply READY.', encoding: 'utf8', timeout: 30000 });
       if (response.status !== 0) throw new Error(`Model check failed: ${response.stderr.trim()}`);
-      process.stdout.write(`BOUNDED_CODER_READY: project=${projectId} branch=${project.branch} model=${target.model} strategy=${target.strategyPath}\n`);
+      process.stdout.write(`BOUNDED_CODER_READY: project=${projectId} branch=${project.branch} model=${target.model} strategy=${target.strategyPath} expertise=${target.expertisePath}\n`);
       return;
     }
     if (operation !== 'run' || !assignment?.trim()) throw new Error('A bounded assignment is required');
-    const response = spawnSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'bounded-model.command.mjs'), 'ask', '--endpoint', target.endpoint, '--model', target.model, '--max-input-chars', String(this.binding.max_input_chars), '--max-output-tokens', String(this.binding.max_output_tokens), '--timeout-ms', String(this.binding.timeout_ms), ...this.sampling.commandArguments()], { input: assignment, encoding: 'utf8', timeout: this.binding.timeout_ms + 5000 });
+    const prompt = `${target.expertiseContract}\n\nConcrete assignment (already adapted by the caller using this contract):\n${assignment}`;
+    const response = spawnSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'bounded-model.command.mjs'), 'ask', '--endpoint', target.endpoint, '--model', target.model, '--max-input-chars', String(this.binding.max_input_chars), '--max-output-tokens', String(this.binding.max_output_tokens), '--timeout-ms', String(this.binding.timeout_ms), ...this.sampling.commandArguments()], { input: prompt, encoding: 'utf8', timeout: this.binding.timeout_ms + 5000 });
     if (response.status !== 0) throw new Error(`Model run failed: ${response.stderr.trim()}`);
     process.stdout.write(response.stdout);
   }

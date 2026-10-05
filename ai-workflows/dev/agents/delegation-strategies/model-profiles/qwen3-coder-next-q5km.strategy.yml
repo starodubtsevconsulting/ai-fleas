@@ -1,7 +1,7 @@
 schema_version: local-coder-strategy.v1
 applies_to:
   provider_model: qwen3-coder-next-q5km
-education_profile: ../../../../../models/qwen3-coder-next/education-profile.yml
+expertise_profile: ../../../../../models/qwen3-coder-next/expertise-profile.yml
 strategy:
   default: focused-implementation
   task_routes:
