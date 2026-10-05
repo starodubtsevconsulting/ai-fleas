@@ -42,6 +42,7 @@ readonly SYSTEM_BINDING_WRITER="${HERMES_SYSTEM_BINDING_WRITER:-${SOURCE_DIR}/wr
 readonly WORKFLOW_BINDING_WRITER="${HERMES_WORKFLOW_BINDING_WRITER:-${SOURCE_DIR}/write-workflow-receipt.py}"
 readonly WORKFLOW_REALIZER="${HERMES_WORKFLOW_REALIZER:-${SOURCE_DIR}/realize-workflow.py}"
 readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${SOURCE_DIR}/configure-group.py}"
+readonly AUXILIARY_CONFIGURATOR="${HERMES_AUXILIARY_CONFIGURATOR:-${COMMAND_DIR}/configure-auxiliary-models.mjs}"
 readonly PYTHON_BIN="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
 readonly HERMES_UPSTREAM_REPOSITORY="${HERMES_UPSTREAM_REPOSITORY:-https://github.com/NousResearch/hermes-agent.git}"
 
@@ -453,12 +454,14 @@ Operate as the System profile defined by SOUL.md. Perform the same lifecycle che
       --project-scope "${resolved_project_scope}"
     )
     node "${COMMAND_DIR}/configure-bounded-routes.mjs" "${PROFILE_ROOT}/${resolved_profile}" "${derived_group}" --preflight-only
+    node "${AUXILIARY_CONFIGURATOR}" "${PROFILE_ROOT}/${resolved_profile}" "${derived_group}" "${resolved_workflow}" --preflight-only
     if [[ "${preflight_only}" == true ]]; then realizer_args+=(--preflight-only); fi
     "${HERMES_WORKFLOW_REALIZER_PYTHON_BIN:-python3}" "${WORKFLOW_REALIZER}" \
       "${realizer_args[@]}" \
       -- ${setup_args[@]+"${setup_args[@]}"}
     if [[ "${preflight_only}" != true ]]; then
       node "${COMMAND_DIR}/configure-bounded-routes.mjs" "${PROFILE_ROOT}/${resolved_profile}" "${derived_group}"
+      node "${AUXILIARY_CONFIGURATOR}" "${PROFILE_ROOT}/${resolved_profile}" "${derived_group}" "${resolved_workflow}"
     fi
     ;;
   list)

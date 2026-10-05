@@ -115,9 +115,38 @@ models, flows, or escaping paths fail before profile mutation.
 
 Hermes-specific code owns only the mechanics of realizing a workflow role as a Hermes profile/group member. The role set and portable role properties remain workflow-owned.
 
+## Profile-selected Hermes workers and auxiliary models
+
+The profile-owned `hermes-agents` command config may narrow one workflow's Hermes realization to existing portable
+roles with `workflow_agents.<workflow>.roles`. This does not change the portable roster or create new workflow roles;
+it selects which declared roles receive Hermes profiles. Each selected role must exist exactly once in the canonical
+workflow roster. A missing selection preserves full-roster behavior for compatibility.
+
+The same command config may route named Hermes auxiliary tasks through a separately configured model using
+`auxiliary_models.<workflow>`. An auxiliary model is not an agent, group member, registered workflow role, or
+independent reviewer. The configurator validates its provider/model endpoint, strategy, exact expertise binding,
+allowed task names, callers, and timeouts before writing the realized caller profile. Initial supported tasks are
+`compression` for context handling and `goal_judge` for advisory goal evaluation; additional tasks require an explicit
+strategy/config change.
+
+```yaml
+workflow_agents:
+  dev:
+    roles: [coder]
+auxiliary_models:
+  dev:
+    provider: rtx-3080-ti-model-provider
+    model: qwen-hermes
+    connection: local
+    callers: [coder]
+    tasks:
+      compression: { timeout_seconds: 120 }
+      goal_judge: { timeout_seconds: 60 }
+```
+
 ## Completion criteria
 
-Hermes workflow initialization is complete only when every Agent declared by the selected workflow is realized exactly
+Hermes workflow initialization is complete only when every Agent selected for Hermes realization is realized exactly
 once, uses its resolved provider and model, receives its assigned Role and flow, belongs to the exact group, and appears
 in the ordered ready receipt without exposing provider credentials. The command must emit one matching aggregate
 `HERMES_WORKFLOW_READY` result. A collection of per-profile success messages is not completion.

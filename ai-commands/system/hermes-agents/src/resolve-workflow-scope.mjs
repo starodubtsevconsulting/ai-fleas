@@ -69,14 +69,33 @@ const workflowId = path.basename(String(workflow.path)).replace(/\.workflow\.md$
 const workflowInstructions = path.join(workflowsRoot, workflowId, `${workflowId}.workflow.md`);
 if (!fs.statSync(workflowInstructions, { throwIfNoEntry: false })?.isFile()) fail(`workflow contract is not a readable file: ${workflowInstructions}`);
 
+const hermesCommandEntries = (Array.isArray(profile.commands) ? profile.commands : []).filter((entry) => entry?.id === 'hermes-agents');
+if (hermesCommandEntries.length !== 1) fail('work profile must reference exactly one hermes-agents command config.');
+const hermesConfigRef = String(hermesCommandEntries[0].config || '');
+if (!hermesConfigRef || path.isAbsolute(hermesConfigRef)) fail('hermes-agents command config must be a relative path.');
+const hermesConfigFile = inside(selectedProfileRoot, path.join(selectedProfileRoot, hermesConfigRef), 'hermes-agents command config');
+const hermesConfig = readYaml(hermesConfigFile);
+if (hermesConfig.schema_version !== 'hermes-agents-command-config.v1' || hermesConfig.capability !== 'hermes-agents' ||
+    !['hermes-app', 'hermes-cli'].includes(hermesConfig.platform)) fail('hermes-agents command config identity or platform is invalid.');
+
 // The workflow owns the role roster. Platform adapters realize it; they do not redefine it.
 const logicalAgentsFile = path.join(workflowsRoot, workflowId, 'agents.yml');
 const logicalAgents = readYaml(logicalAgentsFile);
 if (logicalAgents.workflowId !== workflowId || !Array.isArray(logicalAgents.agents)) fail(`logical role configuration does not match workflow '${workflowId}'.`);
-const roleDefinitions = [logicalAgents.initializer, ...logicalAgents.agents].filter(Boolean);
+const declaredRoleDefinitions = [logicalAgents.initializer, ...logicalAgents.agents].filter(Boolean);
+const configuredRoles = hermesConfig.workflow_agents?.[workflowId]?.roles;
+if (configuredRoles !== undefined && (!Array.isArray(configuredRoles) || !configuredRoles.length)) fail(`workflow_agents.${workflowId}.roles must be a nonempty list.`);
+const selectedRoleIds = configuredRoles === undefined ? null : configuredRoles.map((role) => safeId(String(role || ''), 'Hermes workflow role'));
+if (selectedRoleIds && new Set(selectedRoleIds).size !== selectedRoleIds.length) fail(`workflow_agents.${workflowId}.roles contains duplicates.`);
+const roleDefinitions = selectedRoleIds === null ? declaredRoleDefinitions : selectedRoleIds.map((roleId) => {
+  const matches = declaredRoleDefinitions.filter((definition) => definition?.agentId === roleId);
+  if (matches.length !== 1) fail(`Hermes workflow role '${roleId}' is not declared exactly once by workflow '${workflowId}'.`);
+  return matches[0];
+});
 try {
-  const lifecyclePlan = resolveDispatchPlan(profile, workflow,
-    loadRegistry(path.join(platformsRoot, 'registry.yml')),
+  const registry = loadRegistry(path.join(platformsRoot, 'registry.yml'));
+  const dispatchWorkflow = selectedRoleIds === null ? workflow : { platform: hermesConfig.platform };
+  const lifecyclePlan = resolveDispatchPlan(profile, dispatchWorkflow, registry,
     { operation: 'full-roster', declaredAgentIds: roleDefinitions.map(role => role.agentId) });
   const selectedPlatform = lifecyclePlan.agents[0].platformId;
   if (!['hermes-app', 'hermes-cli'].includes(selectedPlatform)) throw new Error('LIFECYCLE_ADAPTER_MISMATCH: hermes');
@@ -221,7 +240,9 @@ const roleBindings = roleDefinitions.flatMap((definition) => {
   const encode = (value) => Buffer.from(value, 'utf8').toString('base64');
   return [[role, role, resolvedProvider, encode(String(resolved.provider.label || resolvedProvider)), encode(resolved.endpoint), encode(JSON.stringify(resolved.headers)), encode(JSON.stringify(resolved.storedHeaders)), roleModel.providerModel, roleModel.contextWindow, roleModel.compressionThreshold, roleModel.compressionTarget, roleModel.protectLastMessages, encode(rolePath), encode(flowPath), roleModel.compressionThresholdTokens || '-'].join('|')];
 });
-for (const bindingKey of Object.keys(agentProviderBindings)) if (!usedAgentProviderBindings.has(bindingKey)) fail(`agent provider binding '${bindingKey}' is not referenced by the workflow roster.`);
+if (selectedRoleIds === null) {
+  for (const bindingKey of Object.keys(agentProviderBindings)) if (!usedAgentProviderBindings.has(bindingKey)) fail(`agent provider binding '${bindingKey}' is not referenced by the workflow roster.`);
+}
 if (roleBindings.length === 0 || new Set(roleBindings).size !== roleBindings.length) fail(`workflow '${workflowId}' role roster is empty or contains duplicates.`);
 
 const commandIds = Array.isArray(workflow.commands) ? workflow.commands.map((value) => safeId(String(value || ''), 'command ID')) : [];

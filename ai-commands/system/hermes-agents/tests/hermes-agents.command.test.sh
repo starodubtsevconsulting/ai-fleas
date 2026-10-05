@@ -9,7 +9,7 @@ bash "${TEST_DIR}/resolve-workflow-scope.test.sh" >/dev/null
 test_root="$(mktemp -d "${TMPDIR:-/tmp}/hermes-command-test.XXXXXX")"
 cleanup() { rm -rf -- "${test_root}"; }
 trap cleanup EXIT INT TERM
-mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/ai-profile/example/projects/dev/web" "${test_root}/commands/coding" "${test_root}/commands/hermes-agents" "${test_root}/workflows/dev" "${test_root}/workflows/_common/roles" "${test_root}/workflows/_common/agents/schedules" "${test_root}/workspace" "${test_root}/web-workspace" "${test_root}/platforms/hermes"
+mkdir -p "${test_root}/bin" "${test_root}/ai-profile/example/commands-config/hermes-agents" "${test_root}/ai-profile/example/projects/dev/service" "${test_root}/ai-profile/example/projects/dev/web" "${test_root}/commands/coding" "${test_root}/commands/hermes-agents" "${test_root}/workflows/dev" "${test_root}/workflows/_common/roles" "${test_root}/workflows/_common/agents/schedules" "${test_root}/workspace" "${test_root}/web-workspace" "${test_root}/platforms/hermes"
 touch "${test_root}/AGENTS.md" "${test_root}/README.md" "${test_root}/why.md"
 cat >"${test_root}/platforms/registry.yml" <<'YAML'
 platforms:
@@ -40,7 +40,7 @@ default_workflow: dev.workflow.md
 platforms:
   default: hermes-cli
   available:
-    - hermes
+    - hermes-cli
 governance_rules_repository: example-rules
 governance_rules_surface:
   - AGENTS.md
@@ -52,7 +52,7 @@ ai_workflows_root: ../../workflows
 ai_platforms_root: ../../platforms
 commands:
   - id: hermes-agents
-    config: local-ai-providers.yml
+    config: commands-config/hermes-agents/config.yml
 system_agent:
   scope: system
   cardinality: one-per-platform
@@ -80,6 +80,11 @@ workflows:
     platform: codex-app
     projects:
       - ref: projects/dev/service/project.yml
+YAML
+cat >"${test_root}/ai-profile/example/commands-config/hermes-agents/config.yml" <<'YAML'
+schema_version: hermes-agents-command-config.v1
+capability: hermes-agents
+platform: hermes-cli
 YAML
 cat >"${test_root}/ai-profile/example/local-ai-providers.yml" <<'YAML'
 schema_version: local-ai-providers.v1
@@ -365,8 +370,8 @@ from pathlib import Path
 import sys
 target = Path(sys.argv[1])
 source = target.read_text()
-source = source.replace('  - id: hermes-agents\n    config: local-ai-providers.yml\n',
-                        '  - id: hermes-agents\n    config: local-ai-providers.yml\n  - id: secrets\n    config: commands-config/secrets.yml\n', 1)
+source = source.replace('  - id: hermes-agents\n    config: commands-config/hermes-agents/config.yml\n',
+                        '  - id: hermes-agents\n    config: commands-config/hermes-agents/config.yml\n  - id: secrets\n    config: commands-config/secrets.yml\n', 1)
 source = source.replace('      - hermes-agents\n', '      - hermes-agents\n      - secrets\n', 1)
 target.write_text(source)
 PY
