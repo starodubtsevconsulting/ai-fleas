@@ -33,6 +33,7 @@ grep -Fq 'A person and an AI Fleas robot working together at a desk' "$dir/launc
 grep -Fq 'Run against any authorized profile' "$dir/macos-screenshot-sorter.command.md"
 grep -Fq 'ui --force' "$dir/macos-screenshot-sorter.command.md"
 grep -Fq 'exact existing Screenshot Sorter process' "$dir/macos-screenshot-sorter.command.md"
+grep -Fq 'menu-bar utility, not a Dock app' "$dir/macos-screenshot-sorter.command.md"
 grep -Fq "pattern='[m]acos-screenshot-sorter/launcher/electron/main\\\\.cjs'" "$dir/app.sh"
 grep -Fq 'Do not bypass these checks by exporting `AI_COMMAND_CONFIG_PATH` directly.' "$dir/macos-screenshot-sorter.command.md"
 grep -Fq "ipcMain.handle('sorter:library', screenshotLibrary)" "$dir/launcher/electron/main.cjs"
