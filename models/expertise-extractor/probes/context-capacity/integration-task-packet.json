@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0.0",
+  "experiment_id": "qwen3-coder-next-q5km-context-capacity",
+  "fixture_id": "hermes-context-capacity-integration",
+  "status": "frozen-inputs-no-live-results",
+  "expected_model": {
+    "model_id": "Qwen3-Coder-Next",
+    "quant": "Q5_K_M"
+  },
+  "execution": {
+    "transport": "hermes-sequential-session",
+    "fresh_session": true,
+    "turn_cap": 80,
+    "task_process_deadline_ms": 600000,
+    "one_correction_per_run": true,
+    "shared_session_between_runs": false,
+    "post_task_contract_reread": "forbidden"
+  },
+  "packet": {
+    "manifest_path": "models/expertise-extractor/probes/context-capacity/packet-manifest.json",
+    "manifest_sha256": "28a1a91ac1d860b8e6974bb738751afafcd4a166081527076d91539b54b40b0c",
+    "packet_sha256": "fa8aaef878e42c88a556b8642052427eed01cec0625d0fb1ffe0e180efc128bb",
+    "total_tokens": 205080,
+    "chunk_count": 53,
+    "maximum_chunk_tokens": 4096,
+    "acknowledgement": "CONTEXT_CHUNK_RECEIVED"
+  },
+  "write_scope": {
+    "allowed": ["recognizers/change-approval-recognizer.mjs"],
+    "unexpected_write_invalidates_run": true
+  },
+  "artifact_path_base": "repository-root",
+  "artifacts": {
+    "early_contract": {
+      "path": "notes/benchmarks/local-models/fixtures/hermes-context-capacity-integration/CONTRACT_EARLY.md",
+      "sha256": "0632fe9b13905f105838401c87426b2d706d319fe8f260e4b35580cb0fdb79b1"
+    },
+    "middle_contract": {
+      "path": "notes/benchmarks/local-models/fixtures/hermes-context-capacity-integration/CONTRACT_MIDDLE.md",
+      "sha256": "04e0501a18b9f5c7e7404624a25c0fd90e124f02571457f35ca4fe0103a0bb5e"
+    },
+    "late_contract": {
+      "path": "notes/benchmarks/local-models/fixtures/hermes-context-capacity-integration/CONTRACT_LATE.md",
+      "sha256": "96860f6bc8f543e62c75d7e88efa50370666b5611e714a47c19369c799169025"
+    },
+    "task": {
+      "path": "notes/benchmarks/local-models/fixtures/hermes-context-capacity-integration/TASK.md",
+      "sha256": "361042e9600128e6b369f93c0f037579c1f645e2613cc074cb1d7cb5dae05ccb"
+    },
+    "starter": {
+      "path": "notes/benchmarks/local-models/fixtures/hermes-context-capacity-integration/starter/recognizers/change-approval-recognizer.mjs",
+      "sha256": "02e23139e7e91401c9afbe05f3e3f860048d5b305b8105dc5f9e09965c4437f7"
+    },
+    "verifier": {
+      "path": "notes/benchmarks/local-models/fixtures/hermes-context-capacity-integration/verify.mjs",
+      "sha256": "9f2e765cbb3b82d1c0e48f7f45b74789860c7a7e973cbef3c1bb83a9d30046ba",
+      "visible_to_worker": false
+    }
+  },
+  "required_groups": {
+    "EARLY": ["CAP-E-mixed-case", "CAP-E-disapprove-negative", "CAP-E-approved-negative", "CAP-E-approves-negative", "CAP-E-compact-cannot-prove", "CAP-E-separate-approve-positive"],
+    "MIDDLE": ["CAP-M-phrase-only-negative", "CAP-M-approval-only-negative", "CAP-M-both-positive", "CAP-M-cancelled-veto", "CAP-M-uncancelled-positive", "CAP-M-separate-cancelled-veto"],
+    "LATE": ["CAP-L-exact-positive-result", "CAP-L-exact-negative-result"],
+    "LEGACY": ["CAP-L-legacy-positive", "CAP-L-legacy-mixed-case-extra-text", "CAP-L-legacy-missing-authorization", "CAP-L-legacy-missing-notice", "CAP-L-legacy-plural-negative", "CAP-L-legacy-unauthorized-negative", "CAP-L-legacy-compact-cannot-prove"]
+  },
+  "correction": {
+    "template": "Repair only the staged target using these independent verifier results: {{failed_assertion_ids}}. Preserve every behavior already passing, create no files, inspect the target, and stop.",
+    "allowed_feedback_fields": ["failed_assertion_ids", "unexpected_paths"],
+    "fresh_session": true,
+    "deadline_ms": 600000,
+    "promotion_uses_corrected_result": false
+  }
+}

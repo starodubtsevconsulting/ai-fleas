@@ -1,0 +1,476 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-fleas/context-capacity/manifest.schema.json",
+  "title": "Context Capacity local runtime manifest",
+  "description": "Shape-only schema for a git-ignored local GX10/Hermes manifest. It contains no machine values or secrets and does not prove reachability or restoration. The runner must parse each command's JSON output, select the same-named schema from $defs.output_shapes.properties using output_contract.contract_id, and reject output that does not validate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "expected_model",
+    "hermes_profile",
+    "secret_environment",
+    "commands",
+    "arms",
+    "snapshot_restore",
+    "telemetry"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "experiment_id": { "type": "string", "minLength": 1 },
+    "expected_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_id", "quant", "runtime_build"],
+      "properties": {
+        "model_id": { "const": "Qwen3-Coder-Next" },
+        "quant": { "const": "Q5_K_M" },
+        "runtime_build": { "type": "string", "minLength": 1 }
+      }
+    },
+    "hermes_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identifier", "profile_path", "provider_id", "endpoint_identifier"],
+      "properties": {
+        "identifier": { "type": "string", "minLength": 1 },
+        "profile_path": { "type": "string", "pattern": "^/" },
+        "provider_id": { "type": "string", "minLength": 1 },
+        "endpoint_identifier": { "type": "string", "minLength": 1 }
+      }
+    },
+    "secret_environment": {
+      "description": "Maps logical secret names to environment-variable names; values are never credentials.",
+      "type": "object",
+      "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+      "additionalProperties": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" }
+    },
+    "commands": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "discover_model",
+        "discover_hermes",
+        "execute_turn",
+        "tokenize",
+        "query_server_context",
+        "query_hermes_context",
+        "query_compression",
+        "snapshot",
+        "configure_arm",
+        "start",
+        "stop",
+        "restart",
+        "health",
+        "telemetry",
+        "restore",
+        "verify_restore"
+      ],
+      "properties": {
+        "discover_model": { "$ref": "#/$defs/commands/modelIdentity" },
+        "discover_hermes": { "$ref": "#/$defs/commands/hermesIdentity" },
+        "execute_turn": {
+          "description": "Runs one bounded Hermes turn. The runner supplies CONTEXT_CAPACITY_QUERY_FILE, CONTEXT_CAPACITY_WORKSPACE, CONTEXT_CAPACITY_EXPECTED_ACK, CONTEXT_CAPACITY_CHUNK_INDEX, and CONTEXT_CAPACITY_SESSION_ID (empty only for chunk 1). The normalized result must prove a new session on chunk 1, exact resume of that session thereafter, and stopped execution before the next turn.",
+          "$ref": "#/$defs/commands/hermesTurn"
+        },
+        "tokenize": { "$ref": "#/$defs/commands/tokenize" },
+        "query_server_context": { "$ref": "#/$defs/commands/contextTokens" },
+        "query_hermes_context": { "$ref": "#/$defs/commands/contextTokens" },
+        "query_compression": { "$ref": "#/$defs/commands/compression" },
+        "snapshot": { "$ref": "#/$defs/commands/snapshot" },
+        "configure_arm": { "$ref": "#/$defs/commands/action" },
+        "start": { "$ref": "#/$defs/commands/action60s" },
+        "stop": { "$ref": "#/$defs/commands/action60s" },
+        "restart": { "$ref": "#/$defs/commands/action60s" },
+        "health": { "$ref": "#/$defs/commands/health10s" },
+        "telemetry": { "$ref": "#/$defs/commands/telemetry" },
+        "restore": { "$ref": "#/$defs/commands/restore60s" },
+        "verify_restore": { "$ref": "#/$defs/commands/verifyRestore60s" }
+      }
+    },
+    "arms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["A", "B", "C"],
+      "properties": {
+        "A": { "$ref": "#/$defs/arms/A" },
+        "B": { "$ref": "#/$defs/arms/B" },
+        "C": { "$ref": "#/$defs/arms/C" }
+      }
+    },
+    "snapshot_restore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot_targets",
+        "hash_algorithm",
+        "capture_baseline",
+        "restore_against_captured_baseline",
+        "byte_for_byte_required"
+      ],
+      "properties": {
+        "snapshot_targets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^/" }
+        },
+        "hash_algorithm": { "const": "sha256" },
+        "capture_baseline": { "const": true },
+        "restore_against_captured_baseline": { "const": true },
+        "byte_for_byte_required": { "const": true }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["latency_ms", "peak_memory_bytes", "swap_bytes", "tool_call_count"],
+      "properties": {
+        "latency_ms": { "const": true },
+        "peak_memory_bytes": { "const": true },
+        "swap_bytes": { "const": true },
+        "tool_call_count": { "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "commandBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["argv", "timeout_ms", "output_contract"],
+      "properties": {
+        "argv": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 600000 },
+        "cwd": { "type": "string", "pattern": "^/" },
+        "env": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+          "additionalProperties": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" }
+        },
+        "input_contract": {
+          "enum": ["none", "tokenize_request_v1"],
+          "description": "Optional stdin contract. tokenize_request_v1 is validated by $defs.input_shapes.properties.tokenize_request_v1."
+        },
+        "output_contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["format", "contract_id"],
+          "properties": {
+            "format": { "const": "json" },
+            "contract_id": {
+              "enum": [
+                "model_identity_v1",
+                "hermes_identity_v1",
+                "token_ids_v1",
+                "context_tokens_v1",
+                "compression_v1",
+                "snapshot_v1",
+                "action_result_v1",
+                "health_v1",
+                "telemetry_v1",
+                "restore_result_v1",
+                "restore_verification_v1",
+                "hermes_turn_v1"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "timeout60s": {
+      "type": "object",
+      "properties": { "timeout_ms": { "type": "integer", "maximum": 60000 } }
+    },
+    "timeout10s": {
+      "type": "object",
+      "properties": { "timeout_ms": { "type": "integer", "maximum": 10000 } }
+    },
+    "contractIds": {
+      "modelIdentity": { "type": "object", "properties": { "output_contract": { "type": "object", "properties": { "contract_id": { "const": "model_identity_v1" } } } } },
+      "hermesIdentity": { "type": "object", "properties": { "output_contract": { "type": "object", "properties": { "contract_id": { "const": "hermes_identity_v1" } } } } },
+      "hermesTurn": { "type": "object", "properties": { "output_contract": { "type": "object", "properties": { "contract_id": { "const": "hermes_turn_v1" } } } } },
+      "tokenize": {
+        "type": "object",
+        "required": ["input_contract"],
+        "properties": {
+          "input_contract": { "const": "tokenize_request_v1" },
+          "output_contract": { "type": "object", "properties": { "contract_id": { "const": "token_ids_v1" } } }
+        }
+      },
+      "contextTokens": { "type": "object", "properties": { "output_contract": { "type": "object", "properties": { "contract_id": { "const": "context_tokens_v1" } } } } },
+      "compression": { "type": "object", "properties": { "output_contract": { "type": "object", "properties": { "contract_id": { "const": "compression_v1" } } } } },
+      "snapshot": { "type": "object", "properties": { "output_contract": { "type": "object", "properties": { "contract_id": { "const": "snapshot_v1" } } } } },
+      "action": { "type": "object", "properties": { "output_contract": { "type": "object", "properties": { "contract_id": { "const": "action_result_v1" } } } } },
+      "health": { "type": "object", "properties": { "output_contract": { "type": "object", "properties": { "contract_id": { "const": "health_v1" } } } } },
+      "telemetry": { "type": "object", "properties": { "output_contract": { "type": "object", "properties": { "contract_id": { "const": "telemetry_v1" } } } } },
+      "restore": { "type": "object", "properties": { "output_contract": { "type": "object", "properties": { "contract_id": { "const": "restore_result_v1" } } } } },
+      "verifyRestore": { "type": "object", "properties": { "output_contract": { "type": "object", "properties": { "contract_id": { "const": "restore_verification_v1" } } } } }
+    },
+    "commands": {
+      "modelIdentity": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/contractIds/modelIdentity" }] },
+      "hermesIdentity": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/contractIds/hermesIdentity" }] },
+      "hermesTurn": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/contractIds/hermesTurn" }] },
+      "tokenize": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/contractIds/tokenize" }] },
+      "contextTokens": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/contractIds/contextTokens" }] },
+      "compression": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/contractIds/compression" }] },
+      "snapshot": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/contractIds/snapshot" }] },
+      "action": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/contractIds/action" }] },
+      "action60s": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/timeout60s" }, { "$ref": "#/$defs/contractIds/action" }] },
+      "health10s": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/timeout10s" }, { "$ref": "#/$defs/contractIds/health" }] },
+      "telemetry": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/contractIds/telemetry" }] },
+      "restore60s": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/timeout60s" }, { "$ref": "#/$defs/contractIds/restore" }] },
+      "verifyRestore60s": { "allOf": [{ "$ref": "#/$defs/commandBase" }, { "$ref": "#/$defs/timeout60s" }, { "$ref": "#/$defs/contractIds/verifyRestore" }] }
+    },
+    "compressionSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "trigger_tokens"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "trigger_tokens": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "arms": {
+      "A": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "server_context_tokens", "hermes_context_tokens", "compression"],
+        "properties": {
+          "id": { "const": "A" },
+          "server_context_tokens": { "const": 65536 },
+          "hermes_context_tokens": { "const": 65536 },
+          "compression": { "$ref": "#/$defs/compressionSettings" }
+        }
+      },
+      "B": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "server_context_tokens", "hermes_context_tokens", "compression"],
+        "properties": {
+          "id": { "const": "B" },
+          "server_context_tokens": { "const": 131072 },
+          "hermes_context_tokens": { "const": 131072 },
+          "compression": { "$ref": "#/$defs/compressionSettings" }
+        }
+      },
+      "C": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "server_context_tokens", "hermes_context_tokens", "compression"],
+        "properties": {
+          "id": { "const": "C" },
+          "server_context_tokens": { "const": 262144 },
+          "hermes_context_tokens": { "const": 262144 },
+          "compression": { "$ref": "#/$defs/compressionSettings" }
+        }
+      }
+    },
+    "sha256": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
+    "input_shapes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tokenize_request_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["content", "with_pieces"],
+          "properties": {
+            "content": { "type": "string" },
+            "with_pieces": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "output_shapes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "model_identity_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["model_id", "quant", "runtime_build"],
+          "properties": {
+            "model_id": { "type": "string", "minLength": 1 },
+            "quant": { "type": "string", "minLength": 1 },
+            "runtime_build": { "type": "string", "minLength": 1 }
+          }
+        },
+        "hermes_identity_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["identifier", "provider_id", "endpoint_identifier"],
+          "properties": {
+            "identifier": { "type": "string", "minLength": 1 },
+            "provider_id": { "type": "string", "minLength": 1 },
+            "endpoint_identifier": { "type": "string", "minLength": 1 }
+          }
+        },
+        "token_ids_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tokens"],
+          "properties": {
+            "tokens": {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  { "type": "integer", "minimum": 0 },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["id", "piece"],
+                    "properties": {
+                      "id": { "type": "integer", "minimum": 0 },
+                      "piece": {
+                        "oneOf": [
+                          { "type": "string" },
+                          {
+                            "type": "array",
+                            "items": { "type": "integer", "minimum": 0, "maximum": 255 }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "context_tokens_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["context_tokens"],
+          "properties": { "context_tokens": { "type": "integer", "minimum": 1 } }
+        },
+        "compression_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "trigger_tokens"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "trigger_tokens": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "snapshot_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["snapshot_id", "targets"],
+          "properties": {
+            "snapshot_id": { "type": "string", "minLength": 1 },
+            "targets": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["path", "sha256"],
+                "properties": {
+                  "path": { "type": "string", "pattern": "^/" },
+                  "sha256": { "$ref": "#/$defs/sha256" }
+                }
+              }
+            }
+          }
+        },
+        "action_result_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ok"],
+          "properties": { "ok": { "type": "boolean" } }
+        },
+        "health_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["healthy"],
+          "properties": { "healthy": { "type": "boolean" } }
+        },
+        "telemetry_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "latency_ms", "peak_memory_bytes", "swap_bytes", "tool_call_count",
+            "system_total_memory_bytes", "system_peak_used_memory_bytes",
+            "system_minimum_available_memory_bytes", "model_server_peak_rss_bytes",
+            "hermes_peak_rss_bytes", "model_call_count"
+          ],
+          "properties": {
+            "latency_ms": { "type": "number", "minimum": 0 },
+            "peak_memory_bytes": { "type": "integer", "minimum": 0 },
+            "swap_bytes": { "type": "integer", "minimum": 0 },
+            "tool_call_count": { "type": "integer", "minimum": 0 },
+            "system_total_memory_bytes": { "type": "integer", "minimum": 1 },
+            "system_peak_used_memory_bytes": { "type": "integer", "minimum": 0 },
+            "system_minimum_available_memory_bytes": { "type": "integer", "minimum": 0 },
+            "model_server_peak_rss_bytes": { "type": "integer", "minimum": 0 },
+            "hermes_peak_rss_bytes": { "type": "integer", "minimum": 0 },
+            "model_call_count": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "hermes_turn_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "session_id", "requested_session_id", "fresh_session", "resumed", "lineage_continuous",
+            "response", "confirmed_stopped", "input_tokens", "model_calls",
+            "tool_calls", "compaction_count", "compaction_time_ms",
+            "unexpected_truncation_detected"
+          ],
+          "properties": {
+            "session_id": { "type": "string", "minLength": 1 },
+            "requested_session_id": { "type": ["string", "null"] },
+            "fresh_session": { "type": "boolean" },
+            "resumed": { "type": "boolean" },
+            "lineage_continuous": { "type": "boolean" },
+            "response": { "type": "string" },
+            "confirmed_stopped": { "type": "boolean" },
+            "input_tokens": { "type": "integer", "minimum": 1 },
+            "model_calls": { "type": "integer", "minimum": 1 },
+            "tool_calls": { "type": "integer", "minimum": 0 },
+            "compaction_count": { "type": "integer", "minimum": 0 },
+            "compaction_time_ms": { "type": ["number", "null"], "minimum": 0 },
+            "eviction_evidence": { "type": ["string", "null"] },
+            "unexpected_truncation_detected": { "type": "boolean" }
+          }
+        },
+        "restore_result_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ok", "snapshot_id"],
+          "properties": {
+            "ok": { "type": "boolean" },
+            "snapshot_id": { "type": "string", "minLength": 1 }
+          }
+        },
+        "restore_verification_v1": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ok", "targets"],
+          "properties": {
+            "ok": { "type": "boolean" },
+            "targets": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["path", "expected_sha256", "observed_sha256", "matches"],
+                "properties": {
+                  "path": { "type": "string", "pattern": "^/" },
+                  "expected_sha256": { "$ref": "#/$defs/sha256" },
+                  "observed_sha256": { "$ref": "#/$defs/sha256" },
+                  "matches": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
