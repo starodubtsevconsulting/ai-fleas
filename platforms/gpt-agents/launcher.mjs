@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** GPT host launcher, invoked by setup scripts or the human/controller CLI.
- * Inputs: setup/doctor/launch/prepare-human-profile/initialize-governor/preflight-admin arguments and declared configuration.
+ * Inputs: setup/doctor/launch/prepare-human-profile/initialize-governor/discover-admin-scope/preflight-admin arguments and declared configuration.
  * Output: diagnostics or launch status. Effects: may install/update host components,
  * change desktop preferences, launch the app, ask for an exact human ID, scaffold
  * one missing private human profile from the minimal example contract, create one
@@ -19,6 +19,7 @@ import { buildGovernorInitialization, hostTaskState } from './initialize-governo
 import { GovernorHumanResolver } from './governor-human-resolver.mjs';
 import { assertHumanProfileId } from './human-profile-bootstrap.mjs';
 import { HumanProfileStore } from './human-profile-store.mjs';
+import { discoverManualAdminBootstrapScope } from './prepare-native-admin.mjs';
 import { withGovernorRegistryLock } from './plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/governor-registry-lock.mjs';
 import { ensurePersonalGovernor, readGovernorRegistry, selectGovernorHuman } from './governor-launch.mjs';
 
@@ -568,13 +569,45 @@ while (args.length) {
   else fail(`unknown or incomplete option: ${option}`);
 }
 
-if (requestFile && action !== 'preflight-admin') fail('--request is only valid for preflight-admin');
+if (requestFile && !['discover-admin-scope', 'preflight-admin'].includes(action))
+  fail('--request is only valid for discover-admin-scope or preflight-admin');
 if (humansDir && action !== 'setup') fail('--humans-dir is only valid for setup');
 if (action === 'preflight-admin') {
   if (!requestFile || profile || migrate || human || humanDir || thread) {
     fail('usage: launcher.mjs preflight-admin --request REQUEST.json');
   }
   process.stdout.write(run(process.execPath, [path.join(scriptDir, 'admin-initialization.mjs'), requestFile]));
+} else if (action === 'discover-admin-scope') {
+  if (!requestFile || profile || migrate || human || humanDir || thread) {
+    fail('usage: launcher.mjs discover-admin-scope --request REQUEST.json');
+  }
+  let client;
+  try {
+    const request = JSON.parse(fs.readFileSync(requestFile, 'utf8'));
+    client = await connectNativeAppServer({
+      socketPath: path.join(codexHome, 'app-server-control/app-server-control.sock'),
+    });
+    const result = await discoverManualAdminBootstrapScope(request, client);
+    const projectSelection = 'attached-authorized-intersection';
+    const selectionEvidence = { profilePath: result.profilePath,
+      savedProjectId: result.savedProject.id, rootsComplete: result.savedProject.rootsComplete };
+    let preflightRequest;
+    const approval = request.authorization;
+    if (approval?.humanApproved === true && approval.profileId === result.profileId &&
+        approval.workflowId === result.workflowId && approval.logicalProjectId === result.logicalProjectId) {
+      const authorization = { ...approval, projectIds: result.projectIds,
+        projectSelection, selectionEvidence };
+      preflightRequest = { profilePath: result.profilePath, profileId: result.profileId,
+        workflowId: result.workflowId, projectIds: result.projectIds,
+        logicalProjectId: result.logicalProjectId, runtimeScope: result.runtimeScope,
+        savedProjectId: result.savedProject.id,
+        savedProjects: result.projectIds.map(projectId => ({ projectId, savedProjectId: result.savedProject.id })),
+        generation: request.generation || 1, authorization };
+    }
+    process.stdout.write(`${JSON.stringify({ ...result, projectSelection, selectionEvidence,
+      ...(preflightRequest ? { preflightRequest } : {}) })}\n`);
+  } catch (error) { fail(error.message); }
+  finally { client?.close(); }
 } else if (action === 'setup') setup(profile, migrate, humansDir);
 else if (action === 'doctor') doctor();
 else if (action === 'launch') launch().catch(error => fail(error.message));
@@ -597,5 +630,5 @@ else if (action === 'initialize-governor') {
     path.join(scriptDir, 'initialize-governor.mjs'),
     '--human', human, '--human-dir', humanDir, '--thread', thread,
   ]));
-} else fail(`unknown action: ${action}; expected setup, doctor, launch, prepare-human-profile, initialize-governor, or preflight-admin`);
+} else fail(`unknown action: ${action}; expected setup, doctor, launch, prepare-human-profile, initialize-governor, discover-admin-scope, or preflight-admin`);
 }

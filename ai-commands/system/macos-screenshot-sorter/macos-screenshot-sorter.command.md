@@ -29,6 +29,64 @@ Use `macos-screenshot-sorter` on macOS to move only macOS-style screenshot files
 
 Every invocation is profile-aware: the host verifies workflow authorization and supplies the selected profile-owned configuration as `AI_COMMAND_CONFIG_PATH`.
 
+## Run against any authorized profile
+
+Use this section when a terminal agent such as Hermes needs to run the command directly. Do not infer a profile from the current directory. Supply the exact absolute **profile project** that contains `ai-profile/`, its profile ID, and a workflow that explicitly allows `macos-screenshot-sorter`.
+
+1. In that profile’s `ai-profile/<profile-id>/<profile-id>-work-profile.yml`, bind the command to its private configuration file and list the command under the intended workflow:
+
+   ```yaml
+   commands:
+     - id: macos-screenshot-sorter
+       config: commands-config/macos-screenshot-sorter.env
+   workflows:
+     - path: <workflow>.workflow.md
+       platform: <platform-id>
+       commands:
+         - macos-screenshot-sorter
+   ```
+
+2. Copy `macos-screenshot-sorter.command.example.config` to the referenced private configuration path and set every `SCREENSHOT_SORTER_*` value to real local paths. In particular, set the source and destination directories, a unique LaunchAgent label, `/usr/bin/python3`, and an executable `SCREENSHOT_SORTER_ELECTRON_BIN` if the agent will open the UI. The command deliberately has no operational fallbacks.
+
+3. Set these five shell variables once. Replace every angle-bracket value; do not use them literally. `PROFILE_PROJECT` is the repository containing the profile—not necessarily the AI Fleas command repository.
+
+   ```bash
+   AI_FLEAS_REPO="/absolute/path/to/ai-fleas"
+   PROFILE_PROJECT="/absolute/path/to/profile-project"
+   PROFILE_ID="<profile-id>"
+   WORKFLOW="<workflow>.workflow.md"
+   PLATFORM="<platform-id>"
+   ```
+
+4. Run the activation preflight, then the command’s read-only resolved-runtime check:
+
+   ```bash
+   AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
+     bash "$AI_FLEAS_REPO/ai-commands/_runtime/profile/activate-profile.sh" \
+       --profile "$PROFILE_ID" --workflow "$WORKFLOW" --platform "$PLATFORM" --command macos-screenshot-sorter
+
+   AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
+     bash "$AI_FLEAS_REPO/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh" probe
+   ```
+
+   The first command must print an `AI_COMMAND_CONFIG_PATH` and an `AI_COMMANDS_ROOT` that resolves to this AI Fleas checkout. `AI_AGENT_PLATFORM` is optional only when the profile’s workflow can resolve its default platform. Supplying it makes an agent run reproducible. A successful `probe` prints the exact source, destination, candidate label, logs, and both timing values; it does not move files or install anything.
+
+5. Reuse the **same four context variables** for the required operation:
+
+   ```bash
+   # Open the settings/Screenshots app in the current macOS GUI session.
+   AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
+     bash "$AI_FLEAS_REPO/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh" ui
+
+   # Scan and sort once; this is a real file-moving operation.
+   AI_CONFIG_PROJECT="$PROFILE_PROJECT" AI_WORK_PROFILE_ID="$PROFILE_ID" AI_FLOW_WORKFLOW="$WORKFLOW" AI_AGENT_PLATFORM="$PLATFORM" \
+     bash "$AI_FLEAS_REPO/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh" sort
+   ```
+
+Only use `install --apply`, legacy suspension, migration, or uninstall after following [the acceptance scenario](macos-screenshot-sorter.scenario.md). A manual `sort` or `ui` run does not prove that launchd has the required Desktop/TCC access after login.
+
+Common preflight failures are intentional: `PROFILE_REQUIRED` means the profile ID or workflow was omitted; `PROFILE_BLOCKED: command is not allowed by workflow` means add the binding above; `missing profile-owned command config` means the configured private file does not exist; and `SCREENSHOT_SORTER_ELECTRON_REQUIRED` means the configured UI runtime path is not executable. Do not bypass these checks by exporting `AI_COMMAND_CONFIG_PATH` directly.
+
 ## Supported platform
 
 This command is **macOS-only**. Every operation rejects a non-macOS host; its background integration uses a per-user `launchd` LaunchAgent and its file recognition is specific to Apple screenshot names.
@@ -58,7 +116,7 @@ The screenshot-name/image-type recognition rule and collision-safe suffix alloca
 
 `probe` reports the resolved source, destination, LaunchAgent labels, plist locations, log locations, and recovery interval. It enables an agent to execute the live scenario without guessing any profile-specific path.
 
-The UI uses an installed Electron runtime. Set `SCREENSHOT_SORTER_ELECTRON_BIN` to a managed runtime when necessary; the command otherwise looks for its own launcher runtime and the repository’s existing macOS Electron launcher runtime.
+The UI uses the Electron runtime explicitly configured as `SCREENSHOT_SORTER_ELECTRON_BIN` in the selected profile. This avoids silently borrowing another command’s runtime.
 
 For a real background-job test, follow [the agent acceptance scenario](macos-screenshot-sorter.scenario.md) as the authoritative procedure. It distinguishes what an agent can verify in the current GUI session from the separate human logout/login gate.
 

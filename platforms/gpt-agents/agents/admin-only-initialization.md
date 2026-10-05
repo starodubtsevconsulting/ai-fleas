@@ -231,6 +231,27 @@ must come from the human; a JSON flag is not independent evidence of agreement.
 The prepared authorization is explicitly unverified: the controller's trusted
 `verifyApproval` host port must validate actual direct-human approval before effects.
 
+For a manual Admin bootstrap where the human names the exact profile/workflow logical
+project but not individual project IDs, first call
+`node platforms/gpt-agents/launcher.mjs discover-admin-scope --request REQUEST.json`.
+The command calls `discoverManualAdminBootstrapScope` from `prepare-native-admin.mjs`
+and returns `projectSelection: attached-authorized-intersection` plus its saved-project
+evidence. Supply the
+configured operational profile path explicitly. The resolver selects the unique
+native saved project by the exact logical-project name, reads its complete roots via
+`project/read`, and returns only the intersection with that profile/workflow's
+canonical project declarations. Use that non-empty result as the exact project
+subset for preflight. When the discovery request includes the controller's direct-human
+authorization evidence for the exact profile, workflow, and logical project, the
+command returns a complete `preflightRequest`. Its authorization records
+`projectSelection: attached-authorized-intersection` and the immutable saved-project
+discovery evidence; pass that request unchanged to `preflight-admin`. The later
+initializer still performs fresh complete-root discovery before effects. Do not infer profile precedence from the current directory,
+Git tracked/ignored state, a nearby same-ID profile, a screenshot, or the primary
+path returned by an app project listing. Missing configured profile selection,
+ambiguous saved-project names, incomplete native roots, and an empty intersection
+remain blockers before lifecycle effects.
+
 The supported controller transaction in `initialize-workflow-admin.mjs` uses fresh
 host ports to inspect the task catalog, saved-project catalog, exact bindings and
 platform prerequisites. Reuse only an exact active Admin with matching identity,
