@@ -259,16 +259,23 @@ if (isPrimaryInstance) {
   });
   app.on('second-instance', showWindow);
   app.whenReady().then(() => {
+    const { globalShortcut } = require('electron');
+    
     createWindow();
     
     // Register global ESC shortcut to close full-screen view
-    const { globalShortcut } = require('electron');
-    globalShortcut.register('Escape', () => {
+    const escRegistered = globalShortcut.register('Escape', () => {
       console.error('[ESC] Global ESC shortcut pressed');
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('escape-key-pressed');
       }
     });
+    
+    if (!escRegistered) {
+      console.error('[ESC] WARNING: ESC shortcut registration failed!');
+    } else {
+      console.error('[ESC] ESC shortcut registered successfully');
+    }
     
     tray = new Tray(cameraIcon());
     // Keep a visible status-bar affordance even if macOS does not render the
