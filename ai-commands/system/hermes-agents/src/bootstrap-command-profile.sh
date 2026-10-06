@@ -4,7 +4,7 @@
 # Input/output: reads the caller's argv, exports profile/workflow selectors, and runs the guard.
 # Effects: environment exports and validation only; it does not create, update, or delete profiles.
 
-if [[ "${1:-}" == initialize || "${1:-}" == initialize-system || "${1:-}" == reinitialize-system || "${1:-}" == status-system || "${1:-}" == reinitialize || "${1:-}" == re-init || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow || "${1:-}" == connection ]]; then
+if [[ "${1:-}" == initialize || "${1:-}" == initialize-system || "${1:-}" == reinitialize-system || "${1:-}" == status-system || "${1:-}" == reinitialize || "${1:-}" == re-init || "${1:-}" == reconcile || "${1:-}" == configure || "${1:-}" == setup || "${1:-}" == delete-workflow || "${1:-}" == connection || "${1:-}" == context ]]; then
   bootstrap_args=("$@")
   for ((bootstrap_index=1; bootstrap_index<${#bootstrap_args[@]}; bootstrap_index++)); do
     case "${bootstrap_args[bootstrap_index]}" in

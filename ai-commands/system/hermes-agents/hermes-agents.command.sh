@@ -14,6 +14,7 @@ readonly WORKFLOW_BINDING_WRITER="${HERMES_WORKFLOW_BINDING_WRITER:-${SOURCE_DIR
 readonly WORKFLOW_REALIZER="${HERMES_WORKFLOW_REALIZER:-${SOURCE_DIR}/realize-workflow.py}"
 readonly GROUP_CONFIGURATOR="${HERMES_GROUP_CONFIGURATOR:-${SOURCE_DIR}/configure-group.py}"
 readonly AUXILIARY_CONFIGURATOR="${HERMES_AUXILIARY_CONFIGURATOR:-${COMMAND_DIR}/configure-auxiliary-models.mjs}"
+readonly CONTEXT_AGENT_COMMAND="${HERMES_CONTEXT_AGENT_COMMAND:-${COMMAND_DIR}/context-agent.mjs}"
 readonly PYTHON_BIN="${HERMES_PYTHON_BIN:-${HERMES_INSTALL_ROOT:-${HOME}/.hermes/hermes-agent}/venv/bin/python}"
 readonly HERMES_UPSTREAM_REPOSITORY="${HERMES_UPSTREAM_REPOSITORY:-https://github.com/NousResearch/hermes-agent.git}"
 source "${SOURCE_DIR}/command-shell-lib.sh"
@@ -23,6 +24,10 @@ action="${1:-}"
 shift
 
 case "${action}" in
+  context)
+    [[ -x "${CONTEXT_AGENT_COMMAND}" ]] || { printf '%s\n' 'HERMES_CONTEXT_COMMAND_UNAVAILABLE: context-agent.mjs is not executable.' >&2; exit 2; }
+    exec node "${CONTEXT_AGENT_COMMAND}" "$@"
+    ;;
   connection)
     connection_action="${1:-}"
     [[ -n "${connection_action}" ]] || { usage >&2; exit 2; }
