@@ -9,12 +9,36 @@ To run the UI and keep it running for debugging:
 2. Kill old processes: `pkill -f "Screenshot Sorter"`
 3. Launch the app with the latest code
 
+### Method 1: Using Hermes Desktop (Recommended)
+
+When running from Hermes Desktop, the profile is automatically activated. Simply run:
+
 ```bash
-export AI_CONFIG_PROJECT="/Users/sergii/projects/sc/ai-fleas"
-export AI_WORK_PROFILE_ID="sc"
-export AI_FLOW_WORKFLOW="dev.workflow.md"
-export AI_AGENT_PLATFORM="sc"
 bash /Users/sergii/projects/sc/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
+```
+
+### Method 2: Using Terminal (Manual Profile Setup)
+
+If running from a regular terminal, you must activate the profile first:
+
+```bash
+# Activate the profile (sets up environment variables)
+bash /Users/sergii/projects/sc/ai-commands/_runtime/profile/activate-profile.sh \
+  --profile sc --workflow dev.workflow.md --platform sc --command macos-screenshot-sorter
+
+# Then launch the app
+bash /Users/sergii/projects/sc/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
+```
+
+### Verify App is Running
+
+Check the logs for activity:
+```bash
+# Watch for screenshot activity
+tail -f ~/Library/Logs/AI\ Fleas/org.sergii.ai-fleas.screenshot-sorter.out.log
+
+# Check for errors
+tail -f ~/Library/Logs/AI\ Fleas/org.sergii.ai-fleas.screenshot-sorter.err.log
 ```
 
 ## App Structure
@@ -80,6 +104,7 @@ The Electron app writes to system log directory:
 | App exits immediately | Check logs in `~/Library/Logs/AI Fleas/` | Look for errors |
 | GPU errors | Run with `--disable-gpu` | Known Electron issue, usually harmless |
 | IPC calls fail | Verify `main.cjs` IPC handlers registered | Check lines 169-177 |
+| `EPIPE: write EPIPE` error | Check for `console.log()` in `main.cjs` | Use `console.error()` only |
 
 ## Key Files
 
@@ -89,20 +114,6 @@ The Electron app writes to system log directory:
 | `launcher/electron/main.cjs` | Electron main process, config parsing, IPC |
 | `launcher/renderer/index.html` | UI renderer, Angular component, calls `window.screenshotSorter.*` |
 | `app.sh` | Launch wrapper (passes `"$@"` args) |
-
-## Debug Command
-
-To run with full debug output:
-```bash
-pkill -f "Screenshot Sorter" 2>/dev/null
-export AI_CONFIG_PROJECT="/Users/sergii/projects/sc/ai-fleas"
-export AI_WORK_PROFILE_ID="sc"
-export AI_FLOW_WORKFLOW="dev.workflow.md"
-export AI_AGENT_PLATFORM="sc"
-bash /Users/sergii/projects/sc/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui 2>&1 | tee /tmp/screenshot-sorter.log
-```
-
-Watch for the `[DEBUG]` lines in the output to verify config is being read.
 
 ## Development Workflow
 
@@ -126,17 +137,16 @@ When `ELECTRON_DEV=1` is set, the app watches `index.html` every 500ms and auto-
 
 ## Profile Requirement
 
-The command requires an AI Profile to be set. To run the UI:
+**The command requires an AI Profile to be set.**
 
+### When Running from Hermes Desktop
+The profile is automatically activated before the command runs. No manual setup needed.
+
+### When Running from Terminal
+You must activate the profile first:
 ```bash
-export AI_CONFIG_PROJECT="/Users/sergii/projects/sc/ai-fleas"
-export AI_WORK_PROFILE_ID="sc"
-export AI_FLOW_WORKFLOW="dev.workflow.md"
-export AI_AGENT_PLATFORM="sc"
-bash /Users/sergii/projects/sc/ai-commands/_runtime/profile/activate-profile.sh --profile sc --workflow dev.workflow.md --platform sc --command macos-screenshot-sorter
-
-# Then launch the app
-ELECTRON_DEV=1 bash /Users/sergii/projects/sc/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
+bash /Users/sergii/projects/sc/ai-commands/_runtime/profile/activate-profile.sh \
+  --profile sc --workflow dev.workflow.md --platform sc --command macos-screenshot-sorter
 ```
 
 ## Electron Console Logging
@@ -219,6 +229,7 @@ npx playwright test --debug  # Debug mode
 Tests should match scenario step descriptions:
 - Scenario step: "Install candidate" → Test: ` candidate installs and loads correctly`
 - Scenario step: "Tab order verified" → Test: `Screenshots tab appears before Settings tab`
+
 ## Common Testing Pitfalls
 
 ### Do NOT poll for test results with repeated sleep commands
@@ -318,7 +329,6 @@ fullImage: async () => {
 ```
 
 ### Why data URLs over file:// URLs in tests?
-
 - **Security**: Browsers block `file://` URLs in Playwright tests for security
 - **Portability**: No hardcoded paths needed - works for any developer
 - **Simplicity**: One-line return value instead of file creation logic
