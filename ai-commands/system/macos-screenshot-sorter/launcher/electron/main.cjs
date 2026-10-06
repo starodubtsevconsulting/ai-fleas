@@ -24,7 +24,7 @@ function readConfig() {
   const raw = fs.readFileSync(configPath, 'utf8');
   const values = {};
   for (const line of raw.split(/\r?\n/)) {
-    const match = line.match(/^([A-Z0-9_]+)=(?:"([^"]*)"|'([^']*)'|([^#\s]*))/);
+    const match = line.match(/^([A-Z0-9_]+)=(?:("([^"]*)")|'([^']*)'|([^#\s]*))/);
     if (match) {
       values[match[1]] = match[2] ?? match[3] ?? match[4] ?? '';
     }
@@ -101,7 +101,7 @@ function settings() {
     settleSeconds, startIntervalSeconds, candidateLabel: requiredConfig(values, 'SCREENSHOT_SORTER_LABEL')
   };
 }
-const DATE_FOLDER = /^(\d{4}-\d{2}-\d{2})$/;
+const DATE_FOLDER = /^(d{4}-d{2}-d{2})$/;
 const IMAGE_SUFFIX = /\.(?:png|jpe?g|heic|webp|tiff?)$/i;
 const SCREENSHOT_NAME = /^(?:Screenshot|Screen Shot)(?:[ _-]|$)/i;
 function isContained(child, parent) {
@@ -211,12 +211,48 @@ function createWindow() {
   mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshot Sorter', icon: windowIcon, backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
   mainWindow.setMenuBarVisibility(false);
   
+  console.error('[ESC] Registering before-input-event handler');
+  console.log('[ESC] Registering before-input-event handler');
+  
+  // Add ESC key handler via before-input-event for more reliable capture
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    // Log all input events for debugging
+    const now = new Date().toISOString();
+    const logMessage = `[INPUT] ${input.type}: key=${input.key}, code=${input.code} at ${now}\n`;
+    console.error(logMessage.trim());
+    fs.appendFileSync('/tmp/screenshot-sorter-esc.log', logMessage);
+    
+    if (input.key === 'Escape') {
+      console.error('[ESC] before-input-event captured ESC');
+      fs.appendFileSync('/tmp/screenshot-sorter-esc.log', `[ESC] before-input-event at ${now}\n`);
+      mainWindow.webContents.send('escape-key-pressed');
+    }
+  });
+  
+  console.error('[ESC] before-input-event handler registered');
+  console.log('[ESC] before-input-event handler registered');
+  
   rendererServer.listen(0, '127.0.0.1', () => {
     const port = rendererServer.address().port;
     // Log to stderr only (console.error for Electron apps)
     console.error(`[DEV] Renderer server running on http://127.0.0.1:${port}`);
     // Load Angular app via HTTP instead of file://
-    mainWindow.loadURL(`http://127.0.0.1:${port}/`);
+    mainWindow.webContents.loadURL(`http://127.0.0.1:${port}/`);
+  
+    // Add ESC key handler via 'keydown' event in main process
+    console.error('[ESC] Registering keydown handler');
+    console.log('[ESC] Registering keydown handler');
+  
+    mainWindow.webContents.on('keydown', (event, key) => {
+      console.error(`[ESC] keydown event: key=${key}`);
+      console.log(`[ESC] keydown event: key=${key}`);
+      if (key === 'Escape') {
+        console.error('[ESC] keydown captured ESC');
+        console.log('[ESC] keydown captured ESC');
+        mainWindow.webContents.send('escape-key-pressed');
+      }
+    });
+  
     mainWindow.on('close', (event) => { if (allowQuit) return; event.preventDefault(); mainWindow.hide(); if (app.dock) app.dock.hide(); });
   }).on('error', (err) => {
     console.error(`[DEV] Server error: ${err.message}`);
@@ -260,21 +296,32 @@ if (isPrimaryInstance) {
   app.on('second-instance', showWindow);
   app.whenReady().then(() => {
     const { globalShortcut } = require('electron');
+    const fs = require('node:fs');
     
     createWindow();
     
     // Register global ESC shortcut to close full-screen view
     const escRegistered = globalShortcut.register('Escape', () => {
+      const now = new Date().toISOString();
       console.error('[ESC] Global ESC shortcut pressed');
+      fs.appendFileSync('/tmp/screenshot-sorter-esc.log', `[ESC] Callback fired at ${now}\n`);
       if (mainWindow && !mainWindow.isDestroyed()) {
+        console.error('[ESC] Sending escape-key-pressed to renderer');
+        fs.appendFileSync('/tmp/screenshot-sorter-esc.log', `[ESC] Sending escape-key-pressed to renderer at ${now}\n`);
         mainWindow.webContents.send('escape-key-pressed');
       }
     });
     
+    // Write to a log file for debugging
+    const logPath = '/tmp/screenshot-sorter-esc.log';
+    fs.appendFileSync(logPath, `ESC registration: ${escRegistered ? 'SUCCESS' : 'FAILED'} at ${new Date().toISOString()}\n`);
+    
     if (!escRegistered) {
       console.error('[ESC] WARNING: ESC shortcut registration failed!');
+      fs.appendFileSync(logPath, `[ESC] WARNING: ESC shortcut registration failed! at ${new Date().toISOString()}\n`);
     } else {
       console.error('[ESC] ESC shortcut registered successfully');
+      fs.appendFileSync(logPath, `[ESC] ESC shortcut registered successfully at ${new Date().toISOString()}\n`);
     }
     
     tray = new Tray(cameraIcon());
@@ -291,6 +338,7 @@ if (isPrimaryInstance) {
     ]));
     tray.on('click', showWindow);
   });
+  
   app.on('before-quit', (event) => { if (!allowQuit) event.preventDefault(); if (rendererServer) rendererServer.close(); });
   app.on('activate', showWindow); app.on('window-all-closed', () => {});
 }
