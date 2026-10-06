@@ -20,7 +20,7 @@ agent_log="${HERMES_AUXILIARY_AGENT_LOG:-${hermes_home}/profiles/${profile}/logs
 [[ -f "$db" ]] || { printf 'HERMES_AUXILIARY_USAGE_BLOCKED: state database missing\n' >&2; exit 1; }
 
 for task in "${required_tasks[@]}"; do
-  [[ "$task" == compression || "$task" == goal_judge ]] || { printf 'HERMES_AUXILIARY_USAGE_INVALID_TASK: %s\n' "$task" >&2; exit 2; }
+    [[ "$task" == compression || "$task" == goal_judge || "$task" == title_generation ]] || { printf 'HERMES_AUXILIARY_USAGE_INVALID_TASK: %s\n' "$task" >&2; exit 2; }
   provider="$($hermes_bin -p "$profile" config get "auxiliary.${task}.provider" | tail -1)"
   model="$($hermes_bin -p "$profile" config get "auxiliary.${task}.model" | tail -1)"
   base_url="$($hermes_bin -p "$profile" config get "auxiliary.${task}.base_url" | tail -1)"

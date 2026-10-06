@@ -291,6 +291,11 @@ The normal minimal Hermes profile is one foreground agent plus both auxiliary ta
 session context; `goal_judge` evaluates bounded-goal progress. They may use one shared auxiliary model, but neither slot
 is optional for a profile presented as normally configured. They do not create additional workflow agents.
 
+A workflow may alternatively declare an ordered `auxiliary_models.<workflow>.routes` list. Each route names one provider,
+model, connection, caller list, and task mapping. A caller/task pair may occur only once across the list, so a short task
+such as `title_generation` can use a small local model while `compression` remains on a model with an adequate context
+window.
+
 ```mermaid
 flowchart TD
   P[Normal minimal Hermes profile] --> F[Foreground main-model agent]
