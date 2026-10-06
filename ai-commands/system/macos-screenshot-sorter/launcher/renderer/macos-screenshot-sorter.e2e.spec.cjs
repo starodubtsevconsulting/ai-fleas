@@ -429,7 +429,11 @@ test('Folder-open icon shows only icon without text label', async ({ page }) => 
       chooseFolder: async () => null,
       save: async () => ({ output: 'Settings saved' }),
       thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
-      fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%202026-10-05%20at%2010-30-00.png`,
+      fullImage: async () => {
+        // Return a data URL that Angular can load (in real app, this would be file:// URL)
+        // Data URLs work in Playwright tests and avoid security restrictions
+        return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==';
+      },
       openFolder: async () => null
     };
   });
@@ -463,7 +467,11 @@ test('Full screen view opens when thumbnail is clicked', async ({ page }) => {
       chooseFolder: async () => null,
       save: async () => ({ output: 'Settings saved' }),
       thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
-      fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%202026-10-05%20at%2010-30-00.png`,
+      fullImage: async () => {
+        // Return a data URL that Angular can load (in real app, this would be file:// URL)
+        // Data URLs work in Playwright tests and avoid security restrictions
+        return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==';
+      },
       openFolder: async () => null
     };
   });
@@ -500,7 +508,11 @@ test('Full screen view shows correct screenshot', async ({ page }) => {
       chooseFolder: async () => null,
       save: async () => ({ output: 'Settings saved' }),
       thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
-      fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%202026-10-05%20at%2010-30-00.png`,
+      fullImage: async () => {
+        // Return a data URL that Angular can load (in real app, this would be file:// URL)
+        // Data URLs work in Playwright tests and avoid security restrictions
+        return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==';
+      },
       openFolder: async () => null
     };
   });
@@ -532,7 +544,8 @@ test('Full screen view shows correct screenshot', async ({ page }) => {
   const fullScreenImg = fullScreenOverlay.locator('img');
   await expect(fullScreenImg).toBeVisible();
   const src = await fullScreenImg.getAttribute('src');
-  expect(src).toContain('file://');
+  // In tests, fullImage returns base64 data URL; in real app, it returns file:// URL
+  expect(src).toContain('data:image/png');
 });
 
 test('Full screen view closes with X button', async ({ page }) => {
@@ -547,7 +560,11 @@ test('Full screen view closes with X button', async ({ page }) => {
       chooseFolder: async () => null,
       save: async () => ({ output: 'Settings saved' }),
       thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
-      fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%202026-10-05%20at%2010-30-00.png`,
+      fullImage: async () => {
+        // Return a data URL that Angular can load (in real app, this would be file:// URL)
+        // Data URLs work in Playwright tests and avoid security restrictions
+        return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==';
+      },
       openFolder: async () => null
     };
   });
@@ -589,7 +606,11 @@ test('Full screen view closes when clicking outside', async ({ page }) => {
       chooseFolder: async () => null,
       save: async () => ({ output: 'Settings saved' }),
       thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
-      fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%202026-10-05%20at%2010-30-00.png`,
+      fullImage: async () => {
+        // Return a data URL that Angular can load (in real app, this would be file:// URL)
+        // Data URLs work in Playwright tests and avoid security restrictions
+        return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==';
+      },
       openFolder: async () => null
     };
   });

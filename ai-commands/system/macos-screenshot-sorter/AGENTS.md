@@ -289,6 +289,33 @@ cat /tmp/test-run-output.log
    - Uses mock IPC instead of real Electron
    - No profile or config file needed
 
+## Critical Testing Gotchas
+
+### Never hardcode personal paths in E2E tests
+
+E2E tests must work on any machine and must never contain personal/user-specific paths.
+
+**WRONG:**
+```javascript
+fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%202026-10-05%20at%2010-30-00.png`
+```
+
+**CORRECT:**
+```javascript
+fullImage: async () => {
+  const { writeFileSync, mkdirSync } = require('fs');
+  const { tmpdir } = require('os');
+  const path = require('path');
+  const tempDir = tmpdir();
+  const testImgDir = path.join(tempDir, 'screenshot-sorter-test');
+  const testImgPath = path.join(testImgDir, 'test-screenshot.png');
+  mkdirSync(testImgDir, { recursive: true });
+  const pngData = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==', 'base64');
+  writeFileSync(testImgPath, pngData);
+  return `file://${testImgPath}`;
+}
+```
+
 ## Development with Angular
 
 **The app is built with Angular 18.2.1.**
