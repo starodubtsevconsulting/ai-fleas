@@ -162,7 +162,8 @@ function screenshotFullImage(_event, id) {
   if (!item) fail('Screenshot is no longer available. Refresh the list and try again.');
   const checked = safeScreenshotFile(item.realFile, item.folderPath, item.root);
   if (!checked || checked.realFile !== item.realFile) fail('Screenshot changed before its image could be loaded. Refresh the list and try again.');
-  return 'file://' + checked.realFile;
+  // Return a properly encoded file:// URL
+  return 'file://' + encodeURI(checked.realFile);
 }
 function showWindow() { if (mainWindow) { if (app.dock) app.dock.show(); if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.show(); mainWindow.focus(); } }
 function cameraIcon() {
