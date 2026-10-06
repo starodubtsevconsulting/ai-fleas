@@ -97,3 +97,16 @@ bash /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sort
 ```
 
 Watch for the `[DEBUG]` lines in the output to verify config is being read.
+
+## Electron Console Logging
+
+**Warning**: Do not use `console.log()` in `main.cjs` for debugging in Electron apps.
+
+The `console.log()` writes to Node.js `process.stdout`, which in an Electron app (especially when launched from a shell script) may not have a valid stdout/stderr stream attached. This causes `EPIPE: write EPIPE` errors when the renderer calls functions that use `console.log()`.
+
+**Rule**: Only use `console.error()` for fatal errors that should cause `app.exit(1)`.
+
+If you need to debug config or other values:
+1. Write to a log file instead
+2. Send messages to the renderer for display in the UI
+3. Use `console.error()` only for fatal issues
