@@ -204,7 +204,11 @@ function createWindow() {
   });
   
   // Create BrowserWindow BEFORE loading URL (window is visible in app.whenReady)
-  mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshot Sorter', icon: cameraIcon(), backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+  // Use the app's bundled icon file (.icns on macOS)
+  const appIconPath = path.join(__dirname, '../Resources/ScreenshotSorter.icns');
+  const windowIcon = fs.existsSync(appIconPath) ? appIconPath : cameraIcon();
+  
+  mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshot Sorter', icon: windowIcon, backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
   mainWindow.setMenuBarVisibility(false);
   
   rendererServer.listen(0, '127.0.0.1', () => {
