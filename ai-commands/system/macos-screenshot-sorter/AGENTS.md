@@ -98,6 +98,24 @@ bash /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sort
 
 Watch for the `[DEBUG]` lines in the output to verify config is being read.
 
+## Development Workflow
+
+**Always restart the app after changes** to see UI updates:
+
+```bash
+# Kill the app
+pkill -f "Screenshot Sorter" 2>/dev/null
+
+# Restart
+export AI_CONFIG_PROJECT="/Users/sergii/projects/sc/ai-fleas"
+export AI_WORK_PROFILE_ID="sc"
+export AI_FLOW_WORKFLOW="dev.workflow.md"
+export AI_AGENT_PLATFORM="sc"
+bash /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
+```
+
+Electron does not hot-reload renderer files automatically. Changes to `index.html` or other renderer assets require a full app restart to see updates in the UI.
+
 ## Electron Console Logging
 
 **Warning**: Do not use `console.log()` in `main.cjs` for debugging in Electron apps.
