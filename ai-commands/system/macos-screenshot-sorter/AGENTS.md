@@ -272,3 +272,23 @@ Then run with:
 bash test-runner.sh
 cat /tmp/test-run-output.log
 ```
+
+## Testing Without Profile
+
+**Both test methods run WITHOUT profile requirements:**
+
+1. **Deterministic tests** (`macos-screenshot-sorter.command.test.sh`):
+   - Uses temp working dir with `--source-dir`/`--destination-dir`
+   - Creates its own test profile only for shell wrapper validation
+   - No manual profile setup needed
+
+2. **Playwright E2E tests** (`launcher/renderer/*.e2e.spec.cjs`):
+   - Runs HTML file directly from filesystem
+   - Uses mock IPC instead of real Electron
+   - No profile or config file needed
+
+## Default Tab Behavior
+
+**Library (Screenshots) panel is visible by default. Settings panel is hidden.**
+
+To verify Settings content in tests, click the Settings tab first.

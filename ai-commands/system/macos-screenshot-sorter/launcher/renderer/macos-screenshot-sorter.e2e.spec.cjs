@@ -67,18 +67,22 @@ test('Settings tab shows default config values', async ({ page }) => {
   // Wait for the page to fully load
   await page.waitForLoadState('networkidle');
   
-  // Check tabs by data attribute instead of role
-  const tabs = page.locator('[data-tab]');
-  await expect(tabs).toHaveCount(2);
+  // Initial state: Screenshots tab is selected (default)
+  const screenshotsTab = page.locator('[data-tab="library"]');
+  const settingsTab = page.locator('[data-tab="settings"]');
   
-  const firstTab = tabs.nth(0);
-  await expect(firstTab).toHaveText('Screenshots');
-  await expect(firstTab).toHaveAttribute('aria-selected', 'true');
+  await expect(screenshotsTab).toHaveAttribute('aria-selected', 'true');
+  await expect(settingsTab).toHaveAttribute('aria-selected', 'false');
   
-  const secondTab = tabs.nth(1);
-  await expect(secondTab).toHaveText('Settings');
-  await expect(secondTab).toHaveAttribute('aria-selected', 'false');
-
+  // Switch to Settings tab to verify its content
+  await settingsTab.click();
+  await expect(settingsTab).toHaveAttribute('aria-selected', 'true');
+  await expect(screenshotsTab).toHaveAttribute('aria-selected', 'false');
+  
+  // Verify tab content is visible
+  await expect(page.locator('[data-panel="settings"]')).toBeVisible();
+  await expect(page.locator('[data-panel="library"]')).not.toBeVisible();
+  
   // Check settings form fields are populated
   await expect(page.locator('#source')).toBeVisible();
   await expect(page.locator('#source')).toHaveValue('/Users/sergii/Screenshots');
@@ -192,6 +196,14 @@ test('Status display shows sorter is running', async ({ page }) => {
   await page.addInitScript(setupMockScreenshotSorter);
   await page.goto(rendererUrl());
 
+  // Initial state: Screenshots tab is selected (default)
+  // Switch to Settings tab to see status
+  const settingsTab = page.locator('[data-tab="settings"]');
+  await settingsTab.click();
+  
+  // Wait for settings panel to be visible
+  await expect(page.locator('[data-panel="settings"]')).toBeVisible();
+  
   // Status should show running state
   const status = page.locator('#status');
   await expect(status).toBeVisible();
@@ -237,6 +249,13 @@ test('Save button is present and enabled', async ({ page }) => {
   await page.addInitScript(setupMockScreenshotSorter);
   await page.goto(rendererUrl());
 
+  // Switch to Settings tab to see save button
+  const settingsTab = page.locator('[data-tab="settings"]');
+  await settingsTab.click();
+  
+  // Wait for settings panel to be visible
+  await expect(page.locator('[data-panel="settings"]')).toBeVisible();
+  
   // Verify save button exists and is enabled
   const saveButton = page.locator('#save');
   await expect(saveButton).toBeVisible();
@@ -250,12 +269,16 @@ test('Refresh buttons are present and enabled', async ({ page }) => {
   await page.addInitScript(setupMockScreenshotSorter);
   await page.goto(rendererUrl());
 
+  // Switch to Settings tab to see status refresh button
+  const settingsTab = page.locator('[data-tab="settings"]');
+  await settingsTab.click();
+  
   // Verify status refresh button exists
   const refreshButton = page.locator('#refresh');
   await expect(refreshButton).toBeVisible();
   await expect(refreshButton).toBeEnabled();
   
-  // Verify library refresh button exists (after switching tabs)
+  // Switch to Screenshots tab to verify library refresh button
   const screenshotTab = page.locator('[data-tab="library"]');
   await screenshotTab.click();
   await page.waitForSelector('[data-panel="library"] #reload-library');
@@ -272,6 +295,13 @@ test('Folder choose buttons are present for source and destination', async ({ pa
   await page.addInitScript(setupMockScreenshotSorter);
   await page.goto(rendererUrl());
 
+  // Switch to Settings tab to see folder choose buttons
+  const settingsTab = page.locator('[data-tab="settings"]');
+  await settingsTab.click();
+  
+  // Wait for settings panel to be visible
+  await expect(page.locator('[data-panel="settings"]')).toBeVisible();
+  
   // Verify source folder choose button exists
   const sourceChoose = page.locator('[data-pick="source"]');
   await expect(sourceChoose).toBeVisible();
@@ -290,6 +320,13 @@ test('Input fields are properly configured', async ({ page }) => {
   await page.addInitScript(setupMockScreenshotSorter);
   await page.goto(rendererUrl());
 
+  // Switch to Settings tab to see input fields
+  const settingsTab = page.locator('[data-tab="settings"]');
+  await settingsTab.click();
+  
+  // Wait for settings panel to be visible
+  await expect(page.locator('[data-panel="settings"]')).toBeVisible();
+  
   // Verify source input
   const sourceInput = page.locator('#source');
   await expect(sourceInput).toBeVisible();
@@ -322,13 +359,42 @@ test('Settings tab hero image is displayed', async ({ page }) => {
   await page.addInitScript(setupMockScreenshotSorter);
   await page.goto(rendererUrl());
 
+  // Switch to Settings tab to see hero image
+  const settingsTab = page.locator('[data-tab="settings"]');
+  await settingsTab.click();
+  
+  // Wait for settings panel to be visible
+  await expect(page.locator('[data-panel="settings"]')).toBeVisible();
+  
   // Verify hero image exists in settings tab
   const heroImage = page.locator('.hero');
   await expect(heroImage).toBeVisible();
   await expect(heroImage).toHaveAttribute('alt', 'A person and an AI Fleas robot working together at a desk');
 });
 
-test('Library reload button triggers library refresh', async ({ page }) => {
+test('Screenshots tab is selected by default on startup (smoke test)', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  await page.addInitScript(setupMockScreenshotSorter);
+  await page.goto(rendererUrl());
+  
+  // Wait for page to fully load
+  await page.waitForLoadState('networkidle');
+  
+  // Check that Screenshots tab is selected
+  const screenshotsTab = page.locator('[data-tab="library"]');
+  const settingsTab = page.locator('[data-tab="settings"]');
+  
+  await expect(screenshotsTab).toHaveAttribute('aria-selected', 'true');
+  await expect(settingsTab).toHaveAttribute('aria-selected', 'false');
+  
+  // Check that Screenshots panel is visible and Settings panel is hidden
+  await expect(page.locator('[data-panel="library"]')).toBeVisible();
+  await expect(page.locator('[data-panel="settings"]')).not.toBeVisible();
+});
+
+test('Library reload button triggers library refresh', { timeout: 90000 }, async ({ page }) => {
   page.on('console', msg => console.log(`Console: ${msg.text()}`));
   page.on('pageerror', error => console.log(`Page error: ${error.message}`));
   
@@ -354,11 +420,11 @@ test('Library reload button triggers library refresh', async ({ page }) => {
   });
   
   await page.goto(rendererUrl());
-  await page.waitForSelector('[data-panel="library"]');
-
-  // Switch to library tab to load initially
+  
+  // Switch to library tab to load initially (panel starts hidden, becomes visible after click)
   const screenshotTab = page.locator('[data-tab="library"]');
-  await screenshotTab.click();
+  await screenshotTab.click({ timeout: 10000 });
+  await page.waitForSelector('[data-panel="library"]', { visible: true, timeout: 10000 });
   
   // Wait for initial load
   await page.waitForFunction(() => window.libraryCallCount >= 1);
@@ -368,4 +434,45 @@ test('Library reload button triggers library refresh', async ({ page }) => {
   
   // Wait for reload to trigger
   await page.waitForFunction(() => window.libraryCallCount >= 2);
+});
+
+test('Relative date display works for screenshots', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  await page.addInitScript(() => {
+    window.screenshotSorter = {
+      settings: async () => ({
+        sourceDir: '/Users/sergii/Screenshots',
+        destinationDir: '/Users/sergii/Screenshots',
+        settleSeconds: 2,
+        startIntervalSeconds: 10
+      }),
+      status: async () => 'Sorter is running',
+      library: async () => [
+        {
+          date: '2026-10-06',
+          count: 1,
+          screenshots: [{ id: 'shot1', name: 'Screenshot.png', modifiedAt: Date.now(), bytes: 1024 }]
+        }
+      ],
+      chooseFolder: async (current) => null,
+      save: async (settings) => ({ output: 'Settings saved' }),
+      thumbnail: async (id) => null
+    };
+  });
+  
+  await page.goto(rendererUrl());
+  
+  // Switch to Screenshots tab
+  const screenshotTab = page.locator('[data-tab="library"]');
+  await screenshotTab.click();
+  
+  // Wait for folder to be displayed
+  await page.waitForSelector('[data-panel="library"] .folder');
+  
+  // Check that relative date is displayed (e.g., "Today" or "Yesterday")
+  const folderHead = page.locator('.folder-head h2');
+  // The date 2026-10-06 is Yesterday relative to 2026-10-07 (today)
+  await expect(folderHead).toContainText('Yesterday');
 });

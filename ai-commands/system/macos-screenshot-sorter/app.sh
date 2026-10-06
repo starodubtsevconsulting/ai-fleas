@@ -34,4 +34,4 @@ if [[ "$force" == true ]]; then
     [[ -z "$pids" ]] || kill -KILL $pids 2>/dev/null || true
   fi
 fi
-SCREENSHOT_SORTER_COMMAND_DIR="$command_dir" exec "$electron_bin" "$main_script"
+SCREENSHOT_SORTER_COMMAND_DIR="$command_dir" exec "$electron_bin" "$main_script" "$@"

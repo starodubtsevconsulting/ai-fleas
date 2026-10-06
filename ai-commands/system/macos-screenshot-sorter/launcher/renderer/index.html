@@ -44,7 +44,15 @@
       <button class="tab" data-tab="settings" aria-selected="false">Settings</button>
     </nav>
 
-    <section class="panel" data-panel="settings">
+    <section class="panel" data-panel="library">
+      <div class="library-head">
+        <div><h1>Your screenshots</h1><p>Browse screenshots by capture-date folder. This view is read-only for now.</p></div>
+        <button id="reload-library" class="secondary">Refresh</button>
+      </div>
+      <div id="library" aria-live="polite"><div class="card empty">Loading screenshots…</div></div>
+    </section>
+
+    <section class="panel" data-panel="settings" hidden>
       <img class="hero" src="../../../../../notes/articles/assets/2026-09-18-ai-fleas-human-led-demo-header.png" alt="A person and an AI Fleas robot working together at a desk">
       <h1>Keep your screenshots organized</h1>
       <p>Instead of letting screenshots pile up on your Desktop, Screenshot Sorter automatically files each new screenshot into a dated folder (like <code>2026-10-05</code>) in the location you choose.</p>
@@ -64,20 +72,24 @@
       </div>
       <div class="card"><strong>Runtime status</strong><pre id="status" class="status">Loading…</pre></div>
     </section>
-
-    <section class="panel" data-panel="library" hidden>
-      <div class="library-head">
-        <div><h1>Your screenshots</h1><p>Browse screenshots by capture-date folder. This view is read-only for now.</p></div>
-        <button id="reload-library" class="secondary">Refresh</button>
-      </div>
-      <div id="library" aria-live="polite"><div class="card empty">Loading screenshots…</div></div>
-    </section>
   </main>
   <script>
     const $ = id => document.getElementById(id);
     const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[character]);
     const bytes = value => value < 1024 * 1024 ? `${Math.max(1, Math.round(value / 1024))} KB` : `${(value / (1024 * 1024)).toFixed(1)} MB`;
     const changed = value => new Date(value).toLocaleString(undefined, { dateStyle:'medium', timeStyle:'short' });
+    const relativeDate = dateStr => {
+      const now = new Date();
+      const folderDate = new Date(`${dateStr}T00:00:00.000Z`);
+      const diffMs = now.getTime() - folderDate.getTime();
+      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return 'Yesterday';
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.round(diffDays / 7)} weeks ago`;
+      if (diffDays < 365) return `${Math.round(diffDays / 30)} months ago`;
+      return `${Math.round(diffDays / 365)} years ago`;
+    };
     async function loadSettings() {
       const settings = await window.screenshotSorter.settings();
       $('source').value = settings.sourceDir;
@@ -95,7 +107,7 @@
       try {
         const folders = await window.screenshotSorter.library();
         if (!folders.length) { $('library').innerHTML = '<div class="card empty">No sorted screenshots yet. New screenshots will appear here after they are filed.</div>'; return; }
-        $('library').innerHTML = folders.map(folder => `<section class="folder"><div class="folder-head"><h2>${escapeHtml(folder.date)}</h2><span class="count">${folder.count} screenshot${folder.count === 1 ? '' : 's'}${folder.count > folder.screenshots.length ? ` · showing newest ${folder.screenshots.length}` : ''}</span></div><div class="shots">${folder.screenshots.map(shot => `<article class="shot" title="${escapeHtml(shot.name)}"><img data-thumbnail="${escapeHtml(shot.id)}" alt="${escapeHtml(shot.name)}"><div class="shot-name">${escapeHtml(shot.name)}</div><div class="shot-meta">${changed(shot.modifiedAt)} · ${bytes(shot.bytes)}</div></article>`).join('')}</div></section>`).join('');
+        $('library').innerHTML = folders.map(folder => `<section class="folder"><div class="folder-head"><h2>${escapeHtml(folder.date)} <span style="color:#70798c; font-size:12px;">(${relativeDate(folder.date)})</span></h2><span class="count">${folder.count} screenshot${folder.count === 1 ? '' : 's'}${folder.count > folder.screenshots.length ? ` · showing newest ${folder.screenshots.length}` : ''}</span></div><div class="shots">${folder.screenshots.map(shot => `<article class="shot" title="${escapeHtml(shot.name)}"><img data-thumbnail="${escapeHtml(shot.id)}" alt="${escapeHtml(shot.name)}"><div class="shot-name">${escapeHtml(shot.name)}</div><div class="shot-meta">${changed(shot.modifiedAt)} · ${bytes(shot.bytes)}</div></article>`).join('')}</div></section>`).join('');
         await Promise.all([...document.querySelectorAll('[data-thumbnail]')].map(async image => {
           try { image.src = await window.screenshotSorter.thumbnail(image.dataset.thumbnail); }
           catch { image.alt = `${image.alt} (preview unavailable)`; }
@@ -122,6 +134,7 @@
     };
     $('refresh').onclick = status;
     $('reload-library').onclick = loadLibrary;
+    selectTab('library');
     loadSettings().catch(error => { $('status').textContent = `Error: ${error.message}`; });
   </script>
 </body>
