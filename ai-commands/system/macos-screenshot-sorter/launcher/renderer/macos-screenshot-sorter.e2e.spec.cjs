@@ -449,3 +449,160 @@ test('Folder-open icon shows only icon without text label', async ({ page }) => 
   expect(innerHTML).not.toContain('Open Folder');
   expect(innerHTML).not.toContain('folder');
 });
+
+test('Full screen view opens when thumbnail is clicked', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  await page.addInitScript(() => {
+    window.screenshotSorter = {
+      settings: async () => ({ sourceDir: '/Users/sergii/Screenshots', destinationDir: '/Users/sergii/Screenshots', settleSeconds: 2, startIntervalSeconds: 10 }),
+      status: async () => 'Sorter is running',
+      library: async () => [{ date: '2026-10-05', count: 1, screenshots: [{ id: 'shot1', name: 'Screenshot 2026-10-05 at 10-30-00.png', modifiedAt: Date.now() - 3600000, bytes: 102400, folderPath: '/Users/sergii/Screenshots/2026-10-05' }] }],
+      chooseFolder: async () => null,
+      save: async () => ({ output: 'Settings saved' }),
+      thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
+      openFolder: async () => null
+    };
+  });
+  
+  await page.goto(rendererUrl());
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(500);
+  
+  // Verify full screen overlay is initially hidden
+  const fullScreenOverlay = page.locator('app-screenshot-detail .full-screen-overlay');
+  await expect(fullScreenOverlay).not.toBeVisible();
+  
+  // Click the thumbnail to open full screen view
+  const thumbnails = page.locator('.shot img');
+  await expect(thumbnails).toHaveCount(1);
+  await thumbnails.nth(0).click();
+  
+  // Wait a bit for animation
+  await page.waitForTimeout(300);
+  
+  // Verify full screen overlay is now visible
+  await expect(fullScreenOverlay).toBeVisible();
+});
+
+test('Full screen view shows correct screenshot', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  await page.addInitScript(() => {
+    window.screenshotSorter = {
+      settings: async () => ({ sourceDir: '/Users/sergii/Screenshots', destinationDir: '/Users/sergii/Screenshots', settleSeconds: 2, startIntervalSeconds: 10 }),
+      status: async () => 'Sorter is running',
+      library: async () => [{ date: '2026-10-05', count: 1, screenshots: [{ id: 'shot1', name: 'Screenshot 2026-10-05 at 10-30-00.png', modifiedAt: Date.now() - 3600000, bytes: 102400, folderPath: '/Users/sergii/Screenshots/2026-10-05' }] }],
+      chooseFolder: async () => null,
+      save: async () => ({ output: 'Settings saved' }),
+      thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
+      openFolder: async () => null
+    };
+  });
+  
+  await page.goto(rendererUrl());
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(500);
+  
+  // Click the thumbnail to open full screen view
+  const thumbnails = page.locator('.shot img');
+  await thumbnails.nth(0).click();
+  await page.waitForTimeout(300);
+  
+  // Verify full screen overlay is visible
+  const fullScreenOverlay = page.locator('app-screenshot-detail .full-screen-overlay');
+  await expect(fullScreenOverlay).toBeVisible();
+  
+  // Verify close button exists
+  const closeBtn = fullScreenOverlay.locator('.full-screen-close');
+  await expect(closeBtn).toBeVisible();
+  
+  // Verify close button contains SVG
+  const closeBtnHTML = await closeBtn.innerHTML();
+  expect(closeBtnHTML).toContain('<svg');
+  expect(closeBtnHTML).toContain('line');
+  expect(closeBtnHTML).toContain('x1=');
+  
+  // Verify image exists
+  const fullScreenImg = fullScreenOverlay.locator('img');
+  await expect(fullScreenImg).toBeVisible();
+  const src = await fullScreenImg.getAttribute('src');
+  expect(src).toContain('base64');
+});
+
+test('Full screen view closes with X button', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  await page.addInitScript(() => {
+    window.screenshotSorter = {
+      settings: async () => ({ sourceDir: '/Users/sergii/Screenshots', destinationDir: '/Users/sergii/Screenshots', settleSeconds: 2, startIntervalSeconds: 10 }),
+      status: async () => 'Sorter is running',
+      library: async () => [{ date: '2026-10-05', count: 1, screenshots: [{ id: 'shot1', name: 'Screenshot 2026-10-05 at 10-30-00.png', modifiedAt: Date.now() - 3600000, bytes: 102400, folderPath: '/Users/sergii/Screenshots/2026-10-05' }] }],
+      chooseFolder: async () => null,
+      save: async () => ({ output: 'Settings saved' }),
+      thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
+      openFolder: async () => null
+    };
+  });
+  
+  await page.goto(rendererUrl());
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(500);
+  
+  // Click the thumbnail to open full screen view
+  const thumbnails = page.locator('.shot img');
+  await thumbnails.nth(0).click();
+  await page.waitForTimeout(300);
+  
+  // Verify full screen overlay is visible
+  const fullScreenOverlay = page.locator('app-screenshot-detail .full-screen-overlay');
+  await expect(fullScreenOverlay).toBeVisible();
+  
+  // Click the close button
+  const closeBtn = fullScreenOverlay.locator('.full-screen-close');
+  await closeBtn.click();
+  await page.waitForTimeout(300);
+  
+  // Verify full screen overlay is now hidden
+  await expect(fullScreenOverlay).not.toBeVisible();
+});
+
+test('Full screen view closes when clicking outside', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  await page.addInitScript(() => {
+    window.screenshotSorter = {
+      settings: async () => ({ sourceDir: '/Users/sergii/Screenshots', destinationDir: '/Users/sergii/Screenshots', settleSeconds: 2, startIntervalSeconds: 10 }),
+      status: async () => 'Sorter is running',
+      library: async () => [{ date: '2026-10-05', count: 1, screenshots: [{ id: 'shot1', name: 'Screenshot 2026-10-05 at 10-30-00.png', modifiedAt: Date.now() - 3600000, bytes: 102400, folderPath: '/Users/sergii/Screenshots/2026-10-05' }] }],
+      chooseFolder: async () => null,
+      save: async () => ({ output: 'Settings saved' }),
+      thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
+      openFolder: async () => null
+    };
+  });
+  
+  await page.goto(rendererUrl());
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(500);
+  
+  // Click the thumbnail to open full screen view
+  const thumbnails = page.locator('.shot img');
+  await thumbnails.nth(0).click();
+  await page.waitForTimeout(300);
+  
+  // Verify full screen overlay is visible
+  const fullScreenOverlay = page.locator('app-screenshot-detail .full-screen-overlay');
+  await expect(fullScreenOverlay).toBeVisible();
+  
+  // Click outside the content (on the overlay background)
+  await fullScreenOverlay.click({ position: { x: 10, y: 10 } });
+  await page.waitForTimeout(300);
+  
+  // Verify full screen overlay is now hidden
+  await expect(fullScreenOverlay).not.toBeVisible();
+});

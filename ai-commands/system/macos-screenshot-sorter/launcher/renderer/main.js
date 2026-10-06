@@ -27680,48 +27680,42 @@ var HydrationFeatureKind;
 var VERSION3 = new Version("18.2.1");
 
 // src/app/screenshot-detail/screenshot-detail.component.ts
-function ScreenshotDetailComponent_div_0_Template(rf, ctx) {
+function ScreenshotDetailComponent_div_1_Template(rf, ctx) {
   if (rf & 1) {
     const _r1 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div", 1);
-    \u0275\u0275listener("click", function ScreenshotDetailComponent_div_0_Template_div_click_0_listener() {
-      \u0275\u0275restoreView(_r1);
-      const ctx_r1 = \u0275\u0275nextContext();
-      return \u0275\u0275resetView(ctx_r1.closeScreenshot());
-    });
-    \u0275\u0275elementStart(1, "div", 2);
-    \u0275\u0275listener("click", function ScreenshotDetailComponent_div_0_Template_div_click_1_listener($event) {
+    \u0275\u0275elementStart(0, "div", 2);
+    \u0275\u0275listener("click", function ScreenshotDetailComponent_div_1_Template_div_click_0_listener($event) {
       \u0275\u0275restoreView(_r1);
       return \u0275\u0275resetView($event.stopPropagation());
     });
-    \u0275\u0275elementStart(2, "button", 3);
-    \u0275\u0275listener("click", function ScreenshotDetailComponent_div_0_Template_button_click_2_listener() {
+    \u0275\u0275elementStart(1, "button", 3);
+    \u0275\u0275listener("click", function ScreenshotDetailComponent_div_1_Template_button_click_1_listener() {
       \u0275\u0275restoreView(_r1);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.closeScreenshot());
     });
     \u0275\u0275namespaceSVG();
-    \u0275\u0275elementStart(3, "svg", 4);
-    \u0275\u0275element(4, "line", 5)(5, "line", 6);
+    \u0275\u0275elementStart(2, "svg", 4);
+    \u0275\u0275element(3, "line", 5)(4, "line", 6);
     \u0275\u0275elementEnd()();
     \u0275\u0275namespaceHTML();
-    \u0275\u0275element(6, "img", 7);
-    \u0275\u0275elementStart(7, "div", 8)(8, "div", 9);
-    \u0275\u0275text(9);
+    \u0275\u0275element(5, "img", 7);
+    \u0275\u0275elementStart(6, "div", 8)(7, "div", 9);
+    \u0275\u0275text(8);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(10, "div", 10);
-    \u0275\u0275text(11);
-    \u0275\u0275pipe(12, "date");
-    \u0275\u0275elementEnd()()()();
+    \u0275\u0275elementStart(9, "div", 10);
+    \u0275\u0275text(10);
+    \u0275\u0275pipe(11, "date");
+    \u0275\u0275elementEnd()()();
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext();
-    \u0275\u0275advance(6);
+    \u0275\u0275advance(5);
     \u0275\u0275property("src", ctx_r1.thumbnailUrl, \u0275\u0275sanitizeUrl)("alt", ctx_r1.shot.name);
     \u0275\u0275advance(3);
     \u0275\u0275textInterpolate(ctx_r1.shot.name);
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate2("", \u0275\u0275pipeBind2(12, 5, ctx_r1.shot.modifiedAt, "medium"), " \xB7 ", ctx_r1.formatBytes(ctx_r1.shot.bytes), "");
+    \u0275\u0275textInterpolate2("", \u0275\u0275pipeBind2(11, 5, ctx_r1.shot.modifiedAt, "medium"), " \xB7 ", ctx_r1.formatBytes(ctx_r1.shot.bytes), "");
   }
 }
 var ScreenshotDetailComponent = class _ScreenshotDetailComponent {
@@ -27737,11 +27731,18 @@ var ScreenshotDetailComponent = class _ScreenshotDetailComponent {
   static \u0275fac = function ScreenshotDetailComponent_Factory(__ngFactoryType__) {
     return new (__ngFactoryType__ || _ScreenshotDetailComponent)();
   };
-  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _ScreenshotDetailComponent, selectors: [["app-screenshot-detail"]], inputs: { shot: "shot", thumbnailUrl: "thumbnailUrl" }, outputs: { close: "close" }, standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 1, vars: 1, consts: [["class", "full-screen-overlay", 3, "click", 4, "ngIf"], [1, "full-screen-overlay", 3, "click"], [1, "full-screen-content", 3, "click"], ["aria-label", "Close full screen view", 1, "full-screen-close", 3, "click"], ["width", "32", "height", "32", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["x1", "18", "y1", "6", "x2", "6", "y2", "18"], ["x1", "6", "y1", "6", "x2", "18", "y2", "18"], [3, "src", "alt"], [1, "full-screen-info"], [1, "full-screen-name"], [1, "full-screen-meta"]], template: function ScreenshotDetailComponent_Template(rf, ctx) {
+  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _ScreenshotDetailComponent, selectors: [["app-screenshot-detail"]], inputs: { shot: "shot", thumbnailUrl: "thumbnailUrl" }, outputs: { close: "close" }, standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 2, vars: 3, consts: [[1, "full-screen-overlay", 3, "click"], ["class", "full-screen-content", 3, "click", 4, "ngIf"], [1, "full-screen-content", 3, "click"], ["aria-label", "Close full screen view", 1, "full-screen-close", 3, "click"], ["width", "32", "height", "32", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["x1", "18", "y1", "6", "x2", "6", "y2", "18"], ["x1", "6", "y1", "6", "x2", "18", "y2", "18"], [3, "src", "alt"], [1, "full-screen-info"], [1, "full-screen-name"], [1, "full-screen-meta"]], template: function ScreenshotDetailComponent_Template(rf, ctx) {
     if (rf & 1) {
-      \u0275\u0275template(0, ScreenshotDetailComponent_div_0_Template, 13, 8, "div", 0);
+      \u0275\u0275elementStart(0, "div", 0);
+      \u0275\u0275listener("click", function ScreenshotDetailComponent_Template_div_click_0_listener() {
+        return ctx.closeScreenshot();
+      });
+      \u0275\u0275template(1, ScreenshotDetailComponent_div_1_Template, 12, 8, "div", 1);
+      \u0275\u0275elementEnd();
     }
     if (rf & 2) {
+      \u0275\u0275styleProp("display", ctx.shot ? "flex" : "none");
+      \u0275\u0275advance();
       \u0275\u0275property("ngIf", ctx.shot);
     }
   }, dependencies: [CommonModule, NgIf, DatePipe], styles: ["\n\n.full-screen-overlay[_ngcontent-%COMP%] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.9);\n  z-index: 1000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  padding: 40px;\n}\n.full-screen-content[_ngcontent-%COMP%] {\n  max-width: 90%;\n  max-height: 90%;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 16px;\n}\n.full-screen-close[_ngcontent-%COMP%] {\n  position: absolute;\n  top: 24px;\n  right: 24px;\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  border-radius: 50%;\n  width: 48px;\n  height: 48px;\n  cursor: pointer;\n  color: #fff;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background 0.2s;\n}\n.full-screen-close[_ngcontent-%COMP%]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.full-screen-overlay[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n  max-width: 100%;\n  max-height: 80vh;\n  border-radius: 8px;\n  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);\n}\n.full-screen-info[_ngcontent-%COMP%] {\n  text-align: center;\n  color: #fff;\n}\n.full-screen-name[_ngcontent-%COMP%] {\n  font-size: 16px;\n  font-weight: 600;\n  margin-bottom: 4px;\n}\n.full-screen-meta[_ngcontent-%COMP%] {\n  font-size: 13px;\n  color: #d1d5db;\n}\n/*# sourceMappingURL=screenshot-detail.component.css.map */"] });

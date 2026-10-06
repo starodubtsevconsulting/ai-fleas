@@ -66,14 +66,27 @@ The candidate is eligible for human-approved retirement of Ruby only after deter
 
 The scenario.md is the **leading master source of truth** for testing. Each scenario step maps to one or more Playwright tests that verify the same behavior programmatically.
 
+### Full Screen Screenshot View
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | User is viewing screenshot list | Screenshots displayed in date-based folders |
+| 2 | User clicks on a thumbnail image | Full-screen overlay opens with screenshot displayed |
+| 3 | Full-screen view shows close button (X) in top-right | Close button visible and clickable |
+| 4 | Full-screen view shows screenshot image | Image displayed at appropriate size |
+| 5 | Full-screen view shows screenshot metadata | Name, date, and file size visible below image |
+| 6 | User clicks close button or background | Full-screen view closes, returning to list view |
+
 ### Scenario-to-Test Mapping
 
 | Scenario Step | Playwright Test | Purpose |
 |---------------|-----------------|---------|
-| 4. Install candidate | N/A (E2E tests UI only) | LaunchAgent installation is backend testing |
-| 10. Tab order (Settings → Screenshots) | `Screenshot tab shows default config values` | Verifies Screenshots tab is first, Settings second |
-| 10. Settings form fields | `Settings tab shows default config values` | Verifies UI loads and shows fields |
-| Tab switching | `Tab switching works correctly` | Verifies clicking tabs switches content |
+| 1. User is viewing screenshot list | All tests | Verify screenshot list displays correctly |
+| 2. User clicks on a thumbnail image | `Full screen view opens when thumbnail is clicked` | Verify click triggers full-screen view |
+| 3. Full-screen view shows close button (X) | `Full screen view shows correct screenshot` | Verify close button is present |
+| 4. Full-screen view shows screenshot image | `Full screen view shows correct screenshot` | Verify correct image displays |
+| 5. Full-screen view shows screenshot metadata | `Full screen view shows correct screenshot` | Verify name, date, and size display |
+| 6. User clicks close button or background | `Full screen view closes with X button`<br>`Full screen view closes when clicking outside` | Verify closing mechanisms work |
 
 ### Running E2E Tests
 
