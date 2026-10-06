@@ -225,8 +225,8 @@ if (isPrimaryInstance) {
   ipcMain.handle('sorter:library', screenshotLibrary);
   ipcMain.handle('sorter:thumbnail', screenshotThumbnail);
   ipcMain.handle('sorter:open-folder', async (_event, folderPath) => {
-    const { open } = require('node:shell');
-    return open(folderPath);
+    const { shell } = require('electron');
+    return shell.openExternal('file://' + folderPath);
   });
   app.on('second-instance', showWindow);
   app.whenReady().then(() => {
