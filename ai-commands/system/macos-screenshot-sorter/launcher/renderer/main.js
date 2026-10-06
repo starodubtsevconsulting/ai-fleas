@@ -27709,9 +27709,9 @@ var ScreenshotSorterService = class _ScreenshotSorterService {
 function AppComponent_div_6_Template(rf, ctx) {
   if (rf & 1) {
     const _r1 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div", 13);
-    \u0275\u0275element(1, "img", 9);
-    \u0275\u0275elementStart(2, "button", 14);
+    \u0275\u0275elementStart(0, "div", 9);
+    \u0275\u0275element(1, "img", 10);
+    \u0275\u0275elementStart(2, "button", 11);
     \u0275\u0275listener("click", function AppComponent_div_6_Template_button_click_2_listener() {
       \u0275\u0275restoreView(_r1);
       const ctx_r1 = \u0275\u0275nextContext();
@@ -27819,16 +27819,16 @@ function AppComponent_div_18_Template(rf, ctx) {
     \u0275\u0275property("ngIf", !ctx_r1.collapsedFolders.has(folder_r4.date));
   }
 }
-function AppComponent_div_28_Template(rf, ctx) {
+function AppComponent_div_31_Template(rf, ctx) {
   if (rf & 1) {
     const _r7 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div", 11)(1, "label");
+    \u0275\u0275elementStart(0, "div", 13)(1, "label");
     \u0275\u0275text(2, "Capture inbox");
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(3, "div", 27);
     \u0275\u0275element(4, "input", 28);
     \u0275\u0275elementStart(5, "button", 5);
-    \u0275\u0275listener("click", function AppComponent_div_28_Template_button_click_5_listener() {
+    \u0275\u0275listener("click", function AppComponent_div_31_Template_button_click_5_listener() {
       \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.chooseFolder("source"));
@@ -27844,7 +27844,7 @@ function AppComponent_div_28_Template(rf, ctx) {
     \u0275\u0275elementStart(11, "div", 27);
     \u0275\u0275element(12, "input", 28);
     \u0275\u0275elementStart(13, "button", 5);
-    \u0275\u0275listener("click", function AppComponent_div_28_Template_button_click_13_listener() {
+    \u0275\u0275listener("click", function AppComponent_div_31_Template_button_click_13_listener() {
       \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.chooseFolder("destination"));
@@ -27866,7 +27866,7 @@ function AppComponent_div_28_Template(rf, ctx) {
     \u0275\u0275text(24, "Default: 10. A background safety net that rescans if macOS file watching misses an event. It never delays normal sorting. 0 turns this safety net off; otherwise choose 10\u20133600.");
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(25, "button", 32);
-    \u0275\u0275listener("click", function AppComponent_div_28_Template_button_click_25_listener() {
+    \u0275\u0275listener("click", function AppComponent_div_31_Template_button_click_25_listener() {
       \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.saveSettings());
@@ -27874,7 +27874,7 @@ function AppComponent_div_28_Template(rf, ctx) {
     \u0275\u0275text(26, "Save and reload sorter");
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(27, "button", 5);
-    \u0275\u0275listener("click", function AppComponent_div_28_Template_button_click_27_listener() {
+    \u0275\u0275listener("click", function AppComponent_div_31_Template_button_click_27_listener() {
       \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.refreshStatus());
@@ -28048,7 +28048,7 @@ var AppComponent = class _AppComponent {
   static \u0275fac = function AppComponent_Factory(__ngFactoryType__) {
     return new (__ngFactoryType__ || _AppComponent)(\u0275\u0275directiveInject(ScreenshotSorterService));
   };
-  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AppComponent, selectors: [["app-root"]], standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 34, vars: 14, consts: [["aria-label", "Screenshot Sorter sections", 1, "tabs"], [1, "tab", 3, "click"], [1, "panel", 3, "hidden"], ["class", "hero-container", 4, "ngIf"], [1, "library-head"], [1, "secondary", 3, "click"], ["id", "library", "aria-live", "polite"], ["class", "card empty", 4, "ngIf"], ["class", "folder", 3, "collapsed", 4, "ngFor", "ngForOf"], ["src", "assets/hero.png", "alt", "A person and an AI Fleas robot working together at a desk", 1, "hero"], ["class", "card", 4, "ngIf"], [1, "card"], [1, "status"], [1, "hero-container"], ["aria-label", "Close hero image", 1, "close", 3, "click"], [1, "card", "empty"], [1, "folder"], [1, "folder-head", 3, "click"], [2, "color", "#70798c", "font-size", "12px"], [1, "count"], ["class", "shots", 4, "ngIf"], [1, "shots"], ["class", "shot", 3, "title", 4, "ngFor", "ngForOf"], [1, "shot", 3, "title"], [3, "error", "load", "src", "alt"], [1, "shot-name"], [1, "shot-meta"], [1, "row"], ["type", "text", "readonly", "", 3, "value"], [1, "hint"], ["type", "number", "min", "0", "max", "60", "readonly", "", 3, "value"], ["type", "number", "min", "0", "max", "3600", "readonly", "", 3, "value"], [3, "click"]], template: function AppComponent_Template(rf, ctx) {
+  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AppComponent, selectors: [["app-root"]], standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 37, vars: 14, consts: [["aria-label", "Screenshot Sorter sections", 1, "tabs"], [1, "tab", 3, "click"], [1, "panel", 3, "hidden"], ["class", "hero-container", 4, "ngIf"], [1, "library-head"], [1, "secondary", 3, "click"], ["id", "library", "aria-live", "polite"], ["class", "card empty", 4, "ngIf"], ["class", "folder", 3, "collapsed", 4, "ngFor", "ngForOf"], [1, "hero-container"], ["src", "assets/hero.png", "alt", "A person and an AI Fleas robot working together at a desk", 1, "hero"], ["aria-label", "Close hero image", 1, "close", 3, "click"], ["class", "card", 4, "ngIf"], [1, "card"], [1, "status"], [1, "card", "empty"], [1, "folder"], [1, "folder-head", 3, "click"], [2, "color", "#70798c", "font-size", "12px"], [1, "count"], ["class", "shots", 4, "ngIf"], [1, "shots"], ["class", "shot", 3, "title", 4, "ngFor", "ngForOf"], [1, "shot", 3, "title"], [3, "error", "load", "src", "alt"], [1, "shot-name"], [1, "shot-meta"], [1, "row"], ["type", "text", "readonly", "", 3, "value"], [1, "hint"], ["type", "number", "min", "0", "max", "60", "readonly", "", 3, "value"], ["type", "number", "min", "0", "max", "3600", "readonly", "", 3, "value"], [3, "click"]], template: function AppComponent_Template(rf, ctx) {
     if (rf & 1) {
       \u0275\u0275elementStart(0, "nav", 0)(1, "button", 1);
       \u0275\u0275listener("click", function AppComponent_Template_button_click_1_listener() {
@@ -28079,24 +28079,30 @@ var AppComponent = class _AppComponent {
       \u0275\u0275elementStart(15, "div", 6);
       \u0275\u0275template(16, AppComponent_div_16_Template, 2, 0, "div", 7)(17, AppComponent_div_17_Template, 2, 0, "div", 7)(18, AppComponent_div_18_Template, 11, 14, "div", 8);
       \u0275\u0275elementEnd()();
-      \u0275\u0275elementStart(19, "section", 2);
-      \u0275\u0275element(20, "img", 9);
-      \u0275\u0275elementStart(21, "h1");
-      \u0275\u0275text(22, "Keep your screenshots organized");
+      \u0275\u0275elementStart(19, "section", 2)(20, "div", 9);
+      \u0275\u0275element(21, "img", 10);
+      \u0275\u0275elementStart(22, "button", 11);
+      \u0275\u0275listener("click", function AppComponent_Template_button_click_22_listener() {
+        return ctx.hideHero();
+      });
+      \u0275\u0275text(23, "\xD7");
+      \u0275\u0275elementEnd()();
+      \u0275\u0275elementStart(24, "h1");
+      \u0275\u0275text(25, "Keep your screenshots organized");
       \u0275\u0275elementEnd();
-      \u0275\u0275elementStart(23, "p");
-      \u0275\u0275text(24, "Instead of letting screenshots pile up on your Desktop, Screenshot Sorter automatically files each new screenshot into a dated folder (like ");
-      \u0275\u0275elementStart(25, "code");
-      \u0275\u0275text(26, "2026-10-05");
+      \u0275\u0275elementStart(26, "p");
+      \u0275\u0275text(27, "Instead of letting screenshots pile up on your Desktop, Screenshot Sorter automatically files each new screenshot into a dated folder (like ");
+      \u0275\u0275elementStart(28, "code");
+      \u0275\u0275text(29, "2026-10-05");
       \u0275\u0275elementEnd();
-      \u0275\u0275text(27, ") in the location you choose.");
+      \u0275\u0275text(30, ") in the location you choose.");
       \u0275\u0275elementEnd();
-      \u0275\u0275template(28, AppComponent_div_28_Template, 29, 4, "div", 10);
-      \u0275\u0275elementStart(29, "div", 11)(30, "strong");
-      \u0275\u0275text(31, "Runtime status");
+      \u0275\u0275template(31, AppComponent_div_31_Template, 29, 4, "div", 12);
+      \u0275\u0275elementStart(32, "div", 13)(33, "strong");
+      \u0275\u0275text(34, "Runtime status");
       \u0275\u0275elementEnd();
-      \u0275\u0275elementStart(32, "pre", 12);
-      \u0275\u0275text(33);
+      \u0275\u0275elementStart(35, "pre", 14);
+      \u0275\u0275text(36);
       \u0275\u0275elementEnd()()();
     }
     if (rf & 2) {
@@ -28118,7 +28124,7 @@ var AppComponent = class _AppComponent {
       \u0275\u0275property("ngForOf", ctx.folders);
       \u0275\u0275advance();
       \u0275\u0275property("hidden", ctx.selectedTab !== "settings");
-      \u0275\u0275advance(9);
+      \u0275\u0275advance(12);
       \u0275\u0275property("ngIf", ctx.settings);
       \u0275\u0275advance(5);
       \u0275\u0275textInterpolate(ctx.statusText);
