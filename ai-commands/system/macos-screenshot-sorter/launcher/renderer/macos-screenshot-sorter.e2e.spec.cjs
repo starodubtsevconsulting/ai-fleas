@@ -416,3 +416,36 @@ test('Folder-open icon opens image folder in Finder', async ({ page }) => {
   const folderPaths = await page.evaluate(() => window.openFolderCalls);
   expect(folderPaths).toEqual(['/Users/sergii/Screenshots/2026-10-05']);
 });
+
+test('Folder-open icon shows only icon without text label', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  await page.addInitScript(() => {
+    window.screenshotSorter = {
+      settings: async () => ({ sourceDir: '/Users/sergii/Screenshots', destinationDir: '/Users/sergii/Screenshots', settleSeconds: 2, startIntervalSeconds: 10 }),
+      status: async () => 'Sorter is running',
+      library: async () => [{ date: '2026-10-05', count: 1, screenshots: [{ id: 'shot1', name: 'Screenshot 2026-10-05 at 10-30-00.png', modifiedAt: Date.now() - 3600000, bytes: 102400, folderPath: '/Users/sergii/Screenshots/2026-10-05' }] }],
+      chooseFolder: async () => null,
+      save: async () => ({ output: 'Settings saved' }),
+      thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
+      openFolder: async () => null
+    };
+  });
+  
+  await page.goto(rendererUrl());
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(500);
+  
+  // Check folder-open icon exists
+  const folderIcons = page.locator('.shot-actions button.folder');
+  await expect(folderIcons).toHaveCount(1);
+  
+  // Verify no text label - button should only contain SVG
+  const folderIcon = folderIcons.nth(0);
+  await expect(folderIcon).toBeVisible();
+  const innerHTML = await folderIcon.innerHTML();
+  expect(innerHTML).toContain('<svg');
+  expect(innerHTML).not.toContain('Open Folder');
+  expect(innerHTML).not.toContain('folder');
+});
