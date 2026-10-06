@@ -167,6 +167,8 @@ If you need to debug config or other values:
 | Unhandled promise rejection in renderer | Check DevTools console for stack traces |
 | Renderer crashes on load | Check DevTools console for errors |
 | Renderer throws uncaught error | Wrap renderer init in try/catch |
+| JavaScript errors from code changes | Check DevTools console for syntax/runtime errors |
+| Missing function/method definitions | Verify all referenced functions exist |
 
 **When you see white screen:**
 1. Check DevTools console (Cmd+Opt+I) for errors
