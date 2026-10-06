@@ -106,7 +106,7 @@ test('Tabs navigation works correctly', async ({ page }) => {
   
   await page.addInitScript(setupMockScreenshotSorter);
   await page.goto(rendererUrl());
-
+  
   // Wait for the page to fully load
   await page.waitForLoadState('networkidle');
   
@@ -121,7 +121,7 @@ test('Tabs navigation works correctly', async ({ page }) => {
   const secondTab = tabs.nth(1);
   await expect(secondTab).toHaveText('Settings');
   await expect(secondTab).toHaveAttribute('aria-selected', 'false');
-
+  
   // Switch to Settings tab
   await secondTab.click();
   await expect(firstTab).toHaveAttribute('aria-selected', 'false');
@@ -158,7 +158,7 @@ test('Library tab shows empty state when no screenshots', async ({ page }) => {
   
   await page.addInitScript(setupMockScreenshotSorter);
   await page.goto(rendererUrl());
-
+  
   // Wait for the page to fully load
   await page.waitForLoadState('networkidle');
   
@@ -594,7 +594,7 @@ test('Full screen view closes with X button', async ({ page }) => {
   await expect(fullScreenOverlay).not.toBeVisible();
 });
 
-test('Full screen view closes when clicking outside', async ({ page }) => {
+test('Full screen view closes with ESC key', async ({ page }) => {
   page.on('console', msg => console.log(`Console: ${msg.text()}`));
   page.on('pageerror', error => console.log(`Page error: ${error.message}`));
   
@@ -607,8 +607,6 @@ test('Full screen view closes when clicking outside', async ({ page }) => {
       save: async () => ({ output: 'Settings saved' }),
       thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
       fullImage: async () => {
-        // Return a data URL that Angular can load (in real app, this would be file:// URL)
-        // Data URLs work in Playwright tests and avoid security restrictions
         return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==';
       },
       openFolder: async () => null
@@ -628,8 +626,8 @@ test('Full screen view closes when clicking outside', async ({ page }) => {
   const fullScreenOverlay = page.locator('app-screenshot-detail .full-screen-overlay');
   await expect(fullScreenOverlay).toBeVisible();
   
-  // Click outside the content (on the overlay background)
-  await fullScreenOverlay.click({ position: { x: 10, y: 10 } });
+  // Press ESC key
+  await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
   
   // Verify full screen overlay is now hidden
