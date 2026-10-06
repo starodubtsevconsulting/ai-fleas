@@ -23,7 +23,9 @@ function readConfig() {
   const values = {};
   for (const line of raw.split(/\r?\n/)) {
     const match = line.match(/^([A-Z0-9_]+)=(?:"([^"]*)"|'([^']*)'|([^#\s]*))/);
-    if (match) values[match[1]] = match[2] ?? match[3] ?? match[4] ?? '';
+    if (match) {
+      values[match[1]] = match[2] ?? match[3] ?? match[4] ?? '';
+    }
   }
   return { raw, values };
 }
