@@ -27679,6 +27679,38 @@ var HydrationFeatureKind;
 })(HydrationFeatureKind || (HydrationFeatureKind = {}));
 var VERSION3 = new Version("18.2.1");
 
+// src/app/screenshot-sorter.service.ts
+var ScreenshotSorterService = class _ScreenshotSorterService {
+  settings() {
+    return window.screenshotSorter.settings();
+  }
+  status() {
+    return window.screenshotSorter.status();
+  }
+  library() {
+    return window.screenshotSorter.library();
+  }
+  chooseFolder(current) {
+    return window.screenshotSorter.chooseFolder(current);
+  }
+  save(settings) {
+    return window.screenshotSorter.save(settings);
+  }
+  thumbnail(id) {
+    return window.screenshotSorter.thumbnail(id);
+  }
+  fullImage(id) {
+    return window.screenshotSorter.fullImage(id);
+  }
+  openFolder(folderPath) {
+    return window.screenshotSorter.openFolder(folderPath);
+  }
+  static \u0275fac = function ScreenshotSorterService_Factory(__ngFactoryType__) {
+    return new (__ngFactoryType__ || _ScreenshotSorterService)();
+  };
+  static \u0275prov = /* @__PURE__ */ \u0275\u0275defineInjectable({ token: _ScreenshotSorterService, factory: _ScreenshotSorterService.\u0275fac, providedIn: "root" });
+};
+
 // src/app/screenshot-detail/screenshot-detail.component.ts
 function ScreenshotDetailComponent_div_1_Template(rf, ctx) {
   if (rf & 1) {
@@ -27719,9 +27751,39 @@ function ScreenshotDetailComponent_div_1_Template(rf, ctx) {
   }
 }
 var ScreenshotDetailComponent = class _ScreenshotDetailComponent {
+  service;
   shot = null;
-  thumbnailUrl = "";
   close = new EventEmitter();
+  fullImageUrl = "";
+  thumbnailUrl = "";
+  constructor(service) {
+    this.service = service;
+  }
+  ngOnInit() {
+    this.loadImage();
+  }
+  ngOnChanges(changes) {
+    if (changes["shot"]) {
+      this.loadImage();
+    }
+  }
+  loadImage() {
+    return __async(this, null, function* () {
+      if (this.shot) {
+        try {
+          this.fullImageUrl = (yield this.service.fullImage(this.shot.id)) || "";
+          this.thumbnailUrl = this.fullImageUrl;
+        } catch (e) {
+          console.error("Failed to load full image:", e);
+          this.fullImageUrl = "";
+          this.thumbnailUrl = "";
+        }
+      } else {
+        this.fullImageUrl = "";
+        this.thumbnailUrl = "";
+      }
+    });
+  }
   closeScreenshot() {
     this.close.emit();
   }
@@ -27729,9 +27791,9 @@ var ScreenshotDetailComponent = class _ScreenshotDetailComponent {
     return bytes2 < 1024 * 1024 ? `${Math.max(1, Math.round(bytes2 / 1024))} KB` : `${(bytes2 / (1024 * 1024)).toFixed(1)} MB`;
   }
   static \u0275fac = function ScreenshotDetailComponent_Factory(__ngFactoryType__) {
-    return new (__ngFactoryType__ || _ScreenshotDetailComponent)();
+    return new (__ngFactoryType__ || _ScreenshotDetailComponent)(\u0275\u0275directiveInject(ScreenshotSorterService));
   };
-  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _ScreenshotDetailComponent, selectors: [["app-screenshot-detail"]], inputs: { shot: "shot", thumbnailUrl: "thumbnailUrl" }, outputs: { close: "close" }, standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 2, vars: 3, consts: [[1, "full-screen-overlay", 3, "click"], ["class", "full-screen-content", 3, "click", 4, "ngIf"], [1, "full-screen-content", 3, "click"], ["aria-label", "Close full screen view", 1, "full-screen-close", 3, "click"], ["width", "32", "height", "32", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["x1", "18", "y1", "6", "x2", "6", "y2", "18"], ["x1", "6", "y1", "6", "x2", "18", "y2", "18"], [3, "src", "alt"], [1, "full-screen-info"], [1, "full-screen-name"], [1, "full-screen-meta"]], template: function ScreenshotDetailComponent_Template(rf, ctx) {
+  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _ScreenshotDetailComponent, selectors: [["app-screenshot-detail"]], inputs: { shot: "shot" }, outputs: { close: "close" }, standalone: true, features: [\u0275\u0275NgOnChangesFeature, \u0275\u0275StandaloneFeature], decls: 2, vars: 3, consts: [[1, "full-screen-overlay", 3, "click"], ["class", "full-screen-content", 3, "click", 4, "ngIf"], [1, "full-screen-content", 3, "click"], ["aria-label", "Close full screen view", 1, "full-screen-close", 3, "click"], ["width", "32", "height", "32", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["x1", "18", "y1", "6", "x2", "6", "y2", "18"], ["x1", "6", "y1", "6", "x2", "18", "y2", "18"], [3, "src", "alt"], [1, "full-screen-info"], [1, "full-screen-name"], [1, "full-screen-meta"]], template: function ScreenshotDetailComponent_Template(rf, ctx) {
     if (rf & 1) {
       \u0275\u0275elementStart(0, "div", 0);
       \u0275\u0275listener("click", function ScreenshotDetailComponent_Template_div_click_0_listener() {
@@ -27743,42 +27805,13 @@ var ScreenshotDetailComponent = class _ScreenshotDetailComponent {
     if (rf & 2) {
       \u0275\u0275styleProp("display", ctx.shot ? "flex" : "none");
       \u0275\u0275advance();
-      \u0275\u0275property("ngIf", ctx.shot);
+      \u0275\u0275property("ngIf", ctx.shot && ctx.thumbnailUrl);
     }
   }, dependencies: [CommonModule, NgIf, DatePipe], styles: ["\n\n.full-screen-overlay[_ngcontent-%COMP%] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.9);\n  z-index: 1000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  padding: 40px;\n}\n.full-screen-content[_ngcontent-%COMP%] {\n  max-width: 90%;\n  max-height: 90%;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 16px;\n}\n.full-screen-close[_ngcontent-%COMP%] {\n  position: absolute;\n  top: 24px;\n  right: 24px;\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  border-radius: 50%;\n  width: 48px;\n  height: 48px;\n  cursor: pointer;\n  color: #fff;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background 0.2s;\n}\n.full-screen-close[_ngcontent-%COMP%]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.full-screen-overlay[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n  max-width: 100%;\n  max-height: 80vh;\n  border-radius: 8px;\n  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);\n}\n.full-screen-info[_ngcontent-%COMP%] {\n  text-align: center;\n  color: #fff;\n}\n.full-screen-name[_ngcontent-%COMP%] {\n  font-size: 16px;\n  font-weight: 600;\n  margin-bottom: 4px;\n}\n.full-screen-meta[_ngcontent-%COMP%] {\n  font-size: 13px;\n  color: #d1d5db;\n}\n/*# sourceMappingURL=screenshot-detail.component.css.map */"] });
 };
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(ScreenshotDetailComponent, { className: "ScreenshotDetailComponent" });
 })();
-
-// src/app/screenshot-sorter.service.ts
-var ScreenshotSorterService = class _ScreenshotSorterService {
-  settings() {
-    return window.screenshotSorter.settings();
-  }
-  status() {
-    return window.screenshotSorter.status();
-  }
-  library() {
-    return window.screenshotSorter.library();
-  }
-  chooseFolder(current) {
-    return window.screenshotSorter.chooseFolder(current);
-  }
-  save(settings) {
-    return window.screenshotSorter.save(settings);
-  }
-  thumbnail(id) {
-    return window.screenshotSorter.thumbnail(id);
-  }
-  openFolder(folderPath) {
-    return window.screenshotSorter.openFolder(folderPath);
-  }
-  static \u0275fac = function ScreenshotSorterService_Factory(__ngFactoryType__) {
-    return new (__ngFactoryType__ || _ScreenshotSorterService)();
-  };
-  static \u0275prov = /* @__PURE__ */ \u0275\u0275defineInjectable({ token: _ScreenshotSorterService, factory: _ScreenshotSorterService.\u0275fac, providedIn: "root" });
-};
 
 // src/app/app.component.ts
 function AppComponent_div_6_Template(rf, ctx) {
@@ -28135,6 +28168,16 @@ var AppComponent = class _AppComponent {
   thumbnail(shot) {
     return this.thumbnailCache.get(shot.id) || "";
   }
+  fullImage(shot) {
+    return __async(this, null, function* () {
+      try {
+        const url = yield this.service.fullImage(shot.id);
+        return url || "";
+      } catch (e) {
+        return "";
+      }
+    });
+  }
   openFolder(shot) {
     return __async(this, null, function* () {
       try {
@@ -28153,7 +28196,7 @@ var AppComponent = class _AppComponent {
   static \u0275fac = function AppComponent_Factory(__ngFactoryType__) {
     return new (__ngFactoryType__ || _AppComponent)(\u0275\u0275directiveInject(ScreenshotSorterService));
   };
-  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AppComponent, selectors: [["app-root"]], standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 38, vars: 16, consts: [["aria-label", "Screenshot Sorter sections", 1, "tabs"], [1, "tab", 3, "click"], [1, "panel", 3, "hidden"], ["class", "hero-container", 4, "ngIf"], [1, "library-head"], [1, "secondary", 3, "click"], ["id", "library", "aria-live", "polite"], ["class", "card empty", 4, "ngIf"], ["class", "folder-section", 3, "collapsed", 4, "ngFor", "ngForOf"], [3, "close", "shot", "thumbnailUrl"], [1, "hero-container"], ["src", "assets/hero.png", "alt", "A person and an AI Fleas robot working together at a desk", 1, "hero"], ["aria-label", "Close hero image", 1, "close", 3, "click"], ["class", "card", 4, "ngIf"], [1, "card"], [1, "status"], [1, "card", "empty"], [1, "folder-section"], [1, "folder-head", 3, "click"], [2, "color", "#70798c", "font-size", "12px"], [1, "count"], ["class", "shots", 4, "ngIf"], [1, "shots"], ["class", "shot", 3, "title", 4, "ngFor", "ngForOf"], [1, "shot", 3, "title"], [2, "cursor", "pointer", 3, "error", "load", "click", "src", "alt"], [1, "shot-name"], [1, "shot-meta"], [1, "shot-actions"], ["aria-label", "Open folder in Finder", 1, "folder", 3, "click"], ["width", "16", "height", "16", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["d", "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"], [1, "row"], ["type", "text", "readonly", "", 3, "value"], [1, "hint"], ["type", "number", "min", "0", "max", "60", "readonly", "", 3, "value"], ["type", "number", "min", "0", "max", "3600", "readonly", "", 3, "value"], [3, "click"]], template: function AppComponent_Template(rf, ctx) {
+  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AppComponent, selectors: [["app-root"]], standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 38, vars: 15, consts: [["aria-label", "Screenshot Sorter sections", 1, "tabs"], [1, "tab", 3, "click"], [1, "panel", 3, "hidden"], ["class", "hero-container", 4, "ngIf"], [1, "library-head"], [1, "secondary", 3, "click"], ["id", "library", "aria-live", "polite"], ["class", "card empty", 4, "ngIf"], ["class", "folder-section", 3, "collapsed", 4, "ngFor", "ngForOf"], [3, "close", "shot"], [1, "hero-container"], ["src", "assets/hero.png", "alt", "A person and an AI Fleas robot working together at a desk", 1, "hero"], ["aria-label", "Close hero image", 1, "close", 3, "click"], ["class", "card", 4, "ngIf"], [1, "card"], [1, "status"], [1, "card", "empty"], [1, "folder-section"], [1, "folder-head", 3, "click"], [2, "color", "#70798c", "font-size", "12px"], [1, "count"], ["class", "shots", 4, "ngIf"], [1, "shots"], ["class", "shot", 3, "title", 4, "ngFor", "ngForOf"], [1, "shot", 3, "title"], [2, "cursor", "pointer", 3, "error", "load", "click", "src", "alt"], [1, "shot-name"], [1, "shot-meta"], [1, "shot-actions"], ["aria-label", "Open folder in Finder", 1, "folder", 3, "click"], ["width", "16", "height", "16", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["d", "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"], [1, "row"], ["type", "text", "readonly", "", 3, "value"], [1, "hint"], ["type", "number", "min", "0", "max", "60", "readonly", "", 3, "value"], ["type", "number", "min", "0", "max", "3600", "readonly", "", 3, "value"], [3, "click"]], template: function AppComponent_Template(rf, ctx) {
     if (rf & 1) {
       \u0275\u0275elementStart(0, "nav", 0)(1, "button", 1);
       \u0275\u0275listener("click", function AppComponent_Template_button_click_1_listener() {
@@ -28233,7 +28276,7 @@ var AppComponent = class _AppComponent {
       \u0275\u0275advance();
       \u0275\u0275property("ngForOf", ctx.folders);
       \u0275\u0275advance();
-      \u0275\u0275property("shot", ctx.selectedScreenshot)("thumbnailUrl", ctx.selectedScreenshot ? ctx.thumbnail(ctx.selectedScreenshot) : "");
+      \u0275\u0275property("shot", ctx.selectedScreenshot);
       \u0275\u0275advance();
       \u0275\u0275property("hidden", ctx.selectedTab !== "settings");
       \u0275\u0275advance(12);

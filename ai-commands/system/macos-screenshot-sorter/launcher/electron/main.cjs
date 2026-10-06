@@ -156,6 +156,14 @@ function screenshotThumbnail(_event, id) {
   if (!checked || checked.realFile !== item.realFile) fail('Screenshot changed before its thumbnail could be loaded. Refresh the list and try again.');
   return nativeImage.createFromPath(checked.realFile).resize({ width:240, height:135, quality:'good' }).toDataURL();
 }
+function screenshotFullImage(_event, id) {
+  if (typeof id !== 'string') fail('Screenshot identifier is invalid.');
+  const item = screenshotItems.get(id);
+  if (!item) fail('Screenshot is no longer available. Refresh the list and try again.');
+  const checked = safeScreenshotFile(item.realFile, item.folderPath, item.root);
+  if (!checked || checked.realFile !== item.realFile) fail('Screenshot changed before its image could be loaded. Refresh the list and try again.');
+  return 'file://' + checked.realFile;
+}
 function showWindow() { if (mainWindow) { if (app.dock) app.dock.show(); if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.show(); mainWindow.focus(); } }
 function cameraIcon() {
   // macOS menu-bar images need 2x source pixels. The prior 18px SVG became
@@ -224,6 +232,7 @@ if (isPrimaryInstance) {
   ipcMain.handle('sorter:status', async () => (await runCommand(['probe'])).stdout);
   ipcMain.handle('sorter:library', screenshotLibrary);
   ipcMain.handle('sorter:thumbnail', screenshotThumbnail);
+  ipcMain.handle('sorter:full-image', screenshotFullImage);
   ipcMain.handle('sorter:open-folder', async (_event, folderPath) => {
     const { shell } = require('electron');
     return shell.openExternal('file://' + folderPath);

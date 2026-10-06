@@ -6,5 +6,6 @@ contextBridge.exposeInMainWorld('screenshotSorter', {
   status: () => ipcRenderer.invoke('sorter:status'),
   library: () => ipcRenderer.invoke('sorter:library'),
   thumbnail: (id) => ipcRenderer.invoke('sorter:thumbnail', id),
+  fullImage: (id) => ipcRenderer.invoke('sorter:full-image', id),
   openFolder: (folderPath) => ipcRenderer.invoke('sorter:open-folder', folderPath)
 });

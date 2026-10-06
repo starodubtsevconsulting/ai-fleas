@@ -429,6 +429,7 @@ test('Folder-open icon shows only icon without text label', async ({ page }) => 
       chooseFolder: async () => null,
       save: async () => ({ output: 'Settings saved' }),
       thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
+      fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%202026-10-05%20at%2010-30-00.png`,
       openFolder: async () => null
     };
   });
@@ -462,6 +463,7 @@ test('Full screen view opens when thumbnail is clicked', async ({ page }) => {
       chooseFolder: async () => null,
       save: async () => ({ output: 'Settings saved' }),
       thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
+      fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%202026-10-05%20at%2010-30-00.png`,
       openFolder: async () => null
     };
   });
@@ -498,6 +500,7 @@ test('Full screen view shows correct screenshot', async ({ page }) => {
       chooseFolder: async () => null,
       save: async () => ({ output: 'Settings saved' }),
       thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
+      fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%202026-10-05%20at%2010-30-00.png`,
       openFolder: async () => null
     };
   });
@@ -511,11 +514,11 @@ test('Full screen view shows correct screenshot', async ({ page }) => {
   await thumbnails.nth(0).click();
   await page.waitForTimeout(300);
   
-  // Verify full screen overlay is visible
+  // Wait for full screen overlay to be visible (with image)
   const fullScreenOverlay = page.locator('app-screenshot-detail .full-screen-overlay');
   await expect(fullScreenOverlay).toBeVisible();
   
-  // Verify close button exists
+  // Wait for the close button to be visible
   const closeBtn = fullScreenOverlay.locator('.full-screen-close');
   await expect(closeBtn).toBeVisible();
   
@@ -525,11 +528,11 @@ test('Full screen view shows correct screenshot', async ({ page }) => {
   expect(closeBtnHTML).toContain('line');
   expect(closeBtnHTML).toContain('x1=');
   
-  // Verify image exists
+  // Verify image exists and has correct src
   const fullScreenImg = fullScreenOverlay.locator('img');
   await expect(fullScreenImg).toBeVisible();
   const src = await fullScreenImg.getAttribute('src');
-  expect(src).toContain('base64');
+  expect(src).toContain('file://');
 });
 
 test('Full screen view closes with X button', async ({ page }) => {
@@ -544,6 +547,7 @@ test('Full screen view closes with X button', async ({ page }) => {
       chooseFolder: async () => null,
       save: async () => ({ output: 'Settings saved' }),
       thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
+      fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%202026-10-05%20at%2010-30-00.png`,
       openFolder: async () => null
     };
   });
@@ -555,14 +559,17 @@ test('Full screen view closes with X button', async ({ page }) => {
   // Click the thumbnail to open full screen view
   const thumbnails = page.locator('.shot img');
   await thumbnails.nth(0).click();
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(500);
   
-  // Verify full screen overlay is visible
+  // Wait for full screen overlay to be visible
   const fullScreenOverlay = page.locator('app-screenshot-detail .full-screen-overlay');
-  await expect(fullScreenOverlay).toBeVisible();
+  await expect(fullScreenOverlay).toBeVisible({ timeout: 5000 });
+  
+  // Verify close button exists
+  const closeBtn = fullScreenOverlay.locator('.full-screen-close');
+  await expect(closeBtn).toBeVisible();
   
   // Click the close button
-  const closeBtn = fullScreenOverlay.locator('.full-screen-close');
   await closeBtn.click();
   await page.waitForTimeout(300);
   
@@ -582,6 +589,7 @@ test('Full screen view closes when clicking outside', async ({ page }) => {
       chooseFolder: async () => null,
       save: async () => ({ output: 'Settings saved' }),
       thumbnail: async () => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
+      fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%202026-10-05%20at%2010-30-00.png`,
       openFolder: async () => null
     };
   });
