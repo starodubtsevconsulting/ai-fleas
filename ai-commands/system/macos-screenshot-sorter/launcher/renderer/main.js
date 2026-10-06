@@ -27787,24 +27787,13 @@ var ScreenshotDetailComponent = class _ScreenshotDetailComponent {
   closeScreenshot() {
     this.close.emit();
   }
-  handleKeyDown(event) {
-    if (event.key === "Escape" && this.shot) {
-      this.closeScreenshot();
-    }
-  }
   formatBytes(bytes2) {
     return bytes2 < 1024 * 1024 ? `${Math.max(1, Math.round(bytes2 / 1024))} KB` : `${(bytes2 / (1024 * 1024)).toFixed(1)} MB`;
   }
   static \u0275fac = function ScreenshotDetailComponent_Factory(__ngFactoryType__) {
     return new (__ngFactoryType__ || _ScreenshotDetailComponent)(\u0275\u0275directiveInject(ScreenshotSorterService));
   };
-  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _ScreenshotDetailComponent, selectors: [["app-screenshot-detail"]], hostBindings: function ScreenshotDetailComponent_HostBindings(rf, ctx) {
-    if (rf & 1) {
-      \u0275\u0275listener("keydown", function ScreenshotDetailComponent_keydown_HostBindingHandler($event) {
-        return ctx.handleKeyDown($event);
-      }, false, \u0275\u0275resolveDocument);
-    }
-  }, inputs: { shot: "shot" }, outputs: { close: "close" }, standalone: true, features: [\u0275\u0275NgOnChangesFeature, \u0275\u0275StandaloneFeature], decls: 2, vars: 3, consts: [[1, "full-screen-overlay", 3, "click"], ["class", "full-screen-content", 3, "click", 4, "ngIf"], [1, "full-screen-content", 3, "click"], ["aria-label", "Close full screen view", 1, "full-screen-close", 3, "click"], ["width", "32", "height", "32", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["x1", "18", "y1", "6", "x2", "6", "y2", "18"], ["x1", "6", "y1", "6", "x2", "18", "y2", "18"], [3, "src", "alt"], [1, "full-screen-info"], [1, "full-screen-name"], [1, "full-screen-meta"]], template: function ScreenshotDetailComponent_Template(rf, ctx) {
+  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _ScreenshotDetailComponent, selectors: [["app-screenshot-detail"]], inputs: { shot: "shot" }, outputs: { close: "close" }, standalone: true, features: [\u0275\u0275NgOnChangesFeature, \u0275\u0275StandaloneFeature], decls: 2, vars: 3, consts: [[1, "full-screen-overlay", 3, "click"], ["class", "full-screen-content", 3, "click", 4, "ngIf"], [1, "full-screen-content", 3, "click"], ["aria-label", "Close full screen view", 1, "full-screen-close", 3, "click"], ["width", "32", "height", "32", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["x1", "18", "y1", "6", "x2", "6", "y2", "18"], ["x1", "6", "y1", "6", "x2", "18", "y2", "18"], [3, "src", "alt"], [1, "full-screen-info"], [1, "full-screen-name"], [1, "full-screen-meta"]], template: function ScreenshotDetailComponent_Template(rf, ctx) {
     if (rf & 1) {
       \u0275\u0275elementStart(0, "div", 0);
       \u0275\u0275listener("click", function ScreenshotDetailComponent_Template_div_click_0_listener() {
@@ -28204,10 +28193,21 @@ var AppComponent = class _AppComponent {
   closeScreenshot() {
     this.selectedScreenshot = null;
   }
+  handleKeyDown(event) {
+    if (event.key === "Escape" && this.selectedScreenshot) {
+      this.closeScreenshot();
+    }
+  }
   static \u0275fac = function AppComponent_Factory(__ngFactoryType__) {
     return new (__ngFactoryType__ || _AppComponent)(\u0275\u0275directiveInject(ScreenshotSorterService));
   };
-  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AppComponent, selectors: [["app-root"]], standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 38, vars: 15, consts: [["aria-label", "Screenshot Sorter sections", 1, "tabs"], [1, "tab", 3, "click"], [1, "panel", 3, "hidden"], ["class", "hero-container", 4, "ngIf"], [1, "library-head"], [1, "secondary", 3, "click"], ["id", "library", "aria-live", "polite"], ["class", "card empty", 4, "ngIf"], ["class", "folder-section", 3, "collapsed", 4, "ngFor", "ngForOf"], [3, "close", "shot"], [1, "hero-container"], ["src", "assets/hero.png", "alt", "A person and an AI Fleas robot working together at a desk", 1, "hero"], ["aria-label", "Close hero image", 1, "close", 3, "click"], ["class", "card", 4, "ngIf"], [1, "card"], [1, "status"], [1, "card", "empty"], [1, "folder-section"], [1, "folder-head", 3, "click"], [2, "color", "#70798c", "font-size", "12px"], [1, "count"], ["class", "shots", 4, "ngIf"], [1, "shots"], ["class", "shot", 3, "title", 4, "ngFor", "ngForOf"], [1, "shot", 3, "title"], [2, "cursor", "pointer", 3, "error", "load", "click", "src", "alt"], [1, "shot-name"], [1, "shot-meta"], [1, "shot-actions"], ["aria-label", "Open folder in Finder", 1, "folder", 3, "click"], ["width", "16", "height", "16", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["d", "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"], [1, "row"], ["type", "text", "readonly", "", 3, "value"], [1, "hint"], ["type", "number", "min", "0", "max", "60", "readonly", "", 3, "value"], ["type", "number", "min", "0", "max", "3600", "readonly", "", 3, "value"], [3, "click"]], template: function AppComponent_Template(rf, ctx) {
+  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AppComponent, selectors: [["app-root"]], hostBindings: function AppComponent_HostBindings(rf, ctx) {
+    if (rf & 1) {
+      \u0275\u0275listener("keydown", function AppComponent_keydown_HostBindingHandler($event) {
+        return ctx.handleKeyDown($event);
+      }, false, \u0275\u0275resolveWindow);
+    }
+  }, standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 38, vars: 15, consts: [["aria-label", "Screenshot Sorter sections", 1, "tabs"], [1, "tab", 3, "click"], [1, "panel", 3, "hidden"], ["class", "hero-container", 4, "ngIf"], [1, "library-head"], [1, "secondary", 3, "click"], ["id", "library", "aria-live", "polite"], ["class", "card empty", 4, "ngIf"], ["class", "folder-section", 3, "collapsed", 4, "ngFor", "ngForOf"], [3, "close", "shot"], [1, "hero-container"], ["src", "assets/hero.png", "alt", "A person and an AI Fleas robot working together at a desk", 1, "hero"], ["aria-label", "Close hero image", 1, "close", 3, "click"], ["class", "card", 4, "ngIf"], [1, "card"], [1, "status"], [1, "card", "empty"], [1, "folder-section"], [1, "folder-head", 3, "click"], [2, "color", "#70798c", "font-size", "12px"], [1, "count"], ["class", "shots", 4, "ngIf"], [1, "shots"], ["class", "shot", 3, "title", 4, "ngFor", "ngForOf"], [1, "shot", 3, "title"], [2, "cursor", "pointer", 3, "error", "load", "click", "src", "alt"], [1, "shot-name"], [1, "shot-meta"], [1, "shot-actions"], ["aria-label", "Open folder in Finder", 1, "folder", 3, "click"], ["width", "16", "height", "16", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["d", "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"], [1, "row"], ["type", "text", "readonly", "", 3, "value"], [1, "hint"], ["type", "number", "min", "0", "max", "60", "readonly", "", 3, "value"], ["type", "number", "min", "0", "max", "3600", "readonly", "", 3, "value"], [3, "click"]], template: function AppComponent_Template(rf, ctx) {
     if (rf & 1) {
       \u0275\u0275elementStart(0, "nav", 0)(1, "button", 1);
       \u0275\u0275listener("click", function AppComponent_Template_button_click_1_listener() {
