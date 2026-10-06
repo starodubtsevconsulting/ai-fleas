@@ -6,7 +6,9 @@ tasks:
   allowed:
     - compression
     - goal_judge
+    - title_generation
   verification:
     compression: owning-agent-preserves-and-checks-critical-context
     goal_judge: advisory-only-owning-agent-retains-decision-authority
+    title_generation: short-non-authoritative-session-label
 evidence_notes: ../../../../../notes/benchmarks/local-models/rtx-3080-ti.md

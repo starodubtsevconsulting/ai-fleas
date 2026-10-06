@@ -125,9 +125,10 @@ workflow roster. A missing selection preserves full-roster behavior for compatib
 The same command config may route named Hermes auxiliary tasks through a separately configured model using
 `auxiliary_models.<workflow>`. An auxiliary model is not an agent, group member, registered workflow role, or
 independent reviewer. The configurator validates its provider/model endpoint, strategy, exact expertise binding,
-allowed task names, callers, and timeouts before writing the realized caller profile. Initial supported tasks are
-`compression` for context handling and `goal_judge` for advisory goal evaluation; additional tasks require an explicit
-strategy/config change.
+allowed task names, callers, and timeouts before writing the realized caller profile. A workflow may declare either one
+legacy route or a `routes` list so different tasks can use different configured models. Initial supported tasks are
+`compression` for context handling, `goal_judge` for advisory goal evaluation, and `title_generation` for
+non-authoritative session labels; additional tasks require an explicit strategy/config change.
 
 Both supported slots are part of the **normal minimal Hermes profile**. A profile without either slot is a legacy or
 degraded profile and MUST NOT be described as normally configured. The auxiliary slots may share one auxiliary model,
@@ -151,7 +152,7 @@ sequenceDiagram
   C-->>A: Compressed session context
   A->>J: Draft or evaluate the active goal
   J-->>A: Advisory verdict
-  Note over A,J: One profile session; auxiliary calls return to the foreground agent
+  Note over A,J: One profile session, auxiliary calls return to the foreground agent
 ```
 
 ```yaml
