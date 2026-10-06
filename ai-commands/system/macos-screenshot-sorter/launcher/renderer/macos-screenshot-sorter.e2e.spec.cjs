@@ -6,16 +6,35 @@ function rendererUrl() {
   return pathToFileURL(path.resolve(__dirname, 'index.html')).href;
 }
 
+// Mock window.screenshotSorter for E2E tests
+function setupMockScreenshotSorter() {
+  window.screenshotSorter = {
+    settings: async () => ({
+      sourceDir: '/Users/sergii/Screenshots',
+      destinationDir: '/Users/sergii/Screenshots',
+      settleSeconds: 2,
+      startIntervalSeconds: 10
+    }),
+    status: async () => 'Sorter is running',
+    library: async () => [],
+    chooseFolder: async (current) => null,
+    save: async (settings) => ({ output: 'Settings saved' }),
+    thumbnail: async (id) => null
+  };
+}
+
 test('Settings tab shows default config values', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  await page.addInitScript(setupMockScreenshotSorter);
   await page.goto(rendererUrl());
 
-  // Wait for UI to load
-  await expect(page.locator('.tab-content.active')).toBeVisible();
-  await expect(page.getByRole('tab', { name: 'Settings' })).toBeVisible();
-  await expect(page.getByRole('tab', { name: 'Screenshots' })).toBeVisible();
-
-  // Check tab order - Screenshots should be first (visible on left)
-  const tabs = page.locator('.tabs .tab');
+  // Wait for the page to fully load
+  await page.waitForLoadState('networkidle');
+  
+  // Check tabs by data attribute instead of role
+  const tabs = page.locator('[data-tab]');
   await expect(tabs).toHaveCount(2);
   
   const firstTab = tabs.nth(0);
@@ -27,34 +46,43 @@ test('Settings tab shows default config values', async ({ page }) => {
   await expect(secondTab).toHaveAttribute('aria-selected', 'false');
 
   // Check settings form fields are populated
-  await expect(page.locator('#sourceDir')).toBeVisible();
-  await expect(page.locator('#sourceDir')).toHaveValue('');
+  await expect(page.locator('#source')).toBeVisible();
+  await expect(page.locator('#source')).toHaveValue('/Users/sergii/Screenshots');
   
-  await expect(page.locator('#destinationDir')).toBeVisible();
-  await expect(page.locator('#destinationDir')).toHaveValue('');
+  await expect(page.locator('#destination')).toBeVisible();
+  await expect(page.locator('#destination')).toHaveValue('/Users/sergii/Screenshots');
 });
 
 test('Screenshot tab loads', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  await page.addInitScript(setupMockScreenshotSorter);
   await page.goto(rendererUrl());
 
   // Switch to Screenshots tab
-  const screenshotTab = page.getByRole('tab', { name: 'Screenshots' });
+  const screenshotTab = page.locator('[data-tab="library"]');
   await screenshotTab.click();
 
   // Verify tab is selected
   await expect(screenshotTab).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByRole('tab', { name: 'Settings' })).toHaveAttribute('aria-selected', 'false');
+  await expect(page.locator('[data-tab="settings"]')).toHaveAttribute('aria-selected', 'false');
   
-  // Verify tab content is visible
-  await expect(page.locator('.tab-content.active')).toBeVisible();
+  // Verify tab content is visible (library panel should now be visible, settings hidden)
+  await expect(page.locator('[data-panel="library"]')).toBeVisible();
+  await expect(page.locator('[data-panel="settings"]')).not.toBeVisible();
 });
 
 test('Tab switching works correctly', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  await page.addInitScript(setupMockScreenshotSorter);
   await page.goto(rendererUrl());
 
-  // Initial state: Settings tab active (reversed order means Screenshots is first)
-  const screenshotsTab = page.getByRole('tab', { name: 'Screenshots' });
-  const settingsTab = page.getByRole('tab', { name: 'Settings' });
+  // Initial state: Screenshots tab active
+  const screenshotsTab = page.locator('[data-tab="library"]');
+  const settingsTab = page.locator('[data-tab="settings"]');
   
   await expect(screenshotsTab).toHaveAttribute('aria-selected', 'true');
   await expect(settingsTab).toHaveAttribute('aria-selected', 'false');
