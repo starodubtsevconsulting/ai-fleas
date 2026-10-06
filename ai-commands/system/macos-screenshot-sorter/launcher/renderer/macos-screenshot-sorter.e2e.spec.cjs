@@ -476,3 +476,82 @@ test('Relative date display works for screenshots', async ({ page }) => {
   // The date 2026-10-06 is Yesterday relative to 2026-10-07 (today)
   await expect(folderHead).toContainText('Yesterday');
 });
+
+test('Folder collapse toggle works', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  await page.addInitScript(() => {
+    window.screenshotSorter = {
+      settings: async () => ({
+        sourceDir: '/Users/sergii/Screenshots',
+        destinationDir: '/Users/sergii/Screenshots',
+        settleSeconds: 2,
+        startIntervalSeconds: 10
+      }),
+      status: async () => 'Sorter is running',
+      library: async () => [
+        {
+          date: '2026-10-06',
+          count: 3,
+          screenshots: [
+            { id: 'shot1', name: 'Screenshot 1.png', modifiedAt: Date.now(), bytes: 1024 },
+            { id: 'shot2', name: 'Screenshot 2.png', modifiedAt: Date.now(), bytes: 2048 },
+            { id: 'shot3', name: 'Screenshot 3.png', modifiedAt: Date.now(), bytes: 3072 }
+          ]
+        }
+      ],
+      chooseFolder: async (current) => null,
+      save: async (settings) => ({ output: 'Settings saved' }),
+      thumbnail: async (id) => null
+    };
+  });
+  
+  await page.goto(rendererUrl());
+  
+  // Switch to Screenshots tab
+  const screenshotTab = page.locator('[data-tab="library"]');
+  await screenshotTab.click();
+  
+  // Wait for folder to be displayed
+  await page.waitForSelector('[data-panel="library"] .folder');
+  
+  const folder = page.locator('.folder');
+  const shots = page.locator('.shots');
+  
+  // Initially expanded
+  await expect(folder).toHaveAttribute('aria-expanded', 'true');
+  await expect(shots).toBeVisible();
+  await expect(page.locator('.shots .shot')).toHaveCount(3);
+  
+  // Use JavaScript to click on the h2 inside folder-head (where the arrow is)
+  await page.evaluate(() => {
+    const h2 = document.querySelector('.folder-head h2');
+    if (h2) {
+      h2.click();
+    }
+  });
+  
+  // Wait for the attribute to change
+  await page.waitForFunction(() => {
+    const folder = document.querySelector('.folder');
+    return folder && folder.getAttribute('aria-expanded') === 'false';
+  }, { timeout: 2000 });
+  
+  await expect(shots).not.toBeVisible();
+  
+  // Click again to expand
+  await page.evaluate(() => {
+    const h2 = document.querySelector('.folder-head h2');
+    if (h2) {
+      h2.click();
+    }
+  });
+  await page.waitForFunction(() => {
+    const folder = document.querySelector('.folder');
+    return folder && folder.getAttribute('aria-expanded') === 'true';
+  }, { timeout: 2000 });
+  
+  await expect(shots).toBeVisible();
+  await expect(page.locator('.shots .shot')).toHaveCount(3);
+});

@@ -27,7 +27,9 @@
     .library-head { display:flex; align-items:start; justify-content:space-between; gap:16px }
     .library-head p { margin:4px 0 0 }
     .folder { margin:18px 0; padding:16px; border:1px solid #e4e5ec; border-radius:14px; background:#fff }
-    .folder-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px }
+    .folder-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; cursor:pointer; user-select:none }
+    .folder-head h2 { display:flex; align-items:center; gap:6px }
+    .folder[aria-expanded="false"] .shots { display:none }
     .count { color:#596174; font-size:12px; white-space:nowrap }
     .shots { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px }
     .shot { overflow:hidden; border:1px solid #e4e5ec; border-radius:10px; background:#fbfcff }
@@ -107,12 +109,26 @@
       try {
         const folders = await window.screenshotSorter.library();
         if (!folders.length) { $('library').innerHTML = '<div class="card empty">No sorted screenshots yet. New screenshots will appear here after they are filed.</div>'; return; }
-        $('library').innerHTML = folders.map(folder => `<section class="folder"><div class="folder-head"><h2>${escapeHtml(folder.date)} <span style="color:#70798c; font-size:12px;">(${relativeDate(folder.date)})</span></h2><span class="count">${folder.count} screenshot${folder.count === 1 ? '' : 's'}${folder.count > folder.screenshots.length ? ` · showing newest ${folder.screenshots.length}` : ''}</span></div><div class="shots">${folder.screenshots.map(shot => `<article class="shot" title="${escapeHtml(shot.name)}"><img data-thumbnail="${escapeHtml(shot.id)}" alt="${escapeHtml(shot.name)}"><div class="shot-name">${escapeHtml(shot.name)}</div><div class="shot-meta">${changed(shot.modifiedAt)} · ${bytes(shot.bytes)}</div></article>`).join('')}</div></section>`).join('');
+        $('library').innerHTML = folders.map(folder => `<section class="folder" aria-expanded="true"><div class="folder-head"><h2><span style="color:#2e67d1; font-size:12px;">▼</span> ${escapeHtml(folder.date)} <span style="color:#70798c; font-size:12px;">(${relativeDate(folder.date)})</span></h2><span class="count">${folder.count} screenshot${folder.count === 1 ? '' : 's'}${folder.count > folder.screenshots.length ? ` · showing newest ${folder.screenshots.length}` : ''}</span></div><div class="shots">${folder.screenshots.map(shot => `<article class="shot" title="${escapeHtml(shot.name)}"><img data-thumbnail="${escapeHtml(shot.id)}" alt="${escapeHtml(shot.name)}"><div class="shot-name">${escapeHtml(shot.name)}</div><div class="shot-meta">${changed(shot.modifiedAt)} · ${bytes(shot.bytes)}</div></article>`).join('')}</div></section>`).join('');
         await Promise.all([...document.querySelectorAll('[data-thumbnail]')].map(async image => {
           try { image.src = await window.screenshotSorter.thumbnail(image.dataset.thumbnail); }
           catch { image.alt = `${image.alt} (preview unavailable)`; }
         }));
+        registerFolderHandlers();
       } catch (error) { $('library').innerHTML = `<div class="card empty">Could not load screenshots: ${escapeHtml(error.message)}</div>`; }
+    }
+    function registerFolderHandlers() {
+      document.querySelectorAll('.folder-head h2').forEach(h2 => {
+        h2.onclick = (e) => {
+          e.stopPropagation();
+          const folder = h2.closest('.folder');
+          const expanded = folder.getAttribute('aria-expanded') !== 'false';
+          folder.setAttribute('aria-expanded', String(!expanded));
+          const arrow = h2.querySelector('span:first-child');
+          arrow.textContent = expanded ? '▶' : '▼';
+          arrow.style.color = expanded ? '#70798c' : '#2e67d1';
+        };
+      });
     }
     function selectTab(name) {
       document.querySelectorAll('[data-tab]').forEach(tab => { tab.setAttribute('aria-selected', String(tab.dataset.tab === name)); });
