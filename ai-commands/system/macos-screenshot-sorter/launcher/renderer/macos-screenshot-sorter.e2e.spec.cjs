@@ -366,8 +366,8 @@ test('Settings tab hero image is displayed', async ({ page }) => {
   // Wait for settings panel to be visible
   await expect(page.locator('[data-panel="settings"]')).toBeVisible();
   
-  // Verify hero image exists in settings tab
-  const heroImage = page.locator('.hero');
+  // Verify hero image exists in settings tab (use specific selector since library also has hero)
+  const heroImage = page.locator('#settings .hero');
   await expect(heroImage).toBeVisible();
   await expect(heroImage).toHaveAttribute('alt', 'A person and an AI Fleas robot working together at a desk');
 });

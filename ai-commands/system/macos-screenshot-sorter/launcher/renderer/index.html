@@ -37,6 +37,10 @@
     .shot-name { overflow:hidden; padding:8px 9px 2px; color:#333949; font-size:12px; font-weight:600; text-overflow:ellipsis; white-space:nowrap }
     .shot-meta { padding:0 9px 8px; color:#70798c; font-size:11px }
     .empty { padding:30px 18px; color:#687186; text-align:center }
+    .hero-container { position:relative; margin-bottom:16px }
+    .hero-container .hero { display:block; width:100%; height:260px; object-fit:contain; object-position:center; border:1px solid #e4e5ec; border-radius:14px; background:#fff; margin:0 0 18px; box-shadow:0 2px 8px #20212a0a }
+    .hero-container .close { position:absolute; top:8px; right:8px; width:28px; height:28px; background:#fff; border:none; border-radius:50%; cursor:pointer; box-shadow:0 2px 8px #20212a1a; display:flex; align-items:center; justify-content:center; font-size:16px; color:#20212a; line-height:1 }
+    .hero-container .close:hover { background:#f3f4f6 }
   </style>
 </head>
 <body>
@@ -47,6 +51,10 @@
     </nav>
 
     <section class="panel" data-panel="library">
+      <div class="hero-container" id="library-hero-container">
+        <img class="hero" id="library-hero" src="../../../../../notes/articles/assets/2026-09-18-ai-fleas-human-led-demo-header.png" alt="A person and an AI Fleas robot working together at a desk">
+        <button class="close" id="close-library-hero" aria-label="Close hero image">×</button>
+      </div>
       <div class="library-head">
         <div><h1>Your screenshots</h1><p>Browse screenshots by capture-date folder. This view is read-only for now.</p></div>
         <button id="reload-library" class="secondary">Refresh</button>
@@ -54,7 +62,7 @@
       <div id="library" aria-live="polite"><div class="card empty">Loading screenshots…</div></div>
     </section>
 
-    <section class="panel" data-panel="settings" hidden>
+    <section class="panel" id="settings" data-panel="settings" hidden>
       <img class="hero" src="../../../../../notes/articles/assets/2026-09-18-ai-fleas-human-led-demo-header.png" alt="A person and an AI Fleas robot working together at a desk">
       <h1>Keep your screenshots organized</h1>
       <p>Instead of letting screenshots pile up on your Desktop, Screenshot Sorter automatically files each new screenshot into a dated folder (like <code>2026-10-05</code>) in the location you choose.</p>
@@ -150,6 +158,10 @@
     };
     $('refresh').onclick = status;
     $('reload-library').onclick = loadLibrary;
+    
+    // Hide hero on close button click
+    $('close-library-hero').onclick = () => { $('library-hero-container').style.display = 'none'; };
+    
     selectTab('library');
     loadSettings().catch(error => { $('status').textContent = `Error: ${error.message}`; });
   </script>
