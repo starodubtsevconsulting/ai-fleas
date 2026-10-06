@@ -82,6 +82,11 @@ const run = (program, args, options = {}) => {
 };
 const hermes = process.env.HERMES_BIN || 'hermes';
 const localTokens = () => run(hermes, ['-p', agent, 'config', 'get', 'model.context_length']);
+const compressionTokens = () => {
+  const configFile = path.join(process.env.HERMES_HOME || path.join(process.env.HOME, '.hermes'), 'profiles', agent, 'config.yaml');
+  const value = readYaml(configFile).toJSON()?.auxiliary?.compression?.context_length;
+  return tokens.test(String(value ?? '')) ? String(value) : '';
+};
 const remoteTokens = () => run('ssh', [sshTarget, `curl --fail --silent --show-error http://127.0.0.1:8000/v1/models`]);
 const apiTokens = () => {
   const data = JSON.parse(remoteTokens());
@@ -98,16 +103,20 @@ const waitForApi = () => {
   fail(`HERMES_CONTEXT_SERVER_NOT_READY: ${lastError || 'model service did not become ready within 60 seconds.'}`);
 };
 const report = () => {
-  const result = { agent, profile: binding.profile, workflow: workflowId, model: model.provider_model, catalog: catalogTokens, hermes: localTokens(), server: apiTokens() };
-  console.log(`HERMES_CONTEXT_STATUS: agent=${result.agent} profile=${result.profile} workflow=${result.workflow} model=${result.model} catalog=${result.catalog} hermes=${result.hermes} server=${result.server}`);
+  const result = { agent, profile: binding.profile, workflow: workflowId, model: model.provider_model, catalog: catalogTokens, hermes: localTokens(), compression: compressionTokens(), server: apiTokens() };
+  console.log(`HERMES_CONTEXT_STATUS: agent=${result.agent} profile=${result.profile} workflow=${result.workflow} model=${result.model} catalog=${result.catalog} hermes=${result.hermes} compression=${result.compression || 'unconfigured'} server=${result.server}`);
   return result;
 };
 
 if (action === 'status') {
   const result = report();
   if (new Set([result.catalog, result.hermes, result.server]).size !== 1) fail(`HERMES_CONTEXT_DRIFT: agent=${agent}; use 'context set --agent ${agent} --tokens N' to reconcile.`);
+  if (!result.compression || Number(result.compression) < Number(result.hermes)) fail(`HERMES_CONTEXT_COMPRESSION_CONSTRAINED: agent=${agent}; compression=${result.compression || 'unconfigured'} main=${result.hermes}. Reconcile a compatible auxiliary compression model before using this context window.`);
   process.exit(0);
 }
+
+const currentCompression = compressionTokens();
+if (!currentCompression || Number(currentCompression) < Number(requestedTokens)) fail(`HERMES_CONTEXT_COMPRESSION_CONSTRAINED: agent=${agent}; compression=${currentCompression || 'unconfigured'} requested=${requestedTokens}. Reconcile a compatible auxiliary compression model first.`);
 
 // Do remote restart first; catalog and Hermes are changed only after the remote command succeeds.
 const remoteScript = String.raw`set -eu

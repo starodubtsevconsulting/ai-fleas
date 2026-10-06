@@ -1,0 +1,12 @@
+schema_version: local-auxiliary-model-strategy.v1
+applies_to:
+  provider_model: qwen3-coder-next-q5km
+expertise_profile: ../../../../../models/qwen3-coder-next/expertise-profile.yml
+tasks:
+  allowed:
+    - compression
+    - goal_judge
+  verification:
+    compression: owning-agent-preserves-and-checks-critical-context
+    goal_judge: advisory-only-owning-agent-retains-decision-authority
+evidence_notes: qwen3-coder-next-q5km.md

@@ -71,7 +71,7 @@ try {
   const endpoint = connection.url.replace(/\/$/, '');
 
   const workflowsRoot = fs.realpathSync(path.resolve(profileDirectory, workProfile.ai_workflows_root));
-  const strategyRef = model.delegation?.strategy_config;
+  const strategyRef = model.delegation?.auxiliary_strategy_config;
   if (typeof strategyRef !== 'string' || !strategyRef || path.isAbsolute(strategyRef) || strategyRef.split(/[\\/]/).includes('..')) fail('Auxiliary model strategy is missing or unsafe');
   const strategyPath = fs.realpathSync(path.resolve(workflowsRoot, strategyRef));
   inside(workflowsRoot, strategyPath, 'auxiliary strategy');
