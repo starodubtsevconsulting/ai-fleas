@@ -391,3 +391,20 @@ The `showHero` boolean is initialized to `true`, and `hideHero()` sets it to `fa
 **Library (Screenshots) panel is visible by default. Settings panel is hidden.**
 
 To verify Settings content in tests, click the Settings tab first.
+
+## macOS Status Bar Icon Issue
+
+**Known limitation on macOS Sonoma and later**: The app's tray icon in the top status bar may not be visible.
+
+**Cause**: macOS requires apps to be properly code-signed to show status bar icons. The development build is not signed, so macOS silently blocks the tray icon.
+
+**Workarounds**:
+1. **Click the app icon in the Dock** to open the main window
+2. **Right-click the app icon in Dock** → "Show Screenshot Sorter"
+3. **Use the menu bar item** (if visible in System Settings → Dock & Menu Bar)
+
+**To fix permanently**:
+- Build a signed version of the app with proper Developer ID certificate
+- Or use `electron-builder` with proper notarization
+
+The app itself is fully functional - the full-screen screenshot view works correctly. The only visible difference is the missing tray icon.
