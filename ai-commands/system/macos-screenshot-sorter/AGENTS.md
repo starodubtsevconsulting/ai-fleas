@@ -8,7 +8,7 @@ export AI_CONFIG_PROJECT="/Users/sergii/projects/sc/ai-fleas"
 export AI_WORK_PROFILE_ID="sc"
 export AI_FLOW_WORKFLOW="dev.workflow.md"
 export AI_AGENT_PLATFORM="sc"
-bash /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
+bash /Users/sergii/projects/sc/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
 ```
 
 ## App Structure
@@ -93,7 +93,7 @@ export AI_CONFIG_PROJECT="/Users/sergii/projects/sc/ai-fleas"
 export AI_WORK_PROFILE_ID="sc"
 export AI_FLOW_WORKFLOW="dev.workflow.md"
 export AI_AGENT_PLATFORM="sc"
-bash /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui 2>&1 | tee /tmp/screenshot-sorter.log
+bash /Users/sergii/projects/sc/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui 2>&1 | tee /tmp/screenshot-sorter.log
 ```
 
 Watch for the `[DEBUG]` lines in the output to verify config is being read.
@@ -104,13 +104,12 @@ Watch for the `[DEBUG]` lines in the output to verify config is being read.
 
 ```bash
 # Start with dev mode enabled
-ELECTRON_DEV=1 bash /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
+ELECTRON_DEV=1 bash /Users/sergii/projects/sc/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
 ```
 
 When `ELECTRON_DEV=1` is set, the app watches `index.html` every 500ms and auto-reloads the window when changes are detected.
 
 **If changes don't appear after editing `index.html`:**
-
 1. **Check ELECTRON_DEV is set** - Dev mode must be enabled for auto-reload
 2. **Check for save conflicts** - Ensure your editor saved the file
 3. **Manual reload** - Press Cmd+R in the app window or click the tray icon to reload
@@ -128,10 +127,10 @@ export AI_CONFIG_PROJECT="/Users/sergii/projects/sc/ai-fleas"
 export AI_WORK_PROFILE_ID="sc"
 export AI_FLOW_WORKFLOW="dev.workflow.md"
 export AI_AGENT_PLATFORM="sc"
-bash /Users/sergii/projects/sc/ai-fleas/ai-commands/_runtime/profile/activate-profile.sh --profile sc --workflow dev.workflow.md --platform sc --command macos-screenshot-sorter
+bash /Users/sergii/projects/sc/ai-commands/_runtime/profile/activate-profile.sh --profile sc --workflow dev.workflow.md --platform sc --command macos-screenshot-sorter
 
 # Then launch the app
-ELECTRON_DEV=1 bash /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
+ELECTRON_DEV=1 bash /Users/sergii/projects/sc/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
 ```
 
 ## Electron Console Logging
@@ -146,3 +145,31 @@ If you need to debug config or other values:
 1. Write to a log file instead
 2. Send messages to the renderer for display in the UI
 3. Use `console.error()` only for fatal issues
+
+## White Screen Detection
+
+**If you see a white screen**: This indicates a fatal error in the renderer process.
+
+**Immediate actions**:
+1. **Check renderer console**: Press Cmd+Opt+I to open DevTools in the renderer
+2. **Check main process logs**: `~/Library/Logs/AI Fleas/org.sergii.ai-fleas.screenshot-sorter.err.log`
+3. **Look for missing files**: Check if `index.html` or other assets exist
+4. **Check config**: Ensure config file is valid shell format and all required vars are set
+5. **IPC failures**: If renderer calls `window.screenshotSorter.*` and main doesn't respond, renderer throws
+
+**Common causes of white screen**:
+
+| Cause | Fix |
+|-------|-----|
+| `index.html` not found | Verify file exists in `launcher/renderer/` |
+| Config missing required vars | Check config file has all `SCREENSHOT_SORTER_*` vars |
+| IPC handler not registered | Verify `main.cjs` registers the IPC handler |
+| Unhandled promise rejection in renderer | Check DevTools console for stack traces |
+| Renderer crashes on load | Check DevTools console for errors |
+| Renderer throws uncaught error | Wrap renderer init in try/catch |
+
+**When you see white screen:**
+1. Check DevTools console (Cmd+Opt+I) for errors
+2. Look at main process logs for fatal errors
+3. Verify all required env vars are set in config
+4. Check `main.cjs` registers all required IPC handlers
