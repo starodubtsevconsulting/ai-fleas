@@ -119,6 +119,21 @@ When `ELECTRON_DEV=1` is set, the app watches `index.html` every 500ms and auto-
 - These require a full app restart since they run in the main process
 - Use `pkill -f "Screenshot Sorter"` followed by restarting with the desired mode
 
+## Profile Requirement
+
+The command requires an AI Profile to be set. To run the UI:
+
+```bash
+export AI_CONFIG_PROJECT="/Users/sergii/projects/sc/ai-fleas"
+export AI_WORK_PROFILE_ID="sc"
+export AI_FLOW_WORKFLOW="dev.workflow.md"
+export AI_AGENT_PLATFORM="sc"
+bash /Users/sergii/projects/sc/ai-fleas/ai-commands/_runtime/profile/activate-profile.sh --profile sc --workflow dev.workflow.md --platform sc --command macos-screenshot-sorter
+
+# Then launch the app
+ELECTRON_DEV=1 bash /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
+```
+
 ## Electron Console Logging
 
 **Warning**: Do not use `console.log()` in `main.cjs` for debugging in Electron apps.
