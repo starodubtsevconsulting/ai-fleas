@@ -100,21 +100,24 @@ Watch for the `[DEBUG]` lines in the output to verify config is being read.
 
 ## Development Workflow
 
-**Always restart the app after changes** to see UI updates:
+**For rapid iteration, use dev mode** - changes to `index.html` auto-reload in the UI:
 
 ```bash
-# Kill the app
-pkill -f "Screenshot Sorter" 2>/dev/null
-
-# Restart
-export AI_CONFIG_PROJECT="/Users/sergii/projects/sc/ai-fleas"
-export AI_WORK_PROFILE_ID="sc"
-export AI_FLOW_WORKFLOW="dev.workflow.md"
-export AI_AGENT_PLATFORM="sc"
-bash /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
+# Start with dev mode enabled
+ELECTRON_DEV=1 bash /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
 ```
 
-Electron does not hot-reload renderer files automatically. Changes to `index.html` or other renderer assets require a full app restart to see updates in the UI.
+When `ELECTRON_DEV=1` is set, the app watches `index.html` every 500ms and auto-reloads the window when changes are detected.
+
+**If changes don't appear after editing `index.html`:**
+
+1. **Check ELECTRON_DEV is set** - Dev mode must be enabled for auto-reload
+2. **Check for save conflicts** - Ensure your editor saved the file
+3. **Manual reload** - Press Cmd+R in the app window or click the tray icon to reload
+
+**For main.cjs changes** (IPC handlers, config parsing, etc.):
+- These require a full app restart since they run in the main process
+- Use `pkill -f "Screenshot Sorter"` followed by restarting with the desired mode
 
 ## Electron Console Logging
 

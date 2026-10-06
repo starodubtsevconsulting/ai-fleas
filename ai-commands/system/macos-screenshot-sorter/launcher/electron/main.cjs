@@ -167,6 +167,26 @@ function createWindow() {
   mainWindow.setMenuBarVisibility(false); mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   mainWindow.on('close', (event) => { if (allowQuit) return; event.preventDefault(); mainWindow.hide(); if (app.dock) app.dock.hide(); });
 }
+// Dev mode: auto-reload when index.html changes (polling-based for macOS reliability)
+const rendererDir = path.join(__dirname, '../renderer');
+const indexHtmlPath = path.join(rendererDir, 'index.html');
+if (process.env.ELECTRON_DEV === '1') {
+  let lastMtime = 0;
+  const checkAndReload = () => {
+    try {
+      const stat = fs.statSync(indexHtmlPath);
+      if (stat.mtimeMs > lastMtime) {
+        lastMtime = stat.mtimeMs;
+        console.error('[DEV] index.html changed, reloading window...');
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.reload();
+        }
+      }
+    } catch { /* ignore */ }
+  };
+  // Check every 500ms for changes
+  setInterval(checkAndReload, 500);
+}
 if (isPrimaryInstance) {
   ipcMain.handle('sorter:settings', settings);
   ipcMain.handle('sorter:choose-folder', async (_event, current) => {
