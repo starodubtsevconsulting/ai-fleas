@@ -293,7 +293,7 @@ cat /tmp/test-run-output.log
 
 ### Never hardcode personal paths in E2E tests
 
-E2E tests must work on any machine and must never contain personal/user-specific paths.
+E2E tests must work on any machine and must never contain personal/user-specific paths like `/Users/sergii/...`.
 
 **WRONG:**
 ```javascript
@@ -303,18 +303,20 @@ fullImage: async () => `file:///Users/sergii/Screenshots/2026-10-05/Screenshot%2
 **CORRECT:**
 ```javascript
 fullImage: async () => {
-  const { writeFileSync, mkdirSync } = require('fs');
-  const { tmpdir } = require('os');
-  const path = require('path');
-  const tempDir = tmpdir();
-  const testImgDir = path.join(tempDir, 'screenshot-sorter-test');
-  const testImgPath = path.join(testImgDir, 'test-screenshot.png');
-  mkdirSync(testImgDir, { recursive: true });
-  const pngData = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==', 'base64');
-  writeFileSync(testImgPath, pngData);
-  return `file://${testImgPath}`;
+  // Use data URLs instead of file:// URLs in tests
+  // - Works on any machine without hardcoded paths
+  // - No security restrictions in Playwright tests
+  // - In real Electron app, this returns file:// URL from backend IPC
+  return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==';
 }
 ```
+
+### Why data URLs over file:// URLs in tests?
+
+- **Security**: Browsers block `file://` URLs in Playwright tests for security
+- **Portability**: No hardcoded paths needed - works for any developer
+- **Simplicity**: One-line return value instead of file creation logic
+- **Real app**: In Electron, `window.screenshotSorter.fullImage()` returns `file://` from backend IPC
 
 ## Development with Angular
 
