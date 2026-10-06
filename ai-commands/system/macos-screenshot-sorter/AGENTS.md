@@ -173,3 +173,41 @@ If you need to debug config or other values:
 2. Look at main process logs for fatal errors
 3. Verify all required env vars are set in config
 4. Check `main.cjs` registers all required IPC handlers
+
+## Testing Workflow
+
+**Testing always starts with scenario.md** - the acceptance scenario is the master source of truth.
+
+### 1. Acceptance Testing (scenario.md)
+- Read `macos-screenshot-sorter.scenario.md` first
+- Each step is a manual test to perform
+- Record evidence at each step
+- Only retire legacy when all steps pass
+
+### 2. Playwright E2E Tests
+- Tests live in `launcher/renderer/*.e2e.spec.cjs`
+- Each test maps 1:1 to a scenario step
+- Tests verify the same behaviors manually checked in scenario.md
+- Run with: `cd launcher/renderer && npm test`
+
+### 3. Test-Driven Development
+- **Write scenario step first** in scenario.md
+- **Add Playwright test** that verifies the same behavior
+- **Run manually** via scenario.md to verify
+- **Commit both** - scenario and test together
+
+### 4. Running Tests
+
+```bash
+cd /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sorter/launcher/renderer
+npm install
+npm test                    # Run all tests
+npm run test:ui            # Run with Playwright UI
+npx playwright test --debug  # Debug mode
+```
+
+### 5. Test Naming Convention
+
+Tests should match scenario step descriptions:
+- Scenario step: "Install candidate" → Test: ` candidate installs and loads correctly`
+- Scenario step: "Tab order verified" → Test: `Screenshots tab appears before Settings tab`

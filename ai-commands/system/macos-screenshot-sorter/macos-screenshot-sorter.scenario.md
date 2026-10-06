@@ -61,3 +61,48 @@ On any failed capture, TCC/privacy denial, ambiguous watcher state, or collision
 ## Completion rule
 
 The candidate is eligible for human-approved retirement of Ruby only after deterministic, isolated real-capture, duplicate, non-screenshot, and post-login gates pass with their recorded evidence. The agent reports readiness; it does not retire Ruby on its own.
+
+## Playwright E2E Tests
+
+The scenario.md is the **leading master source of truth** for testing. Each scenario step maps to one or more Playwright tests that verify the same behavior programmatically.
+
+### Scenario-to-Test Mapping
+
+| Scenario Step | Playwright Test | Purpose |
+|---------------|-----------------|---------|
+| 4. Install candidate | N/A (E2E tests UI only) | LaunchAgent installation is backend testing |
+| 10. Tab order (Settings → Screenshots) | `Screenshot tab shows default config values` | Verifies Screenshots tab is first, Settings second |
+| 10. Settings form fields | `Settings tab shows default config values` | Verifies UI loads and shows fields |
+| Tab switching | `Tab switching works correctly` | Verifies clicking tabs switches content |
+
+### Running E2E Tests
+
+```bash
+cd launcher/renderer
+
+# Install dependencies
+npm install
+
+# Run all tests
+npm test
+
+# Run with UI mode
+npm run test:ui
+
+# Run specific test file
+npx playwright test macos-screenshot-sorter.e2e.spec.cjs
+```
+
+### Writing New Tests
+
+1. **Start with scenario.md**: Read the acceptance scenario first
+2. **Add test to scenario.md**: Document what the test should verify
+3. **Add Playwright test**: Create test that matches the scenario step 1:1
+4. **Run both**: Verify scenario works manually AND test passes programmatically
+
+### Test Principles
+
+- **Scenario-first**: scenario.md is the master; tests implement what scenario describes
+- **1:1 mapping**: Each scenario step should have at least one corresponding test
+- **User action simulation**: Tests should click, type, and interact like a real user
+- **Visible assertions**: Check what the user sees - text, classes, attributes, visibility
