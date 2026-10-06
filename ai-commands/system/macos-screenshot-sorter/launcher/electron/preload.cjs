@@ -1,4 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
+
+console.error('[PRELOAD] Exposing screenshotSorter API');
+
 contextBridge.exposeInMainWorld('screenshotSorter', {
   settings: () => ipcRenderer.invoke('sorter:settings'),
   chooseFolder: (current) => ipcRenderer.invoke('sorter:choose-folder', current),
@@ -10,7 +13,17 @@ contextBridge.exposeInMainWorld('screenshotSorter', {
   openFolder: (folderPath) => ipcRenderer.invoke('sorter:open-folder', folderPath)
 });
 
+console.error('[PRELOAD] Setting up ESC key listener');
+
 // Forward ESC key events from main process to renderer
 ipcRenderer.on('escape-key-pressed', () => {
-  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+  console.error('[PRELOAD] Received escape-key-pressed event');
+  // Dispatch a proper KeyboardEvent that Angular can catch
+  const event = new KeyboardEvent('keydown', { 
+    key: 'Escape',
+    code: 'Escape',
+    which: 27,
+    keyCode: 27
+  });
+  window.dispatchEvent(event);
 });
