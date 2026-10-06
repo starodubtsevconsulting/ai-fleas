@@ -113,7 +113,13 @@ Its job can be much narrower:
 
 That is an interesting property of compound AI systems: the best next improvement is not necessarily a bigger general-purpose brain.
 
-Sometimes it is another specialized capability connected at the right point.
+I had a related experience using agents at work. A relatively inexpensive model coordinated the task, sent simpler work to cheaper models, and escalated harder parts to a stronger model when needed. It kept the overall thread without forcing the smartest model to control every move.
+
+That feels like an inversion of the usual architecture. The smartest brain does not necessarily have to control the dance. A cheaper coordinator can control the dance if it is capable enough to recognize when another kind of intelligence is needed.
+
+The auxiliary capabilities around Hermes point in the same direction. Goal handling, context and expertise extraction, and potentially vision can behave like fast, specialized functions around the main worker. There is a loose connection here to the System 1 / System 2 architecture I have been exploring for the Personal Governor: keep common or bounded cognitive work cheap and specialized, and reserve deeper reasoning for the moments that deserve it. I do not want to push that analogy too far here. The practical point is simpler: intelligence can be composed.
+
+Sometimes the useful architecture is not one model doing everything. It is another specialized capability connected at the right point.
 
 ## The metric is not whether vision works
 
