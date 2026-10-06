@@ -24,7 +24,13 @@ That is the problem.
 
 The agent writes the code. I remain the reasoning system around it.
 
-That experiment has been frustrating, but it has also become more interesting as I removed one limitation after another.
+I am not doing this because I expect local models to replace hosted models tomorrow.
+
+I keep running into a more practical problem: I can exhaust my hosted AI allowance while there is still work to do. When that happens, I want a backup path that is actually usable. It does not have to beat the strongest hosted model. It has to let me continue working without turning me into a full-time supervisor of the machine.
+
+That is why I keep fighting with this setup even when the economics of my attention tell me to stop. I have the local hardware. I have the agent framework. I can see pieces of the system improving. Each time I remove one bottleneck, I want to know whether the next one is the thing standing between an expensive experiment and a useful fallback.
+
+So far, that fight has been frustrating. I have removed one limitation after another and still have not crossed the line where I would call the local coder good enough.
 
 The coder by itself was close to useless.
 
@@ -160,6 +166,12 @@ Sometimes it is model stupidity.
 Sometimes the model is working with the equivalent of a monitor turned off.
 
 AI Fleas is where I have been turning these experiments into explicit roles, workflows, and boundaries instead of treating an agent as one magical model call. The vision experiment is another version of the same idea: give a narrow responsibility to the component that can actually perform it, then measure the whole workflow by the amount of human attention it returns.
+
+I am not trying to prove that this local coder can replace the hosted models I use. Right now, it cannot. After two days of babysitting it through work I could probably have done myself in roughly the same time, calling it a replacement would be absurd.
+
+What I want is resilience: when hosted tokens run out, I want another lane I can move into without losing the day. The auxiliary model helped. Better expertise and context helped. A much larger context window helped the most. None of them made the underlying coder smart enough.
+
+Vision is the next fight because UI blindness appears to be responsible for a surprising number of wasted iterations. If giving the system eyes removes enough of those iterations, the local stack may become a useful backup even while remaining clearly weaker than the hosted one.
 
 My local coder still has a long way to go before I would call it autonomous.
 
