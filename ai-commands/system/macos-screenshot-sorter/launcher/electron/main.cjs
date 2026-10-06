@@ -211,6 +211,14 @@ function createWindow() {
   mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshot Sorter', icon: windowIcon, backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
   mainWindow.setMenuBarVisibility(false);
   
+  // Global ESC key handling - forward to renderer for full-screen close
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'Escape') {
+      console.error('[ESC] Forwarding ESC key to renderer');
+      mainWindow.webContents.send('escape-key-pressed');
+    }
+  });
+  
   rendererServer.listen(0, '127.0.0.1', () => {
     const port = rendererServer.address().port;
     // Log to stderr only (console.error for Electron apps)

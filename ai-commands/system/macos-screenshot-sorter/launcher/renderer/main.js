@@ -27757,6 +27757,7 @@ var ScreenshotDetailComponent = class _ScreenshotDetailComponent {
   fullImageUrl = "";
   thumbnailUrl = "";
   globalKeyDownHandler = null;
+  globalEscHandler = null;
   constructor(service) {
     this.service = service;
   }
@@ -27764,10 +27765,20 @@ var ScreenshotDetailComponent = class _ScreenshotDetailComponent {
     this.loadImage();
   }
   ngAfterViewInit() {
-    window.addEventListener("keydown", this.handleKeyDown.bind(this));
+    this.globalKeyDownHandler = this.handleKeyDown.bind(this);
+    window.addEventListener("keydown", this.globalKeyDownHandler);
+    this.globalEscHandler = () => this.closeScreenshot();
+    window.addEventListener("escape-key-pressed", this.globalEscHandler);
   }
   ngOnDestroy() {
-    window.removeEventListener("keydown", this.handleKeyDown.bind(this));
+    if (this.globalKeyDownHandler) {
+      window.removeEventListener("keydown", this.globalKeyDownHandler);
+      this.globalKeyDownHandler = null;
+    }
+    if (this.globalEscHandler) {
+      window.removeEventListener("escape-key-pressed", this.globalEscHandler);
+      this.globalEscHandler = null;
+    }
   }
   handleKeyDown(event) {
     if (event.key === "Escape") {

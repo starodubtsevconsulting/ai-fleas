@@ -9,3 +9,8 @@ contextBridge.exposeInMainWorld('screenshotSorter', {
   fullImage: (id) => ipcRenderer.invoke('sorter:full-image', id),
   openFolder: (folderPath) => ipcRenderer.invoke('sorter:open-folder', folderPath)
 });
+
+// Forward ESC key events from main process to renderer
+ipcRenderer.on('escape-key-pressed', () => {
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+});
