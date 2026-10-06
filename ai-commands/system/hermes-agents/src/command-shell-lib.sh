@@ -18,10 +18,15 @@ usage() {
     '       hermes-agents.command.sh show PROFILE' \
     '       hermes-agents.command.sh status PROFILE' \
     '       hermes-agents.command.sh connection status|check|switch --work-profile ID --workflow ID [--instance SLUG] [--connection NAME]' \
+    '       hermes-agents.command.sh context status --agent EXACT_NAME' \
+    '       hermes-agents.command.sh context set --agent EXACT_NAME --tokens POSITIVE_INTEGER' \
     '       hermes-agents.command.sh delete PROFILE --confirm-delete' \
     '       hermes-agents.command.sh initialize-system --work-profile ID [--instance SLUG] [--connection NAME] [--watch-group ID]... [--every DURATION]' \
     '       hermes-agents.command.sh reinitialize-system --work-profile ID [--instance SLUG] --confirm-reinitialize [--connection NAME] [--watch-group ID]... [--every DURATION]' \
-    '       hermes-agents.command.sh status-system --work-profile ID [--instance SLUG]'
+    '       hermes-agents.command.sh status-system --work-profile ID [--instance SLUG]' \
+    '' \
+    'Context control: verifies or reconciles one exact initialized agent across its source catalog, local Hermes profile, and configured model service.' \
+    'Use the full agent name (for example, example-dev-coder), never a bare role such as coder.'
 }
 
 resolve_hermes() {
