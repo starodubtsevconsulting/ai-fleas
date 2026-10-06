@@ -27679,6 +27679,77 @@ var HydrationFeatureKind;
 })(HydrationFeatureKind || (HydrationFeatureKind = {}));
 var VERSION3 = new Version("18.2.1");
 
+// src/app/screenshot-detail/screenshot-detail.component.ts
+function ScreenshotDetailComponent_div_0_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r1 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "div", 1);
+    \u0275\u0275listener("click", function ScreenshotDetailComponent_div_0_Template_div_click_0_listener() {
+      \u0275\u0275restoreView(_r1);
+      const ctx_r1 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r1.closeScreenshot());
+    });
+    \u0275\u0275elementStart(1, "div", 2);
+    \u0275\u0275listener("click", function ScreenshotDetailComponent_div_0_Template_div_click_1_listener($event) {
+      \u0275\u0275restoreView(_r1);
+      return \u0275\u0275resetView($event.stopPropagation());
+    });
+    \u0275\u0275elementStart(2, "button", 3);
+    \u0275\u0275listener("click", function ScreenshotDetailComponent_div_0_Template_button_click_2_listener() {
+      \u0275\u0275restoreView(_r1);
+      const ctx_r1 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r1.closeScreenshot());
+    });
+    \u0275\u0275namespaceSVG();
+    \u0275\u0275elementStart(3, "svg", 4);
+    \u0275\u0275element(4, "line", 5)(5, "line", 6);
+    \u0275\u0275elementEnd()();
+    \u0275\u0275namespaceHTML();
+    \u0275\u0275element(6, "img", 7);
+    \u0275\u0275elementStart(7, "div", 8)(8, "div", 9);
+    \u0275\u0275text(9);
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(10, "div", 10);
+    \u0275\u0275text(11);
+    \u0275\u0275pipe(12, "date");
+    \u0275\u0275elementEnd()()()();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext();
+    \u0275\u0275advance(6);
+    \u0275\u0275property("src", ctx_r1.thumbnailUrl, \u0275\u0275sanitizeUrl)("alt", ctx_r1.shot.name);
+    \u0275\u0275advance(3);
+    \u0275\u0275textInterpolate(ctx_r1.shot.name);
+    \u0275\u0275advance(2);
+    \u0275\u0275textInterpolate2("", \u0275\u0275pipeBind2(12, 5, ctx_r1.shot.modifiedAt, "medium"), " \xB7 ", ctx_r1.formatBytes(ctx_r1.shot.bytes), "");
+  }
+}
+var ScreenshotDetailComponent = class _ScreenshotDetailComponent {
+  shot = null;
+  thumbnailUrl = "";
+  close = new EventEmitter();
+  closeScreenshot() {
+    this.close.emit();
+  }
+  formatBytes(bytes2) {
+    return bytes2 < 1024 * 1024 ? `${Math.max(1, Math.round(bytes2 / 1024))} KB` : `${(bytes2 / (1024 * 1024)).toFixed(1)} MB`;
+  }
+  static \u0275fac = function ScreenshotDetailComponent_Factory(__ngFactoryType__) {
+    return new (__ngFactoryType__ || _ScreenshotDetailComponent)();
+  };
+  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _ScreenshotDetailComponent, selectors: [["app-screenshot-detail"]], inputs: { shot: "shot", thumbnailUrl: "thumbnailUrl" }, outputs: { close: "close" }, standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 1, vars: 1, consts: [["class", "full-screen-overlay", 3, "click", 4, "ngIf"], [1, "full-screen-overlay", 3, "click"], [1, "full-screen-content", 3, "click"], ["aria-label", "Close full screen view", 1, "full-screen-close", 3, "click"], ["width", "32", "height", "32", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["x1", "18", "y1", "6", "x2", "6", "y2", "18"], ["x1", "6", "y1", "6", "x2", "18", "y2", "18"], [3, "src", "alt"], [1, "full-screen-info"], [1, "full-screen-name"], [1, "full-screen-meta"]], template: function ScreenshotDetailComponent_Template(rf, ctx) {
+    if (rf & 1) {
+      \u0275\u0275template(0, ScreenshotDetailComponent_div_0_Template, 13, 8, "div", 0);
+    }
+    if (rf & 2) {
+      \u0275\u0275property("ngIf", ctx.shot);
+    }
+  }, dependencies: [CommonModule, NgIf, DatePipe], styles: ["\n\n.full-screen-overlay[_ngcontent-%COMP%] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.9);\n  z-index: 1000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  padding: 40px;\n}\n.full-screen-content[_ngcontent-%COMP%] {\n  max-width: 90%;\n  max-height: 90%;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 16px;\n}\n.full-screen-close[_ngcontent-%COMP%] {\n  position: absolute;\n  top: 24px;\n  right: 24px;\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  border-radius: 50%;\n  width: 48px;\n  height: 48px;\n  cursor: pointer;\n  color: #fff;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background 0.2s;\n}\n.full-screen-close[_ngcontent-%COMP%]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.full-screen-overlay[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n  max-width: 100%;\n  max-height: 80vh;\n  border-radius: 8px;\n  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);\n}\n.full-screen-info[_ngcontent-%COMP%] {\n  text-align: center;\n  color: #fff;\n}\n.full-screen-name[_ngcontent-%COMP%] {\n  font-size: 16px;\n  font-weight: 600;\n  margin-bottom: 4px;\n}\n.full-screen-meta[_ngcontent-%COMP%] {\n  font-size: 13px;\n  color: #d1d5db;\n}\n/*# sourceMappingURL=screenshot-detail.component.css.map */"] });
+};
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(ScreenshotDetailComponent, { className: "ScreenshotDetailComponent" });
+})();
+
 // src/app/screenshot-sorter.service.ts
 var ScreenshotSorterService = class _ScreenshotSorterService {
   settings() {
@@ -27836,76 +27907,33 @@ function AppComponent_div_18_Template(rf, ctx) {
     \u0275\u0275property("ngIf", !ctx_r1.collapsedFolders.has(folder_r4.date));
   }
 }
-function AppComponent_div_19_Template(rf, ctx) {
-  if (rf & 1) {
-    const _r7 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div", 32);
-    \u0275\u0275listener("click", function AppComponent_div_19_Template_div_click_0_listener() {
-      \u0275\u0275restoreView(_r7);
-      const ctx_r1 = \u0275\u0275nextContext();
-      return \u0275\u0275resetView(ctx_r1.closeScreenshot());
-    });
-    \u0275\u0275elementStart(1, "div", 33);
-    \u0275\u0275listener("click", function AppComponent_div_19_Template_div_click_1_listener($event) {
-      \u0275\u0275restoreView(_r7);
-      return \u0275\u0275resetView($event.stopPropagation());
-    });
-    \u0275\u0275elementStart(2, "button", 34);
-    \u0275\u0275listener("click", function AppComponent_div_19_Template_button_click_2_listener() {
-      \u0275\u0275restoreView(_r7);
-      const ctx_r1 = \u0275\u0275nextContext();
-      return \u0275\u0275resetView(ctx_r1.closeScreenshot());
-    });
-    \u0275\u0275namespaceSVG();
-    \u0275\u0275elementStart(3, "svg", 35);
-    \u0275\u0275element(4, "line", 36)(5, "line", 37);
-    \u0275\u0275elementEnd()();
-    \u0275\u0275namespaceHTML();
-    \u0275\u0275element(6, "img", 38);
-    \u0275\u0275elementStart(7, "div", 39)(8, "div", 40);
-    \u0275\u0275text(9);
-    \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(10, "div", 41);
-    \u0275\u0275text(11);
-    \u0275\u0275elementEnd()()()();
-  }
-  if (rf & 2) {
-    const ctx_r1 = \u0275\u0275nextContext();
-    \u0275\u0275advance(6);
-    \u0275\u0275property("src", ctx_r1.thumbnail(ctx_r1.selectedScreenshot), \u0275\u0275sanitizeUrl)("alt", ctx_r1.selectedScreenshot.name);
-    \u0275\u0275advance(3);
-    \u0275\u0275textInterpolate(ctx_r1.selectedScreenshot.name);
-    \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate2("", ctx_r1.changed(ctx_r1.selectedScreenshot.modifiedAt), " \xB7 ", ctx_r1.bytes(ctx_r1.selectedScreenshot.bytes), "");
-  }
-}
 function AppComponent_div_32_Template(rf, ctx) {
   if (rf & 1) {
-    const _r8 = \u0275\u0275getCurrentView();
+    const _r7 = \u0275\u0275getCurrentView();
     \u0275\u0275elementStart(0, "div", 14)(1, "label");
     \u0275\u0275text(2, "Capture inbox");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(3, "div", 42);
-    \u0275\u0275element(4, "input", 43);
+    \u0275\u0275elementStart(3, "div", 32);
+    \u0275\u0275element(4, "input", 33);
     \u0275\u0275elementStart(5, "button", 5);
     \u0275\u0275listener("click", function AppComponent_div_32_Template_button_click_5_listener() {
-      \u0275\u0275restoreView(_r8);
+      \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.chooseFolder("source"));
     });
     \u0275\u0275text(6, "Choose\u2026");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(7, "p", 44);
+    \u0275\u0275elementStart(7, "p", 34);
     \u0275\u0275text(8, "Save makes this the macOS screenshot location and reloads the sorter.");
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(9, "label");
     \u0275\u0275text(10, "Sorted screenshots folder");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(11, "div", 42);
-    \u0275\u0275element(12, "input", 43);
+    \u0275\u0275elementStart(11, "div", 32);
+    \u0275\u0275element(12, "input", 33);
     \u0275\u0275elementStart(13, "button", 5);
     \u0275\u0275listener("click", function AppComponent_div_32_Template_button_click_13_listener() {
-      \u0275\u0275restoreView(_r8);
+      \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.chooseFolder("destination"));
     });
@@ -27914,20 +27942,20 @@ function AppComponent_div_32_Template(rf, ctx) {
     \u0275\u0275elementStart(15, "label");
     \u0275\u0275text(16, "Wait for screenshot file to finish writing (seconds)");
     \u0275\u0275elementEnd();
-    \u0275\u0275element(17, "input", 45);
-    \u0275\u0275elementStart(18, "p", 44);
+    \u0275\u0275element(17, "input", 35);
+    \u0275\u0275elementStart(18, "p", 34);
     \u0275\u0275text(19, "Default: 2. After a matching screenshot appears, wait this long before moving it so the file is complete. 0 moves immediately.");
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(20, "label");
     \u0275\u0275text(21, "Missed-event recovery scan (seconds)");
     \u0275\u0275elementEnd();
-    \u0275\u0275element(22, "input", 46);
-    \u0275\u0275elementStart(23, "p", 44);
+    \u0275\u0275element(22, "input", 36);
+    \u0275\u0275elementStart(23, "p", 34);
     \u0275\u0275text(24, "Default: 10. A background safety net that rescans if macOS file watching misses an event. It never delays normal sorting. 0 turns this safety net off; otherwise choose 10\u20133600.");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(25, "button", 47);
+    \u0275\u0275elementStart(25, "button", 37);
     \u0275\u0275listener("click", function AppComponent_div_32_Template_button_click_25_listener() {
-      \u0275\u0275restoreView(_r8);
+      \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.saveSettings());
     });
@@ -27935,7 +27963,7 @@ function AppComponent_div_32_Template(rf, ctx) {
     \u0275\u0275elementEnd();
     \u0275\u0275elementStart(27, "button", 5);
     \u0275\u0275listener("click", function AppComponent_div_32_Template_button_click_27_listener() {
-      \u0275\u0275restoreView(_r8);
+      \u0275\u0275restoreView(_r7);
       const ctx_r1 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r1.refreshStatus());
     });
@@ -27943,15 +27971,15 @@ function AppComponent_div_32_Template(rf, ctx) {
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const s_r9 = ctx.ngIf;
+    const s_r8 = ctx.ngIf;
     \u0275\u0275advance(4);
-    \u0275\u0275property("value", s_r9.sourceDir);
+    \u0275\u0275property("value", s_r8.sourceDir);
     \u0275\u0275advance(8);
-    \u0275\u0275property("value", s_r9.destinationDir);
+    \u0275\u0275property("value", s_r8.destinationDir);
     \u0275\u0275advance(5);
-    \u0275\u0275property("value", s_r9.settleSeconds);
+    \u0275\u0275property("value", s_r8.settleSeconds);
     \u0275\u0275advance(5);
-    \u0275\u0275property("value", s_r9.startIntervalSeconds);
+    \u0275\u0275property("value", s_r8.startIntervalSeconds);
   }
 }
 function relativeDate(dateStr) {
@@ -28124,7 +28152,7 @@ var AppComponent = class _AppComponent {
   static \u0275fac = function AppComponent_Factory(__ngFactoryType__) {
     return new (__ngFactoryType__ || _AppComponent)(\u0275\u0275directiveInject(ScreenshotSorterService));
   };
-  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AppComponent, selectors: [["app-root"]], standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 38, vars: 15, consts: [["aria-label", "Screenshot Sorter sections", 1, "tabs"], [1, "tab", 3, "click"], [1, "panel", 3, "hidden"], ["class", "hero-container", 4, "ngIf"], [1, "library-head"], [1, "secondary", 3, "click"], ["id", "library", "aria-live", "polite"], ["class", "card empty", 4, "ngIf"], ["class", "folder-section", 3, "collapsed", 4, "ngFor", "ngForOf"], ["class", "full-screen-overlay", 3, "click", 4, "ngIf"], [1, "hero-container"], ["src", "assets/hero.png", "alt", "A person and an AI Fleas robot working together at a desk", 1, "hero"], ["aria-label", "Close hero image", 1, "close", 3, "click"], ["class", "card", 4, "ngIf"], [1, "card"], [1, "status"], [1, "card", "empty"], [1, "folder-section"], [1, "folder-head", 3, "click"], [2, "color", "#70798c", "font-size", "12px"], [1, "count"], ["class", "shots", 4, "ngIf"], [1, "shots"], ["class", "shot", 3, "title", 4, "ngFor", "ngForOf"], [1, "shot", 3, "title"], [2, "cursor", "pointer", 3, "error", "load", "click", "src", "alt"], [1, "shot-name"], [1, "shot-meta"], [1, "shot-actions"], ["aria-label", "Open folder in Finder", 1, "folder", 3, "click"], ["width", "16", "height", "16", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["d", "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"], [1, "full-screen-overlay", 3, "click"], [1, "full-screen-content", 3, "click"], ["aria-label", "Close full screen view", 1, "full-screen-close", 3, "click"], ["width", "32", "height", "32", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["x1", "18", "y1", "6", "x2", "6", "y2", "18"], ["x1", "6", "y1", "6", "x2", "18", "y2", "18"], [3, "src", "alt"], [1, "full-screen-info"], [1, "full-screen-name"], [1, "full-screen-meta"], [1, "row"], ["type", "text", "readonly", "", 3, "value"], [1, "hint"], ["type", "number", "min", "0", "max", "60", "readonly", "", 3, "value"], ["type", "number", "min", "0", "max", "3600", "readonly", "", 3, "value"], [3, "click"]], template: function AppComponent_Template(rf, ctx) {
+  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AppComponent, selectors: [["app-root"]], standalone: true, features: [\u0275\u0275StandaloneFeature], decls: 38, vars: 16, consts: [["aria-label", "Screenshot Sorter sections", 1, "tabs"], [1, "tab", 3, "click"], [1, "panel", 3, "hidden"], ["class", "hero-container", 4, "ngIf"], [1, "library-head"], [1, "secondary", 3, "click"], ["id", "library", "aria-live", "polite"], ["class", "card empty", 4, "ngIf"], ["class", "folder-section", 3, "collapsed", 4, "ngFor", "ngForOf"], [3, "close", "shot", "thumbnailUrl"], [1, "hero-container"], ["src", "assets/hero.png", "alt", "A person and an AI Fleas robot working together at a desk", 1, "hero"], ["aria-label", "Close hero image", 1, "close", 3, "click"], ["class", "card", 4, "ngIf"], [1, "card"], [1, "status"], [1, "card", "empty"], [1, "folder-section"], [1, "folder-head", 3, "click"], [2, "color", "#70798c", "font-size", "12px"], [1, "count"], ["class", "shots", 4, "ngIf"], [1, "shots"], ["class", "shot", 3, "title", 4, "ngFor", "ngForOf"], [1, "shot", 3, "title"], [2, "cursor", "pointer", 3, "error", "load", "click", "src", "alt"], [1, "shot-name"], [1, "shot-meta"], [1, "shot-actions"], ["aria-label", "Open folder in Finder", 1, "folder", 3, "click"], ["width", "16", "height", "16", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["d", "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"], [1, "row"], ["type", "text", "readonly", "", 3, "value"], [1, "hint"], ["type", "number", "min", "0", "max", "60", "readonly", "", 3, "value"], ["type", "number", "min", "0", "max", "3600", "readonly", "", 3, "value"], [3, "click"]], template: function AppComponent_Template(rf, ctx) {
     if (rf & 1) {
       \u0275\u0275elementStart(0, "nav", 0)(1, "button", 1);
       \u0275\u0275listener("click", function AppComponent_Template_button_click_1_listener() {
@@ -28155,7 +28183,11 @@ var AppComponent = class _AppComponent {
       \u0275\u0275elementStart(15, "div", 6);
       \u0275\u0275template(16, AppComponent_div_16_Template, 2, 0, "div", 7)(17, AppComponent_div_17_Template, 2, 0, "div", 7)(18, AppComponent_div_18_Template, 11, 14, "div", 8);
       \u0275\u0275elementEnd()();
-      \u0275\u0275template(19, AppComponent_div_19_Template, 12, 5, "div", 9);
+      \u0275\u0275elementStart(19, "app-screenshot-detail", 9);
+      \u0275\u0275listener("close", function AppComponent_Template_app_screenshot_detail_close_19_listener() {
+        return ctx.closeScreenshot();
+      });
+      \u0275\u0275elementEnd();
       \u0275\u0275elementStart(20, "section", 2)(21, "div", 10);
       \u0275\u0275element(22, "img", 11);
       \u0275\u0275elementStart(23, "button", 12);
@@ -28200,7 +28232,7 @@ var AppComponent = class _AppComponent {
       \u0275\u0275advance();
       \u0275\u0275property("ngForOf", ctx.folders);
       \u0275\u0275advance();
-      \u0275\u0275property("ngIf", ctx.selectedScreenshot);
+      \u0275\u0275property("shot", ctx.selectedScreenshot)("thumbnailUrl", ctx.selectedScreenshot ? ctx.thumbnail(ctx.selectedScreenshot) : "");
       \u0275\u0275advance();
       \u0275\u0275property("hidden", ctx.selectedTab !== "settings");
       \u0275\u0275advance(12);
@@ -28208,7 +28240,7 @@ var AppComponent = class _AppComponent {
       \u0275\u0275advance(5);
       \u0275\u0275textInterpolate(ctx.statusText);
     }
-  }, dependencies: [CommonModule, NgForOf, NgIf], styles: ['\n\nbody[_ngcontent-%COMP%] {\n  margin: 0;\n  padding: 0;\n  font-family:\n    -apple-system,\n    BlinkMacSystemFont,\n    "Segoe UI",\n    Roboto,\n    Oxygen,\n    Ubuntu,\n    Cantarell,\n    sans-serif;\n  background: #f9fafb;\n  color: #111827;\n  line-height: 1.5;\n}\nnav.tabs[_ngcontent-%COMP%] {\n  display: flex;\n  gap: 4px;\n  border-bottom: 1px solid #e4e5ec;\n  padding: 8px 0 0;\n}\nnav.tabs[_ngcontent-%COMP%]   .tab[_ngcontent-%COMP%] {\n  padding: 8px 16px;\n  background: none;\n  border: none;\n  border-bottom: 2px solid transparent;\n  color: #6b7180;\n  cursor: pointer;\n  font-size: 14px;\n}\nnav.tabs[_ngcontent-%COMP%]   .tab[_ngcontent-%COMP%]:hover {\n  color: #111827;\n}\nnav.tabs[_ngcontent-%COMP%]   .tab.selected[_ngcontent-%COMP%] {\n  color: #2e67d1;\n  border-bottom-color: #2e67d1;\n}\nsection.panel[_ngcontent-%COMP%] {\n  padding: 16px 24px;\n}\nsection.panel[hidden][_ngcontent-%COMP%] {\n  display: none;\n}\nsection.panel[_ngcontent-%COMP%]   h1[_ngcontent-%COMP%] {\n  font-size: 18px;\n  font-weight: 600;\n  margin: 0 0 8px;\n}\nsection.panel[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\n  color: #6b7180;\n  margin: 0 0 16px;\n  line-height: 1.5;\n}\n.library-head[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: start;\n  justify-content: space-between;\n  gap: 16px;\n  margin-bottom: 16px;\n}\n.library-head[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\n  margin: 4px 0 0;\n}\n.folder-section[_ngcontent-%COMP%] {\n  margin: 18px 0;\n  padding: 16px;\n  border: 1px solid #e4e5ec;\n  border-radius: 14px;\n  background: #fff;\n}\n.folder-head[_ngcontent-%COMP%] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  gap: 12px;\n  margin-bottom: 12px;\n  cursor: pointer;\n  -webkit-user-select: none;\n  user-select: none;\n}\n.folder-head[_ngcontent-%COMP%]   h2[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n.folder-section[aria-expanded=false][_ngcontent-%COMP%]   .shots[_ngcontent-%COMP%] {\n  display: none;\n}\n.count[_ngcontent-%COMP%] {\n  color: #596174;\n  font-size: 12px;\n  white-space: nowrap;\n}\n.shots[_ngcontent-%COMP%] {\n  display: grid;\n  grid-template-columns: repeat(2, minmax(0, 1fr));\n  gap: 10px;\n}\n.shot[_ngcontent-%COMP%] {\n  overflow: hidden;\n  border: 1px solid #e4e5ec;\n  border-radius: 10px;\n  background: #fbfcff;\n}\n.shot[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n  display: block;\n  width: 100%;\n  aspect-ratio: 16/9;\n  object-fit: cover;\n  background: #edf0f7;\n}\n.shot-name[_ngcontent-%COMP%] {\n  overflow: hidden;\n  padding: 8px 9px 2px;\n  color: #333949;\n  font-size: 12px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.shot-meta[_ngcontent-%COMP%] {\n  padding: 0 9px 8px;\n  color: #70798c;\n  font-size: 11px;\n}\n.shot-actions[_ngcontent-%COMP%] {\n  display: flex;\n  justify-content: flex-end;\n  padding: 0 9px 8px;\n}\n.shot-actions[_ngcontent-%COMP%]   button.folder[_ngcontent-%COMP%] {\n  background: none;\n  border: none;\n  cursor: pointer;\n  color: #2e67d1;\n  padding: 4px;\n  border-radius: 4px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.shot-actions[_ngcontent-%COMP%]   button.folder[_ngcontent-%COMP%]:hover {\n  color: #1d4ed8;\n  background: #f3f4f6;\n}\n.empty[_ngcontent-%COMP%] {\n  padding: 30px 18px;\n  color: #687186;\n  text-align: center;\n}\n.hero[_ngcontent-%COMP%] {\n  width: 100%;\n  max-width: 600px;\n  height: auto;\n  border-radius: 12px;\n  margin: 0 0 24px;\n}\n.hero-container[_ngcontent-%COMP%] {\n  position: relative;\n  margin-bottom: 16px;\n}\n.hero-container[_ngcontent-%COMP%]   .hero[_ngcontent-%COMP%] {\n  width: 100%;\n  max-width: 600px;\n  height: auto;\n  border-radius: 12px;\n  display: block;\n}\n.hero-container[_ngcontent-%COMP%]   .close[_ngcontent-%COMP%] {\n  position: absolute;\n  top: 12px;\n  right: 12px;\n  width: 36px;\n  height: 36px;\n  background: #fff;\n  border: none;\n  border-radius: 50%;\n  cursor: pointer;\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: 20px;\n  color: #111827;\n  line-height: 1;\n}\n.hero-container[_ngcontent-%COMP%]   .close[_ngcontent-%COMP%]:hover {\n  background: #f3f4f6;\n}\n.card[_ngcontent-%COMP%] {\n  padding: 18px;\n  background: #fff;\n  border: 1px solid #e4e5ec;\n  border-radius: 12px;\n}\n.card[_ngcontent-%COMP%]   label[_ngcontent-%COMP%] {\n  display: block;\n  font-size: 12px;\n  font-weight: 600;\n  color: #111827;\n  margin-bottom: 8px;\n}\n.card[_ngcontent-%COMP%]   .row[_ngcontent-%COMP%] {\n  display: flex;\n  gap: 12px;\n}\n.card[_ngcontent-%COMP%]   input[_ngcontent-%COMP%] {\n  flex: 1;\n  padding: 8px 12px;\n  border: 1px solid #e4e5ec;\n  border-radius: 8px;\n  font-size: 14px;\n}\n.card[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  padding: 8px 16px;\n  background: #fff;\n  border: 1px solid #e4e5ec;\n  border-radius: 8px;\n  color: #111827;\n  font-size: 14px;\n  cursor: pointer;\n}\n.card[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: #f3f4f6;\n}\n.card[_ngcontent-%COMP%]   button.secondary[_ngcontent-%COMP%] {\n  background: #f9fafb;\n}\n.card[_ngcontent-%COMP%]   button.primary[_ngcontent-%COMP%] {\n  background: #2e67d1;\n  border-color: #2e67d1;\n  color: #fff;\n}\n.card[_ngcontent-%COMP%]   button.primary[_ngcontent-%COMP%]:hover {\n  background: #1d4ed8;\n}\n.card[_ngcontent-%COMP%]   .hint[_ngcontent-%COMP%] {\n  font-size: 12px;\n  color: #6b7180;\n  margin-top: 4px;\n}\n.card[_ngcontent-%COMP%]   .status[_ngcontent-%COMP%] {\n  white-space: pre-wrap;\n  font: 12px ui-monospace, monospace;\n  background: #111827;\n  color: #d1fae5;\n  border-radius: 8px;\n  padding: 12px;\n  min-height: 44px;\n}\n.full-screen-overlay[_ngcontent-%COMP%] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.9);\n  z-index: 1000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  padding: 40px;\n}\n.full-screen-content[_ngcontent-%COMP%] {\n  max-width: 90%;\n  max-height: 90%;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 16px;\n}\n.full-screen-close[_ngcontent-%COMP%] {\n  position: absolute;\n  top: 24px;\n  right: 24px;\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  border-radius: 50%;\n  width: 48px;\n  height: 48px;\n  cursor: pointer;\n  color: #fff;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background 0.2s;\n}\n.full-screen-close[_ngcontent-%COMP%]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.full-screen-overlay[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n  max-width: 100%;\n  max-height: 80vh;\n  border-radius: 8px;\n  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);\n}\n.full-screen-info[_ngcontent-%COMP%] {\n  text-align: center;\n  color: #fff;\n}\n.full-screen-name[_ngcontent-%COMP%] {\n  font-size: 16px;\n  font-weight: 600;\n  margin-bottom: 4px;\n}\n.full-screen-meta[_ngcontent-%COMP%] {\n  font-size: 13px;\n  color: #d1d5db;\n}\n/*# sourceMappingURL=app.component.css.map */'] });
+  }, dependencies: [CommonModule, NgForOf, NgIf, ScreenshotDetailComponent], styles: ['\n\nbody[_ngcontent-%COMP%] {\n  margin: 0;\n  padding: 0;\n  font-family:\n    -apple-system,\n    BlinkMacSystemFont,\n    "Segoe UI",\n    Roboto,\n    Oxygen,\n    Ubuntu,\n    Cantarell,\n    sans-serif;\n  background: #f9fafb;\n  color: #111827;\n  line-height: 1.5;\n}\nnav.tabs[_ngcontent-%COMP%] {\n  display: flex;\n  gap: 4px;\n  border-bottom: 1px solid #e4e5ec;\n  padding: 8px 0 0;\n}\nnav.tabs[_ngcontent-%COMP%]   .tab[_ngcontent-%COMP%] {\n  padding: 8px 16px;\n  background: none;\n  border: none;\n  border-bottom: 2px solid transparent;\n  color: #6b7180;\n  cursor: pointer;\n  font-size: 14px;\n}\nnav.tabs[_ngcontent-%COMP%]   .tab[_ngcontent-%COMP%]:hover {\n  color: #111827;\n}\nnav.tabs[_ngcontent-%COMP%]   .tab.selected[_ngcontent-%COMP%] {\n  color: #2e67d1;\n  border-bottom-color: #2e67d1;\n}\nsection.panel[_ngcontent-%COMP%] {\n  padding: 16px 24px;\n}\nsection.panel[hidden][_ngcontent-%COMP%] {\n  display: none;\n}\nsection.panel[_ngcontent-%COMP%]   h1[_ngcontent-%COMP%] {\n  font-size: 18px;\n  font-weight: 600;\n  margin: 0 0 8px;\n}\nsection.panel[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\n  color: #6b7180;\n  margin: 0 0 16px;\n  line-height: 1.5;\n}\n.library-head[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: start;\n  justify-content: space-between;\n  gap: 16px;\n  margin-bottom: 16px;\n}\n.library-head[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\n  margin: 4px 0 0;\n}\n.folder-section[_ngcontent-%COMP%] {\n  margin: 18px 0;\n  padding: 16px;\n  border: 1px solid #e4e5ec;\n  border-radius: 14px;\n  background: #fff;\n}\n.folder-head[_ngcontent-%COMP%] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  gap: 12px;\n  margin-bottom: 12px;\n  cursor: pointer;\n  -webkit-user-select: none;\n  user-select: none;\n}\n.folder-head[_ngcontent-%COMP%]   h2[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n.folder-section[aria-expanded=false][_ngcontent-%COMP%]   .shots[_ngcontent-%COMP%] {\n  display: none;\n}\n.count[_ngcontent-%COMP%] {\n  color: #596174;\n  font-size: 12px;\n  white-space: nowrap;\n}\n.shots[_ngcontent-%COMP%] {\n  display: grid;\n  grid-template-columns: repeat(2, minmax(0, 1fr));\n  gap: 10px;\n}\n.shot[_ngcontent-%COMP%] {\n  overflow: hidden;\n  border: 1px solid #e4e5ec;\n  border-radius: 10px;\n  background: #fbfcff;\n}\n.shot[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n  display: block;\n  width: 100%;\n  aspect-ratio: 16/9;\n  object-fit: cover;\n  background: #edf0f7;\n}\n.shot-name[_ngcontent-%COMP%] {\n  overflow: hidden;\n  padding: 8px 9px 2px;\n  color: #333949;\n  font-size: 12px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.shot-meta[_ngcontent-%COMP%] {\n  padding: 0 9px 8px;\n  color: #70798c;\n  font-size: 11px;\n}\n.shot-actions[_ngcontent-%COMP%] {\n  display: flex;\n  justify-content: flex-end;\n  padding: 0 9px 8px;\n}\n.shot-actions[_ngcontent-%COMP%]   button.folder[_ngcontent-%COMP%] {\n  background: none;\n  border: none;\n  cursor: pointer;\n  color: #2e67d1;\n  padding: 4px;\n  border-radius: 4px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.shot-actions[_ngcontent-%COMP%]   button.folder[_ngcontent-%COMP%]:hover {\n  color: #1d4ed8;\n  background: #f3f4f6;\n}\n.empty[_ngcontent-%COMP%] {\n  padding: 30px 18px;\n  color: #687186;\n  text-align: center;\n}\n.hero[_ngcontent-%COMP%] {\n  width: 100%;\n  max-width: 600px;\n  height: auto;\n  border-radius: 12px;\n  margin: 0 0 24px;\n}\n.hero-container[_ngcontent-%COMP%] {\n  position: relative;\n  margin-bottom: 16px;\n}\n.hero-container[_ngcontent-%COMP%]   .hero[_ngcontent-%COMP%] {\n  width: 100%;\n  max-width: 600px;\n  height: auto;\n  border-radius: 12px;\n  display: block;\n}\n.hero-container[_ngcontent-%COMP%]   .close[_ngcontent-%COMP%] {\n  position: absolute;\n  top: 12px;\n  right: 12px;\n  width: 36px;\n  height: 36px;\n  background: #fff;\n  border: none;\n  border-radius: 50%;\n  cursor: pointer;\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: 20px;\n  color: #111827;\n  line-height: 1;\n}\n.hero-container[_ngcontent-%COMP%]   .close[_ngcontent-%COMP%]:hover {\n  background: #f3f4f6;\n}\n.card[_ngcontent-%COMP%] {\n  padding: 18px;\n  background: #fff;\n  border: 1px solid #e4e5ec;\n  border-radius: 12px;\n}\n.card[_ngcontent-%COMP%]   label[_ngcontent-%COMP%] {\n  display: block;\n  font-size: 12px;\n  font-weight: 600;\n  color: #111827;\n  margin-bottom: 8px;\n}\n.card[_ngcontent-%COMP%]   .row[_ngcontent-%COMP%] {\n  display: flex;\n  gap: 12px;\n}\n.card[_ngcontent-%COMP%]   input[_ngcontent-%COMP%] {\n  flex: 1;\n  padding: 8px 12px;\n  border: 1px solid #e4e5ec;\n  border-radius: 8px;\n  font-size: 14px;\n}\n.card[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  padding: 8px 16px;\n  background: #fff;\n  border: 1px solid #e4e5ec;\n  border-radius: 8px;\n  color: #111827;\n  font-size: 14px;\n  cursor: pointer;\n}\n.card[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\n  background: #f3f4f6;\n}\n.card[_ngcontent-%COMP%]   button.secondary[_ngcontent-%COMP%] {\n  background: #f9fafb;\n}\n.card[_ngcontent-%COMP%]   button.primary[_ngcontent-%COMP%] {\n  background: #2e67d1;\n  border-color: #2e67d1;\n  color: #fff;\n}\n.card[_ngcontent-%COMP%]   button.primary[_ngcontent-%COMP%]:hover {\n  background: #1d4ed8;\n}\n.card[_ngcontent-%COMP%]   .hint[_ngcontent-%COMP%] {\n  font-size: 12px;\n  color: #6b7180;\n  margin-top: 4px;\n}\n.card[_ngcontent-%COMP%]   .status[_ngcontent-%COMP%] {\n  white-space: pre-wrap;\n  font: 12px ui-monospace, monospace;\n  background: #111827;\n  color: #d1fae5;\n  border-radius: 8px;\n  padding: 12px;\n  min-height: 44px;\n}\n.full-screen-overlay[_ngcontent-%COMP%] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.9);\n  z-index: 1000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  padding: 40px;\n}\n.full-screen-content[_ngcontent-%COMP%] {\n  max-width: 90%;\n  max-height: 90%;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 16px;\n}\n.full-screen-close[_ngcontent-%COMP%] {\n  position: absolute;\n  top: 24px;\n  right: 24px;\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  border-radius: 50%;\n  width: 48px;\n  height: 48px;\n  cursor: pointer;\n  color: #fff;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background 0.2s;\n}\n.full-screen-close[_ngcontent-%COMP%]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.full-screen-overlay[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n  max-width: 100%;\n  max-height: 80vh;\n  border-radius: 8px;\n  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);\n}\n.full-screen-info[_ngcontent-%COMP%] {\n  text-align: center;\n  color: #fff;\n}\n.full-screen-name[_ngcontent-%COMP%] {\n  font-size: 16px;\n  font-weight: 600;\n  margin-bottom: 4px;\n}\n.full-screen-meta[_ngcontent-%COMP%] {\n  font-size: 13px;\n  color: #d1d5db;\n}\n/*# sourceMappingURL=app.component.css.map */'] });
 };
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(AppComponent, { className: "AppComponent" });
