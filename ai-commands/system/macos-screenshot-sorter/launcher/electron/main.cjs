@@ -162,8 +162,24 @@ function screenshotFullImage(_event, id) {
   if (!item) fail('Screenshot is no longer available. Refresh the list and try again.');
   const checked = safeScreenshotFile(item.realFile, item.folderPath, item.root);
   if (!checked || checked.realFile !== item.realFile) fail('Screenshot changed before its image could be loaded. Refresh the list and try again.');
-  // Return a properly encoded file:// URL
-  return 'file://' + encodeURI(checked.realFile);
+  // Read the full image file and return as data URL to avoid file:// URL issues
+  const fs = require('fs');
+  const imageBuffer = fs.readFileSync(checked.realFile);
+  const mimeType = getMimeType(checked.realFile);
+  return `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
+}
+
+function getMimeType(filePath) {
+  const ext = filePath.split('.').pop().toLowerCase();
+  const mimeTypes = {
+    'png': 'image/png',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'gif': 'image/gif',
+    'bmp': 'image/bmp',
+    'webp': 'image/webp'
+  };
+  return mimeTypes[ext] || 'application/octet-stream';
 }
 function showWindow() { if (mainWindow) { if (app.dock) app.dock.show(); if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.show(); mainWindow.focus(); } }
 function cameraIcon() {
