@@ -4,6 +4,7 @@ const { randomUUID } = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const http = require('node:http');
 
 const commandDir = process.env.SCREENSHOT_SORTER_COMMAND_DIR || path.resolve(__dirname, '../..');
 const commandPath = path.join(commandDir, 'macos-screenshot-sorter.command.sh');
@@ -12,6 +13,7 @@ let mainWindow;
 let tray;
 let allowQuit = false;
 let screenshotItems = new Map();
+let rendererServer;
 app.setPath('userData', path.join(app.getPath('appData'), 'AI Fleas Screenshot Sorter'));
 const isPrimaryInstance = app.requestSingleInstanceLock();
 if (!isPrimaryInstance) app.exit(0);
@@ -163,13 +165,38 @@ function cameraIcon() {
   icon.setTemplateImage(true); return icon;
 }
 function createWindow() {
-  mainWindow = new BrowserWindow({ width: 680, height: 760, minWidth: 580, minHeight: 640, title: 'Screenshot Sorter', icon: cameraIcon(), backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
-  mainWindow.setMenuBarVisibility(false); mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
-  mainWindow.on('close', (event) => { if (allowQuit) return; event.preventDefault(); mainWindow.hide(); if (app.dock) app.dock.hide(); });
+  // Start renderer server for Angular app
+  const rendererDir = path.join(__dirname, '../renderer');
+  rendererServer = http.createServer((req, res) => {
+    let filePath = path.join(rendererDir, req.url === '/' ? 'index.html' : req.url);
+    const ext = path.extname(filePath);
+    const contentTypes = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json' };
+    fs.readFile(filePath, (err, data) => {
+      if (err) { res.writeHead(404); res.end('Not found'); return; }
+      res.writeHead(200, { 'Content-Type': contentTypes[ext] || 'text/plain' });
+      res.end(data);
+    });
+  });
+  
+  // Create BrowserWindow BEFORE loading URL (window is visible in app.whenReady)
+  mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshot Sorter', icon: cameraIcon(), backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+  mainWindow.setMenuBarVisibility(false);
+  
+  rendererServer.listen(0, '127.0.0.1', () => {
+    const port = rendererServer.address().port;
+    // Log to both stderr and the output log
+    console.error(`[DEV] Renderer server running on http://127.0.0.1:${port}`);
+    console.log(`[DEV] Renderer server running on http://127.0.0.1:${port}`);
+    // Load Angular app via HTTP instead of file://
+    mainWindow.loadURL(`http://127.0.0.1:${port}/`);
+    mainWindow.on('close', (event) => { if (allowQuit) return; event.preventDefault(); mainWindow.hide(); if (app.dock) app.dock.hide(); });
+  }).on('error', (err) => {
+    console.error(`[DEV] Server error: ${err.message}`);
+  });
 }
 // Dev mode: auto-reload when index.html changes (polling-based for macOS reliability)
-const rendererDir = path.join(__dirname, '../renderer');
-const indexHtmlPath = path.join(rendererDir, 'index.html');
+// rendererDir is now defined inside createWindow() since we serve via HTTP
+const indexHtmlPath = path.join(__dirname, '../renderer/index.html');
 if (process.env.ELECTRON_DEV === '1') {
   let lastMtime = 0;
   const checkAndReload = () => {
@@ -214,6 +241,6 @@ if (isPrimaryInstance) {
     ]));
     tray.on('click', showWindow);
   });
-  app.on('before-quit', (event) => { if (!allowQuit) event.preventDefault(); });
+  app.on('before-quit', (event) => { if (!allowQuit) event.preventDefault(); if (rendererServer) rendererServer.close(); });
   app.on('activate', showWindow); app.on('window-all-closed', () => {});
 }

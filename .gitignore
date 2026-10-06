@@ -41,3 +41,6 @@
 /notes/benchmarks/local-models/runs/
 /models/expertise-extractor/probes/context-capacity/manifest.json
 /recognizers/snow-removal-contract-recognizer.mjs
+
+# Angular port (staging folder until production deployment)
+/ai-commands/system/macos-screenshot-sorter/launcher/renderer-angular/

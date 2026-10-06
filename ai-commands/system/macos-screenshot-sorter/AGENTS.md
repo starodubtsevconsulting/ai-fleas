@@ -81,7 +81,7 @@ The Electron app writes to system log directory:
 |------|---------|
 | `macos-screenshot-sorter.command.sh` | Shell entry point, profile activation |
 | `launcher/electron/main.cjs` | Electron main process, config parsing, IPC |
-| `launcher/renderer/index.html` | UI renderer, calls `window.screenshotSorter.*` |
+| `launcher/renderer/index.html` | UI renderer, Angular component, calls `window.screenshotSorter.*` |
 | `app.sh` | Launch wrapper (passes `"$@"` args) |
 
 ## Debug Command
@@ -286,6 +286,58 @@ cat /tmp/test-run-output.log
    - Runs HTML file directly from filesystem
    - Uses mock IPC instead of real Electron
    - No profile or config file needed
+
+## Development with Angular
+
+**The app is built with Angular 18.2.1.**
+
+### Running Angular in Dev Mode
+
+To develop with live reload:
+```bash
+cd /Users/sergii/projects/sc/ai-fleas/ai-commands/system/macos-screenshot-sorter/launcher/renderer-angular
+npx ng serve
+```
+
+### Building for Production
+
+```bash
+npx ng build --configuration production
+# Output: dist/browser/
+```
+
+### Angular Project Structure
+
+| File | Purpose |
+|------|---------|
+| `src/main.ts` | Angular bootstrap entry |
+| `src/app/app.component.ts` | Main component with all logic |
+| `src/app/app.component.html` | Component template |
+| `src/app/app.component.css` | Component styles |
+| `src/app/models.ts` | TypeScript interfaces (Settings, Folder, Screenshot) |
+| `src/app/window.d.ts` | Global `screenshotSorter` type definitions |
+
+### Key Angular Patterns Used
+
+- **Standalone components**: No `NgModule`, everything is standalone
+- **Template-driven forms**: Simple input binding with `[(ngModel)]`
+- **Event binding**: `(click)="hideHero()"` for user interactions
+- **Property binding**: `[hidden]="selectedTab !== 'library'"` for conditional rendering
+- **Structural directives**: `*ngIf`, `*ngFor` for conditional/repeated rendering
+- **CSS scoping**: Component styles are encapsulated
+
+### Hero Image Implementation
+
+The hero image in the Library tab uses Angular's conditional rendering:
+
+```html
+<div class="hero-container" *ngIf="showHero">
+  <img class="hero" src="..." alt="...">
+  <button class="close" (click)="hideHero()" aria-label="Close hero image">×</button>
+</div>
+```
+
+The `showHero` boolean is initialized to `true`, and `hideHero()` sets it to `false`, hiding the hero until the next app restart.
 
 ## Default Tab Behavior
 
