@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@angular/build": "18.2.1",
-    "@angular/cli": "^22.2.1",
+    "@angular/cli": "^18.2.21",
     "@angular/common": "18.2.1",
     "@angular/core": "18.2.1",
     "@angular/forms": "18.2.1",
