@@ -28,6 +28,8 @@ I am not doing this because I expect local models to replace hosted models tomor
 
 I keep running into a more practical problem: I can exhaust my hosted AI allowance while there is still work to do. When that happens, I want a backup path that is actually usable. It does not have to beat the strongest hosted model. It has to let me continue working without turning me into a full-time supervisor of the machine.
 
+And there is a funny psychological effect once the hosted tokens are gone. The fight for what suddenly feels like “free tokens” becomes much more intense. The local machine is already sitting there. Every useful token it can produce feels like capacity I own and should be able to unlock. When the hosted option is temporarily unavailable, the motivation to make that local capacity work becomes considerably stronger.
+
 That is why I keep fighting with this setup even when the economics of my attention tell me to stop. I have the local hardware. I have the agent framework. I can see pieces of the system improving. Each time I remove one bottleneck, I want to know whether the next one is the thing standing between an expensive experiment and a useful fallback.
 
 So far, that fight has been frustrating. I have removed one limitation after another and still have not crossed the line where I would call the local coder good enough.
