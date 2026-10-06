@@ -3,6 +3,12 @@
 ## Quick Start
 
 To run the UI and keep it running for debugging:
+
+**IMPORTANT**: Always run the last committed version of the app. Before launching:
+1. Commit all changes: `git add -A && git commit -m "your message" && git push`
+2. Kill old processes: `pkill -f "Screenshot Sorter"`
+3. Launch the app with the latest code
+
 ```bash
 export AI_CONFIG_PROJECT="/Users/sergii/projects/sc/ai-fleas"
 export AI_WORK_PROFILE_ID="sc"

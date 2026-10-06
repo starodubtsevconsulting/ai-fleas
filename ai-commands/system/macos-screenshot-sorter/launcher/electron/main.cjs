@@ -192,9 +192,8 @@ function createWindow() {
   
   rendererServer.listen(0, '127.0.0.1', () => {
     const port = rendererServer.address().port;
-    // Log to both stderr and the output log
+    // Log to stderr only (console.error for Electron apps)
     console.error(`[DEV] Renderer server running on http://127.0.0.1:${port}`);
-    console.log(`[DEV] Renderer server running on http://127.0.0.1:${port}`);
     // Load Angular app via HTTP instead of file://
     mainWindow.loadURL(`http://127.0.0.1:${port}/`);
     mainWindow.on('close', (event) => { if (allowQuit) return; event.preventDefault(); mainWindow.hide(); if (app.dock) app.dock.hide(); });
