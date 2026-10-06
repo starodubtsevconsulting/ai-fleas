@@ -211,3 +211,64 @@ npx playwright test --debug  # Debug mode
 Tests should match scenario step descriptions:
 - Scenario step: "Install candidate" → Test: ` candidate installs and loads correctly`
 - Scenario step: "Tab order verified" → Test: `Screenshots tab appears before Settings tab`
+## Common Testing Pitfalls
+
+### Do NOT poll for test results with repeated sleep commands
+
+When running background tests, do NOT use this pattern:
+```bash
+# WRONG - this wastes hours polling
+while [ ! -f test-results/result.json ]; do
+  sleep 30
+done
+```
+
+**Correct approach**:
+1. Start the background test once with `notify_on_complete=true`
+2. Wait for the completion notification
+3. Read the log file and check the exit status
+4. If results are written to a file, read it once after the test completes
+
+### Test Result Location
+
+Playwright test results are written to the configured `outputDir` in `playwright.config.*`. If the `test-results/` directory exists but is empty after a successful run (exit 0), check:
+- `playwright.config.js/cjs` for `outputDir` setting
+- Environment variables that might override output location
+- Whether the reporter is configured to write files (some reporters like `list` don't)
+
+### Background Test Script Template
+
+Use this pattern for any test run that should output to a single log file:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+LOG_FILE="/tmp/test-run-output.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+exec >"$LOG_FILE" 2>&1
+
+echo "=== Test Run Started: $(date) ==="
+
+# Run test 1
+echo "--- Test 1: Deterministic Sorting Tests ---"
+if bash macos-screenshot-sorter.command.test.sh; then
+  echo "Deterministic tests: PASS"
+else
+  echo "Deterministic tests: FAIL"
+  exit 1
+fi
+
+# Run test 2
+echo "--- Test 2: Code Pattern Checks ---"
+grep -q 'requestSingleInstanceLock' launcher/electron/main.cjs && echo "requestSingleInstanceLock: FOUND" || echo "requestSingleInstanceLock: MISSING"
+
+echo "=== Test Run Completed: $(date) ==="
+echo "All checks completed."
+```
+
+Then run with:
+```bash
+bash test-runner.sh
+cat /tmp/test-run-output.log
+```
