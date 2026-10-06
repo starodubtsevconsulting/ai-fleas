@@ -27787,13 +27787,24 @@ var ScreenshotDetailComponent = class _ScreenshotDetailComponent {
   closeScreenshot() {
     this.close.emit();
   }
+  handleKeyDown(event) {
+    if (event.key === "Escape") {
+      this.closeScreenshot();
+    }
+  }
   formatBytes(bytes2) {
     return bytes2 < 1024 * 1024 ? `${Math.max(1, Math.round(bytes2 / 1024))} KB` : `${(bytes2 / (1024 * 1024)).toFixed(1)} MB`;
   }
   static \u0275fac = function ScreenshotDetailComponent_Factory(__ngFactoryType__) {
     return new (__ngFactoryType__ || _ScreenshotDetailComponent)(\u0275\u0275directiveInject(ScreenshotSorterService));
   };
-  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _ScreenshotDetailComponent, selectors: [["app-screenshot-detail"]], inputs: { shot: "shot" }, outputs: { close: "close" }, standalone: true, features: [\u0275\u0275NgOnChangesFeature, \u0275\u0275StandaloneFeature], decls: 2, vars: 3, consts: [[1, "full-screen-overlay", 3, "click"], ["class", "full-screen-content", 3, "click", 4, "ngIf"], [1, "full-screen-content", 3, "click"], ["aria-label", "Close full screen view", 1, "full-screen-close", 3, "click"], ["width", "32", "height", "32", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["x1", "18", "y1", "6", "x2", "6", "y2", "18"], ["x1", "6", "y1", "6", "x2", "18", "y2", "18"], [3, "src", "alt"], [1, "full-screen-info"], [1, "full-screen-name"], [1, "full-screen-meta"]], template: function ScreenshotDetailComponent_Template(rf, ctx) {
+  static \u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _ScreenshotDetailComponent, selectors: [["app-screenshot-detail"]], hostBindings: function ScreenshotDetailComponent_HostBindings(rf, ctx) {
+    if (rf & 1) {
+      \u0275\u0275listener("keydown", function ScreenshotDetailComponent_keydown_HostBindingHandler($event) {
+        return ctx.handleKeyDown($event);
+      }, false, \u0275\u0275resolveWindow);
+    }
+  }, inputs: { shot: "shot" }, outputs: { close: "close" }, standalone: true, features: [\u0275\u0275NgOnChangesFeature, \u0275\u0275StandaloneFeature], decls: 2, vars: 3, consts: [[1, "full-screen-overlay", 3, "click"], ["class", "full-screen-content", 3, "click", 4, "ngIf"], [1, "full-screen-content", 3, "click"], ["aria-label", "Close full screen view", 1, "full-screen-close", 3, "click"], ["width", "32", "height", "32", "viewBox", "0 0 24 24", "fill", "none", "stroke", "currentColor", "stroke-width", "2", "stroke-linecap", "round", "stroke-linejoin", "round"], ["x1", "18", "y1", "6", "x2", "6", "y2", "18"], ["x1", "6", "y1", "6", "x2", "18", "y2", "18"], [3, "src", "alt"], [1, "full-screen-info"], [1, "full-screen-name"], [1, "full-screen-meta"]], template: function ScreenshotDetailComponent_Template(rf, ctx) {
     if (rf & 1) {
       \u0275\u0275elementStart(0, "div", 0);
       \u0275\u0275listener("click", function ScreenshotDetailComponent_Template_div_click_0_listener() {
