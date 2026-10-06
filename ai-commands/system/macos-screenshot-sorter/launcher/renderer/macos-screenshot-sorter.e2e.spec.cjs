@@ -178,8 +178,8 @@ test('Library tab shows folder list when screenshots exist', async ({ page }) =>
   // Wait for screenshots to load
   await page.waitForLoadState('networkidle');
   
-  // Check that folders are displayed
-  const folders = page.locator('.folder');
+  // Check that folders are displayed (use .folder-section to avoid matching .folder-open buttons)
+  const folders = page.locator('.folder-section');
   await expect(folders).toHaveCount(2);
   
   // Check folder dates
@@ -226,8 +226,10 @@ test('Hero image in Library tab has close button', async ({ page }) => {
   // Wait for the page to fully load
   await page.waitForLoadState('networkidle');
   
-  // Hero should be visible
-  const heroContainer = page.locator('.hero-container');
+  // Hero should be visible (Library tab is active by default)
+  const heroContainers = page.locator('.hero-container');
+  await expect(heroContainers).toHaveCount(2);
+  const heroContainer = heroContainers.nth(0);
   await expect(heroContainer).toBeVisible();
   
   // Check that close button exists
@@ -341,8 +343,10 @@ test('App stays visible after window switch (no white screen)', async ({ page })
   const tabs = page.locator('.tab');
   await expect(tabs).toHaveCount(2);
   
-  // Verify hero image is accessible (not missing)
-  const heroContainer = page.locator('.hero-container');
+  // Verify hero image is accessible (not missing) - Library tab is active by default
+  const heroContainers = page.locator('.hero-container');
+  await expect(heroContainers).toHaveCount(2);
+  const heroContainer = heroContainers.nth(0);
   await expect(heroContainer).toBeVisible();
   
   // Verify settings panel is visible (Library is hidden by default due to hidden attribute)
@@ -351,4 +355,64 @@ test('App stays visible after window switch (no white screen)', async ({ page })
   
   const libraryPanel = page.locator('.panel').nth(0);
   await expect(libraryPanel).toBeVisible();
+});
+
+test('Folder-open icon opens image folder in Finder', async ({ page }) => {
+  page.on('console', msg => console.log(`Console: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`Page error: ${error.message}`));
+  
+  const openFolderCalls = [];
+  await page.addInitScript(() => {
+    window.screenshotSorter = {
+      settings: async () => ({
+        sourceDir: '/Users/sergii/Screenshots',
+        destinationDir: '/Users/sergii/Screenshots',
+        settleSeconds: 2,
+        startIntervalSeconds: 10
+      }),
+      status: async () => 'Sorter is running',
+      library: async () => [
+        {
+          date: '2026-10-05',
+          count: 1,
+          screenshots: [
+            { id: 'shot1', name: 'Screenshot 2026-10-05 at 10-30-00.png', modifiedAt: Date.now() - 3600000, bytes: 102400, folderPath: '/Users/sergii/Screenshots/2026-10-05' }
+          ]
+        }
+      ],
+      chooseFolder: async (current) => null,
+      save: async (settings) => ({ output: 'Settings saved' }),
+      thumbnail: async (id) => `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6twAAAABJRU5ErkJggg==`,
+      openFolder: async (folderPath) => {
+        window.openFolderCalls = window.openFolderCalls || [];
+        window.openFolderCalls.push(folderPath);
+        return null;
+      }
+    };
+  });
+  
+  await page.goto(rendererUrl());
+  await page.waitForLoadState('networkidle');
+  
+  // Wait for thumbnails to load
+  await page.waitForTimeout(500);
+  
+  // Check that folder-open icon exists
+  const folderIcons = page.locator('.shot-actions button.folder');
+  await expect(folderIcons).toHaveCount(1);
+  
+  // Verify the icon is visible
+  const folderIcon = folderIcons.nth(0);
+  await expect(folderIcon).toBeVisible();
+  
+  // Click the folder-open icon
+  await folderIcon.click();
+  
+  // Wait for the openFolder call to complete
+  await page.waitForTimeout(500);
+  
+  // Verify openFolder was called with the correct folder path
+  await page.waitForFunction(() => window.openFolderCalls && window.openFolderCalls.length > 0);
+  const folderPaths = await page.evaluate(() => window.openFolderCalls);
+  expect(folderPaths).toEqual(['/Users/sergii/Screenshots/2026-10-05']);
 });

@@ -143,7 +143,7 @@ function screenshotLibrary() {
       screenshots:images.slice(0, 24).map((image) => {
         const id = randomUUID();
         screenshotItems.set(id, { ...image, folderPath, root });
-        return { id, name:image.name, modifiedAt:image.modifiedAt, bytes:image.bytes };
+        return { id, name:image.name, modifiedAt:image.modifiedAt, bytes:image.bytes, folderPath };
       })
     };
   }).filter((folder) => folder && folder.count > 0);
@@ -224,6 +224,10 @@ if (isPrimaryInstance) {
   ipcMain.handle('sorter:status', async () => (await runCommand(['probe'])).stdout);
   ipcMain.handle('sorter:library', screenshotLibrary);
   ipcMain.handle('sorter:thumbnail', screenshotThumbnail);
+  ipcMain.handle('sorter:open-folder', async (_event, folderPath) => {
+    const { open } = require('node:shell');
+    return open(folderPath);
+  });
   app.on('second-instance', showWindow);
   app.whenReady().then(() => {
     createWindow();

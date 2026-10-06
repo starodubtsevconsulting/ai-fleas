@@ -5,5 +5,6 @@ contextBridge.exposeInMainWorld('screenshotSorter', {
   save: (settings) => ipcRenderer.invoke('sorter:save', settings),
   status: () => ipcRenderer.invoke('sorter:status'),
   library: () => ipcRenderer.invoke('sorter:library'),
-  thumbnail: (id) => ipcRenderer.invoke('sorter:thumbnail', id)
+  thumbnail: (id) => ipcRenderer.invoke('sorter:thumbnail', id),
+  openFolder: (folderPath) => ipcRenderer.invoke('sorter:open-folder', folderPath)
 });
