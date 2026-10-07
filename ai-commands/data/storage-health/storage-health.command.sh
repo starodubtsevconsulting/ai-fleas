@@ -52,7 +52,10 @@ inspect(){ need lsblk; echo "AI Fleas · Storage Discovery"; echo "────�
 attr_raw(){ awk -v n="$2" '$0 ~ n {for(i=NF;i>=1;i--) if($i ~ /^[0-9]+$/){print $i; exit}}' <<<"$1"; }
 assess(){
  local dev="$1" json="$2" out status="HEALTHY" reason="" overall="" temp="" poh="" realloc="" pending="" uncorr=""
- if ! out="$(smart_capture "$dev" -a 2>&1)"; then status="WARN"; reason="SMART access unavailable/incomplete (transport or enclosure issue; drive health not determined)"; else
+ if ! out="$(smart_capture "$dev" -a 2>&1)"; then
+  status="UNKNOWN"
+  reason="SMART unavailable through this enclosure/transport; physical drive health was not determined. Remaining assessment can still continue."
+else
   overall="$(grep -Ei 'SMART overall-health self-assessment test result:|SMART Health Status:' <<<"$out" | head -1 | sed 's/.*: *//' || true)"
   temp="$(awk '/Temperature_Celsius/ {print $10; exit} /Current Drive Temperature:/ {for(i=1;i<=NF;i++) if($i ~ /^[0-9]+$/){print $i; exit}} /Temperature:/ {for(i=1;i<=NF;i++) if($i ~ /^[0-9]+$/){print $i; exit}}' <<<"$out" || true)"
   poh="$(awk '/Power_On_Hours/ {v=$10; sub(/h.*/, "", v); print v; exit} /Power on hours/ {for(i=NF;i>=1;i--) if($i ~ /^[0-9]+([.][0-9]+)?$/){print $i; exit}}' <<<"$out" || true)"
