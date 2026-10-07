@@ -1,8 +1,10 @@
 ---
 title: "I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer."
-subtitle: "A scripted conversation about testing local AI workers for work I can actually use."
+previous_title: "I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer."
+subtitle: "A larger model only matters if it returns better work. I tested local AI workers against the outcome I actually cared about: accepted code with less correction."
 author: Sergii Starodubtsev
 date: "2026-09-27"
+version: 2
 locale: en
 status: draft
 tags:
@@ -15,11 +17,25 @@ tags:
 
 # I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.
 
-*A scripted conversation about testing local AI workers for work I can actually use.*
+*A larger model only matters if it returns better work. I tested local AI workers against the outcome I actually cared about: accepted code with less correction.*
 
 ![The AI Fleas robot points to a compact local coder finishing work while a larger model stalls beside the author.](assets/2026-09-29-ai-fleas-local-coder-model-comparison-header.png)
 
 *A bigger model is useful only when its work is good enough to hand back. AI Fleas illustration generated for this article.*
+
+I had enough memory to try a bigger local model.
+
+That made the obvious experiment tempting: replace the coder I already had with something larger and see whether the quality improved.
+
+But “larger” was not the outcome I needed.
+
+My existing Q5 coding model could already use tools and finish work. It also made mistakes. If a bigger model consumed more memory, took longer, and still returned code that needed the same correction, I had improved a specification rather than my workflow.
+
+So I changed the test.
+
+The question became: **Can another local model return more accepted coding work than my current coder, within a useful amount of time?**
+
+That turned model selection from a size contest into a work-acceptance test.
 
 *The following is a scripted dialogue. Host and Anna are fictional voices used to explain a real experiment; this is not a transcript of an actual interview.*
 
