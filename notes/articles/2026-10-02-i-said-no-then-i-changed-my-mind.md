@@ -1,18 +1,40 @@
-# I Said No. Then I Changed My Mind.
+---
+title: "AI Made It Easy to Do My Own Marketing. I Paid Someone Anyway."
+previous_title: "I Said No. Then I Changed My Mind."
+subtitle: "After spending two days building my own visibility with AI, I realized the scarce resource was not capability. It was my attention."
+date: "2026-10-02"
+version: 2
+---
 
-*AI made it easier to do everything myself. That did not make everything worth doing myself.*
+# AI Made It Easy to Do My Own Marketing. I Paid Someone Anyway.
+
+*After spending two days building my own visibility with AI, I realized the scarce resource was not capability. It was my attention.*
 
 ![A thoughtful human and an AI Fleas robot stand between tangled promotion tasks and a focused product-building workspace.](assets/2026-10-02-outsourcing-follow-up-header-concept-v1.png)
 
 *Choosing where attention belongs. Original AI-generated illustration using the author's AI Fleas character references.*
 
-In an earlier article, I described hanging up on a salesperson. The offer was unclear, the conversation kept circling, and I would not commit under pressure.
+AI has made it surprisingly easy for me to do my own marketing.
 
-After two more conversations, I agreed in principle to a smaller service.
+I can research positioning, rewrite a website, prepare listings, generate images, analyze competitors, and build automation around the whole process without hiring a traditional team.
 
-That sounds like a reversal. It was. But I had not decided that the first call was fine after all. I had learned something about the service—and something less comfortable about the cost of doing everything myself.
+So I did.
 
-If you use AI to build, write, research, or run a small business, you may recognize the trap: “I can do that” starts sounding like “I should.”
+I spent roughly two days working on my own online visibility.
+
+Then I paid someone else to help with it anyway.
+
+That decision bothered me because the obvious question was: **why pay for something I can now do myself?**
+
+The answer was not that AI had failed. AI had made me more capable.
+
+The problem was that capability had quietly become permission to spend my attention on almost anything.
+
+A few days earlier I had hung up on the salesperson. The offer was unclear, the conversation kept circling, and I would not commit under pressure. After two more conversations, I agreed in principle to a smaller service.
+
+I had learned more about the service. But I had also learned something less comfortable about the cost of doing everything myself.
+
+“I can do that” had started sounding too much like “I should.”
 
 ## The first conversation: no was the right answer
 
