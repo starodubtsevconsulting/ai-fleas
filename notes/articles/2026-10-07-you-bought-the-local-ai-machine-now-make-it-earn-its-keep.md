@@ -34,6 +34,42 @@ The number is not accounting. Not yet.
 
 **It is a forcing function.**
 
+<!--
+IMAGE BRIEF — HERO / ARTICLE HEADER
+Status: placeholder; generate during Writing workflow release preparation.
+
+Purpose:
+Visualize the central contradiction before the reader sees the economics: owned local AI capacity is available but idle while useful work is waiting.
+
+Continuity:
+- Reuse the established AI Fleas human hero character and AI Fleas robot character from the project's approved visual references/assets.
+- Preserve recognizable character design and existing AI Fleas branding. Do not invent a new hero or robot.
+- Follow the established warm, polished AI Fleas editorial illustration style used by the recent article headers.
+- Wide landscape / 16:9, suitable for Medium/article header.
+- No article title, speech text, vendor branding, hardware logos, or model/product names in the image.
+- Keep hardware generic and visually understandable; do not depict a specific GX10 or other named machine unless the release coordinator deliberately decides the hardware itself is evidence.
+
+Scene:
+The human hero is actively working/planning at a desk with a visible queue of useful work represented visually by simple generic cards/documents/tasks. Nearby, the AI Fleas robot is capable and ready but visibly idle beside a quiet generic local AI compute box/workstation. The contradiction should be immediately readable: paid-for capability waiting while useful work exists.
+
+Tone:
+Thoughtful rather than comedic or accusatory. The human is realizing an operating problem, not being scolded by the robot. The robot should feel ready to help.
+
+Visual emphasis:
+Human goals/work queue -> idle local AI capacity -> opportunity to turn it into accepted useful work.
+
+Avoid:
+- literal dollar bills raining from the machine;
+- crypto/mining visual language;
+- server-rack fetishism;
+- dashboards full of tiny unreadable text;
+- depicting GPU utilization as the goal;
+- implying guaranteed financial return.
+
+Release note:
+Writing Admin / Release Coordinator should resolve the current canonical hero + robot reference assets before generation and pass them to the configured image provider.
+-->
+
 ## Buying the machine was only the first decision
 
 In [*The Dangerous Moment in Local AI Is When the Next Machine Actually Makes Sense*](2026-10-06-before-you-buy-local-ai-decide-what-you-are-optimizing-for.md), I argued that local AI should start with the objective rather than the hardware:
@@ -302,6 +338,33 @@ That produces a very different infrastructure discussion from:
 The organization already knows its business.
 
 The useful outside contribution is often connecting that business reality to AI capabilities, workflow design, infrastructure, model behavior and economics — then measuring whether the resulting system actually works.
+
+<!--
+IMAGE BRIEF — OPTIONAL INLINE ILLUSTRATION
+Status: placeholder; generate only if the release package benefits from a second visual.
+
+Purpose:
+Show multi-workflow local AI utilization in human terms without turning the illustration into a technical architecture diagram.
+
+Continuity:
+Use the same approved human hero + AI Fleas robot references and the same editorial style as the header.
+
+Scene:
+The human hero and AI Fleas robot coordinate several clearly different kinds of useful work around one generic local AI workspace: a code window, a UI screenshot, an invoice/receipt, a document, and a simple image task. Use recognizable visual objects/icons rather than readable labels. The robot is actively helping route/perform work; the human remains responsible for goals and acceptance.
+
+Message:
+The local machine does not need one spectacular job; it becomes useful when suitable work from several workflows can reach it.
+
+Avoid:
+- dense flowchart composition;
+- readable financial/account data;
+- named models or hardware;
+- making the robot appear to autonomously control finances;
+- visual claims of guaranteed savings/revenue.
+
+Release note:
+Optional. Prefer one strong hero image over generating this merely to fill space.
+-->
 
 ## Make the machine prove itself
 
