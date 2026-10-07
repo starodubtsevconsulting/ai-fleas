@@ -235,3 +235,11 @@ Sometimes the next useful piece of AI infrastructure is not another GPU.
 It is the hard drive that has been sitting on your shelf for five years.
 
 You just need to know whether you should trust it — and what kind of memory it should become.
+
+## Related local-AI reading
+
+- **Previous:** [*The Dangerous Moment in Local AI Is When the Next Machine Actually Makes Sense*](2026-10-06-before-you-buy-local-ai-decide-what-you-are-optimizing-for.md)
+- **Next:** [*You Bought the Local AI Machine. Now Make It Earn Its Keep.*](2026-10-07-you-bought-the-local-ai-machine-now-make-it-earn-its-keep.md)
+- **Also related:** [*When Compute Gets Expensive, Make the Agents Smaller*](2026-09-10-when-compute-gets-expensive-make-the-agents-smaller.md)
+
+These links follow the conceptual local/hybrid-AI thread rather than publication chronology.
