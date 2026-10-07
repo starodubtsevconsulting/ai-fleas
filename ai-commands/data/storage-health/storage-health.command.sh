@@ -97,11 +97,11 @@ interactive(){
       [[ ${#disks[@]} -gt 0 ]] || { echo "No external drives found."; return; }
       echo "Select drive:"
       local i=1
-      for d in "${disks[@]}"; do echo "  [$i] $d  $(lsblk -dn -o SIZE "$d" | xargs)  $(lsblk -dn -o MODEL "$d" | xargs)"; ((i++)); done
+      for d in "${disks[@]}"; do echo "  [$i] $d  $(lsblk -dn -o SIZE "$d" | xargs)  $(lsblk -dn -o MODEL "$d" | xargs)"; echo "      $(smart_last_summary "$d")"; echo -n "      "; smart_long_estimate "$d"; ((i++)); done
       printf "Drive: "; read -r n
       [[ "$n" =~ ^[0-9]+$ ]] && (( n>=1 && n<=${#disks[@]} )) || { echo "Invalid selection."; return 2; }
       printf "Test [s]hort or [l]ong? "; read -r kind
-      if [[ "$kind" =~ ^[Ll] ]]; then smart_long_estimate "${disks[n-1]}"; fi
+      if [[ "$kind" =~ ^[Ll] ]]; then echo; smart_last_summary "${disks[n-1]}"; smart_long_estimate "${disks[n-1]}"; fi
       [[ "$kind" =~ ^[Ll] ]] && main test "${disks[n-1]}" --long || main test "${disks[n-1]}" --short
       ;;
     4) main inspect ;;
