@@ -1,6 +1,6 @@
 ---
 title: "You Bought the Local AI Machine. Now Make It Earn Its Keep."
-subtitle: "I stopped thinking about model size and GPU utilization. My first target is simpler: about $100 a day of accepted useful work."
+subtitle: "I gave my local AI infrastructure a deliberately simple target: about $100 a day of accepted useful work."
 author: Sergii Starodubtsev
 date: "2026-10-07"
 version: 1
@@ -14,31 +14,25 @@ tags: [artificial-intelligence, local-ai, ai-infrastructure, ai-strategy, ai-eco
 
 # You Bought the Local AI Machine. Now Make It Earn Its Keep.
 
-*I stopped thinking about model size and GPU utilization. My first target is simpler: about $100 a day of accepted useful work.*
+*I gave my local AI infrastructure a deliberately simple target: about $100 a day of accepted useful work.*
 
 My local AI machine was sitting idle while I was talking about how useful local AI infrastructure could be.
 
 That bothered me.
 
-I had already paid for the compute. The machine was available. There was useful work in my backlog.
+I had already paid for the compute. There was useful work in my backlog. And the machine was producing nothing.
 
-And it was producing nothing.
+So I gave it a deliberately imperfect target:
 
-So I gave myself a deliberately imperfect target:
+**$100 a day of accepted useful work.**
 
-**About $100 a day of accepted useful work from my local AI infrastructure.**
+Not $100 worth of tokens. Not $100 worth of GPU time. Not twelve hours of a fan spinning.
 
-Not $100 worth of tokens generated.
-
-Not $100 worth of GPU time.
-
-Not twelve hours of a fan spinning.
-
-Useful work that I would otherwise have spent hosted AI capacity, human time, or both to get done — and that I am actually willing to accept.
+Work I would otherwise have spent hosted AI capacity, human time, or both to get done — and that I am actually willing to accept.
 
 The number is not accounting. Not yet.
 
-It is a forcing function.
+**It is a forcing function.**
 
 ## Buying the machine was only the first decision
 
@@ -68,7 +62,7 @@ I want to think of my local infrastructure as having roughly **12 hours a day of
 
 That does not mean I need to keep every GPU at 100% for twelve hours.
 
-If I have no useful work for the machine, making it generate something merely to improve utilization would be absurd.
+If I have no useful work for the infrastructure, making it generate something merely to improve utilization would be absurd.
 
 The twelve hours are an availability envelope.
 
@@ -192,7 +186,7 @@ One model may be specialized for coding.
 
 Another may be a broader general-purpose model that can reason across documents, screenshots, financial information and technical problems.
 
-A smaller vision model may stay available on another machine because keeping a giant multimodal model loaded just to inspect a screenshot would be wasteful.
+A smaller vision model may stay available on separate local capacity because keeping a large multimodal model loaded just to inspect a screenshot would be wasteful.
 
 Tiny models may eventually handle routine classification or routing.
 
