@@ -24,6 +24,11 @@ case "$#" in
 esac
 electron_bin="${SCREENSHOT_SORTER_ELECTRON_BIN:-}"
 if [[ "$dev" == true ]]; then
+  repo_root="$(git -C "$command_dir" rev-parse --show-toplevel 2>/dev/null || true)"
+  if [[ -n "$repo_root" ]]; then
+    printf 'Updating development branch...\n'
+    git -C "$repo_root" pull --ff-only
+  fi
   export AI_COMMAND_CONFIG_PATH="$command_dir/macos-screenshot-sorter.default.config"
   unset SCREENSHOT_SORTER_ELECTRON_BIN || true
   electron_bin=""
