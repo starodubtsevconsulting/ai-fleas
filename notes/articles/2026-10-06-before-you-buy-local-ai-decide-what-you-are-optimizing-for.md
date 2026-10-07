@@ -327,3 +327,11 @@ It may be a decision:
 **What should we actually build, what should remain hosted, what should stay local, and what should we not buy at all?**
 
 That kind of targeted investigation can be considerably cheaper than discovering the answer after the machines arrive.
+
+## Related local-AI reading
+
+- **Previous:** [*My Local Coding Agent Wasn't Just Stupid. It Was Blind.*](2026-10-06-my-local-coding-agent-wasnt-just-stupid-it-was-blind.md)
+- **Next:** [*You Bought the Local AI Machine. Now Make It Earn Its Keep.*](2026-10-07-you-bought-the-local-ai-machine-now-make-it-earn-its-keep.md)
+- **Also related:** [*I Had 13 TB of Old Surveillance Drives. Could They Become AI Memory?*](2026-10-07-your-local-ai-has-a-brain-where-does-it-keep-its-memory.md)
+
+These links follow the conceptual local/hybrid-AI thread rather than publication chronology.
