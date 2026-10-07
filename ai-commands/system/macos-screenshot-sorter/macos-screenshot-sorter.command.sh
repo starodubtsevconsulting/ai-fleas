@@ -7,7 +7,7 @@ source "$command_dir/../../_runtime/profile/command-profile.guard.sh"
 # Development/default mode: a profile specializes the command but is not
 # required merely to launch the app. Fall back to the bundled safe defaults.
 if ! ai_command_require_profile macos-screenshot-sorter 2>/dev/null; then
-  export AI_COMMAND_CONFIG_PATH="$command_dir/macos-screenshot-sorter.command.example.config"
+  export AI_COMMAND_CONFIG_PATH="$command_dir/macos-screenshot-sorter.default.config"
 fi
 
 # Profile-owned configuration selects the private source, destination, label,
