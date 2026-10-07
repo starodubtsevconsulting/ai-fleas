@@ -6,6 +6,7 @@ source "$ROOT/lib/filesystem.sh"
 source "$ROOT/lib/ai-suitability.sh"
 source "$ROOT/lib/smart.sh"
 source "$ROOT/lib/initialize.sh"
+source "$ROOT/lib/network.sh"
 
 platform_guard(){
   local os
@@ -91,7 +92,7 @@ interactive(){
   echo "  [4] Show storage inventory"
   echo "  [5] Disk test status / history"
   echo "  [6] Inspect filesystem/signatures"
-  echo "  [7] Qualify storage for AI use"; echo "  [8] Initialize storage for AI use"
+  echo "  [7] Qualify storage for AI use"; echo "  [8] Initialize storage for AI use"; echo "  [9] Configure network access"
   echo "  [q] Quit"
   printf "Choice: "; read -r choice
   case "$choice" in
@@ -141,6 +142,7 @@ interactive(){
       [[ "$n" =~ ^[0-9]+$ ]] && (( n>=1 && n<=${#disks[@]} )) || { echo "Invalid selection."; return 2; }
       storage_initialize "${disks[n-1]}"
       ;;
+    9) storage_network_access ;;
     q|Q) echo "No changes made." ;;
     *) echo "Invalid choice."; return 2 ;;
   esac
