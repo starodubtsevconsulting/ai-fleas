@@ -19,14 +19,28 @@ filesystem_report(){
     echo "Mounted:       No recognized filesystem"
     echo "Existing data: No recognizable storage signature detected"
     echo
-    echo "Assessment: READY FOR HEALTH QUALIFICATION"
-    echo
-    echo "What this means:"
-    echo "The drive appears blank or previously erased. Linux found no recognized"
-    echo "filesystem or storage signature that needs to be preserved."
-    echo
-    echo "Recommended next step:"
-    echo "Run a long SMART self-test before initializing it for AI storage."
+    local test_out latest_test
+    test_out="$(smart_capture "$dev" -l selftest 2>/dev/null || true)"
+    latest_test="$(awk '/^# *[0-9]+/ {print; exit}' <<<"$test_out")"
+    if grep -qi 'Completed without error' <<<"$latest_test"; then
+      echo "Assessment: READY FOR INITIALIZATION"
+      echo
+      echo "What this means:"
+      echo "The drive appears blank or previously erased, and its latest full disk"
+      echo "health test completed without reporting an error."
+      echo
+      echo "Recommended next step:"
+      echo "Initialize the drive for its intended storage role when ready."
+    else
+      echo "Assessment: READY FOR HEALTH QUALIFICATION"
+      echo
+      echo "What this means:"
+      echo "The drive appears blank or previously erased. Linux found no recognized"
+      echo "filesystem or storage signature that needs to be preserved."
+      echo
+      echo "Recommended next step:"
+      echo "Run a full disk health test before initializing it for AI storage."
+    fi
   else
     echo "Existing data: Storage metadata detected"
     echo
