@@ -1,8 +1,10 @@
 ---
-title: "Should Your Hybrid AI Start in ChatGPT or Hermes?"
-subtitle: "A scripted conversation about choosing the front door to a hybrid AI system."
+title: "Where Should a Hybrid AI System Start: Hosted or Local?"
+previous_title: "Should Your Hybrid AI Start in ChatGPT or Hermes?"
+subtitle: "I connected ChatGPT to a local Hermes agent. The connection worked—and showed me that communication was not the real architectural decision."
 author: Sergii Starodubtsev
 date: "2026-09-26"
+version: 2
 locale: en
 status: published
 tags:
@@ -16,13 +18,29 @@ lead_image_alt: "A human and an AI Flea robot stand at a crossroads between a ho
 lead_image_credit: "Illustration generated from the author's AI Fleas character references."
 ---
 
-# Should Your Hybrid AI Start in ChatGPT or Hermes?
+# Where Should a Hybrid AI System Start: Hosted or Local?
 
-*A scripted conversation about choosing the front door to a hybrid AI system.*
+*I connected ChatGPT to a local Hermes agent. The connection worked—and showed me that communication was not the real architectural decision.*
 
 ![A human and an AI Flea robot stand at a crossroads between a hosted cloud entrance and a local computer workspace.](assets/2026-09-26-ai-fleas-hybrid-front-door-header.png)
 
 *A human and an AI Flea choose between a hosted front door and a local workspace. Illustration generated from the author's character references.*
+
+I connected ChatGPT to a local Hermes agent.
+
+Technically, it worked.
+
+ChatGPT could send coding work to Hermes. Hermes could run a local model on my own hardware. I even replaced a crude process call with Agent2Agent, so the two systems had a proper communication boundary.
+
+Then I discovered that communication was not really the problem.
+
+The harder decision was **which side should be the front door**.
+
+Should a strong hosted model receive the request first and delegate selected work to local capacity? Or should the local agent own the interaction and call hosted intelligence only when the work deserves it?
+
+Those architectures can use many of the same components. They optimize for different things: convenience, control, context, cost, availability, and where orchestration lives.
+
+That was the question I actually needed to answer.
 
 *The following is a scripted dialogue. Host and Anna are fictional voices used to explain a real implementation; this is not a transcript of an actual interview.*
 
