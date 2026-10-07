@@ -11,7 +11,7 @@ smart_test(){
    printf "Start long test on %s now? [y/N] " "$dev"; read -r a
    [[ "$a" =~ ^[Yy]([Ee][Ss])?$ ]] || { echo "Test cancelled."; return 0; }
  fi
- smart_capture "$dev" -t "$kind"
+ smart_capture "$dev" -t "$kind"\n record_test_start "$dev" "$kind"
 }
 
 smart_long_estimate(){
@@ -30,4 +30,44 @@ smart_long_estimate(){
     h=$(( (tb + 1) / 2 + 3 ))
     echo "Approximate long-test estimate: roughly $h+ hours (drive did not report a duration)."
   fi
+}
+
+storage_state_root(){
+  printf '%s\n' "${XDG_STATE_HOME:-$HOME/.local/state}/ai-fleas/storage-health"
+}
+drive_key(){
+  local dev="$1" serial model
+  serial="$(lsblk -dn -o SERIAL "$dev" | xargs)"
+  model="$(lsblk -dn -o MODEL "$dev" | xargs | tr ' /' '__')"
+  [[ -n "$serial" ]] && printf '%s\n' "$serial" || printf '%s\n' "$model"
+}
+test_state_file(){
+  local root key
+  root="$(storage_state_root)"; key="$(drive_key "$1")"
+  mkdir -p "$root/$key"
+  printf '%s/tests.log\n' "$root/$key"
+}
+record_test_start(){
+  local dev="$1" kind="$2" file
+  file="$(test_state_file "$dev")"
+  printf '%s|STARTED|%s|%s\n' "$(date -Is)" "$kind" "$dev" >> "$file"
+}
+smart_test_history(){
+  local dev="$1" file out
+  file="$(test_state_file "$dev")"
+  echo "AI Fleas · SMART Test History"
+  echo "─────────────────────────────"
+  echo "Drive: $(lsblk -dn -o MODEL "$dev" | xargs) $(lsblk -dn -o SIZE "$dev" | xargs)"
+  echo "Stable key: $(drive_key "$dev")"
+  echo
+  if [[ -f "$file" ]]; then
+    echo "AI Fleas local starts:"
+    tail -n 10 "$file"
+  else
+    echo "AI Fleas local starts: none recorded."
+  fi
+  echo
+  echo "Drive-retained SMART self-test log:"
+  out="$(smart_capture "$dev" -l selftest 2>/dev/null || true)"
+  [[ -n "$out" ]] && echo "$out" || echo "No SMART self-test history reported by drive."
 }
