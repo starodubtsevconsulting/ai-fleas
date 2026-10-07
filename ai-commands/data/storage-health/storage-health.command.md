@@ -29,3 +29,45 @@ Host names, device roles, expected serials, mount policy, and storage purpose be
 The first-pass classification uses storage medium characteristics such as rotational versus non-rotational media and transport. Rotational HDDs are treated as strong capacity/sequential/archive storage, conditional for vector/search workloads, and poor for latency-sensitive active inference or build/workspace random I/O. SSD/NVMe is treated as broadly suitable, with benchmarking still required for demanding throughput cases.
 
 This recommendation is intentionally separate from `health`: operators can request pure disk health without AI opinions, or explicitly request `ai-report` when deciding how a device should be used in an AI system. Future versions may incorporate optional measured sequential/random-I/O evidence without making destructive benchmarks the default.
+
+
+## Discovery and role matching lifecycle
+
+The portable command follows this lifecycle when a profile supplies desired storage roles:
+
+**discover → analyze → recommend → approve → bind → monitor**
+
+Discovery reads runtime device facts; profiles do not need to hardcode serial numbers or /dev/sdX paths.
+
+A profile may describe intent only:
+
+```yaml
+storage:
+  desired_roles:
+    agent-memory:
+      workload: agent-persistent-memory
+      requirements:
+        health: healthy
+    model-library:
+      workload: cold-model-library
+      requirements:
+        health: healthy
+```
+
+The command/runtime adapter may then:
+
+1. discover currently attached physical disks;
+2. collect stable runtime identity, medium, capacity, transport, filesystem/mount evidence, and SMART evidence;
+3. calculate AI workload suitability;
+4. rank candidates against profile role requirements;
+5. emit recommendations without changing the machine;
+6. require explicit approval before a profile/runtime adapter persists a stable binding;
+7. monitor the accepted binding and flag disappearance, replacement, or degraded health.
+
+### Safety and ownership
+
+Recommendation is read-only. The portable command MUST NOT silently bind, mount, format, partition, or replace a device. Persistent binding is a profile/runtime concern after explicit acceptance.
+
+The stable identity discovered at runtime may include filesystem UUID, WWN, or device serial as appropriate. Raw hardware identity does not need to be committed to a profile repository merely to support discovery.
+
+The public command owns generic discovery and suitability semantics. Private profiles own desired roles, minimum requirements, accepted bindings, and deployment-specific mount/share policy.
