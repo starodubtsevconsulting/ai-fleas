@@ -260,33 +260,37 @@ So I would include human attention in any serious local-AI calculation:
 
 Cheap inference can become expensive work.
 
-## Give the machine a utilization target
+## Let's talk numbers
 
-There is another way I have started looking at the problem: instead of asking how quickly a machine can theoretically pay for itself, give it a useful-work target.
+Suppose your local AI infrastructure can realistically be available for 12 hours a day.
 
-For example, imagine local infrastructure that is available for about 12 hours of useful work per day. It will not spend all 12 hours producing valuable output. There will be idle time, failed tasks, maintenance, batching gaps, and jobs that are simply better sent elsewhere.
+Forget 24/7. Machines wait. Tasks fail. Workloads arrive unevenly. Some jobs should still go to hosted models.
 
-So the target should not be 12 hours of uptime.
+Now give the local system a target:
 
-It should be something like:
+**$100 of useful hosted-equivalent work per working day.**
 
-**How much accepted work did this infrastructure produce today that I would otherwise have paid a hosted system to perform?**
+That is roughly **$500 per week, $2,000 per month, or $25,000 across 250 working days.**
 
-Suppose the target is roughly $100 per working day of hosted-equivalent useful work. Across about 250 working days, that is approximately $25,000 of annual capacity.
+Suddenly a machine costing several thousand dollars does not necessarily look expensive.
 
-That does not mean a local machine literally earns $25,000. It means there is finally a number against which the capital, electricity, maintenance, model quality and human supervision can be evaluated.
+But there is a catch:
 
-The calculation also exposes bad assumptions quickly. Six hours of an agent looping on the wrong approach is not six hours of value. Six hours of background work that produces an accepted result while a person is doing something else can be extremely valuable.
+**Uptime is not value.**
 
-I would therefore measure local AI less by uptime and more by something closer to:
+Six hours of an agent looping on the wrong approach is not six hours of value.
+
+Six hours of background work that produces an accepted result while you are sleeping or doing something else can be extremely valuable.
+
+That is why I would measure local AI less by tokens generated or hours powered on and more by something closer to:
 
 **accepted hosted-equivalent work − human supervision − operating cost**
 
-The exact dollar target will be different for every organization. The useful idea is to have one.
+The exact target will differ for every organization. Privacy, research, resilience and strategic control can make the value much larger than avoided API spend alone. The point is to establish what value means *before* using hardware utilization as evidence that the investment works.
 
-And there is a time dimension. AI hardware can become technologically old long before it physically wears out. An investment case that requires several years of perfect utilization may be much weaker than one that extracts substantial useful capacity while the hardware is still competitive.
+There is also a clock running. AI hardware can become technologically old long before it physically wears out. An investment case that needs several years of perfect utilization may be much weaker than one that extracts substantial useful capacity while the hardware is still competitive.
 
-This also encourages a portfolio view. A machine that makes little sense as an occasional coding fallback may look different if the same infrastructure handles document processing, accounting workflows, private analysis, visual inspection, research, media work and scheduled agents. Utilization should be evaluated across the workloads that can realistically share the infrastructure, not against one glamorous demo.
+And utilization should be considered across the workloads that can realistically share the infrastructure. A machine that makes little sense as an occasional coding fallback may look very different if it also handles document processing, accounting workflows, private analysis, visual inspection, research, media work and scheduled agents.
 
 ## Hybrid may be the rational answer
 
