@@ -11,7 +11,8 @@ smart_test(){
    printf "Start long test on %s now? [y/N] " "$dev"; read -r a
    [[ "$a" =~ ^[Yy]([Ee][Ss])?$ ]] || { echo "Test cancelled."; return 0; }
  fi
- smart_capture "$dev" -t "$kind"\n record_test_start "$dev" "$kind"
+ smart_capture "$dev" -t "$kind"
+ record_test_start "$dev" "$kind"
 }
 
 smart_long_estimate(){
