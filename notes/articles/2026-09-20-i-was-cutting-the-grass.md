@@ -1,30 +1,30 @@
+---
+title: "I Was Cutting the Grass. Could My AI Team Do the Accounting?"
+previous_title: "I Was Cutting the Grass. Could My AI Team Do the Accounting?"
+subtitle: "I wanted bounded financial work to continue without pulling me away from the yard and back to the laptop."
+date: "2026-09-20"
+version: 2
+---
+
 # I Was Cutting the Grass. Could My AI Team Do the Accounting?
 
-> “It is not that we have a short time to live, but that we waste a lot of it.”
->
-> — Seneca, *On the Shortness of Life*, translated by C. D. N. Costa
+*I wanted bounded financial work to continue without pulling me away from the yard and back to the laptop.*
 
-![A person in a black hoodie mows grass beside a lakeside chalet and dog while an AI Fleas robot at a nearby desk checks a receipt and calendar.](assets/2026-09-20-mowing-delegated-accounting-ai-fleas-header.png)
-
-*While the human tends the lawn, an AI Flea handles a bounded financial question. Illustration generated from the author’s AI Fleas character references.*
-
-> **Draft:** Prepared through the Writing workflow in emulation mode. Independent fresh-context critique, human listen-through, and release approval remain pending.
-
-The birds were singing.
-
-The air at the chalet was cool enough to make cutting the grass almost recreational. I had the mower moving, the phone in my pocket, and—for once—I was not sitting in front of a computer.
+The birds were singing. The air at the chalet was cool enough to make cutting the grass almost recreational.
 
 Then I thought about the bills.
 
-There are taxes around the chalet. There are receipts. There are financial things that do not disappear merely because the weather is good.
+Taxes. Receipts. Financial things that do not disappear because the weather is good.
 
-Normally that thought has a price.
+Normally that thought has a price: stop mowing, go inside, open the laptop, find the right files, reconstruct what I already checked, and work out what still needs attention. Twenty minutes later I am no longer outside. I am doing administration.
 
-Stop what I am doing. Go inside. Open the laptop. Find the right folder. Find the statement. Remember what I already checked. Work out what still needs attention. Perhaps open the calendar. Perhaps create another task. Twenty minutes later I am no longer cutting grass. I am doing administration.
+This time I pulled out my phone and asked a different question:
 
-This time I pulled out my phone and asked a design question: what would it take for my Personal Governor to hand a bounded financial question to specialists without pulling me away from the yard?
+**Could my AI team handle a bounded financial task without pulling me away from the yard?**
 
-Then I went back to the grass.
+I did not want an autonomous accountant making broad financial decisions. I wanted the Personal Governor to know enough about my goals and available workflows to hand a narrowly defined question to the right specialist, collect evidence, and bring me back only what required my attention.
+
+Then I put the phone away and went back to the grass.
 
 ## The interesting part was not the phone
 
