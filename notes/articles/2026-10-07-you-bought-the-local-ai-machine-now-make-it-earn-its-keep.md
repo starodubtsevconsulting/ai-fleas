@@ -366,6 +366,24 @@ Release note:
 Optional. Prefer one strong hero image over generating this merely to fill space.
 -->
 
+## If you are following the local-AI thread
+
+This article is part of a larger set of experiments rather than a standalone argument. The useful reading order is conceptual, not chronological:
+
+1. [*Hosted AI Wasn't Enough. Local AI Wasn't Enough Either.*](2026-09-26-why-hybrid-ai-is-worth-considering.md) — why I stopped treating hosted and local AI as mutually exclusive.
+2. [*Where Should a Hybrid AI System Start: Hosted or Local?*](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md) — where orchestration should begin once both kinds of capacity exist.
+3. [*What 27B, 4-Bit, and 64K Actually Mean in an AI Model*](2026-09-29-what-27b-4-bit-and-64k-mean.md) — the practical model/hardware vocabulary behind local deployment decisions.
+4. [*I Bought an AI Powerhouse. Then the Agent Kept Giving Up.*](2026-09-27-i-bought-an-ai-powerhouse-then-the-agent-kept-giving-up.md) — why capable hardware and a capable model still do not automatically create useful agent work.
+5. [*I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.*](2026-09-27-i-tried-to-replace-my-local-coder.md) — why accepted work matters more than simply choosing a larger model.
+6. [*My Local Coding Agent Wasn't Just Stupid. It Was Blind.*](2026-10-06-my-local-coding-agent-wasnt-just-stupid-it-was-blind.md) — why context, observation and surrounding capabilities matter as much as model intelligence.
+7. [*The Dangerous Moment in Local AI Is When the Next Machine Actually Makes Sense*](2026-10-06-before-you-buy-local-ai-decide-what-you-are-optimizing-for.md) — decide what the infrastructure is optimizing for before adding more hardware.
+8. **This article** — once you own the capacity, make it produce measurable accepted work.
+9. [*I Had 13 TB of Old Surveillance Drives. Could They Become AI Memory?*](2026-10-07-your-local-ai-has-a-brain-where-does-it-keep-its-memory.md) — one practical example of extending the surrounding local infrastructure without automatically buying an expensive storage platform.
+10. [*When Compute Gets Expensive, Make the Agents Smaller*](2026-09-10-when-compute-gets-expensive-make-the-agents-smaller.md) — use smaller specialized workers where the job does not justify the most expensive intelligence.
+11. [*What Do We Gain by Generating Images Locally?*](2026-09-23-what-do-we-gain-by-generating-images-locally.md) — a concrete example of local capacity being valuable for control, workflow ownership and privacy rather than token economics alone.
+
+I expect this map to evolve as the experiments produce better evidence. The point is not to force a series onto every reader; it is to make the surrounding argument discoverable when somebody wants to go deeper.
+
 ## Make the machine prove itself
 
 I still like local AI hardware.
