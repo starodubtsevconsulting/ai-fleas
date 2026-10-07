@@ -59,7 +59,9 @@ interactive(){
   echo "  [2] Check physical health"
   echo "  [3] Run SMART self-test"
   echo "  [4] Show storage inventory"
-  echo "  [5] Check previous test status"\n  echo "  [6] Inspect filesystem/signatures"\n  echo "  [7] Qualify storage for AI use"
+  echo "  [5] Check previous test status"
+  echo "  [6] Inspect filesystem/signatures"
+  echo "  [7] Qualify storage for AI use"
   echo "  [q] Quit"
   printf "Choice: "; read -r choice
   case "$choice" in
