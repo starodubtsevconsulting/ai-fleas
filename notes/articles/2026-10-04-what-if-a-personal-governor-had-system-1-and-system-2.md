@@ -1,16 +1,30 @@
+---
+title: "Why Is Your Most Expensive AI Model Making the Easiest Decisions?"
+previous_title: "Why Is Your Most Expensive AI Model Making the Easiest Decisions?"
+subtitle: "Routine routing and classification do not always need your smartest model. A tiny System 1 can decide when expensive System 2 reasoning is actually worth waking up."
+date: "2026-10-04"
+version: 2
+---
+
 # Why Is Your Most Expensive AI Model Making the Easiest Decisions?
 
-*I started with a tiny routing model. It changed how I think about the Personal Governor itself.*
+*Routine routing and classification do not always need your smartest model. A tiny System 1 can decide when expensive System 2 reasoning is actually worth waking up.*
 
 In many agent systems, the smartest model sits at the top.
 
-Every request reaches it first. It decides what the request means, which agent should handle it, whether a tool is needed, and where the work should go.
+A request arrives and the expensive model decides what it means, which workflow owns it, whether a tool is needed, and which agent should handle it.
 
-That feels logical. Put the smartest model in charge.
+Then another routine decision appears, and the smartest model gets called again.
 
-But humans do not work like that.
+That feels safe. It is also a strange way to spend intelligence.
 
-You do not deliberate about pulling your hand away from a hot surface. You do not carefully reason through every familiar sound, every routine choice, every signal you already know how to recognize. Much of the time, something fast reacts first. Deliberation gets involved when the situation deserves it.
+Many of those decisions are classification and routing: familiar signals with a small number of possible outcomes. Humans do not deliberate deeply about every routine signal either. Something fast reacts first; slower reasoning gets involved when the situation deserves it.
+
+I had been experimenting with a tiny routing model when this became more than a cost optimization. It changed how I thought about the Personal Governor itself.
+
+What if the Governor should not have one speed of thought?
+
+What if a fast **System 1** handled routine recognition and routing, while a slower **System 2** woke up only when actual deliberation was required?
 
 That made me wonder whether I had been thinking about my **Personal Governor** backwards.
 
