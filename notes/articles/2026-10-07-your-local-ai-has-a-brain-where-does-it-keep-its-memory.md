@@ -6,8 +6,8 @@ date: "2026-10-07"
 locale: en
 status: draft
 project: ai-fleas
-commercial_objective: ai-fleas-awareness
-intended_reader: developers and advanced AI users building local or hybrid agent infrastructure
+commercial_objective: ai-fleas-awareness-and-practical-tool-adoption
+intended_reader: developers, technical founders, homelab users, consultants, and advanced AI users who have started running local models and now need practical persistent storage without building a full storage platform
 tags: [local-ai, agents, memory, storage, ai-fleas]
 ---
 
@@ -124,6 +124,12 @@ A drive can mount and still be a terrible candidate for persistent data.
 
 So I added a small public command to AI Fleas called `storage-health`.
 
+It lives in the open-source AI Fleas repository, so the same command can be reused outside my own infrastructure:
+
+https://github.com/starodubtsevconsulting/ai-fleas/tree/main/ai-commands/data/storage-health
+
+This is also a small example of what I want AI Fleas commands to be. Not another application you have to adopt wholesale, but a portable operational capability that can be dropped into an AI-assisted workflow and used by either a person or an agent.
+
 The idea is deliberately simple: take the ugly storage evidence that Linux and SMART tools expose and turn it into something useful for someone building AI infrastructure.
 
 Instead of stopping at:
@@ -225,6 +231,10 @@ It is easy to spend weeks comparing models.
 I certainly have.
 
 But once the models begin doing real work, the surrounding pieces become just as interesting: context, orchestration, vision, storage, persistent memory, monitoring, and the boring machinery that allows an agent to come back tomorrow and still know where its things are.
+
+If you are already running local models and have reached the point where the surrounding infrastructure is becoming the real project, AI Fleas is where I am publishing these reusable pieces as I build and test them:
+
+https://github.com/starodubtsevconsulting/ai-fleas
 
 Sometimes the next useful piece of AI infrastructure is not another GPU.
 
