@@ -88,7 +88,7 @@ interactive(){
   echo "  [2] Check physical health"
   echo "  [3] Run SMART self-test (long tests may take hours)"
   echo "  [4] Show storage inventory"
-  echo "  [5] SMART test history / status"
+  echo "  [5] Disk test status / history"
   echo "  [6] Inspect filesystem/signatures"
   echo "  [7] Qualify storage for AI use"
   echo "  [q] Quit"
