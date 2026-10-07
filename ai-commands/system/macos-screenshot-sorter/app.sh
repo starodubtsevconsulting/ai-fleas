@@ -9,12 +9,25 @@ set -euo pipefail
 
 command_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 export AI_COMMAND_CONFIG_PATH="${AI_COMMAND_CONFIG_PATH:-$command_dir/macos-screenshot-sorter.default.config}"
+force=false
+dev=false
 case "$#" in
-  0) force=false ;;
-  1) [[ "$1" == '--force' ]] || { printf '%s\n' 'Usage: app.sh [--force]' >&2; exit 2; }; force=true ;;
-  *) printf '%s\n' 'Usage: app.sh [--force]' >&2; exit 2 ;;
+  0) ;;
+  1)
+    case "$1" in
+      --force) force=true ;;
+      --dev) dev=true; force=true ;;
+      *) printf '%s\n' 'Usage: app.sh [--dev|--force]' >&2; exit 2 ;;
+    esac
+    ;;
+  *) printf '%s\n' 'Usage: app.sh [--dev|--force]' >&2; exit 2 ;;
 esac
 electron_bin="${SCREENSHOT_SORTER_ELECTRON_BIN:-}"
+if [[ "$dev" == true ]]; then
+  export AI_COMMAND_CONFIG_PATH="$command_dir/macos-screenshot-sorter.default.config"
+  unset SCREENSHOT_SORTER_ELECTRON_BIN || true
+  electron_bin=""
+fi
 if [[ -z "$electron_bin" ]]; then
   if [[ ! -x "$command_dir/launcher/node_modules/.bin/electron" ]]; then
     command -v npm >/dev/null 2>&1 || { printf '%s\n' 'npm is required to bootstrap the Screenshot Sorter UI.' >&2; exit 2; }
