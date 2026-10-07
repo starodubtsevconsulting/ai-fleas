@@ -1,16 +1,18 @@
 ---
-title: "Turn Your NAS Into Private Memory for an AI Agent Team"
+title: "Turn Your Home Storage Into Private Memory for Your AI Agents"
 previous_title: "Turn Your NAS Into Private Memory for an AI Agent Team"
 subtitle: "A NAS can give agents useful shared memory without giving every agent access to everything—if accounts, shares, and permissions become part of the design."
 date: "2026-09-19"
 version: 2
 ---
 
-# Turn Your NAS Into Private Memory for an AI Agent Team
+# Turn Your Home Storage Into Private Memory for Your AI Agents
 
 *A NAS can give agents useful shared memory without giving every agent access to everything—if accounts, shares, and permissions become part of the design.*
 
 My writing agent needed memory.
+
+I already had network-attached storage (NAS)—a small storage server on my home network holding documents, photos, backups, and project files.
 
 It needed to search article drafts and references stored on my NAS. It did **not** need my photos, finances, backups, administrative access, or every other file that happened to live on the same box.
 
