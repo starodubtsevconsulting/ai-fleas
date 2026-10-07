@@ -205,6 +205,75 @@ The `.local` hostname is provided through local-network discovery, so clients do
 
 SMB is intended for the local network only. When UFW is active and the LAN can be safely identified, the command permits TCP 445 only from that LAN; it does not intentionally expose SMB through Cloudflare or the public internet.
 
+## Reference deployment: interactive and autonomous Hermes
+
+The storage command is portable and does not require Hermes. One expected AI Fleas deployment, however, uses this storage as durable capacity for an always-on agent node. This is a reference topology, not a requirement of the command.
+
+```mermaid
+flowchart TD
+    U[Human] --> HM[Hermes on laptop / workstation<br/>interactive]
+    SCH[Schedules / recurring jobs] --> HI[Hermes on always-on node<br/>autonomous + service]
+    WEB[Websites / products] --> API[Controlled authenticated API]
+    API --> HI
+    HI --> ROUTE[Capability / model routing]
+    ROUTE --> LOCAL[Local models]
+    ROUTE --> HOSTED[Hosted models]
+    HI --> HS[/hermes/<br/>private runtime + job state]
+    HI --> MEM[/memory/<br/>private durable agent data]
+    HI --> ART[/artifacts/<br/>finished outputs]
+    ART --> SMB[AI-Artifacts SMB share]
+    SMB --> U
+```
+
+### Different Hermes roles
+
+**Interactive Hermes** on a laptop/workstation is suited to day-to-day human-driven work, development, experiments, manually started workflows, and work requiring frequent human judgment.
+
+**Always-on Hermes** on an infrastructure node is suited to scheduled/recurring agents, overnight or background processing, monitoring, website/product-triggered AI work, and unattended service orchestration.
+
+Do not blindly share one writable Hermes runtime/state directory between the installations. Machine-specific sessions, caches and runtime state should remain owned by the installation that created them.
+
+### Storage boundary
+
+```text
+/srv/ai-storage/
+├── hermes/       private autonomous-agent runtime/job state
+├── memory/       private durable agent data
+├── artifacts/    finished human-facing outputs
+├── models/       model library
+└── archive/      archive/backup-oriented data
+```
+
+An autonomous agent can work privately under `hermes/` and publish an accepted deliverable to `artifacts/`. A laptop user can then see that result through `AI-Artifacts` without receiving writable access to the agent's internal state.
+
+### Website/product boundary
+
+Websites and products should not mount agent storage or call model processes directly.
+
+```text
+website / product
+      ↓
+authenticated controlled API
+      ↓
+always-on Hermes / workflow
+      ↓
+capability + model routing
+      ↓
+local or hosted intelligence
+      ↓
+validated result
+      ↓
+website / product
+```
+
+Authentication, workload policy, model choice, private state, retries, storage permissions and observability stay behind the application boundary rather than exposing the agent runtime to the public web.
+
+### Why this topology is useful
+
+The interactive machine optimizes for human collaboration. The always-on node optimizes for continuity and unattended execution. Shared storage provides durable capacity and a deliberate handoff point between autonomous work and human-visible outputs.
+
+It also gives owned local compute useful work beyond interactive coding: scheduled processing, document work, validation, website requests and other bounded workloads can continue while the human is not actively driving an agent.
+
 ## Safety states
 
 ```mermaid
