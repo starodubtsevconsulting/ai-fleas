@@ -31,30 +31,30 @@ With enough context and support around it, it could even produce useful work.
 
 But it was still a poor manager of its own work.
 
-The technically obvious architecture started to emerge:
-
-```mermaid
-flowchart TD
-    H[Human or organization] --> G[General-purpose reasoning]
-    G --> C[Specialized worker<br/>coding or production]
-    G --> S[Supporting capabilities]
-    S --> X[Context and expertise]
-    S --> V[Vision / observation]
-    S --> M[Memory / learned skills]
-    C --> G
-    X --> G
-    V --> G
-    M --> G
-    G --> O[Useful result]
-```
-
-One compute box could specialize in broad reasoning and coordination. Another could concentrate on a large specialized worker and its working context. Smaller supporting models or services could handle context, observation, memory, classification, or other bounded functions.
+The technically obvious architecture started to emerge. Another capable compute node could keep a broad reasoning model resident above the specialized worker. Smaller supporting models or services could handle context, observation, memory, classification, or other bounded functions.
 
 Technically, I could see why it would work better.
 
 And then I asked the question that matters more:
 
 **Better for what?**
+
+This is the trap I had walked into:
+
+```mermaid
+flowchart LR
+    A[Buy capable local AI] --> B[Run useful model]
+    B --> C[Discover missing capability]
+    C --> D[Add context / memory / tools]
+    D --> E[Discover another limit]
+    E --> F[Add model / compute]
+    F --> G[Better architecture]
+    G --> H{Real objective<br/>justifies it?}
+    H -->|yes| I[Useful infrastructure]
+    H -->|no| J[Expensive playground]
+```
+
+The dangerous part is that every technical step can be reasonable. The architecture can genuinely improve while the business case gets worse.
 
 ## The trap is not buying hardware
 
@@ -75,6 +75,26 @@ I am asking:
 **What am I optimizing for?**
 
 Those questions produce very different purchasing decisions.
+
+The same class of hardware can be rational for completely different reasons:
+
+```mermaid
+flowchart TD
+    A[Local AI investment] --> B{Primary objective?}
+    B --> P[Privacy / control]
+    B --> R[Research / customization]
+    B --> U[Continuous production]
+    B --> O[Offline / resilience]
+    B --> F[Fallback capacity]
+
+    P --> P1[Control may outweigh<br/>token economics]
+    R --> R1[Experimentation itself<br/>creates value]
+    U --> U1[High utilization can<br/>justify capital]
+    O --> O1[Availability is part<br/>of the requirement]
+    F --> F1[Low utilization favors<br/>hosted or hybrid]
+```
+
+There is no universally correct local-AI budget. There is a configuration that is more or less appropriate for the objective.
 
 ## Privacy changes the equation completely
 
@@ -154,6 +174,31 @@ But I would also have doubled down on infrastructure to solve a workload that oc
 
 That is the point where I have to stop being fascinated by the architecture and think like a consultant.
 
+## What a useful local system may actually contain
+
+Once the objective and workload justify local infrastructure, the system may be more than one large model.
+
+My own experiments increasingly point toward a composition like this:
+
+```mermaid
+flowchart TD
+    H[Human or organization] --> G[General-purpose reasoning]
+    G --> C[Specialized worker<br/>coding or production]
+    G --> S[Supporting capabilities]
+    S --> X[Context and expertise]
+    S --> V[Vision / observation]
+    S --> M[Memory / learned skills]
+    C --> G
+    X --> G
+    V --> G
+    M --> G
+    G --> O[Useful result]
+```
+
+The exact boxes will change as hardware and models change. The capabilities are more durable: something maintains the broader problem, something performs specialized work, and supporting functions reduce the amount of expensive reasoning and human intervention required.
+
+That is why I would design around capabilities first and products second.
+
 ## Start with the objective, not the box
 
 If I were advising an organization considering local AI, I would not begin with a model name or a machine.
@@ -179,7 +224,8 @@ flowchart TD
     W --> Q[Required quality and capabilities]
     Q --> H[Hosted / local / hybrid options]
     H --> T[Total cost + human attention]
-    T --> D[Architecture and purchase decision]
+    T --> D[Architecture]
+    D --> P2[Hardware purchase]
 ```
 
 The order matters.
