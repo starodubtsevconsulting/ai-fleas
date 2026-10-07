@@ -116,7 +116,7 @@ function settings() {
     settleSeconds, startIntervalSeconds, candidateLabel: requiredConfig(values, 'SCREENSHOT_SORTER_LABEL')
   };
 }
-const DATE_FOLDER = /^(d{4}-d{2}-d{2})$/;
+const DATE_FOLDER = /^(\\d{4}-\\d{2}-\\d{2})$/;
 const IMAGE_SUFFIX = /\.(?:png|jpe?g|heic|webp|tiff?)$/i;
 const SCREENSHOT_NAME = /^(?:Screenshot|Screen Shot)(?:[ _-]|$)/i;
 function isContained(child, parent) {
