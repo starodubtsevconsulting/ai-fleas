@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-usage(){ echo "usage: $0 inspect | health DEVICE|--all [--json] | report DEVICE|--all [--json] | test DEVICE --short|--long | test-status DEVICE"; }
+usage(){ echo "usage: $0 inspect | health DEVICE|--all [--json] | report DEVICE|--all [--json] | ai-report DEVICE|--all [--json] | test DEVICE --short|--long | test-status DEVICE"; }
 need(){ command -v "$1" >/dev/null 2>&1 || { echo "ERROR: missing dependency: $1" >&2; exit 2; }; }
 is_disk(){ [[ -b "$1" ]] && [[ "$(lsblk -dn -o TYPE "$1" 2>/dev/null)" == "disk" ]]; }
 inspect(){ need lsblk; lsblk -d -o NAME,PATH,SIZE,MODEL,SERIAL,TRAN,TYPE,FSTYPE,MOUNTPOINTS; }
@@ -23,6 +23,23 @@ assess(){
  local model serial size tran; model="$(lsblk -dn -o MODEL "$dev" | xargs)"; serial="$(lsblk -dn -o SERIAL "$dev" | xargs)"; size="$(lsblk -dn -o SIZE "$dev" | xargs)"; tran="$(lsblk -dn -o TRAN "$dev" | xargs)"
  if [[ "$json" == 1 ]]; then printf '{"device":"%s","model":"%s","serial":"%s","size":"%s","transport":"%s","assessment":"%s","overall":"%s","temperature_c":"%s","power_on_hours":"%s","reallocated":"%s","pending":"%s","offline_uncorrectable":"%s","reason":"%s"}\n' "$dev" "$model" "$serial" "$size" "$tran" "$status" "$overall" "$temp" "$poh" "$realloc" "$pending" "$uncorr" "$reason"; else printf '%s %s\nDevice: %s\nSerial: %s\nTransport: %s\nSMART: %s\nTemperature: %s C\nPower-on: %s h\nReallocated: %s\nPending: %s\nUncorrectable: %s\n\nAssessment: %s\n' "$model" "$size" "$dev" "$serial" "$tran" "${overall:-unknown}" "${temp:-unknown}" "${poh:-unknown}" "${realloc:-unknown}" "${pending:-unknown}" "${uncorr:-unknown}" "$status"; [[ -n "$reason" ]] && echo "Reason: $reason"; fi
 }
+ai_suitability(){
+ local dev="$1" json="$2"
+ local rota tran size model
+ rota="$(lsblk -dn -o ROTA "$dev" | xargs)"; tran="$(lsblk -dn -o TRAN "$dev" | xargs)"
+ size="$(lsblk -dn -o SIZE "$dev" | xargs)"; model="$(lsblk -dn -o MODEL "$dev" | xargs)"
+ local persistent="GOOD" documents="GOOD" archive="GOOD" model_library="GOOD" vector="CONDITIONAL" active_inference="POOR" workspace="POOR"
+ local reason="Rotational storage favors capacity and sequential/archive workloads; latency-sensitive random I/O should use SSD/NVMe."
+ if [[ "$rota" == "0" ]]; then
+   persistent="GOOD"; documents="GOOD"; archive="GOOD"; model_library="GOOD"; vector="GOOD"; active_inference="GOOD"; workspace="GOOD"
+   reason="Non-rotational storage is generally suitable for both persistent AI data and latency-sensitive random I/O; benchmark when throughput is critical."
+ fi
+ if [[ "$json" == 1 ]]; then
+   printf '{"device":"%s","model":"%s","size":"%s","transport":"%s","rotational":%s,"ai_suitability":{"agent_persistent_memory":"%s","knowledge_documents":"%s","backup_archive":"%s","cold_model_library":"%s","vector_search":"%s","active_inference_storage":"%s","agent_workspace_builds":"%s"},"reason":"%s"}\n' "$dev" "$model" "$size" "$tran" "$rota" "$persistent" "$documents" "$archive" "$model_library" "$vector" "$active_inference" "$workspace" "$reason"
+ else
+   printf 'AI workload suitability\nAgent persistent memory: %s\nKnowledge/document store: %s\nBackup/archive: %s\nCold model library: %s\nVector/search storage: %s\nActive inference storage: %s\nAgent workspace/builds: %s\n\nReason: %s\n' "$persistent" "$documents" "$archive" "$model_library" "$vector" "$active_inference" "$workspace" "$reason"
+ fi
+}
 external_disks(){ lsblk -dn -p -o NAME,TYPE,TRAN | awk '$2=="disk" && ($3=="usb" || $3=="sata"){print $1}'; }
-main(){ [[ $# -ge 1 ]] || { usage; exit 2; }; local action="$1"; shift; case "$action" in inspect) inspect;; health|report) need smartctl; local target="${1:-}" json=0; [[ -n "$target" ]] || { usage; exit 2; }; shift || true; [[ "${1:-}" == "--json" ]] && json=1; if [[ "$target" == "--all" ]]; then while read -r d; do assess "$d" "$json"; [[ "$json" == 1 ]] || echo; done < <(external_disks); else assess "$target" "$json"; fi;; test) need smartctl; local dev="${1:-}" kind="${2:-}"; [[ "$kind" == "--short" || "$kind" == "--long" ]] || { usage; exit 2; }; smart_capture "$dev" -t "${kind#--}";; test-status) need smartctl; local dev="${1:-}"; [[ -n "$dev" ]] || { usage; exit 2; }; smart_capture "$dev" -a | grep -Ei 'Self-test|remaining|progress|SMART overall-health|SMART Health Status' || true;; *) usage; exit 2;; esac; }
+main(){ [[ $# -ge 1 ]] || { usage; exit 2; }; local action="$1"; shift; case "$action" in inspect) inspect;; health|report) need smartctl; local target="${1:-}" json=0; [[ -n "$target" ]] || { usage; exit 2; }; shift || true; [[ "${1:-}" == "--json" ]] && json=1; if [[ "$target" == "--all" ]]; then while read -r d; do assess "$d" "$json"; [[ "$json" == 1 ]] || echo; done < <(external_disks); else assess "$target" "$json"; fi;; ai-report) need smartctl; local target="${1:-}" json=0; [[ -n "$target" ]] || { usage; exit 2; }; shift || true; [[ "${1:-}" == "--json" ]] && json=1; if [[ "$target" == "--all" ]]; then while read -r d; do assess "$d" "$json"; ai_suitability "$d" "$json"; [[ "$json" == 1 ]] || echo; done < <(external_disks); else assess "$target" "$json"; [[ "$json" == 0 ]] && echo; ai_suitability "$target" "$json"; fi;; test) need smartctl; local dev="${1:-}" kind="${2:-}"; [[ "$kind" == "--short" || "$kind" == "--long" ]] || { usage; exit 2; }; smart_capture "$dev" -t "${kind#--}";; test-status) need smartctl; local dev="${1:-}"; [[ -n "$dev" ]] || { usage; exit 2; }; smart_capture "$dev" -a | grep -Ei 'Self-test|remaining|progress|SMART overall-health|SMART Health Status' || true;; *) usage; exit 2;; esac; }
 main "$@"
