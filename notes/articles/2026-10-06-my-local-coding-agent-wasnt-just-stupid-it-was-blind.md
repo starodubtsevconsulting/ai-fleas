@@ -244,3 +244,11 @@ My local coder still has a long way to go before I would call it autonomous.
 For UI work, though, I want to know how much of that distance is intelligence — and how much is simply blindness.
 
 At this point, I sometimes feel I could write a couple of books about everything I have tried to make local agents useful. I am only half joking. If these experiments can save someone interested in the same path a few weeks, a pile of tokens, or a few thousand dollars in hardware experiments, then perhaps all this struggle is becoming useful expertise after all.
+
+## Related local-AI reading
+
+- **Previous:** [*I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.*](2026-09-27-i-tried-to-replace-my-local-coder.md)
+- **Next:** [*You Bought the Local AI Machine. Now Make It Earn Its Keep.*](2026-10-07-you-bought-the-local-ai-machine-now-make-it-earn-its-keep.md)
+- **Also related:** [*The Dangerous Moment in Local AI Is When the Next Machine Actually Makes Sense*](2026-10-06-before-you-buy-local-ai-decide-what-you-are-optimizing-for.md)
+
+These links follow the conceptual local/hybrid-AI thread rather than publication chronology.
