@@ -84,7 +84,7 @@ them.
 
 ## Workflow
 
-1. Establish the request, source, audience, selected destination set, authorized archive, and explicit
+1. Establish the request, source, audience, selected destination set, authorized archive, applicable [project editorial rules](guides/project-editorial-rules.md), and explicit
    [article calibration](guides/article-calibration.md) through the [intake and planning flow](flows/intake-and-planning.flow.md).
 2. Produce or revise the article through the [drafting flow](flows/drafting.flow.md), using the
    [blogging workflow](../blogging/blogging.workflow.md) for applicable editorial methods.
