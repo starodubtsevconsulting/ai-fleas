@@ -1,14 +1,34 @@
-# Why Explicit Handoffs Make AI Agent Teams More Reliable
+---
+title: "Your AI Agents Aren't Failing at Their Jobs. They're Failing at the Handoff."
+previous_title: "Why Explicit Handoffs Make AI Agent Teams More Reliable"
+subtitle: "A capable Writer and Reviewer can still produce an unreliable workflow when the work, authority, evidence, and return path between them are ambiguous."
+date: "2026-09-20"
+version: 2
+---
 
-*The quality of an AI workflow depends less on how many agents it has than on what passes between them.*
+# Your AI Agents Aren't Failing at Their Jobs. They're Failing at the Handoff.
+
+*A capable Writer and Reviewer can still produce an unreliable workflow when the work, authority, evidence, and return path between them are ambiguous.*
 
 ![Two AI Fleas robots pass an orange evidence packet; a path continues toward the next stage.](assets/2026-09-20-explicit-handoffs-ai-fleas-header.png)
 
 *An AI Fleas handoff carries the work and evidence the next agent needs. Illustration generated from the author's character reference.*
 
-It is tempting to describe an AI agent team as a group of specialists. One agent writes, another reviews, and a third handles the release. Give each one a good prompt, connect them, and the system should work.
+A Writer finishes an article and tells the Reviewer:
 
-But specialization alone does not create reliability. It creates boundaries. The real question is whether useful context can cross those boundaries without becoming vague, stale, or dangerously broad.
+> Please review this article.
+
+That sounds perfectly reasonable.
+
+But which revision? Is the source file authoritative, or the destination draft? May the Reviewer edit it or only report findings? Which claims need verification? Where should the evidence go? And what happens when the Writer changes the article after the review?
+
+Neither agent has to be bad at its job for this workflow to fail.
+
+The Writer can write well. The Reviewer can review well. The failure can live entirely in the space between them.
+
+That is the part of multi-agent systems I increasingly care about: **what exactly crosses the boundary when one capable agent hands work to another?**
+
+Specialization creates useful roles. It also creates boundaries. Reliability depends on making those boundaries explicit.
 
 That is what an explicit handoff is for.
 
