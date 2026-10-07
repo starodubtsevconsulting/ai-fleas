@@ -11,8 +11,8 @@ assess(){
  local dev="$1" json="$2" out status="HEALTHY" reason="" overall="" temp="" poh="" realloc="" pending="" uncorr="" reported=""
  if ! out="$(smart_capture "$dev" -a 2>&1)"; then status="WARN"; reason="SMART data unavailable or incomplete"; else
   overall="$(grep -Ei 'SMART overall-health self-assessment test result:|SMART Health Status:' <<<"$out" | head -1 | sed 's/.*: *//' || true)"
-  temp="$(grep -Ei 'Temperature_Celsius|Current Drive Temperature:|Temperature:' <<<"$out" | head -1 | grep -Eo '[0-9]+' | tail -1 || true)"
-  poh="$(attr_raw "$out" 'Power_On_Hours|Power on hours' || true)"; realloc="$(attr_raw "$out" 'Reallocated_Sector_Ct|Reallocated Sector' || true)"
+  temp="$(awk '/Temperature_Celsius/ {print $10; exit} /Current Drive Temperature:/ {for(i=1;i<=NF;i++) if($i ~ /^[0-9]+$/){print $i; exit}} /Temperature:/ {for(i=1;i<=NF;i++) if($i ~ /^[0-9]+$/){print $i; exit}}' <<<"$out" || true)"
+  poh="$(awk '/Power_On_Hours/ {print $10; exit} /Power on hours/ {for(i=NF;i>=1;i--) if($i ~ /^[0-9]+([.][0-9]+)?$/){print $i; exit}}' <<<"$out" || true)"; realloc="$(attr_raw "$out" 'Reallocated_Sector_Ct|Reallocated Sector' || true)"
   pending="$(attr_raw "$out" 'Current_Pending_Sector|Current Pending Sector' || true)"; uncorr="$(attr_raw "$out" 'Offline_Uncorrectable|Offline Uncorrectable' || true)"
   reported="$(attr_raw "$out" 'Reported_Uncorrect|Reported Uncorrectable' || true)"
   if grep -Eqi 'SMART overall-health.*FAILED|SMART Health Status:.*(BAD|FAILED)' <<<"$out"; then status="FAIL"; reason="SMART overall health failed"; fi
