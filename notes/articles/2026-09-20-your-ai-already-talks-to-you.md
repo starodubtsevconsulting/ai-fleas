@@ -1,30 +1,30 @@
+---
+title: "Your AI Already Talks to You. Make It Teach You Something."
+previous_title: "Your AI Already Talks to You. Make It Teach You Something."
+subtitle: "I wanted to improve my French without adding another study habit, so I started putting tiny lessons inside conversations I was already having with AI."
+date: "2026-09-20"
+version: 2
+---
+
 # Your AI Already Talks to You. Make It Teach You Something.
 
-> **Draft:** Prepared through the Writing workflow in emulation mode. Independent fresh-context critique, human listen-through, and release approval remain pending.
+*I wanted to improve my French without adding another study habit, so I started putting tiny lessons inside conversations I was already having with AI.*
 
-I was talking to my AI assistant in English when a small idea appeared.
+I was talking to my AI assistant in English when a phrase came up that I would actually use in French.
 
-I am trying to improve my French. Not classroom French in the abstract. The kind I can actually use in Montreal: in a meeting, at a coworking space, on the phone, or during an ordinary conversation.
+Normally that would become another thing to study later.
 
-The usual answer is to create another habit.
-
-Open the language app. Do a lesson. Review vocabulary. Schedule a tutor.
-
-All useful.
-
-But I already spend a surprising amount of time talking to AI.
-
-So I changed the rule.
-
-English remains the default. But when an ordinary phrase comes up that would be useful in French, the assistant can occasionally add a tiny aside:
+Instead, the assistant added one small aside:
 
 > BTW, in French: *Ça vaut la peine d’essayer.* — “It’s worth trying.”
 
-Then it continues with whatever we were actually discussing.
+Then we continued the conversation.
 
-No lesson. No vocabulary dump. No interruption.
+No lesson. No vocabulary list. No new app to open.
 
-The language I want to learn starts appearing inside the work I am already doing.
+I am trying to improve the French I can actually use in Montreal: in a meeting, at a coworking space, on the phone, or during an ordinary conversation. But I already spend a surprising amount of time talking to AI. So rather than creating another study habit, I changed the interaction I already had.
+
+English remains the default. When an ordinary phrase appears that would be useful in French, the assistant can occasionally add a tiny translation and move on.
 
 That made me think about a larger question:
 
