@@ -84,22 +84,63 @@ record_test_start(){
   printf '%s|STARTED|%s|%s\n' "$(date -Is)" "$kind" "$dev" >> "$file"
 }
 smart_test_history(){
-  local dev="$1" file out
+  local dev="$1" file out line status remaining lifetime lba model size
   file="$(test_state_file "$dev")"
+  model="$(lsblk -dn -o MODEL "$dev" | xargs)"
+  size="$(lsblk -dn -o SIZE "$dev" | xargs)"
+  out="$(smart_capture "$dev" -l selftest 2>/dev/null || true)"
+  line="$(awk '/^# *[0-9]+/ {print; exit}' <<<"$out")"
+
   echo "AI Fleas · SMART Test History"
   echo "─────────────────────────────"
-  echo "Drive: $(lsblk -dn -o MODEL "$dev" | xargs) $(lsblk -dn -o SIZE "$dev" | xargs)"
-  echo "Stable key: $(drive_key "$dev")"
+  echo "$model $size"
   echo
-  if [[ -f "$file" ]]; then
-    echo "AI Fleas local starts:"
-    tail -n 10 "$file"
+
+  if [[ -n "$line" ]]; then
+    status="$(sed -E 's/^# *[0-9]+ +[^ ]+( +[^ ]+)? +//' <<<"$line" | sed -E 's/ +[0-9]+% +[0-9]+ +.*$//' | xargs)"
+    remaining="$(grep -oE '[0-9]+%' <<<"$line" | head -1 || true)"
+    lifetime="$(awk '{for(i=1;i<=NF;i++) if($i ~ /^[0-9]+$/) n=$i} END{if(n!="") print n}' <<<"$line")"
+    lba="$(awk '{print $NF}' <<<"$line")"
+    echo "Latest drive self-test"
+    echo "─────────────────────────────"
+    if grep -qi 'Completed without error' <<<"$line"; then
+      echo "Result:       ✓ PASSED"
+      echo "Coverage:     Complete (100%)"
+      echo "Errors found: None reported"
+      [[ "$lba" == "-" ]] && echo "Bad LBA:      None reported" || echo "First error:  $lba"
+    elif grep -qiE 'Self-test routine in progress|in progress' <<<"$line"; then
+      echo "Result:       IN PROGRESS"
+      echo "Remaining:    ${remaining:-unknown}"
+    else
+      echo "Result:       ⚠ ${status:-See raw details}"
+      echo "Remaining:    ${remaining:-unknown}"
+      [[ -n "$lba" && "$lba" != "-" ]] && echo "First error:  $lba"
+    fi
+    [[ -n "$lifetime" ]] && echo "Drive age at test: $lifetime power-on hours"
   else
-    echo "AI Fleas local starts: none recorded."
+    echo "Latest drive self-test: none reported by drive"
   fi
+
   echo
-  echo "Drive-retained SMART self-test log:"
-  out="$(smart_capture "$dev" -l selftest 2>/dev/null || true)"
+  echo "AI Fleas local record"
+  echo "─────────────────────────────"
+  if [[ -f "$file" ]]; then tail -n 10 "$file"; else echo "No locally recorded test starts."; fi
+
+  echo
+  echo "Interpretation"
+  echo "─────────────────────────────"
+  if grep -qi 'Completed without error' <<<"$line"; then
+    echo "✓ The drive completed its SMART self-test without reporting an error."
+    echo "  This is strong positive evidence, but not a guarantee against every possible failure."
+  elif [[ -n "$line" ]]; then
+    echo "The latest drive self-test did not report a clean completed result."
+  else
+    echo "No retained SMART self-test result was available to interpret."
+  fi
+
+  echo
+  echo "Raw SMART evidence"
+  echo "─────────────────────────────"
   [[ -n "$out" ]] && echo "$out" || echo "No SMART self-test history reported by drive."
 }
 
