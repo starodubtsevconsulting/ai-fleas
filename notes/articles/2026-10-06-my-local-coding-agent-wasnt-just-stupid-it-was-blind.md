@@ -45,6 +45,19 @@ Then I improved expertise extraction and the information available to the worker
 
 The largest jump came when I gave the coder a much larger practical context window. Suddenly it could keep far more of the repository, task, instructions, and recent work available at once. The difference was dramatic. A worker that had felt almost inert became capable of producing real changes.
 
+The progression looked roughly like this:
+
+```mermaid
+flowchart LR
+    A[Coder alone<br/>almost useless] --> B[Add auxiliary model<br/>goal + context]
+    B --> C[Add expertise extraction<br/>better relevant knowledge]
+    C --> D[Increase practical context<br/>largest improvement]
+    D --> E[Useful work<br/>but heavy human supervision]
+    E --> F[Next experiment<br/>vision for UI feedback]
+```
+
+None of those steps changed the underlying model into a stronger reasoner. They removed constraints around it.
+
 But it was still expensive in the resource I care about most: my attention.
 
 And after watching where the time actually went, I noticed something embarrassingly simple.
@@ -69,7 +82,19 @@ My local coder did not.
 
 Its loop was closer to:
 
-**change → run → infer from code → guess → change again**
+```mermaid
+flowchart LR
+    A[Coder changes UI] --> B[Run application]
+    B --> C[Cannot see result]
+    C --> D[Infer from code and logs]
+    D --> E[Guess next change]
+    E --> A
+    C --> F[Human looks at UI]
+    F --> G[Human explains defect]
+    G --> A
+```
+
+The expensive part of this loop is not inference. It is that the visual feedback path terminates at me.
 
 Eventually I would look at the screen, recognize the problem immediately, and explain it.
 
@@ -109,7 +134,19 @@ Today, for UI work, the loop often looks like this:
 
 I want to try this instead:
 
-**Coder → change UI → run application → screenshot → vision model → visual findings → Coder → fix → screenshot again**
+```mermaid
+flowchart LR
+    A[Coder changes UI] --> B[Run application]
+    B --> C[Capture screenshot]
+    C --> V[Vision model]
+    V --> D[Visual findings]
+    D --> A
+    V --> J{Acceptable?}
+    J -->|no| D
+    J -->|yes| E[Continue / finish]
+```
+
+The important change is that the feedback loop can close without waiting for me to become the agent's eyes.
 
 The vision model does not need to write the application. It does not need the entire repository in context. It does not need to decide the architecture.
 
@@ -131,6 +168,24 @@ That feels like an inversion of the usual architecture. The smartest brain does 
 The auxiliary capabilities around Hermes point in the same direction. Goal handling, context and expertise extraction, and potentially vision can behave like fast, specialized functions around the main worker. There is a loose connection here to the System 1 / System 2 architecture I have been exploring for the Personal Governor: keep common or bounded cognitive work cheap and specialized, and reserve deeper reasoning for the moments that deserve it. I do not want to push that analogy too far here. The practical point is simpler: intelligence can be composed.
 
 Sometimes the useful architecture is not one model doing everything. It is another specialized capability connected at the right point.
+
+The broader architecture I am converging on looks more like this:
+
+```mermaid
+flowchart TD
+    H[Human goal] --> M[Coordinator]
+    M --> C[Coder<br/>implementation]
+    M --> A[Auxiliary<br/>goal + context]
+    M --> V[Vision<br/>observe UI]
+    M --> R[Stronger reasoner<br/>hard cases]
+    C --> M
+    A --> M
+    V --> M
+    R --> M
+    M --> O[Result]
+```
+
+The coordinator does not have to be the smartest model in the system. It has to preserve the thread and recognize which capability should be used next.
 
 ## The metric is not whether vision works
 
