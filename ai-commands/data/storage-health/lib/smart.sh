@@ -11,27 +11,13 @@ smart_type(){
   smart_timeout smartctl --scan-open 2>/dev/null | awk -v d="$1" '$1==d && $2=="-d" {print $3; exit}'
 }
 smart_probe_type(){
-  local dev="$1" dtype candidate out
-  dtype="$(smart_probe_type "$dev" || true)"
-  local candidates=()
-  [[ -n "$dtype" ]] && candidates+=("$dtype")
-  candidates+=("__default__" "sat" "sat,12")
-  local seen=" "
-  for candidate in "${candidates[@]}"; do
-    [[ "$seen" == *" $candidate "* ]] && continue
-    seen+="$candidate "
-    if [[ "$candidate" == "__default__" ]]; then
-      out="$(smart_timeout sudo smartctl -i "$dev" 2>&1)" || true
-    else
-      out="$(smart_timeout sudo smartctl -d "$candidate" -i "$dev" 2>&1)" || true
-    fi
-    if grep -Eqi 'Device Model:|Model Family:|Product:|Serial Number:|SMART support is:' <<<"$out" &&
-       ! grep -Eqi 'Unknown USB bridge|Please specify device type|Unable to detect device type|Read Device Identity failed' <<<"$out"; then
-      printf '%s\n' "$candidate"
-      return 0
-    fi
-  done
-  return 1
+  # Full assessments must not experiment with multiple USB/SATA bridge modes.
+  # Trust smartctl's own scan result when available; otherwise use default access.
+  # Explicit transport troubleshooting belongs in a deliberate diagnostic action,
+  # not the normal health/AI assessment path.
+  local dev="$1" dtype
+  dtype="$(smart_type "$dev" || true)"
+  if [[ -n "$dtype" ]]; then printf '%s\n' "$dtype"; else printf '%s\n' "__default__"; fi
 }
 smart_capture(){
   local dev="$1"; shift
