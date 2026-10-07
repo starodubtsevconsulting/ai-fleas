@@ -1,8 +1,10 @@
 ---
 title: "I Bought an AI Powerhouse. Then the Agent Kept Giving Up."
-subtitle: "What tuning Hermes around a local Qwen coder taught me about the layers between a model and useful work."
+previous_title: "I Bought an AI Powerhouse. Then the Agent Kept Giving Up."
+subtitle: "The hardware had plenty of capacity. The harder problem was everything between a capable local model and an agent that could reliably finish useful work."
 author: Sergii Starodubtsev
 date: "2026-09-27"
+version: 2
 locale: en
 status: scheduled
 tags:
@@ -16,11 +18,21 @@ tags:
 
 # I Bought an AI Powerhouse. Then the Agent Kept Giving Up.
 
-*What tuning Hermes around a local Qwen coder taught me about the layers between a model and useful work.*
+*The hardware had plenty of capacity. The harder problem was everything between a capable local model and an agent that could reliably finish useful work.*
 
 ![A powerful local computer completes its part of a task, but a broken chain of handoffs leaves the AI Fleas robot and author with unfinished agent work.](assets/2026-09-29-ai-fleas-powerhouse-agent-handoff-candidate.png)
 
 *The machine is capable, but the agent handoff breaks before the work is finished. AI Fleas illustration generated for this article.*
+
+I bought an ASUS Ascent GX10 because I wanted serious local AI capacity.
+
+It has 128 GB of unified memory and can run coding models that do not fit on an ordinary workstation. On paper, this is exactly the kind of machine that should make local AI agents interesting.
+
+Then I watched the agent give up.
+
+The coding model could produce code. The machine had capacity left. But useful autonomous work kept breaking somewhere between the model, the context it received, the tools around it, and the handoffs that were supposed to keep the task moving.
+
+That bothered me more than a simple benchmark loss would have.
 
 I hate having capacity I cannot quite unlock.
 
@@ -34,9 +46,7 @@ The hardware had been mine the whole time. The extra capacity had been there the
 
 That experience stayed with me. Whenever I own something capable and suspect I am using only part of what it can do, it bothers me disproportionately. I start digging.
 
-That is almost exactly how I feel about my ASUS Ascent GX10.
-
-I bought it because I wanted serious local AI capacity. It has 128 GB of unified memory and can run coding models that do not fit on an ordinary workstation. On paper, this is exactly the kind of machine that should make local AI agents interesting.
+That old computer is why the GX10 problem felt so familiar. The hardware was capable. I suspected the missing performance was hiding in the system around it rather than in the box itself.
 
 The numbers around these models are easy to mix together, so I now try to translate them into something closer to a person.
 
