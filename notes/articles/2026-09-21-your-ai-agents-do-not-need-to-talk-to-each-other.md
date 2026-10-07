@@ -1,14 +1,26 @@
+---
+title: "Your AI Agents Do Not Need to Talk to Each Other"
+previous_title: "Your AI Agents Do Not Need to Talk to Each Other"
+subtitle: "When every agent knows how to contact every other agent, coordination becomes part of every role. A mechanical workflow can carry that burden instead."
+date: "2026-09-21"
+version: 2
+---
+
 # Your AI Agents Do Not Need to Talk to Each Other
 
-*A workflow can coordinate an AI team without turning every agent into a coordinator.*
+*When every agent knows how to contact every other agent, coordination becomes part of every role. A mechanical workflow can carry that burden instead.*
 
 When people imagine a team of AI agents, they often draw a network.
 
-The Writer talks to the Reviewer. The Reviewer sends corrections back to the Writer. The Release Coordinator asks both
-of them whether the work is ready. Soon every agent needs to know which peers exist, what they are called, when they may
-be contacted, and how to interpret their replies.
+Writer talks to Reviewer. Reviewer sends corrections back to Writer. Release Coordinator asks both what happened. Soon every agent needs to know which peers exist, how to reach them, what messages mean, when to retry, and what to do when another agent does not answer.
 
-That looks collaborative. It also gives every endpoint part of the orchestration problem.
+Now change one agent.
+
+A role name moves. A handoff format changes. A reviewer is replaced. Suddenly several agents may need new instructions because pieces of the workflow have leaked into every endpoint.
+
+That looks collaborative, but it turns each specialist into a partial coordinator.
+
+The problem is not that agents cannot communicate. It is that for a declared workflow, they often **do not need to own the communication topology at all**.
 
 There is a simpler design: agents do their assigned work, return a small result, and let a mechanical runtime execute the
 workflow.
