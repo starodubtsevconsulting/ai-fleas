@@ -1,45 +1,37 @@
-# Screenshot Sorter - Debugging Guide
+# Screenshot Sorter - Agent Guide
 
-## Quick Start
+## Canonical startup
 
-To run the UI and keep it running for debugging:
+This command is a UI-first Angular + Electron application.
 
-**IMPORTANT**: Always run the last committed version of the app. Before launching:
-1. Commit all changes: `git add -A && git commit -m "your message" && git push`
-2. Kill old processes: `pkill -f "Screenshot Sorter"`
-3. Launch the app with the latest code
-
-### Method 1: Using Hermes Desktop (Recommended)
-
-When running from Hermes Desktop, the profile is automatically activated. Simply run:
+For local development, ALWAYS start it from this directory with:
 
 ```bash
-bash /Users/sergii/projects/sc/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
+./app.sh --dev
 ```
 
-### Method 2: Using Terminal (Manual Profile Setup)
+`--dev` is the canonical development entry point. It:
+- runs `git pull --ff-only` on the current development branch;
+- force-replaces an existing Screenshot Sorter UI instance;
+- uses `macos-screenshot-sorter.default.config` when no user profile is active;
+- bootstraps the command-local Electron runtime when needed;
+- launches the Angular renderer through Electron without building/installing a packaged macOS app.
 
-If running from a regular terminal, you must activate the profile first:
+Do NOT use `macos-screenshot-sorter.command.sh ui` as the normal development launcher.
+Do NOT manually activate a profile merely to open the development UI.
+Do NOT use `macos-screenshot-sorter.command.example.config` as runtime configuration; it is documentation only.
 
-```bash
-# Activate the profile (sets up environment variables)
-bash /Users/sergii/projects/sc/ai-commands/_runtime/profile/activate-profile.sh \
-  --profile sc --workflow dev.workflow.md --platform sc --command macos-screenshot-sorter
+### Configuration precedence
 
-# Then launch the app
-bash /Users/sergii/projects/sc/ai-commands/system/macos-screenshot-sorter/macos-screenshot-sorter.command.sh ui &
-```
+The command-owned `macos-screenshot-sorter.default.config` must be sufficient to open and exercise the application. A user/profile configuration specializes those defaults; it must not be required merely to boot the UI.
 
-### Verify App is Running
+Current development defaults include `$HOME/Screenshots` for both the capture inbox and sorted library.
 
-Check the logs for activity:
-```bash
-# Watch for screenshot activity
-tail -f ~/Library/Logs/AI\ Fleas/org.sergii.ai-fleas.screenshot-sorter.out.log
+### Headless command
 
-# Check for errors
-tail -f ~/Library/Logs/AI\ Fleas/org.sergii.ai-fleas.screenshot-sorter.err.log
-```
+`macos-screenshot-sorter.command.sh` still owns the non-UI operational capability used by the Electron backend and automation (sorting, probe, install/LaunchAgent operations, etc.). It is NOT the human UI entry point.
+
+Do not delete the command shell while Electron still invokes it through IPC/backend operations. If the product later becomes UI-only, remove it only after its operational functions have been moved behind a replacement backend contract and tests prove no caller depends on it.
 
 ## App Structure
 
