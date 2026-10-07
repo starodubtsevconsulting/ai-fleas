@@ -1,0 +1,31 @@
+# storage-health.command
+
+Portable, read-only-first Linux storage inspection. Inventories disks, collects SMART evidence, starts non-destructive SMART self-tests, and emits human/agent-readable health reports.
+
+## Safety
+
+This command does not format, partition, erase, mount, unmount, create RAID, repair filesystems, or write user data. System disks are visible in inventory but are never automatically selected for tests. Persistent private profiles should map roles to stable IDs/serials rather than /dev/sdX paths.
+
+## Actions
+
+- `inspect` — physical disk inventory.
+- `health DEVICE` / `health --all` — SMART summary and conservative assessment.
+- `report` — alias of health.
+- `ai-report DEVICE|--all` — optional second-layer report: physical health plus AI workload suitability.
+- `test DEVICE --short|--long` — start non-destructive SMART self-test.
+- `test-status DEVICE` — show self-test/progress evidence.
+- `--json` on health/report — machine-readable records.
+
+SMART actions require `smartctl` (smartmontools) and normally sudo/root. USB/DAS bridge types are discovered using `smartctl --scan-open` rather than guessed.
+
+Assessment is screening, not a guarantee. FAIL includes overall SMART failure or pending/offline-uncorrectable sectors; WARN includes concerning attributes or incomplete evidence. Important data still requires backup.
+
+Host names, device roles, expected serials, mount policy, and storage purpose belong in the private profile, not this public command.
+
+## Optional AI suitability layer
+
+`ai-report` keeps the generic health evidence and adds recommendations for AI storage roles. It classifies suitability for agent persistent memory, knowledge/document storage, backup/archive, cold model libraries, vector/search workloads, active inference storage, and agent workspaces/builds.
+
+The first-pass classification uses storage medium characteristics such as rotational versus non-rotational media and transport. Rotational HDDs are treated as strong capacity/sequential/archive storage, conditional for vector/search workloads, and poor for latency-sensitive active inference or build/workspace random I/O. SSD/NVMe is treated as broadly suitable, with benchmarking still required for demanding throughput cases.
+
+This recommendation is intentionally separate from `health`: operators can request pure disk health without AI opinions, or explicitly request `ai-report` when deciding how a device should be used in an AI system. Future versions may incorporate optional measured sequential/random-I/O evidence without making destructive benchmarks the default.
