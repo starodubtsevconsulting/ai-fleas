@@ -76,6 +76,9 @@ EOF
     if ! sudo ufw status | grep -F "445/tcp" | grep -Fq "$lan_cidr"; then
       sudo ufw allow from "$lan_cidr" to any port 445 proto tcp comment 'AI Fleas SMB LAN only'
     fi
+    if ! sudo ufw status | grep -F "5353/udp" | grep -Fq "$lan_cidr"; then
+      sudo ufw allow from "$lan_cidr" to any port 5353 proto udp comment 'AI Fleas mDNS LAN only'
+    fi
   fi
 
   if ! command -v avahi-daemon >/dev/null 2>&1; then
@@ -87,10 +90,14 @@ EOF
   sudo systemctl is-active --quiet smbd || { echo "ERROR: Samba service is not active." >&2; return 2; }
   sudo ss -lnt | awk '$4 ~ /:445$/ {found=1} END{exit !found}' || { echo "ERROR: SMB is not listening on TCP 445." >&2; return 2; }
   sudo systemctl is-active --quiet avahi-daemon || { echo "ERROR: local hostname discovery service is not active." >&2; return 2; }
+  if command -v avahi-resolve-host-name >/dev/null 2>&1; then
+    avahi-resolve-host-name "$host.local" >/dev/null 2>&1 || { echo "ERROR: this host cannot resolve its own .local name through mDNS." >&2; return 2; }
+  fi
   sudo testparm -s >/dev/null || { echo "ERROR: final Samba configuration validation failed." >&2; return 2; }
 
   echo
   echo "NETWORK ACCESS READY"
+  echo "Verified: Samba active, TCP 445 listening, LAN firewall configured, Avahi active, local mDNS name resolvable."
   echo "From macOS Finder: Go → Connect to Server"
   echo "Preferred stable address:"
   echo "  smb://$host.local/AI-Artifacts"
