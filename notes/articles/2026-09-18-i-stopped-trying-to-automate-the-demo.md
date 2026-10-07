@@ -1,24 +1,34 @@
+---
+title: "I Stopped Trying to Fully Automate the Demo"
+previous_title: "I Stopped Trying to Fully Automate the Demo"
+subtitle: "AI can prepare the setup, scripts, and evidence. I still want the human to own the room."
+date: "2026-09-18"
+version: 2
+---
+
 # I Stopped Trying to Fully Automate the Demo
 
-![A human presents a software demo while an AI Fleas robot prepares reproducible evidence at a nearby desk.](assets/2026-09-18-ai-fleas-human-led-demo-header.png)
+*AI can prepare the setup, scripts, and evidence. I still want the human to own the room.*
 
-*The human leads the demonstration while the AI Flea prepares the evidence. AI Fleas illustration generated from the author’s character references.*
+The tests were green.
 
-Epictetus’s advice in [*Enchiridion* 46](https://dcc.dickinson.edu/epictetus-encheiridion/chapter-46) is to show your principles through your actions, rather than merely talk about them.
+The code was merged. The API calls worked. The fixtures produced exactly the state I expected. I had logs, assertions, screenshots, and enough evidence to convince myself the feature was real.
 
-There is a particular kind of confidence that comes from a green test suite.
+Then somebody asked:
 
-The code is merged. The API calls work. The fixtures produce exactly the state I expect. I have logs, assertions, screenshots, and enough evidence to convince myself that the feature is real.
+> **Can you demo it?**
 
-Then somebody says: “Can you demo it?”
+Suddenly all that deterministic evidence had to fit inside one human presentation.
 
-Suddenly all that confidence has to fit inside one human head.
+This became more noticeable as I used AI more heavily in development. AI let me work across more code and context than I would reasonably keep in working memory. I did not want to memorize an entire system just to prove I understood the part I changed.
 
-This has become more noticeable for me as I use AI more heavily in development. I can work across more code and more context than I would reasonably keep in working memory. That is one of the benefits. I do not want to memorize an entire system just to prove that I am responsible for the part I changed.
+My first instinct was to automate more of the demo too.
 
-But a traditional demo often assumes exactly that.
+Eventually I realized I was solving the wrong problem. I did not need AI to replace me in the room. I needed it to make the room easier for me to own.
 
-So I started treating the demo itself as an engineering artifact.
+So I started treating the demo itself as an engineering artifact: AI and scripts prepare reproducible state and evidence; the human explains what matters, responds to the audience, and controls the story.
+
+Epictetus's advice in [*Enchiridion* 46](https://dcc.dickinson.edu/epictetus-encheiridion/chapter-46) is to show your principles through your actions rather than merely talk about them. That is a useful description of what I wanted from the demo: less memorized explanation, more reproducible evidence I could actually show.
 
 ## A demo that can run without me
 
