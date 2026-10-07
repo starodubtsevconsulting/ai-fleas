@@ -1,16 +1,34 @@
+---
+title: "Turn Your NAS Into Private Memory for an AI Agent Team"
+previous_title: "Turn Your NAS Into Private Memory for an AI Agent Team"
+subtitle: "A NAS can give agents useful shared memory without giving every agent access to everything—if accounts, shares, and permissions become part of the design."
+date: "2026-09-19"
+version: 2
+---
+
 # Turn Your NAS Into Private Memory for an AI Agent Team
 
-> **Draft:** Material rewrite pending independent review. Human listen-through and release approval remain pending.
+*A NAS can give agents useful shared memory without giving every agent access to everything—if accounts, shares, and permissions become part of the design.*
 
-Imagine the NAS you may already have at home or in a small office. It stores documents, photos, backups, and project files under your control.
+My writing agent needed memory.
 
-Now imagine using it as shared memory for a team of AI agents.
+It needed to search article drafts and references stored on my NAS. It did **not** need my photos, finances, backups, administrative access, or every other file that happened to live on the same box.
 
-Instead of copying private material into Google Drive or another third-party cloud drive, the agents read selected knowledge from infrastructure you operate. The NAS remains the source, its existing access controls define what each agent can reach, and unrelated personal folders stay outside the boundary.
+That made the storage problem much more interesting than simply mounting a folder.
 
-The useful surprise is that a NAS is more than undifferentiated storage. Its accounts, shares, permissions, and denial rules can become capabilities for an agent team.
+I created a dedicated article-memory share and a dedicated reader identity. The agent could reach the material required for writing, while unrelated personal folders remained outside its boundary. The source stayed on infrastructure I controlled, and the local projection could be made download-only so agent work did not silently mutate the canonical archive.
 
-The design is simple: give each agent only the slice of shared memory its purpose requires, then test both the access that should work and the access that should fail.
+That experiment changed how I thought about a NAS in an agent system.
+
+A NAS is not merely a large private disk. Its accounts, shares, permissions, and denial rules can become **capabilities** for different agents.
+
+The useful design question is therefore not:
+
+> Where should all my agents keep their memory?
+
+It is:
+
+> **Which memory does each agent actually need, and what should it be unable to reach?**
 
 ## Start with one useful memory
 
