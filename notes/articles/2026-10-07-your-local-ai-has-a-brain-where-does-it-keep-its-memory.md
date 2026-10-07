@@ -1,8 +1,10 @@
 ---
-title: "Your Local AI Has a Brain. Where Does It Keep Its Memory?"
-subtitle: "Before buying another expensive storage system, look at the hard drives you already own."
+title: "I Had 13 TB of Old Surveillance Drives. Could They Become AI Memory?"
+previous_title: "Your Local AI Has a Brain. Where Does It Keep Its Memory?"
+subtitle: "Before buying a NAS, I tested whether spare hard drives could handle agent memory, documents, cold models, and other local AI storage."
 author: Sergii Starodubtsev
 date: "2026-10-07"
+version: 2
 locale: en
 status: draft
 project: ai-fleas
@@ -11,29 +13,21 @@ intended_reader: developers, technical founders, homelab users, consultants, and
 tags: [local-ai, agents, memory, storage, ai-fleas]
 ---
 
-# Your Local AI Has a Brain. Where Does It Keep Its Memory?
+# I Had 13 TB of Old Surveillance Drives. Could They Become AI Memory?
 
-You have local models running.
+*Before buying a NAS, I tested whether spare hard drives could handle agent memory, documents, cold models, and other local AI storage.*
 
-Maybe there is a coding model on one machine. Maybe another model helps with context. Maybe you are experimenting with agents that can work overnight.
+I had about **13 TB of hard drives sitting unused from an old surveillance setup**.
 
-Then eventually a less glamorous question appears:
+At the same time, I was building local AI infrastructure and facing a less glamorous problem: where should my agents keep everything that needs to survive after a model stops running?
 
-**Where is all of this going to live?**
+Not GPU memory. Not the context window. Persistent memory: agent histories, extracted skills, documents, artifacts, images, datasets, cold model files, and knowledge that should still be there tomorrow.
 
-Not GPU memory. Not the context window.
+The obvious answer was to buy more infrastructure. But I already had two drives doing approximately nothing—one around 3 TB and another around 10 TB.
 
-Actual persistent memory.
+So before buying another storage system, I asked a simpler question:
 
-Agent histories. Extracted skills. Documents. Artifacts. Old models. Invoices. Images. Knowledge that should still be there after the model stops running.
-
-I ran into this question while building my own local AI infrastructure.
-
-And then I looked at two hard drives I already had.
-
-They came from an old surveillance setup. One was about 3 TB. The other was about 10 TB. They had been sitting around doing approximately nothing.
-
-Could they become useful AI infrastructure?
+**Could the storage I already owned become useful AI memory—and which AI workloads should I actually trust it with?**
 
 ## You may already own part of your AI memory system
 
