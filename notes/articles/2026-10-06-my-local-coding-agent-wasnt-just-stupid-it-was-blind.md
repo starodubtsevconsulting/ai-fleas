@@ -1,18 +1,19 @@
 ---
 title: "My Local Coding Agent Wasn't Just Stupid. It Was Blind."
-subtitle: "Adding context and auxiliary reasoning helped. For UI work, the next missing capability may simply be sight."
+subtitle: "A coding model can produce code and still fail to save time. I am testing which missing capabilities turn a model into a useful agent."
 author: Sergii Starodubtsev
 date: "2026-10-06"
 locale: en
 status: draft
 project: ai-fleas
 commercial_objective: explore-ai-fleas
+intended_reader: engineers, architects, technical founders, and practitioners building local or hybrid AI agents
 tags: [artificial-intelligence, ai-agents, local-models, hermes, computer-vision, ui-testing]
 ---
 
 # My Local Coding Agent Wasn't Just Stupid. It Was Blind.
 
-*Adding context and auxiliary reasoning helped. For UI work, the next missing capability may simply be sight.*
+*A coding model can produce code and still fail to save time. I am testing which missing capabilities turn a model into a useful agent.*
 
 I spent two days watching a local coding agent build something I probably could have built myself in about the same amount of time.
 
@@ -23,6 +24,8 @@ That is the problem.
 “Can it produce useful work?” is too low a bar for an autonomous coding agent. If I spend the same two days correcting its turns, supplying missing knowledge, looking at the interface for it, and telling it what went wrong, I have not gained leverage. I have changed the interface through which I work.
 
 The agent writes the code. I remain the reasoning system around it.
+
+That distinction is becoming the real subject of this experiment. A coding benchmark can tell me whether a model can produce code. It cannot tell me whether an agent built around that model gives me back time. For anyone building local or hybrid agents, I think that is the more useful question.
 
 I am not doing this because I expect local models to replace hosted models tomorrow.
 
@@ -119,7 +122,7 @@ Its job can be much narrower:
 - Is the dialog positioned correctly?
 - Did the previous fix actually improve the screen?
 
-That is an interesting property of compound AI systems: the best next improvement is not necessarily a bigger general-purpose brain.
+That is an interesting property of compound AI systems: the best next improvement is not necessarily a bigger general-purpose brain. The practical engineering problem is to identify which capability is actually causing the human to remain in the loop.
 
 I had a related experience using agents at work. A relatively inexpensive model coordinated the task, sent simpler work to cheaper models, and escalated harder parts to a stronger model when needed. It kept the overall thread without forcing the smartest model to control every move.
 
@@ -149,7 +152,7 @@ A model does not have to become smarter for the system to become more useful.
 
 ## This changed how I think about local agents
 
-I started these experiments asking a familiar question:
+I started these experiments asking the same question many people ask when evaluating local AI:
 
 **Which local model is good enough?**
 
@@ -167,7 +170,7 @@ Sometimes it is model stupidity.
 
 Sometimes the model is working with the equivalent of a monitor turned off.
 
-AI Fleas is where I have been turning these experiments into explicit roles, workflows, and boundaries instead of treating an agent as one magical model call. The vision experiment is another version of the same idea: give a narrow responsibility to the component that can actually perform it, then measure the whole workflow by the amount of human attention it returns.
+This is also the problem I am using AI Fleas to explore: turning these missing capabilities into explicit roles, workflows, and boundaries instead of treating an agent as one magical model call. The vision experiment is another version of the same idea: give a narrow responsibility to the component that can actually perform it, then measure the whole workflow by the amount of human attention it returns.
 
 I am not trying to prove that this local coder can replace the hosted models I use. Right now, it cannot. After two days of babysitting it through work I could probably have done myself in roughly the same time, calling it a replacement would be absurd.
 
