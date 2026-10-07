@@ -83,7 +83,7 @@ interactive(){
   echo "What would you like to do?"
   echo "  [1] Full AI storage assessment"
   echo "  [2] Check physical health"
-  echo "  [3] Run SMART self-test"
+  echo "  [3] Run SMART self-test (long tests may take hours)"
   echo "  [4] Show storage inventory"
   echo "  [5] Check previous test status"
   echo "  [6] Inspect filesystem/signatures"
@@ -101,6 +101,7 @@ interactive(){
       printf "Drive: "; read -r n
       [[ "$n" =~ ^[0-9]+$ ]] && (( n>=1 && n<=${#disks[@]} )) || { echo "Invalid selection."; return 2; }
       printf "Test [s]hort or [l]ong? "; read -r kind
+      if [[ "$kind" =~ ^[Ll] ]]; then smart_long_estimate "${disks[n-1]}"; fi
       [[ "$kind" =~ ^[Ll] ]] && main test "${disks[n-1]}" --long || main test "${disks[n-1]}" --short
       ;;
     4) main inspect ;;
