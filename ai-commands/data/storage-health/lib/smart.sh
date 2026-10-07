@@ -1,6 +1,42 @@
 #!/usr/bin/env bash
-smart_type(){ smartctl --scan-open 2>/dev/null | awk -v d="$1" '$1==d && $2=="-d" {print $3; exit}'; }
-smart_capture(){ local dev="$1"; shift; is_disk "$dev" || { echo "ERROR: not a block disk: $dev" >&2; return 2; }; local dtype; dtype="$(smart_type "$dev" || true)"; if [[ -n "$dtype" ]]; then sudo smartctl -d "$dtype" "$@" "$dev"; else sudo smartctl "$@" "$dev"; fi; }
+smart_type(){
+  smartctl --scan-open 2>/dev/null | awk -v d="$1" '$1==d && $2=="-d" {print $3; exit}'
+}
+smart_probe_type(){
+  local dev="$1" dtype candidate out
+  dtype="$(smart_probe_type "$dev" || true)"
+  local candidates=()
+  [[ -n "$dtype" ]] && candidates+=("$dtype")
+  candidates+=("__default__" "sat" "sat,12")
+  local seen=" "
+  for candidate in "${candidates[@]}"; do
+    [[ "$seen" == *" $candidate "* ]] && continue
+    seen+="$candidate "
+    if [[ "$candidate" == "__default__" ]]; then
+      out="$(sudo smartctl -i "$dev" 2>&1)" || true
+    else
+      out="$(sudo smartctl -d "$candidate" -i "$dev" 2>&1)" || true
+    fi
+    if grep -Eqi 'Device Model:|Model Family:|Product:|Serial Number:|SMART support is:' <<<"$out" &&
+       ! grep -Eqi 'Unknown USB bridge|Please specify device type|Unable to detect device type|Read Device Identity failed' <<<"$out"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+smart_capture(){
+  local dev="$1"; shift
+  is_disk "$dev" || { echo "ERROR: not a block disk: $dev" >&2; return 2; }
+  local dtype
+  dtype="$(smart_probe_type "$dev" || true)"
+  [[ -n "$dtype" ]] || { echo "ERROR: SMART access unavailable: no supported device transport worked for $dev" >&2; return 3; }
+  if [[ "$dtype" == "__default__" ]]; then
+    sudo smartctl "$@" "$dev"
+  else
+    sudo smartctl -d "$dtype" "$@" "$dev"
+  fi
+}
 smart_test(){
  local dev="$1" kind="$2"
  if [[ "$kind" == "long" ]]; then
