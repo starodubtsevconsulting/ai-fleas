@@ -138,10 +138,13 @@ function safeScreenshotFile(filePath, folderPath, rootPath) {
 function screenshotLibrary() {
   const root = fs.realpathSync(settings().destinationDir);
   screenshotItems = new Map();
-  const folders = fs.readdirSync(root, { withFileTypes:true })
+  console.log('[LIBRARY] scanning', root);
+  const allEntries = fs.readdirSync(root, { withFileTypes:true });
+  console.log('[LIBRARY] root entries', allEntries.length, 'dated', allEntries.filter((entry) => entry.isDirectory() && isCaptureDate(entry.name)).length);
+  const folders = allEntries
     .filter((entry) => entry.isDirectory() && !entry.isSymbolicLink() && isCaptureDate(entry.name))
     .sort((left, right) => right.name.localeCompare(left.name));
-  return folders.map((folder) => {
+  const result = folders.map((folder) => {
     const folderPath = fs.realpathSync(path.join(root, folder.name));
     if (!isContained(folderPath, root)) return null;
     const images = fs.readdirSync(folderPath, { withFileTypes:true })
@@ -162,6 +165,8 @@ function screenshotLibrary() {
       })
     };
   }).filter((folder) => folder && folder.count > 0);
+  console.log('[LIBRARY] matched folders', result.length, 'screenshots', result.reduce((sum, folder) => sum + folder.count, 0));
+  return result;
 }
 function screenshotThumbnail(_event, id) {
   if (typeof id !== 'string') fail('Screenshot identifier is invalid.');
