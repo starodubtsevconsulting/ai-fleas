@@ -31,11 +31,18 @@ function readConfig() {
   if (!configPath) fail('No active profile configuration is available. Launch the UI through app.sh.');
   const raw = fs.readFileSync(configPath, 'utf8');
   const values = {};
-  for (const line of raw.split(/\r?\n/)) {
-    const match = line.match(/^([A-Z0-9_]+)=(?:("([^"]*)")|'([^']*)'|([^#\s]*))/);
-    if (match) {
-      values[match[1]] = expandHome(match[3] ?? match[4] ?? match[5] ?? '');
+  for (const originalLine of raw.split(/\r?\n/)) {
+    const line = originalLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const separator = line.indexOf('=');
+    if (separator <= 0) continue;
+    const key = line.slice(0, separator).trim();
+    if (!/^[A-Z0-9_]+$/.test(key)) continue;
+    let value = line.slice(separator + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
     }
+    values[key] = expandHome(value);
   }
   return { raw, values };
 }
