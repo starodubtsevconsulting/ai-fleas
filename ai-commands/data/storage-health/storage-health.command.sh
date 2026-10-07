@@ -5,6 +5,7 @@ source "$ROOT/lib/discovery.sh"
 source "$ROOT/lib/filesystem.sh"
 source "$ROOT/lib/ai-suitability.sh"
 source "$ROOT/lib/smart.sh"
+source "$ROOT/lib/initialize.sh"
 
 platform_guard(){
   local os
@@ -90,7 +91,7 @@ interactive(){
   echo "  [4] Show storage inventory"
   echo "  [5] Disk test status / history"
   echo "  [6] Inspect filesystem/signatures"
-  echo "  [7] Qualify storage for AI use"
+  echo "  [7] Qualify storage for AI use"; echo "  [8] Initialize storage for AI use"
   echo "  [q] Quit"
   printf "Choice: "; read -r choice
   case "$choice" in
@@ -127,6 +128,19 @@ interactive(){
       ;;
     6) main filesystem --all ;;
     7) main qualify --all ;;
+    8)
+      [[ ${#disks[@]} -gt 0 ]] || { echo "No external drives found."; return; }
+      echo "Select drive to initialize:"
+      local i=1
+      for d in "${disks[@]}"; do
+        if storage_init_ready "$d"; then state="READY FOR INITIALIZATION"; else state="NOT READY"; fi
+        echo "  [$i] $d  $(lsblk -dn -o SIZE "$d" | xargs)  $(lsblk -dn -o MODEL "$d" | xargs)  [$state]"
+        ((i++))
+      done
+      printf "Drive: "; read -r n
+      [[ "$n" =~ ^[0-9]+$ ]] && (( n>=1 && n<=${#disks[@]} )) || { echo "Invalid selection."; return 2; }
+      storage_initialize "${disks[n-1]}"
+      ;;
     q|Q) echo "No changes made." ;;
     *) echo "Invalid choice."; return 2 ;;
   esac
