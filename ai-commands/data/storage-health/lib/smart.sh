@@ -32,7 +32,7 @@ smart_capture(){
   fi
 }
 smart_test(){
- local dev="$1" kind="$2"
+ local dev="$1" kind="$2" start_out
  if [[ "$kind" == "long" ]]; then
    echo "Long SMART self-test is non-destructive but can increase I/O activity on the selected disk."
    smart_long_estimate "$dev"
@@ -41,8 +41,9 @@ smart_test(){
    printf "Start long test on %s now? [y/N] " "$dev"; read -r a
    [[ "$a" =~ ^[Yy]([Ee][Ss])?$ ]] || { echo "Test cancelled."; return 0; }
  fi
- smart_capture "$dev" -t "$kind"
- record_test_start "$dev" "$kind"
+ start_out="$(smart_capture "$dev" -t "$kind" 2>&1)"
+ echo "$start_out"
+ record_test_start "$dev" "$kind" "$start_out"
 }
 
 smart_long_estimate(){
@@ -79,9 +80,14 @@ test_state_file(){
   printf '%s/tests.log\n' "$root/$key"
 }
 record_test_start(){
-  local dev="$1" kind="$2" file
+  local dev="$1" kind="$2" start_out="${3:-}" file mins=""
   file="$(test_state_file "$dev")"
-  printf '%s|STARTED|%s|%s\n' "$(date -Is)" "$kind" "$dev" >> "$file"
+  mins="$(awk '/Please wait [0-9]+ minutes/ {for(i=1;i<=NF;i++) if($i=="wait" && $(i+1) ~ /^[0-9]+$/){print $(i+1); exit}}' <<<"$start_out")"
+  if [[ "$mins" =~ ^[0-9]+$ ]]; then
+    printf '%s|STARTED|%s|%s|drive_estimate_minutes=%s\n' "$(date -Is)" "$kind" "$dev" "$mins" >> "$file"
+  else
+    printf '%s|STARTED|%s|%s\n' "$(date -Is)" "$kind" "$dev" >> "$file"
+  fi
 }
 smart_test_history(){
   local dev="$1" file out line status remaining lifetime lba model size
@@ -90,18 +96,39 @@ smart_test_history(){
   size="$(lsblk -dn -o SIZE "$dev" | xargs)"
   out="$(smart_capture "$dev" -l selftest 2>/dev/null || true)"
   line="$(awk '/^# *[0-9]+/ {print; exit}' <<<"$out")"
+  local cap progress_line remaining_pct complete_pct
+  cap="$(smart_capture "$dev" -c 2>/dev/null || true)"
+  progress_line="$(grep -Ei 'Self-test routine in progress|self-test.*remaining|Self-test execution status' <<<"$cap" | head -1 || true)"
+  remaining_pct="$(grep -Eio '[0-9]+%.*remaining|[0-9]+% of test remaining' <<<"$cap" | grep -Eo '[0-9]+%' | head -1 | tr -d '%' || true)"
+  if [[ "$remaining_pct" =~ ^[0-9]+$ ]]; then complete_pct=$((100-remaining_pct)); else complete_pct=""; fi
 
-  echo "AI Fleas · SMART Test History"
+  echo "AI Fleas · Disk Test Status"
   echo "─────────────────────────────"
   echo "$model $size"
   echo
+
+  if [[ "$remaining_pct" =~ ^[0-9]+$ && "$remaining_pct" -gt 0 ]]; then
+    echo "Current disk test"
+    echo "─────────────────────────────"
+    echo "Result:       IN PROGRESS"
+    echo "Progress:     ${complete_pct}% complete"
+    echo "Remaining:    ${remaining_pct}%"
+    [[ -n "$progress_line" ]] && echo "Drive status: $progress_line"
+    if [[ -f "$file" ]]; then
+      local latest_start estmins
+      latest_start="$(tail -n 1 "$file")"
+      estmins="$(sed -nE 's/.*drive_estimate_minutes=([0-9]+).*/\1/p' <<<"$latest_start")"
+      [[ "$estmins" =~ ^[0-9]+$ ]] && echo "Drive estimate at start: $estmins minutes (~$(( (estmins+59)/60 )) hours)"
+    fi
+    echo
+  fi
 
   if [[ -n "$line" ]]; then
     status="$(sed -E 's/^# *[0-9]+ +[^ ]+( +[^ ]+)? +//' <<<"$line" | sed -E 's/ +[0-9]+% +[0-9]+ +.*$//' | xargs)"
     remaining="$(grep -oE '[0-9]+%' <<<"$line" | head -1 || true)"
     lifetime="$(awk '{for(i=1;i<=NF;i++) if($i ~ /^[0-9]+$/) n=$i} END{if(n!="") print n}' <<<"$line")"
     lba="$(awk '{print $NF}' <<<"$line")"
-    echo "Latest drive self-test"
+    echo "Latest disk test"
     echo "─────────────────────────────"
     if grep -qi 'Completed without error' <<<"$line"; then
       echo "Result:       ✓ PASSED"
@@ -118,7 +145,7 @@ smart_test_history(){
     fi
     [[ -n "$lifetime" ]] && echo "Drive age at test: $lifetime power-on hours"
   else
-    echo "Latest drive self-test: none reported by drive"
+    echo "Latest disk test: none reported by drive"
   fi
 
   echo
@@ -130,18 +157,18 @@ smart_test_history(){
   echo "Interpretation"
   echo "─────────────────────────────"
   if grep -qi 'Completed without error' <<<"$line"; then
-    echo "✓ The drive completed its SMART self-test without reporting an error."
+    echo "✓ The drive completed its full disk self-test without reporting an error."
     echo "  This is strong positive evidence, but not a guarantee against every possible failure."
   elif [[ -n "$line" ]]; then
     echo "The latest drive self-test did not report a clean completed result."
   else
-    echo "No retained SMART self-test result was available to interpret."
+    echo "No retained disk self-test result was available to interpret."
   fi
 
   echo
-  echo "Raw SMART evidence"
+  echo "Technical details"
   echo "─────────────────────────────"
-  [[ -n "$out" ]] && echo "$out" || echo "No SMART self-test history reported by drive."
+  [[ -n "$out" ]] && echo "$out" || echo "No disk self-test history reported by drive."
 }
 
 smart_last_summary(){
