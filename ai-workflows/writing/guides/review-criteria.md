@@ -6,7 +6,7 @@ publication authority.
 
 ## Effective review brief
 
-The article brief records type, audience, intended reader outcome, selected template, applicable methods and their
+The article brief records the effective [article calibration](article-calibration.md), type, audience, intended reader outcome, selected template, applicable methods and their
 emphasis, destination, and any human constraints. Start from the selected profile's `review_preferences` if present.
 The article's actual type and explicit human direction may narrow or override those defaults. Record the effective
 choices with the article so another reviewer can reproduce the check. Missing preferences do not justify inventing a
