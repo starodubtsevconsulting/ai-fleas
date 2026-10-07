@@ -113,7 +113,7 @@ smart_test_history(){
     echo "Result:       IN PROGRESS"
     echo "Progress:     ${complete_pct}% complete"
     echo "Remaining:    ${remaining_pct}%"
-    [[ -n "$progress_line" ]] && echo "Drive status: $progress_line"
+    # Raw drive status is shown only under Technical details.
     if [[ -f "$file" ]]; then
       local latest_start estmins
       latest_start="$(tail -n 1 "$file")"
@@ -130,7 +130,11 @@ smart_test_history(){
     lba="$(awk '{print $NF}' <<<"$line")"
     echo "Latest disk test"
     echo "─────────────────────────────"
-    if grep -qi 'Completed without error' <<<"$line"; then
+    if [[ "$remaining_pct" =~ ^[0-9]+$ && "$remaining_pct" -gt 0 ]]; then
+    echo "The full disk health test is still running."
+    echo "Progress: ${complete_pct}% complete; ${remaining_pct}% remaining."
+    echo "No final health result is available yet."
+  elif grep -qi 'Completed without error' <<<"$line"; then
       echo "Result:       ✓ PASSED"
       echo "Coverage:     Complete (100%)"
       echo "Errors found: None reported"
@@ -145,7 +149,13 @@ smart_test_history(){
     fi
     [[ -n "$lifetime" ]] && echo "Drive age at test: $lifetime power-on hours"
   else
-    echo "Latest disk test: none reported by drive"
+    if [[ "$remaining_pct" =~ ^[0-9]+$ && "$remaining_pct" -gt 0 ]]; then
+      echo "Previous completed test"
+      echo "─────────────────────────────"
+      echo "None reported by drive"
+    else
+      echo "Latest disk test: none reported by drive"
+    fi
   fi
 
   echo
@@ -168,6 +178,7 @@ smart_test_history(){
   echo
   echo "Technical details"
   echo "─────────────────────────────"
+  [[ -n "$progress_line" ]] && echo "Current drive status: $progress_line"
   [[ -n "$out" ]] && echo "$out" || echo "No disk self-test history reported by drive."
 }
 
