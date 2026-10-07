@@ -8,12 +8,20 @@
 set -euo pipefail
 
 command_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+export AI_COMMAND_CONFIG_PATH="${AI_COMMAND_CONFIG_PATH:-$command_dir/macos-screenshot-sorter.default.config}"
 case "$#" in
   0) force=false ;;
   1) [[ "$1" == '--force' ]] || { printf '%s\n' 'Usage: app.sh [--force]' >&2; exit 2; }; force=true ;;
   *) printf '%s\n' 'Usage: app.sh [--force]' >&2; exit 2 ;;
 esac
-electron_bin="${SCREENSHOT_SORTER_ELECTRON_BIN:?profile config must set SCREENSHOT_SORTER_ELECTRON_BIN}"
+electron_bin="${SCREENSHOT_SORTER_ELECTRON_BIN:-}"
+if [[ -z "$electron_bin" ]]; then
+  if [[ ! -x "$command_dir/launcher/node_modules/.bin/electron" ]]; then
+    command -v npm >/dev/null 2>&1 || { printf '%s\n' 'npm is required to bootstrap the Screenshot Sorter UI.' >&2; exit 2; }
+    (cd "$command_dir/launcher" && npm install)
+  fi
+  electron_bin="$command_dir/launcher/node_modules/.bin/electron"
+fi
 [[ -x "$electron_bin" ]] || {
   printf '%s\n' "SCREENSHOT_SORTER_ELECTRON_REQUIRED: configured runtime is not executable: $electron_bin" >&2
   exit 2
