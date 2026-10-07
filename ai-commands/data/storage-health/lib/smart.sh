@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
+smart_timeout(){
+  local seconds="${SMARTCTL_TIMEOUT_SECONDS:-8}"
+  if command -v timeout >/dev/null 2>&1; then
+    timeout --signal=TERM --kill-after=2s "${seconds}s" "$@"
+  else
+    "$@"
+  fi
+}
 smart_type(){
-  smartctl --scan-open 2>/dev/null | awk -v d="$1" '$1==d && $2=="-d" {print $3; exit}'
+  smart_timeout smartctl --scan-open 2>/dev/null | awk -v d="$1" '$1==d && $2=="-d" {print $3; exit}'
 }
 smart_probe_type(){
   local dev="$1" dtype candidate out
@@ -13,9 +21,9 @@ smart_probe_type(){
     [[ "$seen" == *" $candidate "* ]] && continue
     seen+="$candidate "
     if [[ "$candidate" == "__default__" ]]; then
-      out="$(sudo smartctl -i "$dev" 2>&1)" || true
+      out="$(smart_timeout sudo smartctl -i "$dev" 2>&1)" || true
     else
-      out="$(sudo smartctl -d "$candidate" -i "$dev" 2>&1)" || true
+      out="$(smart_timeout sudo smartctl -d "$candidate" -i "$dev" 2>&1)" || true
     fi
     if grep -Eqi 'Device Model:|Model Family:|Product:|Serial Number:|SMART support is:' <<<"$out" &&
        ! grep -Eqi 'Unknown USB bridge|Please specify device type|Unable to detect device type|Read Device Identity failed' <<<"$out"; then
@@ -32,9 +40,9 @@ smart_capture(){
   dtype="$(smart_probe_type "$dev" || true)"
   [[ -n "$dtype" ]] || { echo "ERROR: SMART access unavailable: no supported device transport worked for $dev" >&2; return 3; }
   if [[ "$dtype" == "__default__" ]]; then
-    sudo smartctl "$@" "$dev"
+    smart_timeout sudo smartctl "$@" "$dev"
   else
-    sudo smartctl -d "$dtype" "$@" "$dev"
+    smart_timeout sudo smartctl -d "$dtype" "$@" "$dev"
   fi
 }
 smart_test(){
@@ -54,7 +62,7 @@ smart_test(){
 smart_long_estimate(){
   local dev="$1" dtype out mins
   dtype="$(smart_type "$dev" || true)"
-  if [[ -n "$dtype" ]]; then out="$(sudo smartctl -d "$dtype" -c "$dev" 2>/dev/null || true)"; else out="$(sudo smartctl -c "$dev" 2>/dev/null || true)"; fi
+  if [[ -n "$dtype" ]]; then out="$(smart_timeout sudo smartctl -d "$dtype" -c "$dev" 2>/dev/null || true)"; else out="$(smart_timeout sudo smartctl -c "$dev" 2>/dev/null || true)"; fi
   mins="$(awk '/Extended self-test routine/ && /minutes/ {for(i=1;i<=NF;i++) if($i ~ /^[0-9]+$/){n=$i}} END{if(n) print n}' <<<"$out")"
   if [[ "$mins" =~ ^[0-9]+$ ]]; then
     local h=$(( (mins + 59) / 60 ))
