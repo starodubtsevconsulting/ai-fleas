@@ -71,3 +71,14 @@ smart_test_history(){
   out="$(smart_capture "$dev" -l selftest 2>/dev/null || true)"
   [[ -n "$out" ]] && echo "$out" || echo "No SMART self-test history reported by drive."
 }
+
+smart_last_summary(){
+  local dev="$1" out line
+  out="$(smart_capture "$dev" -l selftest 2>/dev/null || true)"
+  line="$(awk '/^# *[0-9]+/ {print; exit}' <<<"$out")"
+  if [[ -n "$line" ]]; then
+    echo "Last SMART test: $line"
+  else
+    echo "Last SMART test: none reported by drive"
+  fi
+}
