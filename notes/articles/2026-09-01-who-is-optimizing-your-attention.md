@@ -1,32 +1,32 @@
+---
+title: "Who Is Optimizing Your Attention?"
+previous_title: "Who Is Optimizing Your Attention?"
+subtitle: "Online systems already learn what keeps you engaged. What if a private AI used the context you choose to share to keep your own goals in front of you instead?"
+date: "2026-09-01"
+version: 2
+---
+
 # Who Is Optimizing Your Attention?
 
-**September 1, 2026**
+*Online systems already learn what keeps you engaged. What if a private AI used the context you choose to share to keep your own goals in front of you instead?*
 
-We already allow systems to build surprisingly detailed models of us: what we watch, where we go, what interests us,
-when we are active, and increasingly even signals from devices we wear.
+A surprising amount of software already knows how to compete for your attention.
 
-Most of that intelligence is useful because somebody has an objective for it. Usually that objective is not ours. It may
-be engagement, conversion, another click, another subscription, another purchase.
+It learns what you watch, what you click, when you are active, what interests you, and which notification is likely to bring you back.
 
-What if the same idea were inverted?
+That intelligence usually serves somebody else's objective: engagement, conversion, another click, another subscription, another purchase.
 
-Instead of giving all that context only to systems trying to decide what to put in front of us next, we could give the
-context we choose to share to a private-enough agent whose objective is explicitly ours.
+What if the same basic idea were inverted?
 
-You tell it what you want: finish a project, improve your health, build financial independence, learn something, spend
-more time with people you care about. Then it remembers those goals when you conveniently do not.
+You choose the context to share with a private-enough AI. You also choose the objective: finish a project, improve your health, build financial independence, learn something, spend more time with people you care about.
 
-Instead of advertising another thing to buy, it advertises **your own intentions back to you**.
+Then instead of advertising another thing to buy, the system advertises **your own intentions back to you**.
 
-At midnight it might tell you that the best thing you can do for tomorrow's goals is stop working and sleep. The next day,
-if you are exhausted, it might suggest work that requires less cognitive effort instead of pretending every hour of the
-day is interchangeable. Over months it can learn patterns you repeatedly forget about yourself.
+At midnight it might tell you that the best thing for tomorrow's goals is to stop working and sleep. When you are exhausted, it might steer you toward work that requires less cognitive effort rather than pretending every hour is interchangeable. Over time, it can keep patterns and commitments visible when the immediate thing in front of you is trying to make you forget them.
 
-The point is not to let an agent decide what your goals should be. The human owns the goals. The human can change, pause,
-replace or delete them. But while a goal is active, the agent keeps it present when deciding what deserves attention now.
+The human still owns the goals. The interesting question is whether AI can help defend the attention required to follow them.
 
-There is something almost Stoic about that. The problem is often not that we do not know what matters. The problem is
-that the immediate thing in front of us is very good at making us forget.
+That is the role I now call the **Personal Governor** in AI Fleas.
 
 Commercial personalization can be thought of roughly as:
 
@@ -39,7 +39,7 @@ The inversion is:
 Same basic observation: context can help decide what should be put in front of someone next. Different owner of the
 objective.
 
-I have been calling this role the **Cross-Workflow Governor** (earlier: **Global Governor**). It sits above individual
+I have been calling this role the **Personal Governor** (earlier: **Personal Governor**). It sits above individual
 workflows, can follow several human-owned goals across them, remembers broader context, and asks not only whether an
 activity is worthwhile, but whether it is the right activity **now**.
 
