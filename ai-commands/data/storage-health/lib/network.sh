@@ -65,15 +65,43 @@ EOF
   sudo systemctl enable --now smbd
   sudo systemctl reload smbd
 
-  local host; host="$(hostname)"
+  local host lan_ip lan_cidr
+  host="$(hostname)"
+  lan_ip="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src"){print $(i+1); exit}}')"
+  [[ -n "$lan_ip" ]] || lan_ip="$(hostname -I | tr ' ' '\n' | grep -E '^10\.|^192\.168\.|^172\.(1[6-9]|2[0-9]|3[01])\.' | head -1 || true)"
+  if [[ "$lan_ip" =~ ^10\.0\.0\.[0-9]+$ ]]; then lan_cidr="10.0.0.0/24"; else lan_cidr=""; fi
+
+  if command -v ufw >/dev/null 2>&1 && sudo ufw status | grep -q '^Status: active'; then
+    [[ -n "$lan_cidr" ]] || { echo "ERROR: firewall is active but LAN subnet could not be safely determined; refusing to open SMB broadly." >&2; return 2; }
+    if ! sudo ufw status | grep -F "445/tcp" | grep -Fq "$lan_cidr"; then
+      sudo ufw allow from "$lan_cidr" to any port 445 proto tcp comment 'AI Fleas SMB LAN only'
+    fi
+  fi
+
+  if ! command -v avahi-daemon >/dev/null 2>&1; then
+    if command -v apt-get >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y avahi-daemon
+    else echo "ERROR: Avahi is required for stable .local discovery and automatic installation supports apt-based Linux only." >&2; return 2; fi
+  fi
+  sudo systemctl enable --now avahi-daemon
+
+  sudo systemctl is-active --quiet smbd || { echo "ERROR: Samba service is not active." >&2; return 2; }
+  sudo ss -lnt | awk '$4 ~ /:445$/ {found=1} END{exit !found}' || { echo "ERROR: SMB is not listening on TCP 445." >&2; return 2; }
+  sudo systemctl is-active --quiet avahi-daemon || { echo "ERROR: local hostname discovery service is not active." >&2; return 2; }
+  sudo testparm -s >/dev/null || { echo "ERROR: final Samba configuration validation failed." >&2; return 2; }
+
   echo
   echo "NETWORK ACCESS READY"
   echo "From macOS Finder: Go → Connect to Server"
-  echo "  smb://$host/AI-Artifacts"
-  echo "  smb://$host/AI-Archive"
-  echo "  smb://$host/AI-Models"
+  echo "Preferred stable address:"
+  echo "  smb://$host.local/AI-Artifacts"
+  echo "  smb://$host.local/AI-Archive"
+  echo "  smb://$host.local/AI-Models"
+  if [[ -n "$lan_ip" ]]; then
+    echo "Fallback current LAN address:"
+    echo "  smb://$lan_ip/AI-Artifacts"
+  fi
   echo
   echo "Use Samba user: $user"
   echo "AI-Models is read-only; Artifacts and Archive are read/write."
-  echo "LAN access only; do not expose TCP 445 publicly."
+  echo "LAN access only; TCP 445 is not intentionally opened to the public internet."
 }
