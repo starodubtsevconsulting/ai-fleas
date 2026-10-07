@@ -260,6 +260,34 @@ So I would include human attention in any serious local-AI calculation:
 
 Cheap inference can become expensive work.
 
+## Give the machine a utilization target
+
+There is another way I have started looking at the problem: instead of asking how quickly a machine can theoretically pay for itself, give it a useful-work target.
+
+For example, imagine local infrastructure that is available for about 12 hours of useful work per day. It will not spend all 12 hours producing valuable output. There will be idle time, failed tasks, maintenance, batching gaps, and jobs that are simply better sent elsewhere.
+
+So the target should not be 12 hours of uptime.
+
+It should be something like:
+
+**How much accepted work did this infrastructure produce today that I would otherwise have paid a hosted system to perform?**
+
+Suppose the target is roughly $100 per working day of hosted-equivalent useful work. Across about 250 working days, that is approximately $25,000 of annual capacity.
+
+That does not mean a local machine literally earns $25,000. It means there is finally a number against which the capital, electricity, maintenance, model quality and human supervision can be evaluated.
+
+The calculation also exposes bad assumptions quickly. Six hours of an agent looping on the wrong approach is not six hours of value. Six hours of background work that produces an accepted result while a person is doing something else can be extremely valuable.
+
+I would therefore measure local AI less by uptime and more by something closer to:
+
+**accepted hosted-equivalent work − human supervision − operating cost**
+
+The exact dollar target will be different for every organization. The useful idea is to have one.
+
+And there is a time dimension. AI hardware can become technologically old long before it physically wears out. An investment case that requires several years of perfect utilization may be much weaker than one that extracts substantial useful capacity while the hardware is still competitive.
+
+This also encourages a portfolio view. A machine that makes little sense as an occasional coding fallback may look different if the same infrastructure handles document processing, accounting workflows, private analysis, visual inspection, research, media work and scheduled agents. Utilization should be evaluated across the workloads that can realistically share the infrastructure, not against one glamorous demo.
+
 ## Hybrid may be the rational answer
 
 There is also no rule saying the decision has to be local *or* hosted.
