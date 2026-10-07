@@ -1,0 +1,21 @@
+<div 
+  class="full-screen-overlay" 
+  [style.display]="shot ? 'flex' : 'none'" 
+  (click)="closeScreenshot()"
+  (keydown)="handleKeyDown($event)"
+  tabindex="0"
+>
+  <div class="full-screen-content" (click)="$event.stopPropagation()" *ngIf="shot && thumbnailUrl">
+    <button class="full-screen-close" (click)="closeScreenshot()" aria-label="Close full screen view">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <img [src]="thumbnailUrl" [alt]="shot.name">
+    <div class="full-screen-info">
+      <div class="full-screen-name">{{ shot.name }}</div>
+      <div class="full-screen-meta">{{ shot.modifiedAt | date:'medium' }} · {{ formatBytes(shot.bytes) }}</div>
+    </div>
+  </div>
+</div>
