@@ -6,6 +6,32 @@ source "$ROOT/lib/filesystem.sh"
 source "$ROOT/lib/ai-suitability.sh"
 source "$ROOT/lib/smart.sh"
 
+platform_guard(){
+  local os
+  os="$(uname -s 2>/dev/null || echo unknown)"
+  case "$os" in
+    Linux) return 0 ;;
+    Darwin)
+      echo "AI Fleas · Storage Health"
+      echo
+      echo "Unsupported operating system: macOS"
+      echo "This command currently supports Linux only."
+      echo "No changes were made."
+      exit 2
+      ;;
+    *)
+      echo "AI Fleas · Storage Health"
+      echo
+      echo "Unsupported operating system: $os"
+      echo "This command currently supports Linux only."
+      echo "No changes were made."
+      exit 2
+      ;;
+  esac
+}
+
+platform_guard
+
 usage(){ echo "usage: $0 inspect | filesystem DEVICE|--all | health DEVICE|--all [--json] | report DEVICE|--all [--json] | ai-report DEVICE|--all [--json] | qualify DEVICE|--all | test DEVICE --short|--long | test-status DEVICE"; }
 need(){ command -v "$1" >/dev/null 2>&1 || { echo "ERROR: missing dependency: $1" >&2; exit 2; }; }
 ensure_smartctl(){
