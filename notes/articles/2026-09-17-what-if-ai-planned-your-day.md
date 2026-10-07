@@ -1,20 +1,32 @@
+---
+title: "I Asked AI to Plan My Day. It Told Me to Go Back to Bed."
+previous_title: "I Asked AI to Plan My Day. It Told Me to Go Back to Bed."
+subtitle: "My calendar was full, my goals still mattered, and I had slept 4 hours and 20 minutes. The useful plan started by treating energy as a real constraint."
+date: "2026-09-17"
+version: 2
+---
+
 # I Asked AI to Plan My Day. It Told Me to Go Back to Bed.
 
-![A tired human reviews a day plan with an AI Fleas robot that highlights rest and points toward a comfortable sofa.](assets/2026-09-17-ai-fleas-day-planning-rest-header.png)
-
-*When the day is full and energy is scarce, the AI Flea makes room for rest. AI Fleas illustration generated from the author’s character references.*
+*My calendar was full, my goals still mattered, and I had slept 4 hours and 20 minutes. The useful plan started by treating energy as a real constraint.*
 
 This morning my watch said I had slept **4 hours and 20 minutes**.
 
-My first instinct was predictable: look at the day, find the empty spaces, and put work into them. There was professional preparation to do, my own projects, an article I wanted to write, a dog to walk, and a house waking up. Somewhere inside all that, I was apparently supposed to recover from four hours of sleep.
+My calendar did not care.
 
-So I asked AI a different question: **What should I actually do today?**
+There was professional preparation to do, my own projects, an article I wanted to write, a dog to walk, and a house waking up. My first instinct was predictable: find the empty spaces and put more work into them.
 
-It had my calendar commitments, my goals, and the sleep number I had just given it. It kept the important preparation blocks and some time for my own work. It also kept my evening boundary: stop turning an interesting problem into a midnight problem.
+Instead, I asked AI:
 
-Then it put a nap on my calendar. From 1:30 to 3:00.
+> **What should I actually do today?**
 
-I had asked it to plan around a scarce resource: my capacity today.
+It had my calendar commitments, my goals, and the sleep number I had just given it. It kept the preparation that mattered. It kept some time for my own work. It also protected the evening boundary I had already chosen: do not turn an interesting problem into a midnight problem.
+
+Then it put a nap on my calendar.
+
+From 1:30 to 3:00.
+
+That was the interesting part. I had not asked it to maximize the number of tasks I could squeeze into the day. I had asked it to plan around a scarce resource: **my actual capacity today**.
 
 ## What deserves the good hour?
 
