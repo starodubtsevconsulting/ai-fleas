@@ -103,3 +103,10 @@ That separates communication quality from work quality. A dependable connection 
 ## Sources and provenance
 
 This scripted dialogue uses two fictional voices—Host and Anna—to explain a real GPT-to-Hermes implementation and its move from a hidden process handoff to A2A. It is not a transcript of an actual interview, and neither speaker represents a real interviewer, employee, customer, or historical person. Protocol details were checked against the current [Agent2Agent protocol specification](https://github.com/a2aproject/A2A/blob/main/docs/specification.md). The public [AI Fleas project](https://github.com/starodubtsevconsulting/ai-fleas) is available on GitHub. The profile-specific platform configuration is private and is not linked here. The energy comparison is an analogy, not evidence that AI prices behave like oil markets. No claim is made that local AI is always cheaper or better, or that A2A guarantees model quality.
+
+## Related local-AI reading
+
+- **Next:** [*You Bought the Local AI Machine. Now Make It Earn Its Keep.*](2026-10-07-you-bought-the-local-ai-machine-now-make-it-earn-its-keep.md)
+- **Also related:** [*Where Should a Hybrid AI System Start: Hosted or Local?*](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md)
+
+These links follow the conceptual local/hybrid-AI thread rather than publication chronology.

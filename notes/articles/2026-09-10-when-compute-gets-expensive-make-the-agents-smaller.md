@@ -37,3 +37,11 @@ It is **what actually needs this much intelligence?**
 > “Make the best use of what is in your power, and take the rest as it happens.”
 >
 > — Epictetus, *Enchiridion*
+
+## Related local-AI reading
+
+- **Previous:** [*I Had 13 TB of Old Surveillance Drives. Could They Become AI Memory?*](2026-10-07-your-local-ai-has-a-brain-where-does-it-keep-its-memory.md)
+- **Next:** [*You Bought the Local AI Machine. Now Make It Earn Its Keep.*](2026-10-07-you-bought-the-local-ai-machine-now-make-it-earn-its-keep.md)
+- **Also related:** [*What Do We Gain by Generating Images Locally?*](2026-09-23-what-do-we-gain-by-generating-images-locally.md)
+
+These links follow the conceptual local/hybrid-AI thread rather than publication chronology.

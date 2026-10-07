@@ -251,3 +251,11 @@ The largest model that fits is not automatically the best model to run. The usef
 - [Hugging Face bitsandbytes quickstart](https://huggingface.co/docs/bitsandbytes/main/quickstart)
 - [Qwen3.8-27B official model page](https://huggingface.co/Qwen/Qwen3.8-27B)
 - [Qwen3-Coder-Next official model page](https://huggingface.co/Qwen/Qwen3-Coder-Next)
+
+## Related local-AI reading
+
+- **Previous:** [*Where Should a Hybrid AI System Start: Hosted or Local?*](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md)
+- **Next:** [*You Bought the Local AI Machine. Now Make It Earn Its Keep.*](2026-10-07-you-bought-the-local-ai-machine-now-make-it-earn-its-keep.md)
+- **Also related:** [*I Bought an AI Powerhouse. Then the Agent Kept Giving Up.*](2026-09-27-i-bought-an-ai-powerhouse-then-the-agent-kept-giving-up.md)
+
+These links follow the conceptual local/hybrid-AI thread rather than publication chronology.

@@ -156,3 +156,10 @@ measure, and own.
 
 *This article is part of the [AI Fleas](https://github.com/starodubtsevconsulting/ai-fleas) initiative: a public,
 portable collection of AI workflows, commands, roles, and conventions.*
+
+## Related local-AI reading
+
+- **Previous:** [*When Compute Gets Expensive, Make the Agents Smaller*](2026-09-10-when-compute-gets-expensive-make-the-agents-smaller.md)
+- **Continue to the utilization question:** [*You Bought the Local AI Machine. Now Make It Earn Its Keep.*](2026-10-07-you-bought-the-local-ai-machine-now-make-it-earn-its-keep.md)
+
+These links follow the conceptual local/hybrid-AI thread rather than publication chronology.

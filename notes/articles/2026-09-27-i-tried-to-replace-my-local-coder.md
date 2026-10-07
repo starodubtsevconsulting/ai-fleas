@@ -108,3 +108,11 @@ For now, Q5 keeps the job. Not because it filled the machine or won every test. 
 ## Sources and provenance
 
 This is a scripted sequel to [“Should Your Hybrid AI Start in ChatGPT or Hermes?”](2026-09-26-should-your-hybrid-ai-start-in-chatgpt-or-hermes.md). Host and Anna are fictional voices; the model trials, timings, verification results, and final service state come from the public [GX10 candidate comparison](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/notes/benchmarks/local-models/gx10-qwen38-minimax-m27.md). The public [benchmark methodology](https://github.com/starodubtsevconsulting/ai-fleas/blob/main/notes/benchmarks/local-models/methodology.md) distinguishes direct inference from complete Hermes tasks. MiniMax's commercial-use condition comes from its [official license](https://huggingface.co/MiniMaxAI/MiniMax-M2.7/blob/main/LICENSE). The parser task is one small synthetic test; its results do not establish a general ranking of coding ability or a return on the hardware purchase.
+
+## Related local-AI reading
+
+- **Previous:** [*I Bought an AI Powerhouse. Then the Agent Kept Giving Up.*](2026-09-27-i-bought-an-ai-powerhouse-then-the-agent-kept-giving-up.md)
+- **Next:** [*You Bought the Local AI Machine. Now Make It Earn Its Keep.*](2026-10-07-you-bought-the-local-ai-machine-now-make-it-earn-its-keep.md)
+- **Also related:** [*My Local Coding Agent Wasn't Just Stupid. It Was Blind.*](2026-10-06-my-local-coding-agent-wasnt-just-stupid-it-was-blind.md)
+
+These links follow the conceptual local/hybrid-AI thread rather than publication chronology.
