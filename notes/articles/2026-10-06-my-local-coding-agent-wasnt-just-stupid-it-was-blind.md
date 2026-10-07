@@ -182,4 +182,4 @@ My local coder still has a long way to go before I would call it autonomous.
 
 For UI work, though, I want to know how much of that distance is intelligence — and how much is simply blindness.
 
-At this point, I sometimes feel I could write a couple of books about everything I have tried to make local agents useful. I am only half joking. If these experiments can save someone interested in the same path a few weeks, a pile of tokens, or a few thousand dollars in hardware experiments, at least some of the struggle will have paid for itself.
+At this point, I sometimes feel I could write a couple of books about everything I have tried to make local agents useful. I am only half joking. If these experiments can save someone interested in the same path a few weeks, a pile of tokens, or a few thousand dollars in hardware experiments, then perhaps all this struggle is becoming useful expertise after all.
