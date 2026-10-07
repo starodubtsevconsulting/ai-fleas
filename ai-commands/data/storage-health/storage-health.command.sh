@@ -38,7 +38,7 @@ assess(){
  if ! out="$(smart_capture "$dev" -a 2>&1)"; then status="WARN"; reason="SMART data unavailable or incomplete"; else
   overall="$(grep -Ei 'SMART overall-health self-assessment test result:|SMART Health Status:' <<<"$out" | head -1 | sed 's/.*: *//' || true)"
   temp="$(awk '/Temperature_Celsius/ {print $10; exit} /Current Drive Temperature:/ {for(i=1;i<=NF;i++) if($i ~ /^[0-9]+$/){print $i; exit}} /Temperature:/ {for(i=1;i<=NF;i++) if($i ~ /^[0-9]+$/){print $i; exit}}' <<<"$out" || true)"
-  poh="$(awk '/Power_On_Hours/ {print $10; exit} /Power on hours/ {for(i=NF;i>=1;i--) if($i ~ /^[0-9]+([.][0-9]+)?$/){print $i; exit}}' <<<"$out" || true)"; realloc="$(attr_raw "$out" 'Reallocated_Sector_Ct|Reallocated Sector' || true)"
+  poh="$(awk '/Power_On_Hours/ {v=$10; sub(/h.*/, "", v); print v; exit} /Power on hours/ {for(i=NF;i>=1;i--) if($i ~ /^[0-9]+([.][0-9]+)?$/){print $i; exit}}' <<<"$out" || true)"; realloc="$(attr_raw "$out" 'Reallocated_Sector_Ct|Reallocated Sector' || true)"
   pending="$(attr_raw "$out" 'Current_Pending_Sector|Current Pending Sector' || true)"; uncorr="$(attr_raw "$out" 'Offline_Uncorrectable|Offline Uncorrectable' || true)"
   reported="$(attr_raw "$out" 'Reported_Uncorrect|Reported Uncorrectable' || true)"
   if grep -Eqi 'SMART overall-health.*FAILED|SMART Health Status:.*(BAD|FAILED)' <<<"$out"; then status="FAIL"; reason="SMART overall health failed"; fi
@@ -47,7 +47,8 @@ assess(){
   if [[ "$status" == "HEALTHY" && "$realloc" =~ ^[0-9]+$ ]] && (( realloc > 0 )); then status="WARN"; reason="reallocated sectors are non-zero"; fi
  fi
  local model serial size tran; model="$(lsblk -dn -o MODEL "$dev" | xargs)"; serial="$(lsblk -dn -o SERIAL "$dev" | xargs)"; size="$(lsblk -dn -o SIZE "$dev" | xargs)"; tran="$(lsblk -dn -o TRAN "$dev" | xargs)"
- if [[ "$json" == 1 ]]; then printf '{"device":"%s","model":"%s","serial":"%s","size":"%s","transport":"%s","assessment":"%s","overall":"%s","temperature_c":"%s","power_on_hours":"%s","reallocated":"%s","pending":"%s","offline_uncorrectable":"%s","reason":"%s"}\n' "$dev" "$model" "$serial" "$size" "$tran" "$status" "$overall" "$temp" "$poh" "$realloc" "$pending" "$uncorr" "$reason"; else printf 'AI Fleas · Storage Health\n─────────────────────────\n%s %s\nDevice: %s\nSerial: %s\nTransport: %s\nSMART: %s\nTemperature: %s C\nPower-on: %s h\nReallocated: %s\nPending: %s\nUncorrectable: %s\n\nAssessment: %s\n' "$model" "$size" "$dev" "$serial" "$tran" "${overall:-unknown}" "${temp:-unknown}" "${poh:-unknown}" "${realloc:-unknown}" "${pending:-unknown}" "${uncorr:-unknown}" "$status"; [[ -n "$reason" ]] && echo "Reason: $reason"; fi
+ if [[ "$json" == 1 ]]; then printf '{"device":"%s","model":"%s","serial":"%s","size":"%s","transport":"%s","assessment":"%s","overall":"%s","temperature_c":"%s","power_on_hours":"%s","reallocated":"%s","pending":"%s","offline_uncorrectable":"%s","reason":"%s"}\n' "$dev" "$model" "$serial" "$size" "$tran" "$status" "$overall" "$temp" "$poh" "$realloc" "$pending" "$uncorr" "$reason"; else printf 'AI Fleas · Storage Health\n─────────────────────────\n%s %s\nDevice: %s\nSerial: %s\nTransport: %s\nSMART: %s\nTemperature: %s C\nPower-on: %s h\nReallocated: %s\nPending: %s\nUncorrectable: %s\n\nAssessment: %s\n' "$model" "$size" "$dev" "$serial" "$tran" "${overall:-unknown}" "${temp:-unknown}" "${poh:-unknown}" "${realloc:-unknown}" "${pending:-unknown}" "${uncorr:-unknown}" "$status"; if [[ -n "$reason" ]]; then echo "Reason: $reason"; fi
+ return 0
 }
 ai_suitability(){
  local dev="$1" json="$2"
@@ -65,6 +66,7 @@ ai_suitability(){
  else
    printf 'AI Fleas · AI Workload Suitability\n───────────────────────────────────\nAgent persistent memory: %s\nKnowledge/document store: %s\nBackup/archive: %s\nCold model library: %s\nVector/search storage: %s\nActive inference storage: %s\nAgent workspace/builds: %s\n\nReason: %s\n' "$persistent" "$documents" "$archive" "$model_library" "$vector" "$active_inference" "$workspace" "$reason"
  fi
+ return 0
 }
 external_disks(){ lsblk -dn -p -o NAME,TYPE,TRAN | awk '$2=="disk" && ($3=="usb" || $3=="sata"){print $1}'; }
 interactive(){
