@@ -19,14 +19,22 @@ const isPrimaryInstance = app.requestSingleInstanceLock();
 if (!isPrimaryInstance) app.exit(0);
 
 function fail(message) { throw new Error(message); }
+function expandHome(value) {
+  if (typeof value !== 'string') return value;
+  if (value === '$HOME') return os.homedir();
+  if (value.startsWith('$HOME/')) return path.join(os.homedir(), value.slice(6));
+  if (value === '~') return os.homedir();
+  if (value.startsWith('~/')) return path.join(os.homedir(), value.slice(2));
+  return value;
+}
 function readConfig() {
-  if (!configPath) fail('No active profile configuration is available. Launch the UI through macos-screenshot-sorter.command.sh ui.');
+  if (!configPath) fail('No active profile configuration is available. Launch the UI through app.sh.');
   const raw = fs.readFileSync(configPath, 'utf8');
   const values = {};
   for (const line of raw.split(/\r?\n/)) {
     const match = line.match(/^([A-Z0-9_]+)=(?:("([^"]*)")|'([^']*)'|([^#\s]*))/);
     if (match) {
-      values[match[1]] = match[2] ?? match[3] ?? match[4] ?? '';
+      values[match[1]] = expandHome(match[3] ?? match[4] ?? match[5] ?? '');
     }
   }
   return { raw, values };
