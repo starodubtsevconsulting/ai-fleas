@@ -1,30 +1,32 @@
+---
+title: "Where Do Your Agents Keep the Keys?"
+previous_title: "Where Do Your Agents Keep the Keys?"
+subtitle: "A practical way to let AI agents use GitHub, databases, and infrastructure without putting the credentials themselves into prompts."
+date: "2026-09-16"
+version: 2
+---
+
 # Where Do Your Agents Keep the Keys?
 
-> “Some things are up to us and some are not.”
->
-> — Epictetus, *Enchiridion* 1, translated by Elizabeth Carter ([text](https://seaver.pepperdine.edu/academics/ge/seaver-core/foundations-of-reasoning/content/the-handbook-encheiridion-of-epictetus.pdf))
+*A practical way to let AI agents use GitHub, databases, and infrastructure without putting the credentials themselves into prompts.*
 
-![A human enables one tool permission while an AI Fleas robot receives a bounded capability through an adapter connected to a secured vault.](assets/2026-09-16-ai-fleas-bounded-secret-access-header.png)
+My AI agents need keys.
 
-*A bounded tool capability reaches the agent while the secret stays in the vault. Illustration generated from the author’s AI Fleas character references.*
+A development agent may need GitHub access. An infrastructure command may need a Cloudflare credential. Another workflow may need a database password or access to storage.
 
-A few years ago, the answer to “where should I keep my secrets?” was often simple: use AWS Secrets Manager, Azure Key Vault, Google Secret Manager, or whatever your cloud already provides.
+The agents need to **use** those capabilities. I do not want the credentials themselves sitting in prompts, copied into Git, scattered through `.env` files, or remembered by an agent because a tool printed too much output.
 
-That still makes perfect sense when the cloud is where your system lives.
+This problem becomes surprisingly ordinary once local AI starts doing real work.
 
-But the shape of a small technology company is changing.
+A small technology company can now be one person, a laptop, a few machines at home, and a collection of agents doing development, publishing, bookkeeping, infrastructure work, or monitoring. The home server stops being just a hobby box. It becomes part of the production environment.
 
-A company can now be one person, a laptop, a few machines at home, and a collection of AI agents doing development, bookkeeping, publishing, infrastructure work, or monitoring. Local models make those machines useful around the clock. Suddenly the home server is not just a NAS or a hobby box. It is part of the production infrastructure of a one-person corporation.
+So the question is not simply where to store secrets.
 
-Then a surprisingly ordinary question appears:
+It is:
 
-**Where do all these agents keep the keys?**
+> **How can an agent use an authorized capability without ever needing to know the underlying secret?**
 
-Putting API tokens into prompts is obviously wrong. Keeping them in Git is worse. Copying `.env` files between machines works until it doesn't. And paying for a large cloud architecture merely to store credentials for infrastructure that deliberately lives at home feels backwards.
-
-One simple pattern is to run a secrets manager yourself. I am currently experimenting with [Infisical](https://infisical.com/) behind Cloudflare Access and a Cloudflare Tunnel.
-
-The important part is not the particular product. It is the separation of responsibilities.
+One pattern I am experimenting with is a self-hosted secrets manager. The particular product matters less than the separation of responsibilities: the agent asks to perform an allowed operation; the runtime retrieves only the credential that operation needs and keeps it outside the agent's working conversation.
 
 ```mermaid
 flowchart LR
