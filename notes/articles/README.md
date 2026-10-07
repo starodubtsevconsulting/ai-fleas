@@ -8,6 +8,12 @@ Keep short engineering/research notes directly under `notes/`; keep article-leng
 
 Newest first:
 
+- [2026-10-07 — Your Local AI Has a Brain. Where Does It Keep Its Memory?](2026-10-07-your-local-ai-has-a-brain-where-does-it-keep-its-memory.md) — draft
+- [2026-10-06 — My Local Coding Agent Wasn't Just Stupid. It Was Blind.](2026-10-06-my-local-coding-agent-wasnt-just-stupid-it-was-blind.md) — draft
+- [2026-10-06 — Before You Buy Local AI, Decide What You Are Optimizing For](2026-10-06-before-you-buy-local-ai-decide-what-you-are-optimizing-for.md) — draft
+- [2026-10-04 — What If a Personal Governor Had System 1 and System 2?](2026-10-04-what-if-a-personal-governor-had-system-1-and-system-2.md) — draft
+- [2026-10-02 — I Said No. Then I Changed My Mind.](2026-10-02-i-said-no-then-i-changed-my-mind.md) — draft
+
 - [2026-09-29 — What 27B, 4-Bit, and 64K Actually Mean in an AI Model](2026-09-29-what-27b-4-bit-and-64k-mean.md) — scheduled for 2026-10-04 10:00 EDT
 - [2026-09-27 — I Bought an AI Powerhouse. Then the Agent Kept Giving Up.](2026-09-27-i-bought-an-ai-powerhouse-then-the-agent-kept-giving-up.md) — scheduled for 2026-10-02 10:00 EDT
 - [2026-09-27 — I Tried to Replace My Local Coder. The Bigger Model Wasn't the Answer.](2026-09-27-i-tried-to-replace-my-local-coder.md) — draft
