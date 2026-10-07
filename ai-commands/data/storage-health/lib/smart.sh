@@ -166,11 +166,15 @@ smart_test_history(){
   echo
   echo "Interpretation"
   echo "─────────────────────────────"
-  if grep -qi 'Completed without error' <<<"$line"; then
+  if [[ "$remaining_pct" =~ ^[0-9]+$ && "$remaining_pct" -gt 0 ]]; then
+    echo "The full disk health test is still running."
+    echo "Progress: ${complete_pct}% complete; ${remaining_pct}% remaining."
+    echo "No final health result is available yet."
+  elif grep -qi 'Completed without error' <<<"$line"; then
     echo "✓ The drive completed its full disk self-test without reporting an error."
     echo "  This is strong positive evidence, but not a guarantee against every possible failure."
   elif [[ -n "$line" ]]; then
-    echo "The latest drive self-test did not report a clean completed result."
+    echo "The latest disk self-test did not report a clean completed result."
   else
     echo "No retained disk self-test result was available to interpret."
   fi
