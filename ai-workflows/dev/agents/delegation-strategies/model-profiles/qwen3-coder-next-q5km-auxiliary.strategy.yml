@@ -1,14 +1,12 @@
 schema_version: local-auxiliary-model-strategy.v1
 applies_to:
-  provider_model: qwen3.5-9b-q4_k_m
-expertise_profile: ../../../../../models/qwen3.5-9b/expertise-profile.yml
+  provider_model: qwen3-coder-next-q5km
+expertise_profile: ../../../../../models/qwen3-coder-next/expertise-profile.yml
 tasks:
   allowed:
     - compression
     - goal_judge
-    - title_generation
   verification:
     compression: owning-agent-preserves-and-checks-critical-context
     goal_judge: advisory-only-owning-agent-retains-decision-authority
-    title_generation: short-non-authoritative-session-label
-evidence_notes: ../../../../../notes/benchmarks/local-models/rtx-3080-ti.md
+evidence_notes: qwen3-coder-next-q5km.md

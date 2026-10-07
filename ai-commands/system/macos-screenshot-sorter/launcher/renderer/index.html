@@ -1,128 +1,13 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-critters-container>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Screenshot Sorter</title>
-  <style>
-    body { margin:0; font:14px -apple-system,BlinkMacSystemFont,sans-serif; background:#f7f7fb; color:#20212a }
-    main { max-width:590px; margin:0 auto; padding:26px 32px 32px }
-    h1 { margin:0 0 6px; font-size:26px }
-    h2 { margin:0; font-size:18px }
-    p { color:#555b6b; line-height:1.5 }
-    .tabs { display:flex; gap:8px; margin:0 0 20px }
-    .tab { border:1px solid #d8dce8; border-radius:999px; padding:8px 13px; background:#fff; color:#42485a }
-    .tab[aria-selected="true"] { border-color:#2e67d1; background:#eaf1ff; color:#174da8 }
-    .panel[hidden] { display:none }
-    .hero { display:block; width:100%; height:260px; object-fit:contain; object-position:center; border:1px solid #e4e5ec; border-radius:14px; background:#fff; margin:0 0 18px; box-shadow:0 2px 8px #20212a0a }
-    .card { background:#fff; border:1px solid #e4e5ec; border-radius:14px; padding:18px; margin:18px 0; box-shadow:0 2px 8px #20212a0a }
-    label { display:block; font-weight:650; margin-top:14px }
-    input { box-sizing:border-box; width:100%; margin-top:6px; padding:10px; border:1px solid #c8cad5; border-radius:8px; font:inherit }
-    button { border:0; border-radius:8px; padding:10px 14px; font:inherit; font-weight:650; cursor:pointer; background:#2e67d1; color:#fff }
-    button.secondary { background:#eef0f6; color:#242735; margin-left:8px }
-    .row { display:flex; gap:8px; align-items:end }
-    .row input { flex:1 }
-    .hint { font-size:12px; color:#6b7180 }
-    .status { white-space:pre-wrap; font:12px ui-monospace,monospace; background:#111827; color:#d1fae5; border-radius:8px; padding:12px; min-height:44px }
-    .library-head { display:flex; align-items:start; justify-content:space-between; gap:16px }
-    .library-head p { margin:4px 0 0 }
-    .folder { margin:18px 0; padding:16px; border:1px solid #e4e5ec; border-radius:14px; background:#fff }
-    .folder-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px }
-    .count { color:#596174; font-size:12px; white-space:nowrap }
-    .shots { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px }
-    .shot { overflow:hidden; border:1px solid #e4e5ec; border-radius:10px; background:#fbfcff }
-    .shot img { display:block; width:100%; aspect-ratio:16/9; object-fit:cover; background:#edf0f7 }
-    .shot-name { overflow:hidden; padding:8px 9px 2px; color:#333949; font-size:12px; font-weight:600; text-overflow:ellipsis; white-space:nowrap }
-    .shot-meta { padding:0 9px 8px; color:#70798c; font-size:11px }
-    .empty { padding:30px 18px; color:#687186; text-align:center }
-  </style>
-</head>
+  <title>ScreenshotSorterAngular</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+<style>body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;background:#f9fafb;color:#111827;line-height:1.5}</style><link rel="stylesheet" href="styles-WFWI45PT.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-WFWI45PT.css"></noscript></head>
 <body>
-  <main>
-    <nav class="tabs" aria-label="Screenshot Sorter sections">
-      <button class="tab" data-tab="settings" aria-selected="true">Settings</button>
-      <button class="tab" data-tab="library" aria-selected="false">Screenshots</button>
-    </nav>
-
-    <section class="panel" data-panel="settings">
-      <img class="hero" src="../../../../../notes/articles/assets/2026-09-18-ai-fleas-human-led-demo-header.png" alt="A person and an AI Fleas robot working together at a desk">
-      <h1>Keep your screenshots organized</h1>
-      <p>Instead of letting screenshots pile up on your Desktop, Screenshot Sorter automatically files each new screenshot into a dated <code>YYYY-MM-DD</code> folder in the location you choose.</p>
-      <div class="card">
-        <label>Capture inbox</label>
-        <div class="row"><input id="source"><button class="secondary" data-pick="source">Choose…</button></div>
-        <p class="hint">Save makes this the macOS screenshot location and reloads the sorter.</p>
-        <label>Sorted screenshots folder</label>
-        <div class="row"><input id="destination"><button class="secondary" data-pick="destination">Choose…</button></div>
-        <label>Wait for screenshot file to finish writing (seconds)</label>
-        <input id="settle" type="number" min="0" max="60">
-        <p class="hint">Default: 2. After a matching screenshot appears, wait this long before moving it so the file is complete. 0 moves immediately.</p>
-        <label>Missed-event recovery scan (seconds)</label>
-        <input id="interval" type="number" min="0" max="3600">
-        <p class="hint">Default: 10. A background safety net that rescans if macOS file watching misses an event. It never delays normal sorting. 0 turns this safety net off; otherwise choose 10–3600.</p>
-        <button id="save">Save and reload sorter</button><button id="refresh" class="secondary">Refresh status</button>
-      </div>
-      <div class="card"><strong>Runtime status</strong><pre id="status" class="status">Loading…</pre></div>
-    </section>
-
-    <section class="panel" data-panel="library" hidden>
-      <div class="library-head">
-        <div><h1>Your screenshots</h1><p>Browse screenshots by capture-date folder. This view is read-only for now.</p></div>
-        <button id="reload-library" class="secondary">Refresh</button>
-      </div>
-      <div id="library" aria-live="polite"><div class="card empty">Loading screenshots…</div></div>
-    </section>
-  </main>
-  <script>
-    const $ = id => document.getElementById(id);
-    const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[character]);
-    const bytes = value => value < 1024 * 1024 ? `${Math.max(1, Math.round(value / 1024))} KB` : `${(value / (1024 * 1024)).toFixed(1)} MB`;
-    const changed = value => new Date(value).toLocaleString(undefined, { dateStyle:'medium', timeStyle:'short' });
-    async function loadSettings() {
-      const settings = await window.screenshotSorter.settings();
-      $('source').value = settings.sourceDir;
-      $('destination').value = settings.destinationDir;
-      $('settle').value = settings.settleSeconds;
-      $('interval').value = settings.startIntervalSeconds;
-      await status();
-    }
-    async function status() {
-      try { $('status').textContent = await window.screenshotSorter.status(); }
-      catch (error) { $('status').textContent = `Error: ${error.message}`; }
-    }
-    async function loadLibrary() {
-      $('library').innerHTML = '<div class="card empty">Loading screenshots…</div>';
-      try {
-        const folders = await window.screenshotSorter.library();
-        if (!folders.length) { $('library').innerHTML = '<div class="card empty">No sorted screenshots yet. New screenshots will appear here after they are filed.</div>'; return; }
-        $('library').innerHTML = folders.map(folder => `<section class="folder"><div class="folder-head"><h2>${escapeHtml(folder.date)}</h2><span class="count">${folder.count} screenshot${folder.count === 1 ? '' : 's'}${folder.count > folder.screenshots.length ? ` · showing newest ${folder.screenshots.length}` : ''}</span></div><div class="shots">${folder.screenshots.map(shot => `<article class="shot" title="${escapeHtml(shot.name)}"><img data-thumbnail="${escapeHtml(shot.id)}" alt="${escapeHtml(shot.name)}"><div class="shot-name">${escapeHtml(shot.name)}</div><div class="shot-meta">${changed(shot.modifiedAt)} · ${bytes(shot.bytes)}</div></article>`).join('')}</div></section>`).join('');
-        await Promise.all([...document.querySelectorAll('[data-thumbnail]')].map(async image => {
-          try { image.src = await window.screenshotSorter.thumbnail(image.dataset.thumbnail); }
-          catch { image.alt = `${image.alt} (preview unavailable)`; }
-        }));
-      } catch (error) { $('library').innerHTML = `<div class="card empty">Could not load screenshots: ${escapeHtml(error.message)}</div>`; }
-    }
-    function selectTab(name) {
-      document.querySelectorAll('[data-tab]').forEach(tab => { tab.setAttribute('aria-selected', String(tab.dataset.tab === name)); });
-      document.querySelectorAll('[data-panel]').forEach(panel => { panel.hidden = panel.dataset.panel !== name; });
-      if (name === 'library') loadLibrary();
-    }
-    document.querySelectorAll('[data-tab]').forEach(tab => tab.onclick = () => selectTab(tab.dataset.tab));
-    document.querySelectorAll('[data-pick]').forEach(button => button.onclick = async () => {
-      const id = button.dataset.pick;
-      const folder = await window.screenshotSorter.chooseFolder($(id).value);
-      if (folder) $(id).value = folder;
-    });
-    $('save').onclick = async () => {
-      try {
-        const result = await window.screenshotSorter.save({ sourceDir:$('source').value, destinationDir:$('destination').value, settleSeconds:Number($('settle').value), startIntervalSeconds:Number($('interval').value) });
-        $('status').textContent = result.output;
-        await loadSettings();
-      } catch (error) { $('status').textContent = `Save failed: ${error.message}`; }
-    };
-    $('refresh').onclick = status;
-    $('reload-library').onclick = loadLibrary;
-    loadSettings().catch(error => { $('status').textContent = `Error: ${error.message}`; });
-  </script>
-</body>
+  <app-root></app-root>
+<script src="polyfills-FFHMD2TL.js" type="module"></script><script src="main-XOX5JBQE.js" type="module"></script></body>
 </html>

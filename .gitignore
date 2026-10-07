@@ -41,3 +41,5 @@
 /notes/benchmarks/local-models/runs/
 /models/expertise-extractor/probes/context-capacity/manifest.json
 /recognizers/snow-removal-contract-recognizer.mjs
+
+# Angular source is versioned. Generated dependencies/build output remain ignored globally.

@@ -61,3 +61,61 @@ On any failed capture, TCC/privacy denial, ambiguous watcher state, or collision
 ## Completion rule
 
 The candidate is eligible for human-approved retirement of Ruby only after deterministic, isolated real-capture, duplicate, non-screenshot, and post-login gates pass with their recorded evidence. The agent reports readiness; it does not retire Ruby on its own.
+
+## Playwright E2E Tests
+
+The scenario.md is the **leading master source of truth** for testing. Each scenario step maps to one or more Playwright tests that verify the same behavior programmatically.
+
+### Full Screen Screenshot View
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | User is viewing screenshot list | Screenshots displayed in date-based folders |
+| 2 | User clicks on a thumbnail image | Full-screen overlay opens with screenshot displayed |
+| 3 | Full-screen view shows close button (X) in top-right | Close button visible and clickable |
+| 4 | Full-screen view shows screenshot image | Image displayed at appropriate size |
+| 5 | Full-screen view shows screenshot metadata | Name, date, and file size visible below image |
+| 6 | User clicks close button or background | Full-screen view closes, returning to list view |
+
+### Scenario-to-Test Mapping
+
+| Scenario Step | Playwright Test | Purpose |
+|---------------|-----------------|---------|
+| 1. User is viewing screenshot list | All tests | Verify screenshot list displays correctly |
+| 2. User clicks on a thumbnail image | `Full screen view opens when thumbnail is clicked` | Verify click triggers full-screen view |
+| 3. Full-screen view shows close button (X) | `Full screen view shows correct screenshot` | Verify close button is present |
+| 4. Full-screen view shows screenshot image | `Full screen view shows correct screenshot` | Verify correct image displays |
+| 5. Full-screen view shows screenshot metadata | `Full screen view shows correct screenshot` | Verify name, date, and size display |
+| 6. User clicks close button or background | `Full screen view closes with X button`<br>`Full screen view closes when clicking outside` | Verify closing mechanisms work |
+
+### Running E2E Tests
+
+```bash
+cd launcher/renderer
+
+# Install dependencies
+npm install
+
+# Run all tests
+npm test
+
+# Run with UI mode
+npm run test:ui
+
+# Run specific test file
+npx playwright test macos-screenshot-sorter.e2e.spec.cjs
+```
+
+### Writing New Tests
+
+1. **Start with scenario.md**: Read the acceptance scenario first
+2. **Add test to scenario.md**: Document what the test should verify
+3. **Add Playwright test**: Create test that matches the scenario step 1:1
+4. **Run both**: Verify scenario works manually AND test passes programmatically
+
+### Test Principles
+
+- **Scenario-first**: scenario.md is the master; tests implement what scenario describes
+- **1:1 mapping**: Each scenario step should have at least one corresponding test
+- **User action simulation**: Tests should click, type, and interact like a real user
+- **Visible assertions**: Check what the user sees - text, classes, attributes, visibility

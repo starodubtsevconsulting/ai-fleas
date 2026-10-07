@@ -20,8 +20,8 @@ import sys
 import time
 
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".heic", ".webp", ".tif", ".tiff"}
-SCREENSHOT_NAME = re.compile(r"^(?:Screenshot|Screen Shot)(?:[ _-]|$)", re.IGNORECASE)
-DATE_IN_NAME = re.compile(r"^(?:Screenshot|Screen Shot)[ _-]+(\d{4}-\d{2}-\d{2})(?:[ _-]|$)", re.IGNORECASE)
+SCREENSHOT_NAME = re.compile(os.environ.get("SCREENSHOT_SORTER_PATTERN", r"^(?:Screenshot|Screen Shot)(?:[ _-]|$)"), re.IGNORECASE)
+DATE_IN_NAME = re.compile(os.environ.get("SCREENSHOT_SORTER_DATE_PATTERN", r"^(?:Screenshot|Screen Shot)[ _-]+(\d{4}-\d{2}-\d{2})(?:[ _-]|$)"), re.IGNORECASE)
 
 
 def capture_day(path: Path) -> str:

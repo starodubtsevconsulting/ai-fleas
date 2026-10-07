@@ -1,0 +1,29 @@
+{
+  "name": "macos-screenshot-sorter-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright end-to-end tests for macOS Screenshot Sorter",
+  "type": "commonjs",
+  "scripts": {
+    "test": "playwright test",
+    "test:headless": "playwright test --headed=false",
+    "test:headed": "playwright test --headed=true",
+    "test:ui": "playwright test --ui",
+    "show-report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  },
+  "playwright": {
+    "testDir": ".",
+    "testMatch": "*.e2e.spec.cjs",
+    "timeout": 30000,
+    "use": {
+      "headless": false,
+      "viewport": {
+        "width": 800,
+        "height": 600
+      }
+    }
+  }
+}

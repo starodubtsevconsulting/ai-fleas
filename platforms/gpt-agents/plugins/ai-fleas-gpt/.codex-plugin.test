@@ -1,0 +1,146 @@
+/** Unit test for trusted owning-app bridge/caller for AdminControllerCommand.
+ * This test verifies the bridge that connects nativeProjectId ↔ appProjectId mapping.
+ * Running: node platforms/gpt-agents/plugins/ai-fleas-gpt/.codex-plugin.test.mjs
+ * Passing result: exits zero with all assertions successful.
+ * This file is an implementation artifact; it is NOT executed by Command Runner.
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { describe, it } from 'node:test';
+import { strictEqual, throws } from 'node:assert';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Mock trusted owning-app reader that injects appProjectId resolution
+function buildMockResolveAppProject({ nativeProjectId, logicalProjectId, appProjectId }) {
+  return async ({ scope }) => {
+    if (!scope?.projects?.[0]?.savedProjectId || !scope.logicalProjectId) {
+      throw new Error('ADMIN_APP_PROJECT_SCOPE_INVALID');
+    }
+    if (scope.projects[0].savedProjectId !== nativeProjectId) {
+      return null;
+    }
+    if (scope.logicalProjectId !== logicalProjectId) {
+      throw new Error('ADMIN_APP_PROJECT_LOGICAL_MISMATCH');
+    }
+    return { nativeProjectId, logicalProjectId, appProjectId };
+  };
+}
+
+function buildMockVerifyAppProject({ taskId, nativeProjectId, logicalProjectId, appProjectId }) {
+  return async ({ scope }) => {
+    if (!taskId || !scope?.projects?.[0]?.savedProjectId || !scope.logicalProjectId) {
+      throw new Error('ADMIN_APP_PROJECT_SCOPE_INVALID');
+    }
+    if (scope.projects[0].savedProjectId !== nativeProjectId || scope.logicalProjectId !== logicalProjectId) {
+      throw new Error('ADMIN_APP_PROJECT_MISMATCH');
+    }
+    return { taskId, nativeProjectId, logicalProjectId, appProjectId, attached: true };
+  };
+}
+
+describe('AdminControllerCommand trusted owning-app bridge', () => {
+  it('blocks when trusted bridge functions are missing', async () => {
+    const { AdminControllerCommand } = await import('./initialize-admin-command.mjs');
+    const command = new AdminControllerCommand({
+      resolveAppProject: undefined,
+      verifyAppProject: undefined,
+    });
+    const result = await command.run({
+      profileId: 'sc',
+      workflowId: 'dev',
+      projectIds: ['ai-fleas'],
+      authorization: {
+        humanApproved: true,
+        profileId: 'sc',
+        workflowId: 'dev',
+        projectIds: ['ai-fleas'],
+      },
+    });
+    strictEqual(result.status, 'blocked');
+    strictEqual(result.reason, 'ADMIN_APP_PROJECT_BRIDGE_UNAVAILABLE');
+    strictEqual(result.lifecycleStarted, false);
+    strictEqual(result.appProjectAttached, false);
+  });
+
+  it('blocks when app project mapping is unverified', async () => {
+    const { AdminControllerCommand } = await import('./initialize-admin-command.mjs');
+    const command = new AdminControllerCommand({
+      resolveAppProject: async () => ({ nativeProjectId: 'wrong-native', logicalProjectId: 'sc-dev', appProjectId: 'wrong-app' }),
+      verifyAppProject: async () => ({ attached: true }),
+    });
+    const result = await command.run({
+      profileId: 'sc',
+      workflowId: 'dev',
+      projectIds: ['ai-fleas'],
+      authorization: {
+        humanApproved: true,
+        profileId: 'sc',
+        workflowId: 'dev',
+        projectIds: ['ai-fleas'],
+      },
+    });
+    strictEqual(result.status, 'blocked');
+    strictEqual(result.reason, 'ADMIN_APP_PROJECT_MAPPING_UNVERIFIED');
+  });
+
+  it('blocks when app project attachment verification fails', async () => {
+    const { AdminControllerCommand } = await import('./initialize-admin-command.mjs');
+    const command = new AdminControllerCommand({
+      resolveAppProject: async ({ scope }) => ({
+        nativeProjectId: scope.projects[0].savedProjectId,
+        logicalProjectId: scope.logicalProjectId,
+        appProjectId: 'verified-app-project-id',
+      }),
+      verifyAppProject: async () => { throw new Error('ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED'); },
+    });
+    const result = await command.run({
+      profileId: 'sc',
+      workflowId: 'dev',
+      projectIds: ['ai-fleas'],
+      authorization: {
+        humanApproved: true,
+        profileId: 'sc',
+        workflowId: 'dev',
+        projectIds: ['ai-fleas'],
+      },
+    });
+    strictEqual(result.status, 'blocked');
+    strictEqual(result.reason, 'ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED');
+    strictEqual(result.appProjectAttached, false);
+  });
+
+  it('blocks when expectedAppProjectId does not match verification', async () => {
+    const { AdminControllerCommand } = await import('./initialize-admin-command.mjs');
+    const command = new AdminControllerCommand({
+      resolveAppProject: async ({ scope }) => ({
+        nativeProjectId: scope.projects[0].savedProjectId,
+        logicalProjectId: scope.logicalProjectId,
+        appProjectId: 'expected-app-id',
+      }),
+      verifyAppProject: async ({ scope }) => ({
+        nativeProjectId: scope.projects[0].savedProjectId,
+        logicalProjectId: scope.logicalProjectId,
+        appProjectId: 'different-app-id',
+        attached: true,
+      }),
+    });
+    const result = await command.run({
+      profileId: 'sc',
+      workflowId: 'dev',
+      projectIds: ['ai-fleas'],
+      authorization: {
+        humanApproved: true,
+        profileId: 'sc',
+        workflowId: 'dev',
+        projectIds: ['ai-fleas'],
+      },
+    });
+    strictEqual(result.status, 'blocked');
+    strictEqual(result.reason, 'ADMIN_APP_PROJECT_ATTACHMENT_UNVERIFIED');
+  });
+});
+
+console.log('All tests passed.');

@@ -72,6 +72,26 @@ without changing this command, the workflow contract, or the bot lifecycle.
 
 `hermes-agents.command.sh connection status|check|switch --work-profile ID --workflow ID [--instance SLUG] [--connection NAME]` inspects or changes an existing workflow group's route. `check` preflights the selected connection without changing profiles. `switch` reconciles the same group in place, preserving its conversations and memory. A profile-owned wrapper may supply its selected group and, for protected routes, invoke this command through the configured secrets command.
 
+`hermes-agents.command.sh context status --agent EXACT_NAME` verifies the context window of one exact ready Hermes agent across its canonical provider catalog, local Hermes profile, and configured model server. `context set --agent EXACT_NAME --tokens N` updates and verifies those three places, restarting only the selected server service. `EXACT_NAME` is the full initialized profile name, for example `example-dev-coder`, never a bare role such as `coder`. The reusable command owns the operation; the private command configuration supplies the selected server's SSH target, systemd unit, and its context override path.
+
+### Context-window control
+
+Use this subcommand when a long-running Hermes Agent begins compacting unexpectedly, reports a context-limit error, or after deliberately changing a model service's context capacity. First inspect the exact initialized agent:
+
+```sh
+hermes-agents context status --agent example-dev-coder
+```
+
+The result reports four values: the canonical provider catalog, that agent's local Hermes profile, its configured compression helper, and the serving model API. All four must support the intended limit. In particular, a smaller compression helper forces Hermes to compact early even when the main model has a larger window. `status` fails rather than hiding that constraint.
+
+After capacity has been measured and approved, reconcile the complete path with:
+
+```sh
+hermes-agents context set --agent example-dev-coder --tokens 131072
+```
+
+`set` updates the catalog and exact Hermes profile, updates the private configured model-service override, restarts only that service, waits for its model API to become ready, and verifies the four values again. It refuses to increase the main window beyond the configured compression helper; reconcile a compatible helper first. It never accepts a bare role name, guesses a model service, or changes every Hermes profile.
+
 `hermes-delegate.command.sh check [--project ID]` and `hermes-delegate.command.sh run [--project ID] "assignment"` provide a synchronous Coder delegation endpoint. The caller selects the profile catalog root with `AI_PROFILE_ROOT`, then `AI_WORK_PROFILE_ID` and `AI_FLOW_WORKFLOW`; the command resolves the selected profile's `gpt-agents` `commands[].config` reference and reads `execution_delegates.<workflow>.coder` there. It verifies the authorized project, named branch, workflow receipt, live Hermes profile, provider, model, and endpoint before running the bounded assignment. Profile-owned wrappers may supply those selections, but should not duplicate the transport or validation logic. The public example config illustrates a possible transport binding; each operational profile selects its own values.
 
 For CLI `run`, set `HERMES_WRITE_SAFE_ROOT` to the exact authorized write boundary. The launcher begins process-group cleanup after 240 seconds by default, with up to five seconds for graceful exit; `HERMES_CODER_TIMEOUT_SECONDS` can set a positive integer number of seconds for one run. Timeout exits 124 after group cleanup. `check` does not require either variable.
@@ -161,6 +181,8 @@ for tunnel/application ownership, service-token creation, naming, policy attachm
 | `status-system --work-profile ID [--instance SLUG]` | Verify the exact canonical or test-instance System receipt. |
 | `reinitialize` / `re-init` | After `--confirm-reinitialize`, preflight the complete replacement, delete the exact active workflow group and role profiles only when that preflight succeeds, then create a fresh complete generation. Existing conversations and memory for those profiles are removed. |
 | `reconcile` | Reapply the resolved role-profile and group configuration, remove retired receipt-backed roles from group membership, and preserve their profiles, conversations, and memory. |
+| `context status --agent EXACT_NAME` | Read and compare the canonical catalog, local Hermes profile, and configured model server context limit for one exact ready agent. Reports drift without changing anything. |
+| `context set --agent EXACT_NAME --tokens N` | Change that exact agent's canonical context setting, local Hermes setting, and configured model service, then wait for the server and verify the three limits agree. |
 | `configure` / `setup` | Compatibility aliases for `initialize`; new integrations should use `initialize`. |
 | `list` | List existing Hermes profiles. |
 | `show PROFILE` | Inspect one exact profile. |
@@ -268,6 +290,11 @@ This difference belongs to the platform adapters and must not be hardcoded as a 
 The normal minimal Hermes profile is one foreground agent plus both auxiliary task slots. `compression` preserves usable
 session context; `goal_judge` evaluates bounded-goal progress. They may use one shared auxiliary model, but neither slot
 is optional for a profile presented as normally configured. They do not create additional workflow agents.
+
+A workflow may alternatively declare an ordered `auxiliary_models.<workflow>.routes` list. Each route names one provider,
+model, connection, caller list, and task mapping. A caller/task pair may occur only once across the list, so a short task
+such as `title_generation` can use a small local model while `compression` remains on a model with an adequate context
+window.
 
 ```mermaid
 flowchart TD

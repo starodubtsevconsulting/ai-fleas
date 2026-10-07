@@ -1,0 +1,120 @@
+<nav class="tabs" aria-label="Screenshot Sorter sections">
+  <button 
+    class="tab" 
+    [class.selected]="selectedTab === 'library'"
+    (click)="selectTab('library')"
+    [attr.aria-selected]="selectedTab === 'library'"
+  >
+    Screenshots
+  </button>
+  <button 
+    class="tab" 
+    [class.selected]="selectedTab === 'settings'"
+    (click)="selectTab('settings')"
+    [attr.aria-selected]="selectedTab === 'settings'"
+  >
+    Settings
+  </button>
+</nav>
+
+<section class="panel" [hidden]="selectedTab !== 'library'">
+  <div class="hero-container" *ngIf="showHero">
+    <img class="hero" src="assets/hero.png" alt="A person and an AI Fleas robot working together at a desk">
+    <button class="close" (click)="hideHero()" aria-label="Close hero image">×</button>
+  </div>
+  <div class="library-head">
+    <div>
+      <h1>Your screenshots</h1>
+      <p>Browse screenshots by capture-date folder. This view is read-only for now.</p>
+    </div>
+    <button class="secondary library-refresh" (click)="loadLibrary()" aria-label="Refresh screenshots">↻&nbsp; Refresh screenshots</button>
+  </div>
+  
+  <div id="library" aria-live="polite">
+    <div class="card empty" *ngIf="folders.length === 0">Loading screenshots...</div>
+        
+    <div class="card empty" *ngIf="folders.length > 0 && folders.length === 0">
+      No sorted screenshots yet. New screenshots will appear here after they are filed.
+    </div>
+    
+    <div class="folder-section" *ngFor="let folder of folders" 
+         [class.collapsed]="collapsedFolders.has(folder.date)"
+         [attr.aria-expanded]="!collapsedFolders.has(folder.date)">
+      
+      <div class="folder-head" (click)="toggleFolder(folder.date, $event)">
+        <h2>
+          <span [style.color]="collapsedFolders.has(folder.date) ? '#70798c' : '#2e67d1'" 
+                [style.fontSize]="'12px'">
+            {{ collapsedFolders.has(folder.date) ? '▶' : '▼' }}
+          </span>
+          {{ folder.date }}
+          <span style="color:#70798c; font-size:12px;">
+            ({{ relativeDate(folder.date) }})
+          </span>
+        </h2>
+        <span class="count">
+          {{ folder.count }} screenshot{{ folder.count === 1 ? '' : 's' }}
+          {{ folder.count > folder.screenshots.length ? ' · showing newest ' + folder.screenshots.length : '' }}
+        </span>
+      </div>
+      
+      <div class="shots" *ngIf="!collapsedFolders.has(folder.date)">
+        <article class="shot" *ngFor="let shot of folder.screenshots" [title]="shot.name">
+          <img [src]="thumbnail(shot)" [alt]="shot.name" (error)="shot.name = shot.name + ' (preview unavailable)'" (load)="shot.name = shot.name.replace(' (preview unavailable)', '')" (click)="openScreenshot(shot)" style="cursor: pointer;">
+          <div class="shot-name">{{ shot.name }}</div>
+          <div class="shot-meta">{{ changed(shot.modifiedAt) }} · {{ bytes(shot.bytes) }}</div>
+          <div class="shot-actions">
+            <button class="folder" (click)="openFolder(shot)" aria-label="Open folder in Finder">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Full screen screenshot view -->
+<app-screenshot-detail [shot]="selectedScreenshot" (close)="closeScreenshot()"></app-screenshot-detail>
+
+<section class="panel" [hidden]="selectedTab !== 'settings'">
+  <div class="hero-container">
+    <img class="hero" src="assets/hero.png" alt="A person and an AI Fleas robot working together at a desk">
+    <button class="close" (click)="hideHero()" aria-label="Close hero image">×</button>
+  </div>
+  <h1>Keep your screenshots organized</h1>
+  <p>Instead of letting screenshots pile up on your Desktop, Screenshot Sorter automatically files each new screenshot into a dated folder (like <code>2026-10-05</code>) in the location you choose.</p>
+  
+  <div class="card" *ngIf="settings as s">
+    <label>Capture inbox</label>
+    <div class="row">
+      <input type="text" [value]="s.sourceDir" readonly>
+      <button class="secondary" (click)="chooseFolder('source')">Choose…</button>
+    </div>
+    <p class="hint">Save makes this the macOS screenshot location and reloads the sorter.</p>
+    
+    <label>Sorted screenshots folder</label>
+    <div class="row">
+      <input type="text" [value]="s.destinationDir" readonly>
+      <button class="secondary" (click)="chooseFolder('destination')">Choose…</button>
+    </div>
+    
+    <label>Wait for screenshot file to finish writing (seconds)</label>
+    <input type="number" [value]="s.settleSeconds" min="0" max="60" readonly>
+    <p class="hint">Default: 2. After a matching screenshot appears, wait this long before moving it so the file is complete. 0 moves immediately.</p>
+    
+    <label>Missed-event recovery scan (seconds)</label>
+    <input type="number" [value]="s.startIntervalSeconds" min="0" max="3600" readonly>
+    <p class="hint">Default: 10. A background safety net that rescans if macOS file watching misses an event. It never delays normal sorting. 0 turns this safety net off; otherwise choose 10–3600.</p>
+    
+    <button (click)="saveSettings()">Save and reload sorter</button>
+    <button class="secondary" (click)="refreshStatus()">Refresh status</button>
+  </div>
+  
+  <div class="card">
+    <strong>Runtime status</strong>
+    <pre class="status">{{ statusText }}</pre>
+  </div>
+</section>

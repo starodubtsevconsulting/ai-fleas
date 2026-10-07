@@ -4,12 +4,42 @@ set -euo pipefail
 [[ "$(uname -s)" == Darwin ]] || { printf 'SCREENSHOT_SORTER_BLOCKED: macOS is required\n' >&2; exit 2; }
 command_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 source "$command_dir/../../_runtime/profile/command-profile.guard.sh"
-ai_command_require_profile macos-screenshot-sorter
+# Development/default mode: a profile specializes the command but is not
+# required merely to launch the app. Fall back to the bundled safe defaults.
+if ! ai_command_require_profile macos-screenshot-sorter 2>/dev/null; then
+  export AI_COMMAND_CONFIG_PATH="$command_dir/macos-screenshot-sorter.default.config"
+fi
 
 # Profile-owned configuration selects the private source, destination, label,
 # and log paths. This public command never embeds a machine-specific path.
-# shellcheck disable=SC1090
-source "$AI_COMMAND_CONFIG_PATH"
+# The config file may be YAML (.yml/.yaml) or shell .env format - parse accordingly.
+ai_config_path="$AI_COMMAND_CONFIG_PATH"
+case "$ai_config_path" in
+  *.yml|*.yaml)
+    # Try to detect if it's shell format (key=value) or actual YAML (key: value)
+    # Parse as shell .env format with comments, extract KEY=VALUE pairs
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      # Skip empty lines and comments (lines starting with #)
+      [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+      # Skip lines that don't match KEY=VALUE pattern (for YAML compatibility)
+      [[ "$line" =~ ^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*= ]] || continue
+      # Extract key and value, handling quoted values
+      key="${line%%=*}"
+      value="${line#*=}"
+      # Remove surrounding quotes if present (handle both " and ')
+      case "$value" in
+        \"*\") value="${value:1:${#value}-2}" ;;
+        \'*\') value="${value:1:${#value}-2}" ;;
+      esac
+      export "$key=$value"
+    done < "$ai_config_path"
+    ;;
+  *)
+    # Shell .env format - source directly
+    # shellcheck disable=SC1090
+    source "$ai_config_path"
+    ;;
+esac
 
 : "${SCREENSHOT_SORTER_SOURCE_DIR:?profile config must set SCREENSHOT_SORTER_SOURCE_DIR}"
 : "${SCREENSHOT_SORTER_DESTINATION_DIR:?profile config must set SCREENSHOT_SORTER_DESTINATION_DIR}"
@@ -74,8 +104,17 @@ case "${1:-sort}" in
     ;;
   ui)
     [[ $# -eq 1 || ( $# -eq 2 && "$2" == '--force' ) ]] || fail 'ui takes no options except --force'
-    : "${SCREENSHOT_SORTER_ELECTRON_BIN:?profile config must set SCREENSHOT_SORTER_ELECTRON_BIN for the UI}"
+    if [[ -z "${SCREENSHOT_SORTER_ELECTRON_BIN:-}" ]]; then
+      if [[ -x "$command_dir/launcher/node_modules/.bin/electron" ]]; then
+        SCREENSHOT_SORTER_ELECTRON_BIN="$command_dir/launcher/node_modules/.bin/electron"
+      else
+        printf 'Installing local Electron development runtime...\n'
+        (cd "$command_dir/launcher" && npm install)
+        SCREENSHOT_SORTER_ELECTRON_BIN="$command_dir/launcher/node_modules/.bin/electron"
+      fi
+    fi
     export SCREENSHOT_SORTER_ELECTRON_BIN
+    export AI_COMMAND_CONFIG_PATH
     if [[ $# -eq 2 ]]; then exec "$command_dir/app.sh" --force; fi
     exec "$command_dir/app.sh"
     ;;

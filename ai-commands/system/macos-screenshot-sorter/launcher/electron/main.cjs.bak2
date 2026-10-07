@@ -19,30 +19,15 @@ const isPrimaryInstance = app.requestSingleInstanceLock();
 if (!isPrimaryInstance) app.exit(0);
 
 function fail(message) { throw new Error(message); }
-function expandHome(value) {
-  if (typeof value !== 'string') return value;
-  if (value === '$HOME') return os.homedir();
-  if (value.startsWith('$HOME/')) return path.join(os.homedir(), value.slice(6));
-  if (value === '~') return os.homedir();
-  if (value.startsWith('~/')) return path.join(os.homedir(), value.slice(2));
-  return value;
-}
 function readConfig() {
-  if (!configPath) fail('No active profile configuration is available. Launch the UI through app.sh.');
+  if (!configPath) fail('No active profile configuration is available. Launch the UI through macos-screenshot-sorter.command.sh ui.');
   const raw = fs.readFileSync(configPath, 'utf8');
   const values = {};
-  for (const originalLine of raw.split(/\r?\n/)) {
-    const line = originalLine.trim();
-    if (!line || line.startsWith('#')) continue;
-    const separator = line.indexOf('=');
-    if (separator <= 0) continue;
-    const key = line.slice(0, separator).trim();
-    if (!/^[A-Z0-9_]+$/.test(key)) continue;
-    let value = line.slice(separator + 1).trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1);
+  for (const line of raw.split(/\r?\n/)) {
+    const match = line.match(/^([A-Z0-9_]+)=(?:("([^"]*)")|'([^']*)'|([^#\s]*))/);
+    if (match) {
+      values[match[1]] = match[2] ?? match[3] ?? match[4] ?? '';
     }
-    values[key] = expandHome(value);
   }
   return { raw, values };
 }
@@ -116,7 +101,7 @@ function settings() {
     settleSeconds, startIntervalSeconds, candidateLabel: requiredConfig(values, 'SCREENSHOT_SORTER_LABEL')
   };
 }
-const DATE_FOLDER = /^(\d{4}-\d{2}-\d{2})$/;
+const DATE_FOLDER = /^(d{4}-d{2}-d{2})$/;
 const IMAGE_SUFFIX = /\.(?:png|jpe?g|heic|webp|tiff?)$/i;
 const SCREENSHOT_NAME = /^(?:Screenshot|Screen Shot)(?:[ _-]|$)/i;
 function isContained(child, parent) {
@@ -138,13 +123,10 @@ function safeScreenshotFile(filePath, folderPath, rootPath) {
 function screenshotLibrary() {
   const root = fs.realpathSync(settings().destinationDir);
   screenshotItems = new Map();
-  console.log('[LIBRARY] scanning', root);
-  const allEntries = fs.readdirSync(root, { withFileTypes:true });
-  console.log('[LIBRARY] root entries', allEntries.length, 'dated', allEntries.filter((entry) => entry.isDirectory() && isCaptureDate(entry.name)).length);
-  const folders = allEntries
+  const folders = fs.readdirSync(root, { withFileTypes:true })
     .filter((entry) => entry.isDirectory() && !entry.isSymbolicLink() && isCaptureDate(entry.name))
     .sort((left, right) => right.name.localeCompare(left.name));
-  const result = folders.map((folder) => {
+  return folders.map((folder) => {
     const folderPath = fs.realpathSync(path.join(root, folder.name));
     if (!isContained(folderPath, root)) return null;
     const images = fs.readdirSync(folderPath, { withFileTypes:true })
@@ -165,8 +147,6 @@ function screenshotLibrary() {
       })
     };
   }).filter((folder) => folder && folder.count > 0);
-  console.log('[LIBRARY] matched folders', result.length, 'screenshots', result.reduce((sum, folder) => sum + folder.count, 0));
-  return result;
 }
 function screenshotThumbnail(_event, id) {
   if (typeof id !== 'string') fail('Screenshot identifier is invalid.');
