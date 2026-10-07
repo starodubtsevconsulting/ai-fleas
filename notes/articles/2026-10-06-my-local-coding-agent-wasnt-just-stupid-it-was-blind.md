@@ -1,8 +1,10 @@
 ---
 title: "My Local Coding Agent Wasn't Just Stupid. It Was Blind."
-subtitle: "A coding model can produce code and still fail to save time. I am testing which missing capabilities turn a model into a useful agent."
+previous_title: "My Local Coding Agent Wasn't Just Stupid. It Was Blind."
+subtitle: "The model could write code. The real test was whether better context, vision, and agent support could reduce the time I spent supervising it."
 author: Sergii Starodubtsev
 date: "2026-10-06"
+version: 2
 locale: en
 status: draft
 project: ai-fleas
@@ -13,17 +15,21 @@ tags: [artificial-intelligence, ai-agents, local-models, hermes, computer-vision
 
 # My Local Coding Agent Wasn't Just Stupid. It Was Blind.
 
-*A coding model can produce code and still fail to save time. I am testing which missing capabilities turn a model into a useful agent.*
+*The model could write code. The real test was whether better context, vision, and agent support could reduce the time I spent supervising it.*
 
 I spent two days watching a local coding agent build something I probably could have built myself in about the same amount of time.
 
-It did produce useful work.
+It produced useful code.
+
+I still had to supply missing knowledge, inspect the interface for it, correct its turns, and tell it what had gone wrong.
 
 That is the problem.
 
-“Can it produce useful work?” is too low a bar for an autonomous coding agent. If I spend the same two days correcting its turns, supplying missing knowledge, looking at the interface for it, and telling it what went wrong, I have not gained leverage. I have changed the interface through which I work.
+“Can it write code?” is too low a bar for an autonomous coding agent. The useful question is whether the whole agent system gives me back time.
 
-The agent writes the code. I remain the reasoning system around it.
+The model was doing the implementation. I was still providing much of the context, observation, judgment, and recovery around it.
+
+In other words, the coder was not failing only because of what it knew. It was also failing because of what it could not see and what the surrounding system did not reliably give it.
 
 That distinction is becoming the real subject of this experiment. A coding benchmark can tell me whether a model can produce code. It cannot tell me whether an agent built around that model gives me back time. For anyone building local or hybrid agents, I think that is the more useful question.
 
