@@ -199,3 +199,11 @@ The real question is whether each part is doing something useful enough to justi
 ## Sources and provenance
 
 This scripted dialogue uses fictional Host and Anna voices to explain the author's real hybrid-AI experiments; it is not a transcript of an actual interview. The hardware purchase price and observations about repeated correction are the author's firsthand experience, not general benchmarks. Hermes delegation behavior was checked against the current [Hermes Agent delegation documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/delegation.md), which describes isolated child agents with fresh conversations and final-result return. A2A behavior was checked against the current [Agent2Agent specification](https://github.com/a2aproject/A2A/blob/main/docs/specification.md). The public [AI Fleas project](https://github.com/starodubtsevconsulting/ai-fleas) contains the implementation notes and workflow material; profile-specific configuration remains private. No claim is made that Hermes, ChatGPT, or local models will produce the same cost or quality outcome for another user.
+
+## Related local-AI reading
+
+- **Previous:** [*Hosted AI Wasn't Enough. Local AI Wasn't Enough Either.*](2026-09-26-why-hybrid-ai-is-worth-considering.md)
+- **Next:** [*You Bought the Local AI Machine. Now Make It Earn Its Keep.*](2026-10-07-you-bought-the-local-ai-machine-now-make-it-earn-its-keep.md)
+- **Also related:** [*What 27B, 4-Bit, and 64K Actually Mean in an AI Model*](2026-09-29-what-27b-4-bit-and-64k-mean.md)
+
+These links follow the conceptual local/hybrid-AI thread rather than publication chronology.
