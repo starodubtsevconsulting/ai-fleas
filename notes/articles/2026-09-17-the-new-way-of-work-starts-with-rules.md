@@ -1,18 +1,34 @@
-# The New Way of Work Starts With Rules
+---
+title: "Stop Re-Explaining Yourself to AI. Write the Rules Down."
+previous_title: "The New Way of Work Starts With Rules"
+subtitle: "If you keep telling AI the same important things, turn them into instructions that survive the conversation."
+date: "2026-09-17"
+version: 2
+---
 
-This morning I am sitting in a park with a coffee, watching a plane go by.
+# Stop Re-Explaining Yourself to AI. Write the Rules Down.
 
-And I am changing the rules of how my AI works with me.
+*If you keep telling AI the same important things, turn them into instructions that survive the conversation.*
 
-Not starting another random chat. Not trying to remember how I explained something yesterday. I am looking at rules I already have, making them a little better, and keeping the useful changes.
+There is a sentence that should make you suspicious of your AI setup:
 
-That, increasingly, is what AI adoption means to me.
+> **I already told you that.**
 
-It starts when you stop saying:
+If you keep explaining the same preference, boundary, workflow, or definition to AI, the problem is no longer the individual conversation. The useful information has not been turned into something the system can reliably find again.
 
-> I already told you that.
+This morning I was sitting in a park with a coffee, watching a plane go by, and changing the rules of how my AI works with me.
 
-and start turning the important things you repeatedly tell AI into **rules that survive the conversation**.
+Not starting another random chat. Not trying to remember how I explained something yesterday. I was taking things I had repeatedly told AI and turning the important ones into instructions that survive the conversation.
+
+That, increasingly, is what practical AI adoption means to me.
+
+The shift is simple:
+
+> Stop relying on “I already told you that.”
+>
+> Start deciding which repeated instructions deserve to become durable rules.
+
+You do not need to encode your whole life. You need a reliable place for the small set of things the AI should not have to rediscover every time.
 
 ## Give the AI a front door
 
