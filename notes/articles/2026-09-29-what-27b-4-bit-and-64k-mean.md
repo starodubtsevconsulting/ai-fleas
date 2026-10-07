@@ -1,20 +1,32 @@
+---
+title: "What 27B, 4-Bit, and 64K Actually Mean in an AI Model"
+previous_title: "What 27B, 4-Bit, and 64K Actually Mean in an AI Model"
+subtitle: "A practical guide to model size, quantization, context, and why a model that looks like it fits can still run out of memory."
+date: "2026-09-29"
+version: 2
+---
+
 # What 27B, 4-Bit, and 64K Actually Mean in an AI Model
 
-## A practical guide to parameters, quantization, context, training memory, and the specifications that actually affect local AI
+*A practical guide to model size, quantization, context, and why a model that looks like it fits can still run out of memory.*
 
 ![The AI Fleas robot explains three distinct model specifications to a reader: learned parameters, compact weight storage, and a bounded working context.](assets/2026-09-29-ai-fleas-model-numbers-header.png)
 
 *Parameter count, weight precision, and context length answer different questions. Original AI Fleas illustration.*
 
-Model descriptions often compress an entire system into three numbers:
+A local model can look as if it fits your machine and still run out of memory.
+
+That is because three numbers that often appear beside a model name describe three different constraints:
 
 - **27B parameters**
 - **4-bit quantization**
 - **64K context**
 
-Those numbers matter, but they describe different things. Parameter count describes the model. Quantization describes how its weights are stored. Context length describes how much text it can keep in its working window.
+Parameter count describes how much learned model there is. Quantization changes how compactly those weights are stored. Context length changes how much working information the model can hold—and the memory needed for that working window.
 
-Put them together incorrectly and a model that appears to fit can still run out of memory. Compare them in isolation and a larger model can look better even when it is slower, less useful, or impossible to deploy.
+Treat those numbers as one vague measure of “model size” and it becomes easy to choose a model that technically fits on disk, appears to fit in memory, and then fails or slows dramatically when you give it the context you actually wanted.
+
+Put them together correctly and they become a practical hardware question: **How much memory will this model really need for the way I intend to run it?**
 
 Here is the short version:
 
