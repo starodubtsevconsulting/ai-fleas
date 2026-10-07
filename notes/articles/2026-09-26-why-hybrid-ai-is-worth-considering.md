@@ -1,8 +1,10 @@
 ---
-title: "Why Hybrid AI Is Worth Considering"
-subtitle: "A scripted podcast-style conversation about hosted intelligence, local capacity, cost, and control."
+title: "Hosted AI Wasn't Enough. Local AI Wasn't Enough Either."
+previous_title: "Why Hybrid AI Is Worth Considering"
+subtitle: "I stopped treating hosted and local AI as competing choices when I realized each solved a different part of the same workflow."
 author: Sergii Starodubtsev
 date: "2026-09-26"
+version: 2
 locale: en
 status: published
 tags:
@@ -16,13 +18,27 @@ lead_image_alt: "A human and an AI Fleas robot route tasks between a local compu
 lead_image_credit: "Illustration generated from the author’s AI Fleas character references."
 ---
 
-# Why Hybrid AI Is Worth Considering
+# Hosted AI Wasn't Enough. Local AI Wasn't Enough Either.
 
-*A scripted podcast-style conversation about hosted intelligence, local capacity, cost, and control.*
+*I stopped treating hosted and local AI as competing choices when I realized each solved a different part of the same workflow.*
 
 ![A human and an AI Fleas robot route tasks between a local computer and a hosted cloud, with symbols for privacy, speed, and storage.](assets/2026-09-26-why-hybrid-ai-is-worth-considering-ai-fleas-header.png)
 
 *The AI Fleas team routes work between local capacity and hosted AI. Illustration generated from the author’s AI Fleas character references.*
+
+Hosted AI gave me the strongest reasoning and the easiest interface.
+
+Local AI gave me capacity I already owned, more control over where selected work ran, and somewhere to continue when hosted limits became the bottleneck.
+
+Neither was enough by itself for the system I wanted.
+
+If I sent everything to hosted AI, I kept the convenience but also the cost, limits, and dependence on one external path. If I forced everything onto local models, I gained control and capacity but gave up too much capability on the work that still benefited from stronger hosted reasoning.
+
+So I stopped treating **hosted versus local** as the decision.
+
+The useful question became: **Which work should run where?**
+
+That is the practical reason I started building a hybrid setup: hosted intelligence for the work where it adds the most value, local capacity for bounded work it can handle well, and an orchestration layer that can choose between them.
 
 *The following is a scripted dialogue. Host and Anna are fictional voices used to explain a real implementation; this is not a transcript of an actual interview.*
 
