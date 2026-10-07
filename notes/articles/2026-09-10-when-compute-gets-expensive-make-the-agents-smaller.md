@@ -1,32 +1,36 @@
+---
+title: "When Compute Gets Expensive, Make the Agents Smaller"
+previous_title: "When Compute Gets Expensive, Make the Agents Smaller"
+subtitle: "Not every AI job needs the biggest model. Small specialized models can handle narrow roles and save expensive intelligence for the work that needs it."
+date: "2026-09-10"
+version: 2
+---
+
 # When Compute Gets Expensive, Make the Agents Smaller
 
-**September 10, 2026**
+*Not every AI job needs the biggest model. Small specialized models can handle narrow roles and save expensive intelligence for the work that needs it.*
 
-A week ago, I bought an ASUS AI box with NVIDIA hardware for about **$5.4K**.
+I bought a powerful local AI machine for about **$5,400**.
 
-Now I'm seeing prices close to **$9K**.
+A week later, I was seeing listings close to **$9,000** for the same class of hardware.
 
-Maybe it is demand. Maybe supply. Maybe politics. Probably some combination of all three.
+After actually using the machine, I had also reached an inconvenient conclusion: for the architecture I was imagining, one box was not really enough. A second capable node would make several things easier.
 
-The annoying part is that after actually using the machine, I figured out that I don't really need one. I need at least two.
+Buying another expensive machine was the obvious answer.
 
-But that's okay.
+It was not the only answer.
 
-If brute-force compute becomes too expensive, I'll go around it.
+I started looking at all the smaller jobs surrounding the big models. Does checking whether an agent is still alive require the smartest model I can run? Does a simple classification? A bounded validation? A routing decision with five known outcomes?
 
-Instead of putting another giant model behind every problem, I'll use all the scraps of compute I already have. Small machines, small models, specialized tasks. A 4B model doesn't have to be brilliant if its entire job is to check whether another agent is still alive. Another small model can classify something. Another can monitor. Another can validate a simple result.
+Probably not.
 
-Little agents filling the gaps between the big ones.
+A small model does not have to be brilliant if its entire job is narrow and well defined.
 
-Maybe that's actually a better architecture anyway.
+That changes the architecture. Instead of solving every problem by adding another giant model, I can use smaller models and machines for the routine roles around the expensive reasoning work—and reserve the largest models for the decisions that actually need them.
 
-When compute is cheap, it's tempting to solve everything by buying more compute.
+When compute becomes expensive, the useful question is not only **how do I buy more?**
 
-When compute becomes expensive, you're forced to become more creative about **what actually needs intelligence**.
-
-So if the second box costs too much, fine.
-
-I'll build more fleas.
+It is **what actually needs this much intelligence?**
 
 **P.S. — Stoic quote of the day**
 
