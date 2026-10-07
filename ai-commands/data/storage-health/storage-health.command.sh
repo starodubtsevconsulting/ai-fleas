@@ -101,8 +101,17 @@ interactive(){
       printf "Drive: "; read -r n
       [[ "$n" =~ ^[0-9]+$ ]] && (( n>=1 && n<=${#disks[@]} )) || { echo "Invalid selection."; return 2; }
       printf "Test [s]hort or [l]ong? "; read -r kind
-      if [[ "$kind" =~ ^[Ll] ]]; then echo; smart_last_summary "${disks[n-1]}"; smart_long_estimate "${disks[n-1]}"; fi
-      [[ "$kind" =~ ^[Ll] ]] && main test "${disks[n-1]}" --long || main test "${disks[n-1]}" --short
+      if [[ "$kind" =~ ^[Ll] ]]; then
+        echo
+        echo "Selected: $(lsblk -dn -o MODEL "${disks[n-1]}" | xargs) $(lsblk -dn -o SIZE "${disks[n-1]}" | xargs)"
+        echo "Test: Long SMART self-test"
+        smart_last_summary "${disks[n-1]}"
+        smart_long_estimate "${disks[n-1]}"
+        echo "Impact: Non-destructive; may increase disk I/O."
+        main test "${disks[n-1]}" --long
+      else
+        main test "${disks[n-1]}" --short
+      fi
       ;;
     4) main inspect ;;
     5)
@@ -120,5 +129,5 @@ interactive(){
   esac
 }
 
-main(){ [[ $# -ge 1 ]] || { interactive; return; }; local action="$1"; shift; case "$action" in inspect) inspect;; filesystem) local target="${1:-}"; [[ -n "$target" ]] || { usage; exit 2; }; if [[ "$target" == "--all" ]]; then while read -r d; do filesystem_report "$d"; echo; done < <(external_disks); else filesystem_report "$target"; fi;; qualify) ensure_smartctl; local target="${1:-}"; [[ -n "$target" ]] || { usage; exit 2; }; if [[ "$target" == "--all" ]]; then while read -r d; do filesystem_report "$d"; echo; assess "$d" 0; echo; ai_suitability "$d" 0; echo; done < <(external_disks); else filesystem_report "$target"; echo; assess "$target" 0; echo; ai_suitability "$target" 0; fi;; health|report) ensure_smartctl; local target="${1:-}" json=0; [[ -n "$target" ]] || { usage; exit 2; }; shift || true; [[ "${1:-}" == "--json" ]] && json=1; if [[ "$target" == "--all" ]]; then while read -r d; do assess "$d" "$json"; [[ "$json" == 1 ]] || echo; done < <(external_disks); else assess "$target" "$json"; fi;; ai-report) ensure_smartctl; local target="${1:-}" json=0; [[ -n "$target" ]] || { usage; exit 2; }; shift || true; [[ "${1:-}" == "--json" ]] && json=1; if [[ "$target" == "--all" ]]; then while read -r d; do assess "$d" "$json"; ai_suitability "$d" "$json"; [[ "$json" == 1 ]] || echo; done < <(external_disks); else assess "$target" "$json"; [[ "$json" == 0 ]] && echo; ai_suitability "$target" "$json"; fi;; test) ensure_smartctl; local dev="${1:-}" kind="${2:-}"; [[ "$kind" == "--short" || "$kind" == "--long" ]] || { usage; exit 2; }; smart_test_history "$dev"; echo; smart_test "$dev" "${kind#--}";; test-status) ensure_smartctl; local dev="${1:-}"; [[ -n "$dev" ]] || { usage; exit 2; }; smart_capture "$dev" -a | grep -Ei 'Self-test|remaining|progress|SMART overall-health|SMART Health Status' || true;; *) usage; exit 2;; esac; }
+main(){ [[ $# -ge 1 ]] || { interactive; return; }; local action="$1"; shift; case "$action" in inspect) inspect;; filesystem) local target="${1:-}"; [[ -n "$target" ]] || { usage; exit 2; }; if [[ "$target" == "--all" ]]; then while read -r d; do filesystem_report "$d"; echo; done < <(external_disks); else filesystem_report "$target"; fi;; qualify) ensure_smartctl; local target="${1:-}"; [[ -n "$target" ]] || { usage; exit 2; }; if [[ "$target" == "--all" ]]; then while read -r d; do filesystem_report "$d"; echo; assess "$d" 0; echo; ai_suitability "$d" 0; echo; done < <(external_disks); else filesystem_report "$target"; echo; assess "$target" 0; echo; ai_suitability "$target" 0; fi;; health|report) ensure_smartctl; local target="${1:-}" json=0; [[ -n "$target" ]] || { usage; exit 2; }; shift || true; [[ "${1:-}" == "--json" ]] && json=1; if [[ "$target" == "--all" ]]; then while read -r d; do assess "$d" "$json"; [[ "$json" == 1 ]] || echo; done < <(external_disks); else assess "$target" "$json"; fi;; ai-report) ensure_smartctl; local target="${1:-}" json=0; [[ -n "$target" ]] || { usage; exit 2; }; shift || true; [[ "${1:-}" == "--json" ]] && json=1; if [[ "$target" == "--all" ]]; then while read -r d; do assess "$d" "$json"; ai_suitability "$d" "$json"; [[ "$json" == 1 ]] || echo; done < <(external_disks); else assess "$target" "$json"; [[ "$json" == 0 ]] && echo; ai_suitability "$target" "$json"; fi;; test) ensure_smartctl; local dev="${1:-}" kind="${2:-}"; [[ "$kind" == "--short" || "$kind" == "--long" ]] || { usage; exit 2; }; smart_test "$dev" "${kind#--}";; test-status) ensure_smartctl; local dev="${1:-}"; [[ -n "$dev" ]] || { usage; exit 2; }; smart_capture "$dev" -a | grep -Ei 'Self-test|remaining|progress|SMART overall-health|SMART Health Status' || true;; *) usage; exit 2;; esac; }
 main "$@"
