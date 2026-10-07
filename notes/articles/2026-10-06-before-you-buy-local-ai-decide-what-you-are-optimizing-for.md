@@ -288,6 +288,14 @@ That is why I would measure local AI less by tokens generated or hours powered o
 
 The exact target will differ for every organization. Privacy, research, resilience and strategic control can make the value much larger than avoided API spend alone. The point is to establish what value means *before* using hardware utilization as evidence that the investment works.
 
+There is an important boundary here: **AI capacity does not create a business case by itself.** A model can stay busy all day producing work nobody needs. The value comes from the underlying business, research, operational or strategic problem.
+
+In many organizations that problem already exists. They already have customers, documents, accounting, analysis, support, engineering, media, internal processes or research that creates value. The opportunity is to identify which parts of that existing work can be made faster, cheaper, more private, more reliable or more scalable with AI.
+
+That is also where outside AI expertise and the organization's own domain expertise need to meet. I can help investigate the models, workflows, infrastructure, integration points and economics. The client knows which work matters in its domain and what a useful result is worth. Together, those two perspectives can answer a much better question than “How do we keep the GPU busy?”
+
+**Which valuable work should we give the AI, and what is the most efficient way to run it?**
+
 There is also a clock running. AI hardware can become technologically old long before it physically wears out. An investment case that needs several years of perfect utilization may be much weaker than one that extracts substantial useful capacity while the hardware is still competitive.
 
 And utilization should be considered across the workloads that can realistically share the infrastructure. A machine that makes little sense as an occasional coding fallback may look very different if it also handles document processing, accounting workflows, private analysis, visual inspection, research, media work and scheduled agents.
