@@ -86,7 +86,7 @@ interactive(){
   echo "What would you like to do?"
   echo "  [1] Full AI storage assessment"
   echo "  [2] Check physical health"
-  echo "  [3] Run SMART self-test (long tests may take hours)"
+  echo "  [3] Run disk health test (full tests may take hours)"
   echo "  [4] Show storage inventory"
   echo "  [5] Disk test status / history"
   echo "  [6] Inspect filesystem/signatures"
@@ -107,10 +107,10 @@ interactive(){
       if [[ "$kind" =~ ^[Ll] ]]; then
         echo
         echo "Selected: $(lsblk -dn -o MODEL "${disks[n-1]}" | xargs) $(lsblk -dn -o SIZE "${disks[n-1]}" | xargs)"
-        echo "Test: Long SMART self-test"
+        echo "Test: Full disk health test"
         smart_last_summary "${disks[n-1]}"
         smart_long_estimate "${disks[n-1]}"
-        echo "Impact: Non-destructive; may increase disk I/O."
+        echo "Impact: Non-destructive physical drive self-test; may increase disk I/O."
         main test "${disks[n-1]}" --long
       else
         main test "${disks[n-1]}" --short
