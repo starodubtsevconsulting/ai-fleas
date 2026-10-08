@@ -6,8 +6,9 @@ bus between Writer, Reviewer, and Release Coordinator.
 
 ## Runtime state machine
 
-1. **Initialize and reconcile endpoints.** Verify exactly one active receipt for Admin, Judge, Writer, Reviewer, and
-   Release Coordinator in the same workflow coordinates. Repair an endpoint transactionally when authorized.
+1. **Initialize and reconcile endpoints.** Verify exactly one active receipt for each declared Writing role: Admin,
+   Writer, Reviewer, and Release Coordinator, in the same workflow coordinates. Repair an endpoint transactionally
+   when authorized.
 2. **Start or resume the run.** Verify the Router identity, workflow source, initial or current stage, parent
    correlation, authorized roots, and human-owned decisions already supplied.
 3. **Inspect Writer execution.** The Router assigns Writer the intake, drafting, verification, archive, destination, or

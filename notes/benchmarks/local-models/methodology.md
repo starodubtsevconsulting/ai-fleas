@@ -1,5 +1,8 @@
 # Local Model Benchmark Methodology
 
+> **Harness disclaimer:** The historical agentic coding/tool-use fixtures use **Hermes Agent** unless an individual run says otherwise. Treat observed successes and failures as properties of the combined model, inference configuration, Hermes, tools, and task. Do not infer Pi or other-harness performance from these results. Direct inference and capacity tests are not agentic Hermes evaluations. Every new run should record its actual harness or explicitly state **none**.
+
+
 The benchmarks are practical acceptance tests for local AI workers rather than attempts to produce universal model rankings.
 
 ## Goal

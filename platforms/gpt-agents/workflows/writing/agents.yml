@@ -7,8 +7,9 @@ portable_contract: ../../../../ai-workflows/agents.md
 portable_manifest: ../../../../ai-workflows/writing/agents.yml
 team_policy: ../../../../ai-workflows/writing/agents/team.md
 
-# The Router is hidden host infrastructure. Visible tasks are independent role
-# endpoints and never form a peer-to-peer agent network.
+# The Router is hidden host infrastructure. Visible tasks are independently
+# created role endpoints and never form a peer-to-peer agent network. It is a
+# runtime for declared handoffs, not a prerequisite for showing the roster.
 workflow_runtime:
   id: workflow-router
   visibility: hidden

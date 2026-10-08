@@ -86,10 +86,10 @@ assert.match(contract, /dispatch all\s+canonical initialization messages concurr
 assert.match(contract, /complete canonical initialization prompt\s+as its non-empty first user message/);
 assert.match(contract, /controller's tool-call input or function-call output is not a child-task user\s+message/);
 assert.match(contract, /Read both the active and archived host catalogs to exhaustion/);
-assert.match(contract, /including when the complete roster is archived/);
-assert.match(contract, /Never create a replacement merely because an exact\s+receipt is absent from the active-only catalog/);
+assert.match(contract, /Archived roles are terminal/);
+assert.match(contract, /create fresh\s+successors; never restore, retry, or reactivate them/);
 assert.match(contract, /reconcile-roster\.mjs/);
-assert.match(contract, /Reread the host's task catalog after restoration or creation/);
+assert.match(contract, /Reread the host's task catalog after creation/);
 assert.match(contract, /non-empty user-visible preview, first user message/);
 assert.match(contract, /Direct task access, a\s+readiness response, a locally persisted task record, or a requested project target does not prove saved-project\s+membership/);
 assert.match(contract, /Readiness without catalog and computer-vision-verified sidebar presence is an explicit\s+partial-initialization failure/);
@@ -106,11 +106,11 @@ assert.match(contract, /one-shot permit bound to the exact session ID, full\s+pr
 assert.match(contract, /Cross-task message tools that materialize the\s+prompt as function-call output are not lifecycle delivery/);
 assert.match(contract, /natural-language marker without a matching host permit\s+never bypasses the Router/);
 assert.match(initializationAdapter, /What if every workflow task is archived/);
-assert.match(initializationAdapter, /batch-unarchive exact receipt-backed\s+archived roles/);
+assert.match(initializationAdapter, /Never restore archived roles, including a fully archived roster/);
 assert.match(initializationAdapter, /`queue-lifecycle-control\.mjs`/);
 assert.match(initializationAdapter, /short-lived one-shot permit containing the exact session ID,\s+SHA-256 digest/);
-assert.match(lifecycle, /`initialize` or `reconcile` request naming the profile, workflow, and logical project authorizes reactivation/);
-assert.match(lifecycle, /Ordinary `initialize` is idempotent recovery, not forced generation rotation/);
+assert.match(lifecycle, /Archival is terminal for agent lifecycle identity/);
+assert.match(lifecycle, /Ordinary `initialize` is idempotent for exact live, unarchived instances/);
 assert.match(contract, /Changes to the roster must come from the portable workflow manifest/);
 assert.match(contract, /public GPT role-binding defaults, then supported profile-owned `role_overrides`/);
 assert.match(contract, /direct-human-only role such as Judge receives its own binding/);

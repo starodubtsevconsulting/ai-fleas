@@ -234,11 +234,17 @@ function createWindow() {
   mainWindow.setMenuBarVisibility(false);
 
   // Register before the dev-mode early return. Keep Escape scoped to this window.
+  console.error('[ESC] Registering early before-input-event handler');
+  console.log('[ESC] Registering early before-input-event handler');
+  
   mainWindow.webContents.on('before-input-event', (_event, input) => {
-    if (input.type === 'keyDown' && input.key === 'Escape') {
+    if (input.key === 'Escape') {
+      console.error('[ESC] early before-input-event captured ESC');
       mainWindow.webContents.send('escape-key-pressed');
     }
   });
+  
+  console.error('[ESC] early before-input-event handler registered');
 
   if (useAngularDevServer) {
     // Angular CLI owns renderer rebuild + live reload in development. Electron only hosts the window.

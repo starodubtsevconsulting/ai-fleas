@@ -7,6 +7,17 @@ profile_status: evidence-backed-provisional
 purpose: Guide delegation from observed work rather than assumed hidden knowledge.
 education_reference: education.yml
 communication:
+  instruction_language:
+    target_level: "concrete language understandable by a typical 12-year-old"
+    rules:
+      - "Use short sentences and common words."
+      - "Give one instruction at a time when order matters."
+      - "Prefer concrete actions such as read, check, compare, change, run, test, and stop."
+      - "Avoid philosophical, academic, management, or process jargon when a simpler phrase says the same thing."
+      - "Do not remove necessary technical terms such as file names, commands, APIs, framework names, errors, or code concepts. Explain the action around them simply."
+      - "Use explicit IF/THEN and STOP rules for failure handling."
+      - "Use examples when a rule can be misunderstood."
+  harness_transfer_limit: "Observed agentic debugging and tool-use limits are based on the specified Hermes deployment. Performance under Pi or other agent harnesses has not yet been established; do not attribute the entire outcome to model weights."
   observed_scope: Qwen3-Coder-Next Q5_K_M through the configured Stage-1 Hermes CLI Coder route; do not assume transfer to another deployment.
   direct_starting_language:
     - Give a named file and edit boundary, a source-to-target change, and the existing input/output contract directly.
@@ -27,7 +38,25 @@ communication:
       - benchmarks/gx10/process-group-algorithm-2026-09-28.json
     limit: Output can reflect parts of an explanation while missing its combined invariant; internal understanding cannot be inferred from output.
   handoff_rule: Translate only unfamiliar meaning needed for the edit into data, state, invariants, positive/misleading examples and the relevant code boundary.
-  verification_rule: Check the artifact independently; completion prose, exit zero and even behavioral verification may miss source-level lifecycle flaws.
+  debugging_rule: For framework, runtime, build, hot-reload, deployment or multi-file integration failures, investigate before editing: map the end-to-end execution path; inspect relevant manifests/configuration and entry points; state the root cause with evidence; then make one bounded change. For missing assets/files, trace requested URL -> configured asset source -> actual file -> tracked branch state before restarting or rebuilding; do not treat an untracked/local file as repository truth. After two failed fix attempts, stop patching and repeat the investigation from observed evidence before another edit.
+  fix_explanation_rule: "After a fix works, compare OLD code with NEW code. Find the exact missing handler, wrong condition, or other line that caused the failure. Explain: OLD behavior -> why it failed -> NEW behavior -> why it works. Do not repeat an earlier guess unless the code proves it. Say NOT KNOWN if the cause cannot be proved."
+  fix_explanation_steps:
+    - "Read the code before the fix and after the fix."
+    - "Point to the exact line or condition that was wrong."
+    - "Separate the change that fixed the problem from unrelated cleanup."
+    - "Explain the cause in short sentences using OLD -> FAILED BECAUSE -> NEW -> WORKS BECAUSE."
+    - "If the code does not prove the cause, say NOT KNOWN. Do not guess."
+  verification_rule: "A test PASSES only when you saw its expected result. Reading code or starting the app is NOT a passing test. Check the working app and real data before editing. Check both again after editing. If you cannot test a keyboard or visual action yourself, say NOT VERIFIED and ask for the exact human check. Do not commit when the task requires all tests to pass and any required test is NOT VERIFIED."
+  verification_steps:
+    - "BEFORE editing: start the app the normal way. Check that settings load and screenshots are visible. If this fails, STOP and fix or report the baseline first."
+    - "Write down the expected result for each test before running it."
+    - "AFTER editing: run the same startup and real-data checks again. Then test the new behavior."
+    - "PASS means you observed the expected result. Code that looks correct, a running process, or a successful command does not prove the feature works."
+    - "If you cannot press the key, click the UI, or see the result, write NOT VERIFIED. Ask the user to perform that exact check."
+    - "Do not say all tests passed unless every required test actually passed."
+    - "If the user requires all tests to pass before commit, do not commit or push while any required test is failed or NOT VERIFIED."
+    - "Check git diff and status before committing. Do not include unrelated files or temporary debug logs."
+    - "When the real result is correct and all required tests pass, STOP editing."
 observed:
   demonstrated:
     - focused-file-edits
@@ -49,6 +78,17 @@ observed:
       evidence: benchmarks/gx10/turn-cap-pilot-2026-09-28.json
       interpretation_limit: Porting a reviewed answer does not establish independent design skill.
   recurring_limits:
+    - In the observed Hermes Screenshot Sorter session, the worker could implement bounded changes but did not reliably diagnose multi-component failures, identify the cause of its own unsuccessful edits, or verify behavior before reporting success.
+    - Repeated investigate-first instructions did not by themselves produce reliable autonomous root-cause analysis; stronger upstream diagnosis and independent acceptance remain necessary.
+    - After a working Screenshot Sorter Escape fix, the worker described changed handlers but missed the actual failure conditions: a missing Angular HostListener and an Electron dev-mode early return. It repeated a focus hypothesis not supported by the final code comparison.
+    - In Screenshot Sorter ESC debugging, the worker repeatedly claimed success after reading handlers or seeing processes run without observing Escape close the screenshot.
+    - The worker misdiagnosed exported Bash environment variables as lost through exec and restarted or modified launch paths without confirming the actual running configuration.
+    - The worker did not preserve the known-good app baseline with loaded settings and visible screenshots while attempting an ESC fix.
+    - On a Screenshot Sorter Angular/Electron hot-reload task, the worker repeatedly patched launch symptoms before mapping the complete dev execution path; cheap static inspection of angular.json would have exposed the missing serve configuration earlier.
+    - In integration debugging, the worker may commit prematurely to a causal explanation from one failed command instead of first inspecting manifests/configuration and testing the whole execution chain.
+    - The worker needs an explicit stop-and-reassess trigger after repeated failed fixes; otherwise it can continue producing plausible progress-looking edits with low information gain.
+    - On the same Screenshot Sorter task, after a broken hero image appeared, the worker asserted that the Angular public asset was already present and repeatedly restarted the dev server; the pushed branch had no hero.png in the configured public asset source while the canonical image remained in the legacy renderer assets directory.
+    - When debugging missing files/assets, the worker may confuse local/untracked filesystem state with repository/branch truth and may restart/rebuild before verifying the requested URL-to-source mapping and tracked-file state.
     - Completion prose and process exit sometimes disagreed with independently checked code.
     - Repeated no-change patch calls and turn-limit stops occurred after a useful artifact was present.
     - Process-group candidates repeatedly failed descendant cleanup despite explicit handoff language.
@@ -62,10 +102,27 @@ unknown:
   - transfer to other tasks, domains, transports or deployments
   - reliable first-pass unfamiliar process-lifecycle implementation
   - representative long-context accepted-code performance
+capability_assessment:
+  evidence_scope: "Observed Qwen3-Coder-Next Q5_K_M deployment through Hermes on Screenshot Sorter and earlier bounded benchmarks; not a claim about every quantization, runtime, or task."
+  demonstrated: "Bounded code implementation and focused repository changes when the expected behavior and edit boundary are explicit."
+  unreliable:
+    - "Independent diagnosis of unfamiliar integration failures across multiple components."
+    - "Identifying the actual cause of its own failed attempts."
+    - "Explaining why a successful fix works by comparing old and new execution paths."
+    - "Stopping ineffective retries and independently verifying user-visible results."
+  supervision: strong
+  autonomous_debugging: not_demonstrated
+  routing_guidance:
+    - "For unfamiliar multi-component failures, assign diagnosis and acceptance to a stronger reasoning/review agent."
+    - "Delegate only bounded implementation to this worker with exact file scope, expected behavior, and independent tests."
+    - "Do not assume that adding instructions alone will remove observed capability limits."
+  caveat: "Observed unreliability does not prove the model cannot reason; retest on controlled tasks and update when new evidence contradicts this assessment."
 role_fit:
   provisional:
     - focused-coder
     - bounded-repository-worker
+  conditional:
+    - integration-debugger: requires investigate-first protocol and independent verification
   handoff_condition: Give exact write scope and independent acceptance; repeated failure after clear teaching becomes a route/capability question.
 deployment_variants:
   - id: Q5_K_M

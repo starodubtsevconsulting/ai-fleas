@@ -1,5 +1,8 @@
 # Local Model Benchmarks
 
+> **Harness disclaimer:** Historical agentic coding and tool-use results in this collection were measured using **Hermes Agent** unless a specific run states otherwise. They describe the tested Hermes configuration, not the model's universal ability. Results under Pi or another agent harness have **not been established**. Direct inference, capacity, and non-agent measurements are separate and must not be described as Hermes agent tests.
+
+
 [All benchmarks](../README.md)
 
 ## Why local workers

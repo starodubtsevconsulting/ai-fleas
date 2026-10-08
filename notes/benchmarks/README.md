@@ -1,5 +1,8 @@
 # Benchmark index
 
+> **Benchmark scope:** Results apply to the **model + hardware + inference runtime + agent harness (when used) + tools + configuration + task** tested. Historical agentic coding tests here were generally run with **Hermes**, not Pi. Other harness performance is **unknown until measured**. Some benchmarks measure direct inference, context, or image generation without an agent harness; do not label those Hermes results. See each run's recorded setup for exceptions.
+
+
 These benchmarks evaluate practical local AI configurations for specific jobs. They are acceptance tests for the stated hardware, runtime, model, precision, and workload—not universal model rankings.
 
 ```mermaid
