@@ -228,7 +228,7 @@ function createWindow() {
   const appIconPath = path.join(__dirname, '../Resources/ScreenshotSorter.icns');
   const windowIcon = fs.existsSync(appIconPath) ? appIconPath : cameraIcon();
   
-  mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshot Sorter', icon: windowIcon, backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+  mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshots Sorter', icon: windowIcon, backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
   mainWindow.setMenuBarVisibility(false);
   
   console.error('[ESC] Registering before-input-event handler');
@@ -258,7 +258,9 @@ function createWindow() {
     console.error(`[DEV] Renderer server running on http://127.0.0.1:${port}`);
     // Load Angular app via HTTP instead of file://
     mainWindow.webContents.loadURL(`http://127.0.0.1:${port}/`);
-  
+    // Show the window after loading
+    showWindow();
+
     // Add ESC key handler via 'keydown' event in main process
     console.error('[ESC] Registering keydown handler');
     console.log('[ESC] Registering keydown handler');
