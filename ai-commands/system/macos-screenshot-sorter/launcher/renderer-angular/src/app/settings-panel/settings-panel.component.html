@@ -1,0 +1,30 @@
+<div class="card" *ngIf="settings as s">
+  <label>Capture inbox</label>
+  <div class="row">
+    <input type="text" [value]="s.sourceDir" readonly>
+    <button class="secondary" (click)="chooseFolderAction('source')">Choose…</button>
+  </div>
+  <p class="hint">Save makes this the macOS screenshot location and reloads the sorter.</p>
+  
+  <label>Sorted screenshots folder</label>
+  <div class="row">
+    <input type="text" [value]="s.destinationDir" readonly>
+    <button class="secondary" (click)="chooseFolderAction('destination')">Choose…</button>
+  </div>
+  
+  <label>Wait for screenshot file to finish writing (seconds)</label>
+  <input type="number" [value]="s.settleSeconds" min="0" max="60" readonly>
+  <p class="hint">Default: 2. After a matching screenshot appears, wait this long before moving it so the file is complete. 0 moves immediately.</p>
+  
+  <label>Missed-event recovery scan (seconds)</label>
+  <input type="number" [value]="s.startIntervalSeconds" min="0" max="3600" readonly>
+  <p class="hint">Default: 10. A background safety net that rescans if macOS file watching misses an event. It never delays normal sorting. 0 turns this safety net off; otherwise choose 10–3600.</p>
+  
+  <button (click)="saveSettingsAction()">Save and reload sorter</button>
+  <button class="secondary" (click)="refreshStatusAction()">Refresh status</button>
+</div>
+
+<div class="card">
+  <strong>Runtime status</strong>
+  <pre class="status">{{ statusText }}</pre>
+</div>

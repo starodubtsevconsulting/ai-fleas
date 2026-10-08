@@ -1,0 +1,54 @@
+/* Shot card styles */
+.shot {
+  overflow: hidden;
+  border: 1px solid #e4e5ec;
+  border-radius: 10px;
+  background: #fbfcff;
+}
+
+.shot img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  background: #edf0f7;
+}
+
+.shot-name {
+  overflow: hidden;
+  padding: 8px 9px 2px;
+  color: #333949;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shot-meta {
+  padding: 0 9px 8px;
+  color: #70798c;
+  font-size: 11px;
+}
+
+.shot-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 9px 8px;
+}
+
+.shot-actions button.folder {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #2e67d1;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shot-actions button.folder:hover {
+  color: #1d4ed8;
+  background: #f3f4f6;
+}

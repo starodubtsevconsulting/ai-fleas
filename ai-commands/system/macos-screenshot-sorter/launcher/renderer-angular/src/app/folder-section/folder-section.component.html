@@ -1,0 +1,30 @@
+<div class="folder-section" 
+     [class.collapsed]="collapsed"
+     [attr.aria-expanded]="!collapsed">
+  
+  <div class="folder-head" (click)="toggleFolder($event)">
+    <h2>
+      <span [style.color]="collapsed ? '#70798c' : '#2e67d1'" 
+            [style.fontSize]="'12px'">
+        {{ collapsed ? '▶' : '▼' }}
+      </span>
+      {{ date }}
+      <span style="color:#70798c; font-size:12px;">
+        ({{ relativeDate(date) }})
+      </span>
+    </h2>
+    <span class="count">
+      {{ count }} screenshot{{ count === 1 ? '' : 's' }}
+      {{ count > screenshots.length ? ' · showing newest ' + screenshots.length : '' }}
+    </span>
+  </div>
+  
+  <div class="shots" *ngIf="!collapsed">
+    <app-screenshot-card 
+      *ngFor="let shot of screenshots" 
+      [shot]="shot"
+      (openFolder)="openFolder.emit(shot)"
+      (openScreenshot)="openScreenshot.emit(shot)">
+    </app-screenshot-card>
+  </div>
+</div>

@@ -1,0 +1,18 @@
+<nav class="tabs" aria-label="Screenshot Sorter sections">
+  <button 
+    class="tab" 
+    [class.selected]="selectedTab === 'library'"
+    (click)="selectTab('library')"
+    [attr.aria-selected]="selectedTab === 'library'"
+  >
+    Screenshots
+  </button>
+  <button 
+    class="tab" 
+    [class.selected]="selectedTab === 'settings'"
+    (click)="selectTab('settings')"
+    [attr.aria-selected]="selectedTab === 'settings'"
+  >
+    Settings
+  </button>
+</nav>
