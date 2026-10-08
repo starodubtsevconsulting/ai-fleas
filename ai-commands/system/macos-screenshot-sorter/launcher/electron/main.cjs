@@ -235,8 +235,8 @@ function createWindow() {
 
   if (useAngularDevServer) {
     // Angular CLI owns renderer rebuild + live reload in development. Electron only hosts the window.
-    console.error('[DEV] Loading Angular dev server at http://127.0.0.1:4200');
-    mainWindow.loadURL('http://127.0.0.1:4200/');
+    console.error('[DEV] Loading Angular dev server at http://localhost:4200');
+    mainWindow.loadURL('http://localhost:4200/');
     showWindow();
     return;
   }

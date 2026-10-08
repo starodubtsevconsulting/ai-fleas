@@ -68,6 +68,18 @@
           },
           "defaultConfiguration": "production"
         },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "screenshot-sorter-angular:build:production"
+            },
+            "development": {
+              "buildTarget": "screenshot-sorter-angular:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
         "test": {
           "builder": "@angular/build:karma",
           "options": {

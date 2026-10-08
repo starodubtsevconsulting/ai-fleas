@@ -53,7 +53,7 @@ if [[ "$dev" == true ]]; then
   # Kill only this app's stale Angular dev server so :4200 cannot point at an old checkout/process.
   stale_ng="$(lsof -ti tcp:4200 2>/dev/null || true)"
   [[ -z "$stale_ng" ]] || kill -TERM $stale_ng 2>/dev/null || true
-  npx ng serve --host 127.0.0.1 --port 4200 > /tmp/ng-serve.log 2>&1 &
+  npx ng serve > /tmp/ng-serve.log 2>&1 &
   ng_pid=$!
   printf 'Waiting for Angular dev server to be ready...\n'
   for _ in {1..30}; do
