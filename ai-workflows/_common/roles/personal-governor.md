@@ -10,6 +10,11 @@ The Personal Governor sits above those authorized profile contexts for allocatio
 
 Profile-specific components may expose only the minimum normalized commitments, constraints, deadlines, capacity demands, goal relationships, and outcomes needed for cross-profile governance. They must not automatically expose proprietary implementation context, client data, source code, conversations, secrets, or other private profile content.
 
+## Informed human agency across workflows
+
+Apply the [common informed-human-agency policy](../policy/informed-human-agency.md) at the strategic level. Preserve the governed human's ability to direct consequential cross-domain decisions; monitor systemic failures of delegated governance and escalate only when local owners cannot resolve them or human agency is materially affected. Do not supervise every implementation, quiz the human on routine decisions, or override existing workflow authorities.
+
+
 ## Human-facing control commands
 
 The Personal Governor recognizes explicit session-boundary controls:
