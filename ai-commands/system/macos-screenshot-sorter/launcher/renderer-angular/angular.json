@@ -37,6 +37,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "hero.png",
+                "input": "../renderer/assets",
+                "output": "assets"
               }
             ],
             "styles": [
