@@ -1,5 +1,8 @@
 # Local image-generation benchmarks
 
+> **Benchmark scope:** These are image-generation evaluations, not Hermes coding-agent tests. Report the actual generation pipeline/runtime for each run. The general Hermes harness disclaimer for historical **agentic coding** results does not apply to direct image-generation runs.
+
+
 [All benchmarks](../README.md)
 
 This benchmark finds the strongest practical local image generator for multimedia work. It is quality-first: the largest reliable native/high-precision configuration is established before quantized variants are compared.
