@@ -233,6 +233,19 @@ function createWindow() {
   mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshots Sorter', icon: windowIcon, backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
   mainWindow.setMenuBarVisibility(false);
 
+  // Register before the dev-mode early return. Keep Escape scoped to this window.
+  console.error('[ESC] Registering early before-input-event handler');
+  console.log('[ESC] Registering early before-input-event handler');
+  
+  mainWindow.webContents.on('before-input-event', (_event, input) => {
+    if (input.key === 'Escape') {
+      console.error('[ESC] early before-input-event captured ESC');
+      mainWindow.webContents.send('escape-key-pressed');
+    }
+  });
+  
+  console.error('[ESC] early before-input-event handler registered');
+
   if (useAngularDevServer) {
     // Angular CLI owns renderer rebuild + live reload in development. Electron only hosts the window.
     console.error('[DEV] Loading Angular dev server at http://localhost:4200');
@@ -327,35 +340,7 @@ if (isPrimaryInstance) {
   });
   app.on('second-instance', showWindow);
   app.whenReady().then(() => {
-    const { globalShortcut } = require('electron');
-    const fs = require('node:fs');
-    
     createWindow();
-    
-    // Register global ESC shortcut to close full-screen view
-    const escRegistered = globalShortcut.register('Escape', () => {
-      const now = new Date().toISOString();
-      console.error('[ESC] Global ESC shortcut pressed');
-      fs.appendFileSync('/tmp/screenshot-sorter-esc.log', `[ESC] Callback fired at ${now}\n`);
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        console.error('[ESC] Sending escape-key-pressed to renderer');
-        fs.appendFileSync('/tmp/screenshot-sorter-esc.log', `[ESC] Sending escape-key-pressed to renderer at ${now}\n`);
-        mainWindow.webContents.send('escape-key-pressed');
-      }
-    });
-    
-    // Write to a log file for debugging
-    const logPath = '/tmp/screenshot-sorter-esc.log';
-    fs.appendFileSync(logPath, `ESC registration: ${escRegistered ? 'SUCCESS' : 'FAILED'} at ${new Date().toISOString()}\n`);
-    
-    if (!escRegistered) {
-      console.error('[ESC] WARNING: ESC shortcut registration failed!');
-      fs.appendFileSync(logPath, `[ESC] WARNING: ESC shortcut registration failed! at ${new Date().toISOString()}\n`);
-    } else {
-      console.error('[ESC] ESC shortcut registered successfully');
-      fs.appendFileSync(logPath, `[ESC] ESC shortcut registered successfully at ${new Date().toISOString()}\n`);
-    }
-    
     tray = new Tray(cameraIcon());
     // Keep a visible status-bar affordance even if macOS does not render the
     // small template SVG for this unpackaged Electron app.

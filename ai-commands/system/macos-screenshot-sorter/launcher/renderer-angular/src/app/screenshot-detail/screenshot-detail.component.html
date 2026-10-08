@@ -2,8 +2,6 @@
   class="full-screen-overlay" 
   [style.display]="shot ? 'flex' : 'none'" 
   (click)="closeScreenshot()"
-  (keydown)="handleKeyDown($event)"
-  tabindex="0"
 >
   <div class="full-screen-content" (click)="$event.stopPropagation()" *ngIf="shot && thumbnailUrl">
     <button class="full-screen-close" (click)="closeScreenshot()" aria-label="Close full screen view">
