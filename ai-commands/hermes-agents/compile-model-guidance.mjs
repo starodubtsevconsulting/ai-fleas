@@ -24,6 +24,8 @@ if (c.debugging_rule && (!role || role === 'coder' || role === 'designer-reviewe
   lines.push('', '### Debugging', c.debugging_rule);
   if (Array.isArray(c.debugging_steps)) list('Debugging steps', c.debugging_steps);
 }
+if (c.fix_explanation_rule) lines.push('', '### Explain fixes', c.fix_explanation_rule);
+list('Fix explanation steps', c.fix_explanation_steps);
 if (c.verification_rule) lines.push('', '### Verification', c.verification_rule);
 list('Observed recurring limits', p.observed?.recurring_limits);
 if (p.role_fit?.conditional) list('Conditional role fit', p.role_fit.conditional);
