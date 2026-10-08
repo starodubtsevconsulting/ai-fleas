@@ -63,19 +63,19 @@ The command supports multiple time range formats:
 
 ## App Mapping
 
-The command maps app names to service names and log paths:
+The command maps app names to service names:
 
-| App | Service | Log Path |
-|---|---|---|
-| `sc-website` | `umbrella-v2.service` | `/home/sergii/projects/sc/sc-services` |
-| `chaletwhisper` | `umbrella-v2.service` | `/home/sergii/projects/sc/sc-services` |
-| `locusesse` | `locusesse-local.service` | `/home/sergii/projects/sc/sc-services` |
-| `ai-fleas` | `umbrella-v2.service` | `/home/sergii/projects/sc/sc-services` |
+| App | Service |
+|---|---|
+| `sc-website` | `umbrella-v2.service` |
+| `chaletwhisper` | `umbrella-v2.service` |
+| `locusesse` | `locusesse-local.service` |
+| `ai-fleas` | `umbrella-v2.service` |
 
 ## Steps
 
 1. Validate required flags (`--host`, `--app`)
-2. Map app name to service name and log path
+2. Map app name to service name
 3. Connect to remote server via SSH
 4. Check service status
 5. Fetch logs for the specified time range

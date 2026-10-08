@@ -25,20 +25,20 @@ logs.command.sh --host <host> --app <app> [--since <time>] [--until <time>]
 |---|---|---|
 | `--host` | Yes | SSH host to connect to (e.g., `infra-01`) |
 | `--app` | Yes | App name (e.g., `sc-website`, `chaletwhisper`, `locusesse`, `ai-fleas`) |
-| `--since` | No | Start time range (e.g., `'yesterday'`, `'1h'`, `'1d'`, `'1w'`, `'2026-10-01'`, `'10-07 00:00:00'`). Defaults to `'yesterday'` |
+| `--since` | No | Start time range (e.g., `'yesterday'`, `'1h'`, `'1d'`, `'1w'`, `'2026-10-01'`, `'10-07 00:00:00''). Defaults to `'yesterday'` |
 | `--until` | No | End time range (e.g., `'now'`, `'1h'`, `'2026-10-08 23:59:59'`). Defaults to `'now'` |
 | `--help` | No | Show help message |
 
 ## App Mapping
 
-The command maps app names to service names and log paths:
+The command maps app names to service names:
 
-| App | Service | Log Path |
-|---|---|---|
-| `sc-website` | `umbrella-v2.service` | `/home/sergii/projects/sc/sc-services` |
-| `chaletwhisper` | `umbrella-v2.service` | `/home/sergii/projects/sc/sc-services` |
-| `locusesse` | `locusesse-local.service` | `/home/sergii/projects/sc/sc-services` |
-| `ai-fleas` | `umbrella-v2.service` | `/home/sergii/projects/sc/sc-services` |
+| App | Service |
+|---|---|
+| `sc-website` | `umbrella-v2.service` |
+| `chaletwhisper` | `umbrella-v2.service` |
+| `locusesse` | `locusesse-local.service` |
+| `ai-fleas` | `umbrella-v2.service` |
 
 ## Time Range Formats
 
