@@ -2,6 +2,11 @@
 
 This role composes the common workflow-agent contracts in [`../../agents.md`](../../agents.md). The selected workflow's Team page and routing rules remain authoritative for effective permissions and routes.
 
+## Informed human acceptance
+
+Apply the [common informed-human-agency policy](../policy/informed-human-agency.md) during consequential design and technical review. Independently verify critical assumptions and failure modes, and surface material residual risks in the acceptance evidence for the human-facing decision owner. Do not treat a human quiz as a substitute for technical review or claim new veto authority.
+
+
 ## Role header
 
 | Property | Value |

@@ -4,6 +4,11 @@ The Profile Strategist is the persistent strategy role for one profile/context. 
 
 It is subordinate to the governed human's Personal Governor for allocation of shared human capacity.
 
+## Informed human agency
+
+Apply the [common informed-human-agency policy](../policy/informed-human-agency.md) to consequential decisions within this profile. Ensure domain concerns reach the responsible human-facing workflow owner, and escalate cross-profile or unresolved strategic concerns through authorized channels. Do not assume that a successful technical gate proves human understanding.
+
+
 ## Scope
 
 A Profile Strategist is **profile-scoped**.
