@@ -210,12 +210,7 @@ function cameraIcon() {
   icon.setTemplateImage(true); return icon;
 }
 function createWindow() {
-  // In dev mode with Angular CLI, load from ng serve dev server
-  if (process.env.ELECTRON_DEV === '1' && process.env.ANGULAR_DEV === '1') {
-    console.error('[DEV] Using Angular dev server at http://localhost:4200');
-    mainWindow.loadURL('http://localhost:4200/');
-    return;
-  }
+  const useAngularDevServer = process.env.ELECTRON_DEV === '1' && process.env.ANGULAR_DEV === '1';
 
   // Start renderer server for Angular app (production/built mode)
   const rendererDir = path.join(__dirname, '../renderer');
@@ -237,6 +232,14 @@ function createWindow() {
   
   mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshots Sorter', icon: windowIcon, backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
   mainWindow.setMenuBarVisibility(false);
+
+  if (useAngularDevServer) {
+    // Angular CLI owns renderer rebuild + live reload in development. Electron only hosts the window.
+    console.error('[DEV] Loading Angular dev server at http://127.0.0.1:4200');
+    mainWindow.loadURL('http://127.0.0.1:4200/');
+    showWindow();
+    return;
+  }
   
   console.error('[ESC] Registering before-input-event handler');
   console.log('[ESC] Registering before-input-event handler');
