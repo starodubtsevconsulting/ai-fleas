@@ -136,6 +136,14 @@ We reject the false choice between watching every step and trusting every answer
 
 **AI can assume more work without silently diminishing meaningful human control.**
 
+## First implementation — putting the manifesto into practice
+
+A manifesto should lead to concrete changes, not remain a statement of intentions.
+
+Our [first implementation proposal — PR #406](https://github.com/starodubtsevconsulting/ai-fleas/pull/406) introduces the informed-human-agency principle into AI Fleas' shared governance policy and role contracts. It defines responsibilities for proportionate scrutiny, technical verification, informed acceptance, and escalation through existing roles.
+
+This is a **first stone**, not a claim that the principle is already enforced by every running agent. Runtime integration and behavioral validation remain to be demonstrated.
+
 ## Further reading — Human–AI Agency
 
 - **[AI Fleas](https://ai-fleas.com)** — Portable AI roles, workflows, governance, and human-directed automation.
