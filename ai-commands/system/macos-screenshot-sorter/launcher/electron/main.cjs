@@ -234,27 +234,25 @@ function createWindow() {
   mainWindow.setMenuBarVisibility(false);
 
   // Register before the dev-mode early return. Keep Escape scoped to this window.
-  console.error('[ESC] Registering early before-input-event handler');
   console.log('[ESC] Registering early before-input-event handler');
   
   mainWindow.webContents.on('before-input-event', (_event, input) => {
     if (input.key === 'Escape') {
-      console.error('[ESC] early before-input-event captured ESC');
+      console.log('[ESC] early before-input-event captured ESC');
       mainWindow.webContents.send('escape-key-pressed');
     }
   });
   
-  console.error('[ESC] early before-input-event handler registered');
+  console.log('[ESC] early before-input-event handler registered');
 
   if (useAngularDevServer) {
     // Angular CLI owns renderer rebuild + live reload in development. Electron only hosts the window.
-    console.error('[DEV] Loading Angular dev server at http://localhost:4200');
+    console.log('[DEV] Loading Angular dev server at http://localhost:4200');
     mainWindow.loadURL('http://localhost:4200/');
     showWindow();
     return;
   }
   
-  console.error('[ESC] Registering before-input-event handler');
   console.log('[ESC] Registering before-input-event handler');
   
   // Add ESC key handler via before-input-event for more reliable capture
@@ -262,37 +260,33 @@ function createWindow() {
     // Log all input events for debugging
     const now = new Date().toISOString();
     const logMessage = `[INPUT] ${input.type}: key=${input.key}, code=${input.code} at ${now}\n`;
-    console.error(logMessage.trim());
+    console.log(logMessage.trim());
     fs.appendFileSync('/tmp/screenshot-sorter-esc.log', logMessage);
     
     if (input.key === 'Escape') {
-      console.error('[ESC] before-input-event captured ESC');
+      console.log('[ESC] before-input-event captured ESC');
       fs.appendFileSync('/tmp/screenshot-sorter-esc.log', `[ESC] before-input-event at ${now}\n`);
       mainWindow.webContents.send('escape-key-pressed');
     }
   });
   
-  console.error('[ESC] before-input-event handler registered');
   console.log('[ESC] before-input-event handler registered');
   
   rendererServer.listen(0, '127.0.0.1', () => {
     const port = rendererServer.address().port;
-    // Log to stderr only (console.error for Electron apps)
-    console.error(`[DEV] Renderer server running on http://127.0.0.1:${port}`);
+    // Log to stdout (console.log for Electron apps)
+    console.log(`[DEV] Renderer server running on http://127.0.0.1:${port}`);
     // Load Angular app via HTTP instead of file://
     mainWindow.webContents.loadURL(`http://127.0.0.1:${port}/`);
     // Show the window after loading
     showWindow();
 
     // Add ESC key handler via 'keydown' event in main process
-    console.error('[ESC] Registering keydown handler');
     console.log('[ESC] Registering keydown handler');
   
     mainWindow.webContents.on('keydown', (event, key) => {
-      console.error(`[ESC] keydown event: key=${key}`);
       console.log(`[ESC] keydown event: key=${key}`);
       if (key === 'Escape') {
-        console.error('[ESC] keydown captured ESC');
         console.log('[ESC] keydown captured ESC');
         mainWindow.webContents.send('escape-key-pressed');
       }
@@ -300,7 +294,7 @@ function createWindow() {
   
     mainWindow.on('close', (event) => { if (allowQuit) return; event.preventDefault(); mainWindow.hide(); if (app.dock) app.dock.hide(); });
   }).on('error', (err) => {
-    console.error(`[DEV] Server error: ${err.message}`);
+    console.log(`[DEV] Server error: ${err.message}`);
   });
 }
 // Dev mode: auto-reload when index.html changes (polling-based for macOS reliability)
