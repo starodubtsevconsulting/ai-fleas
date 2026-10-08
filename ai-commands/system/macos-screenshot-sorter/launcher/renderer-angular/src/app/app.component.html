@@ -80,7 +80,7 @@
 <app-screenshot-detail [shot]="selectedScreenshot" (close)="closeScreenshot()"></app-screenshot-detail>
 
 <section class="panel" [hidden]="selectedTab !== 'settings'">
-  <div class="hero-container">
+  <div class="hero-container" *ngIf="showHero">
     <img class="hero" src="assets/hero.png" alt="A person and an AI Fleas robot working together at a desk">
     <button class="close" (click)="hideHero()" aria-label="Close hero image">×</button>
   </div>
