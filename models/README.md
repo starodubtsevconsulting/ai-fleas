@@ -4,6 +4,10 @@ Models are first-class AI-Fleas workers' **learned capability**, separate from t
 
 This module is intended to be readable by both humans and agents.
 
+## Benchmark harness and transfer limits
+
+Every agentic benchmark must identify its **agent harness** (for example Hermes or Pi), model and quantization, inference runtime, context configuration, tool interface, and relevant auxiliary/judge setup. A result measured with Hermes describes **model + deployment + Hermes + tools + task**, not the model alone. Do not generalize observed reasoning, tool-use, or debugging failures to Pi or other harnesses without running them there. Direct inference and non-agent benchmarks must say so explicitly; do not label them Hermes tests. Unknown or historical missing setup fields should be marked **not recorded**, never guessed.
+
 ## The short version
 
 When AI-Fleas assigns work, these concepts answer different questions:
