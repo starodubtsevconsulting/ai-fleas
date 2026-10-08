@@ -55,3 +55,15 @@ Memory organization is a reusable common concern. Common memory methods may defi
 ## Versioning
 
 Create a new method or strategy-component version when reusable governance semantics change, not when concrete instance data changes.
+
+## Conversation strategy bindings
+
+The optional human Governor profile field `agreeableness` selects a tone level and a named reusable strategy. For example:
+
+```yaml
+agreeableness:
+  level: medium
+  strategy: evidence-based-independent-judgment
+```
+
+The strategy is documented in `conversation/evidence-based-independent-judgment.v1.md`. Behavioral modes and principles belong there, not duplicated in each profile or in permanent memory. This binding is declarative until a platform's Governor initializer explicitly resolves and loads the selected document; validate effective runtime behavior separately.
