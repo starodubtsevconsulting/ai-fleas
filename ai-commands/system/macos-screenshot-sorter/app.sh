@@ -47,9 +47,14 @@ fi
 main_script="$command_dir/launcher/electron/main.cjs"
 if [[ "$dev" == true ]]; then
   export ANGULAR_DEV=1
+  export ELECTRON_DEV=1
   printf 'Starting Angular dev server...\n'
   cd "$command_dir/launcher/renderer-angular"
-  npx ng serve screenshot-sorter-angular 127.0.0.1:4200 > /tmp/ng-serve.log 2>&1 &
+  # Kill only this app's stale Angular dev server so :4200 cannot point at an old checkout/process.
+  stale_ng="$(lsof -ti tcp:4200 2>/dev/null || true)"
+  [[ -z "$stale_ng" ]] || kill -TERM $stale_ng 2>/dev/null || true
+  npx ng serve --host 127.0.0.1 --port 4200 > /tmp/ng-serve.log 2>&1 &
+  ng_pid=$!
   printf 'Waiting for Angular dev server to be ready...\n'
   for _ in {1..30}; do
     if curl -s http://127.0.0.1:4200/ > /dev/null 2>&1; then
@@ -58,7 +63,12 @@ if [[ "$dev" == true ]]; then
     fi
     sleep 1
   done
-  printf 'Starting Electron with Angular dev server...\n'
+  if ! curl -fsS http://127.0.0.1:4200/ >/dev/null 2>&1; then
+    printf '%s\n' 'Angular dev server failed to become ready. See /tmp/ng-serve.log' >&2
+    kill "$ng_pid" 2>/dev/null || true
+    exit 2
+  fi
+  printf 'Starting Electron with Angular dev server (live reload enabled).\n'
 fi
 if [[ "$force" == true ]]; then
   # The exact Electron main-script path scopes this to Screenshot Sorter; do
