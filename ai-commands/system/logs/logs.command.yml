@@ -1,6 +1,6 @@
 name: logs
 command: logs.command.sh
-description: Inspect service logs on remote servers
+description: Inspect service logs on remote servers for specific apps
 category: system
 ai:
   powered: false
@@ -13,3 +13,25 @@ intent:
   - "monitor logs"
   - "view recent errors"
   - "what happened today"
+config:
+  - name: default_since
+    type: string
+    default: yesterday
+    description: Default time range for log queries
+  - name: ssh_user
+    type: string
+    default: sergii
+    description: SSH user for remote connections
+requirements:
+  - ssh
+  - journalctl (remote)
+  - grep
+app_mapping:
+  sc-website:
+    service: umbrella-v2.service
+  chaletwhisper:
+    service: umbrella-v2.service
+  locusesse:
+    service: locusesse-local.service
+  ai-fleas:
+    service: umbrella-v2.service
