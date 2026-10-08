@@ -28,6 +28,14 @@ if (c.fix_explanation_rule) lines.push('', '### Explain fixes', c.fix_explanatio
 list('Fix explanation steps', c.fix_explanation_steps);
 if (c.verification_rule) lines.push('', '### Verification', c.verification_rule);
 list('Observed recurring limits', p.observed?.recurring_limits);
+const assessment = p.capability_assessment || {};
+if (assessment.evidence_scope) lines.push('', '### Capability evidence scope', assessment.evidence_scope);
+if (assessment.demonstrated) lines.push('', '### Demonstrated work', assessment.demonstrated);
+list('Unreliable autonomous tasks', assessment.unreliable);
+if (assessment.supervision) lines.push('', '### Required supervision', String(assessment.supervision));
+if (assessment.autonomous_debugging) lines.push('', '### Autonomous debugging', String(assessment.autonomous_debugging));
+list('Task routing guidance', assessment.routing_guidance);
+if (assessment.caveat) lines.push('', '### Assessment limit', assessment.caveat);
 if (p.role_fit?.conditional) list('Conditional role fit', p.role_fit.conditional);
 if (Array.isArray(p.unknown) && p.unknown.length) list('Do not assume', p.unknown);
 lines.push('', 'Use this guidance as evidence-backed operating policy for this deployment. It supplements the role/workflow rules; it does not expand authority or scope.');
