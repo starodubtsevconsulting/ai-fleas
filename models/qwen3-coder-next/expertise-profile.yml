@@ -27,6 +27,7 @@ communication:
       - benchmarks/gx10/process-group-algorithm-2026-09-28.json
     limit: Output can reflect parts of an explanation while missing its combined invariant; internal understanding cannot be inferred from output.
   handoff_rule: Translate only unfamiliar meaning needed for the edit into data, state, invariants, positive/misleading examples and the relevant code boundary.
+  debugging_rule: For framework, runtime, build, hot-reload, deployment or multi-file integration failures, investigate before editing: map the end-to-end execution path; inspect relevant manifests/configuration and entry points; state the root cause with evidence; then make one bounded change. After two failed fix attempts, stop patching and repeat the investigation from observed evidence before another edit.
   verification_rule: Check the artifact independently; completion prose, exit zero and even behavioral verification may miss source-level lifecycle flaws.
 observed:
   demonstrated:
@@ -49,6 +50,9 @@ observed:
       evidence: benchmarks/gx10/turn-cap-pilot-2026-09-28.json
       interpretation_limit: Porting a reviewed answer does not establish independent design skill.
   recurring_limits:
+    - On a Screenshot Sorter Angular/Electron hot-reload task, the worker repeatedly patched launch symptoms before mapping the complete dev execution path; cheap static inspection of angular.json would have exposed the missing serve configuration earlier.
+    - In integration debugging, the worker may commit prematurely to a causal explanation from one failed command instead of first inspecting manifests/configuration and testing the whole execution chain.
+    - The worker needs an explicit stop-and-reassess trigger after repeated failed fixes; otherwise it can continue producing plausible progress-looking edits with low information gain.
     - Completion prose and process exit sometimes disagreed with independently checked code.
     - Repeated no-change patch calls and turn-limit stops occurred after a useful artifact was present.
     - Process-group candidates repeatedly failed descendant cleanup despite explicit handoff language.
@@ -66,6 +70,8 @@ role_fit:
   provisional:
     - focused-coder
     - bounded-repository-worker
+  conditional:
+    - integration-debugger: requires investigate-first protocol and independent verification
   handoff_condition: Give exact write scope and independent acceptance; repeated failure after clear teaching becomes a route/capability question.
 deployment_variants:
   - id: Q5_K_M
