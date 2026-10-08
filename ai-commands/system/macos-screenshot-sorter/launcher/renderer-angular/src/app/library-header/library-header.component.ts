@@ -1,9 +1,10 @@
 import { Component, EventEmitter, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-library-header',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './library-header.component.html',
   styleUrl: './library-header.component.css',
 })
