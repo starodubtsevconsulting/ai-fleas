@@ -45,6 +45,21 @@ fi
   exit 2
 }
 main_script="$command_dir/launcher/electron/main.cjs"
+if [[ "$dev" == true ]]; then
+  export ANGULAR_DEV=1
+  printf 'Starting Angular dev server...\n'
+  cd "$command_dir/launcher/renderer-angular"
+  npx ng serve --port 4200 --host 127.0.0.1 > /tmp/ng-serve.log 2>&1 &
+  printf 'Waiting for Angular dev server to be ready...\n'
+  for _ in {1..30}; do
+    if curl -s http://127.0.0.1:4200/ > /dev/null 2>&1; then
+      printf 'Angular dev server is ready.\n'
+      break
+    fi
+    sleep 1
+  done
+  printf 'Starting Electron with Angular dev server...\n'
+fi
 if [[ "$force" == true ]]; then
   # The exact Electron main-script path scopes this to Screenshot Sorter; do
   # not terminate an arbitrary Electron application or a different project.
