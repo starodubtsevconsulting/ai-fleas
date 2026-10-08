@@ -181,7 +181,7 @@ ssh "$HOST" "systemctl --user show $SERVICE | grep -E 'ActiveEnterTimestamp|NRes
 # Backup logs if requested
 if $BACKUP; then
     TIMESTAMP=$(date '+%Y%m%d_%H%M%S')
-    BACKUP_DIR="/Users/sergii/projects/sc/logs-backup"
+    BACKUP_DIR="${LOGS_BACKUP_DIR:-$HOME/backup/logs}"
     mkdir -p "$BACKUP_DIR"
     BACKUP_FILE="$BACKUP_DIR/${APP}_${TIMESTAMP}.log"
     
@@ -189,10 +189,6 @@ if $BACKUP; then
     echo "=== Backup ==="
     echo "Backing up logs to $BACKUP_FILE..."
     
-    # Fetch all logs for the app and save to local file
-    BACKUP_DIR="$HOME/backup/logs"
-    mkdir -p "$BACKUP_DIR"
-    BACKUP_FILE="$BACKUP_DIR/${APP}_${TIMESTAMP}.log"
     ssh "$HOST" "journalctl --user -u $SERVICE --no-pager" > "$BACKUP_FILE"
     
     echo "Backup saved to $BACKUP_FILE ($(wc -l < "$BACKUP_FILE") lines)"
