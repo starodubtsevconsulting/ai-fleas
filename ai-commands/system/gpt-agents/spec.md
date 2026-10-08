@@ -62,12 +62,12 @@ Verified exact task receipts or a precise no-mutation failure.
   not conflate that scope with a custom sidebar section or with one individual scoped folder.
 - The caller is a mechanical initialization controller, not an implicit roster member. It resolves the complete effective
   roster and directly creates every missing role, including Admin and Manager.
-- `initialize` is idempotent recovery. It enumerates active and archived catalogs to exhaustion, reactivates exact
-  receipt-backed archived roster members in the requested workflow scope, and creates a task only when no valid active or
-  archived receipt exists. A completely archived roster is one batch restoration case, not an empty or ambiguous roster.
-- The exact profile, workflow, and logical-project initialization request authorizes restoration of its receipt-backed
-  archived members without requiring the human to enumerate task IDs. It does not authorize unrecorded, superseded,
-  foreign-scope, or title-matched archived tasks.
+- `initialize` is idempotent recovery. It enumerates active and archived catalogs to exhaustion, reuses only exact
+  receipt-backed live roster members, and creates fresh successors for roles whose receipts are absent or archived.
+  A completely archived roster is an empty live roster, not a restoration case.
+- Archived task receipts remain durable history but never authorize restoration, retry, or reactivation. Initialization
+  may create a fresh successor in the exact requested scope; it does not adopt unrecorded, superseded, foreign-scope,
+  or title-matched tasks.
 - An explicit human roster contraction supplies the removed role's complete durable task-receipt history to mechanical
   reconciliation. Every exact active retired receipt is recoverably archived; already archived generations remain
   archived. Titles never establish retired-role identity.

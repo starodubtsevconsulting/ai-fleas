@@ -18,6 +18,16 @@ its supported controls, or explicitly performs an emulated role step under the c
 identifies the next worker stage and validates worker evidence; Admin reports progress without relaying ordinary
 workflow messages or choosing transitions.
 
+## Writing roster lifecycle ownership
+
+Writing has **no Manager role**. Its complete roster is exactly Admin, Writer, Reviewer, and Release Coordinator, as
+declared in `agents.yml` and `agents/team.md`. The common Manager role is not a prerequisite, delegate, bootstrap
+target, or fallback for this workflow.
+
+When a human requests Writing roles, Admin creates the missing declared visible tasks directly. Each is immediately
+usable by the human; a missing lifecycle binding or readiness receipt is not a blocker. Admin must never create,
+bootstrap, delegate to, or wait for a Manager.
+
 When the human explicitly asks Admin to represent them for an exact article's release decision, follow the
 [Admin-delegated release contract](../../guides/admin-delegated-release.md). Record the human instruction and Admin's
 own review in a revision-bound `release-delegation` receipt outside the Router. A Reviewer

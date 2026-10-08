@@ -120,9 +120,9 @@ The application must be installed and pass its smoke test before agent initializ
 | `watch-system-group --group LOGICAL_PROJECT_ID` | Add one exact receipt-backed logical project to System's scheduler watch scope and verify the updated schedule. |
 | `unwatch-system-group --group LOGICAL_PROJECT_ID` | Remove one exact logical project from System's scheduler watch scope without changing that workflow group or its agents. |
 | `reinitialize-system --confirm-reinitialize-system` | Explicitly create and verify a successor System task, transfer required lifecycle state, then recoverably archive the predecessor. |
-| `initialize` | Idempotently realize the exact requested roster: reuse active receipts, reactivate exact receipt-backed archived tasks, create only genuinely missing roles, initialize every role, and record exact task receipts. |
+| `initialize` | Idempotently realize the exact requested roster: reuse active receipts, create fresh successors for archived or missing roles, initialize every role, and record exact task receipts. |
 | `initialize-admin` | After exact human bootstrap approval, create or reuse only the canonical workflow Admin through the [Admin-only transaction](../../../platforms/gpt-agents/agents/admin-only-initialization.md). Verify exact task, scope, project and readiness; never create workers, Router, or System, and never equate `ADMIN_READY` with roster readiness. |
-| `initialize-role --role ROLE_ID` | Initialize only one role explicitly declared `initializationMode: independent`. Reuse or reactivate its exact receipt, or create one missing task. Leave every other role untouched; this does not initialize the full workflow Router. |
+| `initialize-role --role ROLE_ID` | Initialize only one role explicitly declared `initializationMode: independent`. Reuse its live exact receipt, or create a fresh successor when missing or archived. Leave every other role untouched; this does not initialize the full workflow Router. |
 | `list` | Return recorded logical-agent-to-task bindings without inferring unbound tasks. |
 | `status` | Verify task existence, project binding, role initialization, and current lifecycle state. |
 | `message` | Deliver a prompt to one exact bound task ID. |
@@ -135,7 +135,7 @@ The application must be installed and pass its smoke test before agent initializ
 
 `initialize-role` is for a human-requested independent role such as Dev `smoke-tester`. It is not a shortcut for initializing a Manager, Coder, or ticket worker. Resolve the exact profile, workflow, authorized ordered project subset, logical project, saved-project ID, public roster, GPT adapter, and profile overrides as for `initialize`. Run `platforms/gpt-agents/agents/select-role-initialization.mjs MANIFEST ADAPTER ROLE PROFILE WORKFLOW REGISTRY`; it verifies profile-owned platform selection before returning role metadata. Stop unless the selected role has `initializationMode: independent`, a complete direct endpoint, no ticket requirement, and a persistent lifecycle. The same selector supports Admin-only preflight without initializing any role; actual Admin lifecycle effects require a separately supported host transaction.
 
-Enumerate active and archived host catalogs to exhaustion and read exact plugin binding candidates. Feed **only the selected role and its exact receipts** to `reconcile-roster.mjs`; separately reject an unbound same-role candidate in the exact saved project rather than creating a duplicate. Reuse or restore the exact task when possible. Otherwise create exactly one task in the configured saved project with the complete canonical role initialization prompt as its first message, verify its returned task ID in the project catalog, register and queue its exact plugin binding, and wait for its readiness token and active binding. Do not create, archive, restore, or message any other workflow role. Do not declare the complete workflow Router ready from this result.
+Enumerate active and archived host catalogs to exhaustion and read exact plugin binding candidates. Feed **only the selected role and its exact receipts** to `reconcile-roster.mjs`; separately reject an unbound same-role candidate in the exact saved project rather than creating a duplicate. Reuse only an exact live task. An archived task is terminal, so create exactly one fresh successor in the configured saved project with the complete canonical role initialization prompt as its first message, verify its returned task ID in the project catalog, register and queue its exact plugin binding, and wait for its readiness token and active binding. Do not create, archive, restore, or message any other workflow role. Do not declare the complete workflow Router ready from this result.
 
 The initialized independent role may receive direct human requests and its own schedule. It must still enforce the selected project's scenario and authorization limits. If its project set or required schedule cannot be represented by the installed host, report that limitation rather than silently narrowing scope. An agent title alone is never initialization evidence.
 
@@ -300,16 +300,13 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    the exact selected project and run one exact registered command with an argument vector. A profile-selected model
    may suggest the command, but only the wrapper's exit status and terminal output count as execution evidence.
 9. Read both the active and archived host catalogs to exhaustion, following every pagination cursor. Resolve every
-   receipt-backed role by exact task ID before considering title, recency, or creation. An exact workflow `initialize`
-   request authorizes reactivating the exact archived roster for that profile, workflow, and logical project. Unarchive
-   all matching archived roles in one host batch when supported, including when the complete roster is archived, then
-   reread the active catalog and require the exact saved-project ID. Never create a replacement merely because an exact
-   receipt is absent from the active-only catalog. Unrecorded, superseded, foreign-scope, or same-titled archived tasks
-   remain ineligible. When an explicit human roster contraction removes a role, also supply every exact task ID retained
+   receipt-backed role by exact task ID before considering title, recency, or creation. Reuse only matching live roles
+   in the exact saved project. Archived roles are terminal: retain their durable receipts as history and create fresh
+   successors; never restore, retry, or reactivate them. When an explicit human roster contraction removes a role, also supply every exact task ID retained
    in that role's durable receipt history as `retiredReceipts`; archive every task returned in `archive`, including older
    active generations, and never discover retired tasks by title alone. Feed the declared roles, trusted receipts, retired
    receipts, exact project ID, and complete inventories through `platforms/gpt-agents/agents/reconcile-roster.mjs`; honor
-   its `reuse`, `reactivate`, `create`, `archive`, or `blocked` result rather than reclassifying tasks conversationally.
+   its `reuse`, `create`, `archive`, or `blocked` result rather than reclassifying tasks conversationally.
 10. Mechanically create exactly one task for every still-missing selected role, including Admin and Manager, in one host batch
    when the platform supports batching. Every creation request must include the complete canonical initialization prompt
    as its non-empty first user message and the effective non-empty presentation title. Treat `title` only as presentation
@@ -318,7 +315,7 @@ Personal Governor lifecycle is independent of workflow and System lifecycle.
    message and does not satisfy creation.
 11. Record every returned task or provisional client ID, resolve all provisional creations together, then dispatch all
     canonical initialization messages concurrently. Role authority governs subsequent workflow work, not roster startup.
-12. Reread the host's task catalog after restoration or creation and require every exact task ID to be present beneath the exact logical
+12. Reread the host's task catalog after creation and require every exact task ID to be present beneath the exact logical
     saved-project ID with a non-empty user-visible preview, first user message, and effective presentation title. Direct task access, a
     readiness response, a locally persisted task record, or a requested project target does not prove saved-project
     membership. A task omitted from the project catalog is an invalid provisional creation and must not receive an active
