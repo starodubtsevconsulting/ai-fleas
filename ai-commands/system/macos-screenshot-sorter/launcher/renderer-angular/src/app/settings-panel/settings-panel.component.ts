@@ -1,10 +1,11 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Settings } from '../models';
 
 @Component({
   selector: 'app-settings-panel',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './settings-panel.component.html',
   styleUrl: './settings-panel.component.css',
 })

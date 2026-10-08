@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Screenshot } from '../models';
+import { ScreenshotCardComponent } from '../screenshot-card/screenshot-card.component';
 
 @Component({
   selector: 'app-folder-section',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ScreenshotCardComponent],
   templateUrl: './folder-section.component.html',
   styleUrl: './folder-section.component.css',
 })
@@ -14,7 +15,7 @@ export class FolderSectionComponent {
   @Input() count!: number;
   @Input() screenshots: Screenshot[] = [];
   @Input() collapsed: boolean = false;
-  @Output() toggle = new EventEmitter<void>();
+  @Output() toggle = new EventEmitter<Event>();
   @Output() openFolder = new EventEmitter<Screenshot>();
   @Output() openScreenshot = new EventEmitter<Screenshot>();
 
