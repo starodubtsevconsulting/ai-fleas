@@ -1,0 +1,15 @@
+name: logs
+command: logs.command.sh
+description: Inspect service logs on remote servers
+category: system
+ai:
+  powered: false
+  roles:
+    - devops
+intent:
+  - "show me logs"
+  - "check logs"
+  - "inspect logs"
+  - "monitor logs"
+  - "view recent errors"
+  - "what happened today"
