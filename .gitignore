@@ -19,6 +19,7 @@
 /ai-commands/*/logs/
 /ai-commands/*/*/logs/
 /ai-commands/*/*/*/logs/
+!ai-commands/system/logs/
 **/events/sent/
 **/output/
 **/.secrets/
