@@ -33,20 +33,10 @@ export class ScreenshotDetailComponent implements OnInit, OnChanges, AfterViewIn
     // Set up window-level keydown handler as a fallback
     this.globalKeydownHandler = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        console.log('[ScreenshotDetail] ESC key captured via keydown listener');
         this.closeScreenshot();
       }
     };
     window.addEventListener('keydown', this.globalKeydownHandler);
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  onWindowKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      console.log('[ScreenshotDetail] ESC key captured via HostListener');
-      event.stopPropagation();
-      this.closeScreenshot();
-    }
   }
 
   ngOnDestroy() {
@@ -100,7 +90,6 @@ export class ScreenshotDetailComponent implements OnInit, OnChanges, AfterViewIn
   handleKeyDown(event: KeyboardEvent) {
     // Handle keydown on the overlay itself (for ESC key)
     if (event.key === 'Escape') {
-      console.log('[ScreenshotDetail] ESC key captured via handleKeyDown');
       this.closeScreenshot();
     }
   }
