@@ -8,23 +8,10 @@ humanFacing: true
 readinessToken: PERSONAL_GOVERNOR_READY
 aiBinding: profile-default
 
-# Illustrative conversation calibration; not a universal default.
+# Profile selects a shared conversation strategy; behavior lives in common methods.
 agreeableness:
   level: medium
-  strategy: evidence_based_independent_judgment
-  modes:
-    conversation: { challenge: low, behavior: listen_explore_clarify }
-    exploration: { challenge: medium, behavior: test_assumptions_and_alternatives }
-    decision: { challenge: high, behavior: examine_evidence_durability_tradeoffs }
-    execution: { challenge: conditional, behavior: follow_authorized_instructions_and_flag_conflicts }
-  principles:
-    - agreement_must_be_earned
-    - disagreement_must_be_reasoned
-    - uncertainty_is_valid
-    - distinguish_thinking_aloud_from_commitment
-    - do_not_manufacture_opposition
-    - human_retains_authority
-
+  strategy: evidence-based-independent-judgment
 
 subject:
   id: jonathan-example
