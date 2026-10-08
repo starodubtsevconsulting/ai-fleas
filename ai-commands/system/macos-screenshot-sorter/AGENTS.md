@@ -96,7 +96,7 @@ The Electron app writes to system log directory:
 | App exits immediately | Check logs in `~/Library/Logs/AI Fleas/` | Look for errors |
 | GPU errors | Run with `--disable-gpu` | Known Electron issue, usually harmless |
 | IPC calls fail | Verify `main.cjs` IPC handlers registered | Check lines 169-177 |
-| `EPIPE: write EPIPE` error | Check for `console.log()` in `main.cjs` | Use `console.error()` only |
+| `EPIPE: write EPIPE` error | Check for `console.log()` or `console.error()` in `main.cjs` | Use `fs.appendFileSync` for logging |
 
 ## Key Files
 
@@ -143,16 +143,21 @@ bash /Users/sergii/projects/sc/ai-commands/_runtime/profile/activate-profile.sh 
 
 ## Electron Console Logging
 
-**Warning**: Do not use `console.log()` in `main.cjs` for debugging in Electron apps.
+**Warning**: Do not use `console.log()` or `console.error()` in `main.cjs` for debugging in Electron apps.
 
-The `console.log()` writes to Node.js `process.stdout`, which in an Electron app (especially when launched from a shell script) may not have a valid stdout/stderr stream attached. This causes `EPIPE: write EPIPE` errors when the renderer calls functions that use `console.log()`.
+Both `console.log()` and `console.error()` write to Node.js streams that may not have a valid stdout/stderr attached when launched from a shell script. This causes `EPIPE: write EPIPE` errors.
 
-**Rule**: Only use `console.error()` for fatal errors that should cause `app.exit(1)`.
+**Rule**: For debugging config or other values, write to a log file instead:
+```javascript
+fs.appendFileSync('/tmp/screenshot-sorter-debug.log', `Debug message: ${value}\n`);
+```
 
-If you need to debug config or other values:
-1. Write to a log file instead
+For fatal errors that should cause `app.exit(1)`, use `console.error()` sparingly and only when the app must terminate.
+
+If you need to debug non-fatal values:
+1. Write to a log file (use `fs.appendFileSync`)
 2. Send messages to the renderer for display in the UI
-3. Use `console.error()` only for fatal issues
+3. Never use `console.log()` or `console.error()` for debug logging
 
 ## White Screen Detection
 
