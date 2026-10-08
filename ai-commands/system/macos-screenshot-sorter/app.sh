@@ -49,7 +49,7 @@ if [[ "$dev" == true ]]; then
   export ANGULAR_DEV=1
   printf 'Starting Angular dev server...\n'
   cd "$command_dir/launcher/renderer-angular"
-  npx ng serve --port 4200 --host 127.0.0.1 > /tmp/ng-serve.log 2>&1 &
+  npx ng serve screenshot-sorter-angular 127.0.0.1:4200 > /tmp/ng-serve.log 2>&1 &
   printf 'Waiting for Angular dev server to be ready...\n'
   for _ in {1..30}; do
     if curl -s http://127.0.0.1:4200/ > /dev/null 2>&1; then
