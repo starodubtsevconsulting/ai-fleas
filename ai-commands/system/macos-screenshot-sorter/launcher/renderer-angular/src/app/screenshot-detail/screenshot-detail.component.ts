@@ -39,6 +39,13 @@ export class ScreenshotDetailComponent implements OnInit, OnChanges, AfterViewIn
     window.addEventListener('keydown', this.globalKeydownHandler);
   }
 
+  @HostListener('window:keydown', ['$event'])
+  onWindowKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      this.closeScreenshot();
+    }
+  }
+
   ngOnDestroy() {
     // Clean up global listeners
     if (this.globalEscHandler) {
