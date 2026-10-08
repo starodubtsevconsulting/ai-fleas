@@ -1,4 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const fs = require('node:fs');
 
 console.error('[PRELOAD] Exposing screenshotSorter API');
 
@@ -17,7 +18,9 @@ console.error('[PRELOAD] Setting up ESC key listener');
 
 // Forward ESC key events from main process to renderer
 ipcRenderer.on('escape-key-pressed', () => {
-  console.error('[PRELOAD] Received escape-key-pressed event');
+  const now = new Date().toISOString();
+  console.error('[PRELOAD] Received escape-key-pressed event at ' + now);
+  fs.appendFileSync('/tmp/screenshot-sorter-esc.log', `[PRELOAD] Received escape-key-pressed event at ${now}\n`);
   // Dispatch a proper KeyboardEvent that Angular can catch
   const event = new KeyboardEvent('keydown', { 
     key: 'Escape',
