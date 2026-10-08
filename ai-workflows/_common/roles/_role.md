@@ -49,3 +49,8 @@ Most existing roles are initialized inside one workflow through that workflow's 
 A concrete Agent must not override fields declared fixed by the role. Missing required bindings, unsupported fields, invalid cardinality, or conflicting ownership should fail closed in the consuming validator/runtime.
 
 Existing roles may migrate incrementally. Introducing the convention does not make an absent YAML companion equivalent to an empty or unrestricted interface.
+
+## Common governance responsibility
+
+All delegated roles follow [Preserve informed human agency](../policy/informed-human-agency.md) within their authority. Human-facing roles surface decision-specific material consequences and obtain informed acceptance where existing gates require it; other roles escalate concerns to the nearest authorized human-facing owner. This policy does not expand role permissions or create additional approval authority.
+
