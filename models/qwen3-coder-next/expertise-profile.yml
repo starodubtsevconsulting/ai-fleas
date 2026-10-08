@@ -17,6 +17,7 @@ communication:
       - "Do not remove necessary technical terms such as file names, commands, APIs, framework names, errors, or code concepts. Explain the action around them simply."
       - "Use explicit IF/THEN and STOP rules for failure handling."
       - "Use examples when a rule can be misunderstood."
+  harness_transfer_limit: "Observed agentic debugging and tool-use limits are based on the specified Hermes deployment. Performance under Pi or other agent harnesses has not yet been established; do not attribute the entire outcome to model weights."
   observed_scope: Qwen3-Coder-Next Q5_K_M through the configured Stage-1 Hermes CLI Coder route; do not assume transfer to another deployment.
   direct_starting_language:
     - Give a named file and edit boundary, a source-to-target change, and the existing input/output contract directly.
