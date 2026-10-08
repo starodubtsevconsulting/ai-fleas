@@ -118,18 +118,19 @@ for (const role of declaredRoles) {
     continue;
   }
   if (activeTask) reuse.push({ role, taskId: receipt.taskId });
-  else if (archivedTask) reactivate.push({ role, taskId: receipt.taskId });
+  else if (archivedTask) create.push({ role, reason: 'receipt task is archived and terminal' });
   else create.push({ role, reason: 'receipt task absent from complete active and archived catalogs' });
 }
 
 const mode = blockers.length
   ? 'blocked'
-  : reactivate.length === declaredRoles.size
-    ? 'restore-all'
-    : create.length
-      ? 'create-missing'
-      : reactivate.length || archive.length
-        ? 'reconcile'
-        : 'reuse-all';
+  : create.length
+    ? 'create-missing'
+    : archive.length
+      ? 'reconcile'
+      : 'reuse-all';
 
-process.stdout.write(`${JSON.stringify({ mode, blockers, reuse, reactivate, create, archive }, null, 2)}\n`);
+const actions = blockers.length
+  ? { reuse: [], reactivate: [], create: [], archive: [] }
+  : { reuse, reactivate, create, archive };
+process.stdout.write(`${JSON.stringify({ mode, blockers, ...actions }, null, 2)}\n`);

@@ -28,7 +28,7 @@ function resolveInventory(overrides = {}) {
   return JSON.parse(result.stdout);
 }
 
-test('a completely archived exact roster resolves to one restore-all operation', () => {
+test('a completely archived exact roster creates fresh successors', () => {
   const result = resolveInventory({
     catalogs: {
       activeComplete: true,
@@ -41,12 +41,16 @@ test('a completely archived exact roster resolves to one restore-all operation',
       ],
     },
   });
-  assert.equal(result.mode, 'restore-all');
-  assert.deepEqual(result.create, []);
-  assert.deepEqual(result.reactivate.map(({ role }) => role), ['admin', 'judge', 'writer']);
+  assert.equal(result.mode, 'create-missing');
+  assert.deepEqual(result.create, [
+    { role: 'admin', reason: 'receipt task is archived and terminal' },
+    { role: 'judge', reason: 'receipt task is archived and terminal' },
+    { role: 'writer', reason: 'receipt task is archived and terminal' },
+  ]);
+  assert.deepEqual(result.reactivate, []);
 });
 
-test('mixed active and archived exact receipts reconcile without replacement', () => {
+test('mixed active and archived exact receipts reuse live tasks and create successors', () => {
   const result = resolveInventory({
     catalogs: {
       activeComplete: true,
@@ -58,8 +62,11 @@ test('mixed active and archived exact receipts reconcile without replacement', (
       ],
     },
   });
-  assert.equal(result.mode, 'reconcile');
-  assert.deepEqual(result.create, []);
+  assert.equal(result.mode, 'create-missing');
+  assert.deepEqual(result.create, [
+    { role: 'judge', reason: 'receipt task is archived and terminal' },
+    { role: 'writer', reason: 'receipt task is archived and terminal' },
+  ]);
   assert.deepEqual(result.reuse, [{ role: 'admin', taskId: 'task-admin' }]);
 });
 

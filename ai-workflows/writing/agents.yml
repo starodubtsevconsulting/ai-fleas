@@ -36,6 +36,7 @@ agents:
     lifecycle: persistent-worker
     humanFacing: primary
     communicationMode: human-dialogue-and-router-runtime
+    # Runtime identity marker for Router dispatch; not a visible-roster startup gate.
     readinessToken: WRITER_READY
     aiBinding: profile-default
     schedule: { enabled: false }
@@ -46,6 +47,7 @@ agents:
     lifecycle: persistent-worker
     humanFacing: primary
     communicationMode: human-dialogue-and-router-runtime
+    # Runtime identity marker for Router dispatch; not a visible-roster startup gate.
     readinessToken: REVIEWER_READY
     aiBinding: profile-default
     schedule: { enabled: false }
@@ -56,6 +58,7 @@ agents:
     lifecycle: persistent-worker
     humanFacing: primary
     communicationMode: human-dialogue-and-router-runtime
+    # Runtime identity marker for Router dispatch; not a visible-roster startup gate.
     readinessToken: RELEASE_COORDINATOR_READY
     aiBinding: profile-default
     schedule: { enabled: false }

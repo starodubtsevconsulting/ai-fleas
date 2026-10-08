@@ -5,6 +5,16 @@ the [capability ownership matrix](role-capability-ownership.csv), and the hidden
 [Workflow Router](../../_common/runtime/workflow-router.md). Capability ownership is mechanical policy; it is not a
 communication graph.
 
+## Startup stability rule
+
+Writing startup is intentionally simple: Admin, Writer, Reviewer, and Release Coordinator are independently created
+and directly usable by the human. Do not add a Manager, lifecycle permit, readiness gate, cross-agent startup
+dependency, or project-ID reconciliation requirement to create or display these roles. The hidden Router remains the
+required runtime for a started workflow run and its declared stage handoffs.
+
+Any proposed change to this simple startup model, the visible roster, or the roles' independent human access requires
+an explicit human design decision before implementation. Do not refactor this model speculatively.
+
 ## Roster and ownership
 
 | Endpoint | Human access | Ownership | Lifecycle |
@@ -15,15 +25,22 @@ communication graph.
 | Release Coordinator | primary | Per-destination review-gate/account-history checks, release actions, and profile-authorized scheduling | persistent |
 
 Admin sits outside ordinary workflow execution and owns any required local governance validation under the common Admin
-contract. Writer, Reviewer, and Release Coordinator are independently addressable role endpoints. The Router assigns
-stages to their exact active task IDs, observes their completed turns, and applies only workflow-declared transitions.
-No endpoint sends workflow messages to another endpoint, and the human is never used as a courier.
+contract. Writer, Reviewer, and Release Coordinator are independently addressable role endpoints. The human may start
+and use any of them directly; no startup-time handoff service is required. For a started managed run, the Router
+assigns stages to their exact active task IDs, observes their completed turns, and applies only workflow-declared
+transitions. No endpoint sends workflow messages to another endpoint, and the human is never used as a courier.
+
+## Roster lifecycle
+
+Writing deliberately declares **no Manager**. Admin directly owns lifecycle operations for Writer, Reviewer, and
+Release Coordinator. A request to initialize or repair this roster must not bootstrap, consult, or wait for a Manager.
+Admin creates the declared endpoints with their role contracts and configured model settings. A missing optional runtime
+integration must not block visible endpoint creation or direct human use.
 
 When the human asks Admin to run Writing work, Admin uses emulated mode and explicitly names the selected roles even
 when the roster exists. It records the work as Admin work. An already active managed run remains Router-dispatched.
-Every endpoint follows the mandatory [common utility-subagent contract](../../_common/agents/utility-subagents.md) for
-INIT audits and bounded role-owned tasks, including long-running drafting, checking, or destination preparation. The parent endpoint
-verifies the result and owns its stage evidence. A subagent cannot issue its own roster receipt or advance a gate.
+Direct Writing endpoints do not require INIT audits or roster receipts. Optional bounded helpers may support a role,
+but the role remains directly usable by the human without lifecycle activation.
 
 For an authorized Admin emulation, Admin assigns each role it actually emulates to a separate role-scoped
 subagent under the [Admin role contract](../../_common/roles/admin.md). Admin reads that role's effective model and

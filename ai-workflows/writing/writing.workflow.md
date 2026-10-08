@@ -6,21 +6,32 @@ The selected profile must explicitly register this workflow and its work project
 [agents.yml](agents.yml), with effective ownership and human-directed routing in the [Writing Team](agents/team.md).
 Declaring the roster does not initialize live agents or create publication authority.
 
+## Startup model
+
+Writing uses independent visible endpoints. Creating Admin, Writer, Reviewer, and Release Coordinator must not depend
+on lifecycle permits, readiness proofs, cross-agent delivery, or reconciliation of host-internal project identifiers.
+The human may directly use any created endpoint. The hidden Router remains the runtime for a started managed run and
+its declared stage transitions. Before changing this model or the visible roster, ask the human for an explicit design
+decision; do not refactor it speculatively.
+
+Writing has no Manager role. Admin is the direct lifecycle owner of Writer, Reviewer, and Release Coordinator; the
+common Manager role applies only to workflows that explicitly declare it. Do not create or wait for a Manager when
+initializing or repairing the Writing roster.
+
 ## Execution mode
 
-For a managed run, when a selected platform has initialized the complete roster under the [common agent contract](../agents.md), the hidden
-[Workflow Router](../_common/runtime/workflow-router.md) executes the declared flow through the
-[Writing routing contract](agents/editorial-routing.md). It assigns each stage to one exact role endpoint, observes the
-completed turn, validates evidence references, and selects the next declared transition. Endpoints never contact one
-another. Admin inspects the runtime and performs authorized recovery; it is not the workflow transport. All roles remain
-directly human-addressable. When the human asks Admin to run Writing work, Admin defaults to stating the exact Writing roles it will
+For a managed run, the hidden [Workflow Router](../_common/runtime/workflow-router.md) executes the declared flow
+through the [Writing routing contract](agents/editorial-routing.md). It assigns each stage to one exact role endpoint,
+observes the completed turn, validates evidence references, and selects the next declared transition. Endpoints never
+contact one another. Admin inspects the runtime and performs authorized recovery; it is not the workflow transport.
+All roles remain directly human-addressable, and the Router is not a prerequisite for role creation or direct human
+use. When the human asks Admin to run Writing work, Admin defaults to stating the exact Writing roles it will
 emulate and performing only those steps under its Admin identity, whether or not the roster exists. An already active
 managed run still uses its Router and endpoints. Before initialization, an authorized task may emulate Writer and Release Coordinator steps for draft
 preparation, but it must not claim a managed-agent identity. Independent critique still needs a genuinely fresh-context
 Reviewer task or human reader who did not draft or edit the revision. If unavailable, mark it pending.
-All Writing Agents follow the mandatory [common utility-subagent contract](../_common/agents/utility-subagents.md) for
-their INIT audits and bounded role-owned work. Subagents do not independently own workflow stages or satisfy
-independent critique.
+Writing roles do not require an INIT audit to begin direct human-requested work. Optional helpers remain bounded and
+cannot substitute for independent critique.
 
 The executable projection is [writing.workflow-map.json](writing.workflow-map.json); its generated human-readable view
 is [writing.workflow-map.mmd](writing.workflow-map.mmd).

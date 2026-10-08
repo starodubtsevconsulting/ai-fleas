@@ -22,7 +22,9 @@ Admin initialization. Never emit readiness merely because a sender requests the 
 
 1. Resolve the current task's exact trusted binding: role, profile or governed human, workflow when applicable,
    logical project, runtime scope, selected project set, and platform. A directly human-designated Admin follows its
-   separate manual bootstrap rule. Missing or conflicting identity blocks INIT; do not guess from the sidebar or chat.
+   separate manual bootstrap rule. A workflow may explicitly declare direct human-created endpoints; for those endpoints,
+   direct human creation in the configured project is sufficient for ordinary role work and INIT/readiness is optional.
+   Missing identity blocks only an attempted managed INIT, not direct work under that workflow's direct-endpoint rule.
    First read the host's own current task ID and active task catalog entry, including its saved-project ID, host,
    status, and checkout. Where the platform has an agent-binding plugin, read the binding keyed by that exact task ID
    and verify its profile, workflow, role, logical project, runtime scope, and selected project IDs against canonical
