@@ -38,7 +38,17 @@ communication:
     limit: Output can reflect parts of an explanation while missing its combined invariant; internal understanding cannot be inferred from output.
   handoff_rule: Translate only unfamiliar meaning needed for the edit into data, state, invariants, positive/misleading examples and the relevant code boundary.
   debugging_rule: For framework, runtime, build, hot-reload, deployment or multi-file integration failures, investigate before editing: map the end-to-end execution path; inspect relevant manifests/configuration and entry points; state the root cause with evidence; then make one bounded change. For missing assets/files, trace requested URL -> configured asset source -> actual file -> tracked branch state before restarting or rebuilding; do not treat an untracked/local file as repository truth. After two failed fix attempts, stop patching and repeat the investigation from observed evidence before another edit.
-  verification_rule: Check the artifact independently; completion prose, exit zero and even behavioral verification may miss source-level lifecycle flaws.
+  verification_rule: "A test PASSES only when you saw its expected result. Reading code or starting the app is NOT a passing test. Check the working app and real data before editing. Check both again after editing. If you cannot test a keyboard or visual action yourself, say NOT VERIFIED and ask for the exact human check. Do not commit when the task requires all tests to pass and any required test is NOT VERIFIED."
+  verification_steps:
+    - "BEFORE editing: start the app the normal way. Check that settings load and screenshots are visible. If this fails, STOP and fix or report the baseline first."
+    - "Write down the expected result for each test before running it."
+    - "AFTER editing: run the same startup and real-data checks again. Then test the new behavior."
+    - "PASS means you observed the expected result. Code that looks correct, a running process, or a successful command does not prove the feature works."
+    - "If you cannot press the key, click the UI, or see the result, write NOT VERIFIED. Ask the user to perform that exact check."
+    - "Do not say all tests passed unless every required test actually passed."
+    - "If the user requires all tests to pass before commit, do not commit or push while any required test is failed or NOT VERIFIED."
+    - "Check git diff and status before committing. Do not include unrelated files or temporary debug logs."
+    - "When the real result is correct and all required tests pass, STOP editing."
 observed:
   demonstrated:
     - focused-file-edits
@@ -60,6 +70,9 @@ observed:
       evidence: benchmarks/gx10/turn-cap-pilot-2026-09-28.json
       interpretation_limit: Porting a reviewed answer does not establish independent design skill.
   recurring_limits:
+    - In Screenshot Sorter ESC debugging, the worker repeatedly claimed success after reading handlers or seeing processes run without observing Escape close the screenshot.
+    - The worker misdiagnosed exported Bash environment variables as lost through exec and restarted or modified launch paths without confirming the actual running configuration.
+    - The worker did not preserve the known-good app baseline with loaded settings and visible screenshots while attempting an ESC fix.
     - On a Screenshot Sorter Angular/Electron hot-reload task, the worker repeatedly patched launch symptoms before mapping the complete dev execution path; cheap static inspection of angular.json would have exposed the missing serve configuration earlier.
     - In integration debugging, the worker may commit prematurely to a causal explanation from one failed command instead of first inspecting manifests/configuration and testing the whole execution chain.
     - The worker needs an explicit stop-and-reassess trigger after repeated failed fixes; otherwise it can continue producing plausible progress-looking edits with low information gain.
