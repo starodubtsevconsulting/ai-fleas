@@ -11,9 +11,12 @@ if (!profilePath || !path.isAbsolute(profilePath) || !fs.existsSync(profilePath)
 const p = YAML.parse(fs.readFileSync(profilePath, 'utf8')) || {};
 if (p.schema_version !== 'ai-fleas-model-expertise.v1') fail('MODEL_GUIDANCE_INVALID: unsupported expertise schema.');
 const c = p.communication || {};
+const language = c.instruction_language || {};
 const lines = ['## Model-specific operating guidance', '', 'Use short, concrete check/action/stop rules. Do not replace these rules with abstract process language.', '', `Model family: ${p.model_family || 'unknown'}`];
 if (c.observed_scope) lines.push(`Evidence scope: ${c.observed_scope}`);
+if (language.target_level) lines.push('', '### Instruction language', `Target: ${language.target_level}`);
 function list(title, values) { if (Array.isArray(values) && values.length) { lines.push('', `### ${title}`); for (const v of values) lines.push(`- ${v}`); } }
+list('Language rules', language.rules);
 list('Start with', c.direct_starting_language);
 list('Translate first', c.translate_first);
 if (c.handoff_rule) lines.push('', '### Handoff', c.handoff_rule);
