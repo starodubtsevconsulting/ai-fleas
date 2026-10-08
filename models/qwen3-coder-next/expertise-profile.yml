@@ -52,6 +52,13 @@ communication:
     - "Do not say a file exists until you checked it. Do not say a tool cannot do something until you checked its configuration."
     - "Do not say the problem is fixed until you tested the real result."
     - "When the result is correct, STOP. Do not keep changing it."
+  fix_explanation_rule: "After a fix works, compare OLD code with NEW code. Find the exact missing handler, wrong condition, or other line that caused the failure. Explain: OLD behavior -> why it failed -> NEW behavior -> why it works. Do not repeat an earlier guess unless the code proves it. Say NOT KNOWN if the cause cannot be proved."
+  fix_explanation_steps:
+    - "Read the code before the fix and after the fix."
+    - "Point to the exact line or condition that was wrong."
+    - "Separate the change that fixed the problem from unrelated cleanup."
+    - "Explain the cause in short sentences using OLD -> FAILED BECAUSE -> NEW -> WORKS BECAUSE."
+    - "If the code does not prove the cause, say NOT KNOWN. Do not guess."
   verification_rule: Check the artifact independently; completion prose, exit zero and even behavioral verification may miss source-level lifecycle flaws.
 observed:
   demonstrated:
@@ -74,6 +81,7 @@ observed:
       evidence: benchmarks/gx10/turn-cap-pilot-2026-09-28.json
       interpretation_limit: Porting a reviewed answer does not establish independent design skill.
   recurring_limits:
+    - After a working Screenshot Sorter Escape fix, the worker described changed handlers but missed the actual failure conditions: a missing Angular HostListener and an Electron dev-mode early return. It repeated a focus hypothesis not supported by the final code comparison.
     - On a Screenshot Sorter Angular/Electron hot-reload task, the worker repeatedly patched launch symptoms before mapping the complete dev execution path; cheap static inspection of angular.json would have exposed the missing serve configuration earlier.
     - In integration debugging, the worker may commit prematurely to a causal explanation from one failed command instead of first inspecting manifests/configuration and testing the whole execution chain.
     - The worker needs an explicit stop-and-reassess trigger after repeated failed fixes; otherwise it can continue producing plausible progress-looking edits with low information gain.
