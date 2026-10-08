@@ -1,9 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DatePipe } from '@angular/common';
 import { Settings, Folder, Screenshot } from './models';
 import { ScreenshotSorterService } from './screenshot-sorter.service';
 import { ScreenshotDetailComponent } from './screenshot-detail/screenshot-detail.component';
+import { TabsComponent, Tab } from './tabs/tabs.component';
+import { HeroComponent } from './hero/hero.component';
+import { LibraryHeaderComponent } from './library-header/library-header.component';
+import { FolderSectionComponent } from './folder-section/folder-section.component';
+import { SettingsPanelComponent } from './settings-panel/settings-panel.component';
 
 function relativeDate(dateStr: string): string {
   const now = new Date();
@@ -16,11 +21,6 @@ function relativeDate(dateStr: string): string {
   if (diffDays < 30) return `${Math.round(diffDays / 7)} weeks ago`;
   if (diffDays < 365) return `${Math.round(diffDays / 30)} months ago`;
   return `${Math.round(diffDays / 365)} years ago`;
-}
-
-function escapeHtml(value: string): string {
-  const map: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-  return String(value).replace(/[&<>"']/g, (character: string) => map[character] || character);
 }
 
 function bytes(value: number): string {
@@ -36,18 +36,26 @@ function changed(value: number): string {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, ScreenshotDetailComponent],
+  imports: [
+    CommonModule,
+    DatePipe,
+    ScreenshotDetailComponent,
+    TabsComponent,
+    HeroComponent,
+    LibraryHeaderComponent,
+    FolderSectionComponent,
+    SettingsPanelComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   settings: Settings = { sourceDir: '', destinationDir: '', settleSeconds: 2, startIntervalSeconds: 10 };
   statusText: string = '';
   folders: Folder[] = [];
   error: string = '';
-  selectedTab: 'library' | 'settings' = 'library';
+  selectedTab: Tab = 'library';
   collapsedFolders: Set<string> = new Set();
-  showHero: boolean = true;
   thumbnailCache: Map<string, string> = new Map();
   selectedScreenshot: Screenshot | null = null;
 
@@ -79,7 +87,6 @@ export class AppComponent {
     this.folders = [];
     try {
       this.folders = await window.screenshotSorter.library();
-      // Pre-load thumbnails for visible screenshots
       this.folders.forEach(folder => {
         folder.screenshots.forEach(shot => {
           if (!this.thumbnailCache.has(shot.id)) {
@@ -103,14 +110,14 @@ export class AppComponent {
     }
   }
 
-  selectTab(tab: 'library' | 'settings') {
+  selectTab(tab: Tab) {
     this.selectedTab = tab;
     if (tab === 'library') {
       this.loadLibrary();
     }
   }
 
-  async chooseFolder(id: string) {
+  async chooseFolder(id: 'source' | 'destination') {
     try {
       const current = this.settings[id === 'source' ? 'sourceDir' : 'destinationDir'] || '';
       const folder = await window.screenshotSorter.chooseFolder(current);
@@ -144,16 +151,8 @@ export class AppComponent {
     }
   }
 
-  hideHero() {
-    this.showHero = false;
-  }
-
   relativeDate(dateStr: string): string {
     return relativeDate(dateStr);
-  }
-
-  escapeHtml(value: string): string {
-    return escapeHtml(value);
   }
 
   bytes(value: number): string {
