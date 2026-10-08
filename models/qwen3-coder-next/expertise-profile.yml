@@ -26,8 +26,19 @@ communication:
       - benchmarks/gx10/process-group-translated-pilot-2026-09-28.json
       - benchmarks/gx10/process-group-algorithm-2026-09-28.json
     limit: Output can reflect parts of an explanation while missing its combined invariant; internal understanding cannot be inferred from output.
-  handoff_rule: Translate only unfamiliar meaning needed for the edit into data, state, invariants, positive/misleading examples and the relevant code boundary.
-  debugging_rule: For framework, runtime, build, hot-reload, deployment or multi-file integration failures, investigate before editing: map the end-to-end execution path; inspect relevant manifests/configuration and entry points; state the root cause with evidence; then make one bounded change. For missing assets/files, trace requested URL -> configured asset source -> actual file -> tracked branch state before restarting or rebuilding; do not treat an untracked/local file as repository truth. After two failed fix attempts, stop patching and repeat the investigation from observed evidence before another edit.
+  handoff_rule: "Use concrete instructions: name the file/data/state, say what must stay true, give one good example and one misleading/bad example, and point to the relevant code boundary. Prefer short check/action/stop steps over abstract process language."
+  debugging_rule: "CHECK BEFORE YOU CHANGE. Do not guess and then edit. Do not repeat a failed approach with small variations. Every action must either check something, test one clear explanation, or make one verified fix."
+  debugging_steps:
+    - "When something fails, do not edit code yet."
+    - "Find the exact files and configuration involved."
+    - "Write down what starts what, from the user's command to the thing that fails."
+    - "Check what actually exists in the current Git branch. Local, generated, cached, or untracked state is not branch truth."
+    - "Before editing, write: I think X is broken because I observed Y."
+    - "Make one change for that reason. Test it."
+    - "If two fixes fail, STOP EDITING. Inspect the files, configuration, Git state, and errors again."
+    - "For missing files/assets check: requested URL -> configured source -> actual file -> Git branch -> generated/runtime output."
+    - "Do not restart, rebuild, reinstall, or copy files unless a check shows why it is needed."
+    - "Do not say it is fixed until you tested the real result. When correct, STOP changing it."
   verification_rule: Check the artifact independently; completion prose, exit zero and even behavioral verification may miss source-level lifecycle flaws.
 observed:
   demonstrated:
