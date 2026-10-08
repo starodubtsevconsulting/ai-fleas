@@ -3,7 +3,7 @@ title: "Who’s in Control?"
 subtitle: "An AI Fleas Manifesto for Informed Human Agency"
 date: "2026-10-08"
 status: draft
-version: 3
+version: 4
 ---
 
 # Who’s in Control?
@@ -19,6 +19,16 @@ We are entering an age when people can authorize work they no longer understand 
 We want AI to do more. We want agents that can work independently, collaborate, and handle complexity beyond the reach of any one person.
 
 **We do not want that independence to come at the cost of our own.**
+
+## When tools begin to shape their users
+
+Media scholar John M. Culkin famously wrote, in a reflection on Marshall McLuhan's ideas, “We shape our tools and thereafter our tools shape us.” ([Attribution and history](https://quoteinvestigator.com/2016/06/26/shape/))
+
+The smartphone made the reversal familiar. We pick it up to accomplish something, then find our attention directed by notifications, feeds, and recommendations. Are we using the phone—or has the phone begun to use us?
+
+With AI agents, the stakes extend beyond attention. When an agent proposes the plan, writes the implementation, checks the results, and explains why we should approve, it can begin shaping not only what we do but how we judge what was done.
+
+The question is not whether tools influence us. They inevitably do. **The question is whether we remain aware of that influence and capable of directing it.**
 
 ## The problem is already here
 
