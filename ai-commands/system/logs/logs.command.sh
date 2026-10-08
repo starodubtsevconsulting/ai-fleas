@@ -2,7 +2,7 @@
 # logs.command.sh
 # Purpose: Inspect service logs on remote servers via SSH and journalctl for specific apps
 # Called by: ai-commands command runner
-# Inputs: --host <host> --app <app> [--since <time>]
+# Inputs: --host <host> --app <app> [--since <time>] [--until <time>]
 # Effects: Reads remote logs via SSH, reports summary to stdout
 
 set -e
@@ -10,7 +10,8 @@ set -e
 # Default values
 HOST=""
 APP=""
-SINCE="yesterday"
+SINCE=""
+UNTIL=""
 SHOW_HELP=false
 
 # Resolve service name from app name (using if/else instead of associative array for compatibility)
@@ -43,6 +44,10 @@ while [[ $# -gt 0 ]]; do
             SINCE="$2"
             shift 2
             ;;
+        --until)
+            UNTIL="$2"
+            shift 2
+            ;;
         --help)
             SHOW_HELP=true
             shift
@@ -56,21 +61,39 @@ done
 
 # Show help if requested or required flags missing
 if $SHOW_HELP || [[ -z "$HOST" ]] || [[ -z "$APP" ]]; then
-    echo "Usage: $0 --host <host> --app <app> [--since <time>]"
+    echo "Usage: $0 --host <host> --app <app> [--since <time>] [--until <time>]"
     echo ""
     echo "Inspect service logs on remote servers via SSH and journalctl for specific apps"
     echo ""
     echo "Options:"
     echo "  --host <host>     SSH host to connect to (required)"
     echo "  --app <app>       App name (required). Supported: sc-website, chaletwhisper, locusesse, ai-fleas"
-    echo "  --since <time>    Time range (e.g., 'yesterday', '2026-10-01', '10-07 00:00:00'). Defaults to 'yesterday'"
+    echo "  --since <time>    Start time range (e.g., 'yesterday', '1h', '1d', '1w', '2026-10-01', '10-07 00:00:00'). Defaults to 'yesterday'"
+    echo "  --until <time>    End time range (e.g., 'now', '1h', '2026-10-08 23:59:59'). Defaults to 'now'"
     echo "  --help            Show this help message"
+    echo ""
+    echo "Time range examples:"
+    echo "  --since 'yesterday'           Logs from yesterday"
+    echo "  --since '1h'                  Logs from the last hour"
+    echo "  --since '1d'                  Logs from the last 24 hours"
+    echo "  --since '1w'                  Logs from the last week"
+    echo "  --since '2026-10-01'          Logs from October 1st"
+    echo "  --since '10-07 00:00:00'      Logs from Oct 7th 00:00:00"
+    echo "  --since '10-07 00:00:00' --until '10-08 00:00:00'  Logs from Oct 7th"
     echo ""
     echo "Examples:"
     echo "  $0 --host infra-01 --app sc-website"
-    echo "  $0 --host infra-01 --app chaletwhisper --since 'yesterday'"
-    echo "  $0 --host infra-01 --app locusesse --since '2026-10-07 00:00:00'"
+    echo "  $0 --host infra-01 --app chaletwhisper --since 'yesterday' --until 'now'"
+    echo "  $0 --host infra-01 --app locusesse --since '1d' --until '1h'"
     exit 0
+fi
+
+# Default values
+if [[ -z "$SINCE" ]]; then
+    SINCE="yesterday"
+fi
+if [[ -z "$UNTIL" ]]; then
+    UNTIL="now"
 fi
 
 # Resolve service name from app name
@@ -80,6 +103,16 @@ if [[ -z "$SERVICE" ]]; then
     exit 1
 fi
 
+# Format time range for display
+SINCE_DISPLAY="$SINCE"
+UNTIL_DISPLAY="$UNTIL"
+if [[ "$SINCE" == "yesterday" ]]; then
+    SINCE_DISPLAY="yesterday"
+fi
+if [[ "$UNTIL" == "now" ]]; then
+    UNTIL_DISPLAY="now"
+fi
+
 # Connect to remote server and fetch logs
 echo "=== App: $APP ==="
 echo "=== Service Status ==="
@@ -87,10 +120,13 @@ ssh "$HOST" "systemctl --user status $SERVICE | grep -E 'Active|Main PID|Loaded'
 echo ""
 
 # Fetch and categorize logs
-echo "=== Log Summary (Last $SINCE) ==="
+echo "=== Log Summary (Last $SINCE_DISPLAY to $UNTIL_DISPLAY) ==="
+
+# Build journalctl command
+JOURNALCTL_CMD="journalctl --user -u $SERVICE --since '$SINCE' --until '$UNTIL' --no-pager"
 
 # Get logs for the specified time range
-LOGS=$(ssh "$HOST" "journalctl --user -u $SERVICE --since '$SINCE' --no-pager 2>/dev/null" || echo "")
+LOGS=$(ssh "$HOST" "$JOURNALCTL_CMD" 2>/dev/null || echo "")
 
 # Count errors
 ERROR_COUNT=$(echo "$LOGS" | grep -ci "ERROR" 2>/dev/null | head -1 || echo "0")
