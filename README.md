@@ -20,6 +20,19 @@ Some may also hear **AI Fleas** as **AI fleets** — many AIs working together. 
   <img src="img/ai-fleas.png" alt="AI Fleas mascot" width="360" />
 </p>
 
+## Who's in control?
+
+**AI can assume more work without silently diminishing meaningful human control.**
+
+AI Fleas is built around **informed human agency**: people should remain able to understand, question, direct, and accept responsibility for consequential decisions even as agents handle more implementation and coordination.
+
+This is a responsibility throughout the system—not a demand that the Personal Governor approve every action. Operational agents surface domain risks, reviewers challenge assumptions, workflow owners handle acceptance and escalation, and the Personal Governor oversees cross-workflow goals and systemic concerns. Scrutiny should be proportional to consequences, without turning routine decisions into bureaucracy.
+
+- **[Who’s in Control? — An AI Fleas Manifesto for Informed Human Agency](notes/articles/2026-10-08-manifesto-for-informed-human-agency.md)** — the public statement of principles.
+- **[Common informed-human-agency policy](ai-workflows/_common/policy/informed-human-agency.md)** — the initial policy and role-level responsibilities.
+
+**Implementation status:** The principle is documented in common policy and role contracts. Consistent runtime enforcement and behavioral validation are still to be demonstrated; the manifesto describes a direction, not a completed guarantee.
+
 ## What is inside
 
 AI Fleas separates persistent governance from the workflows and capabilities that perform work:
