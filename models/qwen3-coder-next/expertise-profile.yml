@@ -7,6 +7,16 @@ profile_status: evidence-backed-provisional
 purpose: Guide delegation from observed work rather than assumed hidden knowledge.
 education_reference: education.yml
 communication:
+  instruction_language:
+    target_level: "concrete language understandable by a typical 12-year-old"
+    rules:
+      - "Use short sentences and common words."
+      - "Give one instruction at a time when order matters."
+      - "Prefer concrete actions such as read, check, compare, change, run, test, and stop."
+      - "Avoid philosophical, academic, management, or process jargon when a simpler phrase says the same thing."
+      - "Do not remove necessary technical terms such as file names, commands, APIs, framework names, errors, or code concepts. Explain the action around them simply."
+      - "Use explicit IF/THEN and STOP rules for failure handling."
+      - "Use examples when a rule can be misunderstood."
   observed_scope: Qwen3-Coder-Next Q5_K_M through the configured Stage-1 Hermes CLI Coder route; do not assume transfer to another deployment.
   direct_starting_language:
     - Give a named file and edit boundary, a source-to-target change, and the existing input/output contract directly.
