@@ -181,7 +181,7 @@ ssh "$HOST" "systemctl --user show $SERVICE | grep -E 'ActiveEnterTimestamp|NRes
 # Backup logs if requested
 if $BACKUP; then
     TIMESTAMP=$(date '+%Y%m%d_%H%M%S')
-    BACKUP_DIR="${LOGS_BACKUP_DIR:-$HOME/backup/logs}"
+    BACKUP_DIR="${LOGS_BACKUP_DIR:-$HOME/backup/sc/sc-services/logs}"
     mkdir -p "$BACKUP_DIR"
     BACKUP_FILE="$BACKUP_DIR/${APP}_${TIMESTAMP}.log"
     
