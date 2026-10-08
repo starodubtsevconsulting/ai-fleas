@@ -44,6 +44,13 @@ export class ScreenshotDetailComponent implements OnInit, OnChanges {
     }
   }
 
+  @HostListener('window:keydown.escape', ['$event'])
+  onEscape(event: KeyboardEvent) {
+    if (!this.shot) return;
+    event.preventDefault();
+    this.closeScreenshot();
+  }
+
   closeScreenshot() {
     this.close.emit();
   }
