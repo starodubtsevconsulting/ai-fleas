@@ -3,141 +3,136 @@ title: "Who’s in Control?"
 subtitle: "An AI Fleas Manifesto for Informed Human Agency"
 date: "2026-10-08"
 status: draft
-version: 2
+version: 3
 ---
 
 # Who’s in Control?
 
 *An AI Fleas Manifesto for Informed Human Agency*
 
-AI can now produce work that people once had to understand in order to complete. It can design software, write the implementation, run tests, review changes, prepare a deployment, and present the result for approval.
+An AI designs the solution. Another AI writes the code. Tests pass. A reviewer approves it. The human sees a green checkmark, a convincing explanation, perhaps a clean diagram, and clicks *Approve*.
 
-The human sees a green checkmark, a persuasive explanation, perhaps a clean diagram, and clicks *Approve*.
+What exactly did the human approve?
 
-What exactly was approved?
+We are entering an age when people can authorize work they no longer understand well enough to question. This is not always a failure: delegation is the point of capable tools. But when consequential assumptions disappear behind fluent explanations and reassuring dashboards, approval can become a signature rather than a decision.
 
-Sometimes the human knows. Sometimes the human knows the outcome but not the important assumptions behind it. And sometimes the approval has become a formality: a signature at the end of a process nobody has fully examined.
+We want AI to do more. We want agents that can work independently, collaborate, and handle complexity beyond the reach of any one person.
 
-That is a troubling direction for a technology supposed to increase human capability.
+**We do not want that independence to come at the cost of our own.**
 
-**The more we delegate to AI, the more deliberately we must preserve our ability to understand and direct what matters.**
+## The problem is already here
 
-## Delegation must not become disappearance
+Imagine an AI-assisted team building a safeguard against charging a customer twice.
 
-Delegation is valuable precisely because it frees us from doing everything ourselves. We do not need to inspect every line of generated code, understand every infrastructure setting, or interrogate every suggestion.
+The implementation passes its tests. Another agent reviews it. The human approves the change.
 
-But there is a difference between delegating *work* and delegating *judgment without realizing it*.
+But what happens if two payment requests arrive at almost the same moment? What if a server fails halfway through processing? Were those scenarios verified—or merely left out of the tests?
 
-Consider a software team building a safeguard against charging a customer twice.
+The human does not need to become a database specialist. But the responsible agents must surface the assumptions that matter, independently check the dangerous cases, and make any remaining risk understandable before acceptance.
 
-An AI agent implements the safeguard. Its tests pass. A second agent reviews the change. The human accepts the pull request.
+If the system cannot answer a consequential question, the answer is more investigation—not a ritual quiz for the human.
 
-Yet a consequential question remains unanswered: What happens when two payment requests arrive at almost the same moment? Or when the server fails halfway through processing?
+The same problem reaches beyond software.
 
-A solution may work perfectly in the tested scenarios while leaving a dangerous edge case unresolved. The human need not become a database specialist. But someone in the chain of responsibility must surface the failure scenario, independently verify the design, and ensure the person accepting the change knows what risk remains.
+An AI assistant recommends a twelve-month service contract. It compares providers, explains the benefits, and makes a persuasive case. Yet it omits the cancellation terms, the full annual commitment, or the consequences if the promised service fails to deliver.
 
-If the team cannot answer the question, the right response is not a quiz for the human. It is more investigation.
+The human may agree without ever seeing the information that could have changed the decision.
 
-This is why **technical acceptance and informed acceptance are not the same thing**.
+**A system can help us act faster while quietly making us less informed about what we are doing.**
 
-## A principle for human-facing AI
+That is the direction we reject.
 
-Here is the principle we want AI Fleas to follow:
+## What we stand for
 
-**Every agent exercising delegated responsibility must help preserve informed human agency within its scope and capabilities.**
+### 1. We stand for informed human agency
 
-By *informed human agency*, we mean the ability to understand consequential choices well enough to evaluate them, direct their execution, and remain accountable for their outcomes.
+Every agent exercising delegated responsibility should help preserve the human's ability to understand, evaluate, direct, and remain accountable for consequential decisions.
 
-It does not require encyclopedic knowledge. It does not require a human to reproduce an agent's entire reasoning. It requires enough understanding to make the decision meaningfully one's own.
+We do not demand that people know everything an AI knows. We demand that consequential choices remain meaningfully theirs.
 
-The depth of that understanding should depend on the consequences—not simply on how complicated the implementation looks.
+### 2. We reject approval without meaningful understanding
 
-A reversible experiment needs little ceremony. A security change, payment safeguard, production migration, or significant financial commitment deserves more scrutiny.
+A passed test is evidence about tested behavior, not proof that every important risk was examined.
 
-## It is not only about code
+A polished explanation is not proof of correctness. A human click is not proof of informed consent.
 
-Imagine an AI assistant recommending a twelve-month service contract.
+When consequences matter, the system must expose the assumptions, uncertainties, and trade-offs that could change the decision.
 
-It compares vendors, lists benefits, and concludes that the subscription is worthwhile. Its reasoning sounds convincing, and the user agrees.
+### 3. We believe responsibility must follow delegation
 
-But perhaps the assistant never pointed out the cancellation terms, the full annual cost, or the possibility that the promised service will not deliver useful results.
+Governance cannot belong to one all-knowing agent at the top.
 
-The failure is not that the assistant recommended the contract. The failure is that it helped produce a decision without exposing material consequences.
+A coder, reviewer, manager, Judge, and Personal Governor have different responsibilities. Each must exercise judgment within its domain and authority.
 
-A better assistant might say: *Before you commit, here are the two conditions most likely to change the decision.*
+When an agent lacks the context or ability to evaluate a consequential concern, it should acknowledge that limit and escalate to the nearest appropriate responsible role.
 
-That short interruption protects the person's judgment. It need not become an examination, and it need not end in disagreement.
+A weak link should not silently become the final authority.
 
-The same principle applies to personal planning, purchases, operations, and organizational decisions. In every case, the question is whether AI makes the human **more capable of directing the outcome**, or merely more comfortable accepting it.
+### 4. We reject obedience disguised as helpfulness
 
-## Governance cannot live in one super-agent
+An agent should not agree merely because the human sounds confident.
 
-It would be tempting to create a powerful Personal Governor that watches everything, questions every decision, and grants permission to proceed.
+It should challenge important assumptions when the evidence warrants it. It should also recognize when the human has understood a risk and made a different legitimate choice.
 
-That would solve one problem by creating another.
+**Disagreement is not incompetence. Compliance is not understanding.**
 
-No single agent has enough context, expertise, or attention to supervise every domain. And a system that asks for permission at every step becomes slower without necessarily becoming safer.
+The purpose of a challenge is to improve judgment, not win an argument.
 
-Governance should be distributed.
+### 5. We reject governance that becomes bureaucracy
 
-In AI Fleas, an operational agent works within its domain. An independent reviewer challenges important assumptions. A workflow manager determines whether acceptance needs additional evidence. A Judge checks applicable governance rules within its delegated authority. The Personal Governor watches the larger picture: priorities, patterns, human capacity, and failures that cross domains.
+The opposite extreme is no better: agents that interrupt every ordinary decision with questions, warnings, and permission requests.
 
-Each level must take responsibility for the decisions within its reach.
+Choosing a book, visiting a library, or trying a reversible habit does not require an approval ceremony.
 
-When an agent cannot assess a consequential question, it should **say so and escalate to the nearest appropriate role**. A weak agent must not silently become the last line of defense merely because the workflow placed it there.
+Scrutiny should follow consequences. Routine actions should remain routine. Higher-risk decisions deserve more explanation, verification, and sometimes a pause.
 
-Higher-level governance should inspect the health of this process, not micromanage every technical detail.
+A quiz is one possible tool. It is not a philosophy.
 
-## Challenge without becoming a bureaucrat
+### 6. We believe humans must retain the ability to redirect the system
 
-There is an equally real danger on the other side.
+A person should be able to question an agent's reasoning, understand the limits of its evidence, change course, and exercise legitimate authority over the outcome.
 
-Imagine an assistant that cannot let someone make a routine choice without asking three questions to verify their understanding. It could turn going to the library, taking a walk, or trying a new study habit into an approval workflow.
+Agents must not conceal material risks, silently expand their authority, or treat the human's disagreement as a defect to be corrected.
 
-That is not informed agency. It is friction masquerading as care.
+The measure of successful delegation is not how rarely a human intervenes. It is whether intervention remains informed and effective when it matters.
 
-The intervention must be proportionate.
+### 7. We will judge governance by its outcomes
 
-For a low-consequence choice, proceed. For a meaningful but reversible decision, explain the main trade-off. For a consequential commitment, identify material assumptions and verify that the human can make an informed choice. If a question cannot be resolved at that level, escalate the uncertainty rather than pretending certainty.
+More approvals, more rules, and more supervisory agents do not necessarily produce better decisions.
 
-A useful check might be a sentence, a diagram, or a single scenario question. It does not have to be a quiz.
+We want evidence that consequential risks are identified, routine work is not obstructed, and humans remain capable of directing what they delegate.
 
-And disagreement is not proof that the human lacks understanding. Someone may fully understand a risk and still choose to accept it within their authority.
+If our governance mechanisms become ceremonial or burdensome, they need to change.
 
-**AI must support human judgment, not demand human compliance.**
+## What this means for AI Fleas
 
-## What responsible AI Fleas should do
+[AI Fleas](https://ai-fleas.com) is our attempt to make AI-assisted work portable and structured through roles, workflows, profiles, and governance.
 
-This principle should appear throughout the system, not as a special personality trait of the Governor.
+This manifesto states a direction for that work, **not a claim that every mechanism described here already exists or has been validated**.
 
-When an agent handles a consequential decision, it should be able to:
+We intend to put informed human agency into the responsibilities of human-facing agents throughout the system.
 
-- Recognize what could materially go wrong.
-- Separate essential consequences from safely delegable implementation details.
-- Present the relevant uncertainty in language the human can use.
-- Request independent verification when its own judgment is insufficient.
-- Escalate unresolved concerns through existing roles.
-- Preserve the human's authorized choice without hiding the risk.
+An operational agent should explain material risks in its domain. An independent reviewer should challenge assumptions rather than merely repeat the implementation's claims. A workflow manager should recognize when acceptance needs additional evidence. A Judge should uphold established governance boundaries without inventing universal vetoes. A Personal Governor should attend to the larger picture: human goals, capacity, and failures that cross workflows.
 
-The implementation belongs in reusable governance policies, strategies, and methods. Profiles select how those mechanisms apply. Memory retains important decisions and lessons—not every passing conversation or question.
+No one agent needs to know everything. Each should know what it is responsible for, what it cannot establish, and where a concern should go next.
 
-We should start inside an existing workflow, test routine and high-consequence cases, and observe whether the method actually improves decisions. We should not invent a new bureaucracy before demonstrating the need.
+We will start with existing workflows and proportionate, risk-triggered checks. We will test whether they actually improve understanding and decisions before adding more machinery.
 
-## What success looks like
+The goal is not a new bureaucracy. It is a chain of accountable delegation that keeps the human meaningfully involved at the points that matter.
 
-Success is not a higher count of approval gates.
+## The alternative to folded hands
 
-It is a system in which routine work flows without constant interruption, important risks become visible before acceptance, and agents are willing to admit when they do not know enough.
+In 1947, Jack Williamson's [*With Folded Hands*](https://en.wikipedia.org/wiki/With_Folded_Hands) imagined robots so determined to protect humanity that people lost much of their freedom to act.
 
-It is a human who can delegate increasingly complex work without quietly surrendering the ability to direct it.
+It remains a powerful warning: a system can claim to serve humans while depriving them of agency.
 
-AI should be allowed to move quickly. It should help us accomplish things no individual could reasonably do alone.
+Our ambition is the opposite.
 
-In 1947, Jack Williamson imagined robots whose determination to protect humans left people with little freedom to direct their own lives. His short story [*With Folded Hands*](https://en.wikipedia.org/wiki/With_Folded_Hands) remains a cautionary contrast: assistance can become control even when protection is the stated goal. The ambition here is the opposite—to delegate more work while preserving meaningful human agency.
+We want agents that can take on demanding work without making their human partners passive. We want assistance that strengthens judgment, not dependence that hides behind convenience.
 
-But delegation must not become disappearance.
+We reject the false choice between watching every step and trusting every answer.
 
-The choice is not between total human supervision and blind trust in automation. There is a third way: **informed delegation**, supported by agents that understand their responsibilities and the limits of their authority.
+**Delegation must not become disappearance.**
 
 **AI can assume more work without silently diminishing meaningful human control.**
 
