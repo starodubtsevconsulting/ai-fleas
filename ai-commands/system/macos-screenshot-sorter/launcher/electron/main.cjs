@@ -210,7 +210,9 @@ function cameraIcon() {
   icon.setTemplateImage(true); return icon;
 }
 function createWindow() {
-  // Start renderer server for Angular app
+  const useAngularDevServer = process.env.ELECTRON_DEV === '1' && process.env.ANGULAR_DEV === '1';
+
+  // Start renderer server for Angular app (production/built mode)
   const rendererDir = path.join(__dirname, '../renderer');
   rendererServer = http.createServer((req, res) => {
     let filePath = path.join(rendererDir, req.url === '/' ? 'index.html' : req.url);
@@ -228,8 +230,16 @@ function createWindow() {
   const appIconPath = path.join(__dirname, '../Resources/ScreenshotSorter.icns');
   const windowIcon = fs.existsSync(appIconPath) ? appIconPath : cameraIcon();
   
-  mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshot Sorter', icon: windowIcon, backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+  mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshots Sorter', icon: windowIcon, backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
   mainWindow.setMenuBarVisibility(false);
+
+  if (useAngularDevServer) {
+    // Angular CLI owns renderer rebuild + live reload in development. Electron only hosts the window.
+    console.error('[DEV] Loading Angular dev server at http://localhost:4200');
+    mainWindow.loadURL('http://localhost:4200/');
+    showWindow();
+    return;
+  }
   
   console.error('[ESC] Registering before-input-event handler');
   console.log('[ESC] Registering before-input-event handler');
@@ -258,7 +268,9 @@ function createWindow() {
     console.error(`[DEV] Renderer server running on http://127.0.0.1:${port}`);
     // Load Angular app via HTTP instead of file://
     mainWindow.webContents.loadURL(`http://127.0.0.1:${port}/`);
-  
+    // Show the window after loading
+    showWindow();
+
     // Add ESC key handler via 'keydown' event in main process
     console.error('[ESC] Registering keydown handler');
     console.log('[ESC] Registering keydown handler');

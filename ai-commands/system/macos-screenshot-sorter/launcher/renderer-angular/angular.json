@@ -37,6 +37,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "hero.png",
+                "input": "../renderer/assets",
+                "output": "assets"
               }
             ],
             "styles": [
@@ -67,6 +72,18 @@
             }
           },
           "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "screenshot-sorter-angular:build:production"
+            },
+            "development": {
+              "buildTarget": "screenshot-sorter-angular:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
         },
         "test": {
           "builder": "@angular/build:karma",

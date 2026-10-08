@@ -75,14 +75,14 @@ section.panel p {
   background: #f9fafb;
   border: 1px solid #e4e5ec;
   border-radius: 8px;
-  color: #2e67d1;
+  color: #eab308;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
 
 .library-head .library-refresh:hover {
-  background: #f3f4f6;
+  background: #fefce8;
   border-color: #cfd4df;
 }
 
