@@ -1,11 +1,14 @@
 ---
-title: "AI Fleas: A Manifesto for Informed Human Agency"
+title: "Who’s in Control?"
+subtitle: "An AI Fleas Manifesto for Informed Human Agency"
 date: "2026-10-08"
 status: draft
 version: 1
 ---
 
-# AI Fleas: A Manifesto for Informed Human Agency
+# Who’s in Control?
+
+*An AI Fleas Manifesto for Informed Human Agency*
 
 **Status:** Public draft v1  
 **Scope:** A common governance principle for AI agents, roles, workflows, and personal systems  
