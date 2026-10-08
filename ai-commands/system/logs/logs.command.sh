@@ -2,7 +2,7 @@
 # logs.command.sh
 # Purpose: Inspect service logs on remote servers via SSH and journalctl for specific apps
 # Called by: ai-commands command runner
-# Inputs: --host <host> --app <app> [--since <time>] [--until <time>]
+# Inputs: --host <host> --app <app> [--since <time>] [--until <time>] [--backup] [--clear]
 # Effects: Reads remote logs via SSH, reports summary to stdout
 
 set -e
@@ -12,6 +12,8 @@ HOST=""
 APP=""
 SINCE=""
 UNTIL=""
+BACKUP=false
+CLEAR=false
 SHOW_HELP=false
 
 # Resolve service name from app name (using if/else instead of associative array for compatibility)
@@ -48,6 +50,14 @@ while [[ $# -gt 0 ]]; do
             UNTIL="$2"
             shift 2
             ;;
+        --backup)
+            BACKUP=true
+            shift
+            ;;
+        --clear)
+            CLEAR=true
+            shift
+            ;;
         --help)
             SHOW_HELP=true
             shift
@@ -61,7 +71,7 @@ done
 
 # Show help if requested or required flags missing
 if $SHOW_HELP || [[ -z "$HOST" ]] || [[ -z "$APP" ]]; then
-    echo "Usage: $0 --host <host> --app <app> [--since <time>] [--until <time>]"
+    echo "Usage: $0 --host <host> --app <app> [--since <time>] [--until <time>] [--backup] [--clear]"
     echo ""
     echo "Inspect service logs on remote servers via SSH and journalctl for specific apps"
     echo ""
@@ -70,6 +80,8 @@ if $SHOW_HELP || [[ -z "$HOST" ]] || [[ -z "$APP" ]]; then
     echo "  --app <app>       App name (required). Supported: sc-website, chaletwhisper, locusesse, ai-fleas"
     echo "  --since <time>    Start time range (e.g., 'yesterday', '1h', '1d', '1w', '2026-10-01', '10-07 00:00:00'). Defaults to 'yesterday'"
     echo "  --until <time>    End time range (e.g., 'now', '1h', '2026-10-08 23:59:59'). Defaults to 'now'"
+    echo "  --backup          Backup logs to local file before clearing"
+    echo "  --clear           Clear logs after backup (clears entire journal)"
     echo "  --help            Show this help message"
     echo ""
     echo "Time range examples:"
@@ -83,8 +95,8 @@ if $SHOW_HELP || [[ -z "$HOST" ]] || [[ -z "$APP" ]]; then
     echo ""
     echo "Examples:"
     echo "  $0 --host infra-01 --app sc-website"
-    echo "  $0 --host infra-01 --app chaletwhisper --since 'yesterday' --until 'now'"
-    echo "  $0 --host infra-01 --app locusesse --since '1d' --until '1h'"
+    echo "  $0 --host infra-01 --app sc-website --since 'yesterday' --until 'now'"
+    echo "  $0 --host infra-01 --app sc-website --backup --clear"
     exit 0
 fi
 
@@ -165,3 +177,29 @@ fi
 # Show service uptime
 echo "=== Service Uptime ==="
 ssh "$HOST" "systemctl --user show $SERVICE | grep -E 'ActiveEnterTimestamp|NRestarts' | head -2"
+
+# Backup logs if requested
+if $BACKUP; then
+    TIMESTAMP=$(date '+%Y%m%d_%H%M%S')
+    BACKUP_DIR="/Users/sergii/projects/sc/logs-backup"
+    mkdir -p "$BACKUP_DIR"
+    BACKUP_FILE="$BACKUP_DIR/${APP}_${TIMESTAMP}.log"
+    
+    echo ""
+    echo "=== Backup ==="
+    echo "Backing up logs to $BACKUP_FILE..."
+    
+    # Fetch all logs for the app and save to local file
+    ssh "$HOST" "journalctl --user -u $SERVICE --no-pager" > "$BACKUP_FILE"
+    
+    echo "Backup saved to $BACKUP_FILE ($(wc -l < "$BACKUP_FILE") lines)"
+fi
+
+# Clear logs if requested
+if $CLEAR; then
+    echo ""
+    echo "=== Clear Logs ==="
+    echo "Clearing all logs for $SERVICE on $HOST..."
+    ssh "$HOST" "journalctl --user --vacuum-time=1s -u $SERVICE"
+    echo "Logs cleared for $SERVICE"
+fi
