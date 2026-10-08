@@ -1,17 +1,32 @@
 #!/bin/bash
 # logs.command.sh
-# Purpose: Inspect service logs on remote servers via SSH and journalctl
+# Purpose: Inspect service logs on remote servers via SSH and journalctl for specific apps
 # Called by: ai-commands command runner
-# Inputs: --host <host> --service <service> [--since <time>]
+# Inputs: --host <host> --app <app> [--since <time>]
 # Effects: Reads remote logs via SSH, reports summary to stdout
 
 set -e
 
 # Default values
 HOST=""
-SERVICE=""
+APP=""
 SINCE="yesterday"
 SHOW_HELP=false
+
+# Resolve service name from app name (using if/else instead of associative array for compatibility)
+resolve_service() {
+    case "$1" in
+        sc-website|chaletwhisper|ai-fleas)
+            echo "umbrella-v2.service"
+            ;;
+        locusesse)
+            echo "locusesse-local.service"
+            ;;
+        *)
+            echo ""
+            ;;
+    esac
+}
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -20,8 +35,8 @@ while [[ $# -gt 0 ]]; do
             HOST="$2"
             shift 2
             ;;
-        --service)
-            SERVICE="$2"
+        --app)
+            APP="$2"
             shift 2
             ;;
         --since)
@@ -40,25 +55,33 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Show help if requested or required flags missing
-if $SHOW_HELP || [[ -z "$HOST" ]] || [[ -z "$SERVICE" ]]; then
-    echo "Usage: $0 --host <host> --service <service> [--since <time>]"
+if $SHOW_HELP || [[ -z "$HOST" ]] || [[ -z "$APP" ]]; then
+    echo "Usage: $0 --host <host> --app <app> [--since <time>]"
     echo ""
-    echo "Inspect service logs on remote servers via SSH and journalctl"
+    echo "Inspect service logs on remote servers via SSH and journalctl for specific apps"
     echo ""
     echo "Options:"
     echo "  --host <host>     SSH host to connect to (required)"
-    echo "  --service <service>  systemd service name (required)"
+    echo "  --app <app>       App name (required). Supported: sc-website, chaletwhisper, locusesse, ai-fleas"
     echo "  --since <time>    Time range (e.g., 'yesterday', '2026-10-01', '10-07 00:00:00'). Defaults to 'yesterday'"
     echo "  --help            Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0 --host infra-01 --service umbrella-v2.service"
-    echo "  $0 --host infra-01 --service umbrella-v2.service --since 'yesterday'"
-    echo "  $0 --host infra-01 --service umbrella-v2.service --since '2026-10-07 00:00:00'"
+    echo "  $0 --host infra-01 --app sc-website"
+    echo "  $0 --host infra-01 --app chaletwhisper --since 'yesterday'"
+    echo "  $0 --host infra-01 --app locusesse --since '2026-10-07 00:00:00'"
     exit 0
 fi
 
+# Resolve service name from app name
+SERVICE=$(resolve_service "$APP")
+if [[ -z "$SERVICE" ]]; then
+    echo "Error: Unknown app '$APP'. Supported apps: sc-website, chaletwhisper, locusesse, ai-fleas"
+    exit 1
+fi
+
 # Connect to remote server and fetch logs
+echo "=== App: $APP ==="
 echo "=== Service Status ==="
 ssh "$HOST" "systemctl --user status $SERVICE | grep -E 'Active|Main PID|Loaded' | head -5"
 echo ""

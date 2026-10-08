@@ -1,10 +1,10 @@
 # Logs Command Specification
 
-This document describes the logs inspection command for inspecting service logs on remote servers.
+This document describes the logs inspection command for inspecting service logs on remote servers for specific apps.
 
 ## Overview
 
-The `logs` command provides a quick way to inspect service logs on remote servers via SSH and journalctl. It categorizes log entries by type and reports a summary of recent activity.
+The `logs` command provides a quick way to inspect service logs on remote servers via SSH and journalctl. It categorizes log entries by type and reports a summary of recent activity for specific apps.
 
 ## Use Cases
 
@@ -16,7 +16,7 @@ The `logs` command provides a quick way to inspect service logs on remote server
 ## Command Syntax
 
 ```
-logs.command.sh --host <host> --service <service> [--since <time>]
+logs.command.sh --host <host> --app <app> [--since <time>]
 ```
 
 ## Flags
@@ -24,9 +24,20 @@ logs.command.sh --host <host> --service <service> [--since <time>]
 | Flag | Required | Description |
 |---|---|---|
 | `--host` | Yes | SSH host to connect to (e.g., `infra-01`) |
-| `--service` | Yes | systemd service name (e.g., `umbrella-v2.service`) |
+| `--app` | Yes | App name (e.g., `sc-website`, `chaletwhisper`, `locusesse`, `ai-fleas`) |
 | `--since` | No | Time range (e.g., `'yesterday'`, `'2026-10-01'`, `'10-07 00:00:00'`). Defaults to `'yesterday'` |
 | `--help` | No | Show help message |
+
+## App Mapping
+
+The command maps app names to service names and log paths:
+
+| App | Service | Log Path |
+|---|---|---|
+| `sc-website` | `umbrella-v2.service` | `/home/sergii/projects/sc/sc-services` |
+| `chaletwhisper` | `umbrella-v2.service` | `/home/sergii/projects/sc/sc-services` |
+| `locusesse` | `locusesse-local.service` | `/home/sergii/projects/sc/sc-services` |
+| `ai-fleas` | `umbrella-v2.service` | `/home/sergii/projects/sc/sc-services` |
 
 ## Log Categories
 
@@ -41,24 +52,25 @@ The command categorizes log entries as:
 ## Example Output
 
 ```
+=== App: sc-website ===
 === Service Status ===
-Active: active (running) since Thu 2026-10-01 22:11:51 EDT
-Main PID: 2262554 (MainThread)
-Loaded: loaded (/etc/systemd/user/umbrella-v2.service; enabled; vendor preset: enabled)
+     Loaded: loaded (/home/sergii/.config/systemd/user/umbrella-v2.service; enabled; preset: enabled)
+     Active: active (running) since Thu 2026-10-01 22:11:51 EDT; 6 days ago
+   Main PID: 2262554 (MainThread)
 
-=== Log Summary (Last 1h) ===
-ERROR: 0
+=== Log Summary (Last yesterday) ===
+ERROR: 5376
 WARNING: 0
-404: 12
-INFO: 5
-OTHER: 3
+404: 8876
+INFO: 70
+OTHER: 29665
 
 === Sample Error Entries (Last 5) ===
 Oct 08 14:27:44 infra-01 start.sh[2262554]: [Nest] 2262554  - 10/08/2026, 2:27:44 PM   ERROR [ExceptionsHandler] [Error: ENOENT: no such file or directory, stat '/home/sergii/projects/sc/sc-services/apps/ai-fleas-site/public/wp-login.php']
 
 === Service Uptime ===
 ActiveEnterTimestamp=Thu 2026-10-01 22:11:51 EDT
-NRestarts=0
+ActiveEnterTimestampMonotonic=647195880103
 ```
 
 ## Integration with AI Commands
@@ -66,7 +78,7 @@ NRestarts=0
 This command is designed to work with the AI Fleas command system. It can be invoked through:
 
 ```
-${AI_COMMANDS_ROOT}/logs/logs.command.sh --host infra-01 --service umbrella-v2.service
+${AI_COMMANDS_ROOT}/logs/logs.command.sh --host infra-01 --app sc-website
 ```
 
 ## Configuration
@@ -78,7 +90,7 @@ name: logs
 config:
   - name: default_since
     type: string
-    default: 1h
+    default: yesterday
   - name: ssh_user
     type: string
     default: sergii
