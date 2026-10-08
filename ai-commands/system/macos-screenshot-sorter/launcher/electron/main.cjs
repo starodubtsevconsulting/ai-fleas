@@ -233,6 +233,13 @@ function createWindow() {
   mainWindow = new BrowserWindow({ width: 800, height: 600, minWidth: 580, minHeight: 640, title: 'Screenshots Sorter', icon: windowIcon, backgroundColor: '#f7f7fb', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
   mainWindow.setMenuBarVisibility(false);
 
+  // Register before the dev-mode early return. Keep Escape scoped to this window.
+  mainWindow.webContents.on('before-input-event', (_event, input) => {
+    if (input.type === 'keyDown' && input.key === 'Escape') {
+      mainWindow.webContents.send('escape-key-pressed');
+    }
+  });
+
   if (useAngularDevServer) {
     // Angular CLI owns renderer rebuild + live reload in development. Electron only hosts the window.
     console.error('[DEV] Loading Angular dev server at http://localhost:4200');
@@ -333,7 +340,8 @@ if (isPrimaryInstance) {
     createWindow();
     
     // Register global ESC shortcut to close full-screen view
-    const escRegistered = globalShortcut.register('Escape', () => {
+    const escRegistered = false; // Escape is window-scoped; do not steal it globally.
+    /* const oldGlobalShortcut = globalShortcut.register('Escape', () => {
       const now = new Date().toISOString();
       console.error('[ESC] Global ESC shortcut pressed');
       fs.appendFileSync('/tmp/screenshot-sorter-esc.log', `[ESC] Callback fired at ${now}\n`);
@@ -344,6 +352,7 @@ if (isPrimaryInstance) {
       }
     });
     
+    */
     // Write to a log file for debugging
     const logPath = '/tmp/screenshot-sorter-esc.log';
     fs.appendFileSync(logPath, `ESC registration: ${escRegistered ? 'SUCCESS' : 'FAILED'} at ${new Date().toISOString()}\n`);
