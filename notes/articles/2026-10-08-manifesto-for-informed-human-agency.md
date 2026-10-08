@@ -133,8 +133,19 @@ It is a human who can delegate increasingly complex work without quietly surrend
 
 AI should be allowed to move quickly. It should help us accomplish things no individual could reasonably do alone.
 
+In 1947, Jack Williamson imagined robots whose determination to protect humans left people with little freedom to direct their own lives. His short story [*With Folded Hands*](https://en.wikipedia.org/wiki/With_Folded_Hands) remains a cautionary contrast: assistance can become control even when protection is the stated goal. The ambition here is the opposite—to delegate more work while preserving meaningful human agency.
+
 But delegation must not become disappearance.
 
 The choice is not between total human supervision and blind trust in automation. There is a third way: **informed delegation**, supported by agents that understand their responsibilities and the limits of their authority.
 
 **AI can assume more work without silently diminishing meaningful human control.**
+
+## Further reading — Human–AI Agency
+
+- **[AI Fleas](https://ai-fleas.com)** — Portable AI roles, workflows, governance, and human-directed automation.
+- **[I Asked My Personal Governor to Create a Plan for the Month Ahead](2026-09-30-i-asked-my-personal-governor-to-create-a-plan-for-the-month-ahead.md)** — A practical exploration of AI-assisted personal governance.
+- **[What If a Personal Governor Had System 1 and System 2?](2026-10-04-what-if-a-personal-governor-had-system-1-and-system-2.md)** — Distributing routine routing and deeper reasoning across an agent system.
+- **[*With Folded Hands* (1947)](https://en.wikipedia.org/wiki/With_Folded_Hands)**, by Jack Williamson — A fictional warning about protective automation undermining human freedom.
+
+*This is an emerging collection of writing about informed delegation and human–AI agency, not a numbered series.*
