@@ -1,5 +1,5 @@
 <article class="shot" [title]="shot.name">
-  <img [src]="shot.thumbnail || ''" [alt]="shot.name" style="cursor: pointer;" (click)="openScreenshot.emit()">
+  <img [src]="thumbnail" [alt]="shot.name" style="cursor: pointer;" (click)="openScreenshot.emit()">
   <div class="shot-name">{{ shot.name }}</div>
   <div class="shot-meta">{{ formatModified(shot.modifiedAt) }} · {{ formatBytes(shot.bytes) }}</div>
   <div class="shot-actions">

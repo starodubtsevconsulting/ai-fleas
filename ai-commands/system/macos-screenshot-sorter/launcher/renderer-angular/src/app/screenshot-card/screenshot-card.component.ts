@@ -9,6 +9,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 })
 export class ScreenshotCardComponent {
   @Input() shot: any = null;
+  @Input() thumbnail: string = '';
   @Output() openFolder = new EventEmitter<void>();
   @Output() openScreenshot = new EventEmitter<void>();
 

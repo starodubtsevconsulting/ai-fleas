@@ -16,6 +16,7 @@
       [date]="folder.date"
       [count]="folder.count"
       [screenshots]="folder.screenshots"
+      [thumbnails]="thumbnailCache"
       [collapsed]="collapsedFolders.has(folder.date)"
       (toggle)="toggleFolder(folder.date, $event)"
       (openFolder)="openFolder($event)"

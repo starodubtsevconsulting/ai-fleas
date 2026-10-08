@@ -23,6 +23,7 @@
     <app-screenshot-card 
       *ngFor="let shot of screenshots" 
       [shot]="shot"
+      [thumbnail]="thumbnails.get(shot.id) || ''"
       (openFolder)="openFolder.emit(shot)"
       (openScreenshot)="openScreenshot.emit(shot)">
     </app-screenshot-card>

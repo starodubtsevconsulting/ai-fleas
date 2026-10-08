@@ -14,6 +14,7 @@ export class FolderSectionComponent {
   @Input() date!: string;
   @Input() count!: number;
   @Input() screenshots: Screenshot[] = [];
+  @Input() thumbnails: Map<string, string> = new Map();
   @Input() collapsed: boolean = false;
   @Output() toggle = new EventEmitter<Event>();
   @Output() openFolder = new EventEmitter<Screenshot>();
