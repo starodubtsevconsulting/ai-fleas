@@ -38,6 +38,13 @@ communication:
     limit: Output can reflect parts of an explanation while missing its combined invariant; internal understanding cannot be inferred from output.
   handoff_rule: Translate only unfamiliar meaning needed for the edit into data, state, invariants, positive/misleading examples and the relevant code boundary.
   debugging_rule: For framework, runtime, build, hot-reload, deployment or multi-file integration failures, investigate before editing: map the end-to-end execution path; inspect relevant manifests/configuration and entry points; state the root cause with evidence; then make one bounded change. For missing assets/files, trace requested URL -> configured asset source -> actual file -> tracked branch state before restarting or rebuilding; do not treat an untracked/local file as repository truth. After two failed fix attempts, stop patching and repeat the investigation from observed evidence before another edit.
+  fix_explanation_rule: "After a fix works, compare OLD code with NEW code. Find the exact missing handler, wrong condition, or other line that caused the failure. Explain: OLD behavior -> why it failed -> NEW behavior -> why it works. Do not repeat an earlier guess unless the code proves it. Say NOT KNOWN if the cause cannot be proved."
+  fix_explanation_steps:
+    - "Read the code before the fix and after the fix."
+    - "Point to the exact line or condition that was wrong."
+    - "Separate the change that fixed the problem from unrelated cleanup."
+    - "Explain the cause in short sentences using OLD -> FAILED BECAUSE -> NEW -> WORKS BECAUSE."
+    - "If the code does not prove the cause, say NOT KNOWN. Do not guess."
   verification_rule: "A test PASSES only when you saw its expected result. Reading code or starting the app is NOT a passing test. Check the working app and real data before editing. Check both again after editing. If you cannot test a keyboard or visual action yourself, say NOT VERIFIED and ask for the exact human check. Do not commit when the task requires all tests to pass and any required test is NOT VERIFIED."
   verification_steps:
     - "BEFORE editing: start the app the normal way. Check that settings load and screenshots are visible. If this fails, STOP and fix or report the baseline first."
@@ -70,6 +77,7 @@ observed:
       evidence: benchmarks/gx10/turn-cap-pilot-2026-09-28.json
       interpretation_limit: Porting a reviewed answer does not establish independent design skill.
   recurring_limits:
+    - After a working Screenshot Sorter Escape fix, the worker described changed handlers but missed the actual failure conditions: a missing Angular HostListener and an Electron dev-mode early return. It repeated a focus hypothesis not supported by the final code comparison.
     - In Screenshot Sorter ESC debugging, the worker repeatedly claimed success after reading handlers or seeing processes run without observing Escape close the screenshot.
     - The worker misdiagnosed exported Bash environment variables as lost through exec and restarted or modified launch paths without confirming the actual running configuration.
     - The worker did not preserve the known-good app baseline with loaded settings and visible screenshots while attempting an ESC fix.
