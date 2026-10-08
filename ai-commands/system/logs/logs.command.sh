@@ -199,6 +199,9 @@ if $CLEAR; then
     echo ""
     echo "=== Clear Logs ==="
     echo "Clearing all logs for $SERVICE on $HOST..."
-    ssh "$HOST" "journalctl --user --vacuum-time=1s -u $SERVICE"
+    # Use vacuum-size instead of vacuum-time since archived journals can't be deleted by time
+    ssh "$HOST" "journalctl --user --vacuum-size=1M -u $SERVICE"
+    # Also clear all user journals to be safe
+    ssh "$HOST" "journalctl --user --vacuum-size=10M"
     echo "Logs cleared for $SERVICE"
 fi
