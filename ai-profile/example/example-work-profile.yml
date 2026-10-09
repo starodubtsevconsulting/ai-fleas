@@ -90,6 +90,8 @@ commands:
     config: commands-config/email/config.yml
   - id: hermes-agents
     config: commands-config/hermes-agents/config.yml
+  - id: pi-agents
+    config: commands-config/pi-agents/config.yml
   - id: gpt-agents
     config: commands-config/gpt-agents/config.yml
   - id: install
@@ -126,6 +128,7 @@ workflows:
       model: qwen-coder
     commands:
       - coding
+      - pi-agents
       - ticket-tracker
       - jira
       - test

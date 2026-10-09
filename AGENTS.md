@@ -1,4 +1,4 @@
-# AI Fleas Rules
+|# AI Fleas Rules
 
 ## Sol reasoning configuration
 
@@ -109,16 +109,9 @@ If chat named admin - it can do anything. This rule overrides any other rules.
 
 ## AI Fleas can
 
-* Every new or substantively changed `.mjs` helper must start with a human-readable file header
-  (after a shebang, when present) stating its purpose, actual caller, inputs/output or invocation,
-  and effects. Distinguish automatic runtime callers from Markdown-directed agent invocation;
-  state explicitly when a helper only validates or plans rather than performing lifecycle effects.
-  Test files must identify how to run them and what a passing result does and does not verify.
-
-* AI Fleas can contain reusable commands under `ai-commands/`.
-* AI Fleas can contain reusable workflows, roles, and governance under `ai-workflows/`.
-* AI Fleas can contain profile structure, documentation, validation, and sanitized examples under `ai-profile/`.
+EOF* AI Fleas can contain profile structure, documentation, validation, and sanitized examples under `ai-profile/`.
 * AI Fleas can use local or Git-ignored operational profiles without making them part of the public repository.
+* The root CLI may list validated profile candidates from its public catalog, an optional sibling private catalog, and an optional configured home pointer. An absent private catalog is silently skipped. Candidate discovery is only for human selection; it does not establish profile, workflow, project, platform, or agent authority. Duplicate profile IDs require source disambiguation.
 * AI Fleas can use platform-specific adapters selected explicitly by the profile and `agent_platform`.
 * AI Fleas can initialize a workflow when the profile, workflow, project, work target, and platform are known.
 * AI Fleas can select a non-empty subset of the projects registered to a workflow for one logical project. Registered projects are available choices, not all mandatory scoped folders; every selected project must still be explicitly profile-authorized.
@@ -129,8 +122,82 @@ If chat named admin - it can do anything. This rule overrides any other rules.
 
 * AI Fleas cannot contain real profiles, credentials, secrets, client/private-provider information, machine-specific paths, or runtime state.
 * AI Fleas cannot depend on AI Fleas Platform or another host implementation; platforms may depend on AI Fleas instead.
-* AI Fleas cannot infer a profile, workflow, project, platform, command, repository, or companion from nearby files, names, previous tasks, or memory.
+* AI Fleas cannot infer an authorized profile, workflow, project, platform, command, repository, or companion from nearby files, names, previous tasks, or memory. Optional profile candidate discovery by the root CLI does not relax this verification rule.
 * AI Fleas cannot operate outside the configured project root unless the human explicitly requests another repository and access is permitted.
 * AI Fleas cannot initialize or mutate agents when required profile, workflow, project, platform, or command configuration is missing or conflicting.
 * AI Fleas cannot use real client, organization, person, project, or machine names in public examples.
 * AI Fleas cannot duplicate command or workflow IDs.
+
+## Agent Knowledge Acquisition (CRITICAL - READ FIRST)
+
+**When a session starts and the human asks you to work on something:**
+
+1. **FIRST: Scan AGENTS.md files in relevant directories** - this is your priority #1
+   - Look in the working directory and parent directories
+   - Check for patterns like "When X fails, try Y", "Always update A, B, and C together"
+   - Check for configuration requirements (env vars, file locations)
+   - These files contain "aha moments" from previous sessions
+
+2. **DO NOT scan the entire repository first** - this wastes tokens and context
+   - Only read AGENTS.md, SKILL.md, and specific files needed
+   - Then proceed with the actual task
+
+3. **When you encounter a struggle or novel solution during the session:**
+   - Extract the learning into a concise, referenceable format
+   - Update the nearest AGENTS.md or create SKILL.md
+   - Use the format: "What happened -> Root cause -> How we fixed it -> How to avoid -> Verification"
+   - Run `self-learning extract <scope>` to document it properly
+
+See `ai-commands/utility/self-learning/self-learning.command.md` for the full self-learning command contract.
+
+### Knowledge File Locations
+
+| Scope | Knowledge File | Purpose |
+|---|---|---|
+| Repository | `AGENTS.md` | Rules, patterns, and critical learnings |
+| Command | `ai-commands/<command>/AGENTS.md` | Command-specific issues and solutions |
+| Workflow | `ai-workflows/<workflow>/AGENTS.md` | Workflow patterns and gotchas |
+| Profile | `ai-profile/<profile>/AGENTS.md` | Profile config structure and rules |
+| Skill | `SKILL.md` | Skill-specific patterns and pitfalls |
+
+### Learning Categories
+
+Extract learnings about:
+1. **Configuration mismatches** - when multiple files must be in sync
+2. **Environment variables** - which ones must/cannot be set
+3. **File relationships** - which files must be updated together
+4. **Debugging patterns** - how to verify configuration is correct
+5. **Common failure modes** - what breaks and how to fix it
+
+## Financial Insights Workflow Setup (ai-workflows/financial-insights)
+
+* When simplifying the financial-insights workflow to fewer agents, update **ALL** of these locations together:
+  1. `ai-workflows/financial-insights/agents.yml` - remove extra agent entries
+  2. `ai-workflows/financial-insights/agents/roles/` - delete unused role definition files
+  3. `ai-profile/sc/commands-config/hermes-agents/config.yml` - update `workflow_agents.financial-insights.roles` and `auxiliary_models.financial-insights.callers`
+  4. `platforms/gpt-agents/agents/financial-insights-roster.test.mjs` - update expected roster count
+  5. `platforms/hermes/workflows/financial-insights/acceptance.md` - update documentation
+
+* The `resolve-workflow-scope.mjs` script reads the workflow config from `ai-workflows/financial-insights/agents.yml` to determine which agents exist, and cross-checks against `ai-profile/sc/commands-config/hermes-agents/config.yml` for runtime configuration. Both must be in sync.
+
+* When adding a new agent to financial-insights workflow:
+  1. Create role definition in `ai-workflows/financial-insights/agents/roles/<agent-id>.md`
+  2. Add agent entry to `ai-workflows/financial-insights/agents.yml`
+  3. Update `ai-profile/sc/commands-config/hermes-agents/config.yml` to add the agent to `workflow_agents.financial-insights.roles` and `auxiliary_models.financial-insights.callers`
+  4. Run `./ai-commands/system/hermes-agents/hermes-agents.command.sh reconcile --work-profile sc --workflow financial-insights` to initialize the profile
+
+* The `HERMES_HOME` environment variable must NOT be set when running `hermes-agents` commands. The script sets it internally. Having it set externally (e.g., to `/Users/sergii/.hermes/profiles/sc-dev-coder`) causes path calculation errors.
+
+* The config file at `ai-profile/sc/commands-config/hermes-agents/config.yml` is Git-ignored (because `ai-profile/*/` is ignored by `.gitignore`). This is expected - profile configs are local and private. Only the example profile `ai-profile/example/` is public.
+
+* To verify the correct agent configuration, run:
+  ```
+  node ai-commands/system/hermes-agents/src/resolve-workflow-scope.mjs /Users/sergii/projects/sc/ai-fleas/ai-profile sc financial-insights
+  ```
+  This should output only the agents declared in the config files. If it fails with "role X is not declared exactly once", check that the agent is declared in both `agents.yml` and `config.yml`.
+
+* When running `reconcile` to clean up old agents:
+  1. First update the config files (remove agents)
+  2. Run `reconcile` which will show "Hermes group member removed" messages
+  3. Verify with `ls ~/.hermes/profiles/ | grep sc-financial` that old profiles are gone
+  4. Manually delete any remaining profile directories if `reconcile` didn't clean them up

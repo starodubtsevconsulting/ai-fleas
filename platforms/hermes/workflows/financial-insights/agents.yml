@@ -6,9 +6,5 @@ creation_environment: profile-selected-provider
 bindings:
   - role: admin
     profile_suffix: admin
-  - role: financial-analyst
-    profile_suffix: financial-analyst
-  - role: records-bookkeeping
-    profile_suffix: records-bookkeeping
-  - role: financial-reviewer
-    profile_suffix: financial-reviewer
+  - role: bookkeeper
+    profile_suffix: bookkeeper

@@ -107,6 +107,20 @@ Platforms will come and go. You may use ChatGPT today, Claude tomorrow, Hermes o
 
 ## How do I start?
 
+### Start from the repository CLI
+
+Run `./ai-fleas` in the visible checkout. The interactive launcher asks for a work profile, workflow, platform, and project. For an explicit selection, use:
+
+```bash
+./ai-fleas --profile example --workflow dev --project example-public-project --platform pi-cli
+```
+
+By default, the launcher lists valid profiles from this repository's public `ai-profile/` catalog, the optional sibling `../ai-fleas-platform/ai-profile/` catalog, and an optional home pointer at `~/.config/ai-fleas/config-bundle-root`. If the private sibling is absent, it is silently skipped. The pointer contains one absolute path to a profile catalog or one profile bundle containing `<profile-id>-work-profile.yml`. Profiles with the same ID in different sources are labeled by source; a noninteractive `--profile ID` must use an explicit source if that ID is duplicated.
+
+Pass `--config-bundle-root PATH` or set `AI_CONFIG_BUNDLE_ROOT` to select one catalog or profile bundle exclusively. The human still selects the profile and platform; discovering a candidate does not establish agent identity or grant workflow authority. The selected profile must register `pi-cli` and `pi-agents` for a Pi launch. The private sibling is optional and is not a dependency of AI Fleas.
+
+The current `pi-cli` path checks and prepares the selected Dev Coder configuration, then opens an ordinary Pi CLI session in the project. It does not edit the workflow definition or activate a managed Dev roster. Other platform launch paths remain pending; see the [Pi CLI adapter](platforms/pi-cli/).
+
 ### Start with ChatGPT/Codex on macOS
 
 Open the cloned repository, Control-click **`Install AI Fleas.command`**, and choose **Open**.

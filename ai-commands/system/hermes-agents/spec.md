@@ -201,6 +201,38 @@ once, uses its resolved provider and model, receives its assigned Role and flow,
 in the ordered ready receipt without exposing provider credentials. The command must emit one matching aggregate
 `HERMES_WORKFLOW_READY` result. A collection of per-profile success messages is not completion.
 
-Hermes System initialization is complete only when the exact global profile is configured and pinned, the exact
-profile-scoped scheduler exists and is enabled, its gateway/ticker is running, and the final System receipt represents
-that verified state. Failure before that point must not leave a newly written ready receipt.
+|Hermes System initialization is complete only when the exact global profile is configured and pinned, the exact
+|profile-scoped scheduler exists and is enabled, its gateway/ticker is running, and the final System receipt represents
+|that verified state. Failure before that point must not leave a newly written ready receipt.
+
+## Financial Insights - Bookkeeper only workflow
+
+When initializing the **Financial Insights** workflow in Hermes, only **two profiles** are created:
+
+| Profile | Purpose |
+|---------|---------|
+| `admin` | Human-owned bootstrap endpoint |
+| `bookkeeper` | Single operational agent for record intake, classification, reconciliation |
+
+**Do NOT expect** `financial-analyst` or `financial-reviewer` profiles - those were removed in the simplified roster.
+
+### Configuration reference
+
+| File | Shows |
+|------|-------|
+| `ai-workflows/financial-insights/agents.yml` | Workflow roster: **only bookkeeper** as worker |
+| `platforms/hermes/workflows/financial-insights/agents.yml` | Hermes bindings: admin + bookkeeper only |
+| `platforms/gpt-agents/workflows/financial-insights/agents.yml` | GPT Agents bindings: same two roles |
+| `platforms/gpt-agents/agents/financial-insights-roster.test.mjs` | Test: verifies 2 agents in roster |
+
+### Verification
+
+After initialization, check the Hermes sidebar - you should see exactly 2 bots:
+- Admin (ready for human administration)
+- Bookkeeper (ready for financial record intake)
+
+Run the roster test to verify configuration:
+```bash
+node platforms/gpt-agents/agents/financial-insights-roster.test.mjs
+```
+Expected output: `Financial Insights Admin declaration and roster preflight: PASS`

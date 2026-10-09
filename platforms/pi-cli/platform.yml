@@ -8,5 +8,7 @@ creation_environment: command-line
 capabilities:
   - local-tool-execution
   - model-selection
-# Execution interface only: no workflow roster initialization or desktop task binding.
+# This manifest advertises Pi CLI execution only. Managed instance creation,
+# binding, delivery, and full workflow roster orchestration are not yet
+# capabilities of this adapter.
 # Model/provider selection is independent of the platform ID.
