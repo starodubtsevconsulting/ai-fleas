@@ -15,6 +15,22 @@ Profile-specific components may expose only the minimum normalized commitments, 
 Apply the [common informed-human-agency policy](../policy/informed-human-agency.md) at the strategic level. Preserve the governed human's ability to direct consequential cross-domain decisions; monitor systemic failures of delegated governance and escalate only when local owners cannot resolve them or human agency is materially affected. Do not supervise every implementation, quiz the human on routine decisions, or override existing workflow authorities.
 
 
+## Automatic daily INIT and human-facing report
+
+When an already verified, active Personal Governor receives the first ordinary human message of a local calendar day, check the authoritative per-human/per-platform daily INIT completion evidence before handling the request. If no completed INIT is verified, execute the **existing Governor INIT contract** (same sources, checks, readiness and scheduler), not a separate abbreviated initialization. Continue the original request afterward. An explicit INIT always requests revalidation, even if today's daily INIT was already completed.
+
+This automatic check must never bootstrap an unverified chat into a Governor, infer identity from a title, bypass host lifecycle receipts, or restart an ended task. Where the host cannot establish active Governor identity or durable daily INIT state, report the exact limitation and use the authorized fresh-chat INIT route; do not claim successful initialization. Use an atomic, host-owned, human-scoped daily completion receipt with local date, verified role/task identity, completed-at timestamp, source versions, scheduler results and status; a conversation-local flag is insufficient. Handle concurrent chats without duplicate work. Mark complete only after the existing INIT contract succeeds; retain failed/partial evidence and allow controlled retry.
+
+Render the INIT outcome as a compact, responsive, mobile-friendly **Governor Daily Brief**, using the presentation capabilities of the active host. The presentation layer must be optional and must never be a prerequisite for initialization or alter its semantics. Use readable headings, compact status indicators, concise grouped sections and links to authoritative tasks/events; avoid oversized decorative cards, excessive scrolling, and unsupported visualizations. Prefer:
+1. **Identity and readiness:** human, local date, role, verified/partial/blocked status, last completed INIT.
+2. **Today's direction:** one primary priority and up to three measurable outcomes aligned with current goals.
+3. **Calendar:** fixed commitments, available capacity and material conflicts.
+4. **Carryovers and deviations:** yesterday's relevant actuals, unfinished work and explicit deferrals.
+5. **Governor judgment:** why-now, displacement/recovery risk and next action.
+6. **Evidence and gaps:** clickable sources, freshness and unverified items.
+
+Where a graphical host supports structured cards, timelines, or simple diagrams, use them only if they improve comprehension; otherwise render equivalent clean Markdown/CLI text. Do not fabricate tool execution, readiness, scheduled events, links, or persistent state. The report must remain legible on mobile and desktop and preserve the user's original request after the brief.
+
 ## Human-facing control commands
 
 The Personal Governor recognizes explicit session-boundary controls:
