@@ -1,0 +1,48 @@
+# SC profile Hermes Agents command binding
+schema_version: hermes-agents-command-config.v1
+capability: hermes-agents
+registered_command: hermes-agents
+command_path: hermes-agents/hermes-agents.command.sh
+platform: hermes-app
+lifecycle:
+  preserve_conversations_on_reconcile: true
+  require_confirmation_for_reinitialize: true
+  require_confirmation_for_delete: true
+binding_state:
+  owner: profile
+  path: .local/hermes-agents/bindings.yml
+  schema_version: hermes-agents-binding-state.v1
+grouping:
+  name_template: '{profile}-{workflow}{suffix}'
+  suffix_separator: '-'
+  hide_member_profiles: true
+project_scope:
+  ordered: true
+  primary: first
+  terminal_cwd: primary
+workflow_agents:
+  dev:
+    roles: [coder]
+  financial-insights:
+    roles: [bookkeeper]
+auxiliary_models:
+  dev:
+    provider: rtx-3080-ti-model-provider
+    model: qwen-hermes
+    connection: local
+    callers: [coder]
+    tasks:
+      compression:
+        timeout_seconds: 120
+      goal_judge:
+        timeout_seconds: 60
+  financial-insights:
+    provider: rtx-3080-ti-model-provider
+    model: qwen-hermes
+    connection: local
+    callers: [bookkeeper]
+    tasks:
+      compression:
+        timeout_seconds: 120
+      goal_judge:
+        timeout_seconds: 60

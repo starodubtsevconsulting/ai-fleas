@@ -48,8 +48,9 @@ assert.equal(admin.agentId, 'admin');
 assert.equal(admin.readinessToken, 'ADMIN_READY');
 assert.equal(admin.platformId, 'codex-app');
 const roster = selectLifecycleRoster(profile, {}, registry, manifest, adapter);
-assert.equal(roster.agents.length, 4);
+assert.equal(roster.agents.length, 2);
 assert.equal(roster.agents.filter(role => role.agentId === 'admin').length, 1);
+assert.equal(roster.agents.filter(role => role.agentId === 'bookkeeper').length, 1);
 assert.throws(() => selectLifecycleRole(profile, {}, registry,
   { ...manifest, initializer: undefined }, adapter, 'admin'), /REQUESTED_AGENT_UNDECLARED/);
 assert.throws(() => selectLifecycleRole(profile, { platform: 'hermes-app' }, registry,

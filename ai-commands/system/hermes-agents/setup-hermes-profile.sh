@@ -328,7 +328,7 @@ if [[ "${scope}" != 'system' && ( -n "${ai_commands_root}" || -n "${workflow_ins
     printf '%s\n' 'When a selected command needs a credential, read the `secrets` command contract and use its profile-aware `secrets run <consumer> -- <operation>` route. The selected workflow must allow both commands. Use the consumer result, never request or print a raw secret, run `hermes-env` interactively, or copy bootstrap credentials. Hermes model-provider startup authentication is a separate, built-in secret source and does not authorize other consumer credentials.' >>"${soul_tmp}"
     profile_project_root="${AI_CONFIG_PROJECT:-}"
     if [[ -z "${profile_project_root}" && -n "${AI_PROFILE_FILE:-}" ]]; then
-      profile_project_root="$(cd "$(dirname "${AI_PROFILE_FILE}")/../../.." && pwd -P)"
+      profile_project_root="$(cd "$(dirname "${AI_PROFILE_FILE}")/../.." && pwd -P)"
     fi
     [[ -n "${profile_project_root}" && -f "${profile_project_root}/ai-profile/${work_profile}/${work_profile}-work-profile.yml" ]] || {
       printf '%s\n' 'HERMES_PROFILE_SCOPE_INVALID: selected profile project root is unavailable for secret-backed commands.' >&2
