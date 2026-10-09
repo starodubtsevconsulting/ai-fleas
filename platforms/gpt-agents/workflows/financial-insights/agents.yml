@@ -15,24 +15,14 @@ role_endpoints:
     title: "🔑 Admin"
     model: gpt-5.6-sol
     reasoning: low
-  - role: financial-analyst
-    title: "📊 Financial Analyst"
-    model: gpt-5.6-sol
-    reasoning: low
-  - role: records-bookkeeping
-    title: "📒 Records / Bookkeeping"
-    model: gpt-5.6-sol
-    reasoning: low
-  - role: financial-reviewer
-    title: "🔎 Financial Reviewer"
+  - role: bookkeeper
+    title: "📒 Bookkeeper"
     model: gpt-5.6-sol
     reasoning: low
 
 role_contracts:
   admin: ../../../../ai-workflows/_common/roles/admin.md
-  financial-analyst: ../../../../ai-workflows/financial-insights/agents/roles/financial-analyst.md
-  records-bookkeeping: ../../../../ai-workflows/financial-insights/agents/roles/records-bookkeeping.md
-  financial-reviewer: ../../../../ai-workflows/financial-insights/agents/roles/financial-reviewer.md
+  bookkeeper: ../../../../ai-workflows/financial-insights/agents/roles/bookkeeper.md
 
 runtime_semantics:
   role_endpoint: user-visible-codex-task

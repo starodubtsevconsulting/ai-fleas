@@ -21,7 +21,7 @@ const hermes = readYaml('../../hermes/workflows/financial-insights/agents.yml');
 const registry = loadRegistry(new URL('../../registry.yml', import.meta.url));
 const roles = [manifest.initializer, ...manifest.agents];
 assert.deepEqual(roles.map(role => role.agentId),
-  ['admin', 'financial-analyst', 'records-bookkeeping', 'financial-reviewer']);
+  ['admin', 'bookkeeper']);
 assert.equal(roles.filter(role => role.agentId === 'admin').length, 1);
 assert.equal(manifest.initializer.roleDefinition, '../_common/roles/admin.md');
 assert.equal(manifest.initializer.lifecycle, 'persistent-control');
@@ -69,5 +69,5 @@ assert.equal(reconciled.status, 0, reconciled.stderr);
 const action = JSON.parse(reconciled.stdout);
 assert.deepEqual(action.blockers, []);
 assert.deepEqual(action.reuse, [{ role: 'admin', taskId: 'example-admin-task' }]);
-assert.deepEqual(action.create.map(r => r.role), ['financial-analyst', 'records-bookkeeping', 'financial-reviewer']);
+assert.deepEqual(action.create.map(r => r.role), ['bookkeeper']);
 console.log('Financial Insights Admin declaration and roster preflight: PASS');

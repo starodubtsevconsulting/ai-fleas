@@ -1,4 +1,4 @@
-# Records / Bookkeeping Agent role
+|# Bookkeeper Agent role
 
 Owns the evidence pipeline for one initialized Financial Insights project.
 
