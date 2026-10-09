@@ -43,3 +43,18 @@ workflowContext: |
 * Use lowercase with hyphens: `financial-analyst.md`, `tax-specialist.md`
 * The `agentId` in the file must match the filename (without `.md`)
 * Role files must be referenced in both `agents.yml` and `config.yml`
+
+## Self-Learning
+
+When you add or modify agent roles:
+
+1. **Check this AGENTS.md first** for naming conventions and structure
+2. **Extract learnings** when you discover new patterns
+3. **Use self-learning command** to formalize:
+   ```bash
+   self-learning extract roles
+   ```
+
+This AGENTS.md captures role-specific patterns - use it before adding new roles.
+
+See `ai-commands/utility/self-learning/self-learning.command.md` for the full self-learning contract.

@@ -40,3 +40,19 @@ This command:
 2. Reads runtime configuration from `ai-profile/sc/commands-config/hermes-agents/config.yml`
 3. Creates/updates Hermes profile directories under `~/.hermes/profiles/sc-<workflow>-<agent>`
 4. Writes binding receipts to `ai-profile/sc/.local/hermes-agents/bindings.yml`
+
+## Self-Learning
+
+When you work in this directory and encounter a new struggle or solution:
+
+1. **Extract the learning** into a concise, referenceable format
+2. **Add it to this AGENTS.md file** with the format:
+   - What happened -> Root cause -> How we fixed it -> How to avoid -> Verification
+3. **Use the self-learning command** to formalize it:
+   ```bash
+   self-learning extract hermes-agents
+   ```
+
+This AGENTS.md captures "aha moments" - use it as your first reference when working with hermes-agents.
+
+See `ai-commands/utility/self-learning/self-learning.command.md` for the full self-learning contract.

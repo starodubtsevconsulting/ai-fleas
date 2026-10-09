@@ -62,3 +62,18 @@ node platforms/gpt-agents/agents/financial-insights-roster.test.mjs
 ```
 
 This verifies that the roster contains the expected agents and roles.
+
+## Self-Learning
+
+When you work on the financial-insights workflow:
+
+1. **Check this AGENTS.md first** for workflow patterns and agent management
+2. **Extract learnings** when you discover new patterns
+3. **Use self-learning command** to formalize:
+   ```bash
+   self-learning extract financial-insights
+   ```
+
+This AGENTS.md captures workflow-specific patterns - use it before modifying workflow config.
+
+See `ai-commands/utility/self-learning/self-learning.command.md` for the full self-learning contract.
