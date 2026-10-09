@@ -1,0 +1,21 @@
+# EXAMPLE ONLY: endpoints are resolved from the sanitized provider catalog.
+schema_version: pi-agents-command-config.v1
+capability: pi-agents
+registered_command: pi-agents
+command_path: pi-agents/pi-agents.command.sh
+platform: pi-cli
+workflow: dev
+role: coder
+models:
+  main:
+    provider: asus-gx10-model-provider
+    model: qwen-coder
+    connection: local
+    context_window_tokens: 65536
+  auxiliary:
+    provider: rtx-3080-ti-model-provider
+    model: qwen-hermes
+    connection: local
+    context_window_tokens: 65536
+providers_config: local-ai-providers.yml
+agent_directory: .local/pi-agents/dev

@@ -86,10 +86,9 @@ profile.
 
 ## Profile boundary
 
-Each immediate child of `ai-profile/` is one self-contained profile. Its `<profile-id>-work-profile.yml` is the entry point
-for that profile's work context. Select the individual directory, such as `ai-profile/example-profile`, in the launcher—not the
-`ai-profile/` catalog itself. Selection is performed by the consuming host or
-platform; this public repository does not define that host's launcher.
+Each immediate child of an `ai-profile/` catalog is one self-contained profile. Its `<profile-id>-work-profile.yml` is the entry point for that profile's work context. Operational profiles may remain in a private repository or home directory; they need not move into this public catalog. By default, the repository `./ai-fleas` launcher offers valid profiles from this public catalog, an optional sibling `../ai-fleas-platform/ai-profile/` catalog, and an optional one-line absolute path pointer at `~/.config/ai-fleas/config-bundle-root`. An absent sibling is silently skipped. The human selects a profile; a discovered candidate alone grants no authority. Duplicate IDs are labeled by source in interactive selection and require an explicit source for noninteractive selection.
+
+`--config-bundle-root PATH` or `AI_CONFIG_BUNDLE_ROOT` exclusively selects one profile catalog or one profile bundle. These explicit source selectors take precedence over default discovery. The private sibling is optional and is not required to use AI Fleas.
 
 ```text
 ai-profile/

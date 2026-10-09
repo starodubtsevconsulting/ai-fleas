@@ -1,0 +1,190 @@
+#!/usr/bin/env node
+// Select a work profile, workflow, platform, and project from canonical AI Fleas configuration.
+// Pi CLI currently launches a prepared, unmanaged local Coder preview only.
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const { parseDocument } = require('yaml');
+const readline = require('node:readline/promises');
+
+const root = __dirname;
+const defaultProfileRoot = path.join(root, 'ai-profile');
+const siblingProfileRoot = path.resolve(root, '../ai-fleas-platform/ai-profile');
+const bundlePointer = path.join(os.homedir(), '.config/ai-fleas/config-bundle-root');
+const fail = message => { throw new Error(message); };
+const expandHome = value => value === '~' ? os.homedir() : value.startsWith('~/') ? path.join(os.homedir(), value.slice(2)) : value;
+const readBundlePointer = () => {
+  if (!fs.existsSync(bundlePointer)) return null;
+  const lines = fs.readFileSync(bundlePointer, 'utf8').split(/\r?\n/);
+  if (lines.at(-1) === '') lines.pop();
+  if (lines.length !== 1 || !lines[0] || lines[0] !== lines[0].trim() || !path.isAbsolute(lines[0])) fail('invalid config bundle pointer');
+  return lines[0];
+};
+const safeId = (value, label) => {
+  if (typeof value !== 'string' || !/^[a-z0-9][a-z0-9_-]*$/.test(value)) fail(`invalid ${label}`);
+  return value;
+};
+const one = (items, predicate, label) => {
+  const matches = (Array.isArray(items) ? items : []).filter(predicate);
+  if (matches.length !== 1) fail(`${label} must resolve exactly once`);
+  return matches[0];
+};
+const within = (base, relative, label) => {
+  if (typeof relative !== 'string' || !relative || path.isAbsolute(relative)) fail(`invalid ${label} path`);
+  const target = path.resolve(base, relative);
+  if (!target.startsWith(`${path.resolve(base)}${path.sep}`)) fail(`${label} escapes its root`);
+  let current = base;
+  for (const part of path.relative(base, target).split(path.sep)) {
+    current = path.join(current, part);
+    if (fs.lstatSync(current, { throwIfNoEntry: false })?.isSymbolicLink()) fail(`${label} contains a symlink`);
+  }
+  return target;
+};
+const yaml = file => {
+  const doc = parseDocument(fs.readFileSync(file, 'utf8'), { uniqueKeys: true, strict: true });
+  if (doc.errors.length) fail(`invalid YAML: ${file}`);
+  const value = doc.toJS({ maxAliasCount: 50 });
+  if (!value || typeof value !== 'object' || Array.isArray(value)) fail(`invalid mapping: ${file}`);
+  return value;
+};
+const options = () => {
+  const args = process.argv.slice(2);
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log('Usage: ./ai-fleas [--config-bundle-root PATH] [--profile ID] [--workflow ID] [--platform ID] [--project ID]');
+    console.log('--config-bundle-root or AI_CONFIG_BUNDLE_ROOT exclusively selects a profile catalog or one profile directory.');
+    console.log('When no explicit source is provided, interactive discovery checks:');
+    console.log('  1. Public ./ai-profile directory');
+    console.log('  2. Optional sibling ../ai-fleas-platform/ai-profile');
+    console.log('  3. Home pointer ~/.config/ai-fleas/config-bundle-root');
+    console.log('With missing selectors, an interactive terminal presents validated choices with source labels.');
+    process.exit(0);
+  }
+  const result = {};
+  while (args.length) {
+    const flag = args.shift();
+    if (!['--profile', '--workflow', '--project', '--platform', '--config-bundle-root'].includes(flag) || result[flag] || !args.length) fail(`invalid or duplicate option: ${flag}`);
+    const value = args.shift();
+    result[flag] = flag === '--config-bundle-root' ? value : safeId(value, flag);
+  }
+  return result;
+};
+async function main() {
+  const args = options();
+  const explicitInput = Object.hasOwn(args, '--config-bundle-root') ? args['--config-bundle-root']
+    : Object.hasOwn(process.env, 'AI_CONFIG_BUNDLE_ROOT') ? process.env.AI_CONFIG_BUNDLE_ROOT : null;
+  const sources = explicitInput !== null ? [{ input: explicitInput, source: 'explicit', required: true }] : [
+    { input: defaultProfileRoot, source: 'public', required: true },
+    { input: siblingProfileRoot, source: 'private', required: false },
+    { input: readBundlePointer(), source: 'home', required: false },
+  ];
+  const profileChoices = [];
+  const seenProfiles = new Set();
+  for (const { input, source, required } of sources) {
+    if (input === null) continue;
+    if (typeof input !== 'string' || !input.trim()) fail('config bundle root is required');
+    const bundleRoot = path.resolve(expandHome(input));
+    if (!fs.statSync(bundleRoot, { throwIfNoEntry: false })?.isDirectory()) {
+      if (required) fail(`config bundle root is not a directory: ${bundleRoot}`);
+      continue;
+    }
+    const profileFiles = fs.readdirSync(bundleRoot).filter(name => /^[a-z0-9][a-z0-9_-]*-work-profile\.yml$/.test(name));
+    if (profileFiles.length > 1) fail(`ambiguous profile directory: ${bundleRoot}`);
+    const singleProfile = profileFiles.length === 1 ? profileFiles[0].slice(0, -'-work-profile.yml'.length) : null;
+    const profileRoot = singleProfile ? path.dirname(bundleRoot) : bundleRoot;
+    const entries = singleProfile ? [singleProfile] : fs.readdirSync(bundleRoot, { withFileTypes: true })
+      .filter(entry => entry.isDirectory() && /^[a-z0-9][a-z0-9_-]*$/.test(entry.name)).map(entry => entry.name);
+    for (const id of entries) {
+      const profileDir = singleProfile ? bundleRoot : within(profileRoot, id, 'profile');
+      const profileFile = within(profileDir, `${id}-work-profile.yml`, 'work profile');
+      if (!fs.statSync(profileFile, { throwIfNoEntry: false })?.isFile()) continue;
+      const realDir = fs.realpathSync(profileDir);
+      if (seenProfiles.has(realDir)) continue;
+      const profile = yaml(profileFile);
+      if (profile.name !== id) fail(`profile identity mismatch: ${profileFile}`);
+      seenProfiles.add(realDir);
+      profileChoices.push({ id, profileDir, profileRoot, profile, source });
+    }
+  }
+  const idCounts = new Map();
+  for (const item of profileChoices) idCounts.set(item.id, (idCounts.get(item.id) || 0) + 1);
+  for (const item of profileChoices) item.label = idCounts.get(item.id) > 1 ? `${item.id} (${item.source}: ${item.profileDir})` : item.id;
+  const rl = process.stdin.isTTY && process.stdout.isTTY ? readline.createInterface({ input: process.stdin, output: process.stdout }) : null;
+  const choose = async (flag, choices, label) => {
+    if (!choices.length) fail(`no ${label} choices are configured`);
+    if (args[flag]) return one(choices, item => item.id === args[flag], label);
+    if (!rl) fail(`${flag} is required without an interactive terminal`);
+    process.stdout.write(`\n${label}:\n`);
+    choices.forEach((item, index) => process.stdout.write(`  ${index + 1}. ${item.label || item.id}\n`));
+    const answer = (await rl.question('Select number: ')).trim();
+    if (!/^[1-9][0-9]*$/.test(answer) || Number(answer) > choices.length) fail(`invalid ${label} selection`);
+    return choices[Number(answer) - 1];
+  };
+  try {
+    const selectedProfile = await choose('--profile', profileChoices, 'Work profile');
+    const profileId = selectedProfile.id;
+    const { profileDir, profileRoot, profile } = selectedProfile;
+    const workflows = (profile.workflows || []).map(item => {
+      const match = typeof item?.path === 'string' && /^([a-z0-9][a-z0-9_-]*)\.workflow\.md$/.exec(item.path);
+      if (!match) fail('invalid workflow path');
+      return { id: match[1], config: item };
+    });
+    const selectedWorkflow = await choose('--workflow', workflows, 'Workflow');
+    const workflow = selectedWorkflow.config;
+    const workflowRoot = path.resolve(profileDir, profile.ai_workflows_root || fail('workflow root is required'));
+    const workflowContract = within(workflowRoot, `${selectedWorkflow.id}/${workflow.path}`, 'workflow contract');
+    if (!fs.statSync(workflowContract, { throwIfNoEntry: false })?.isFile()) fail('workflow contract is missing');
+    const { loadRegistry } = await import(path.join(root, 'platforms/dispatch-plan.mjs'));
+    const registry = loadRegistry(path.join(root, 'platforms/registry.yml'));
+    const available = profile.platforms?.available;
+    if (!Array.isArray(available) || new Set(available).size !== available.length) fail('invalid platform availability');
+    const piPreviewAvailable = selectedWorkflow.id === 'dev';
+    const platforms = available.map(platformId => {
+      const entry = one(registry, item => item.id === platformId, 'registered platform');
+      const label = entry.label || entry.id;
+      if (entry.id !== 'pi-cli') return { id: entry.id, label: `${label} (launch unavailable)` };
+      return {
+        id: entry.id,
+        label: piPreviewAvailable ? `${label} (local Coder preview)` : `${label} (unavailable for ${selectedWorkflow.id})`,
+      };
+    });
+    const selectedPlatform = await choose('--platform', platforms, 'Platform');
+    const effective = workflow.platform || profile.platforms?.default;
+    if (!platforms.some(item => item.id === effective)) fail('effective workflow platform is unavailable');
+    if (selectedPlatform.id !== 'pi-cli') fail(`${selectedPlatform.id} launch is not implemented in this entry point`);
+    if (!piPreviewAvailable) fail(`Pi CLI is unavailable for ${selectedWorkflow.id}; local Coder preview supports dev only`);
+    const projects = (workflow.projects || []).map(entry => {
+      const project = entry?.ref ? yaml(within(profileDir, entry.ref, 'project reference')) : entry;
+      return { id: safeId(project?.id, 'project ID'), label: project.label || project.id, config: project };
+    });
+    const selectedProject = await choose('--project', projects, 'Project');
+    one(profile.commands, item => item?.id === 'pi-agents', 'pi-agents profile command registration');
+    one(workflow.commands, item => item === 'pi-agents', 'pi-agents workflow command registration');
+    const command = path.join(root, 'ai-commands/system/pi-agents/pi-agents.mjs');
+    const commandArgs = ['--work-profile', profileId, '--workflow', selectedWorkflow.id, '--project', selectedProject.id, '--profile-root', profileRoot];
+    const run = operation => {
+      const result = spawnSync(process.execPath, [command, operation, ...commandArgs], { cwd: root, encoding: 'utf8' });
+      if (result.error) fail(`pi-agents ${operation}: ${result.error.message}`);
+      if (result.status !== 0) fail(`pi-agents ${operation} failed: ${(result.stderr || result.stdout).trim()}`);
+      let data;
+      try { data = JSON.parse(result.stdout); } catch { fail(`pi-agents ${operation} returned invalid JSON`); }
+      if (data.profile !== profileId || data.workflow !== selectedWorkflow.id || data.project !== selectedProject.id || data.role !== 'coder' || data.operation !== operation) fail(`pi-agents ${operation} returned conflicting scope`);
+      return data;
+    };
+    run('check');
+    const prepared = run('prepare');
+    if (!path.isAbsolute(prepared.agentDirectory || '') || !path.isAbsolute(prepared.workingDirectory || '')) fail('Pi preparation returned invalid paths');
+    if (!prepared.agentDirectory.startsWith(`${path.join(profileDir, '.local/pi-agents')}${path.sep}`)) fail('Pi agent directory escaped profile');
+    const configuredPath = selectedProject.config.repo_path;
+    if (typeof configuredPath !== 'string' || !path.isAbsolute(expandHome(configuredPath)) || path.resolve(prepared.workingDirectory) !== path.resolve(expandHome(configuredPath))) fail('Pi working directory conflicts with selected project');
+    process.stdout.write(`\nPi CLI local Coder preview: ${profileId}/${selectedWorkflow.id}/${selectedProject.id}\n`);
+    process.stdout.write(`Effective workflow platform: ${effective}. This launch does not initialize a managed workflow agent.\n`);
+    process.stdout.write(`Launching Pi in ${prepared.workingDirectory}\n`);
+    rl?.close();
+    const child = spawnSync('pi', [], { cwd: prepared.workingDirectory, env: { ...process.env, PI_CODING_AGENT_DIR: prepared.agentDirectory }, stdio: 'inherit' });
+    if (child.error) fail(`unable to launch Pi: ${child.error.message}`);
+    if (child.signal) process.kill(process.pid, child.signal);
+    process.exitCode = child.status ?? 1;
+  } finally { rl?.close(); }
+}
+main().catch(error => { console.error(`AI_FLEAS_LAUNCH_ERROR: ${error.message}`); process.exitCode = 1; });

@@ -11,6 +11,8 @@ Platform-specific lifecycle, messaging, model selection, persistence, UI, naviga
 All adapters follow the [portable agent bootstrap contract](contract/agent-bootstrap.md): host startup restores only an
 exact trusted instance binding, while first-time identity assignment remains a lifecycle-controller transaction.
 
+The repository `./ai-fleas` launcher can collect an interactive profile, workflow, platform, and project choice, or accept `--profile ID --workflow ID --project ID --platform ID`. Its current runnable path prepares and opens an unmanaged Pi CLI Dev Coder session. Choosing a platform for this invocation does not change workflow YAML or initialize a managed roster; other platform launch paths remain pending.
+
 ## Supported platforms
 
 | Platform | Runtime | Getting started |
@@ -19,7 +21,7 @@ exact trusted instance binding, while first-time identity assignment remains a l
 | [Codex CLI (`codex-cli`)](codex-cli/platform.yml) | Terminal; Codex harness | Execution contract only; no desktop roster lifecycle |
 | [Hermes App (`hermes-app`)](hermes/) | Desktop UI; Hermes harness | App bots configured through installed CLI lifecycle tooling |
 | [Hermes CLI (`hermes-cli`)](hermes-cli/platform.yml) | Terminal; Hermes harness | Profile-based terminal execution and lifecycle tooling |
-| [Pi CLI (`pi-cli`)](pi-cli/platform.yml) | Terminal; Pi harness | Execution contract only; no desktop roster lifecycle |
+| [Pi CLI (`pi-cli`)](pi-cli/) | Terminal; Pi harness | Dev Coder configuration preparation; managed lifecycle contract pending |
+| [SC](sc/) | SC platform runtime | Adapter contract |
 
 Platform IDs identify an interface with its bundled harness, not a model or provider. App variants are the normal interactive examples; CLI variants are optional terminal interfaces. `codex-app` and `codex-cli` do not share desktop task lifecycle support. Hermes App and CLI share installed tooling, but selection is explicit and does not establish identical live instance identity. The existing `sc` entry is a custom host contract, not a claimed app/CLI implementation. Command IDs and folders (`gpt-agents`, `hermes-agents`) remain unchanged.
-| [SC](sc/) | SC platform runtime | Adapter contract |
