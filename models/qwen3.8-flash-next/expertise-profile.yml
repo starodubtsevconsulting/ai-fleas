@@ -1,0 +1,109 @@
+schema_version: 1
+model:
+  id: qwen3.8-flash-next
+  family: Qwen3.8-Flash-Next
+  status: candidate
+  architecture:
+    type: mixture-of-experts
+    total_parameters: 125B
+    active_parameters_per_token: approximately 6B
+  modalities:
+    - text
+    - image
+  context:
+    declared_native_tokens: 262144
+
+declared_expertise:
+  source: upstream-model-documentation
+  domains:
+    - general-reasoning
+    - multimodal-understanding
+    - long-context
+    - tool-and-agent-work
+    - coding
+  note: >
+    Declared capability is a starting hypothesis, not AI-Fleas evidence.
+    This model is being considered as a shared local generalist/multimodal worker,
+    not merely as a replacement for a coding-specialized model.
+
+candidate_role_fit:
+  - role: shared-generalist
+    confidence: unverified
+    rationale: broad reasoning plus multimodal and long-context capability
+  - role: financial-document-worker
+    confidence: unverified
+    rationale: direct document/image understanding may allow private local extraction and interpretation
+  - role: dev-orchestrator
+    confidence: unverified
+    rationale: may understand architecture, visual evidence, and prepare/evaluate bounded coding work
+  - role: direct-coder
+    confidence: unverified
+    rationale: must be benchmarked directly rather than inferred from general capability
+  - role: shared-vision-document-worker
+    confidence: unverified
+    rationale: one resident multimodal model may serve UI, receipts, invoices, screenshots, and documents
+
+benchmark_plan:
+  deployment_target: gx10
+  deployment_questions:
+    - stable quant/runtime
+    - real resident memory
+    - practical context
+    - prompt and decode throughput
+    - stability
+  task_families:
+    financial_documents:
+      inputs:
+        - clean-digital-pdf
+        - scanned-invoice
+        - phone-photo-receipt
+        - multi-page-document
+        - ambiguous-document
+      measures:
+        - field-level-extraction-accuracy
+        - arithmetic-consistency
+        - hallucinated-or-missing-fields
+        - uncertainty-calibration
+        - financial-insights-handoff-usefulness
+        - human-correction-time
+        - latency
+        - memory
+    dev:
+      comparisons:
+        - qwen3.8-direct-coding
+        - qwen3.8-generalist-to-qwen3-coder-next
+        - qwen3-coder-next-baseline
+      measures:
+        - accepted-work
+        - correction-required
+        - tool-reliability
+        - visual-evidence-understanding
+        - elapsed-time
+        - context-growth
+    multimodal_shared:
+      inputs:
+        - ui-screenshot
+        - ordinary-document
+        - mixed-text-image
+      measures:
+        - observation-accuracy
+        - useful-structured-output
+        - cross-workflow-reuse
+  decision: >
+    Adopt only if accepted useful work across multiple workflows justifies the
+    model's large GX10 memory footprint. Record strengths and limits by task family.
+
+unknowns:
+  - best GX10 quantization and runtime
+  - actual resident memory and headroom
+  - reliable practical context on GX10
+  - financial-document extraction accuracy
+  - whether direct multimodal processing removes the need for a separate vision model
+  - direct coding quality versus Qwen3-Coder-Next
+  - value as a generalist orchestrator above specialist workers
+
+provenance:
+  created: 2026-10-07
+  status: draft
+  evidence_state: declared-plus-planned
+  trello: https://trello.com/c/Z7GRpNHZ/150-evaluate-qwen38-flash-next-on-gx10
