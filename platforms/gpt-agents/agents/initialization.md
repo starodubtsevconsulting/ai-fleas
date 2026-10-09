@@ -12,7 +12,7 @@ Declared workflow endpoints -> visible Codex tasks (+ declared Router, if any)
 
 ## What must already exist?
 
-Before any workflow task mutation, the controller runs
+Before any managed roster initialization or reconciliation task mutation, the controller runs
 `node platforms/gpt-agents/agents/select-role-initialization.mjs MANIFEST ADAPTER full-roster PROFILE WORKFLOW REGISTRY`.
 This applies to full initialization and roster reconciliation. The command resolves every portable role using profile,
 workflow, and per-agent lifecycle selection, verifies the GPT adapter, and blocks unsupported mixed-platform plans.
@@ -28,6 +28,11 @@ clone, checkout, or worktree.
 This saved-project prerequisite applies to managed roster initialization. A human-designated Admin chat uses the manual
 bootstrap rule in `AGENTS.md`; it may be created from any chat and need not belong to the saved project. Its authority
 still requires an exact configured profile and workflow and an authorized project subset before operational work.
+When that Admin receives a human request for Writing's visible direct endpoints, follow the Writing roster lifecycle
+in `ai-workflows/writing/agents/team.md` first. Its visible-role creation does not wait for this controller's binding,
+readiness, complete attached-folder metadata, or Router checks. Apply those checks separately before claiming a
+managed Router run is ready. An omitted task `projectId` is inconclusive for duplicate detection, not proof that the
+task is outside the saved project.
 
 ```text
 Configured profile + workflow + saved project -> initialization

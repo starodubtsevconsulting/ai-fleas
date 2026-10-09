@@ -25,8 +25,10 @@ declared in `agents.yml` and `agents/team.md`. The common Manager role is not a 
 target, or fallback for this workflow.
 
 When a human requests Writing roles, Admin creates the missing declared visible tasks directly. Each is immediately
-usable by the human; a missing lifecycle binding or readiness receipt is not a blocker. Admin must never create,
-bootstrap, delegate to, or wait for a Manager.
+usable by the human. Apply the visible-roster preflight in `agents/team.md` before the managed initialization path;
+do not require a plugin lifecycle binding, readiness receipt, or complete host folder list to create a role when its
+configured saved project and authorized scope are verified. Do not reuse an ambiguously identified live task or claim
+Router readiness from visible creation. Admin must never create, bootstrap, delegate to, or wait for a Manager.
 
 When the human explicitly asks Admin to represent them for an exact article's release decision, follow the
 [Admin-delegated release contract](../../guides/admin-delegated-release.md). Record the human instruction and Admin's

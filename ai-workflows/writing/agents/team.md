@@ -34,8 +34,14 @@ transitions. No endpoint sends workflow messages to another endpoint, and the hu
 
 Writing deliberately declares **no Manager**. Admin directly owns lifecycle operations for Writer, Reviewer, and
 Release Coordinator. A request to initialize or repair this roster must not bootstrap, consult, or wait for a Manager.
-Admin creates the declared endpoints with their role contracts and configured model settings. A missing optional runtime
-integration must not block visible endpoint creation or direct human use.
+For a human request to initialize the visible roster, first verify the exact profile, Writing workflow, selected
+profile-authorized saved project, role declarations/contracts, and effective model/reasoning settings. Inspect the host
+task catalog and create only missing live roles in that saved project, passing exact scope and role contracts in each
+first message. An omitted task `projectId` is inconclusive: use other host evidence before deciding whether a role
+already exists. A missing optional runtime binding, readiness receipt, or complete attached-folder listing does not
+block creation of a role whose configured project and scope are otherwise verified. Do not request a screenshot for
+scope that the host and configuration can establish. Verify the created tasks and report visible-roster status
+separately from managed Router readiness.
 
 When the human asks Admin to run Writing work, Admin uses emulated mode and explicitly names the selected roles even
 when the roster exists. It records the work as Admin work. An already active managed run remains Router-dispatched.

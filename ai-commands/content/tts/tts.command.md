@@ -39,6 +39,15 @@ synthesize from that compiled speaker script.
 | `tts/tts.command.sh` | Shell executable | Activate the selected profile and workflow, then invoke through the host's profile-aware command runner. |
 
 Every invocation is profile-aware: the host must verify that the active workflow allows this command, resolve `AI_COMMANDS_ROOT`, and provide any profile-owned configuration before this entry point is used.
+Preflight the selected profile/workflow with
+`ai-commands/_runtime/profile/activate-profile.sh --profile <selected-id> --workflow <selected-workflow-path> --command tts`;
+check that its output resolves `AI_COMMAND_CONFIG_PATH` when the selected profile declares command configuration. Run
+synthesis through
+`ai-commands/_runtime/profile/run-command.sh --profile <selected-id> --workflow <selected-workflow-path> --command tts --entrypoint tts/tts.command.sh -- <tts-options>`.
+Supply the selected configuration root through the host's normal profile selection environment. The runner
+reactivates and guards the command, and the entry point adds the user Python executable directory to `PATH` where
+needed. Do not infer command or provider unavailability from the caller's inherited `PATH`; use activation/runner
+errors or an actual synthesis failure as evidence.
 `edge-tts` sends the synthesis text to an external speech service. In Writing listen-through, apply the selected
 profile's `review_preferences.listen_through.online_synthesis` setting before invoking it. A named service with
 `default_for_publication_intended_articles: true` authorizes prepared narration text from articles intended for public
