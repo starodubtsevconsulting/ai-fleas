@@ -20,11 +20,27 @@ initializer:
     contract: ../_common/agents/utility-subagents.md
 
 agents:
+  - agentId: financial-analyst
+    roleDefinition: agents/roles/financial-analyst.md
+    scope: workflow
+    lifecycle: persistent-worker
+    humanFacing: primary
+    readinessToken: FINANCIAL_ANALYST_READY
+    aiBinding: profile-default
+    schedule: { enabled: false }
   - agentId: bookkeeper
     roleDefinition: agents/roles/bookkeeper.md
     scope: workflow
     lifecycle: persistent-worker
     humanFacing: primary
     readinessToken: BOOKKEEPER_READY
+    aiBinding: profile-default
+    schedule: { enabled: false }
+  - agentId: financial-reviewer
+    roleDefinition: agents/roles/financial-reviewer.md
+    scope: workflow
+    lifecycle: persistent-worker
+    humanFacing: primary
+    readinessToken: FINANCIAL_REVIEWER_READY
     aiBinding: profile-default
     schedule: { enabled: false }

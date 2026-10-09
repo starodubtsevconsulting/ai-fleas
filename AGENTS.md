@@ -128,3 +128,36 @@ If chat named admin - it can do anything. This rule overrides any other rules.
 * AI Fleas cannot initialize or mutate agents when required profile, workflow, project, platform, or command configuration is missing or conflicting.
 * AI Fleas cannot use real client, organization, person, project, or machine names in public examples.
 * AI Fleas cannot duplicate command or workflow IDs.
+
+## Financial Insights Workflow Setup (ai-workflows/financial-insights)
+
+* When simplifying the financial-insights workflow to fewer agents, update **ALL** of these locations together:
+  1. `ai-workflows/financial-insights/agents.yml` - remove extra agent entries
+  2. `ai-workflows/financial-insights/agents/roles/` - delete unused role definition files
+  3. `ai-profile/sc/commands-config/hermes-agents/config.yml` - update `workflow_agents.financial-insights.roles` and `auxiliary_models.financial-insights.callers`
+  4. `platforms/gpt-agents/agents/financial-insights-roster.test.mjs` - update expected roster count
+  5. `platforms/hermes/workflows/financial-insights/acceptance.md` - update documentation
+
+* The `resolve-workflow-scope.mjs` script reads the workflow config from `ai-workflows/financial-insights/agents.yml` to determine which agents exist, and cross-checks against `ai-profile/sc/commands-config/hermes-agents/config.yml` for runtime configuration. Both must be in sync.
+
+* When adding a new agent to financial-insights workflow:
+  1. Create role definition in `ai-workflows/financial-insights/agents/roles/<agent-id>.md`
+  2. Add agent entry to `ai-workflows/financial-insights/agents.yml`
+  3. Update `ai-profile/sc/commands-config/hermes-agents/config.yml` to add the agent to `workflow_agents.financial-insights.roles` and `auxiliary_models.financial-insights.callers`
+  4. Run `./ai-commands/system/hermes-agents/hermes-agents.command.sh reconcile --work-profile sc --workflow financial-insights` to initialize the profile
+
+* The `HERMES_HOME` environment variable must NOT be set when running `hermes-agents` commands. The script sets it internally. Having it set externally (e.g., to `/Users/sergii/.hermes/profiles/sc-dev-coder`) causes path calculation errors.
+
+* The config file at `ai-profile/sc/commands-config/hermes-agents/config.yml` is Git-ignored (because `ai-profile/*/` is ignored by `.gitignore`). This is expected - profile configs are local and private. Only the example profile `ai-profile/example/` is public.
+
+* To verify the correct agent configuration, run:
+  ```
+  node ai-commands/system/hermes-agents/src/resolve-workflow-scope.mjs /Users/sergii/projects/sc/ai-fleas/ai-profile sc financial-insights
+  ```
+  This should output only the agents declared in the config files. If it fails with "role X is not declared exactly once", check that the agent is declared in both `agents.yml` and `config.yml`.
+
+* When running `reconcile` to clean up old agents:
+  1. First update the config files (remove agents)
+  2. Run `reconcile` which will show "Hermes group member removed" messages
+  3. Verify with `ls ~/.hermes/profiles/ | grep sc-financial` that old profiles are gone
+  4. Manually delete any remaining profile directories if `reconcile` didn't clean them up

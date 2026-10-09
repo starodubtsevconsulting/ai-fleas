@@ -24,7 +24,7 @@ workflow_agents:
   dev:
     roles: [coder]
   financial-insights:
-    roles: [bookkeeper]
+    roles: [financial-analyst, bookkeeper, financial-reviewer]
 auxiliary_models:
   dev:
     provider: rtx-3080-ti-model-provider
@@ -40,7 +40,7 @@ auxiliary_models:
     provider: rtx-3080-ti-model-provider
     model: qwen-hermes
     connection: local
-    callers: [bookkeeper]
+    callers: [financial-analyst, bookkeeper, financial-reviewer]
     tasks:
       compression:
         timeout_seconds: 120
