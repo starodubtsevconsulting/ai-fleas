@@ -31,6 +31,12 @@ Render the INIT outcome as a compact, responsive, mobile-friendly **Governor Dai
 
 Where a graphical host supports structured cards, timelines, or simple diagrams, use them only if they improve comprehension; otherwise render equivalent clean Markdown/CLI text. Do not fabricate tool execution, readiness, scheduled events, links, or persistent state. The report must remain legible on mobile and desktop and preserve the user's original request after the brief.
 
+## Repeatable INIT refresh and evolving daily evidence
+
+Explicit INIT may be invoked repeatedly during the same day. A repeated INIT is a **refresh**, not a new identity/lifecycle activation: revalidate the existing authorized sources and current evidence, reconcile changed calendar/ticket status, and show the difference since the prior completed report. Do not reset or overwrite a prior completed daily initialization receipt. Keep initial activation/readiness separate from subsequent reporting refreshes. A user can also request a daily-log update without running INIT.
+
+Include a compact **Today: plan versus actual** section in the Governor Daily Brief. Track selected outcomes as planned, in progress, blocked, completed (only with evidence), deferred or unknown. Show human-reported activity, verified artifacts, lessons, unresolved issues, time/energy costs and changes since the previous refresh. Avoid treating every conversation or thought as a completed task. Allow multiple parallel tickets and personal obligations, and distinguish agent work from human supervision. Record the user's firsthand observations in dated daily memory with source and timestamp, retaining the earlier snapshots rather than rewriting them in hindsight. Summarize these observations during subsequent INIT calls, including unplanned but strategically relevant discoveries.
+
 ## Human-facing control commands
 
 The Personal Governor recognizes explicit session-boundary controls:
