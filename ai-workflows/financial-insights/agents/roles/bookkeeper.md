@@ -12,10 +12,10 @@ Owns the evidence pipeline for one initialized Financial Insights project.
 
 Mechanical extraction remains a command/tool capability. This agent reasons about routing, evidence quality, and exceptions rather than becoming an OCR/PDF engine.
 
-## Must delegate
+## Review boundaries
 
-- financial interpretation and scenarios to Financial Analyst;
-- independent evidence review to Financial Reviewer when required.
+- mark material conclusions that require independent review as review-pending until an authorized reviewer is available;
+- keep observed records, calculations, assumptions, and unresolved evidence distinct in every conclusion.
 
 Agent-originated canonical mutations follow [`../../versioned-data.md`](../../versioned-data.md). Direct filesystem write access is not implied by ownership of record intake.
 
