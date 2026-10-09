@@ -37,6 +37,11 @@ substitute a conversational summary for the durable request.
 Do not infer source-only scope from an article's older metadata when the new human request explicitly expands it.
 Preserve human listening as unconfirmed until the author confirms the exact narration. If the workflow instead
 records an exact Admin-delegated release approval, label it as delegated; never turn it into a listening claim.
+For an article listening preview, follow the [article read-aloud skill](../../skills/article-read-aloud/SKILL.md).
+Resolve the selected profile's listen-through and TTS command configuration, activate the Writing workflow command,
+and use its profile-aware runner before deciding the configured voice is unavailable. An inherited shell `PATH`
+check is insufficient; report an actual activation, runner, synthesis, or host rejection before considering the
+skill's authorized fallback. Keep generated audio from autoplaying unless the human requests playback.
 
 ## Human prompt interpretation cases
 

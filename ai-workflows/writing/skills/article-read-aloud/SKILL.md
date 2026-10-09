@@ -25,8 +25,12 @@ The computer narrates the article. The author listens and gives feedback; they a
    private notes, metadata, or text outside the public-intended narration script. The catalog `narrator` preset
    currently provides the default neutral English narration voice; a private profile may select another preset
    without changing this skill.
-4. If the preferred command is unavailable, choose another computer voice from capabilities actually available and
-   authorized in this workflow: local system speech or an editor/browser read-aloud feature. There is no required
+4. Check the preferred command through the selected profile and workflow's command activation and runner before
+   declaring it unavailable. An inherited shell `PATH` check alone cannot establish that `tts` or its provider is
+   missing: the command entry point may add the user's executable directory and load profile-owned configuration.
+   If activation or the authorized command run fails, record its actual error and only then choose another computer
+   voice from capabilities actually available and authorized in this workflow: local system speech or an editor/browser
+   read-aloud feature. There is no required
    provider or file format. For content outside the profile's approved public-publication scope, prefer local speech
    and do not send text to an unconfigured external service. If no authorized voice is available, report the listening
    gate pending instead of asking the author to read aloud. If automatic approval review rejects an otherwise
@@ -46,6 +50,14 @@ The computer narrates the article. The author listens and gives feedback; they a
    not listening. Never publish, submit, or schedule.
 
 ## TTS execution note
+
+Resolve the selected profile's repository/configuration and activate the Writing workflow with command ID `tts`
+before synthesis. Confirm that activation resolves the authorized command and its profile-owned configuration; then
+invoke `ai-commands/_runtime/profile/run-command.sh` with that same profile and workflow, `--command tts`,
+`--entrypoint tts/tts.command.sh`, and synthesis arguments after `--`. The runner performs its own activation and
+command guard. Use the selected profile/workflow values rather than copying an example or assuming a profile ID.
+If activation or the host rejects the command, report that concrete failure. Do not replace a configured online
+voice with an offline system voice merely because `edge-tts` is absent from the inherited shell `PATH`.
 
 When `tts` is selected, pass the prepared narration text as already-prepared speech input rather than asking the TTS
 command to reinterpret the article. Pass the configured `voice_profile` through `--voice-profile` and the exact
