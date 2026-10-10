@@ -64,3 +64,11 @@ start the provider.
 
 Verify provider health and a real chat-completion response. Report success only
 after both checks pass.
+
+<!-- PLAN_STEP: AI-LOCAL-10 -->
+## AI-LOCAL-10 — Reconcile the managed API gateway
+
+For a preset that declares a gateway, install and enable the fixed-upstream
+gateway service, then verify its health and a routed completion. An explicitly
+named prior user gateway is stopped only at this stage. If either gateway check
+fails, stop the managed gateway and restart that prior user gateway.

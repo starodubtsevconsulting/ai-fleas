@@ -66,3 +66,8 @@ service:
   port: 8002
   name: ai-local-provider-qwen38
   restart: on-failure
+
+gateway:
+  service_name: ai-local-gateway
+  listen_address: 0.0.0.0
+  port: 8000
