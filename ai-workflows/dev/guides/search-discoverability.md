@@ -2,6 +2,9 @@
 
 Use this guide as Stage 1 of the [search discoverability flow](../flows/search-discoverability.flow.md) when a human asks to make **one named public site** discoverable in Google Search. The flow includes a [human-readable registration and execution diagram](../flows/search-discoverability.flow.md#where-it-is-registered-and-how-to-run-it) and continues into the [live-site acceptance guide](live-site-acceptance.md) as Stage 2 and the [buyer-journey and optimization guide](site-buyer-journey.md) as Stage 3. The flow determines order and owners; the guides supply the checklists and run records. Follow the selected project's normal authority, coding, review, delivery, and deployment rules. Mark already-satisfied work not applicable with evidence.
 
+For bounded SEO Phase 1 or maintenance, select the flow's bounded entry and the `seo-audit` mode below;
+the full three-stage sequence is not automatically required.
+
 Google decides whether and when to index a page. The achievable result is a site that can be crawled and understood, a verified Search Console property where access is available, and recorded evidence of what Google currently sees.
 
 To reuse the full flow, ask: **“Run the search discoverability flow, including live-site acceptance and buyer-journey optimization, for `<public site URL>` in `<authorized project>`. Use `<known owner/account>` for search verification and preserve the working site.”** The operator fills the input table from the current project and account, executes applicable steps, then follows Stages 2 and 3. If access or a necessary public fact is missing, complete independent steps and name the exact blocker.
@@ -32,32 +35,27 @@ Copy this checklist into the selected site's work record. Mark each item `done`,
 - [ ] Confirm the first audience, offer, desired inquiry, language/region, and which public projects may be cited. Label live work, open source, experiments, and client results accurately; keep unconfirmed claims out of published copy.
 - [ ] Capture the current homepage and services message, public project/profile links, and contact path. Preserve working site functions during changes.
 
-### Public crawl baseline
+### Technical SEO foundation and verification
 
-- [ ] Read `GET /`, every priority page, `/robots.txt`, and `/sitemap.xml` from the public origin. Record status, redirects, effective URL, edge/CDN overrides, sitemap URLs, and canonical consistency.
-- [ ] Compare initial HTML and browser-rendered HTML: route title, description, canonical, robots meta, H1, body copy, internal links, and indexability. Inspect mobile layout and contact controls without sending a real inquiry by accident.
-- [ ] Record actual browser and HTTP failures, including broken root routes, loops, missing assets, unknown-route behavior, and JavaScript-only content. Treat the latter as a testable risk.
-
-### Site change and production read-back
-
-- [ ] In the selected project's authorized checkout and branch, fix only the observed crawl/routing and page-message gaps. Serve a root sitemap of intended indexable canonical URLs and a root robots response that points to it without blocking those URLs. Align initial HTML and client-navigation metadata; give each priority page a distinct title, description, visible H1, meaningful content, useful links, and self-referencing canonical. Apply appropriate noindex treatment to unknown or private routes.
-- [ ] Keep structured data truthful and applicable. Preserve the contact route, product paths, and any existing scheduling or purchase function unless the owner explicitly changes that scope.
-- [ ] On the local safe host, run the project's applicable frontend/backend **production configurations** for every affected target, plus focused checks; inspect the diff. Start the site against isolated local services and verify changed routes and contact/navigation in a phone and desktop browser. Record exact commands, results, candidate revision, and local limitations. Record pre-existing check failures separately from failures introduced by the candidate. Do not use a production restart to discover a build failure that local checks could catch.
-- [ ] Review and apply the exact candidate through the authorized source-control and production route only after the local gate passes. Where production runs from a checkout, update that checkout and restart the required service; no separate artifact deployment is implied. After the run becomes ready, read back service health, revision, page statuses, rendered copy, metadata, sitemap, robots, mobile layout, and contact navigation. A temporary restart response is not the final health result; investigate and recover a persistent failure promptly.
+Use [`seo-audit`](../../../ai-commands/development/seo-audit/seo-audit.command.md) as the single technical
+checklist and evidence contract. Select `initial` for setup, `regression` after relevant website changes, or
+`post-deployment` for live read-back. Record its route matrix and acceptance evidence in the selected site's work record.
+It covers metadata, canonical URLs, locales, image alternatives, sitemap/robots/private routes, structured data,
+production builds, browser refresh/slow-JS/no-JS behavior, and Google-rendered content. Preserve the producing
+workflow's role ownership and authorization gates. Scope broader stages separately for bounded SEO maintenance.
 
 ### Search account setup
 
 - [ ] Check for an existing Google Search Console property in the authorized owner account. Choose the correct domain or URL-prefix scope and verification method. If DNS is selected, save only the required record, check public DNS, and read back **Ownership verified**. Do not save verification token values in a public work record.
-- [ ] Submit the canonical sitemap in Search Console; read back submission status, processing/success state, and discovered page count. Distinguish an accepted sitemap from indexed pages.
+- [ ] Reuse an existing canonical sitemap submission; submit only if needed and authorized in Search Console; read back submission status, processing/success state, and discovered page count. Distinguish an accepted sitemap from indexed pages.
 - [ ] If Bing is in scope, check for an existing Bing Webmaster property, verify it using a working method, and submit the same canonical sitemap. If a live meta tag is not accepted, inspect the effective fetched URL and use an authorized alternative such as DNS CNAME; verify DNS and Bing's ownership result. Record Bing processing separately from Google success.
 - [ ] Open Search Console's property Messages after verification and during follow-up. Record each message's title, date, affected property, type, and disposition: informational, actionable, or awaiting evidence. Treat a new-property welcome note as informational; it does not prove an indexing issue. For warnings, use the linked Search Console report and a live-site check to confirm the affected URLs before fixing or dismissing anything. Review Bing site notices the same way when available. Do not grant access, enable integrations, or change site behavior merely because a message suggests it.
 - [ ] Do not grant an optional broad DNS/account integration merely to replace a working manual verification record. Verify the requested scope and effects first.
 
 ### Crawl inspection and follow-up
 
-- [ ] In Google URL Inspection, inspect the homepage and an inner page. Record indexed state, discovery source, last crawl, live-test availability, rendered HTML or screenshot, canonical, and crawl/index permissions.
-- [ ] If live rendering is complete, defer SSR/prerendering unless another concrete failure warrants it. If content or metadata is missing, correct the rendering path and repeat the live test.
-- [ ] Request indexing for materially changed priority URLs if useful; confirm the actual queue result. Do not repeatedly request the same page as a ranking tactic.
+- [ ] Record the `seo-audit` Console inspection and live-rendering evidence alongside account setup results; distinguish the indexed snapshot from the current live test.
+- [ ] Request indexing for materially changed priority URLs only when specifically authorized and useful; confirm the actual queue result. Do not repeatedly request the same page as a ranking tactic.
 - [ ] Record measured mobile performance from field data or a reproducible lab run, with date, device, tool, and values. Record contact usability, existing analytics/consent behavior, and any missing inquiry attribution. Add tracking only with a defined purpose and privacy behavior; do not infer a performance score from asset size alone.
 - [ ] Inventory existing owned LinkedIn, GitHub, product, and publishing profiles. Align only accounts you can verify and control; check map/listing eligibility before creating a business listing. Do not duplicate profiles or invent a customer-facing address.
 - [ ] Revisit Search Console and Bing after processing. Track indexed pages, relevant branded/nonbranded queries, referrals, and qualified inquiries separately. Revise copy or distribution from evidence, not impressions alone.

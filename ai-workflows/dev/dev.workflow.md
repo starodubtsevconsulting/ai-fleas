@@ -78,6 +78,10 @@ the same bounded Coder route while retaining ownership of design and independent
 1. Manager resolves the work target, ticket when applicable, and required agents.
 2. Designer / Reviewer defines requirements, acceptance criteria, and implementation design through the
    [planning flow](flows/planning.flow.md).
+   For a new public website, an explicit SEO task, or changes to public routes, languages, content, metadata,
+   or rendering, select the applicable `initial`, `regression`, or `post-deployment` mode of
+   [`seo-audit`](../../ai-commands/development/seo-audit/seo-audit.command.md). Use its bounded technical scope
+   through the search discoverability flow; do not automatically expand into positioning or redesign.
    For a user-visible interface change, use the [UX and UI flow](flows/ux-ui.flow.md) across planning,
    implementation, and verification. Record the affected screens and viewport-specific evidence with its
    [review template](guides/ux-ui-review-template.md).
