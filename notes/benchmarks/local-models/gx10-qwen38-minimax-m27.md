@@ -43,6 +43,18 @@ No clean repository task was retained from the earlier pilots, so a separate syn
 
 The Q5 parser is not fully accepted code; a review-derived case exposed an invalid comma grouping. Qwen3.8 did not produce a candidate within the ten-minute boundary. The task is synthetic and small, so it does not rank either model's general coding ability. Together with the slower fixture and direct generation, it provides no measured basis to change the Q5 route.
 
+## Qwen3.8-Flash-Next IQ4_NL — deployment candidate; benchmarks not run
+
+Qwen describes Flash-Next as a multimodal MoE with a 125B-parameter language model, 6B active parameters per token, plus 51B n-gram embedding and 4B multi-token-prediction parameters. It combines Gated DeltaNet and Qwen Sparse Attention with a 262,144-token native context; extension to one million tokens uses additional RoPE scaling. These are upstream model-card claims, not local measurements. The [Qwen model card](https://huggingface.co/Qwen/Qwen3.8-Flash-Next) publishes language, agent, coding, and vision-language evaluation results; those scores do not establish quality or speed for this quantized local deployment.
+
+The selected artifact is the [ggml-org IQ4_NL GGUF](https://huggingface.co/ggml-org/Qwen3.8-Flash-Next-GGUF/tree/052beeaca7bec4a303e59cc7bc630c4f3a1b845d), pinned to revision `052beeaca7bec4a303e59cc7bc630c4f3a1b845d`. Its two files total 102,048,918,944 bytes (about 95.0 GiB); each file has a pinned size and SHA-256 in `ai-commands/install/ai-local-provider/presets/qwen3.8-flash-next.yml`. The deployment preset targets one GB10 with ARM64, CUDA 13, explicit SM 121, and an 8,192-token serving context. The configured local context is much smaller than the model's native context.
+
+The model card declares [Qwen Community License 1.0](https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/main/LICENSE). It requires a separate Qwen license for commercial use by a Model-as-a-Service or AI Work Assistant business; its internal-use exception has conditions, including that the model, outputs, and capabilities are not made available to third parties. The current intended use is not as a service; confirm that actual access remains internal before relying on the exception.
+
+**Operational smoke (2026-10-09):** The pinned build passed provider health and one exact-response completion. The gateway advertised `qwen3.8-flash-next-iq4-nl` and returned a separate exact-response completion. The coder service is stopped and disabled for autostart but retained for manual rollback; its model files remain on disk. The new provider and gateway are active and enabled for autostart.
+
+This verifies service load and a basic text completion only. Load time, steady-state memory headroom, direct throughput, multimodal support, tool use, and task quality remain unmeasured. Do not rank it against the Q5 coding route until a separate, controlled evaluation is requested and completed.
+
 ## MiniMax M2.7 UD-IQ4_XS
 
 The [official model configuration](https://huggingface.co/MiniMaxAI/MiniMax-M2.7/blob/main/config.json) describes 62 attention layers, eight KV heads, 128 dimensions per head, and a 204,800-token maximum position setting. The pinned [Unsloth UD-IQ4_XS GGUF](https://huggingface.co/unsloth/MiniMax-M2.7-GGUF/tree/d2a05ccf69491b03db0cc40b335aec14bdaf7198/UD-IQ4_XS) totals 108,413,781,312 bytes (100.97 GiB) across four shards. At 65,536 tokens, an FP16 KV cache alone is approximately 15.5 GiB; Q8_0 and Q4_0 KV estimates are 8.23 and 4.36 GiB including quantization block overhead. These estimates exclude runtime buffers, the OS, and other services.

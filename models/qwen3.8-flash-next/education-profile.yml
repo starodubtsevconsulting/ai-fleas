@@ -1,0 +1,49 @@
+schema_version: model-education.v1
+applies_to:
+  provider_model: "ggml-org/Qwen3.8-Flash-Next-GGUF IQ4_NL, revision 052beeaca7bec4a303e59cc7bc630c4f3a1b845d"
+declared:
+  - statement: "Qwen describes Flash-Next as a multimodal model with a 125B-parameter language model, 6B activated per token, plus 51B n-gram embedding parameters and 4B multi-token-prediction parameters."
+    source_url: "https://huggingface.co/Qwen/Qwen3.8-Flash-Next"
+    interpretation_limit: "These are upstream architecture claims. They do not predict the RAM use, throughput, or quality of this GGUF quantization and local runtime."
+  - statement: "The architecture combines Gated DeltaNet and Qwen Sparse Attention, four-branch Gated Residual, MoE routing with 512 experts and 10 routed plus one shared expert active, and host-memory n-gram embeddings."
+    source_url: "https://huggingface.co/Qwen/Qwen3.8-Flash-Next"
+    interpretation_limit: "Architectural description is not evidence that a particular local serving backend exposes all model capabilities or has the same efficiency."
+  - statement: "Qwen reports 262,144 native context tokens and extension up to 1,000,000 with RoPE scaling."
+    source_url: "https://huggingface.co/Qwen/Qwen3.8-Flash-Next"
+    interpretation_limit: "The local GX10 preset configures 8,192 tokens. Larger contexts are not enabled or validated by this deployment."
+  - statement: "The upstream model card lists image-text-to-text capability and publishes language, agent, coding, and vision-language benchmark results."
+    source_url: "https://huggingface.co/Qwen/Qwen3.8-Flash-Next"
+    interpretation_limit: "Upstream benchmark scores are author-reported and do not establish local IQ4_NL performance, tool use, or role fit."
+  - statement: "The upstream model card declares Qwen Community License 1.0. It includes specific restrictions for commercial Model-as-a-Service and AI Work Assistant businesses and an internal-use exception with conditions."
+    source_url: "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/main/LICENSE"
+    interpretation_limit: "Review the full license against the actual organization and deployment before commercial use; this profile is not legal advice or a legal determination."
+observed:
+  - statement: "The pinned IQ4_NL deployment passed provider health and one exact-response smoke completion; the gateway advertised the model and returned a second exact-response completion."
+    scope: "One GX10 deployment on 2026-10-09; llama.cpp CUDA build for SM 121, configured 8,192-token context, and one simple short text request through the local gateway."
+    evidence_paths:
+      - "../../ai-commands/install/ai-local-provider/presets/qwen3.8-flash-next.yml"
+      - "../../notes/benchmarks/local-models/gx10-qwen38-minimax-m27.md"
+    interpretation_limit: "This verifies service load and basic text completion only; it is not a throughput benchmark, tool-use evaluation, multimodal test, or quality assessment."
+unknown_or_unverified:
+  - area: "Local GX10 inference quality and throughput for IQ4_NL"
+    handoff_action: "Run a separately approved, reproducible direct-inference benchmark and record the exact hardware, runtime, prompt, output length, and measurements."
+  - area: "Tool calling and agent reliability through the deployed gateway"
+    handoff_action: "Run a controlled tool-use fixture with an independent verifier before assigning autonomous agent work."
+  - area: "Whether IQ4_NL preserves upstream coding, office, reasoning, or multimodal benchmark behavior"
+    handoff_action: "Treat upstream claims as hypotheses and evaluate each intended task family locally."
+  - area: "Whether the intended organization and gateway use satisfy the Qwen Community License"
+    handoff_action: "Have the responsible human or counsel review the license against whether use is internal, third-party-accessible, or part of an AI Work Assistant or Model-as-a-Service business."
+communication:
+  direct_starting_vocabulary:
+    - "sparse mixture of experts (MoE)"
+    - "Gated DeltaNet (GDN)"
+    - "Qwen Sparse Attention (QSA)"
+    - "n-gram embeddings"
+    - "native 262K context"
+    - "GGUF IQ4_NL quantization"
+  translate_or_probe:
+    - "Explain organization-specific terms and acceptance rules explicitly; no organization-specific knowledge has been demonstrated."
+    - "Do not infer that six billion active parameters means six billion total resident parameters or low memory use."
+    - "Distinguish the upstream native context from the local preset's configured 8K context."
+    - "Distinguish published upstream benchmark scores from locally observed performance."
+  verification_rule: "Treat this as a public-information draft only. Verify every delegated artifact independently and preserve runtime, quantization, harness, and task scope when adding observed evidence."
