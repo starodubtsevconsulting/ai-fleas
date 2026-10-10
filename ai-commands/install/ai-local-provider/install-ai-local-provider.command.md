@@ -293,6 +293,32 @@ user gateway already occupying the port, pass `--switch-from-user-gateway-servic
 only after the provider itself has passed inference; if gateway startup or routed inference fails, it stops the managed
 gateway and restarts the named user gateway. The command does not edit another gateway's code or routing table.
 
+```mermaid
+sequenceDiagram
+  participant Runner as Command Runner
+  participant Files as Pinned model files
+  participant Provider as New provider
+  participant OldModel as Previous model service
+  participant OldGateway as Previous user gateway
+  participant Gateway as Managed gateway
+
+  Runner->>Files: Download or reuse; verify sizes and SHA-256
+  Runner->>Provider: Build/reuse runtime and start model
+  Provider-->>Runner: Health check and direct completion pass
+  Runner->>OldModel: Stop after provider verification
+  Runner->>OldGateway: Stop immediately before gateway startup
+  Runner->>Gateway: Install, enable, and start on the public port
+  Gateway->>Provider: Forward model request
+  Provider-->>Gateway: Completion response
+  Gateway-->>Runner: Gateway health and routed completion pass
+
+  alt Gateway verification fails
+    Runner->>Gateway: Stop and disable
+    Runner->>OldGateway: Restart
+    Runner->>OldModel: Restart when the provider switch also failed
+  end
+```
+
 Launching the shell file with no arguments in a terminal opens a deterministic guided menu. It explains the command's
 current capabilities, offers first-run preflight, status, installation-plan validation, help or exit, lists machines from
 the active profile, and collects a one-run target when the profile has none. This interface does not require AI-powered
