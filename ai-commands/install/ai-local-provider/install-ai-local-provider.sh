@@ -16,7 +16,7 @@ printf 'Installation log: %s\n' "$run_log"
 config_path="${AI_COMMAND_CONFIG_PATH:-}"
 action="install"
 box="" host="" ssh_user="" ssh_port="" ssh_key="" ssh_alias="" preset="" storage_volume="" dry_run=false
-save_profile=false mode="" switch_from_user_service=""
+save_profile=false mode="" switch_from_user_service="" switch_from_user_gateway_service=""
 
 usage() {
   cat <<'EOF'
@@ -31,6 +31,7 @@ Usage: install-ai-local-provider.sh [inspect|status|preflight|install|model-auth
   --mode ID         Configured model mode for the switch action
   --storage-volume PATH  Existing filesystem used for models and download staging
   --switch-from-user-service UNIT  Stop this active user unit immediately before starting the provider
+  --switch-from-user-gateway-service UNIT  Replace this active user gateway with the preset-managed gateway
   --dry-run         Show the validated plan without provisioning
   --save-profile    Save inspect JSON under the private profile command config
 EOF
@@ -75,9 +76,9 @@ elif [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
 case "$action" in inspect|status|preflight|install|model-auth|model-status|switch|unload) ;; -h|--help|help) usage; exit 0 ;; *) fail "INVALID_ACTION: $action" ;; esac
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --box|--host|--user|--ssh-port|--ssh-key|--ssh-alias|--preset|--storage-volume|--mode|--switch-from-user-service)
+    --box|--host|--user|--ssh-port|--ssh-key|--ssh-alias|--preset|--storage-volume|--mode|--switch-from-user-service|--switch-from-user-gateway-service)
       [[ $# -ge 2 ]] || fail "MISSING_VALUE: $1"
-      case "$1" in --box) box="$2";; --host) host="$2";; --user) ssh_user="$2";; --ssh-port) ssh_port="$2";; --ssh-key) ssh_key="$2";; --ssh-alias) ssh_alias="$2";; --preset) preset="$2";; --storage-volume) storage_volume="$2";; --mode) mode="$2";; --switch-from-user-service) switch_from_user_service="$2";; esac
+      case "$1" in --box) box="$2";; --host) host="$2";; --user) ssh_user="$2";; --ssh-port) ssh_port="$2";; --ssh-key) ssh_key="$2";; --ssh-alias) ssh_alias="$2";; --preset) preset="$2";; --storage-volume) storage_volume="$2";; --mode) mode="$2";; --switch-from-user-service) switch_from_user_service="$2";; --switch-from-user-gateway-service) switch_from_user_gateway_service="$2";; esac
       shift 2 ;;
     --dry-run) dry_run=true; shift ;;
     --save-profile) save_profile=true; shift ;;
@@ -245,13 +246,14 @@ printf '%s\n' "$probe"
 grep -qx 'os_id=ubuntu' <<<"$probe" || fail "UNSUPPORTED_OS: remote target must be Ubuntu."
 grep -Eq '^os_version=24\.04([.]|$)' <<<"$probe" || fail "UNSUPPORTED_OS: remote target must be Ubuntu 24.04."
 architecture="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:requirements.architecture' 2>/dev/null || true)"
-case "$architecture:$(awk -F= '$1 == "arch" {print $2}' <<<"$probe")" in
+detected_architecture="$(awk -F= '$1 == "arch" {print $2; exit}' <<<"$probe")"
+case "$architecture:$detected_architecture" in
   amd64:x86_64|amd64:amd64|arm64:aarch64) ;;
-  *) fail "UNSUPPORTED_ARCHITECTURE: preset requires $architecture; detected $(awk -F= '$1 == "arch" {print $2}' <<<"$probe")." ;;
+  *) fail "UNSUPPORTED_ARCHITECTURE: preset requires $architecture; detected $detected_architecture." ;;
 esac
-memory_kb="$(awk -F= '$1 == "memory_kb" {print $2}' <<<"$probe")"
-disk_kb="$(awk -F= '$1 == "storage_available_kb" {print $2}' <<<"$probe")"
-runtime_root_kb="$(awk -F= '$1 == "runtime_root_available_kb" {print $2}' <<<"$probe")"
+memory_kb="$(awk -F= '$1 == "memory_kb" {print $2; exit}' <<<"$probe")"
+disk_kb="$(awk -F= '$1 == "storage_available_kb" {print $2; exit}' <<<"$probe")"
+runtime_root_kb="$(awk -F= '$1 == "runtime_root_available_kb" {print $2; exit}' <<<"$probe")"
 minimum_memory_gb="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:requirements.memory.minimum_gb' 2>/dev/null || true)"
 minimum_disk_gb="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:requirements.disk.minimum_free_gb' 2>/dev/null || true)"
 recommended_disk_gb="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:requirements.disk.recommended_free_gb' 2>/dev/null || true)"
@@ -284,7 +286,7 @@ if ((${#requirement_failures[@]})); then
   printf '  - %s\n' "${requirement_failures[@]}" >&2
   exit 4
 fi
-sudo_mode="$(awk -F= '$1 == "sudo" {print $2}' <<<"$probe")"
+sudo_mode="$(awk -F= '$1 == "sudo" {print $2; exit}' <<<"$probe")"
 grep -qx 'native_build=ready' <<<"$probe" || printf 'Will install: native compiler and CMake toolchain\n'
 cuda_toolkit_path="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.cuda_toolkit_path' 2>/dev/null || true)"
 if [[ -n "$cuda_toolkit_path" ]]; then
@@ -319,6 +321,10 @@ parallel_slots="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'pres
 listen_address="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:service.listen_address')"
 provider_port="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:service.port')"
 service_name="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:service.name')"
+gateway_port="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:gateway.port' 2>/dev/null || true)"
+gateway_service_name="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:gateway.service_name' 2>/dev/null || true)"
+gateway_listen_address="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:gateway.listen_address' 2>/dev/null || true)"
+if [[ -n "$switch_from_user_gateway_service" && -z "$gateway_port" ]]; then fail 'CONFIGURATION_INVALID: --switch-from-user-gateway-service requires a preset gateway.'; fi
 printf 'Plan: clean disposable system data, install the native CUDA toolchain, build pinned llama.cpp, download and verify the pinned model, and provision systemd on %s.\n' "$target"
 if [[ "$dry_run" == true ]]; then printf 'SUCCESS: dry-run plan validated; no changes made.\n'; exit 0; fi
 provision_script="$command_dir/provision-ubuntu.sh"
@@ -333,13 +339,24 @@ scp_args=(-q -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=yes)
 if [[ -z "$ssh_alias" ]]; then scp_args+=(-P "$ssh_port"); fi
 if [[ -n "$expanded_key" ]]; then scp_args+=(-o IdentitiesOnly=yes -i "$expanded_key"); fi
 scp "${scp_args[@]}" "$provision_script" "$target:$remote_provision_script" || fail 'RUNTIME_INSTALL_FAILED: could not stage provisioning adapter.'
+remote_gateway_script="" remote_gateway_ui=""
+if [[ -n "$gateway_port" ]]; then
+  gateway_script="$command_dir/gateway/local-model-gateway.mjs"; gateway_ui="$command_dir/gateway/index.html"
+  [[ -r "$gateway_script" && -r "$gateway_ui" ]] || fail 'RUNTIME_INSTALL_FAILED: missing managed gateway assets.'
+  remote_gateway_script="$(ssh "${ssh_args[@]}" "$target" 'mktemp /tmp/ai-local-provider-gateway.XXXXXX.mjs')"
+  remote_gateway_ui="$(ssh "${ssh_args[@]}" "$target" 'mktemp /tmp/ai-local-provider-gateway.XXXXXX.html')"
+  [[ "$remote_gateway_script" == /tmp/ai-local-provider-gateway.*.mjs && "$remote_gateway_ui" == /tmp/ai-local-provider-gateway.*.html ]] || fail 'RUNTIME_INSTALL_FAILED: unsafe gateway staging path.'
+  scp "${scp_args[@]}" "$gateway_script" "$target:$remote_gateway_script" || fail 'RUNTIME_INSTALL_FAILED: could not stage gateway adapter.'
+  scp "${scp_args[@]}" "$gateway_ui" "$target:$remote_gateway_ui" || fail 'RUNTIME_INSTALL_FAILED: could not stage gateway UI.'
+fi
 trap 'rm -f -- "$auth_error"' EXIT
 set +e
 ssh "${ssh_provision_args[@]}" "$target" \
-  "sudo bash $(printf '%q' "$remote_provision_script") $(printf '%q ' "$storage_volume" "$model_repository" "$model_file" "$model_sha256" "$runtime_repository" "$runtime_revision" "$context_size" "$gpu_layers" "$listen_address" "$provider_port" "$service_name" "$model_api_alias" "$parallel_slots" "$cache_key_type" "$cache_value_type" "$model_manifest" "$model_revision" "$lazy_mode" "$architecture" "$cuda_toolkit_path" "$cuda_architectures" "$switch_from_user_service" "$cuda_toolkit_major_version")"
+  "sudo bash $(printf '%q' "$remote_provision_script") $(printf '%q ' "$storage_volume" "$model_repository" "$model_file" "$model_sha256" "$runtime_repository" "$runtime_revision" "$context_size" "$gpu_layers" "$listen_address" "$provider_port" "$service_name" "$model_api_alias" "$parallel_slots" "$cache_key_type" "$cache_value_type" "$model_manifest" "$model_revision" "$lazy_mode" "$architecture" "$cuda_toolkit_path" "$cuda_architectures" "$switch_from_user_service" "$cuda_toolkit_major_version" "$gateway_port" "$gateway_service_name" "$gateway_listen_address" "$remote_gateway_script" "$remote_gateway_ui" "$switch_from_user_gateway_service")"
 provision_code=$?
 set -e
 ssh "${ssh_args[@]}" "$target" "rm -f -- $(printf '%q' "$remote_provision_script")" >/dev/null 2>&1 || true
+if [[ -n "$remote_gateway_script" ]]; then ssh "${ssh_args[@]}" "$target" "rm -f -- $(printf '%q ' "$remote_gateway_script" "$remote_gateway_ui")" >/dev/null 2>&1 || true; fi
 if [[ $provision_code -eq 20 ]]; then
   fail 'REBOOT_REQUIRED: NVIDIA driver was installed. Reboot the server, then run this command again; it will resume safely.' 20
 fi
