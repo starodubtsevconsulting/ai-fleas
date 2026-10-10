@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-09",
+  "status": "partially-measured",
+  "deployment": "gx10",
+  "model": {
+    "id": "qwen3.8-flash-next-iq4-nl",
+    "quantization": "IQ4_NL"
+  },
+  "configuration": {
+    "served_context_window_tokens": 8192,
+    "fixture": "notes/benchmarks/local-models/fixtures/hermes-file-tools",
+    "harnesses": [
+      {
+        "name": "pi",
+        "thinking": "low",
+        "tools": ["read", "bash", "edit", "write"],
+        "endpoint_scope": "loopback"
+      },
+      {
+        "name": "hermes",
+        "required_context_window_tokens": 64000,
+        "endpoint_scope": "loopback"
+      }
+    ]
+  },
+  "workload": {
+    "task": "Sort and deduplicate the fixed seven-line input, write a normalized file and SHA-256 report, then verify both files.",
+    "acceptance": "The independent verifier byte-compares NORMALIZED.txt and REPORT.txt with the checked-in expected files.",
+    "runs_per_harness": 1
+  },
+  "observations": {
+    "pi": {
+      "status": "accepted",
+      "wall_time_seconds": 57.08,
+      "model_api_calls": 6,
+      "terminal_usage_total_tokens": 3976,
+      "verifier": "PASS: generated files match the benchmark fixture"
+    },
+    "hermes": {
+      "status": "blocked-before-fixture",
+      "reason": "Hermes Agent requires at least a 64,000-token served context; the active provider advertised 8,192 tokens.",
+      "model_api_calls": 0,
+      "verifier": "not run"
+    }
+  },
+  "invalidating_conditions": [
+    "Only one accepted Pi run was collected.",
+    "No Hermes fixture run occurred because its harness context requirement exceeded the active provider context.",
+    "The direct runtime measurement in runtime-2026-10-09.json is a separate short-completion result."
+  ],
+  "conclusion": {
+    "summary": "The active deployment completed one independently accepted Pi file-tools run. Hermes compatibility is unmeasured on this deployment because the configured 8,192-token context does not meet Hermes Agent's 64,000-token minimum.",
+    "does_not_prove": "This result does not rank general model quality, coding quality, long-context capability, multimodal behavior, repeatability, or Hermes performance. A Pi pass does not establish a Hermes pass."
+  },
+  "references": [
+    "notes/benchmarks/local-models/methodology.md",
+    "notes/benchmarks/local-models/fixtures/hermes-file-tools/README.md",
+    "ai-commands/data/local-model-benchmark/local-model-benchmark.command.md"
+  ]
+}

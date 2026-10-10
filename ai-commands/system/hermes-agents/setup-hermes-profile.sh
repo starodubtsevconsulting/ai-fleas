@@ -93,6 +93,15 @@ while (($#)); do
   esac
 done
 
+# The validator reads the resolved configuration from the environment. Command
+# line values override the initial defaults above, so publish those resolved
+# values before validation as well.
+export HERMES_PROFILE="${profile}" HERMES_PROVIDER_ID="${provider_id}" \
+  HERMES_MODEL="${model}" HERMES_ENDPOINT="${endpoint}" \
+  HERMES_WORKSPACE="${workspace}" HERMES_GROUP="${group}" \
+  HERMES_ROLE="${role}" HERMES_WORKFLOW="${workflow}" \
+  HERMES_WORK_PROFILE="${work_profile}" HERMES_PROJECT="${project}"
+
 if [[ -z "${hermes_bin}" ]]; then
   if command -v hermes >/dev/null 2>&1; then
     hermes_bin="$(command -v hermes)"

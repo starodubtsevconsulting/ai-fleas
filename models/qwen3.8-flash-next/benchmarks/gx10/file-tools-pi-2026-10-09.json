@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-09",
+  "status": "accepted",
+  "deployment": "gx10",
+  "model": {
+    "directory": "qwen3.8-flash-next",
+    "id": "qwen3.8-flash-next-iq4-nl"
+  },
+  "configuration": {
+    "harness": "pi",
+    "suite": "file-tools",
+    "run_artifacts": "private-ignored"
+  },
+  "workload": {
+    "fixture": "notes/benchmarks/local-models/fixtures/hermes-file-tools",
+    "acceptance": "Independent byte-for-byte comparison of NORMALIZED.txt and REPORT.txt."
+  },
+  "observations": {
+    "wall_time_seconds": 58.03,
+    "model_api_calls": 8,
+    "terminal_usage_total_tokens": 4423,
+    "verifier": "passed"
+  },
+  "invalidating_conditions": [
+    "One run only; repeat before comparing candidates."
+  ],
+  "conclusion": {
+    "summary": "One pi run passed the fixed fixture.",
+    "does_not_prove": "Results apply only to this harness, served configuration, and fixed task."
+  },
+  "references": [
+    "notes/benchmarks/local-models/methodology.md",
+    "notes/benchmarks/local-models/fixtures/hermes-file-tools/README.md"
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-09",
+  "status": "measured-runtime-only",
+  "deployment": "gx10",
+  "model": {
+    "id": "qwen3.8-flash-next-iq4-nl"
+  },
+  "configuration": {
+    "endpoint_scope": "loopback",
+    "suite": "runtime-text",
+    "warmup_runs": 1,
+    "measured_runs": 5
+  },
+  "workload": {
+    "prompt": "Reply with exactly the word READY.",
+    "max_tokens": 128,
+    "temperature": 0,
+    "expected_response": "READY"
+  },
+  "observations": {
+    "median_wall_ms": 200.273,
+    "median_prompt_tokens_per_second": 38.14355326270419,
+    "median_generation_tokens_per_second": 25.420066600574494,
+    "runs": [
+      {
+        "wall_ms": 239.923,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 19,
+          "total_tokens": 21,
+          "prompt_tokens_details": {
+            "cached_tokens": 15
+          }
+        },
+        "timings": {
+          "cache_n": 15,
+          "prompt_n": 4,
+          "prompt_ms": 105.244,
+          "prompt_per_token_ms": 26.311,
+          "prompt_per_second": 38.00691725894113,
+          "predicted_n": 2,
+          "predicted_ms": 39.339,
+          "predicted_per_token_ms": 39.339,
+          "predicted_per_second": 25.420066600574494
+        }
+      },
+      {
+        "wall_ms": 200.273,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 19,
+          "total_tokens": 21,
+          "prompt_tokens_details": {
+            "cached_tokens": 15
+          }
+        },
+        "timings": {
+          "cache_n": 15,
+          "prompt_n": 4,
+          "prompt_ms": 100.638,
+          "prompt_per_token_ms": 25.1595,
+          "prompt_per_second": 39.7464178540909,
+          "predicted_n": 2,
+          "predicted_ms": 39.32,
+          "predicted_per_token_ms": 39.32,
+          "predicted_per_second": 25.4323499491353
+        }
+      },
+      {
+        "wall_ms": 411.285,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 19,
+          "total_tokens": 21,
+          "prompt_tokens_details": {
+            "cached_tokens": 15
+          }
+        },
+        "timings": {
+          "cache_n": 15,
+          "prompt_n": 4,
+          "prompt_ms": 104.318,
+          "prompt_per_token_ms": 26.0795,
+          "prompt_per_second": 38.344293410533176,
+          "predicted_n": 2,
+          "predicted_ms": 39.33,
+          "predicted_per_token_ms": 39.33,
+          "predicted_per_second": 25.425883549453346
+        }
+      },
+      {
+        "wall_ms": 188.086,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 19,
+          "total_tokens": 21,
+          "prompt_tokens_details": {
+            "cached_tokens": 15
+          }
+        },
+        "timings": {
+          "cache_n": 15,
+          "prompt_n": 4,
+          "prompt_ms": 105.458,
+          "prompt_per_token_ms": 26.3645,
+          "prompt_per_second": 37.929791955091126,
+          "predicted_n": 2,
+          "predicted_ms": 39.389,
+          "predicted_per_token_ms": 39.389,
+          "predicted_per_second": 25.38779862398131
+        }
+      },
+      {
+        "wall_ms": 187.512,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 19,
+          "total_tokens": 21,
+          "prompt_tokens_details": {
+            "cached_tokens": 15
+          }
+        },
+        "timings": {
+          "cache_n": 15,
+          "prompt_n": 4,
+          "prompt_ms": 104.867,
+          "prompt_per_token_ms": 26.21675,
+          "prompt_per_second": 38.14355326270419,
+          "predicted_n": 2,
+          "predicted_ms": 39.726,
+          "predicted_per_token_ms": 39.726,
+          "predicted_per_second": 25.172431153400797
+        }
+      }
+    ]
+  },
+  "invalidating_conditions": [],
+  "conclusion": {
+    "runtime_measurement_only": true,
+    "summary": "This record measures fixed short text-completion runtime only. It does not establish tool-use, coding quality, long-context capacity, multimodal capability, or general model quality."
+  },
+  "references": [
+    "ai-commands/data/local-model-benchmark/local-model-benchmark.command.md"
+  ]
+}

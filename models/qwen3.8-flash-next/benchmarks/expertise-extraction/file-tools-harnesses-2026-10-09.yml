@@ -1,0 +1,24 @@
+schema_version: ai-fleas-expertise-profile-update.v1
+claim:
+  id: pi-file-tools-gx10-2026-10-09
+  previous_state: draft
+  new_state: confirmed
+  statement: On the GX10 deployment with an 8,192-token served context, Qwen3.8 Flash
+    Next IQ4_NL completed one controlled Pi file-and-shell task whose outputs passed
+    independent byte-for-byte verification.
+evidence:
+  paths:
+  - benchmarks/gx10/file-tools-harnesses-2026-10-09.json
+  model: qwen3.8-flash-next
+  deployment: gx10
+  task_family: pi-file-tools
+  result: accepted-once
+interpretation:
+  supports: A controlled Pi harness can use the active deployment's shell and file
+    tools for this exact small task.
+  does_not_prove: It does not establish repeatability, coding quality, general tool
+    reliability, long-context capability, multimodal behavior, or Hermes compatibility.
+next_action:
+  type: probe-or-stop
+  uncertainty: Run repeated Pi trials and separately retest Hermes only after a served
+    context of at least 64,000 tokens is available.
