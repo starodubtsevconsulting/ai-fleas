@@ -19,6 +19,29 @@ if (field?.startsWith('preset-field:')) {
   process.stdout.write(String(value));
   process.exit(0);
 }
+if (field === 'model-manifest') {
+  const model = data.model || {};
+  const files = model.files || (model.file ? [{ file: model.file, size_bytes: model.size_bytes, sha256: model.sha256 }] : []);
+  if (!Array.isArray(files) || files.length === 0) fail('PRESET_INVALID: model files must be a non-empty list.');
+  for (const item of files) {
+    if (!item || typeof item.file !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]*\.gguf$/.test(item.file) ||
+        !Number.isSafeInteger(item.size_bytes) || item.size_bytes <= 0 ||
+        typeof item.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(item.sha256)) {
+      fail('PRESET_INVALID: each model file needs a safe GGUF basename, positive integer size, and lowercase SHA256.');
+    }
+  }
+  process.stdout.write(files.map(({ file, size_bytes, sha256 }) => `${file}|${size_bytes}|${sha256}`).join(','));
+  process.exit(0);
+}
+if (field === 'model-total-bytes') {
+  const model = data.model || {};
+  const files = model.files || (model.file ? [{ file: model.file, size_bytes: model.size_bytes, sha256: model.sha256 }] : []);
+  if (!Array.isArray(files) || files.length === 0 || files.some(item => !Number.isSafeInteger(item?.size_bytes) || item.size_bytes <= 0)) fail('PRESET_INVALID: invalid model file sizes.');
+  const total = files.reduce((sum, item) => sum + item.size_bytes, 0);
+  if (!Number.isSafeInteger(total)) fail('PRESET_INVALID: total model size is too large.');
+  process.stdout.write(String(total));
+  process.exit(0);
+}
 const boxes = data.boxes && typeof data.boxes === 'object' ? data.boxes : {};
 if (field === 'list') {
   for (const [id, box] of Object.entries(boxes)) {

@@ -1,0 +1,68 @@
+id: qwen3.8-flash-next
+name: Qwen3.8 Flash Next IQ4_NL General Purpose
+
+model:
+  source: huggingface
+  repository: ggml-org/Qwen3.8-Flash-Next-GGUF
+  revision: 052beeaca7bec4a303e59cc7bc630c4f3a1b845d
+  file: Qwen3.8-Flash-Next-IQ4_NL-00001-of-00002.gguf
+  files:
+    - file: Qwen3.8-Flash-Next-IQ4_NL-00001-of-00002.gguf
+      size_bytes: 10945440
+      sha256: 851652eef30d117a34fdc0d13e05da4c488a8cdad3654d38c4aa69a2d8a1fabc
+    - file: Qwen3.8-Flash-Next-IQ4_NL-00002-of-00002.gguf
+      size_bytes: 102037973504
+      sha256: 0299b147e42517ff8fa3a4fa66d370c77ce01c44ed8cbc3451b7a42caad5fc10
+  api_alias: qwen3.8-flash-next-iq4-nl
+  sha256: 851652eef30d117a34fdc0d13e05da4c488a8cdad3654d38c4aa69a2d8a1fabc
+  size_bytes: 10945440
+  quantization: IQ4_NL
+  context: 8192
+
+runtime:
+  type: llama.cpp
+  source_repository: https://github.com/ggml-org/llama.cpp.git
+  source_revision: 8ea290247c87ced2ab245b056ffe96dbcf90d36c
+  cuda_toolkit_path: /usr/local/cuda
+  cuda_toolkit_major_version: 13
+  cuda_architectures: "121"
+  lazy_mode: on
+  gpu_layers: 99
+  cache_key_type: f16
+  cache_value_type: f16
+  parallel: 1
+
+requirements:
+  os: ubuntu-24.04
+  architecture: arm64
+  memory:
+    minimum_gb: 110
+    recommended_gb: 121
+  disk:
+    minimum_free_gb: 110
+    recommended_free_gb: 125
+    reserve_after_install_gb: 10
+    runtime_root_free_gb: 8
+  gpu:
+    optional: false
+    vendor: nvidia
+    minimum_vram_gb: 80
+
+provider:
+  model_count: 1
+  autostart: true
+
+api:
+  protocol: http
+  authentication: none
+  api_key: none
+
+network:
+  exposure: lan
+
+service:
+  manager: systemd
+  listen_address: 0.0.0.0
+  port: 8002
+  name: ai-local-provider-qwen38
+  restart: on-failure

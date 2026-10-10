@@ -16,7 +16,7 @@ printf 'Installation log: %s\n' "$run_log"
 config_path="${AI_COMMAND_CONFIG_PATH:-}"
 action="install"
 box="" host="" ssh_user="" ssh_port="" ssh_key="" ssh_alias="" preset="" storage_volume="" dry_run=false
-save_profile=false mode=""
+save_profile=false mode="" switch_from_user_service=""
 
 usage() {
   cat <<'EOF'
@@ -30,6 +30,7 @@ Usage: install-ai-local-provider.sh [inspect|status|preflight|install|model-auth
   --preset ID       Model preset
   --mode ID         Configured model mode for the switch action
   --storage-volume PATH  Existing filesystem used for models and download staging
+  --switch-from-user-service UNIT  Stop this active user unit immediately before starting the provider
   --dry-run         Show the validated plan without provisioning
   --save-profile    Save inspect JSON under the private profile command config
 EOF
@@ -74,9 +75,9 @@ elif [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
 case "$action" in inspect|status|preflight|install|model-auth|model-status|switch|unload) ;; -h|--help|help) usage; exit 0 ;; *) fail "INVALID_ACTION: $action" ;; esac
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --box|--host|--user|--ssh-port|--ssh-key|--ssh-alias|--preset|--storage-volume|--mode)
+    --box|--host|--user|--ssh-port|--ssh-key|--ssh-alias|--preset|--storage-volume|--mode|--switch-from-user-service)
       [[ $# -ge 2 ]] || fail "MISSING_VALUE: $1"
-      case "$1" in --box) box="$2";; --host) host="$2";; --user) ssh_user="$2";; --ssh-port) ssh_port="$2";; --ssh-key) ssh_key="$2";; --ssh-alias) ssh_alias="$2";; --preset) preset="$2";; --storage-volume) storage_volume="$2";; --mode) mode="$2";; esac
+      case "$1" in --box) box="$2";; --host) host="$2";; --user) ssh_user="$2";; --ssh-port) ssh_port="$2";; --ssh-key) ssh_key="$2";; --ssh-alias) ssh_alias="$2";; --preset) preset="$2";; --storage-volume) storage_volume="$2";; --mode) mode="$2";; --switch-from-user-service) switch_from_user_service="$2";; esac
       shift 2 ;;
     --dry-run) dry_run=true; shift ;;
     --save-profile) save_profile=true; shift ;;
@@ -243,7 +244,11 @@ fi
 printf '%s\n' "$probe"
 grep -qx 'os_id=ubuntu' <<<"$probe" || fail "UNSUPPORTED_OS: remote target must be Ubuntu."
 grep -Eq '^os_version=24\.04([.]|$)' <<<"$probe" || fail "UNSUPPORTED_OS: remote target must be Ubuntu 24.04."
-grep -Eq '^arch=(x86_64|amd64)$' <<<"$probe" || fail "UNSUPPORTED_ARCHITECTURE: remote target must be AMD64/x86_64."
+architecture="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:requirements.architecture' 2>/dev/null || true)"
+case "$architecture:$(awk -F= '$1 == "arch" {print $2}' <<<"$probe")" in
+  amd64:x86_64|amd64:amd64|arm64:aarch64) ;;
+  *) fail "UNSUPPORTED_ARCHITECTURE: preset requires $architecture; detected $(awk -F= '$1 == "arch" {print $2}' <<<"$probe")." ;;
+esac
 memory_kb="$(awk -F= '$1 == "memory_kb" {print $2}' <<<"$probe")"
 disk_kb="$(awk -F= '$1 == "storage_available_kb" {print $2}' <<<"$probe")"
 runtime_root_kb="$(awk -F= '$1 == "runtime_root_available_kb" {print $2}' <<<"$probe")"
@@ -251,7 +256,7 @@ minimum_memory_gb="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'p
 minimum_disk_gb="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:requirements.disk.minimum_free_gb' 2>/dev/null || true)"
 recommended_disk_gb="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:requirements.disk.recommended_free_gb' 2>/dev/null || true)"
 runtime_root_gb="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:requirements.disk.runtime_root_free_gb' 2>/dev/null || true)"
-model_size_bytes="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.size_bytes' 2>/dev/null || true)"
+model_size_bytes="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' model-total-bytes 2>/dev/null || true)"
 if [[ "$model_size_bytes" =~ ^[0-9]+$ ]]; then
   model_size_gib=$(((model_size_bytes + 1073741823) / 1073741824))
   available_gib=$((disk_kb / 1024 / 1024))
@@ -281,7 +286,12 @@ if ((${#requirement_failures[@]})); then
 fi
 sudo_mode="$(awk -F= '$1 == "sudo" {print $2}' <<<"$probe")"
 grep -qx 'native_build=ready' <<<"$probe" || printf 'Will install: native compiler and CMake toolchain\n'
-grep -qx 'cuda_toolkit=ready' <<<"$probe" || printf 'Will install: CUDA Toolkit\n'
+cuda_toolkit_path="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.cuda_toolkit_path' 2>/dev/null || true)"
+if [[ -n "$cuda_toolkit_path" ]]; then
+  grep -qx 'cuda_toolkit=ready' <<<"$probe" || printf 'Will use CUDA toolkit at %s/bin\n' "$cuda_toolkit_path"
+else
+  grep -qx 'cuda_toolkit=ready' <<<"$probe" || printf 'Will install: CUDA Toolkit\n'
+fi
 if [[ "$action" == status ]]; then printf 'SUCCESS: remote provider status inspected.\n'; exit 0; fi
 if [[ "$action" == preflight ]]; then
   [[ "$sudo_mode" != unavailable ]] || fail "INSUFFICIENT_PRIVILEGES: SSH user is not authorized for sudo provisioning."
@@ -294,8 +304,13 @@ model_repository="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'pr
 model_file="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.file')"
 model_api_alias="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.api_alias')"
 model_sha256="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.sha256')"
+model_manifest="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' model-manifest)" || fail "PRESET_NOT_READY: invalid model file manifest."
+model_revision="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.revision' 2>/dev/null || printf 'main')"
 runtime_repository="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.source_repository')"
 runtime_revision="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.source_revision')"
+lazy_mode="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.lazy_mode' 2>/dev/null || true)"
+cuda_architectures="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.cuda_architectures' 2>/dev/null || true)"
+cuda_toolkit_major_version="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.cuda_toolkit_major_version' 2>/dev/null || true)"
 context_size="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.context')"
 gpu_layers="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.gpu_layers')"
 cache_key_type="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.cache_key_type')"
@@ -321,7 +336,7 @@ scp "${scp_args[@]}" "$provision_script" "$target:$remote_provision_script" || f
 trap 'rm -f -- "$auth_error"' EXIT
 set +e
 ssh "${ssh_provision_args[@]}" "$target" \
-  "sudo bash $(printf '%q' "$remote_provision_script") $(printf '%q ' "$storage_volume" "$model_repository" "$model_file" "$model_sha256" "$runtime_repository" "$runtime_revision" "$context_size" "$gpu_layers" "$listen_address" "$provider_port" "$service_name" "$model_api_alias" "$parallel_slots" "$cache_key_type" "$cache_value_type")"
+  "sudo bash $(printf '%q' "$remote_provision_script") $(printf '%q ' "$storage_volume" "$model_repository" "$model_file" "$model_sha256" "$runtime_repository" "$runtime_revision" "$context_size" "$gpu_layers" "$listen_address" "$provider_port" "$service_name" "$model_api_alias" "$parallel_slots" "$cache_key_type" "$cache_value_type" "$model_manifest" "$model_revision" "$lazy_mode" "$architecture" "$cuda_toolkit_path" "$cuda_architectures" "$switch_from_user_service" "$cuda_toolkit_major_version")"
 provision_code=$?
 set -e
 ssh "${ssh_args[@]}" "$target" "rm -f -- $(printf '%q' "$remote_provision_script")" >/dev/null 2>&1 || true
