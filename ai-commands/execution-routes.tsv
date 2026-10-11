@@ -73,3 +73,4 @@ voice-report/voice-report.command.md	command-runner	-	-	-	-
 worklog/worklog.command.md	mixed	designer-reviewer	-	command-runner	-
 worktree-bash/worktree-bash.command.md	command-runner	-	-	-	-
 writing/writing.command.md	designer-reviewer	-	-	-	-
+macos-keep-awake/macos-keep-awake.command.md	command-runner	-	-	-	-
