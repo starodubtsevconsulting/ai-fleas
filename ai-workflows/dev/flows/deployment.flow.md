@@ -7,6 +7,8 @@
 ## Entry
 
 Known component, candidate/artifact, target, registered production update or deployment route, local safe-host readiness/runtime gates, and recovery policy.
+For macOS artifacts, resolve channel-specific signing, notarization/store review, immutable artifact and installation
+requirements through the [macOS distribution flow](macos-distribution.flow.md) before selecting deployment proof.
 PR/build success does not authorize deployment; production follows its selected release policy.
 
 ## Steps
