@@ -19,3 +19,5 @@
   next gate. A pull request inherits the already-validated head branch; PR creation never excuses or repairs an invalid
   new-branch prefix.
 - Designer/Reviewer performs semantic review directly; Command Runner must not substitute for review reasoning.
+
+- For macOS binaries, apply the [macOS distribution flow](../flows/macos-distribution.flow.md) selected during planning. Keep source-control delivery, signed/notarized website publication and sandboxed store release evidence distinct; retain immutable artifacts and the backup/restore and installation proof required by the selected phase/channel. An authorized unsigned preview or source-only stage need not complete unrequested Apple release gates; record those gates as unrun without claiming store readiness.

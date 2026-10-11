@@ -78,6 +78,8 @@ the same bounded Coder route while retaining ownership of design and independent
 1. Manager resolves the work target, ticket when applicable, and required agents.
 2. Designer / Reviewer defines requirements, acceptance criteria, and implementation design through the
    [planning flow](flows/planning.flow.md).
+   For a macOS binary or packaging/signing/distribution/update change, apply the
+   [macOS distribution flow](flows/macos-distribution.flow.md) from planning through channel-specific acceptance and closure.
    For a new public website, an explicit SEO task, or changes to public routes, languages, content, metadata,
    or rendering, select the applicable `initial`, `regression`, or `post-deployment` mode of
    [`seo-audit`](../../ai-commands/development/seo-audit/seo-audit.command.md). Use its bounded technical scope
@@ -104,5 +106,6 @@ the same bounded Coder route while retaining ownership of design and independent
 7. Designer / Reviewer accepts the completed assignment when all required checks pass, including the [demo flow](flows/demo.flow.md) when the plan, human request, acceptance needs, or delivery context calls for demonstration. Demo is an applicability-based acceptance step: common for user-visible/client-facing changes, optional when it adds no useful evidence beyond existing verification.
 8. Command Runner performs delivery or deployment only when explicitly requested and authorized. Use
    [delivery.md](guides/delivery.md), including its canonical source-control provenance gate, and the
-   [deployment flow](flows/deployment.flow.md) when applicable.
+   [deployment flow](flows/deployment.flow.md) when applicable. macOS artifacts also retain the
+   applicable [macOS distribution gates](flows/macos-distribution.flow.md); source delivery is not binary/store release.
 9. Manager closes the ticket when applicable after all required evidence exists.
