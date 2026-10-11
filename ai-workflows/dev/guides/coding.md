@@ -1,5 +1,10 @@
 # Development: coding
 
+- Discover the project's approved English Markdown [business flows/scenarios](../../_common/flows/project-business-flows.md)
+  before behavior changes. Update the origin first when changing intended behavior, then
+  implement it and its derived tests. For a regression restoring approved behavior, preserve
+  those semantics; refine missing or ambiguous cases in the origin before encoding the fix.
+
 - Inspect the smallest relevant file or narrow search first.
 - Make the smallest reviewable change that solves the request.
 - Follow existing local patterns and keep unrelated files untouched.

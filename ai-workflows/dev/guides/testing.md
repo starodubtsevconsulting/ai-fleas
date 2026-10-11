@@ -1,5 +1,13 @@
 # Development: testing
 
+- Before choosing tests, discover the applicable project's normative English Markdown
+  [business flows/scenarios](../../_common/flows/project-business-flows.md) through its AGENTS
+  notes or documentation index. Record relevant source references and coverage gaps.
+- Derive expected smoke/end-to-end outcomes from those scenarios. Update and resolve the
+  source first when intended behavior changes; refine missing regression cases there before
+  encoding them. Restoring an already approved flow does not require changing its semantics.
+  Keep observed failures and acceptance evidence distinct from the normative source.
+
 - Choose the smallest deterministic proof for the changed surface.
 - Prefer targeted unit, integration, type, or lint checks before broad suites.
 - Run a broad suite or production build only when requested or when focused
