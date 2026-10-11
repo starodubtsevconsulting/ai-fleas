@@ -30,6 +30,8 @@ Current categories:
 
 See [`categories.md`](categories.md) for the normative rules.
 
+- [macOS keep awake](system/macos-keep-awake/macos-keep-awake.command.md): UI-first Angular/Electron utility with native confirmation and owned power assertions; guarded interactive CLI remains available.
+
 `install` is limited to initial installation and minimum bootstrap. Routine operation and profile/workflow tuning belong
 to the capability category used after installation; for example, installation may prepare a provider while `connect`,
 `data`, or `system` owns its normal-use companion command.
