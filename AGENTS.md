@@ -130,6 +130,12 @@ EOF* AI Fleas can contain profile structure, documentation, validation, and sani
 
 ## Agent Knowledge Acquisition (CRITICAL - READ FIRST)
 
+For project behavior changes and testing, discover the project's normative English Markdown
+business flows/scenarios from its AGENTS notes or documentation index first. Follow the
+[project business-flow contract](ai-workflows/_common/flows/project-business-flows.md):
+update intended behavior at its origin before implementation and derived tests; preserve
+existing project-specific locations rather than imposing a universal journey.
+
 **When a session starts and the human asks you to work on something:**
 
 1. **FIRST: Scan AGENTS.md files in relevant directories** - this is your priority #1

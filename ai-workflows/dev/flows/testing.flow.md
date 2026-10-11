@@ -8,6 +8,8 @@
 ## Entry
 
 Known target/component, plan step, candidate/environment, expected behavior, eligible gate, and permitted effects.
+Resolve the relevant project-specific [business flow/scenario source](../../_common/flows/project-business-flows.md)
+before selecting derived tests; missing or conflicting expected behavior needs an owner and resolution.
 Later parent gates stay pending; entering testing does not move them earlier.
 
 ## Steps

@@ -1,5 +1,9 @@
 # Flow contracts
 
+This contract covers AI workflow execution. Project product behavior is governed separately
+by [project business flows](project-business-flows.md): English Markdown scenarios are the
+origin of expected behavior and derived tests, with project-specific source locations.
+
 A flow is a bounded path inside a workflow. It reuses existing roles and commands without adding authority.
 Use the [flow template](flow.template.md); load only applicable flows.
 The workflow-scoped [Router runtime](../runtime/workflow-router.md) may execute declared flow transitions. The flow remains
