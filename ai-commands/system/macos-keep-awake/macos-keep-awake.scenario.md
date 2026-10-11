@@ -51,9 +51,9 @@ from build/unit evidence. Never infer successful idle behavior from a rendered s
 Parent-run Keep Awake 0.0.3 packaging, strict signature verification, ZIP integrity and
 nine controller tests passed. The native app opened Inactive from its bundled resources.
 Start warning Cancel preserved Inactive; confirmed Start showed Awake with pmset-owned
-assertions for caffeinate child 80164 under app PID 80142. Stop returned Inactive.
+assertions for the packaged app’s owned caffeinate child. Stop returned Inactive.
 Confirmed restart followed by closing the active window exited the app and its child;
-only the original source caffeinate 66628 under parent 64548 remained.
+only the original source app and its caffeinate session remained.
 
 ZIP size: 128605596 bytes. SHA-256:
 `1cfb9774760ef1707c190bb26b241a0272f8db2bb4aa8d269586814cfac7b9d2`.
