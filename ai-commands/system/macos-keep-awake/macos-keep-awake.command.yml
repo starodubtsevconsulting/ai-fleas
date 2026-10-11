@@ -1,0 +1,6 @@
+id: macos-keep-awake
+version: 0.0.3-SNAPSHOT
+category: system
+type: executable
+ai:
+  powered: false

@@ -1,0 +1,5 @@
+launcher/node_modules/
+launcher/dist/
+launcher/.angular/
+
+output/
