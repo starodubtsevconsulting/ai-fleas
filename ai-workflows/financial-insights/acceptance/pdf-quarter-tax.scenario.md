@@ -17,6 +17,10 @@ Launch context supplies `CANONICAL_DATA_ROOT` (authorized absolute folder), incl
 ```text
 Determine taxes actually paid during the selected quarter from original PDFs only.
 
+The task concerns Canadian federal and Quebec tax/payment evidence. Look for GST/QST and other taxes, including
+payroll/source deductions, only where the original PDF supports them. Jurisdiction and filenames are discovery cues,
+not proof of tax type, payment status, or currency. Do not assume CAD without source evidence.
+
 Inputs are in the launch context: CANONICAL_DATA_ROOT, inclusive PERIOD_START and PERIOD_END, and optional quarter
 identifier/definition.
 

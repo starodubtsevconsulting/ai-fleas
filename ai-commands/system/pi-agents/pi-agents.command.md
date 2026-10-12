@@ -45,6 +45,27 @@ This avoids unrelated coding instructions and tool schemas. File-size validation
 is not a context-budget guarantee: the scenario and context must fit the endpoint's
 actual token window, including Pi's output reservation and tool definitions.
 
+Before inference for a file-oriented scenario, the operator must verify the exact
+extractor or renderer executable and the selected Pi tool's PDF/image support.
+Supply the verified concrete executable path and bounded usage in launch context;
+do not spend the model's context discovering installed tools. An executable may
+be available in a bundled runtime without being on the launched process's `PATH`.
+Keep machine-specific paths in private launch context, not public examples.
+Inspect one source PDF and one page at a time, bound each tool output to the
+scenario's limit, and stop with partial coverage when the transcript budget is
+insufficient. A successful process exit alone is not a completed benchmark;
+require its actual report, source citations and arithmetic, and inspect stop
+reasons and output usage for context exhaustion.
+
+Source-document read-only rules remain separate from authorized launcher runtime
+configuration and evidence capture. Neither preparation nor evidence capture
+authorizes creating derived financial files. Pi's image-capable `read` tool can
+attach supported image files; that does not establish direct PDF support or an
+in-memory page-rendering attachment path. Under a scenario that prohibits file
+creation, a renderer that requires a new image file remains an unavailable native
+visual-input capability. Report the gap and use only the scenario's permitted
+fresh stdout/in-memory extraction fallback; do not weaken its no-write rule.
+
 Scenario launches pass `--scenario-mode` to both check and prepare. They validate
 the configured roster selection but write into `<agent_directory>/<project>/scenario/`.
 The generated AGENTS contains only the selected scope, model, human task controls
