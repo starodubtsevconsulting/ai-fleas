@@ -105,4 +105,7 @@ grep -Fq '"chat_template_kwargs":{"enable_thinking":false}' "$dir/provision-ubun
 grep -Fq 'systemctl restart "$service_name"' "$dir/provision-ubuntu.sh"
 grep -Fq 'GATEWAY_INFERENCE_VERIFICATION_FAILED' "$dir/provision-ubuntu.sh"
 grep -Fq 'switch-from-user-gateway-service' "$dir/install-ai-local-provider.sh"
+grep -Fq 'preserve-user-gateway-service' "$dir/install-ai-local-provider.sh"
+grep -Fq 'PRESERVED_USER_GATEWAY_VISION_VERIFICATION_FAILED' "$dir/provision-ubuntu.sh"
+grep -Fq 'managed_gateway_attempted' "$dir/provision-ubuntu.sh"
 printf '%s\n' 'install-ai-local-provider tests: PASS'

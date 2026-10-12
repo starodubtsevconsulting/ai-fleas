@@ -10,7 +10,7 @@ architecture="${19:-amd64}"; cuda_toolkit_path="${20:-}"; cuda_architectures="${
 switch_from_user_service="${22:-}"; cuda_toolkit_major_version="${23:-}"; service_owner="${SUDO_USER:-}"
 gateway_port="${24:-}"; gateway_service_name="${25:-}"; gateway_listen_address="${26:-}"
 remote_gateway_script="${27:-}"; remote_gateway_ui="${28:-}"; switch_from_user_gateway_service="${29:-}"
-projector_manifest="${30:-}"
+projector_manifest="${30:-}"; preserve_user_gateway_service="${31:-}"
 install_root=/opt/ai-local-provider
 source_root="$install_root/src/llama.cpp"; build_root="$install_root/build"; binary_root="$install_root/bin"
 model_root="$storage_volume/ai-local-provider/models"; model_path="$model_root/$model_file"
@@ -37,9 +37,13 @@ if [[ -n "$gateway_port" ]]; then
   [[ "$gateway_port" =~ ^[0-9]+$ ]] && ((10#$gateway_port >= 1 && 10#$gateway_port <= 65535)) || { echo 'GATEWAY_PORT_INVALID' >&2; exit 4; }
   [[ "$gateway_service_name" =~ ^[A-Za-z0-9][A-Za-z0-9_.@-]*$ ]] || { echo 'GATEWAY_SERVICE_NAME_INVALID' >&2; exit 4; }
   [[ "$gateway_listen_address" =~ ^(0\.0\.0\.0|127\.0\.0\.1|::1)$ ]] || { echo 'GATEWAY_LISTEN_ADDRESS_INVALID' >&2; exit 4; }
-  [[ "$remote_gateway_script" == /tmp/ai-local-provider-gateway.*.mjs && "$remote_gateway_ui" == /tmp/ai-local-provider-gateway.*.html && -r "$remote_gateway_script" && -r "$remote_gateway_ui" ]] || { echo 'GATEWAY_STAGING_INVALID' >&2; exit 4; }
+  if [[ -z "$preserve_user_gateway_service" ]]; then
+    [[ "$remote_gateway_script" == /tmp/ai-local-provider-gateway.*.mjs && "$remote_gateway_ui" == /tmp/ai-local-provider-gateway.*.html && -r "$remote_gateway_script" && -r "$remote_gateway_ui" ]] || { echo 'GATEWAY_STAGING_INVALID' >&2; exit 4; }
+  fi
 fi
-if [[ -n "$switch_from_user_service$switch_from_user_gateway_service" ]]; then
+[[ -z "$preserve_user_gateway_service" || "$preserve_user_gateway_service" =~ ^[A-Za-z0-9][A-Za-z0-9_.@-]*\.service$ ]] || { echo 'PRESERVED_USER_GATEWAY_SERVICE_UNIT_INVALID' >&2; exit 4; }
+[[ -z "$preserve_user_gateway_service" || -z "$switch_from_user_gateway_service" ]] || { echo 'USER_GATEWAY_SELECTION_CONFLICT' >&2; exit 4; }
+if [[ -n "$switch_from_user_service$switch_from_user_gateway_service$preserve_user_gateway_service" ]]; then
   [[ -z "$switch_from_user_service" || "$switch_from_user_service" =~ ^[A-Za-z0-9][A-Za-z0-9_.@-]*\.service$ ]] || { echo 'USER_SERVICE_UNIT_INVALID' >&2; exit 4; }
   [[ -z "$switch_from_user_gateway_service" || "$switch_from_user_gateway_service" =~ ^[A-Za-z0-9][A-Za-z0-9_.@-]*\.service$ ]] || { echo 'USER_GATEWAY_SERVICE_UNIT_INVALID' >&2; exit 4; }
   [[ "$service_owner" =~ ^[a-z_][a-z0-9_-]*[$]?$ ]] && id "$service_owner" >/dev/null 2>&1 || { echo 'SERVICE_OWNER_INVALID: SUDO_USER must identify the SSH user.' >&2; exit 4; }
@@ -54,6 +58,9 @@ if [[ -n "$switch_from_user_service$switch_from_user_gateway_service" ]]; then
   fi
   if [[ -n "$switch_from_user_gateway_service" ]]; then
     user_systemctl is-active --quiet "$switch_from_user_gateway_service" || { echo 'USER_GATEWAY_SERVICE_NOT_ACTIVE' >&2; exit 4; }
+  fi
+  if [[ -n "$preserve_user_gateway_service" ]]; then
+    user_systemctl is-active --quiet "$preserve_user_gateway_service" || { echo 'PRESERVED_USER_GATEWAY_SERVICE_NOT_ACTIVE' >&2; exit 4; }
   fi
 fi
 IFS=',' read -r -a model_entries <<< "$model_manifest"
@@ -71,11 +78,11 @@ if [[ -n "$projector_manifest" ]]; then
   projector_path="$model_root/$projector_file"
 fi
 
-switch_stopped=false; gateway_switch_stopped=false
+switch_stopped=false; gateway_switch_stopped=false; managed_gateway_attempted=false
 install_success=false
 restore_user_service() {
   if [[ "$install_success" != true ]]; then
-    [[ -z "$gateway_port" ]] || systemctl disable --now "$gateway_service_name" >/dev/null 2>&1 || true
+    [[ "$managed_gateway_attempted" != true ]] || systemctl disable --now "$gateway_service_name" >/dev/null 2>&1 || true
     if [[ "$gateway_switch_stopped" == true ]]; then
       echo "INSTALL_FAILED_RESTORING_USER_GATEWAY: $switch_from_user_gateway_service"
       user_systemctl start "$switch_from_user_gateway_service" || echo "USER_GATEWAY_RESTORE_FAILED: $switch_from_user_gateway_service" >&2
@@ -243,8 +250,14 @@ for _ in $(seq 1 90); do
         "http://127.0.0.1:$provider_port/v1/chat/completions")"
       grep -q 'VISION_READY' <<<"$vision_response" || { echo 'PROVIDER_VISION_VERIFICATION_FAILED' >&2; exit 9; }
     fi
-    if [[ -n "$gateway_port" ]]; then
+    if [[ -n "$preserve_user_gateway_service" ]]; then
+      printf '\n[AI-LOCAL-10] Verify the retained user API gateway\n'
+      user_systemctl is-active --quiet "$preserve_user_gateway_service" || { echo 'PRESERVED_USER_GATEWAY_STOPPED' >&2; exit 9; }
+      gateway_vision_response="$(curl -fsS --max-time 180 -H 'Content-Type: application/json' -d '{"model":"'$model_api_alias'","messages":[{"role":"user","content":[{"type":"text","text":"Reply with exactly VISION_READY"},{"type":"image_url","image_url":{"url":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLPNwAAAABJRU5ErkJggg=="}}]}],"temperature":0,"max_tokens":64,"chat_template_kwargs":{"enable_thinking":false}}' "http://127.0.0.1:$gateway_port/v1/chat/completions")" || { echo 'PRESERVED_USER_GATEWAY_VISION_REQUEST_FAILED' >&2; exit 9; }
+      grep -q 'VISION_READY' <<<"$gateway_vision_response" || { echo 'PRESERVED_USER_GATEWAY_VISION_VERIFICATION_FAILED' >&2; exit 9; }
+    elif [[ -n "$gateway_port" ]]; then
       plan_step AI-LOCAL-10 'Reconcile the managed API gateway'
+      managed_gateway_attempted=true
       node_binary="$(command -v node)" || { echo 'GATEWAY_NODE_NOT_FOUND' >&2; exit 9; }
       cat >"/etc/systemd/system/$gateway_service_name.service" <<EOF
 [Unit]
