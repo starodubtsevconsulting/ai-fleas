@@ -65,3 +65,22 @@ all model output as untrusted input to the verifier.
 
 **Verification:** Five verifier unit tests pass, including malformed aggregate
 output cases.
+
+## Contextual vision evidence scoring
+
+**What happened:** Valid contextual checks were rejected for short exact source
+quotes and a printed provider status equivalent to the schema enum.
+
+**Root cause:** The evaluator required more quotation context than the prompt
+specified and compared equivalent display/schema status spellings literally.
+
+**How we fixed it:** Accept exact source substrings with word boundaries and
+normalize only the supported provider-status equivalence. Preserve raw model
+outputs and captured snapshots; re-score them without rerunning inference.
+
+**How to avoid it:** Define quotation and enum normalization rules explicitly,
+then test short valid quotes, invented quotes, false status equivalences and
+tampered candidates. Never broaden matching to make an incorrect answer pass.
+
+**Verification:** 19 verifier tests passed; captured public results identify
+the evaluator correction and distinguish re-scoring from a new model run.

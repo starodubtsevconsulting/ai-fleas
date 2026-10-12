@@ -116,6 +116,12 @@ and verification prerequisites are documented in
 
 ## Browser-assisted tax-payment entry
 
+The [workflow-compatible benchmark scenario](acceptance/financial-insights-compatible.scenario.md)
+separately tests mechanical preparation and contextual visual checking on
+fictional supported payroll forms in the canonical report hierarchy. Benchmark
+variants select harness/model settings without changing operational profiles or
+waiving review and publication gates.
+
 When the human authorizes visible browser assistance for a tax payment, treat deliberate field entry as a safety and
 reliability requirement. Enter one field at a time, wait for the page to settle, read back and validate the visible
 value, and only then move to the next field. Do not use rapid multi-field bursts. Pause at meaningful form boundaries

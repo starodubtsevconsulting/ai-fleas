@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+"""Fictional Financial Insights preparation and contextual visual verification."""
+import argparse
+import copy
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import time
+from verify import compare_mechanical, compare_vision, parse_answer, set_path
+HERE=Path(__file__).resolve().parent
+REPO=HERE.parents[4]
+
+def save(path,value):
+    path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(value,indent=2)+'\n')
+
+def execute(command,cwd,timeout,env=None):
+    start=time.monotonic()
+    try:
+        result=subprocess.run(command,cwd=cwd,env=env,text=True,capture_output=True,timeout=timeout)
+        return result.returncode,result.stdout,result.stderr,time.monotonic()-start
+    except subprocess.TimeoutExpired as e:
+        def text(v):return v.decode(errors='replace') if isinstance(v,bytes) else v or ''
+        return 124,text(e.stdout),text(e.stderr),time.monotonic()-start
+
+def mechanical_source_versions():
+    """Version only public mechanical implementation, never operational settings."""
+    files=('financial-records.command.mjs','pdf-reader.mjs',
+           'recognizers/payroll-tax-source-recognition.mjs','read-plans/payroll-tax-read-plan.mjs')
+    base=REPO/'ai-commands/data/financial-records'
+    return {name:hashlib.sha256((base/name).read_bytes()).hexdigest() for name in files}
+
+def validate_variant(variant):
+    """Named variants select adapters, not code branches tied to one variant ID."""
+    if not isinstance(variant,dict):raise ValueError('variant must be an object')
+    adapter=variant.get('adapter')
+    if adapter not in ('shared-exported-engine','pi-print-json','hermes-cli-preflight'):
+        return {**variant,'supported':False,'blocked_reason':'benchmark adapter not implemented'}
+    if adapter=='pi-print-json':
+        context=variant.get('context_window');output=variant.get('output_tokens')
+        if type(context) is not int or type(output) is not int or not 1<=output<=context:
+            raise ValueError('explicit positive integer context/output budgets required')
+        if variant.get('thinking')!='off' or variant.get('server_enable_thinking') is not False:
+            raise ValueError('Pi adapter only supports explicit off/false thinking controls')
+        sampling=variant.get('sampling')
+        if sampling is not None:
+            if not isinstance(sampling,dict) or set(sampling)-{'temperature','top_p'}:raise ValueError('unsupported sampling option')
+            for key,value in sampling.items():
+                upper=2 if key=='temperature' else 1
+                if type(value) not in (int,float) or not 0<=value<=upper:raise ValueError('invalid sampling budget')
+    return variant
+
+def hermes_preflight(source_root,variant):
+    import importlib.util
+    spec=importlib.util.spec_from_file_location('benchmark_hermes',HERE/'hermes-adapter.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    return module.check({'source_root':source_root,'context_window':variant.get('context_window'),'output_tokens':variant.get('output_tokens')})
+
+def setup_pi(args,run,variant):
+    if not all((args.agent_dir,args.provider,args.model)):raise ValueError('Pi variant requires explicit transport agent-dir/provider/model')
+    original=json.loads((Path(args.agent_dir)/'models.json').read_text())
+    provider=original['providers'][args.provider]
+    model=next(x for x in provider['models'] if x['id']==args.model)
+    context=variant['context_window'];output=variant['output_tokens']
+    if context>model.get('contextWindow',0) or output>model.get('maxTokens',0) or 'image' not in model.get('input',[]):raise ValueError('model image capability or declared context/output capacity insufficient')
+    if provider.get('api')!='openai-completions':raise ValueError('Pi JSON-aware adapter currently supports only openai-completions transport')
+    if 'sol' in args.model.casefold():raise ValueError('Sol requires Low reasoning; this off-thinking Pi adapter does not support that binding')
+    config=run/'agent';config.mkdir()
+    selected={key:provider[key] for key in ('baseUrl','api','apiKey','headers') if key in provider}
+    selected['models']=[dict(model,contextWindow=context,maxTokens=output)]
+    save(config/'models.json',{'providers':{args.provider:selected}});os.chmod(config/'models.json',0o600)
+    save(config/'settings.json',{'defaultThinkingLevel':'off','compaction':{'enabled':False}})
+    hook=config/'thinking-control.mjs'
+    sampling=variant.get('sampling') or {}
+    hook.write_text('import fs from "node:fs";\nexport default function(pi) { pi.on("before_provider_request", (event) => { const payload={...event.payload,...SAMPLING,chat_template_kwargs:{...(event.payload.chat_template_kwargs??{}),enable_thinking:false}}; const messages=payload.messages??[]; fs.appendFileSync(process.env.BENCHMARK_CONTROL_LOG,JSON.stringify({enable_thinking:payload.chat_template_kwargs.enable_thinking,max_tokens:payload.max_tokens??null,temperature:payload.temperature??null,top_p:payload.top_p??null,image_count:messages.reduce((n,m)=>n+(Array.isArray(m.content)?m.content.filter(c=>c.type==="image_url"||c.type==="image").length:0),0)})+"\\n"); return payload; }); }\n'.replace('SAMPLING',json.dumps(sampling)))
+    env=dict(os.environ,PI_CODING_AGENT_DIR=str(config),PI_OFFLINE='1',PI_TELEMETRY='0')
+    code,version,_,_=execute([args.pi,'--version'],run,10,env)
+    if code:raise ValueError('Pi version preflight failed')
+    return hook,env,version.strip()
+
+def inference(args,run,hook,env,identifier,prompt,image):
+    control=run/'vision'/(identifier+'.controls.jsonl');control.parent.mkdir(exist_ok=True)
+    command=[args.pi,'--print','--mode','json','--no-session','--no-tools','--no-mcp','--no-extensions','--no-skills','--no-prompt-templates','--no-context-files','--no-approve','--provider',args.provider,'--model',args.model,'--thinking','off','--system-prompt','Inspect fictional financial PDF evidence and return the requested JSON.','-e',str(hook),'--','@'+str(image),prompt]
+    code,out,err,elapsed=execute(command,run,args.timeout,dict(env,BENCHMARK_CONTROL_LOG=str(control)))
+    (control.parent/(identifier+'.events.jsonl')).write_text(out);(control.parent/(identifier+'.stderr.log')).write_text(err)
+    messages=[]
+    for line in out.splitlines():
+        try:
+            event=json.loads(line)
+            if event.get('type')=='message_end' and event.get('message',{}).get('role')=='assistant':messages.append(event['message'])
+        except (ValueError,TypeError):pass
+    message=messages[-1] if messages else {}
+    output=''.join(p.get('text','') for p in message.get('content',[]) if p.get('type')=='text')
+    try:answer=parse_answer(output)
+    except (ValueError,TypeError):answer=None
+    controls=[json.loads(line) for line in control.read_text().splitlines()] if control.exists() else []
+    usage={k:v for k,v in (message.get('usage') or {}).items() if k in ('input','output','cacheRead','cacheWrite','totalTokens') and isinstance(v,(int,float))} or None
+    transport={'exit_success':code==0,'normal_stop':message.get('stopReason')=='stop','json_object':isinstance(answer,dict),
+               'one_image_observed':bool(controls) and all(x['image_count']==1 for x in controls),
+               'thinking_disabled_observed':bool(controls) and all(x['enable_thinking'] is False for x in controls)}
+    transport['passed']=all(transport.values())
+    return {'id':identifier,'exit_code':code,'wall_seconds':round(elapsed,3),'first_token_seconds':None,'stop_reason':message.get('stopReason'),'usage':usage,'assistant_completions_observed':len(messages),'provider_request_hooks_observed':len(controls),'model_api_calls':None,'outbound_controls':controls,'transport_verification':transport,'answer':answer,'prompt_sha256':hashlib.sha256(prompt.encode()).hexdigest(),'image_sha256':hashlib.sha256(image.read_bytes()).hexdigest(),'image_bytes':image.stat().st_size}
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--variants',default=str(HERE/'variants.json'));p.add_argument('--harness-source');p.add_argument('--variant',required=True);p.add_argument('--run-root',required=True);p.add_argument('--results',required=True)
+    for flag in ('agent-dir','provider','model'):p.add_argument('--'+flag)
+    p.add_argument('--date',default='2026-10-12');p.add_argument('--pi',default='pi');p.add_argument('--renderer',default='pdftoppm');p.add_argument('--timeout',type=int,default=90)
+    args=p.parse_args();start=time.monotonic()
+    manifest_path=Path(args.variants);manifest=json.loads(manifest_path.read_text())
+    try:variant=validate_variant(manifest['variants'].get(args.variant))
+    except ValueError as error:p.error(str(error))
+    for binding in ('provider','model'):
+        configured=variant.get(binding)
+        supplied=getattr(args,binding)
+        if configured and supplied and configured!=supplied:p.error('explicit '+binding+' conflicts with selected named variant')
+        if configured:setattr(args,binding,configured)
+    is_pi=variant.get('adapter')=='pi-print-json' and variant.get('supported')
+    if not 1<=args.timeout<=90:p.error('timeout must be 1..90 seconds')
+    run=Path(args.run_root).resolve();output=Path(args.results).resolve()
+    try:run.relative_to(REPO/'notes/benchmarks/local-models/runs')
+    except ValueError:p.error('run-root must be under ignored visible benchmark runs directory')
+    if run.exists() or output.exists():p.error('run-root/results already exists; never overwrite evidence')
+    if not variant.get('supported') or variant.get('adapter')=='hermes-cli-preflight':
+        observation=hermes_preflight(args.harness_source,variant) if variant.get('adapter')=='hermes-cli-preflight' else {'status':'blocked','reason':variant.get('blocked_reason'),'inference_started':False}
+        run.mkdir(parents=True)
+        result={'schema_version':1,'date':args.date,'fixture':'financial-insights-compatible','fictional':True,'variant':args.variant,'status':'blocked','adapter_preflight':observation,'mechanical_source_versions':mechanical_source_versions(),'mechanical_source_version_collection':'captured during adapter preflight; mechanical engine not executed','inference_started':False,'configuration':variant,'total_wall_seconds':round(time.monotonic()-start,3)}
+        save(run/'results.json',result);save(output,result);print(json.dumps(result),flush=True);return
+    for executable in ('node',)+((args.pi,args.renderer) if is_pi else ()):
+        if not shutil.which(executable):p.error('missing executable '+executable)
+    run.mkdir(parents=True);root=run/'data/reports';shutil.copytree(HERE/'data/reports',root)
+    expected=json.loads((HERE/'expected.json').read_text());mechanical=[];proposals={};texts={};hashes={}
+    hook=env=version=None
+    if is_pi:hook,env,version=setup_pi(args,run,variant)
+    preflight=time.monotonic()-start
+    mechanical_versions=mechanical_source_versions()
+    engine=REPO/'ai-commands/data/financial-records/financial-records.command.mjs'
+    bridge='import {FinancialRecordsCommand} from '+json.dumps(engine.as_uri())+'; const args=process.argv.slice(1); const command=new FinancialRecordsCommand(); const proposal=await command.run(args); const pdf=await command.pdfReader.read(args[args.indexOf("--source")+1]); console.log(JSON.stringify({proposal,sourceText:pdf.normalizedText}));'
+    for doc in expected['documents']:
+        source=root/Path(doc['file']).relative_to('data/reports');before=hashlib.sha256(source.read_bytes()).hexdigest();hashes[doc['id']]=before
+        operation=['prepare-tax-from-source','--root',str(root),'--source',str(source),'--branch','example-consulting','--year','2026','--quarter','q4','--section','out']
+        code,out,err,elapsed=execute(['node','--input-type=module','-e',bridge,*operation],REPO,30)
+        (run/(doc['id']+'.mechanical.stderr.log')).write_text(err)
+        try:payload=json.loads(out);proposal=payload['proposal'];texts[doc['id']]=payload['sourceText']
+        except (ValueError,TypeError,KeyError):proposal={};texts[doc['id']]=''
+        save(run/'proposals'/(doc['id']+'.prepare.json'),proposal)
+        proposals[doc['id']]=proposal
+        unchanged=before==hashlib.sha256(source.read_bytes()).hexdigest()
+        score=compare_mechanical(proposal,doc);score['passed']&=code==0 and unchanged
+        mechanical.append({'id':doc['id'],'exit_code':code,'wall_seconds':round(elapsed,3),'source_unchanged':unchanged,'source_sha256':before,'operation':operation[:2]+['<fictional-run-report-root>','--source',doc['file']]+operation[5:],'proposal':proposal,'verification':score})
+        print(json.dumps({'stage':'mechanical','id':doc['id'],'passed':score['passed'],'seconds':round(elapsed,3)}),flush=True)
+    mechanical_seconds=sum(x['wall_seconds'] for x in mechanical)
+    vision=[];rendering_seconds=0;verification_seconds=0
+    blocked=None
+    if is_pi:
+        if not all(x['verification']['prepared'] and x['exit_code']==0 for x in mechanical):blocked='mechanical preparation failed; no fabricated candidate used'
+        else:
+            prompt_base=(HERE/'verify-json.prompt.md').read_text();images={}
+            for doc in expected['documents']:
+                prefix=run/'images'/doc['id'];prefix.parent.mkdir(exist_ok=True)
+                source=root/Path(doc['file']).relative_to('data/reports')
+                code,out,err,elapsed=execute([args.renderer,'-r','144','-singlefile','-png',str(source),str(prefix)],run,30);rendering_seconds+=elapsed
+                if code:raise RuntimeError('render failed before inference')
+                images[doc['id']]=prefix.with_suffix('.png')
+            cases=[(doc,'unchanged',None,None) for doc in expected['documents']]
+            federal=expected['documents'][0];qc=expected['documents'][1]
+            cases += [(federal,'wrong-total','amounts.arithmetic.total',9999.99),
+                      (federal,'wrong-date','dates.scheduledExecutionDate','2026-10-19'),
+                      (qc,'wrong-settlement','obligationLifecycle.settlement','settled'),
+                      (qc,'wrong-currency','currency','USD')]
+            for doc,case,field,replacement in cases:
+                candidate={}
+                extraction=proposals[doc['id']]['extraction']
+                from verify import get_path
+                for path in doc['expected']:set_path(candidate,path,get_path(extraction,path))
+                seeded_fields=[]
+                if field:set_path(candidate,field,replacement);seeded_fields.append(field)
+                if case=='wrong-settlement':
+                    set_path(candidate,'obligationLifecycle.state','settled');set_path(candidate,'obligationLifecycle.providerStatus','completed')
+                    seeded_fields+=['obligationLifecycle.state','obligationLifecycle.providerStatus']
+                identifier=doc['id']+'-'+case
+                save(run/'candidates'/(identifier+'.json'),candidate)
+                prompt=prompt_base+'\nRequested paths: '+json.dumps(list(doc['expected']))+'\nMechanical candidate JSON:\n'+json.dumps(candidate,separators=(',',':'))
+                result=inference(args,run,hook,env,identifier,prompt,images[doc['id']]);result.update(document=doc['id'],case=case,seeded_field=field,seeded_fields=seeded_fields)
+                before=time.monotonic();result['verification']=compare_vision(result['answer'],candidate,doc,texts[doc['id']]);verification_seconds+=time.monotonic()-before
+                result['verification']['passed']&=result['transport_verification']['passed'];vision.append(result)
+                print(json.dumps({'stage':'vision','id':identifier,'passed':result['verification']['passed'],'seconds':result['wall_seconds']}),flush=True)
+    summary={'mechanical_documents':len(mechanical),'mechanical_passed':sum(x['verification']['passed'] for x in mechanical),'mechanical_field_count':sum(x['verification']['field_count'] for x in mechanical),'mechanical_field_matches':sum(x['verification']['field_matches'] for x in mechanical),'vision_runs':len(vision),'vision_passed':sum(x['verification']['passed'] for x in vision)}
+    for case_group in ('unchanged','tampered'):
+        events=[e for e in vision if (e['case']=='unchanged')==(case_group=='unchanged')]
+        summary[case_group]={'runs':len(events),**{key:sum(e['verification'][key] for e in events) for key in ('field_count','fields_passed','expected_matches','expected_contradictions','contradictions_detected','false_accepts','false_rejects','omissions','unknowns')}}
+    result={'schema_version':1,'date':args.date,'fixture':'financial-insights-compatible','fictional':True,'variant':args.variant,'configuration':{**variant,'provider':args.provider if vision else None,'model':args.model if vision else None,'harness_version':version,'timeout_seconds':args.timeout,'render_dpi':144 if vision else None,'ground_truth_in_model_context':False,'mechanical_candidate_in_model_context':bool(vision),'workflow_agents_initialized':False,'human_review':'pending','publication':False,'projector_metadata':None,'output_limit_boundary':'declared model settings; actual outbound output limit remains unknown if hook value null'},'source_sha256':hashes,'variant_manifest_sha256':hashlib.sha256(manifest_path.read_bytes()).hexdigest(),'source_versions':{name:hashlib.sha256((HERE/name).read_bytes()).hexdigest() for name in ('generate.py','run.py','verify.py','expected.json','variants.json','verify-json.prompt.md')},'mechanical_source_versions':mechanical_versions,'mechanical_source_version_collection':'captured before mechanical execution','mechanical_invocation_boundary':'shared exported FinancialRecordsCommand.run, same operation engine as registered CLI; no operational command-profile bootstrap','mechanical':mechanical,'vision':vision,'blocked_stage':blocked,'timing':{'preflight_seconds':round(preflight,3),'mechanical_seconds':round(mechanical_seconds,3),'rendering_seconds':round(rendering_seconds,3),'vision_seconds':round(sum(x['wall_seconds'] for x in vision),3),'vision_verification_seconds':round(verification_seconds,3),'total_wall_seconds':round(time.monotonic()-start,3),'boundary':'run setup, copying fictional originals, real preparation, text quote preparation, rendering and inference/evaluation; excludes fixture generation and manual visual inspection'},'summary':summary}
+    save(run/'results.json',result);save(output,result);print(json.dumps(summary),flush=True)
+if __name__=='__main__':main()

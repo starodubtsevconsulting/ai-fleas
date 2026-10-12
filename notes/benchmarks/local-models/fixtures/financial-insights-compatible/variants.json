@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "variants": {
+    "mechanical-only": {
+      "platform": "local-command-engine",
+      "harness": "financial-records",
+      "adapter": "shared-exported-engine",
+      "verification_mode": "mechanical-only",
+      "model": null,
+      "supported": true
+    },
+    "pi-json-aware": {
+      "platform": "pi",
+      "harness": "Pi",
+      "adapter": "pi-print-json",
+      "verification_mode": "json-aware-vision",
+      "provider_binding": "explicit-cli-transport-alias",
+      "model_binding": "explicit-cli-model-alias",
+      "context_window": 8192,
+      "output_tokens": 2048,
+      "thinking": "off",
+      "server_enable_thinking": false,
+      "sampling": null,
+      "supported": true
+    },
+    "hermes-json-aware": {
+      "platform": "hermes",
+      "harness": "Hermes",
+      "adapter": "hermes-cli-preflight",
+      "verification_mode": "json-aware-vision",
+      "supported": false,
+      "blocked_reason": "installed Hermes minimum-context and isolation preflight required; no inference",
+      "context_window": 8192,
+      "output_tokens": 2048
+    }
+  }
+}
