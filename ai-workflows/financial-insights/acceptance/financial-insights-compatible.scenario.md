@@ -126,9 +126,8 @@ unsupported adapter produces a failed or blocked observation, never a pass.
 
 A variant declares platform, harness, exact model binding, context/output
 limits, sampling, thinking setting and verification mode. Support mechanical-only
-and Pi JSON-aware visual-check arms with the same fixture and evaluator.
-Unimplemented platform adapters, including a generic Hermes visual route,
-remain blocked; configuration labels alone do
+and profile-selected JSON-aware visual-check arms with the same fixture and evaluator.
+Unimplemented platform adapters remain blocked; configuration labels alone do
 not prove portability. Operational profiles keep their existing registered
 settings. A benchmark variant authorizes only the fictional run root and does
 not register agents or create another operational sub-profile.
@@ -146,30 +145,20 @@ the evaluator has scored controls and seeded cases, and shareable evidence
 records limitations. An accuracy failure is a benchmark finding, not permission
 to rewrite the answer key or claim production readiness.
 
-## Matched native harness trial
+## Matched harness comparison
 
-A separate trial may compare Pi and native Hermes with the same fictional pages,
-compact candidates, field task, evaluator and model artifact. Declare 65,536
-actual server context, 2,048 output tokens, temperature 0, top-p 1 and thinking
-disabled in both variants. Verify actual served context before inference;
-metadata alone cannot establish capacity. Do not change an operational profile.
-Native Hermes requires at least 64,000 context for this custom server; preserve
-the blocked 8,192-context observation rather than relabeling the provider.
+A trial compares profile-selected harnesses using the same fictional pages,
+candidates, task, evaluator and model artifact. Resolve matching context/output,
+sampling and thinking settings from their configurations. Verify actual served
+capacity before inference. Use fresh isolated harness state and observe actual
+images, model and request controls. Reject fallback, unrequested tools or
+auxiliary model calls, missing control evidence and unsupported capabilities.
+Do not change operational profiles or imitate independent review.
 
-Use fresh isolated harness homes inside ignored visible benchmark runs, separate
-from operational profiles. Hermes uses its supported native image CLI, explicit
-native image mode and empty platform toolsets. Configure no provider fallback,
-no MCP, no auxiliary title generation and no context-file or memory injection.
-A profile-local observer plugin captures actual API image count, model, output
-cap, sampling, thinking, tools and request/response timing. Any image-text
-fallback, auxiliary model call, different model, tool use, missing observer
-proof or unsupported configuration fails transport verification.
-
-Record each harness's own system prompt behavior, startup/teardown overhead and
-available API latency/tokens. Wall time minus observed API duration is combined
-non-inference overhead, not a pure startup measurement. One seven-case trial
-per harness is evidence for that configuration, not a statistically established
-harness ranking. Keep older results immutable and identify the new trial.
+Record native system-prompt differences and available API latency/tokens.
+Wall time less observed API duration is combined non-inference overhead, not
+pure startup time. A single pair is evidence for its configuration, not a stable
+ranking. Preserve historical captured results unchanged.
 
 ## Reusable test profiles
 
@@ -187,5 +176,5 @@ output, sampling and thinking stay in the existing variant manifest rather than
 being duplicated in profiles. `--check-profile` performs a read-only live check
 without inference or creating directories. Actual runs use a fresh isolated home
 and output boundary. Switching harnesses changes no server service or operational
-profile; the currently selected 65,536 server context remains active until the
-human separately requests another setting.
+profile. Runtime capacity is verified per run; configuration changes remain
+separate authorized operations.
