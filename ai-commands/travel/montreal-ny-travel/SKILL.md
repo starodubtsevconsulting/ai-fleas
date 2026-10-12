@@ -64,6 +64,64 @@ The sequence is a planning aid. Verify current airport procedures, bookings and 
   Do not save a payment method unless authorized. Never report a booking from a selected fare alone.
 - Verify the actual confirmation/receipt after purchase. Preserve it in the authorized private destination.
 
+## File receipts for accounting
+
+- Resolve the selected profile's authorized agent in the
+  [financial-insights workflow](../../../ai-workflows/financial-insights/financial-insights.workflow.md)
+  for the expense filing details.
+  When cross-workflow contact is authorized and the endpoint is verified, ask it for the correct business/reporting
+  scope, fiscal year and quarter, outgoing-expense root, travel category, naming convention and required evidence.
+  A task title alone does not verify the endpoint. This instruction does not initialize an agent or grant authority
+  to change financial records. If the endpoint is unavailable or contact is not authorized, use an explicit
+  human-provided destination or ask the human for the missing filing details; do not guess another profile's path.
+- Keep actual account IDs, workflow endpoint bindings and machine-specific Synology paths in private configuration,
+  not this reusable skill. Follow the resolved convention, for example
+  `<expense-root>/travel/<trip-date>_<trip-label>/`. Do not infer the accounting period solely from travel dates:
+  retain both receipt issue and payment dates and use the financial workflow's period rule.
+- Save the supplier's original receipt/invoice and a readable PDF. Export the original confirmation email when it
+  is the receipt, and retain it alongside the PDF. Preserve the source unchanged; a generated summary is supporting
+  material, not a replacement invoice. Two file formats of one purchase represent one expense.
+- Verify the saved PDF contains supplier identity, issue date, service/travel dates, currency, total, full itemized
+  taxes and fees, and any tax registration numbers printed by the supplier. Check that the components reconcile
+  to the total. Do not infer missing GST/QST or declare tax-credit eligibility; flag missing evidence to the
+  financial workflow agent or human. Preserve source date discrepancies rather than silently correcting them.
+- Add a concise expense index/summary if useful, with business purpose, evidence filenames, paid amount and
+  reimbursement status. Distinguish confirmed expenses from planned hotel stays, taxis and meals; collect their
+  actual receipts after purchase. Do not mark reimbursement or ledger posting complete merely because files exist.
+- Read back the final files and verify they open and contain the expected receipt data. Report the exact destination
+  and any missing documents. A successful local save in Synology Drive is not proof of remote synchronization.
+
+```mermaid
+flowchart TD
+    A[Verified purchase receipt] --> B[Resolve authorized financial-insights agent or human filing instructions]
+    B --> C[Confirm reporting period and travel expense folder]
+    C --> D[Save original receipt and readable PDF]
+    D --> E{Tax and fee detail complete and total reconciles?}
+    E -->|Yes| F[Verify saved files and report location]
+    E -->|No| G[Flag missing evidence without inventing taxes]
+    G --> H[Obtain corrected supplier document when authorized]
+    H --> D
+```
+
+## Notify the organizer when applicable
+
+When an organizer coordinates travel, accommodation or reimbursement, offer to send the verified itinerary and
+supplier invoice/receipt. Send only when the human authorizes the message, recipient and attachment; booking
+or filing a receipt alone does not authorize emailing it.
+
+- Verify the organizer's email from authorized correspondence or their organization directory/profile; do not
+  guess it from a name. Verify the intended sending account as well.
+- Include flight numbers, travel dates, departure/arrival airports and local times, total and currency, and the
+  booking channel when relevant to the expense process. Attach the readable supplier receipt/invoice PDF.
+  Avoid sending the original email archive, internal expense CSV, card statements or unrelated private documents
+  unless specifically needed and authorized. Check the attachment for personal and payment information before
+  sending, and apply the host's disclosure rules.
+- Ask for hotel arrival/departure confirmation and the correct reimbursement/submission process when these
+  remain unresolved. Do not claim that the organizer approved a direct booking or reimbursement without evidence.
+- Read back the recipient, sender, message and attached filename before sending. Verify the sent confirmation
+  or Sent-folder record before reporting success; an open draft is not a sent email. If delivery status is
+  ambiguous, inspect the sent records before retrying to avoid duplicates.
+
 ## Calendar plan
 
 Use the user's selected calendar/account. For governed calendar execution, resolve authorization through the
@@ -186,3 +244,5 @@ Recheck changing guidance using official sources:
 
 Finish with the verified itinerary, calendar reminder times, remaining unknowns and which services are actually
 booked. Never describe a provisional hotel, suggested transfer, draft event or app preparation as confirmed.
+Include the verified receipt filing location and distinguish local save, remote sync, reimbursement and accounting
+posting status.
