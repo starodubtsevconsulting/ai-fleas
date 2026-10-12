@@ -34,9 +34,9 @@ preset must pin the projector repository, immutable revision, filename, byte siz
 If the fourth step fails, installation fails. A successful text completion, a model-card claim, or a configured image
 field alone is not evidence that vision is available.
 
-For Qwen3.8 Flash Next, the reviewed preset pairs the IQ4_NL language-model shards with
-`mmproj-Qwen3.8-Flash-Next-Q8_0.gguf` from the same pinned GGUF repository revision. The projector is about 617 MB;
-the installation plan retains the prior service until the new provider passes its checks.
+Each reviewed vision preset pairs its selected language-model artifact with a compatible projector from the
+corresponding model family and immutable revision. Projector size varies by model; the installation plan retains the
+prior service until the replacement provider passes its checks.
 
 ## Financial Insights benchmark prerequisite
 
@@ -68,8 +68,8 @@ the artifact record and the live API as the capability record. Inspect both; nei
 
 | Question | Evidence | Example |
 | --- | --- | --- |
-| Which pinned projector should be present? | The reviewed preset | `model.projector` in `presets/qwen3.8-flash-next.yml` |
-| Was that projector loaded at startup? | The systemd unit and service journal | `sudo systemctl cat ai-local-provider-qwen38` and `sudo journalctl -u ai-local-provider-qwen38 -b` |
+| Which pinned projector should be present? | The reviewed preset | `model.projector` in the selected vision preset |
+| Was that projector loaded at startup? | The systemd unit and service journal | `sudo systemctl cat ai-local-provider-<model>` and `sudo journalctl -u ai-local-provider-<model> -b` |
 | Does the server advertise multimodal input? | The server's model metadata | `curl -fsS "$LOCAL_PROVIDER_URL/v1/models"` |
 | Can the exact endpoint accept an image? | A small image chat-completion probe | The probe below |
 
