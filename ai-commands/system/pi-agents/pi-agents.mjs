@@ -44,7 +44,7 @@ function positive(value, label) {
 function main() {
   const args = process.argv.slice(2);
   if (!args.length || args.includes('--help')) {
-    console.log('Usage: pi-agents.command.sh <check|prepare> --work-profile ID --workflow dev --project ID [--profile-root PATH]');
+    console.log('Usage: pi-agents.command.sh <check|prepare> --work-profile ID --workflow ID --project ID [--profile-root PATH] [--model ALIAS] [--provider ID]');
     return;
   }
   const operation = args.shift();
@@ -52,11 +52,16 @@ function main() {
   const options = {};
   while (args.length) {
     const key = args.shift();
-    if (!['--work-profile', '--workflow', '--project', '--profile-root'].includes(key) || options[key] || !args.length) fail(`invalid or duplicate option: ${key}`);
+    if (key === '--scenario-mode') {
+      if (options[key]) fail('duplicate --scenario-mode');
+      options[key] = true;
+      continue;
+    }
+    if (!['--work-profile', '--workflow', '--project', '--profile-root', '--model', '--provider'].includes(key) || options[key] || !args.length) fail(`invalid or duplicate option: ${key}`);
     options[key] = args.shift();
   }
   const profileId = id(options['--work-profile'], 'work profile');
-  if (options['--workflow'] !== 'dev') fail('only --workflow dev is supported');
+  const workflowId = id(options['--workflow'], 'workflow');
   const projectId = id(options['--project'], 'project');
   const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
   const profileRoot = path.resolve(options['--profile-root'] || path.join(repository, 'ai-profile'));
@@ -69,10 +74,15 @@ function main() {
     return yaml(inside(profileDir, entry.config, `${commandId} config`));
   };
   const config = commandConfig('pi-agents');
-  if (config.schema_version !== 'pi-agents-command-config.v1' || config.capability !== 'pi-agents' || config.registered_command !== 'pi-agents' || config.platform !== 'pi-cli' || config.workflow !== 'dev' || config.role !== 'coder') fail('invalid pi-agents config identity');
-  const workflow = one(profile.workflows, item => item?.path === 'dev.workflow.md', 'Dev workflow');
+  if (!['pi-agents-command-config.v1', 'pi-agents-command-config.v2'].includes(config.schema_version) || config.capability !== 'pi-agents' || config.registered_command !== 'pi-agents' || config.platform !== 'pi-cli') fail('invalid pi-agents config identity');
+  const legacy = config.schema_version === 'pi-agents-command-config.v1';
+  if (legacy && (workflowId !== 'dev' || config.workflow !== 'dev' || config.role !== 'coder')) fail('v1 supports only dev/coder');
+  const selected = legacy ? config : mapping(config.workflows?.[workflowId], 'workflow Pi configuration');
+  const roleId = id(selected.role, 'role');
+  const workflow = one(profile.workflows, item => item?.path === `${workflowId}.workflow.md`, 'workflow');
+  one(workflow.commands, item => item === 'pi-agents', 'pi-agents workflow registration');
   const projects = (workflow.projects || []).map(entry => entry.ref ? yaml(inside(profileDir, entry.ref, 'project config')) : entry);
-  const project = one(projects, item => item?.id === projectId, 'authorized Dev project');
+  const project = one(projects, item => item?.id === projectId, 'authorized workflow project');
   const projectPath = String(project.repo_path || '').replace(/^~(?=\/)/, os.homedir());
   if (!path.isAbsolute(projectPath) || !fs.statSync(projectPath, { throwIfNoEntry: false })?.isDirectory()) fail('project repo_path must be an existing absolute directory');
   const providers = yaml(inside(profileDir, config.providers_config, 'provider catalog'));
@@ -96,10 +106,26 @@ function main() {
       headers[name] = `\${${source.environment_variable}}`;
     }
     const contextWindow = positive(binding.context_window_tokens, `${label} context window`);
-    return { providerId, modelId: model.provider_model, connection, contextWindow, definition: { baseUrl: baseUrl.replace(/\/$/, ''), api: 'openai-completions', apiKey: 'local', ...(Object.keys(headers).length ? { headers } : {}), models: [{ id: model.provider_model, contextWindow }] } };
+    const metadata = {};
+    if (binding.input !== undefined) {
+      if (!Array.isArray(binding.input) || !binding.input.length || new Set(binding.input).size !== binding.input.length || binding.input.some(value => !['text', 'image'].includes(value)) || !binding.input.includes('text')) fail('model input must contain text and optionally image');
+      metadata.input = binding.input;
+    }
+    if (binding.max_tokens !== undefined) {
+      metadata.maxTokens = positive(binding.max_tokens, `${label} max tokens`);
+      if (metadata.maxTokens > contextWindow) fail('max tokens exceeds context window');
+    }
+    return { providerId, modelId: model.provider_model, connection, contextWindow, definition: { baseUrl: baseUrl.replace(/\/$/, ''), api: 'openai-completions', apiKey: 'local', ...(Object.keys(headers).length ? { headers } : {}), models: [{ id: model.provider_model, contextWindow, ...metadata }] } };
   };
-  const mainModel = resolveModel(config.models?.main, 'main');
-  const auxiliaryModel = resolveModel(config.models?.auxiliary, 'auxiliary');
+  let mainBinding = selected.models?.main;
+  if (options['--model']) {
+    const alias = id(options['--model'], 'model choice');
+    mainBinding = selected.model_choices?.[alias];
+    if (!mainBinding) fail('model choice is not configured for selected workflow');
+  }
+  if (options['--provider'] && id(options['--provider'], 'provider selector') !== mainBinding?.provider) fail('provider conflicts with configured model binding; select a configured --model choice');
+  const mainModel = resolveModel(mainBinding, 'main');
+  const auxiliaryModel = resolveModel(selected.models?.auxiliary, 'auxiliary');
   const models = { providers: {} };
   for (const resolved of [mainModel, auxiliaryModel]) {
     const existing = models.providers[resolved.providerId];
@@ -111,17 +137,17 @@ function main() {
   const extension = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'auxiliary-compaction.ts'), 'utf8');
   const auxiliary = { provider: auxiliaryModel.providerId, model: auxiliaryModel.modelId };
   const workflowsRoot = path.resolve(profileDir, profile.ai_workflows_root || fail('ai_workflows_root is required'));
-  const rosterFile = path.join(workflowsRoot, 'dev/agents.yml');
+  const rosterFile = path.join(workflowsRoot, workflowId, 'agents.yml');
   const roster = yaml(rosterFile);
-  if (roster.workflowId !== 'dev') fail('invalid Dev roster identity');
-  const role = one(roster.agents, item => item?.agentId === 'coder', 'Dev Coder role');
+  if (roster.workflowId !== workflowId) fail('invalid workflow roster identity');
+  const role = one(roster.agents, item => item?.agentId === roleId, 'selected roster role');
   const rolePath = path.resolve(path.dirname(rosterFile), role.roleDefinition || fail('Coder roleDefinition is required'));
   if (!rolePath.startsWith(`${workflowsRoot}${path.sep}`)) fail('Coder role escapes workflow catalog');
-  const roleText = fs.readFileSync(rolePath, 'utf8');
+  const roleText = options['--scenario-mode'] ? '' : fs.readFileSync(rolePath, 'utf8');
   const selfCommands = path.join(workflowsRoot, '_common/agents/self-commands.md');
-  if (!fs.statSync(selfCommands).isFile()) fail('self commands contract is missing');
-  if (!String(config.agent_directory || '').startsWith('.local/pi-agents/')) fail('agent_directory must be under .local/pi-agents');
-  const agentDir = inside(profileDir, `${config.agent_directory}/${projectId}/coder`, 'Pi agent directory');
+  if (!options['--scenario-mode'] && !fs.statSync(selfCommands).isFile()) fail('self commands contract is missing');
+  if (!String(selected.agent_directory || '').startsWith('.local/pi-agents/')) fail('agent_directory must be under .local/pi-agents');
+  const agentDir = inside(profileDir, `${selected.agent_directory}/${projectId}/${options['--scenario-mode'] ? 'scenario' : roleId}`, 'Pi agent directory');
   for (const name of ['models.json', 'settings.json', 'AGENTS.md', 'auxiliary-compaction.ts', 'auxiliary-model.json']) {
     const target = inside(agentDir, name, 'generated file');
     const stat = fs.lstatSync(target, { throwIfNoEntry: false });
@@ -141,7 +167,9 @@ function main() {
       extensions: [...extensions, './auxiliary-compaction.ts'],
     });
   }
-  const instructions = `# Prepared Pi Coder configuration\n\nProfile: ${profileId}\nWorkflow: dev\nRole: coder\nProject: ${projectId}\nAuthorized repository: ${projectPath}\n\nThis directory prepares model settings and role instructions only. It does not establish a managed workflow identity or readiness. Follow repository AGENTS.md and the canonical role and self-command contracts before any work. Do not claim readiness from these files.\n\nCanonical role: ${rolePath}\nSelf commands: ${selfCommands}\n\n${roleText}`;
+  const instructions = options['--scenario-mode']
+    ? `# Ordinary Pi scenario session\n\nProfile: ${profileId}\nWorkflow configuration: ${workflowId}\nProject: ${projectId}\nAuthorized repository/data root: ${projectPath}\nProvider: ${mainModel.providerId}\nModel: ${mainModel.modelId}\n\nDo not load or follow any other workflow instructions. Follow the supplied scenario only. Retain applicable platform safety, authorized folder bounds and human task controls. This is not a workflow role, INIT, or managed readiness claim. Stop when the scenario's completion or stop condition is reached.\n`
+    : `# Prepared Pi role configuration\n\nProfile: ${profileId}\nWorkflow: ${workflowId}\nRole: ${roleId}\nProject: ${projectId}\nAuthorized repository: ${projectPath}\n\nThis directory prepares model settings and role instructions only. It does not establish a managed workflow identity or readiness. Follow repository AGENTS.md and the canonical role and self-command contracts before any work. Do not claim readiness from these files.\n\nCanonical role: ${rolePath}\nSelf commands: ${selfCommands}\n\n${roleText}`;
   if (operation === 'prepare') {
     fs.mkdirSync(agentDir, { recursive: true, mode: 0o700 });
     for (const [name, value] of [['models.json', JSON.stringify(models, null, 2) + '\n'], ['settings.json', JSON.stringify(settings, null, 2) + '\n'], ['AGENTS.md', instructions], ['auxiliary-compaction.ts', extension], ['auxiliary-model.json', JSON.stringify(auxiliary, null, 2) + '\n']]) {
@@ -150,6 +178,6 @@ function main() {
     }
   }
   // No secrets or endpoint URLs are printed.
-  console.log(JSON.stringify({ operation, profile: profileId, workflow: 'dev', role: 'coder', project: projectId, provider: mainModel.providerId, model: mainModel.modelId, connection: mainModel.connection, contextWindow: mainModel.contextWindow, auxiliary, agentDirectory: agentDir, workingDirectory: projectPath, status: operation === 'check' ? 'configuration-valid' : 'configuration-prepared' }, null, 2));
+  console.log(JSON.stringify({ operation, profile: profileId, workflow: workflowId, role: roleId, scenarioMode: Boolean(options['--scenario-mode']), project: projectId, provider: mainModel.providerId, model: mainModel.modelId, connection: mainModel.connection, contextWindow: mainModel.contextWindow, auxiliary, agentDirectory: agentDir, workingDirectory: projectPath, status: `${options['--scenario-mode'] ? 'scenario-' : ''}configuration-${operation === 'check' ? 'valid' : 'prepared'}` }, null, 2));
 }
 try { main(); } catch (error) { console.error(`PI_AGENTS_CONFIGURATION_ERROR: ${error.message}`); process.exitCode = 1; }

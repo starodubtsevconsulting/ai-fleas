@@ -119,7 +119,17 @@ By default, the launcher lists valid profiles from this repository's public `ai-
 
 Pass `--config-bundle-root PATH` or set `AI_CONFIG_BUNDLE_ROOT` to select one catalog or profile bundle exclusively. The human still selects the profile and platform; discovering a candidate does not establish agent identity or grant workflow authority. The selected profile must register `pi-cli` and `pi-agents` for a Pi launch. The private sibling is optional and is not a dependency of AI Fleas.
 
-The current `pi-cli` path checks and prepares the selected Dev Coder configuration, then opens an ordinary Pi CLI session in the project. It does not edit the workflow definition or activate a managed Dev roster. Other platform launch paths remain pending; see the [Pi CLI adapter](platforms/pi-cli/).
+The `pi-cli` path checks and prepares a v1 Dev Coder configuration or a v2 configuration for the selected workflow, then opens an ordinary Pi session in the authorized project. It does not edit workflow definitions or activate a managed roster. To execute a Markdown scenario, pass `--scenario PATH`; optional `--scenario-context PATH` supplies dates and other inputs, and `--print` runs noninteractively. Scenario sessions follow the supplied scenario only and exclude other workflow instructions.
+
+For example, after explicitly configuring and authorizing the example profile's Financial Insights project and model bindings:
+
+```bash
+./ai-fleas --profile example --workflow financial-insights --project example-records --platform pi-cli \
+  --scenario ai-workflows/financial-insights/acceptance/pdf-quarter-tax.scenario.md \
+  --scenario-context quarter-context.md --print
+```
+
+The [quarter PDF tax scenario](ai-workflows/financial-insights/acceptance/pdf-quarter-tax.scenario.md) defines its required inputs and stop conditions; `quarter-context.md` is a human-supplied Markdown file. Other platform launch paths remain pending; see the [Pi CLI adapter](platforms/pi-cli/) and [Pi Agents command](ai-commands/system/pi-agents/pi-agents.command.md).
 
 ### Start with ChatGPT/Codex on macOS
 
