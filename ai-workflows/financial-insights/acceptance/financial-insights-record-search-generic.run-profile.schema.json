@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Private Financial Insights record-search scenario profile",
+  "description": "A private profile binds a reusable read-only record-search prompt to an authorized reports root and independently selectable execution configurations. Do not put source facts, real names, or a local path in a public profile.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scenario_id", "task_profile", "data_root", "period", "businesses", "search_request", "output_destination", "comparison", "execution_profiles"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "scenario_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+    "task_profile": {"type": "string", "minLength": 1, "description": "Private workflow and data authorization identifier."},
+    "data_root": {"type": "string", "minLength": 1, "description": "Private, authorized local reports root. It must never be copied into public artifacts."},
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["year", "quarter"],
+      "properties": {
+        "year": {"type": "integer", "minimum": 2000, "maximum": 2100},
+        "quarter": {"enum": ["Q1", "Q2", "Q3", "Q4"]}
+      }
+    },
+    "businesses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["display_name", "folder_id"],
+        "properties": {
+          "display_name": {"type": "string", "minLength": 1},
+          "folder_id": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "shared_evidence": {
+      "type": "array",
+      "description": "Optional, explicitly scoped shared folders such as a year-level statement tree.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["folder_id", "sections"],
+        "properties": {
+          "folder_id": {"type": "string", "minLength": 1},
+          "sections": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "search_request": {"type": "string", "minLength": 1},
+    "output_destination": {"type": "string", "pattern": "^[A-Za-z0-9._/-]+$", "description": "Private repository-relative directory for raw responses and metrics."},
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_fingerprint", "timing_start", "timing_stop"],
+      "properties": {
+        "model_fingerprint": {"type": "string", "minLength": 1},
+        "timing_start": {"const": "prompt-dispatch"},
+        "timing_stop": {"const": "final-response"}
+      }
+    },
+    "execution_profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "adapter", "provider", "provider_model", "context_window_tokens", "comparison_model_fingerprint"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+          "adapter": {"type": "string", "minLength": 1, "description": "Private execution-adapter identifier; public Markdown must not depend on a specific harness."},
+          "provider": {"type": "string", "minLength": 1},
+          "provider_model": {"type": "string", "minLength": 1},
+          "context_window_tokens": {"type": "integer", "minimum": 1},
+          "comparison_model_fingerprint": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

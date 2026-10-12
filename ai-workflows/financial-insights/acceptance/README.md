@@ -6,6 +6,7 @@ Model assignment documents use `<domain>-<scope>.prompt.md`. The `Initial prompt
 - [Week](pdf-week-tax.prompt.md): confirmed payments within inclusive supplied dates.
 - [Quarter](pdf-quarter-tax.prompt.md): confirmed payments within a supplied quarter.
 - [Q4 cross-business record search](financial-insights-record-search-q4.prompt.md): locate and reconcile AI-compute expenses across three fictional businesses using invoice, credit, duplicate, decoy, and statement evidence.
+- [Parameterized private record search](financial-insights-record-search-generic.prompt.md): reusable read-only model input with a private task and execution profile.
 
 Use `.scenario.md` for normative behavior/scenario documents rather than the filename of these model assignments. This convention is scoped to these benchmark prompts; unrelated repository files are unchanged. Historical benchmark JSON retains its original `.scenario.md` task paths as execution evidence.
 
@@ -26,3 +27,6 @@ The [cross-business record-search scenario](financial-insights-record-search.sce
 adds a read-only Q4 workflow-shaped test across incoming invoices, outgoing
 expenses, and statements. It makes no claim that unsupported vendor-invoice
 normalization or general statement reconciliation is implemented.
+
+The [parameterized private record-search scenario](financial-insights-record-search-generic.scenario.md)
+defines the profile contract for private real-data runs and private evidence.
