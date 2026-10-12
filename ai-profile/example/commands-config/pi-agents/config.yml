@@ -19,3 +19,22 @@ models:
     context_window_tokens: 65536
 providers_config: local-ai-providers.yml
 agent_directory: .local/pi-agents/dev
+
+# Optional v2 replacement (keep command identity and providers_config above):
+# schema_version: pi-agents-command-config.v2
+# workflows:
+#   dev:
+#     role: coder
+#     agent_directory: .local/pi-agents/dev
+#     models:
+#       main: {provider: asus-gx10-model-provider, model: qwen-coder, connection: local, context_window_tokens: 8192, max_tokens: 4096, input: [text]}
+#       auxiliary: {provider: rtx-3080-ti-model-provider, model: qwen-hermes, connection: local, context_window_tokens: 65536}
+#   financial-insights:
+#     role: bookkeeper
+#     agent_directory: .local/pi-agents/financial-insights
+#     models:
+#       main: {provider: asus-gx10-model-provider, model: qwen-coder, connection: local, context_window_tokens: 8192, max_tokens: 4096, input: [text]}
+#       auxiliary: {provider: rtx-3080-ti-model-provider, model: qwen-hermes, connection: local, context_window_tokens: 65536}
+# Select a role actually declared in the selected workflow roster. Register the
+# workflow and pi-agents command in the profile; this fragment grants no access.
+# Provider/model aliases and endpoint limits must be explicitly verified locally.
