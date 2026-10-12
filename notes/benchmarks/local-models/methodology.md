@@ -74,3 +74,9 @@ Operational tests using existing conversations are identified as such because th
 Cross-agent delegation exercises are recorded separately from the controlled fixture. They assess routing, task completion, scope compliance, timeout behavior, and independent review across the coordinator, transport, Hermes harness, model, and serving runtime. A failure in that chain should not be attributed to the model without diagnostic evidence. Report the exact transport and task boundary, distinguish observed behavior from recommendations, and do not add variable-task wall times to the controlled benchmark table.
 
 All numbers should be treated as empirical baselines for the stated hardware, runtime, model, quantization, and configuration rather than general model-performance claims.
+
+## Controlled PDF tax evidence fixture
+
+Use the [fictional PDF tax evidence fixture](fixtures/pdf-tax-evidence/README.md) for shareable extraction and aggregation benchmarks. The [single, week and quarter prompt documents](../../../ai-workflows/financial-insights/acceptance/README.md) keep runtime roots and dates separate from the task text. Give the model only permitted PDFs or page images; keep paired JSON, expected answers and evaluator findings outside its read scope. Verify fields against rendered original pages before accepting JSON as a baseline.
+
+Record the actual model, harness, configuration, task, visual-input evidence, coverage, timing boundary, tokens and verification for every attempt, including failures. Public fictional inputs and outputs can be retained as evidence; this does not authorize publishing real financial records. Preserve historical run paths and measurements unchanged after prompt renames.

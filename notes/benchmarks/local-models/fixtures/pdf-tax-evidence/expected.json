@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "fictional": true,
+  "documents": [
+    {
+      "document": "receipt-01",
+      "file": "documents/receipt-01.pdf",
+      "page": 1,
+      "expected": {
+        "transaction_id": "TX-FICTION-001",
+        "tax_type": "GST",
+        "amount": 100,
+        "currency": "CAD",
+        "date": "2026-04-03",
+        "status": "settled"
+      }
+    },
+    {
+      "document": "receipt-02",
+      "file": "documents/receipt-02.pdf",
+      "page": 1,
+      "expected": {
+        "transaction_id": "TX-FICTION-002",
+        "tax_type": "QST",
+        "amount": 200,
+        "currency": "CAD",
+        "date": "2026-04-06",
+        "status": "settled"
+      }
+    },
+    {
+      "document": "receipt-03",
+      "file": "documents/receipt-03.pdf",
+      "page": 1,
+      "expected": {
+        "transaction_id": "TX-FICTION-001",
+        "tax_type": "GST",
+        "amount": 100,
+        "currency": "CAD",
+        "date": "2026-04-03",
+        "status": "settled"
+      }
+    },
+    {
+      "document": "receipt-04",
+      "file": "documents/receipt-04.pdf",
+      "page": 1,
+      "expected": {
+        "transaction_id": "TX-FICTION-004",
+        "tax_type": "GST",
+        "amount": 300,
+        "currency": "CAD",
+        "date": "2026-04-05",
+        "status": "scheduled"
+      }
+    },
+    {
+      "document": "receipt-05",
+      "file": "documents/receipt-05.pdf",
+      "page": 1,
+      "expected": {
+        "transaction_id": "TX-FICTION-005",
+        "tax_type": "QST",
+        "amount": 400,
+        "currency": "CAD",
+        "date": "2026-04-04",
+        "status": "liability"
+      }
+    },
+    {
+      "document": "receipt-06",
+      "file": "documents/receipt-06.pdf",
+      "page": 1,
+      "expected": {
+        "transaction_id": "TX-FICTION-006",
+        "tax_type": "QST",
+        "amount": 500,
+        "currency": "CAD",
+        "date": "2026-07-01",
+        "status": "settled"
+      }
+    },
+    {
+      "document": "receipt-07",
+      "file": "documents/receipt-07.pdf",
+      "page": 1,
+      "expected": {
+        "transaction_id": "TX-FICTION-007",
+        "tax_type": "GST",
+        "amount": 20,
+        "currency": "CAD",
+        "date": "2026-04-07",
+        "status": "refunded"
+      }
+    },
+    {
+      "document": "receipt-08",
+      "file": "documents/receipt-08.pdf",
+      "page": 1,
+      "expected": {
+        "transaction_id": "TX-FICTION-008",
+        "tax_type": "GST",
+        "amount": 25,
+        "currency": "USD",
+        "date": "2026-05-02",
+        "status": "settled"
+      }
+    },
+    {
+      "document": "receipt-09",
+      "file": "documents/receipt-09.pdf",
+      "page": 1,
+      "expected": {
+        "transaction_id": "TX-FICTION-009",
+        "tax_type": "GST",
+        "amount": 30,
+        "currency": null,
+        "date": "2026-04-04",
+        "status": "settled"
+      }
+    }
+  ],
+  "periods": {
+    "week": {
+      "start": "2026-04-01",
+      "end": "2026-04-07",
+      "included_documents": [
+        "receipt-01",
+        "receipt-02",
+        "receipt-07"
+      ],
+      "excluded_documents": {
+        "receipt-03": "duplicate_transaction",
+        "receipt-04": "not_settled",
+        "receipt-05": "liability_not_payment",
+        "receipt-06": "outside_period",
+        "receipt-09": "unknown_currency",
+        "receipt-08": "outside_period"
+      },
+      "currency_totals": {
+        "CAD": {
+          "gross": 300,
+          "refunds": 20,
+          "net": 280
+        },
+        "USD": {
+          "gross": 0,
+          "refunds": 0,
+          "net": 0
+        }
+      }
+    },
+    "quarter": {
+      "start": "2026-04-01",
+      "end": "2026-06-30",
+      "included_documents": [
+        "receipt-01",
+        "receipt-02",
+        "receipt-07",
+        "receipt-08"
+      ],
+      "excluded_documents": {
+        "receipt-03": "duplicate_transaction",
+        "receipt-04": "not_settled",
+        "receipt-05": "liability_not_payment",
+        "receipt-06": "outside_period",
+        "receipt-09": "unknown_currency"
+      },
+      "currency_totals": {
+        "CAD": {
+          "gross": 300,
+          "refunds": 20,
+          "net": 280
+        },
+        "USD": {
+          "gross": 25,
+          "refunds": 0,
+          "net": 25
+        }
+      }
+    }
+  }
+}

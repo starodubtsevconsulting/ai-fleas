@@ -135,9 +135,11 @@ still failed. This proves the observed payload and report completion, not the
 server's internal thinking setting. Missing observations remain `null`; requested
 control alone is not a successful test.
 
-## Scenario references
+## Prompt references
 
-* [Single PDF](../../../../ai-workflows/financial-insights/acceptance/pdf-single-tax.scenario.md)
-* [Week](../../../../ai-workflows/financial-insights/acceptance/pdf-week-tax.scenario.md)
-* [Quarter](../../../../ai-workflows/financial-insights/acceptance/pdf-quarter-tax.scenario.md)
+* [Single PDF](../../../../ai-workflows/financial-insights/acceptance/pdf-single-tax.prompt.md)
+* [Week](../../../../ai-workflows/financial-insights/acceptance/pdf-week-tax.prompt.md)
+* [Quarter](../../../../ai-workflows/financial-insights/acceptance/pdf-quarter-tax.prompt.md)
 * [Pi launch contract](../../../../ai-commands/system/pi-agents/pi-agents.command.md)
+
+The prompt documents were renamed from `pdf-*-tax.scenario.md` to `pdf-*-tax.prompt.md` to distinguish model assignments from normative scenarios. Historical metrics JSON retains the exact paths recorded at execution time; do not rewrite it to imply a different run input. New public runs may use the [fictional fixture](../../../../notes/benchmarks/local-models/fixtures/pdf-tax-evidence/README.md), with evaluator answers withheld from the model.

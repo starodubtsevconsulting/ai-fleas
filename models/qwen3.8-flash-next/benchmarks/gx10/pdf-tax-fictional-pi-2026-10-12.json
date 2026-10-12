@@ -1,0 +1,1026 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-12",
+  "fixture": "fictional-pdf-tax-evidence",
+  "data_classification": "fully fictional public fixture",
+  "harness": {
+    "name": "Pi",
+    "version": "1.1.0"
+  },
+  "model": "qwen3.8-flash-next-iq4-nl",
+  "configuration": {
+    "context_window": 8192,
+    "output_tokens": 2048,
+    "thinking": "off",
+    "server_thinking_requested": false,
+    "renderer": "pdftoppm",
+    "renderer_version": "pdftoppm version 26.05.0",
+    "render_dpi": 144,
+    "timeout_seconds": 90,
+    "fresh_session_per_run": true,
+    "tools": false,
+    "workflow_context": false,
+    "ground_truth_in_model_context": false,
+    "projector_metadata": null,
+    "configuration_boundary": "context/output limits copied into isolated run model settings; outbound output limit not observed (null)"
+  },
+  "timing": {
+    "preflight_seconds": 0.188,
+    "rendering_seconds": 13.382,
+    "inference_seconds": 86.45,
+    "verification_seconds": 0.001,
+    "inference_and_verification_seconds": 86.475,
+    "total_wall_seconds": 100.045,
+    "boundary": "preflight, isolated configuration, all rendering, inference, and independent verification; excludes fixture generation and manual visual inspection"
+  },
+  "events": [
+    {
+      "id": "receipt-01",
+      "exit_code": 0,
+      "wall_seconds": 8.217,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2209,
+        "output": 75,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "totalTokens": 2284
+      },
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": null,
+          "image_count": 1
+        }
+      ],
+      "output": "{\n  \"transaction_id\": \"TX-FICTION-001\",\n  \"tax_type\": \"GST\",\n  \"amount\": 100.0,\n  \"currency\": \"CAD\",\n  \"date\": \"2026-04-03\",\n  \"status\": \"settled\"\n}",
+      "actual": {
+        "transaction_id": "TX-FICTION-001",
+        "tax_type": "GST",
+        "amount": 100.0,
+        "currency": "CAD",
+        "date": "2026-04-03",
+        "status": "settled"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "transaction_id",
+            "outcome": "match",
+            "expected": "TX-FICTION-001",
+            "actual": "TX-FICTION-001"
+          },
+          {
+            "field": "tax_type",
+            "outcome": "match",
+            "expected": "GST",
+            "actual": "GST"
+          },
+          {
+            "field": "amount",
+            "outcome": "match",
+            "expected": 100,
+            "actual": 100.0
+          },
+          {
+            "field": "currency",
+            "outcome": "match",
+            "expected": "CAD",
+            "actual": "CAD"
+          },
+          {
+            "field": "date",
+            "outcome": "match",
+            "expected": "2026-04-03",
+            "actual": "2026-04-03"
+          },
+          {
+            "field": "status",
+            "outcome": "match",
+            "expected": "settled",
+            "actual": "settled"
+          }
+        ],
+        "fields_passed": true
+      },
+      "phase": "page_extraction",
+      "assistant_completions_observed": 1,
+      "model_api_calls": null,
+      "provider_request_hooks_observed": 1,
+      "transport_verification": {
+        "passed": true,
+        "exit_success": true,
+        "normal_stop": true,
+        "structured_answer": true,
+        "thinking_control_observed": true,
+        "expected_image_count_observed": true
+      }
+    },
+    {
+      "id": "receipt-02",
+      "exit_code": 0,
+      "wall_seconds": 7.951,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2145,
+        "output": 77,
+        "cacheRead": 64,
+        "cacheWrite": 0,
+        "totalTokens": 2286
+      },
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": null,
+          "image_count": 1
+        }
+      ],
+      "output": "{\n  \"transaction_id\": \"TX-FICTION-002\",\n  \"tax_type\": \"QST\",\n  \"amount\": 200.00,\n  \"currency\": \"CAD\",\n  \"date\": \"2026-04-06\",\n  \"status\": \"settled\"\n}",
+      "actual": {
+        "transaction_id": "TX-FICTION-002",
+        "tax_type": "QST",
+        "amount": 200.0,
+        "currency": "CAD",
+        "date": "2026-04-06",
+        "status": "settled"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "transaction_id",
+            "outcome": "match",
+            "expected": "TX-FICTION-002",
+            "actual": "TX-FICTION-002"
+          },
+          {
+            "field": "tax_type",
+            "outcome": "match",
+            "expected": "QST",
+            "actual": "QST"
+          },
+          {
+            "field": "amount",
+            "outcome": "match",
+            "expected": 200,
+            "actual": 200.0
+          },
+          {
+            "field": "currency",
+            "outcome": "match",
+            "expected": "CAD",
+            "actual": "CAD"
+          },
+          {
+            "field": "date",
+            "outcome": "match",
+            "expected": "2026-04-06",
+            "actual": "2026-04-06"
+          },
+          {
+            "field": "status",
+            "outcome": "match",
+            "expected": "settled",
+            "actual": "settled"
+          }
+        ],
+        "fields_passed": true
+      },
+      "phase": "page_extraction",
+      "assistant_completions_observed": 1,
+      "model_api_calls": null,
+      "provider_request_hooks_observed": 1,
+      "transport_verification": {
+        "passed": true,
+        "exit_success": true,
+        "normal_stop": true,
+        "structured_answer": true,
+        "thinking_control_observed": true,
+        "expected_image_count_observed": true
+      }
+    },
+    {
+      "id": "receipt-03",
+      "exit_code": 0,
+      "wall_seconds": 7.666,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2145,
+        "output": 70,
+        "cacheRead": 64,
+        "cacheWrite": 0,
+        "totalTokens": 2279
+      },
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": null,
+          "image_count": 1
+        }
+      ],
+      "output": "{\n\"transaction_id\": \"TX-FICTION-001\",\n\"tax_type\": \"GST\",\n\"amount\": 100.00,\n\"currency\": \"CAD\",\n\"date\": \"2026-04-03\",\n\"status\": \"settled\"\n}",
+      "actual": {
+        "transaction_id": "TX-FICTION-001",
+        "tax_type": "GST",
+        "amount": 100.0,
+        "currency": "CAD",
+        "date": "2026-04-03",
+        "status": "settled"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "transaction_id",
+            "outcome": "match",
+            "expected": "TX-FICTION-001",
+            "actual": "TX-FICTION-001"
+          },
+          {
+            "field": "tax_type",
+            "outcome": "match",
+            "expected": "GST",
+            "actual": "GST"
+          },
+          {
+            "field": "amount",
+            "outcome": "match",
+            "expected": 100,
+            "actual": 100.0
+          },
+          {
+            "field": "currency",
+            "outcome": "match",
+            "expected": "CAD",
+            "actual": "CAD"
+          },
+          {
+            "field": "date",
+            "outcome": "match",
+            "expected": "2026-04-03",
+            "actual": "2026-04-03"
+          },
+          {
+            "field": "status",
+            "outcome": "match",
+            "expected": "settled",
+            "actual": "settled"
+          }
+        ],
+        "fields_passed": true
+      },
+      "phase": "page_extraction",
+      "assistant_completions_observed": 1,
+      "model_api_calls": null,
+      "provider_request_hooks_observed": 1,
+      "transport_verification": {
+        "passed": true,
+        "exit_success": true,
+        "normal_stop": true,
+        "structured_answer": true,
+        "thinking_control_observed": true,
+        "expected_image_count_observed": true
+      }
+    },
+    {
+      "id": "receipt-04",
+      "exit_code": 0,
+      "wall_seconds": 7.83,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2145,
+        "output": 75,
+        "cacheRead": 64,
+        "cacheWrite": 0,
+        "totalTokens": 2284
+      },
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": null,
+          "image_count": 1
+        }
+      ],
+      "output": "{\n  \"transaction_id\": \"TX-FICTION-004\",\n  \"tax_type\": \"GST\",\n  \"amount\": 300.00,\n  \"currency\": \"CAD\",\n  \"date\": \"2026-04-05\",\n  \"status\": \"scheduled\"\n}",
+      "actual": {
+        "transaction_id": "TX-FICTION-004",
+        "tax_type": "GST",
+        "amount": 300.0,
+        "currency": "CAD",
+        "date": "2026-04-05",
+        "status": "scheduled"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "transaction_id",
+            "outcome": "match",
+            "expected": "TX-FICTION-004",
+            "actual": "TX-FICTION-004"
+          },
+          {
+            "field": "tax_type",
+            "outcome": "match",
+            "expected": "GST",
+            "actual": "GST"
+          },
+          {
+            "field": "amount",
+            "outcome": "match",
+            "expected": 300,
+            "actual": 300.0
+          },
+          {
+            "field": "currency",
+            "outcome": "match",
+            "expected": "CAD",
+            "actual": "CAD"
+          },
+          {
+            "field": "date",
+            "outcome": "match",
+            "expected": "2026-04-05",
+            "actual": "2026-04-05"
+          },
+          {
+            "field": "status",
+            "outcome": "match",
+            "expected": "scheduled",
+            "actual": "scheduled"
+          }
+        ],
+        "fields_passed": true
+      },
+      "phase": "page_extraction",
+      "assistant_completions_observed": 1,
+      "model_api_calls": null,
+      "provider_request_hooks_observed": 1,
+      "transport_verification": {
+        "passed": true,
+        "exit_success": true,
+        "normal_stop": true,
+        "structured_answer": true,
+        "thinking_control_observed": true,
+        "expected_image_count_observed": true
+      }
+    },
+    {
+      "id": "receipt-05",
+      "exit_code": 0,
+      "wall_seconds": 8.036,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2145,
+        "output": 77,
+        "cacheRead": 64,
+        "cacheWrite": 0,
+        "totalTokens": 2286
+      },
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": null,
+          "image_count": 1
+        }
+      ],
+      "output": "{\n  \"transaction_id\": \"TX-FICTION-005\",\n  \"tax_type\": \"QST\",\n  \"amount\": 400.00,\n  \"currency\": \"CAD\",\n  \"date\": \"2026-04-04\",\n  \"status\": \"liability\"\n}",
+      "actual": {
+        "transaction_id": "TX-FICTION-005",
+        "tax_type": "QST",
+        "amount": 400.0,
+        "currency": "CAD",
+        "date": "2026-04-04",
+        "status": "liability"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "transaction_id",
+            "outcome": "match",
+            "expected": "TX-FICTION-005",
+            "actual": "TX-FICTION-005"
+          },
+          {
+            "field": "tax_type",
+            "outcome": "match",
+            "expected": "QST",
+            "actual": "QST"
+          },
+          {
+            "field": "amount",
+            "outcome": "match",
+            "expected": 400,
+            "actual": 400.0
+          },
+          {
+            "field": "currency",
+            "outcome": "match",
+            "expected": "CAD",
+            "actual": "CAD"
+          },
+          {
+            "field": "date",
+            "outcome": "match",
+            "expected": "2026-04-04",
+            "actual": "2026-04-04"
+          },
+          {
+            "field": "status",
+            "outcome": "match",
+            "expected": "liability",
+            "actual": "liability"
+          }
+        ],
+        "fields_passed": true
+      },
+      "phase": "page_extraction",
+      "assistant_completions_observed": 1,
+      "model_api_calls": null,
+      "provider_request_hooks_observed": 1,
+      "transport_verification": {
+        "passed": true,
+        "exit_success": true,
+        "normal_stop": true,
+        "structured_answer": true,
+        "thinking_control_observed": true,
+        "expected_image_count_observed": true
+      }
+    },
+    {
+      "id": "receipt-06",
+      "exit_code": 0,
+      "wall_seconds": 7.851,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2145,
+        "output": 77,
+        "cacheRead": 64,
+        "cacheWrite": 0,
+        "totalTokens": 2286
+      },
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": null,
+          "image_count": 1
+        }
+      ],
+      "output": "{\n  \"transaction_id\": \"TX-FICTION-006\",\n  \"tax_type\": \"QST\",\n  \"amount\": 500.00,\n  \"currency\": \"CAD\",\n  \"date\": \"2026-07-01\",\n  \"status\": \"settled\"\n}",
+      "actual": {
+        "transaction_id": "TX-FICTION-006",
+        "tax_type": "QST",
+        "amount": 500.0,
+        "currency": "CAD",
+        "date": "2026-07-01",
+        "status": "settled"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "transaction_id",
+            "outcome": "match",
+            "expected": "TX-FICTION-006",
+            "actual": "TX-FICTION-006"
+          },
+          {
+            "field": "tax_type",
+            "outcome": "match",
+            "expected": "QST",
+            "actual": "QST"
+          },
+          {
+            "field": "amount",
+            "outcome": "match",
+            "expected": 500,
+            "actual": 500.0
+          },
+          {
+            "field": "currency",
+            "outcome": "match",
+            "expected": "CAD",
+            "actual": "CAD"
+          },
+          {
+            "field": "date",
+            "outcome": "match",
+            "expected": "2026-07-01",
+            "actual": "2026-07-01"
+          },
+          {
+            "field": "status",
+            "outcome": "match",
+            "expected": "settled",
+            "actual": "settled"
+          }
+        ],
+        "fields_passed": true
+      },
+      "phase": "page_extraction",
+      "assistant_completions_observed": 1,
+      "model_api_calls": null,
+      "provider_request_hooks_observed": 1,
+      "transport_verification": {
+        "passed": true,
+        "exit_success": true,
+        "normal_stop": true,
+        "structured_answer": true,
+        "thinking_control_observed": true,
+        "expected_image_count_observed": true
+      }
+    },
+    {
+      "id": "receipt-07",
+      "exit_code": 0,
+      "wall_seconds": 7.256,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2145,
+        "output": 60,
+        "cacheRead": 64,
+        "cacheWrite": 0,
+        "totalTokens": 2269
+      },
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": null,
+          "image_count": 1
+        }
+      ],
+      "output": "{\"transaction_id\": \"TX-FICTION-007\", \"tax_type\": \"GST\", \"amount\": 20.00, \"currency\": \"CAD\", \"date\": \"2026-04-07\", \"status\": \"refunded\"}",
+      "actual": {
+        "transaction_id": "TX-FICTION-007",
+        "tax_type": "GST",
+        "amount": 20.0,
+        "currency": "CAD",
+        "date": "2026-04-07",
+        "status": "refunded"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "transaction_id",
+            "outcome": "match",
+            "expected": "TX-FICTION-007",
+            "actual": "TX-FICTION-007"
+          },
+          {
+            "field": "tax_type",
+            "outcome": "match",
+            "expected": "GST",
+            "actual": "GST"
+          },
+          {
+            "field": "amount",
+            "outcome": "match",
+            "expected": 20,
+            "actual": 20.0
+          },
+          {
+            "field": "currency",
+            "outcome": "match",
+            "expected": "CAD",
+            "actual": "CAD"
+          },
+          {
+            "field": "date",
+            "outcome": "match",
+            "expected": "2026-04-07",
+            "actual": "2026-04-07"
+          },
+          {
+            "field": "status",
+            "outcome": "match",
+            "expected": "refunded",
+            "actual": "refunded"
+          }
+        ],
+        "fields_passed": true
+      },
+      "phase": "page_extraction",
+      "assistant_completions_observed": 1,
+      "model_api_calls": null,
+      "provider_request_hooks_observed": 1,
+      "transport_verification": {
+        "passed": true,
+        "exit_success": true,
+        "normal_stop": true,
+        "structured_answer": true,
+        "thinking_control_observed": true,
+        "expected_image_count_observed": true
+      }
+    },
+    {
+      "id": "receipt-08",
+      "exit_code": 0,
+      "wall_seconds": 7.775,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2145,
+        "output": 75,
+        "cacheRead": 64,
+        "cacheWrite": 0,
+        "totalTokens": 2284
+      },
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": null,
+          "image_count": 1
+        }
+      ],
+      "output": "{\n  \"transaction_id\": \"TX-FICTION-008\",\n  \"tax_type\": \"GST\",\n  \"amount\": 25.00,\n  \"currency\": \"USD\",\n  \"date\": \"2026-05-02\",\n  \"status\": \"settled\"\n}",
+      "actual": {
+        "transaction_id": "TX-FICTION-008",
+        "tax_type": "GST",
+        "amount": 25.0,
+        "currency": "USD",
+        "date": "2026-05-02",
+        "status": "settled"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "transaction_id",
+            "outcome": "match",
+            "expected": "TX-FICTION-008",
+            "actual": "TX-FICTION-008"
+          },
+          {
+            "field": "tax_type",
+            "outcome": "match",
+            "expected": "GST",
+            "actual": "GST"
+          },
+          {
+            "field": "amount",
+            "outcome": "match",
+            "expected": 25,
+            "actual": 25.0
+          },
+          {
+            "field": "currency",
+            "outcome": "match",
+            "expected": "USD",
+            "actual": "USD"
+          },
+          {
+            "field": "date",
+            "outcome": "match",
+            "expected": "2026-05-02",
+            "actual": "2026-05-02"
+          },
+          {
+            "field": "status",
+            "outcome": "match",
+            "expected": "settled",
+            "actual": "settled"
+          }
+        ],
+        "fields_passed": true
+      },
+      "phase": "page_extraction",
+      "assistant_completions_observed": 1,
+      "model_api_calls": null,
+      "provider_request_hooks_observed": 1,
+      "transport_verification": {
+        "passed": true,
+        "exit_success": true,
+        "normal_stop": true,
+        "structured_answer": true,
+        "thinking_control_observed": true,
+        "expected_image_count_observed": true
+      }
+    },
+    {
+      "id": "receipt-09",
+      "exit_code": 0,
+      "wall_seconds": 7.31,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2145,
+        "output": 59,
+        "cacheRead": 64,
+        "cacheWrite": 0,
+        "totalTokens": 2268
+      },
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": null,
+          "image_count": 1
+        }
+      ],
+      "output": "{\"transaction_id\": \"TX-FICTION-009\", \"tax_type\": \"GST\", \"amount\": 30.00, \"currency\": null, \"date\": \"2026-04-04\", \"status\": \"settled\"}",
+      "actual": {
+        "transaction_id": "TX-FICTION-009",
+        "tax_type": "GST",
+        "amount": 30.0,
+        "currency": null,
+        "date": "2026-04-04",
+        "status": "settled"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "transaction_id",
+            "outcome": "match",
+            "expected": "TX-FICTION-009",
+            "actual": "TX-FICTION-009"
+          },
+          {
+            "field": "tax_type",
+            "outcome": "match",
+            "expected": "GST",
+            "actual": "GST"
+          },
+          {
+            "field": "amount",
+            "outcome": "match",
+            "expected": 30,
+            "actual": 30.0
+          },
+          {
+            "field": "currency",
+            "outcome": "match",
+            "expected": null,
+            "actual": null
+          },
+          {
+            "field": "date",
+            "outcome": "match",
+            "expected": "2026-04-04",
+            "actual": "2026-04-04"
+          },
+          {
+            "field": "status",
+            "outcome": "match",
+            "expected": "settled",
+            "actual": "settled"
+          }
+        ],
+        "fields_passed": true
+      },
+      "phase": "page_extraction",
+      "assistant_completions_observed": 1,
+      "model_api_calls": null,
+      "provider_request_hooks_observed": 1,
+      "transport_verification": {
+        "passed": true,
+        "exit_success": true,
+        "normal_stop": true,
+        "structured_answer": true,
+        "thinking_control_observed": true,
+        "expected_image_count_observed": true
+      }
+    },
+    {
+      "id": "totals-week",
+      "exit_code": 0,
+      "wall_seconds": 8.223,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 846,
+        "output": 179,
+        "cacheRead": 64,
+        "cacheWrite": 0,
+        "totalTokens": 1089
+      },
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": null,
+          "image_count": 0
+        }
+      ],
+      "output": "{\"included_documents\":[\"receipt-01\",\"receipt-02\",\"receipt-07\"],\"excluded_documents\":{\"receipt-03\":\"Duplicate transaction_id TX-FICTION-001\",\"receipt-04\":\"Scheduled payment\",\"receipt-05\":\"Liability\",\"receipt-06\":\"Date outside period 2026-04-01 to 2026-04-07\",\"receipt-08\":\"Date outside period 2026-04-01 to 2026-04-07\",\"receipt-09\":\"Missing currency\"},\"currency_totals\":{\"CAD\":{\"gross\":300.0,\"refunds\":20.0,\"net\":280.0},\"USD\":{\"gross\":0.0,\"refunds\":0.0,\"net\":0.0}}}",
+      "actual": {
+        "included_documents": [
+          "receipt-01",
+          "receipt-02",
+          "receipt-07"
+        ],
+        "excluded_documents": {
+          "receipt-03": "Duplicate transaction_id TX-FICTION-001",
+          "receipt-04": "Scheduled payment",
+          "receipt-05": "Liability",
+          "receipt-06": "Date outside period 2026-04-01 to 2026-04-07",
+          "receipt-08": "Date outside period 2026-04-01 to 2026-04-07",
+          "receipt-09": "Missing currency"
+        },
+        "currency_totals": {
+          "CAD": {
+            "gross": 300.0,
+            "refunds": 20.0,
+            "net": 280.0
+          },
+          "USD": {
+            "gross": 0.0,
+            "refunds": 0.0,
+            "net": 0.0
+          }
+        }
+      },
+      "verification": {
+        "passed": true,
+        "included_documents_match": true,
+        "excluded_documents_match": true,
+        "currency_totals_match": true,
+        "totals_passed": true
+      },
+      "phase": "period_aggregation",
+      "assistant_completions_observed": 1,
+      "model_api_calls": null,
+      "provider_request_hooks_observed": 1,
+      "transport_verification": {
+        "passed": true,
+        "exit_success": true,
+        "normal_stop": true,
+        "structured_answer": true,
+        "thinking_control_observed": true,
+        "expected_image_count_observed": true
+      }
+    },
+    {
+      "id": "totals-quarter",
+      "exit_code": 0,
+      "wall_seconds": 8.335,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 846,
+        "output": 186,
+        "cacheRead": 64,
+        "cacheWrite": 0,
+        "totalTokens": 1096
+      },
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": null,
+          "image_count": 0
+        }
+      ],
+      "output": "{\"included_documents\":[\"receipt-01\",\"receipt-02\",\"receipt-07\",\"receipt-08\"],\"excluded_documents\":{\"receipt-03\":\"Duplicate transaction_id TX-FICTION-001; retained first document receipt-01\",\"receipt-04\":\"Status is scheduled, not settled or refunded\",\"receipt-05\":\"Status is liability, not settled or refunded\",\"receipt-06\":\"Date 2026-07-01 is outside the period 2026-04-01 through 2026-06-30\",\"receipt-09\":\"Missing currency\"},\"currency_totals\":{\"CAD\":{\"gross\":100.0,\"refunds\":20.0,\"net\":80.0},\"USD\":{\"gross\":25.0,\"refunds\":0.0,\"net\":25.0}}}",
+      "actual": {
+        "included_documents": [
+          "receipt-01",
+          "receipt-02",
+          "receipt-07",
+          "receipt-08"
+        ],
+        "excluded_documents": {
+          "receipt-03": "Duplicate transaction_id TX-FICTION-001; retained first document receipt-01",
+          "receipt-04": "Status is scheduled, not settled or refunded",
+          "receipt-05": "Status is liability, not settled or refunded",
+          "receipt-06": "Date 2026-07-01 is outside the period 2026-04-01 through 2026-06-30",
+          "receipt-09": "Missing currency"
+        },
+        "currency_totals": {
+          "CAD": {
+            "gross": 100.0,
+            "refunds": 20.0,
+            "net": 80.0
+          },
+          "USD": {
+            "gross": 25.0,
+            "refunds": 0.0,
+            "net": 25.0
+          }
+        }
+      },
+      "verification": {
+        "passed": false,
+        "included_documents_match": true,
+        "excluded_documents_match": true,
+        "currency_totals_match": false,
+        "totals_passed": false
+      },
+      "phase": "period_aggregation",
+      "assistant_completions_observed": 1,
+      "model_api_calls": null,
+      "provider_request_hooks_observed": 1,
+      "transport_verification": {
+        "passed": true,
+        "exit_success": true,
+        "normal_stop": true,
+        "structured_answer": true,
+        "thinking_control_observed": true,
+        "expected_image_count_observed": true
+      }
+    }
+  ],
+  "periods": {
+    "week": {
+      "start": "2026-04-01",
+      "end": "2026-04-07",
+      "deterministic_from_extractions": {
+        "included_documents": [
+          "receipt-01",
+          "receipt-02",
+          "receipt-07"
+        ],
+        "excluded_documents": {
+          "receipt-03": "duplicate",
+          "receipt-04": "not_settled",
+          "receipt-05": "not_settled",
+          "receipt-06": "outside_period",
+          "receipt-08": "outside_period",
+          "receipt-09": "unknown_currency"
+        },
+        "currency_totals": {
+          "CAD": {
+            "gross": 300.0,
+            "refunds": 20.0,
+            "net": 280.0
+          },
+          "USD": {
+            "gross": 0.0,
+            "refunds": 0.0,
+            "net": 0.0
+          }
+        }
+      },
+      "deterministic_verification": {
+        "passed": true,
+        "included_documents_match": true,
+        "excluded_documents_match": true,
+        "currency_totals_match": true
+      },
+      "model_verification": {
+        "passed": true,
+        "included_documents_match": true,
+        "excluded_documents_match": true,
+        "currency_totals_match": true
+      }
+    },
+    "quarter": {
+      "start": "2026-04-01",
+      "end": "2026-06-30",
+      "deterministic_from_extractions": {
+        "included_documents": [
+          "receipt-01",
+          "receipt-02",
+          "receipt-07",
+          "receipt-08"
+        ],
+        "excluded_documents": {
+          "receipt-03": "duplicate",
+          "receipt-04": "not_settled",
+          "receipt-05": "not_settled",
+          "receipt-06": "outside_period",
+          "receipt-09": "unknown_currency"
+        },
+        "currency_totals": {
+          "CAD": {
+            "gross": 300.0,
+            "refunds": 20.0,
+            "net": 280.0
+          },
+          "USD": {
+            "gross": 25.0,
+            "refunds": 0.0,
+            "net": 25.0
+          }
+        }
+      },
+      "deterministic_verification": {
+        "passed": true,
+        "included_documents_match": true,
+        "excluded_documents_match": true,
+        "currency_totals_match": true
+      },
+      "model_verification": {
+        "passed": false,
+        "included_documents_match": true,
+        "excluded_documents_match": true,
+        "currency_totals_match": false
+      }
+    }
+  },
+  "summary": {
+    "page_runs": 9,
+    "pages_passed": 9,
+    "aggregate_runs": 2,
+    "aggregate_runs_passed": 1
+  },
+  "runner_source_sha256": "6d6652b7973ca2d7ecdf79e3e27bf01976f24d492fc6a0267da9f9126a47a956",
+  "verification_revision": "Transport acceptance gates and completion counts computed after inference from retained event/control logs; no model rerun."
+}

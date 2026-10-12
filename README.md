@@ -125,11 +125,11 @@ For example, after explicitly configuring and authorizing the example profile's 
 
 ```bash
 ./ai-fleas --profile example --workflow financial-insights --project example-records --platform pi-cli \
-  --scenario ai-workflows/financial-insights/acceptance/pdf-quarter-tax.scenario.md \
+  --scenario ai-workflows/financial-insights/acceptance/pdf-quarter-tax.prompt.md \
   --scenario-context quarter-context.md --print
 ```
 
-The [quarter PDF tax scenario](ai-workflows/financial-insights/acceptance/pdf-quarter-tax.scenario.md) defines its required inputs and stop conditions; `quarter-context.md` is a human-supplied Markdown file. Other platform launch paths remain pending; see the [Pi CLI adapter](platforms/pi-cli/) and [Pi Agents command](ai-commands/system/pi-agents/pi-agents.command.md).
+The [quarter PDF tax scenario](ai-workflows/financial-insights/acceptance/pdf-quarter-tax.prompt.md) defines its required inputs and stop conditions; `quarter-context.md` is a human-supplied Markdown file. Other platform launch paths remain pending; see the [Pi CLI adapter](platforms/pi-cli/) and [Pi Agents command](ai-commands/system/pi-agents/pi-agents.command.md).
 
 ### Start with ChatGPT/Codex on macOS
 

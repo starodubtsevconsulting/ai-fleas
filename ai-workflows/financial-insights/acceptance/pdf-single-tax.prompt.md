@@ -1,11 +1,11 @@
 # Single-PDF tax evidence
 
 Public test. Platform safety/read scope apply. Do not load or follow any other workflow instructions. Follow this
-scenario only. It authorizes no role or financial action.
+prompt only. It authorizes no role or financial action.
 
 Native visual input is permitted only after the serving and Pi prerequisites in
 [`../../../ai-commands/install/ai-local-provider/multimodal-serving.md`](../../../ai-commands/install/ai-local-provider/multimodal-serving.md)
-have passed. This reference is benchmark documentation, not scenario prompt content.
+have passed. This reference is benchmark documentation, not model prompt content.
 
 ## Runtime inputs
 
@@ -24,7 +24,7 @@ Context supplies CANONICAL_DATA_ROOT, PDF_PATH, and optional period. Before read
 inside the root, and that it is a PDF. If not, ask once for all corrections and stop. Never list/search the folder or
 inspect another file.
 
-Obey platform safety/read scope. Do not load or follow any other workflow instructions. Follow this scenario only. Do
+Obey platform safety/read scope. Do not load or follow any other workflow instructions. Follow this prompt only. Do
 not run intake, normalization, sidecars, persistence, reconciliation, INIT, roster, or agents.
 
 Read only the PDF, never JSON, extracted text, notes, sidecars, caches, summaries, answer keys, or derived
@@ -79,3 +79,9 @@ page/run under the
 [benchmark reporting methodology](../../../models/qwen3.8-flash-next/benchmarks/gx10/pdf-evidence-pi-2026-10-12.md).
 Do not publish financial values, source identifiers or source-content hashes. Limited candidate/page coverage does
 not establish week or quarter completeness.
+
+## Fictional public fixture
+
+For reproducible public runs, see the [fictional PDF tax fixture](../../../notes/benchmarks/local-models/fixtures/pdf-tax-evidence/README.md). Supply its model-input PDF directory through the runtime inputs above; do not expose evaluator JSON or expected answers to the model. The same prompt can use an authorized private source root. Public fixture inputs and verified fictional outputs may be published; private source evidence remains private.
+
+A single-page run measures only that page. Week and quarter runs must report their actual discovery and coverage; completing selected pages does not establish period completeness. An unavailable visual-input path or unknown source field remains explicit, not a successful vision result.
