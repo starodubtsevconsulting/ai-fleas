@@ -182,13 +182,22 @@ def run(prepared,prompt,image,runroot,identifier,timeout=90):
             'model_api_calls':sum(x.get('event')=='pre' for x in controls) if controls else None}
 
 
+def public_version_line(stdout):
+    for raw in stdout.splitlines():
+        line=re.sub(r'\x1b\[[0-9;]*m','',raw).strip()
+        if re.match(r'^Hermes(?: Agent)?\s+v?\d+\.',line) and '/Users/' not in line and 'directory:' not in line.casefold():
+            return line
+    raise ValueError('sanitized Hermes version line unavailable')
+
 def version(prepared,runroot):
     control=Path(runroot)/'hermes-version.controls.jsonl'
     result=subprocess.run([str(prepared['python']),'-m','hermes_cli.main','--version'],
                           cwd=runroot,env=isolated_environment(prepared['home'],prepared['source'],control),
                           text=True,capture_output=True,timeout=20)
+    (Path(runroot)/'hermes-version.stdout.log').write_text(result.stdout)
+    (Path(runroot)/'hermes-version.stderr.log').write_text(result.stderr)
     if result.returncode:raise ValueError('Hermes version preflight failed')
-    return result.stdout.strip()
+    return public_version_line(result.stdout)
 
 
 if __name__=='__main__':

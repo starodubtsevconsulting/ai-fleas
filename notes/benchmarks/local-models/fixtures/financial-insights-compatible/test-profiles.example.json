@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "profiles": {
+    "pi-fi-vision": {
+      "variant": "pi-matched-64k",
+      "agent_dir": "private-transport-directory",
+      "provider": "private-provider-alias",
+      "model": "model-alias",
+      "server_props_url": "https://model-host.example:8002/props"
+    },
+    "hermes-fi-vision": {
+      "variant": "hermes-matched-64k",
+      "agent_dir": "private-transport-directory",
+      "provider": "private-provider-alias",
+      "model": "model-alias",
+      "harness_source": "installed-hermes-source",
+      "server_props_url": "https://model-host.example:8002/props"
+    }
+  }
+}

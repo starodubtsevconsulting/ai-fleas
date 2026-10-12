@@ -170,3 +170,22 @@ available API latency/tokens. Wall time minus observed API duration is combined
 non-inference overhead, not a pure startup measurement. One seven-case trial
 per harness is evidence for that configuration, not a statistically established
 harness ranking. Keep older results immutable and identify the new trial.
+
+## Reusable test profiles
+
+Named benchmark test profiles select an existing variant, private transport,
+model and installed harness source; they are not operational workflow profiles.
+Every named-profile run first checks an explicitly configured live `/props`
+endpoint for the same model alias, requested actual context and image modality.
+A saved receipt cannot replace this fresh check. Probe URLs must use the selected
+provider's hostname and scheme, exactly `/props`, no userinfo/query/fragment;
+redirects are rejected so private headers cannot cross hosts.
+
+Profile paths resolve relative to the private configuration file. Reject unknown
+fields, invalid types and conflicting CLI settings. Settings such as context,
+output, sampling and thinking stay in the existing variant manifest rather than
+being duplicated in profiles. `--check-profile` performs a read-only live check
+without inference or creating directories. Actual runs use a fresh isolated home
+and output boundary. Switching harnesses changes no server service or operational
+profile; the currently selected 65,536 server context remains active until the
+human separately requests another setting.

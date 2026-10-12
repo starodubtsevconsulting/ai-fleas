@@ -102,10 +102,10 @@ The fixture test adapter may call the actual exported payroll preparation
 engine without pretending to execute an authorized operational profile route.
 Its schema-2 snapshots remain review-pending proposals, not normalized sidecars.
 
-A generic Hermes vision adapter is not established by this fixture. Record it
-as blocked until an implemented adapter proves image delivery and preserves the
-same scope and evaluator contract. Model/harness comparisons require actual
-runs, not merely matching configuration labels.
+The historical generic Hermes 8,192-context variant remains blocked. The
+matched-context native adapter below separately proves a bounded no-tools
+JSON-aware visual checker; it does not establish a full tool-driven workflow.
+Model/harness comparisons require actual runs, not matching configuration labels.
 
 ## Reproduce a run
 
@@ -133,8 +133,9 @@ they are not permission to bootstrap arbitrary providers or profiles.
 `--variant hermes-json-aware --harness-source PRIVATE_SOURCE_ROOT` performs an
 installed-harness compatibility check only. The captured selection requested
 8192 tokens against a 64000-token Hermes minimum, so it blocked before inference.
-Even a larger context would not establish an isolated runtime adapter; that
-boundary remains unverified. Keep private paths out of public results.
+That preflight alone did not establish an isolated runtime adapter. The later
+matched-context native trial is separate evidence. Keep private paths out of
+public results.
 
 ## Recorded results
 
@@ -203,3 +204,50 @@ startup, teardown and other overhead, not startup alone. Pi and Hermes retain
 their native system-prompt differences. A single trial per arm does not
 establish a general harness ranking. Shared server changes and their restoration
 are separately authorized operations, outside this runner.
+
+The [matched comparison](../../../../../models/qwen3.8-flash-next/benchmarks/gx10/financial-insights-compatible-harness-comparison-2026-10-12.md)
+records the actual paired trial: both arms passed 37/37 mechanical fields and
+83/83 visual decisions, including all six seeded contradictions. Hermes took
+194.977 seconds overall; Pi took 264.933 seconds. Hermes ran first, Pi second;
+one pair with different cache usage and native system prompts is not a stable
+harness ranking. All seven task/image pairs and recorded source hashes match.
+Reusable benchmark test profiles select harness/settings against the same
+verified runtime; switching harness does not itself require a server restart.
+Verify actual context afresh for each run and keep test settings distinct from
+operational workflow profiles.
+
+## Reusable named test profiles
+
+Copy [test-profiles.example.json](test-profiles.example.json) into a private,
+ignored run/config directory. Define `pi-fi-vision` and `hermes-fi-vision` with
+an existing variant, transport directory, provider/model aliases and explicit
+`server_props_url`. Hermes also needs its installed source directory. All path
+fields resolve relative to the configuration file. Context, output, sampling
+and thinking remain in `variants.json`; an optional `variants` path can select
+another manifest. Unknown fields, wrong types and conflicting CLI options fail.
+
+Every invocation fetches the live configured `/props` with a five-second limit
+and bounded response size, verifies the model alias, actual `n_ctx` and native
+vision modality, then checks declared transport capacities. The URL must share
+the provider hostname and scheme, use exactly `/props`, and contain no userinfo,
+query or fragment. Redirects are rejected; probe credentials and URLs stay
+private. A saved manual runtime receipt never replaces this named-profile check.
+
+Read-only profile check, with no inference or directory creation:
+
+```sh
+python3 run.py --test-profile hermes-fi-vision \
+  --profile-config PRIVATE_PROFILES_JSON --check-profile
+```
+
+Run either profile by omitting `--check-profile`. Without explicit `--run-root`
+and `--results`, the runner creates a unique ignored visible run folder and saves
+results there. Explicit existing paths are never overwritten. Each model run
+still uses fresh isolated harness state; switching between Pi and Hermes leaves
+the server configuration unchanged. Actual capacity mismatch blocks the run
+before inference. The server remains at its current 65,536 setting until the
+human separately requests a change.
+
+The version parser publishes only the Hermes version line; full stdout/stderr
+stay in ignored run logs. Captured older comparison results refer to executed
+code commit `d62e64ad`; these profile/decoder changes do not rewrite that evidence.

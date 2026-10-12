@@ -1,7 +1,7 @@
 import copy
 import unittest
 from verify import compare_vision, compare_mechanical, parse_answer
-from run import validate_variant, hermes_module
+from run import validate_variant, hermes_module, validate_live_props, probe_headers, select_test_profile, NoProbeRedirect, live_profile_check
 DOC={'expected':{'amount':12.34,'currency':'CAD'},'destination':'target','filename':'x.pdf','sidecar':'x.pdf.json'}
 TEXT='Amount payable: 12.34 Currency CAD'
 def answer(status='match',amount=12.34):return {'fields':[{'field':'amount','status':status,'observed':amount,'evidence':{'page':1,'quote':'12.34'}},{'field':'currency','status':'match','observed':'CAD','evidence':{'page':1,'quote':'Currency CAD'}}]}
@@ -66,6 +66,53 @@ class Verification(unittest.TestCase):
   scoring=compare_vision(answer(),{'amount':12.34,'currency':'CAD'},DOC,TEXT)
   bad=hermes_module().transport_verification([],'same-model',65536,2048,{})
   scoring['passed'] &= bad['passed'];self.assertFalse(scoring['passed'])
+ def test_hermes_version_privacy(self):
+  stdout="Update available\nHermes Agent v0.21.5+7438.gf102b16 (2026.9.24) · upstream f102b16c\nInstall directory: /Users/private/.hermes\nPython: 3.11.14\n"
+  value=hermes_module().public_version_line(stdout);self.assertTrue(value.startswith('Hermes Agent v0.21.5'));self.assertNotIn('/Users/',value);self.assertNotIn('Install',value)
+  with self.assertRaises(ValueError):hermes_module().public_version_line('Install directory: /Users/private')
+ def test_live_props(self):
+  props={'model_alias':'same-model','default_generation_settings':{'n_ctx':65536},'modalities':{'vision':True,'audio':False}}
+  self.assertTrue(validate_live_props(props,'same-model',65536)['verified'])
+  for bad in ({'model_alias':'other'},{'default_generation_settings':{'n_ctx':8192}},{'modalities':{}},{'modalities':{'vision':False}},{'modalities':{'vision':'true'}}):
+   with self.assertRaises(ValueError):validate_live_props({**props,**bad},'same-model',65536)
+ def test_probe_url_scope(self):
+  provider={'baseUrl':'https://fictional.invalid:8000/v1','apiKey':'secret','headers':{'X-Test':'private'}}
+  self.assertEqual(probe_headers('https://fictional.invalid:8002/props',provider)['Authorization'],'Bearer secret')
+  for url in ('https://elsewhere.invalid/props','http://fictional.invalid/props','https://user@fictional.invalid/props','https://fictional.invalid/v1/props','https://fictional.invalid/props?x=1','https://fictional.invalid/props#x'):
+   with self.assertRaises(ValueError):probe_headers(url,provider)
+  with self.assertRaises(ValueError):probe_headers('https://fictional.invalid/props',{**provider,'headers':{'X-Test':1}})
+  with self.assertRaises(ValueError):NoProbeRedirect().redirect_request(None,None,302,'',{},'https://elsewhere.invalid/props')
+ def test_profile_strict_fields_and_paths(self):
+  from argparse import Namespace
+  from unittest.mock import patch
+  from pathlib import Path
+  profile={'variant':'pi-matched-64k','agent_dir':'transport','provider':'fictional-provider','model':'same-model','server_props_url':'https://fictional.invalid/props'}
+  config={'schema_version':1,'profiles':{'pi-fi-vision':profile}}
+  args=Namespace(variant=None,agent_dir=None,provider=None,model=None,variants=None,harness_source=None)
+  with patch.object(Path,'read_text',return_value=__import__('json').dumps(config)):
+   resolved=select_test_profile(args,'/fictional/profiles.json','pi-fi-vision');self.assertEqual(resolved['agent_dir'],'/fictional/transport')
+  for bad in ({**profile,'extra':'wrong'},{**profile,'provider':3}):
+   with patch.object(Path,'read_text',return_value=__import__('json').dumps({'schema_version':1,'profiles':{'pi-fi-vision':bad}})):
+    with self.assertRaises(ValueError):select_test_profile(args,'/fictional/profiles.json','pi-fi-vision')
+  args.model='conflicting-model'
+  with patch.object(Path,'read_text',return_value=__import__('json').dumps(config)):
+   with self.assertRaises(ValueError):select_test_profile(args,'/fictional/profiles.json','pi-fi-vision')
+  with patch.object(Path,'read_text',return_value='not JSON'):
+   with self.assertRaises(ValueError):select_test_profile(args,'/fictional/profiles.json','pi-fi-vision')
+ def test_live_probe_status_and_json(self):
+  import json
+  from pathlib import Path
+  from unittest.mock import patch,MagicMock
+  provider={'baseUrl':'https://fictional.invalid/v1','models':[{'id':'same-model','contextWindow':65536,'maxTokens':2048,'input':['text','image']}]}
+  catalog={'providers':{'fixture':provider}}
+  profile={'agent_dir':'/fictional/transport','provider':'fixture','model':'same-model','server_props_url':'https://fictional.invalid/props'}
+  variant={'adapter':'pi-print-json','context_window':65536,'output_tokens':2048}
+  for status,body in ((401,b'{}'),(200,b'invalid JSON'),(200,b'x'*262145)):
+   response=MagicMock();response.status=status;response.read.return_value=body
+   opener=MagicMock();opener.open.return_value.__enter__.return_value=response
+   with patch.object(Path,'read_text',return_value=json.dumps(catalog)),patch('run.urllib.request.build_opener',return_value=opener):
+    with self.assertRaises(ValueError):live_profile_check(profile,variant)
+   self.assertEqual(opener.open.call_args.kwargs['timeout'],5)
  def test_parse(self):
   self.assertEqual(parse_answer('```json\n{}\n```'),{})
   with self.assertRaises(ValueError):parse_answer('[]')
