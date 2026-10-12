@@ -118,8 +118,10 @@ and verification prerequisites are documented in
 
 The [workflow-compatible benchmark scenario](acceptance/financial-insights-compatible.scenario.md)
 separately tests mechanical preparation and contextual visual checking on
-fictional supported payroll forms in the canonical report hierarchy. Benchmark
-variants select harness/model settings without changing operational profiles or
+fictional supported payroll forms in the canonical report hierarchy. The
+[workflow-owned dataset](data/README.md) contains the corporate records,
+generator and evaluator-only reference facts; [benchmark tooling](../../notes/benchmarks/local-models/fixtures/financial-insights-compatible/README.md)
+consumes that data and records metrics separately. Benchmark variants select harness/model settings without changing operational profiles or
 waiving review and publication gates.
 
 When the human authorizes visible browser assistance for a tax payment, treat deliberate field entry as a safety and
