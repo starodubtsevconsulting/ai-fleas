@@ -84,3 +84,23 @@ tampered candidates. Never broaden matching to make an incorrect answer pass.
 
 **Verification:** 19 verifier tests passed; captured public results identify
 the evaluator correction and distinguish re-scoring from a new model run.
+
+## Public harness version metadata
+
+**What happened:** A multiline native harness version response included its
+installation path alongside the public version string.
+
+**Root cause:** Treating diagnostic command output as a plain version identifier
+can expose machine-specific paths in otherwise fictional benchmark evidence.
+
+**How we fixed it:** Publish only the first version line and retain the full raw
+response privately. Sanitize before writing public evidence.
+
+**How to avoid it:** Bound version metadata explicitly; never assume CLI version
+output contains no private diagnostics. Cover multiline output in a privacy
+regression test.
+
+**Verification:** Captured matched-run public version metadata contains only its
+first line. The multiline-version privacy regression passes within 28 verifier,
+transport and reusable-profile tests; both live read-only profile checks verify
+65,536 context and native vision without inference or directory creation.

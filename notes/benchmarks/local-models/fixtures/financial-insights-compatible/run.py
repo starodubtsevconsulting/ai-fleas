@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 """Fictional Financial Insights preparation and contextual visual verification."""
 import argparse
+import sys
+sys.dont_write_bytecode=True
 import copy
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
 import time
+import datetime
+import uuid
+import urllib.request
+import urllib.error
+from urllib.parse import urlsplit
 from verify import compare_mechanical, compare_vision, parse_answer, set_path
 HERE=Path(__file__).resolve().parent
 REPO=HERE.parents[4]
@@ -110,12 +118,113 @@ def inference(args,run,hook,env,identifier,prompt,image,variant):
     transport['passed']=all(transport.values())
     return {'id':identifier,'exit_code':code,'wall_seconds':round(elapsed,3),'first_token_seconds':None,'stop_reason':message.get('stopReason'),'usage':usage,'assistant_completions_observed':len(messages),'provider_request_hooks_observed':len(controls),'model_api_calls':None,'outbound_controls':controls,'transport_verification':transport,'answer':answer,'prompt_sha256':hashlib.sha256(prompt.encode()).hexdigest(),'image_sha256':hashlib.sha256(image.read_bytes()).hexdigest(),'image_bytes':image.stat().st_size}
 
+PROFILE_FIELDS={'variant','agent_dir','provider','model','harness_source','variants','server_props_url'}
+
+
+def select_test_profile(args,filename,name):
+    config_path=Path(filename).resolve()
+    config=json.loads(config_path.read_text())
+    if not isinstance(config,dict) or set(config)-{'schema_version','profiles'} or (type(config.get('schema_version')) is not int or config.get('schema_version')!=1):
+        raise ValueError('invalid test-profile configuration schema')
+    profiles=config.get('profiles')
+    if not isinstance(profiles,dict) or name not in profiles:raise ValueError('unknown test profile')
+    profile=profiles[name]
+    if not isinstance(profile,dict) or set(profile)-PROFILE_FIELDS:raise ValueError('unknown test-profile field')
+    if any(not isinstance(value,str) or not value.strip() for value in profile.values()):raise ValueError('test-profile values must be nonempty strings')
+    if not {'variant','agent_dir','provider','model','server_props_url'}<=set(profile):raise ValueError('test-profile fields missing')
+    resolved=dict(profile)
+    for key in ('agent_dir','harness_source','variants'):
+        if key in resolved:resolved[key]=str((config_path.parent/Path(resolved[key])).resolve())
+    for key,value in resolved.items():
+        if key=='server_props_url':continue
+        supplied=getattr(args,key,None)
+        if supplied is not None:
+            if key in ('agent_dir','harness_source','variants'):supplied=str(Path(supplied).resolve())
+            if supplied!=value:raise ValueError('explicit CLI setting conflicts with selected test profile: '+key)
+        setattr(args,key,value)
+    return resolved
+
+
+def validate_live_props(props,model,context):
+    if not isinstance(props,dict):raise ValueError('props response must be an object')
+    alias=props.get('model_alias')
+    aliases=[alias] if isinstance(alias,str) else alias
+    if not isinstance(aliases,list) or model not in aliases:raise ValueError('live server model alias mismatch')
+    settings=props.get('default_generation_settings')
+    actual=settings.get('n_ctx') if isinstance(settings,dict) else None
+    if type(actual) is not int or actual!=context:raise ValueError('live server context mismatch')
+    modalities=props.get('modalities')
+    has_image=(isinstance(modalities,dict) and modalities.get('vision') is True) or (isinstance(modalities,list) and any(x in ('vision','image') for x in modalities))
+    if not has_image:raise ValueError('live server image modality missing')
+    return {'verified':True,'model_match':True,'context_window':actual,'native_image':True,
+            'checked_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'boundary':'fresh bounded read-only live props check; private probe URL omitted'}
+
+
+class NoProbeRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self,request,fp,code,msg,headers,newurl):
+        raise ValueError('props redirects are prohibited')
+
+
+def probe_headers(url,provider):
+    target=urlsplit(url);origin=urlsplit(provider.get('baseUrl',''))
+    if target.scheme not in ('http','https') or target.scheme!=origin.scheme or target.hostname!=origin.hostname:
+        raise ValueError('props URL must use the authorized provider hostname and scheme')
+    if target.username is not None or target.password is not None or target.path!='/props' or target.query or target.fragment:
+        raise ValueError('props URL requires exact /props path and no userinfo/query/fragment')
+    if not target.hostname:raise ValueError('props hostname missing')
+    raw_headers=provider.get('headers') or {}
+    if not isinstance(raw_headers,dict):raise ValueError('invalid private transport headers')
+    headers=dict(raw_headers)
+    if any(not isinstance(k,str) or not isinstance(v,str) for k,v in headers.items()):raise ValueError('invalid private transport headers')
+    key=provider.get('apiKey')
+    if key is not None and not isinstance(key,str):raise ValueError('invalid private transport credential type')
+    if key and isinstance(key,str) and not any(k.casefold()=='authorization' for k in headers):headers['Authorization']='Bearer '+key
+    return headers
+
+
+def live_profile_check(profile,variant):
+    catalog=json.loads((Path(profile['agent_dir'])/'models.json').read_text())
+    try:
+        provider=catalog['providers'][profile['provider']]
+        model=next(m for m in provider['models'] if m['id']==profile['model'])
+    except (KeyError,StopIteration,TypeError):raise ValueError('selected transport/model unavailable')
+    if variant.get('adapter') not in ('pi-print-json','hermes-native-json'):raise ValueError('named test profile requires an implemented native image adapter')
+    if type(model.get('contextWindow')) is not int or type(model.get('maxTokens')) is not int or not isinstance(model.get('input'),list):raise ValueError('selected transport metadata has invalid capacity types')
+    if variant['context_window']>model['contextWindow'] or variant['output_tokens']>model['maxTokens'] or 'image' not in model['input']:raise ValueError('selected transport metadata does not support variant budgets/image input')
+    url=profile['server_props_url'];headers=probe_headers(url,provider)
+    request=urllib.request.Request(url,headers=headers,method='GET')
+    try:
+        with urllib.request.build_opener(NoProbeRedirect()).open(request,timeout=5) as response:
+            if response.status!=200:raise ValueError('props HTTP status mismatch')
+            body=response.read(262145)
+            if len(body)>262144:raise ValueError('props response exceeds bounded size')
+        props=json.loads(body)
+    except urllib.error.HTTPError as error:raise ValueError('props HTTP status '+str(error.code)) from None
+    except (urllib.error.URLError,TimeoutError):raise ValueError('props probe unavailable') from None
+    except (UnicodeError,json.JSONDecodeError):raise ValueError('props response invalid JSON') from None
+    result=validate_live_props(props,profile['model'],variant['context_window'])
+    if variant.get('adapter')=='hermes-native-json':
+        if not profile.get('harness_source'):raise ValueError('Hermes profile requires installed harness source')
+        capability=hermes_preflight(profile['harness_source'],variant)
+        if capability.get('status')!='compatible':raise ValueError('Hermes source capability preflight blocked: '+str(capability.get('reason')))
+    return result
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--variants',default=str(HERE/'variants.json'));p.add_argument('--harness-source');p.add_argument('--runtime-evidence');p.add_argument('--variant',required=True);p.add_argument('--run-root',required=True);p.add_argument('--results',required=True)
+    p.add_argument('--test-profile');p.add_argument('--profile-config');p.add_argument('--check-profile',action='store_true');p.add_argument('--variants');p.add_argument('--harness-source');p.add_argument('--runtime-evidence');p.add_argument('--variant');p.add_argument('--run-root');p.add_argument('--results')
     for flag in ('agent-dir','provider','model'):p.add_argument('--'+flag)
     p.add_argument('--date',default='2026-10-12');p.add_argument('--pi',default='pi');p.add_argument('--renderer',default='pdftoppm');p.add_argument('--timeout',type=int,default=90)
     args=p.parse_args();start=time.monotonic()
+    profile=None
+    if args.test_profile:
+        if not args.profile_config:p.error('--test-profile requires --profile-config')
+        if args.runtime_evidence:p.error('named profiles use live props, not a saved runtime receipt')
+        try:profile=select_test_profile(args,args.profile_config,args.test_profile)
+        except (ValueError,OSError):p.error('invalid or conflicting private test-profile configuration')
+    elif args.profile_config or args.check_profile:p.error('--profile-config/--check-profile require --test-profile')
+    if not args.variant:p.error('--variant or a named test profile is required')
+    args.variants=args.variants or str(HERE/'variants.json')
     manifest_path=Path(args.variants);manifest=json.loads(manifest_path.read_text())
     try:variant=validate_variant(manifest['variants'].get(args.variant))
     except ValueError as error:p.error(str(error))
@@ -128,11 +237,21 @@ def main():
     is_hermes=variant.get('adapter')=='hermes-native-json' and variant.get('supported')
     is_visual=is_pi or is_hermes
     runtime_evidence=None
-    if variant.get('requires_runtime_evidence'):
+    if profile:
+        try:runtime_evidence=live_profile_check(profile,variant)
+        except (ValueError,OSError) as error:p.error(str(error) if isinstance(error,ValueError) else 'private profile input unavailable')
+        if args.check_profile:
+            print(json.dumps({'test_profile':args.test_profile,'variant':args.variant,'status':'verified','runtime_context_evidence':runtime_evidence,'inference_started':False,'directories_created':False}));return
+        if not args.run_root:
+            name=re.sub(r'[^a-zA-Z0-9_-]','-',args.test_profile)
+            args.run_root=str(REPO/'notes/benchmarks/local-models/runs'/(name+'-'+datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S')+'-'+uuid.uuid4().hex[:8]))
+        args.results=args.results or str(Path(args.run_root)/'results.json')
+    elif variant.get('requires_runtime_evidence'):
         if not args.runtime_evidence:p.error('matched trial requires actual served-context evidence before launch')
         proof=json.loads(Path(args.runtime_evidence).read_text())
         if proof.get('verified') is not True or proof.get('model')!=args.model or proof.get('context_window')!=variant.get('context_window'):p.error('runtime context/model evidence does not match selected trial')
         runtime_evidence={'verified':True,'model_match':True,'context_window':proof['context_window'],'boundary':'explicit operator-verified served context; no private transport values published'}
+    if not args.run_root or not args.results:p.error('explicit run-root/results required outside named test profiles')
     if not 1<=args.timeout<=90:p.error('timeout must be 1..90 seconds')
     run=Path(args.run_root).resolve();output=Path(args.results).resolve()
     try:run.relative_to(REPO/'notes/benchmarks/local-models/runs')
