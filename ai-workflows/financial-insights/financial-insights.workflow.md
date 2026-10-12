@@ -100,15 +100,15 @@ Load only commands needed for the request. Portable commands include `statements
 provider-specific extraction/OCR/document adapters behind those contracts. Governor-facing outputs follow
 [`evidence-contract.md`](evidence-contract.md).
 
-Standalone original-PDF model-and-harness benchmarks are available at three scales:
+Standalone original-PDF model-and-harness benchmarks use explicitly named prompt documents at three scales (see the [prompt convention](acceptance/README.md)):
 
-- small: [`acceptance/pdf-single-tax.scenario.md`](acceptance/pdf-single-tax.scenario.md), one named PDF;
-- medium: [`acceptance/pdf-week-tax.scenario.md`](acceptance/pdf-week-tax.scenario.md), one selected calendar week;
-- large: [`acceptance/pdf-quarter-tax.scenario.md`](acceptance/pdf-quarter-tax.scenario.md), one selected quarter.
+- small: [`acceptance/pdf-single-tax.prompt.md`](acceptance/pdf-single-tax.prompt.md), one named PDF;
+- medium: [`acceptance/pdf-week-tax.prompt.md`](acceptance/pdf-week-tax.prompt.md), one selected calendar week;
+- large: [`acceptance/pdf-quarter-tax.prompt.md`](acceptance/pdf-quarter-tax.prompt.md), one selected quarter.
 
-These scenarios explicitly bypass normal intake, normalization, sidecar, persistence, reconciliation, INIT, roster,
+These prompt documents explicitly bypass normal intake, normalization, sidecar, persistence, reconciliation, INIT, roster,
 and agent-routing procedures. Reusing a profile-authorized folder and effective model does not initialize or act as a
-managed workflow role. Each scenario also records whether the selected harness actually passed PDF pages to the model
+managed workflow role. Each prompt also requires reporting whether the selected harness actually passed PDF pages to the model
 as native visual input. Declaring image input in a model binding is metadata, not evidence that the live provider and
 harness accept it; the benchmark trace establishes the observed capability. The provider, projector, Pi attachment,
 and verification prerequisites are documented in

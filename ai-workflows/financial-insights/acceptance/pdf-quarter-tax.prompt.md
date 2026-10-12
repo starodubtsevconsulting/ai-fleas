@@ -1,11 +1,11 @@
 # Quarterly tax paid from original PDFs
 
-Standalone test using only the profile-selected folder/model under platform safety and read scope. Do not load or follow any other workflow instructions. Follow this scenario only. It bypasses intake, normalization, sidecars,
+Standalone test using only the profile-selected folder/model under platform safety and read scope. Do not load or follow any other workflow instructions. Follow this prompt only. It bypasses intake, normalization, sidecars,
 persistence, reconciliation, INIT, roster, and agents; initializes no role; and takes no financial action.
 
 Native visual input is permitted only after the serving and Pi prerequisites in
 [`../../../ai-commands/install/ai-local-provider/multimodal-serving.md`](../../../ai-commands/install/ai-local-provider/multimodal-serving.md)
-have passed. This reference is benchmark documentation, not scenario prompt content.
+have passed. This reference is benchmark documentation, not model prompt content.
 
 ## Runtime inputs
 
@@ -28,7 +28,7 @@ Before reading financial data, verify the root and both dates are present, unamb
 for every missing or ambiguous input, then stop without listing the folder or opening records. The supplied root is the
 complete read boundary; never infer, broaden, or replace it.
 
-Obey platform safety and the authorized read scope. Do not load or follow any other workflow instructions. Follow this scenario only. The profile supplies only folder/model selection. Do not run intake, recognition, normalization,
+Obey platform safety and the authorized read scope. Do not load or follow any other workflow instructions. Follow this prompt only. The profile supplies only folder/model selection. Do not run intake, recognition, normalization,
 sidecars, persistence, reconciliation, INIT, roster operations, or workflow agents. Read PDFs, calculate, and report.
 
 You may list the root and read PDFs within it. First check whether this harness can pass an original PDF or a rendered
@@ -96,3 +96,9 @@ page/run under the
 [benchmark reporting methodology](../../../models/qwen3.8-flash-next/benchmarks/gx10/pdf-evidence-pi-2026-10-12.md).
 Do not publish financial values, source identifiers or source-content hashes. Limited candidate/page coverage does
 not establish week or quarter completeness.
+
+## Fictional public fixture
+
+For reproducible public runs, see the [fictional PDF tax fixture](../../../notes/benchmarks/local-models/fixtures/pdf-tax-evidence/README.md). Supply its model-input PDF directory through the runtime inputs above; do not expose evaluator JSON or expected answers to the model. The same prompt can use an authorized private source root. Public fixture inputs and verified fictional outputs may be published; private source evidence remains private.
+
+A single-page run measures only that page. Week and quarter runs must report their actual discovery and coverage; completing selected pages does not establish period completeness. An unavailable visual-input path or unknown source field remains explicit, not a successful vision result.

@@ -35,3 +35,21 @@ benchmark profiles; do not set `HERMES_HOME`.
 
 **Verification:** A profile setup invocation with explicit `--profile`,
 `--workspace`, `--endpoint`, and `--model` passes input validation.
+
+## Model aggregate output shape
+
+**What happened:** Review before live evidence publication found that malformed
+model aggregate output could crash verification instead of recording a failure.
+
+**Root cause:** The verifier sorted or converted `included_documents` and
+`excluded_documents` before validating their JSON shapes.
+
+**How we fixed it:** Validate output field shapes before sorting or set
+conversion, and record failed verification for malformed output rather than
+throwing.
+
+**How to avoid it:** Valid JSON does not guarantee the requested schema. Treat
+all model output as untrusted input to the verifier.
+
+**Verification:** Five verifier unit tests pass, including malformed aggregate
+output cases.
