@@ -160,3 +160,46 @@ responses and captured snapshots were preserved; re-evaluation is not another
 model run. All conclusions remain bounded to these readable fictional forms.
 Vision findings are advisory: human review is pending, and no publication or
 independent-review gate was satisfied by the model's success.
+
+## Matched Pi / native Hermes trial
+
+`pi-matched-64k` and `hermes-matched-64k` select the same model binding,
+65,536 server context, 2,048 output tokens, temperature 0, top-p 1 and disabled
+thinking. Use a fresh private transport catalog declaring verified actual
+capacity; do not edit the operational 8,192-context configuration. Supply
+`--runtime-evidence` with an operator-verified JSON object containing
+`verified: true`, the exact `model` alias, and `context_window: 65536`.
+The runner rejects mismatched or absent evidence before launch. This receipt
+records the operator's live server check, not an inferred capability.
+
+Both variants run the same three unchanged and four seeded cases. Native
+Hermes writes only a fresh `hermes-home` under the chosen ignored run directory.
+Its private configuration explicitly enables native image input, empty CLI
+toolsets, no MCP/fallback provider, and only a local observer plugin. The
+supported provider `extra_body` sets thinking/output/sampling; observers verify
+actual API request controls and reject absent images, tools, auxiliary calls,
+wrong models or missing timing/control proof. First transport failure stops
+that arm; remaining cases are recorded blocked. Accuracy failures continue
+when transport remains valid.
+
+Native Hermes invocation example (all private paths supplied explicitly):
+
+```sh
+python3 run.py --variant hermes-matched-64k \
+  --agent-dir PRIVATE_TRANSPORT_DIRECTORY --provider PRIVATE_PROVIDER_ALIAS \
+  --model MODEL_ALIAS --harness-source INSTALLED_HERMES_SOURCE \
+  --runtime-evidence PRIVATE_VERIFIED_CONTEXT_JSON \
+  --run-root FRESH_IGNORED_RUN_DIRECTORY --results FRESH_PUBLIC_FICTIONAL_RESULT
+```
+
+Select `pi-matched-64k` with the same transport/model/runtime evidence for the
+Pi arm, omitting `--harness-source`. Never use the operational profile setup
+script for these isolated runs. The older `hermes-json-aware` 8,192-context
+preflight and historical results stay blocked/unchanged.
+
+Public metrics include real terminal token totals and available API duration
+and first-chunk timing. Wall time minus observed API duration measures combined
+startup, teardown and other overhead, not startup alone. Pi and Hermes retain
+their native system-prompt differences. A single trial per arm does not
+establish a general harness ranking. Shared server changes and their restoration
+are separately authorized operations, outside this runner.

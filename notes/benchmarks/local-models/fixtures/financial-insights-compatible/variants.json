@@ -32,6 +32,43 @@
       "blocked_reason": "installed Hermes minimum-context and isolation preflight required; no inference",
       "context_window": 8192,
       "output_tokens": 2048
+    },
+    "pi-matched-64k": {
+      "verification_mode": "json-aware-vision",
+      "provider_binding": "explicit-cli-transport-alias",
+      "model_binding": "explicit-cli-model-alias",
+      "context_window": 65536,
+      "output_tokens": 2048,
+      "thinking": "off",
+      "server_enable_thinking": false,
+      "sampling": {
+        "temperature": 0,
+        "top_p": 1
+      },
+      "requires_runtime_evidence": true,
+      "supported": true,
+      "platform": "pi",
+      "harness": "Pi",
+      "adapter": "pi-print-json",
+      "enforce_output_tokens": true
+    },
+    "hermes-matched-64k": {
+      "verification_mode": "json-aware-vision",
+      "provider_binding": "explicit-cli-transport-alias",
+      "model_binding": "explicit-cli-model-alias",
+      "context_window": 65536,
+      "output_tokens": 2048,
+      "thinking": "off",
+      "server_enable_thinking": false,
+      "sampling": {
+        "temperature": 0,
+        "top_p": 1
+      },
+      "requires_runtime_evidence": true,
+      "supported": true,
+      "platform": "hermes",
+      "harness": "Hermes",
+      "adapter": "hermes-native-json"
     }
   }
 }
