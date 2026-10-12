@@ -12,7 +12,7 @@
     },
     {
       "path": "modules/agent-bootstrap/scripts/agent-bootstrap-hook.mjs",
-      "sha256": "15e78ef82d3704cb1f377f78456caad4bcf79bbd86add7c2d7a19d7b9f5d6ff8"
+      "sha256": "43a826fb05da07093c5e4d9a77d034916086e35831c27e23171fdfc7db569ded"
     },
     {
       "path": "modules/agent-bootstrap/scripts/governor-registry-lock.mjs",
@@ -24,11 +24,11 @@
     },
     {
       "path": "modules/agent-bootstrap/scripts/personal-governor-onboarding.mjs",
-      "sha256": "67a18e83312ada31dd2b5e6882efd2c65ac44aa84f24a946a4101ecdd3fd9f96"
+      "sha256": "7160bb919d43d15e7a0f8947ec2d2fb953364aee4586cb56d49b03efdbfd5390"
     },
     {
       "path": "modules/agent-bootstrap/scripts/queue-agent-initialization.mjs",
-      "sha256": "aca2b2a9db42514791c4502e3e7a08d574a4bd78da5e12390f837f58f1a7881d"
+      "sha256": "b7cfe5302ca298099b886574ae08c75211f3d3a9453966a5e8af0d0c72304283"
     },
     {
       "path": "modules/agent-bootstrap/scripts/readiness-evidence.mjs",
@@ -36,7 +36,7 @@
     },
     {
       "path": "modules/agent-bootstrap/scripts/register-agent-initialization.mjs",
-      "sha256": "abdbbbb2596ff22d66a667dd8779fe2eca17ed924466223d99d557503e469b02"
+      "sha256": "e78b6631f4cb32e06f2851fdb8316f5e91b511dc5b77c3bcee9f9da5094f3378"
     },
     {
       "path": "modules/workflow-router/scripts/queue-lifecycle-control.mjs",

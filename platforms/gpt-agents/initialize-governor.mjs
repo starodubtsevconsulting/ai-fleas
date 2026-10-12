@@ -2,20 +2,26 @@
 /** Human/controller-invoked Governor initializer, called by launcher.mjs.
  * Inputs: exact human profile directory, human ID and task ID; output: binding readiness.
  * The launcher calls initializeGovernor on its creation connection; the CLI
- * requires a stored host task. Inputs may include a one-use in-memory permit
+ * creates through ensurePersonalGovernor when --thread is omitted; an explicit
+ * --thread requires a stored native-tool task. Inputs may include a one-use in-memory permit
  * for a newly created blank task, never a persisted identity exemption.
  * Effects: validates declared sources; queues, retries, or reconciles the exact
  * host-backed Governor binding through the plugin's lifecycle registry.
- * It does not create tasks or initialize a workflow roster.
+ * It never initializes a workflow roster.
  */
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 import { connectNativeAppServer } from './native-app-server.mjs';
+import { GovernorInitAuditController, registerGovernorAuditController } from './governor-init-audit.mjs';
+import { EphemeralInitAudit } from './ephemeral-init-audit.mjs';
+import { registerAgentInitialization, rollbackAgentInitialization } from './plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/register-agent-initialization.mjs';
+import { queueVerifiedGovernorRetry } from './plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/queue-agent-initialization.mjs';
 import { inspectGovernorPending } from './governor-reconciliation.mjs';
 import { withGovernorRegistryLock } from './plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/governor-registry-lock.mjs';
 
@@ -232,6 +238,7 @@ export function buildGovernorInitialization(humanDir, humanId, generation, optio
       scope: { kind: 'governed-human', humanProfileId: humanId },
       initialization: {
         readinessToken: 'PERSONAL_GOVERNOR_READY', memoryBinding: binding.uri,
+        auditTransport: 'ephemeral-process',
         sources: [
           { id: 'portable-role', ref: roleFile },
           { id: 'gpt-initializer', ref: initializerFile },
@@ -251,12 +258,12 @@ function parseArgs(args) {
   while (args.length) {
     const flag = args.shift();
     if (!['--human', '--human-dir', '--thread'].includes(flag) || !args.length) {
-      throw new Error('usage: initialize-governor --human ID --human-dir PATH --thread TASK_ID');
+      throw new Error('usage: initialize-governor --human ID --human-dir PATH [--thread EXISTING_NATIVE_TASK_ID]');
     }
     options[flag.slice(2)] = args.shift();
   }
-  if (!options.human || !options['human-dir'] || !uuid.test(options.thread ?? '')) {
-    throw new Error('usage: initialize-governor --human ID --human-dir PATH --thread TASK_ID');
+  if (!options.human || !options['human-dir'] || (options.thread != null && !uuid.test(options.thread))) {
+    throw new Error('usage: initialize-governor --human ID --human-dir PATH [--thread EXISTING_NATIVE_TASK_ID]');
   }
   return options;
 }
@@ -348,7 +355,57 @@ export async function verifyNewGovernorHostTask(client, taskId, {
   throw error;
 }
 
-function queueGovernorPayload(dataDir, taskId, payload) {
+export async function submitNativeGovernorPayload(client, dataDir, taskId, payload, expectedPending, freshAuditTool = false) {
+  if ((expectedPending && expectedPending.initialization?.auditInvocation !== 'native-governor-tool-v1')
+    || (!expectedPending && !freshAuditTool))
+    throw new Error('GOVERNOR_LEGACY_AUDIT_TASK_REPLACEMENT_REQUIRED');
+  if (typeof client.registerServerRequestHandler !== 'function')
+    throw new Error('GOVERNOR_AUDIT_NATIVE_TOOL_UNAVAILABLE');
+  const executable = (process.env.PATH || '').split(path.delimiter).filter(Boolean)
+    .map(root => path.resolve(root, 'codex')).find(file => {
+      try { fs.accessSync(file, fs.constants.X_OK); return true; } catch { return false; }
+    });
+  if (!executable) throw new Error('GOVERNOR_AUDIT_EXECUTABLE_UNAVAILABLE');
+  // Reload/refresh managed host auth before starting inference after an account switch.
+  // Credentials stay inside the app-server; never read or copy token files.
+  const account = await client.request('account/read', { refreshToken: true });
+  if (account.requiresOpenaiAuth === true && !account.account)
+    throw new Error('GOVERNOR_SIGN_IN_REQUIRED');
+  payload.binding.initialization.auditInvocation = 'native-governor-tool-v1';
+  const registryFile = path.join(dataDir, 'agent-bindings.json');
+  const audit = new GovernorInitAuditController(client, { taskId, binding: payload.binding, registryFile,
+    worker: new EphemeralInitAudit({ executable }) });
+  const unregister = registerGovernorAuditController(client, audit);
+  let registration;
+  try {
+    if (expectedPending) {
+      const resumed = (await client.request('thread/resume', { threadId: taskId }))?.thread;
+      const humanDir = path.dirname(payload.binding.initialization.sources.find(source => source.id === 'human-profile').ref);
+      if (resumed?.id !== taskId || resumed.projectId != null
+        || fs.realpathSync(resumed.cwd) !== fs.realpathSync(humanDir)
+        || !Array.isArray(resumed.turns) || resumed.turns.some(turn => turn.status === 'inProgress'))
+        throw new Error('GOVERNOR_RETRY_RESUME_UNVERIFIED');
+    }
+    registration = registerAgentInitialization({ sessionId: taskId, binding: payload.binding,
+      prompt: payload.prompt, dataRoot: dataDir }, { expectedPending });
+    const response = await client.request('turn/start', { threadId: taskId,
+      clientUserMessageId: randomUUID(), input: [{ type: 'text', text: payload.prompt }] });
+    if (!response?.turn?.id || !['inProgress', 'completed'].includes(response.turn.status))
+      throw new Error('GOVERNOR_NATIVE_TURN_ACCEPTANCE_UNVERIFIED');
+    return { threadId: taskId, turnId: response.turn.id };
+  } catch (error) {
+    // Only a definite native rejection proves delivery did not occur.
+    if (registration && Number.isInteger(error.code)) rollbackAgentInitialization(registration.rollbackReceipt);
+    unregister();
+    throw error;
+  }
+  // The handler remains on this exact connection through the readiness wait.
+}
+
+function queueGovernorPayload(dataDir, taskId, payload, expectedPending) {
+  if (expectedPending) return queueVerifiedGovernorRetry({
+    sessionId: taskId, binding: payload.binding, prompt: payload.prompt, dataRoot: dataDir,
+  }, expectedPending);
   const inputDir = path.join(dataDir, 'initialization-inputs', `${taskId}-${process.pid}`);
   fs.mkdirSync(inputDir, { recursive: true, mode: 0o700 });
   const bindingFile = path.join(inputDir, 'binding.json');
@@ -445,10 +502,13 @@ export async function reconcileUnavailableGovernorReceipts(registryFile, registr
 }
 
 export async function initializeGovernor({ humanId, humanDir, taskId, registryFile,
-  client, bootstrapPermit }, {
+  client, bootstrapPermit, nativeAuditToolInstalled = false }, {
   readRegistry = file => fs.existsSync(file)
     ? JSON.parse(fs.readFileSync(file, 'utf8')) : { instances: {} },
-  preflight = buildGovernorInitialization, queue = queueGovernorPayload,
+  preflight = buildGovernorInitialization, queue = (dataDir, taskId, payload, expected) =>
+    payload.binding.initialization.auditTransport === 'ephemeral-process'
+      ? submitNativeGovernorPayload(client, dataDir, taskId, payload, expected, nativeAuditToolInstalled && Boolean(bootstrapPermit))
+      : queueGovernorPayload(dataDir, taskId, payload, expected),
   reconcile = reconcileUnavailableGovernorReceipts, hostState = hostTaskState,
   verifyNewTask = verifyNewGovernorHostTask,
 } = {}) {
@@ -507,7 +567,7 @@ export async function initializeGovernor({ humanId, humanDir, taskId, registryFi
     }
     const next = preflight(humanDir, humanId, exact.generation + 1);
     if (exact.replaces) next.binding.replaces = exact.replaces;
-    queue(dataDir, taskId, next);
+    await queue(dataDir, taskId, next, exact);
     return { threadId: taskId, status: 'pending', retried: true, generation: next.binding.generation };
   }
   if (thread.turns?.some(turn => turn.status === 'inProgress'))
@@ -534,8 +594,25 @@ export async function initializeGovernor({ humanId, humanDir, taskId, registryFi
   }
   if (bootstrapPermit && readRegistry(registryFile).instances?.[taskId])
     throw new Error('GOVERNOR_BOOTSTRAP_PERMIT_BINDING_CONFLICT');
-  queue(dataDir, taskId, payload);
+  await queue(dataDir, taskId, payload);
   return { threadId: taskId, status: 'pending', generation };
+}
+
+/** Read a stopped INIT's concrete failure without fetching a live transcript. */
+export async function governorInitializationFailure(client, taskId, binding) {
+  const turnId = binding.initialization?.turnId;
+  if (!turnId) return null;
+  const metadata = (await client.request('thread/read', { threadId: taskId, includeTurns: false }))?.thread;
+  if (metadata?.id !== taskId || !['idle', 'notLoaded', 'systemError'].includes(metadata.status?.type)) return null;
+  const thread = (await client.request('thread/read', { threadId: taskId, includeTurns: true }))?.thread;
+  if (thread?.id !== taskId || thread.turns?.some(turn => turn.status === 'inProgress')) return null;
+  const turn = thread.turns?.find(item => item.id === turnId);
+  if (['failed', 'interrupted'].includes(turn?.status))
+    return turn.error?.message || 'GOVERNOR_INITIALIZATION_TURN_STOPPED';
+  const answer = turn?.items?.filter(item => item.type === 'agentMessage' && item.phase === 'final_answer').at(-1);
+  if (turn?.status === 'completed' && answer?.text?.trim() !== 'PERSONAL_GOVERNOR_READY')
+    return answer?.text?.slice(0, 2000) || 'GOVERNOR_READINESS_TOKEN_MISSING';
+  return null;
 }
 
 async function main() {
@@ -545,11 +622,30 @@ async function main() {
   const runtimeHome = process.env.CODEX_HOME || path.join(os.homedir(), '.codex');
   const client = await connectNativeAppServer({
     socketPath: path.join(runtimeHome, 'app-server-control/app-server-control.sock'),
+    maxFrameBytes: 64 * 1024 * 1024,
   });
   try {
+    if (!options.thread) {
+      const { ensurePersonalGovernor } = await import('./governor-launch.mjs');
+      const result = await ensurePersonalGovernor({ client, humanId: options.human,
+        humanDir: options['human-dir'], registryFile: path.join(dataDir, 'agent-bindings.json'),
+        openTask: () => {} });
+      process.stdout.write(JSON.stringify(result) + '\n');
+      if (result.status === 'blocked' || result.controllerReleased === false) process.exitCode = 1;
+      return;
+    }
     const result = await initializeGovernor({ humanId: options.human,
       humanDir: options['human-dir'], taskId: options.thread,
       registryFile: path.join(dataDir, 'agent-bindings.json'), client });
+    // A native dynamic tool needs this controller connection until its INIT ends.
+    const deadline = Date.now() + 300000;
+    while (result.status === 'pending' && Date.now() < deadline) {
+      const current = JSON.parse(fs.readFileSync(path.join(dataDir, 'agent-bindings.json'), 'utf8')).instances[options.thread];
+      if (current?.status === 'active') { result.status = 'active'; break; }
+      const failure = await governorInitializationFailure(client, options.thread, current);
+      if (failure) { result.status = 'blocked'; result.reason = failure; break; }
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
     process.stdout.write(`${JSON.stringify(result)}\n`);
   } finally {
     client.close();

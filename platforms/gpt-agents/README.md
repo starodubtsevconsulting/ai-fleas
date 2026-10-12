@@ -66,14 +66,13 @@ so moving the checkout does not strand the profile. Before creating a fresh-hist
 node platforms/gpt-agents/launcher.mjs prepare-human-profile --human <human-profile-id>
 ```
 
-The command returns the exact `humanDir`. The controller then creates or reconciles the task and runs the checked-in
-initializer with that exact task ID and directory:
+The command returns the exact `humanDir`. Pass that directory to the controller, which creates or reconciles
+the exact projectless task and installs the native INIT audit tool on its own connection:
 
 ```sh
 node platforms/gpt-agents/launcher.mjs initialize-governor \
   --human <human-profile-id> \
-  --human-dir <absolute-human-profile-directory> \
-  --thread <exact-new-task-id>
+  --human-dir <absolute-human-profile-directory>
 ```
 
 The initializer checks the declared Governor role, memory provider, and source files; it then registers a pending

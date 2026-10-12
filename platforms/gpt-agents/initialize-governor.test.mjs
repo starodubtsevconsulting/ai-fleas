@@ -4,10 +4,11 @@
  */
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { buildGovernorInitialization, hostTaskState, verifyNewGovernorHostTask,
-  verifyFreshGovernorHostTask, initializeGovernor } from './initialize-governor.mjs';
+  verifyFreshGovernorHostTask, initializeGovernor, submitNativeGovernorPayload, governorInitializationFailure } from './initialize-governor.mjs';
 
 const humanDir = fileURLToPath(new URL('./fixtures/governor/example-human/', import.meta.url));
 const gitHumanDir = fileURLToPath(new URL('./fixtures/governor/git-human/', import.meta.url));
@@ -324,4 +325,53 @@ test('blank creation permit cannot cross clients, apply to pending receipts or s
     }),
   }), /GOVERNOR_HOST_CATALOG_UNVERIFIED/);
   assert.equal(queues, 1);
+});
+
+test('pending recovery passes the exact verified snapshot to the retry transaction', async () => {
+  const taskId = '00000000-0000-4000-8000-000000000030';
+  const canonical = buildGovernorInitialization(localHumanDir, 'local-human', 4);
+  const exact = { ...canonical.binding, status: 'pending', registeredAt: '2026-01-01T00:00:00Z',
+    initialization: { ...canonical.binding.initialization, nonce: 'old-permit',
+      promptSha256: createHash('sha256').update(canonical.prompt).digest('hex'),
+      expiresAt: '2026-01-01T00:10:00Z' } };
+  const registry = { instances: { [taskId]: exact } };
+  const thread = { id: taskId, projectId: null, status: { type: 'idle' }, turns: [] };
+  let calls = 0;
+  const result = await initializeGovernor({ humanId: 'local-human', humanDir: localHumanDir,
+    taskId, registryFile: '/unused/agent-bindings.json',
+    client: { request: async () => ({ thread }) } }, {
+    readRegistry: () => registry, reconcile: async (_, value) => value,
+    hostState: async () => ({ archived: false, task: thread }),
+    queue: (_, id, next, snapshot) => {
+      calls++;
+      assert.equal(id, taskId);
+      assert.equal(snapshot, exact);
+      assert.equal(next.binding.generation, 5);
+    },
+  });
+  assert.equal(calls, 1);
+  assert.equal(result.retried, true);
+});
+
+test('native retry refuses pre-tool receipts and unverified fresh creation before any effect', async () => {
+  const payload = buildGovernorInitialization(localHumanDir, 'local-human', 2);
+  const client = { request: async () => assert.fail('must not reach host') };
+  await assert.rejects(submitNativeGovernorPayload(client, '/unused', 'task', payload,
+    { initialization: { auditTransport: 'ephemeral-process' } }), /REPLACEMENT_REQUIRED/);
+  await assert.rejects(submitNativeGovernorPayload(client, '/unused', 'task', payload), /REPLACEMENT_REQUIRED/);
+});
+
+test('stopped INIT reports sign-in failure immediately without rereading a running transcript', async () => {
+  const calls = [];
+  let status = 'active';
+  const client = { request: async (_, params) => {
+    calls.push(params);
+    return { thread: { id: 'task', status: { type: status }, turns: params.includeTurns
+      ? [{ id: 'init', status: 'failed', error: { message: 'Please sign in again.' } }] : undefined } };
+  } };
+  const binding = { initialization: { turnId: 'init' } };
+  assert.equal(await governorInitializationFailure(client, 'task', binding), null);
+  assert.equal(calls.some(call => call.includeTurns), false);
+  status = 'systemError';
+  assert.equal(await governorInitializationFailure(client, 'task', binding), 'Please sign in again.');
 });

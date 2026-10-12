@@ -9,16 +9,18 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { governorInitAuditTool, GovernorInitAuditController, registerGovernorAuditController, releaseGovernorAuditController } from './governor-init-audit.mjs';
 import { randomUUID } from 'node:crypto';
+import { EphemeralInitAudit } from './ephemeral-init-audit.mjs';
 import YAML from 'yaml';
 import { buildGovernorInitialization, hostTaskState, initializeGovernor, verifyFreshGovernorHostTask,
-  reconcileUnavailableGovernorReceipts } from './initialize-governor.mjs';
+  reconcileUnavailableGovernorReceipts, governorInitializationFailure } from './initialize-governor.mjs';
 import { withGovernorRegistryLock } from './plugins/ai-fleas-gpt/modules/agent-bootstrap/scripts/governor-registry-lock.mjs';
 
 const humanIdPattern = /^[a-z][a-z0-9_-]*$/;
 const governorTitle = '🧭 Personal Governor';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-const welcomePrompt = [
+export const welcomePrompt = [
   'This is a NEW post-bootstrap Personal Governor INIT turn, not the one-time activation transaction.',
   'The earlier instruction to reply with exactly PERSONAL_GOVERNOR_READY applied only to that activation turn; do not repeat the token now.',
   'Revalidate this exact active Governor binding and canonical sources. Load authoritative memory, current plans, commitments, and the minimum near-future context.',
@@ -40,9 +42,38 @@ function updateWelcomeReceipt(registryFile, taskId, expected, next) {
   });
 }
 
-export async function runGovernorWelcome(client, registryFile, taskId, humanId, {
+function installGovernorWelcomeAudit(client, registryFile, taskId, binding) {
+  if (typeof client.registerServerRequestHandler !== 'function')
+    throw new Error('GOVERNOR_WELCOME_AUDIT_TOOL_UNAVAILABLE');
+  const executable = (process.env.PATH || '').split(path.delimiter).filter(Boolean)
+    .map(root => path.resolve(root, 'codex')).find(file => {
+      try { fs.accessSync(file, fs.constants.X_OK); return true; } catch { return false; }
+    });
+  if (!executable) throw new Error('GOVERNOR_AUDIT_EXECUTABLE_UNAVAILABLE');
+  const controller = new GovernorInitAuditController(client, {taskId, binding, registryFile,
+    phase: 'welcome', expectedPrompt: welcomePrompt, worker: new EphemeralInitAudit({executable})});
+  releaseGovernorAuditController(client);
+  return registerGovernorAuditController(client, controller);
+}
+
+export async function runGovernorWelcome(client, registryFile, taskId, humanId, options = {}) {
+  const readRegistry = options.readRegistry || readGovernorRegistry;
+  const binding = readRegistry(registryFile).instances?.[taskId];
+  const init = binding?.initialization;
+  if (options.requireAudit !== false && (binding?.status !== 'active' ||
+      init?.auditInvocation !== 'native-governor-tool-v1' || init.audit?.verdict !== 'pass' ||
+      init.audit.workerClosed !== true || init.audit.exitCode !== 0 ||
+      init.audit.generation !== binding.generation || init.audit.turnId !== init.completedTurnId))
+    return {status: 'blocked', reason: 'GOVERNOR_WELCOME_ACTIVATION_AUDIT_UNVERIFIED'};
+  const installAudit = options.installAudit || installGovernorWelcomeAudit;
+  const uninstall = installAudit(client, registryFile, taskId, binding);
+  try { return await runGovernorWelcomeOwned(client, registryFile, taskId, humanId, options); }
+  finally { uninstall(); }
+}
+
+async function runGovernorWelcomeOwned(client, registryFile, taskId, humanId, {
   readRegistry = readGovernorRegistry, updateReceipt = updateWelcomeReceipt,
-  pause = sleep, now = Date.now, timeoutMs = 180_000, requestId = randomUUID,
+  pause = sleep, now = Date.now, timeoutMs = 300_000, requestId = randomUUID, requireAudit = true,
 } = {}) {
   const binding = readRegistry(registryFile).instances?.[taskId];
   if (binding?.status !== 'active' || binding.agentId !== 'personal-governor' ||
@@ -50,7 +81,24 @@ export async function runGovernorWelcome(client, registryFile, taskId, humanId, 
       !binding.initialization?.completedTurnId)
     throw new Error('GOVERNOR_WELCOME_BINDING_UNVERIFIED');
   let welcome = binding.initialization.welcome ?? null;
-  if (welcome?.status === 'completed') return { status: 'completed', turnId: welcome.turnId };
+  let previousWelcome = null;
+  const auditPassed = welcome?.audit?.verdict === 'pass' && welcome.audit.workerClosed === true &&
+    welcome.audit.exitCode === 0 && welcome.audit.turnId === welcome.turnId && welcome.audit.generation === binding.generation;
+  if (welcome?.status === 'completed' && (!requireAudit || auditPassed))
+    return {status: 'completed', turnId: welcome.turnId};
+  if (requireAudit && welcome && !welcome.audit && !(welcome.previousAttempts?.length) &&
+      (welcome.status === 'completed' || (welcome.status === 'blocked' && welcome.reason === 'GOVERNOR_WELCOME_AUDIT_MISSING'))) {
+    const old = (await client.request('thread/read', {threadId: taskId, includeTurns: true}))?.thread;
+    const oldTurn = old?.turns?.find(turn => turn.id === welcome.turnId);
+    const oldPrompt = oldTurn?.items?.find(item => item.type === 'userMessage')?.content
+      ?.filter(part => part.type === 'text').map(part => part.text).join('');
+    if (old?.id !== taskId || old.projectId !== null || oldTurn?.status !== 'completed' ||
+        old.turns.some(turn => turn.status === 'inProgress') || oldPrompt !== welcomePrompt)
+      return {status: 'blocked', reason: 'GOVERNOR_WELCOME_RETRY_UNVERIFIED'};
+    previousWelcome = welcome;
+    welcome = null;
+  }
+  if (welcome?.status === 'completed') return {status: 'blocked', reason: 'GOVERNOR_WELCOME_AUDIT_MISSING'};
   if (welcome?.status === 'blocked') return { status: 'blocked', reason: welcome.reason };
   const deadline = now() + timeoutMs;
   if (!welcome) {
@@ -89,8 +137,11 @@ export async function runGovernorWelcome(client, registryFile, taskId, humanId, 
       await pause(2000);
     }
     if (!idle) return { status: 'pending', reason: 'GOVERNOR_BOOTSTRAP_WRITER_NOT_RELEASED' };
-    welcome = { status: 'requested', requestId: requestId(), requestedAt: new Date().toISOString() };
-    updateReceipt(registryFile, taskId, null, welcome);
+    welcome = { status: 'requested', requestId: requestId(), requestedAt: new Date().toISOString(),
+      ...(previousWelcome ? {previousAttempts: [...(previousWelcome.previousAttempts || []),
+        {requestId: previousWelcome.requestId, turnId: previousWelcome.turnId, status: previousWelcome.status,
+          reason: 'GOVERNOR_WELCOME_AUDIT_MISSING'}]} : {}) };
+    updateReceipt(registryFile, taskId, previousWelcome, welcome);
     let submitted;
     try {
       submitted = await client.request('turn/start', { threadId: taskId,
@@ -118,6 +169,16 @@ export async function runGovernorWelcome(client, registryFile, taskId, humanId, 
     if (read?.thread?.id !== taskId || read.thread.projectId != null || !turn)
       throw new Error('GOVERNOR_WELCOME_TURN_UNVERIFIED');
     if (turn.status === 'completed') {
+      const latest = readRegistry(registryFile).instances?.[taskId]?.initialization?.welcome;
+      if (latest?.requestId !== welcome.requestId || latest?.turnId !== welcome.turnId || latest.status !== 'inProgress')
+        throw new Error('GOVERNOR_WELCOME_RECEIPT_CHANGED');
+      welcome = latest;
+      if (requireAudit && (welcome.audit?.verdict !== 'pass' || welcome.audit.workerClosed !== true ||
+          welcome.audit.exitCode !== 0 || welcome.audit.turnId !== welcome.turnId || welcome.audit.generation !== binding.generation)) {
+        const blocked = {...welcome, status: 'blocked', reason: 'GOVERNOR_WELCOME_AUDIT_MISSING'};
+        updateReceipt(registryFile, taskId, welcome, blocked);
+        return {status: 'blocked', reason: blocked.reason};
+      }
       const final = turn.items?.filter(item => item.type === 'agentMessage' &&
         item.phase === 'final_answer').at(-1)?.text?.trim();
       if (!final || final === 'PERSONAL_GOVERNOR_READY') {
@@ -229,11 +290,11 @@ export function resolveGovernorHumanDir(registry, humanId, { humansDir, io = fs 
   return exact;
 }
 
-async function runInitializer(humanId, humanDir, taskId, registryFile, { client, bootstrapPermit } = {}) {
+async function runInitializer(humanId, humanDir, taskId, registryFile, { client, bootstrapPermit, nativeAuditToolInstalled } = {}) {
   // Keep the creation connection alive until the exact queued INIT persists.
   // An in-memory blank-task permit cannot cross a subprocess or be reused.
   const parsed = await initializeGovernor({ humanId, humanDir, taskId, registryFile,
-    client, bootstrapPermit });
+    client, bootstrapPermit, nativeAuditToolInstalled });
   if (parsed.threadId !== taskId || !['pending', 'active'].includes(parsed.status))
     throw new Error('GOVERNOR_INITIALIZER_RESULT_UNVERIFIED');
   return parsed;
@@ -326,6 +387,9 @@ export async function waitForGovernor(client, registryFile, taskId, { humanId,
       return { status: 'ready', taskId, completedTurnId: turnId };
     }
     if (binding?.status !== 'pending') throw new Error('GOVERNOR_PENDING_BINDING_LOST');
+    const failure = await governorInitializationFailure(client, taskId, binding);
+    if (failure) return { status: 'blocked', taskId, reason: failure,
+      classification: 'initialization-turn-stopped' };
     // Do not fetch an in-progress transcript: command output can exceed the
     // control socket's bounded frame size. The trusted Stop hook publishes the
     // exact active receipt after a completed readiness turn.
@@ -338,9 +402,51 @@ export async function waitForGovernor(client, registryFile, taskId, { humanId,
   return { status: 'pending', taskId };
 }
 
+/** Release the stopped controller writer before offering the desktop chat. */
+export async function releaseGovernorController(client, taskId) {
+  const thread = (await client.request('thread/read', {threadId: taskId, includeTurns: true}))?.thread;
+  if (thread?.id !== taskId || thread.projectId !== null ||
+      !['idle', 'notLoaded'].includes(thread.status?.type) ||
+      !Array.isArray(thread.turns) || thread.turns.some(turn => turn.status === 'inProgress'))
+    throw new Error('GOVERNOR_CONTROLLER_TURN_STILL_RUNNING');
+  const release = await client.request('thread/unsubscribe', {threadId: taskId});
+  if (!['notLoaded', 'notSubscribed', 'unsubscribed'].includes(release?.status))
+    throw new Error('GOVERNOR_CONTROLLER_RELEASE_UNVERIFIED');
+  const read = (await client.request('thread/read', {threadId: taskId, includeTurns: false}))?.thread;
+  if (read?.id !== taskId || read.projectId !== null || read.status?.type !== 'notLoaded')
+    throw new Error('GOVERNOR_CONTROLLER_RELEASE_PENDING');
+  const ids = new Set(), cursors = new Set(); let cursor;
+  do {
+    const page = await client.request('thread/loaded/list', cursor === undefined ? {} : {cursor});
+    if (!Array.isArray(page?.data)) throw new Error('GOVERNOR_CONTROLLER_RELEASE_UNVERIFIED');
+    for (const id of page.data) {
+      if (typeof id !== 'string' || !id || ids.has(id) || id === taskId)
+        throw new Error('GOVERNOR_CONTROLLER_RELEASE_UNVERIFIED');
+      ids.add(id);
+    }
+    cursor = page.nextCursor;
+    if (cursor === undefined || cursor === null) break;
+    if (typeof cursor !== 'string' || !cursor || cursors.has(cursor))
+      throw new Error('GOVERNOR_CONTROLLER_RELEASE_UNVERIFIED');
+    cursors.add(cursor);
+  } while (true);
+  return {controllerReleased: true};
+}
+
+async function presentReleasedGovernor(client, taskId, release, openTask) {
+  try {
+    if ((await release(client, taskId))?.controllerReleased !== true)
+      throw new Error('GOVERNOR_CONTROLLER_RELEASE_UNVERIFIED');
+  } catch (error) {
+    return {controllerReleased: false, handoffReason: error.message};
+  }
+  openTask(taskId);
+  return {};
+}
+
 export async function ensurePersonalGovernor({ client, registryFile, humanId, humanDir,
   openTask, initialize = runInitializer, wait = waitForGovernor,
-  welcome = runGovernorWelcome,
+  welcome = runGovernorWelcome, release = releaseGovernorController,
   onProgress = () => {},
   preflight = buildGovernorInitialization, readRegistry = readGovernorRegistry,
   reconcile = reconcileUnavailableGovernorReceipts, hostState = hostTaskState,
@@ -374,7 +480,9 @@ export async function ensurePersonalGovernor({ client, registryFile, humanId, hu
     // receipt is therefore recoverable on this same verified task; the welcome
     // helper records its request before sending and refuses uncertain replay.
     const followUp = await welcome(client, registryFile, taskId, humanId);
-    return { status: 'existing', taskId, welcomeStatus: followUp.status,
+    const handoff = followUp.status === 'completed'
+      ? await presentReleasedGovernor(client, taskId, release, openTask) : {};
+    return { status: 'existing', taskId, welcomeStatus: followUp.status, ...handoff,
       ...(followUp.reason ? { welcomeReason: followUp.reason } : {}) };
   }
   let taskId;
@@ -384,7 +492,7 @@ export async function ensurePersonalGovernor({ client, registryFile, humanId, hu
   } else {
     const workspaceRoots = governorWorkspaceRoots(humanDir, canonical);
     const started = await client.request('thread/start', { cwd: humanDir, projectId: null,
-      runtimeWorkspaceRoots: workspaceRoots, ephemeral: false,
+      runtimeWorkspaceRoots: workspaceRoots, ephemeral: false, dynamicTools: [governorInitAuditTool],
       sandbox: 'workspace-write', approvalPolicy: 'never' });
     taskId = started?.thread?.id;
     if (!taskId)
@@ -399,7 +507,8 @@ export async function ensurePersonalGovernor({ client, registryFile, humanId, hu
   // durable; waitForGovernor applies and verifies the title and pin only after
   // the exact binding becomes active.
   try {
-    await initialize(humanId, humanDir, taskId, registryFile, { client, bootstrapPermit });
+    await initialize(humanId, humanDir, taskId, registryFile, { client, bootstrapPermit,
+      nativeAuditToolInstalled: Boolean(bootstrapPermit) });
   } catch (error) {
     // Queue rejection and uncertain acceptance both terminate this transaction
     // with its exact task evidence. Never create or submit again here.
@@ -414,7 +523,8 @@ export async function ensurePersonalGovernor({ client, registryFile, humanId, hu
   if (settled.status !== 'ready') return settled;
   onProgress({ taskId, stage: 'welcome-started' });
   const followUp = await welcome(client, registryFile, taskId, humanId);
-  if (followUp.status === 'completed') openTask(taskId);
-  return { ...settled, welcomeStatus: followUp.status,
+  const handoff = followUp.status === 'completed'
+    ? await presentReleasedGovernor(client, taskId, release, openTask) : {};
+  return { ...settled, welcomeStatus: followUp.status, ...handoff,
     ...(followUp.reason ? { welcomeReason: followUp.reason } : {}) };
 }

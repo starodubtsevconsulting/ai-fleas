@@ -6,9 +6,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { ensurePersonalGovernor, runGovernorWelcome, resolveGovernorHumanDir,
-  selectGovernorHuman, waitForGovernor } from './governor-launch.mjs';
+import { ensurePersonalGovernor, runGovernorWelcome as hostRunGovernorWelcome, resolveGovernorHumanDir,
+  selectGovernorHuman, waitForGovernor, releaseGovernorController, welcomePrompt } from './governor-launch.mjs';
 import { hostTaskState, initializeGovernor } from './initialize-governor.mjs';
+
+// Other lifecycle tests inject a no-effect audit transport; its real authorization is tested separately.
+const runGovernorWelcome = (client, file, id, human, options = {}) => hostRunGovernorWelcome(client, file, id, human,
+  {installAudit: () => () => {}, requireAudit: false, ...options});
 
 const catalog = fileURLToPath(new URL('./fixtures/governor/', import.meta.url));
 
@@ -64,7 +68,7 @@ test('launcher creates one fresh projectless task only when no current Governor 
       ephemeral: false, forkedFromId: null, parentThreadId: null, cwd: humanDir, turns: [] } };
     return {};
   } };
-  const result = await ensurePersonalGovernor({ client, registryFile: '/unused/registry.json',
+  const result = await ensurePersonalGovernor({ release: async () => ({controllerReleased: true}), client, registryFile: '/unused/registry.json',
     humanId: 'example-human', humanDir, preflight: () => {},
     readRegistry: () => ({ instances: {} }), reconcile: async (_, registry) => registry,
     hostState: async () => ({ archived: false, task: { id: taskId, projectId: null } }),
@@ -89,7 +93,7 @@ test('launcher opens a fresh task only after verified readiness', async () => {
   const progress = [];
   const client = { request: async method => method === 'thread/start' || method === 'thread/read'
     ? { thread: { id: taskId, projectId: null, ephemeral: false, cwd: humanDir, turns: [] } } : {} };
-  const result = await ensurePersonalGovernor({ client, registryFile: '/unused/registry.json',
+  const result = await ensurePersonalGovernor({ release: async () => ({controllerReleased: true}), client, registryFile: '/unused/registry.json',
     humanId: 'example-human', humanDir, preflight: () => {},
     readRegistry: () => ({ instances: {} }), reconcile: async (_, registry) => registry,
     hostState: async () => ({ archived: false, task: { id: taskId, projectId: null } }),
@@ -266,13 +270,13 @@ test('launcher reuses a verified active Governor without another INIT', async ()
     if (method === 'thread/read') return { thread: { name: '🧭 Personal Governor', section: { id: pinnedId } } };
     return {};
   } };
-  const result = await ensurePersonalGovernor({ client, registryFile: '/unused/registry.json',
+  const result = await ensurePersonalGovernor({ release: async () => ({controllerReleased: true}), client, registryFile: '/unused/registry.json',
     humanId: 'example-human', humanDir, preflight: () => {},
     readRegistry: () => registry, reconcile: async () => registry,
     hostState: async () => ({ task: { projectId: null }, archived: false }),
     welcome: async () => ({ status: 'completed', turnId: 'welcome-turn' }),
     initialize: () => { throw new Error('duplicate INIT'); },
-    openTask: () => { throw new Error('duplicate task'); } });
+    openTask: id => { assert.equal(id, taskId); calls.push({method: 'open'}); } });
   assert.deepEqual(result, { status: 'existing', taskId, welcomeStatus: 'completed' });
   assert.equal(calls.some(call => call.method === 'thread/start'), false);
   assert.equal(calls.some(call => call.method === 'thread/section/move'), true);
@@ -293,7 +297,7 @@ test('launcher never reuses an archived Governor task ID', async () => {
       ephemeral: false, cwd: humanDir, turns: [] } };
     return {};
   } };
-  const result = await ensurePersonalGovernor({ client, registryFile: '/unused/registry.json',
+  const result = await ensurePersonalGovernor({ release: async () => ({controllerReleased: true}), client, registryFile: '/unused/registry.json',
     humanId: 'example-human', humanDir, preflight: () => {},
     readRegistry: () => registry, reconcile: async () => registry,
     hostState: async () => ({ archived: false, task: { id: freshId, projectId: null } }),
@@ -325,7 +329,7 @@ test('created-task partial metadata beyond three reads resolves before one INIT'
     if (method === 'thread/loaded/list') return { data: [] };
     throw new Error(`unexpected ${method}`);
   } };
-  const result = await ensurePersonalGovernor({ client, registryFile: '/unused/registry.json',
+  const result = await ensurePersonalGovernor({ release: async () => ({controllerReleased: true}), client, registryFile: '/unused/registry.json',
     humanId: 'example-human', humanDir, preflight: () => {},
     readRegistry: () => ({ instances: {} }), reconcile: async (_, registry) => registry,
     hostState: async (_, id) => {
@@ -341,6 +345,7 @@ test('created-task partial metadata beyond three reads resolves before one INIT'
     wait: async (_, __, id) => ({ status: 'pending', taskId: id }), openTask: () => {} });
   assert.deepEqual(result, { status: 'pending', taskId });
   assert.equal(calls.filter(call => call.method === 'thread/start').length, 1);
+  assert.equal(calls.find(call => call.method === 'thread/start').params.dynamicTools[0].name, 'ai_fleas_governor_init_audit');
   assert.equal(calls.filter(call => call.method === 'thread/read').length, 5);
   assert.equal(clock, 4000);
   assert.equal(calls.filter(call => call.method === 'initialize').length, 1);
@@ -358,7 +363,7 @@ test('permanently unavailable created-task metadata blocks without registration 
     if (method === 'thread/read') return { thread: {} };
     throw new Error(`unexpected ${method}`);
   } };
-  const result = await ensurePersonalGovernor({ client, registryFile: '/unused/registry.json',
+  const result = await ensurePersonalGovernor({ release: async () => ({controllerReleased: true}), client, registryFile: '/unused/registry.json',
     humanId: 'example-human', humanDir, preflight: () => {},
     readRegistry: () => ({ instances: {} }), reconcile: async (_, registry) => registry,
     createdTaskVerification: { timeoutMs: 3000, now: () => clock,
@@ -388,7 +393,7 @@ test('catalog omission without loaded proof and catalog conflicts block immediat
       if (method === 'thread/read') assert.equal(params.threadId, taskId);
       return { thread: { id: taskId, projectId: null, ephemeral: false, cwd: humanDir, turns: [] } };
     } };
-    const result = await ensurePersonalGovernor({ client, registryFile: '/unused/registry.json',
+    const result = await ensurePersonalGovernor({ release: async () => ({controllerReleased: true}), client, registryFile: '/unused/registry.json',
       humanId: 'example-human', humanDir, preflight: () => {},
       readRegistry: () => ({ instances: {} }), reconcile: async (_, registry) => registry,
       hostState: async (_, id) => {
@@ -525,7 +530,7 @@ test('actual controller queues one INIT from loaded blank creation, then require
       },
     });
   };
-  const options = { client, registryFile: '/unused/agent-bindings.json',
+  const options = { release: async () => ({controllerReleased: true}), client, registryFile: '/unused/agent-bindings.json',
     humanId: 'local-human', humanDir, readRegistry, reconcile, hostState, initialize,
     wait: (host, file, id, settings) => waitForGovernor(host, file, id,
       { ...settings, readRegistry, hostState, now: () => 0 }),
@@ -557,7 +562,7 @@ test('initializer uncertainty retains exact task evidence and never creates or q
     if (method === 'thread/loaded/list') return { data: [taskId] };
     assert.fail(`unexpected ${method}`);
   } };
-  const result = await ensurePersonalGovernor({ client, registryFile: '/unused/agent-bindings.json',
+  const result = await ensurePersonalGovernor({ release: async () => ({controllerReleased: true}), client, registryFile: '/unused/agent-bindings.json',
     humanId: 'local-human', humanDir, readRegistry: () => ({ instances: {} }),
     reconcile: async (_, registry) => registry, hostState: async () => null,
     initialize: async () => { initializes++; throw new Error('queue acceptance uncertain'); },
@@ -566,4 +571,80 @@ test('initializer uncertainty retains exact task evidence and never creates or q
     classification: 'initializer-failure' });
   assert.equal(creates, 1);
   assert.equal(initializes, 1);
+});
+
+
+test('desktop handoff refuses running or still-loaded writer and verifies all loaded pages', async () => {
+  const id = 'governor'; let status = 'active', inProgress = true, secondPage = [id];
+  let unsubscribed = 0;
+  const client = {request: async (method, params) => {
+    if (method === 'thread/read') return {thread: {id, projectId: null, status: {type: status},
+      turns: [{status: inProgress ? 'inProgress' : 'completed'}]}};
+    if (method === 'thread/unsubscribe') {unsubscribed++; return {status: 'unsubscribed'};}
+    if (method === 'thread/loaded/list') return params.cursor ? {data: secondPage} : {data: ['other'], nextCursor: 'next'};
+    throw new Error(method);
+  }};
+  await assert.rejects(releaseGovernorController(client, id), /STILL_RUNNING/);
+  assert.equal(unsubscribed, 0);
+  status = 'idle'; inProgress = false;
+  await assert.rejects(releaseGovernorController(client, id), /RELEASE_PENDING/);
+  status = 'notLoaded';
+  await assert.rejects(releaseGovernorController(client, id), /RELEASE_UNVERIFIED/);
+  secondPage = [];
+  assert.deepEqual(await releaseGovernorController(client, id), {controllerReleased: true});
+});
+
+
+test('a friendly completed welcome without its separate audit is partial', async () => {
+  const binding = {status: 'active', agentId: 'personal-governor', generation: 2,
+    scope: {humanProfileId: 'example-human'}, initialization: {completedTurnId: 'activation',
+      welcome: {status: 'completed', turnId: 'welcome'}}};
+  const result = await hostRunGovernorWelcome({}, '/unused', 'task', 'example-human', {
+    readRegistry: () => ({instances: {task: binding}}), installAudit: () => () => {}});
+  assert.deepEqual(result, {status: 'blocked', reason: 'GOVERNOR_WELCOME_ACTIVATION_AUDIT_UNVERIFIED'});
+});
+
+
+test('missing welcome audit gets a separate verified attempt only after writer acquisition', async () => {
+  const activationAudit = {verdict: 'pass', workerClosed: true, exitCode: 0, generation: 2, turnId: 'activation'};
+  const prior = {status: 'completed', requestId: 'old-request', turnId: 'old-welcome'};
+  const b = {status: 'active', agentId: 'personal-governor', generation: 2,
+    scope: {humanProfileId: 'example-human'}, initialization: {completedTurnId: 'activation',
+      auditInvocation: 'native-governor-tool-v1', audit: activationAudit, welcome: prior}};
+  let available = false, submissions = 0, writes = 0;
+  const old = {id: 'old-welcome', status: 'completed', items: [{type: 'userMessage',
+    content: [{type: 'text', text: welcomePrompt}]}]};
+  const client = {request: async method => {
+    if (method === 'thread/resume') throw new Error('already has an active writer');
+    if (method === 'turn/start') {submissions++; return {turn: {id: 'new-welcome', status: 'completed'}};}
+    if (method === 'thread/read') {
+      const turns = [{id: 'activation', status: 'completed'}, old];
+      if (b.initialization.welcome.turnId === 'new-welcome') {
+        b.initialization.welcome.audit = {...activationAudit, turnId: 'new-welcome'};
+        turns.push({id: 'new-welcome', status: 'completed', items: [
+          {type: 'agentMessage', phase: 'final_answer', text: 'Welcome; actual limitations verified.'}]});
+      }
+      return {thread: {id: 'task', projectId: null, status: {type: available ? 'idle' : 'notLoaded'}, turns}};
+    }
+    throw new Error(method);
+  }};
+  const options = {readRegistry: () => ({instances: {task: b}}), installAudit: () => () => {},
+    requestId: () => 'new-request', updateReceipt: (_, __, expected, next) => {
+      assert.deepEqual(b.initialization.welcome, expected); writes++; b.initialization.welcome = structuredClone(next);
+    }};
+  assert.deepEqual(await hostRunGovernorWelcome(client, '/unused', 'task', 'example-human', options),
+    {status: 'pending', reason: 'GOVERNOR_WELCOME_FOREIGN_WRITER_ACTIVE'});
+  assert.equal(writes, 0); assert.equal(submissions, 0); assert.equal(b.initialization.welcome, prior);
+  available = true;
+  assert.deepEqual(await hostRunGovernorWelcome(client, '/unused', 'task', 'example-human', options),
+    {status: 'completed', turnId: 'new-welcome'});
+  assert.equal(submissions, 1);
+  assert.equal(b.initialization.welcome.previousAttempts[0].turnId, 'old-welcome');
+  assert.deepEqual(b.initialization.audit, activationAudit);
+  b.initialization.welcome = {...b.initialization.welcome, status: 'blocked',
+    reason: 'GOVERNOR_WELCOME_AUDIT_MISSING'};
+  delete b.initialization.welcome.audit;
+  assert.deepEqual(await hostRunGovernorWelcome(client, '/unused', 'task', 'example-human', options),
+    {status: 'blocked', reason: 'GOVERNOR_WELCOME_AUDIT_MISSING'});
+  assert.equal(submissions, 1);
 });

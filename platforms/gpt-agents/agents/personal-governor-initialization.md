@@ -217,8 +217,9 @@ cannot safely perform the bounded supporting effect, record the concrete blocker
 as inactive.
 
 At the start of each request, separate Governor judgment from bounded execution. The Governor retains scope, authority,
-privacy, prioritization, integration, and final verification. It MUST dispatch a native GPT utility subagent for the
-required audit or a safe bounded supporting task. The dispatch must:
+privacy, prioritization, integration, and final verification. It MUST dispatch a native GPT utility subagent for a
+safe bounded supporting task. For INIT, use the controller-owned ephemeral audit below instead of a persistent child
+when native owner-close is unavailable. The dispatch must:
 
 - be an independently describable, read-only evidence task allowed by the portable utility-subagent contract;
 - have a crisp input boundary, expected output, and stop condition;
@@ -246,3 +247,67 @@ utility-subagent contracts.
 ## Readiness
 
 Do not emit `PERSONAL_GOVERNOR_READY` until the human identity, role, authoritative memory route, and authorized profile contexts are resolved and usable. A stored plugin token, conversational claim, task title, prior chat context, or merely existing sync folder is insufficient.
+
+### Verified pending retry transaction
+
+After canonical preflight and exact unarchived projectless host inspection classify a pending INIT as stopped or expired, the controller uses the in-process retry queue. Registration compares the complete old pending receipt under the Governor lock, advances its generation by one, and preserves singleton and predecessor checks. A changed receipt blocks dispatch. A proven pre-execution delivery failure restores the old receipt; ambiguous delivery keeps the new evidence. The generic queue CLI continues to reject existing receipts.
+
+### Controller-owned Governor INIT audit
+
+Governor INIT uses an inference-only ephemeral worker, with the configured human binding's `boundedAnalysis` model and
+reasoning. This is the existing common utility-subagent transport exception for platforms without child-close support;
+it does not waive the audit or declare a persistent helper released.
+
+After reading and verifying the declared sources, call the native `ai_fleas_governor_init_audit` tool with a short
+`summary` of the completed preflight findings. The launcher installs this tool when it creates the fresh Governor task;
+the initializer owns the tool handler and keeps its connection alive through INIT. Only this verified creation path
+records `auditInvocation: native-governor-tool-v1`; pending retry requires this marker, not merely a transport label. The controller verifies the native
+request's exact task and turn against its authorized generation, canonical human sources and memory route, unarchived
+projectless host task, matching in-progress INIT prompt and one-use permit. It reserves the audit under the Governor
+registry lock, runs one tool-disabled worker, and records its verdict only after successful process exit and a locked
+comparison of the reserved receipt, singleton and predecessor. Environment variables and shell arguments cannot request
+this audit. A legacy pending task without the native tool must be retired through the supported lifecycle and replaced
+by a separate fresh-history projectless task; do not claim that its stored tools can be changed by retrying INIT.
+
+Read and verify the returned findings. Emit readiness only for a passed audit with verified worker exit. Missing model
+configuration, failed inference, stale receipt, expiry, uncertain release, or a blocked verdict stops readiness. Do not
+spawn a persistent audit child as a fallback. The Stop hook and reconciliation independently require the exact audit
+receipt for bindings that declare `auditTransport: ephemeral-process`.
+
+### Controller command and terminal failures
+
+After `prepare-human-profile`, invoke `launcher.mjs initialize-governor --human <exact-id> --human-dir <declared-directory>`.
+The controller creates the projectless task with the native audit tool on its own connection, or reuses the exact verified
+active/pending task. Do not create a plain task first. The optional `--thread` form recovers only an existing native-tool
+receipt; it cannot retrofit tools into a legacy task. The human-facing launcher uses this same connection-owned flow.
+
+Before inference, native submission asks the app-server to refresh its managed login. It never reads or copies tokens.
+An account response alone is not proof of usable inference. A stopped exact INIT with host `systemError` may be retried
+only after the same canonical prompt, permit, task, and stopped-turn evidence checks. The readiness wait reports an exact
+failed/interrupted turn or completed blocker immediately instead of polling it as ongoing work. A sign-in failure needs
+successful authentication before another live attempt; do not create another task to work around it. If fresh CLI
+inference succeeds but the lifecycle socket still rejects login, inspect its actual owning service: a separate managed
+daemon can retain stale authentication. A human-authorized service restart requires a complete loaded-task catalog
+showing no running work and the supported daemon lifecycle command; never kill unrelated app processes or copy tokens.
+Retry the same exact pending task after restart, then verify actual audit and readiness evidence.
+
+
+### Controller-to-desktop handoff
+
+Activation alone does not make the desktop chat usable. After the exact welcome turn completes, the controller must
+verify no in-progress turn, unsubscribe, and prove the exact task is `notLoaded` and absent from the complete loaded
+catalog before opening it. A retained inactivity lease is an explicit handoff blocker, not readiness for desktop use.
+Keep the same active task and completed welcome receipt; retry release only. Never fork, archive, or replay INIT to
+work around a writer lock. A separately authorized managed-service stop is a fallback only after proving the service
+has no other loaded task and this exact task has no running turn.
+
+
+### Separate welcome audit
+
+The post-bootstrap welcome is a separate INIT and requires its own bounded audit. The launch controller installs a
+handler for the same native audit tool on the welcome connection, bound to the exact active task, generation,
+canonical sources, welcome request and turn. Its audit is stored only under `initialization.welcome.audit`; it must
+never overwrite the activation audit, renew an activation permit, or change Governor authority. The worker must exit
+successfully before the welcome audit can pass. A final message with a missing, failed, or pending welcome audit is
+partial, even if the model produced a friendly greeting. Ordinary later daily INIT requires its own authorized
+lifecycle route; neither stored activation nor welcome audit certifies a later run.
