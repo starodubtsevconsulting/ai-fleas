@@ -28,3 +28,19 @@
 * **Role routing and benchmark scope:** Dev's Command Runner owns registered install/switch commands; Coder owns installer and preset implementation. Resolve the selected profile's effective model binding before claiming this work is Luna-capable; a public `profile-default` binding is not evidence of Luna. The existing local-image benchmark only covers image-generation candidates. For text models, distinguish smoke inference and endpoint latency from a formal throughput benchmark, which needs a separately defined prompt/token/repeat/memory protocol.
 * **Managed gateway:** A preset may declare a `gateway` with its listening port, bind address, and service name. In that case the installer deploys the repository's fixed-upstream gateway, replaces an explicitly named active user gateway only after the provider passes inference, then verifies gateway health and a routed completion. On gateway failure it stops the managed gateway and restarts the named user gateway. Do not mutate a private gateway implementation or its hard-coded route map from this command.
 * **Probe parsing:** Remote probe output can contain repeated records when a transport retries or wraps a probe. For scalar facts such as `arch`, take the first matching record (`awk ...; exit`) before validating it. Passing every matching line into a single comparison produces a newline-containing value and falsely rejects a supported host.
+
+## Multimodal provider updates behind an existing gateway
+
+* **What happened:** GX10 already served the selected provider through a user-owned multi-model gateway; the initial generic installation path attempted to deploy a second gateway on the occupied port.
+* **Root cause:** The installer treated every preset gateway as replaceable even when an existing gateway already routed the selected alias.
+* **Fix:** Run `preflight` and `install --dry-run` first. An occupied preset gateway port now requires an explicit preserve or replace choice. Use `--preserve-user-gateway-service <unit>` when the active gateway already routes the selected provider; the installer leaves it running and verifies an image completion through it.
+* **Avoid:** Never replace a user-owned gateway merely because its port is occupied. Do not infer gateway ownership or route compatibility.
+* **Verification:** Confirm the selected provider system unit contains `--mmproj`, both provider and retained gateway are active, and direct plus gateway image probes return the expected response.
+
+## GX10 storage binding
+
+* **What happened:** The profile default model volume did not exist on GX10, although `/` had sufficient validated capacity.
+* **Root cause:** The box inherited a stale generic storage default.
+* **Fix:** Configure the GX10 box with its actual model volume; preflight must be run against that volume before installation.
+* **Avoid:** Do not treat an inherited default as evidence that a target mount exists.
+* **Verification:** Preflight reports the selected volume, free space, estimated post-install capacity, and a successful compatibility result.

@@ -8,8 +8,8 @@ model successfully while rejecting every image request.
 flowchart TD
     PDF[Original PDF page] --> Render[Controlled page renderer]
     Render --> PNG[Temporary PNG page]
-    PNG --> Pi[Pi harness attachment]
-    Pi --> Gateway[Local model gateway]
+    PNG --> Harness[Client or harness attachment]
+    Harness --> Gateway[Local model gateway]
     Gateway --> Server[llama-server]
     Model[Language-model GGUF] --> Server
     Projector[Matching mmproj GGUF] --> Server
@@ -17,9 +17,9 @@ flowchart TD
     Vision --> Trace[Benchmark trace and report]
 ```
 
-The renderer and Pi attachment are harness responsibilities. The language-model GGUF, matching projector, and
-`llama-server --mmproj` configuration are provider responsibilities. All three links must work before a benchmark can
-claim that the model saw a PDF page.
+The renderer and media attachment are client/harness responsibilities. The language-model GGUF, matching projector,
+and `llama-server --mmproj` configuration are provider responsibilities. All three links must work before a benchmark
+can claim that the model saw a PDF page. This serving guide is harness-agnostic: Pi is one client that can use it.
 
 ## Controlled installation
 
@@ -38,25 +38,30 @@ Each reviewed vision preset pairs its selected language-model artifact with a co
 corresponding model family and immutable revision. Projector size varies by model; the installation plan retains the
 prior service until the replacement provider passes its checks.
 
-## Financial Insights benchmark prerequisite
+## Harness readiness prerequisite
 
-The Financial Insights PDF scenarios can use native visual inspection only when all of the following are true:
+Any PDF scenario or application can use native visual inspection only when all of the following are true:
 
 - the selected provider has passed the installer image-completion check;
-- the selected Pi binding declares text and image input;
-- Pi renders the selected PDF page and attaches that image to the request; and
+- the selected client/harness declares and supports image input;
+- the client/harness renders the selected PDF page and attaches that image to the request; and
 - the run trace records the image attachment and the resulting model response.
 
 When any prerequisite is absent, the scenario reports visual input as unavailable and may use a separately available,
 fresh text/OCR method. It must never report visual inspection based solely on a filename, a model claim, or an
 unverified server configuration.
 
-## Operations and rollback
+## Conservative installation and rollback
 
-Run `preflight` and `install --dry-run` before a remote installation. The installer downloads and verifies artifacts
-before it replaces an explicitly named active user service; its failure path restores that service. After a successful
-provider check, verify the gateway's model list and image completion before changing any Pi binding or running a PDF
-benchmark.
+Run `preflight` first. It reports the selected provider service, gateway-port occupancy, and the state of any explicitly
+requested preserved gateway without changing the machine. Then run `install --dry-run` with the same options.
+
+When a preset gateway port is already occupied, installation stops before provisioning unless the caller explicitly
+chooses `--preserve-user-gateway-service <unit>` or `--switch-from-user-gateway-service <unit>`. Preservation keeps
+the existing gateway running and requires the selected model's image probe to pass through it. Replacement is only for
+a caller who explicitly selects that active unit; the failure path restores it. The installer verifies artifacts before it
+restarts the provider service. After success, verify the gateway model list and image completion before changing any
+client/harness capability binding or running a PDF benchmark.
 
 This guide describes a serving capability, not a financial-record processing workflow. It does not authorize reading,
 normalizing, or writing financial records.
