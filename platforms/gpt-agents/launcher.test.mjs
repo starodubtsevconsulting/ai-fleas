@@ -397,7 +397,7 @@ test('launch controller reuses verified ready Governor and reports navigation wi
     assert.ok(['thread/name/set', 'thread/section/move'].includes(method), `Unexpected RPC: ${method}`);
     return {};
   } };
-  const result = await ensurePersonalGovernor({ client, registryFile: '/unused/registry.json',
+  const result = await ensurePersonalGovernor({ release: async () => ({controllerReleased: true}), openTask: id => assert.equal(id, taskId), client, registryFile: '/unused/registry.json',
     humanId: 'example-human', humanDir: governorHumanDir,
     preflight: () => {}, readRegistry: () => registry, reconcile: async () => registry,
     hostState: async (_, id) => {
@@ -481,4 +481,12 @@ test('setup requires explicit migration before relocating a marketplace', () => 
   const calls = fs.readFileSync(item.log, 'utf8');
   assert.match(calls, /plugin marketplace remove ai-fleas/);
   assert.match(calls, /plugin marketplace add/);
+});
+
+
+test('Governor report never claims desktop readiness while the controller retains its writer', () => {
+  const report = governorLaunchReport({status: 'ready', welcomeStatus: 'completed',
+    controllerReleased: false, handoffReason: 'GOVERNOR_CONTROLLER_RELEASE_PENDING'});
+  assert.equal(report.platformStatus, 'AI Fleas GPT is pending.');
+  assert.match(report.destination, /Desktop use is not ready/);
 });

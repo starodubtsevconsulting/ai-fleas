@@ -26,7 +26,9 @@ export function inspectGovernorPending({ registry, taskId, humanId, binding, pro
     return { status: 'blocked', reason: 'GOVERNOR_HOST_TASK_UNVERIFIED' };
   if (thread.status?.type === 'active' || thread.turns.some(turn => turn.status === 'inProgress'))
     return { status: 'wait', reason: 'GOVERNOR_HOST_TASK_RUNNING' };
-  if (!['idle', 'notLoaded'].includes(thread.status?.type))
+  if (!['idle', 'notLoaded'].includes(thread.status?.type)
+    && !(thread.status?.type === 'systemError' && thread.turns.some(turn =>
+      turn.id === binding.initialization.turnId && ['failed', 'interrupted'].includes(turn.status))))
     return { status: 'blocked', reason: 'GOVERNOR_HOST_TASK_UNVERIFIED' };
 
   const replacement = binding.replaces;
@@ -75,6 +77,14 @@ export function inspectGovernorPending({ registry, taskId, humanId, binding, pro
     const answer = lastMessage(turn, 'agentMessage');
     if (turn.status === 'completed' && answer?.phase === 'final_answer' &&
         answer.text?.trim() === 'PERSONAL_GOVERNOR_READY') {
+      if (init.auditTransport === 'ephemeral-process') {
+        const audit = init.audit;
+        if (audit?.transport !== 'ephemeral-process' || audit.turnId !== turn.id
+          || audit.generation !== binding.generation || audit.workerClosed !== true || audit.exitCode !== 0
+          || audit.verdict !== 'pass' || !audit.callId || !audit.workerThreadId
+          || !Number.isFinite(Date.parse(audit.completedAt)))
+          return { status: 'blocked', reason: 'GOVERNOR_INIT_AUDIT_UNVERIFIED' };
+      }
       if (!Number.isFinite(completed) || completed < started)
         return { status: 'blocked', reason: 'GOVERNOR_COMPLETION_TIME_UNVERIFIED' };
       return { status: 'ready', completedTurnId: turn.id, completedAt: new Date(completed).toISOString() };

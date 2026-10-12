@@ -108,3 +108,24 @@ test('host catalog distinguishes an archived Governor from an active task', asyn
   assert.equal((await hostTaskState(client, 'new')).archived, false);
   assert.equal(await hostTaskState(client, 'absent'), null);
 });
+
+test('ephemeral Governor readiness requires exact passed and exited worker evidence', () => {
+  const f = fixture();
+  f.binding.initialization.auditTransport = 'ephemeral-process';
+  assert.equal(inspectGovernorPending(f).reason, 'GOVERNOR_INIT_AUDIT_UNVERIFIED');
+  f.binding.initialization.audit = { transport: 'ephemeral-process', turnId: 'init-turn', generation: 2,
+    callId: 'audit-call', workerThreadId: 'worker', workerClosed: true, exitCode: 0,
+    verdict: 'pass', completedAt: '2026-10-03T12:00:10Z' };
+  assert.equal(inspectGovernorPending(f).status, 'ready');
+  for (const [key, value] of [['generation', 1], ['turnId', 'foreign'], ['workerClosed', false], ['verdict', 'blocked']]) {
+    const bad = structuredClone(f); bad.binding.initialization.audit[key] = value;
+    assert.equal(inspectGovernorPending(bad).reason, 'GOVERNOR_INIT_AUDIT_UNVERIFIED');
+  }
+});
+
+test('host systemError permits retry only for the exact stopped INIT turn', () => {
+  const f = fixture(); f.thread.status.type = 'systemError'; f.thread.turns[0].status = 'failed';
+  assert.equal(inspectGovernorPending(f).status, 'retry');
+  f.thread.turns[0].status = 'completed';
+  assert.equal(inspectGovernorPending(f).reason, 'GOVERNOR_HOST_TASK_UNVERIFIED');
+});

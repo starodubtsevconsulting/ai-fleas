@@ -429,6 +429,10 @@ function doctor() {
 
 // Presentation only: classify a controller result without host or registry effects.
 export function governorLaunchReport(result) {
+  if (result.controllerReleased === false) return {
+    platformStatus: 'AI Fleas GPT is pending.',
+    destination: `Personal Governor initialized, but its background connection has not released the chat (${result.handoffReason}). Desktop use is not ready. Retry release on this exact task; do not fork or replay INIT.`,
+  };
   if (result.status === 'blocked') {
     const task = result.taskId ? ` for task ${result.taskId}` : ' before a task ID was verified';
     return {
@@ -530,11 +534,9 @@ async function launch() {
   launchEvent('governor-resolved', { taskId: result.taskId, status: result.status,
     reason: result.reason, classification: result.classification,
     welcomeStatus: result.welcomeStatus, welcomeReason: result.welcomeReason });
-  if (result.status === 'existing' && (!result.welcomeStatus || result.welcomeStatus === 'completed')) {
-    openLocalGovernor(result.taskId);
-  }
   const { platformStatus, destination } = governorLaunchReport(result);
-  if (result.status === 'ready' && result.welcomeStatus === 'completed')
+  if (result.controllerReleased === false) governorNotice(destination);
+  else if (result.status === 'ready' && result.welcomeStatus === 'completed')
     governorNotice('Personal Governor is ready and pinned. Its welcome report is in the chat.');
   else if (result.welcomeReason === 'GOVERNOR_WELCOME_FOREIGN_WRITER_ACTIVE')
     governorNotice(destination);
@@ -623,12 +625,12 @@ else if (action === 'prepare-human-profile') {
   } catch (error) { fail(error.message); }
 }
 else if (action === 'initialize-governor') {
-  if (!human || !humanDir || !thread || profile || migrate) {
-    fail('usage: launcher.mjs initialize-governor --human ID --human-dir PATH --thread TASK_ID');
+  if (!human || !humanDir || profile || migrate) {
+    fail('usage: launcher.mjs initialize-governor --human ID --human-dir PATH [--thread EXISTING_NATIVE_TASK_ID]');
   }
   process.stdout.write(run(process.execPath, [
     path.join(scriptDir, 'initialize-governor.mjs'),
-    '--human', human, '--human-dir', humanDir, '--thread', thread,
+    '--human', human, '--human-dir', humanDir, ...(thread ? ['--thread', thread] : []),
   ]));
 } else fail(`unknown action: ${action}; expected setup, doctor, launch, prepare-human-profile, initialize-governor, discover-admin-scope, or preflight-admin`);
 }
