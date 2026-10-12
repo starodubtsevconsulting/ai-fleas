@@ -16,7 +16,7 @@ tags: [artificial-intelligence, automation, ai-agents, skills, travel]
 
 *No way I’m doing all those browser clicks again.*
 
-![The AI Fleas traveler and robot turn airport paperwork into an organized, reusable travel plan.](assets/2026-10-11-travel-skill-header-v1.png)
+![A geometric airport terminal shaped like a human head, with robot helpers, travelers, a plane and a yellow taxi.](assets/2026-10-11-travel-skill-geometric-header-candidate-v2.png)
 
 *One trip. A slightly ambitious backpack. A skill for next time.*
 
