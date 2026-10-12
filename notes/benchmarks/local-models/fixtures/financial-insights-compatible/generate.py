@@ -6,7 +6,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 HERE = Path(__file__).resolve().parent
-REL = 'data/reports/2026/example-consulting/q4/incoming/unprocessed'
+REL = 'data/corporate/reports/2026/example-consulting/q4/incoming/unprocessed'
 COMMON = {'reportingPeriod.end':'2026-09-30','currency':'CAD'}
 CASES = [
  ('federal-confirmation','Federal Payroll Deductions EMPTX PD7A submission confirmation',[
@@ -42,7 +42,26 @@ CASES = [
    'amounts.components.cnesst':0,'amounts.arithmetic.total':2369.24,
    'obligationLifecycle.state':'obligation-recorded','obligationLifecycle.settlement':'pending'})
 ]
+def generate_skeleton():
+ """Track canonical empty sections without inventing financial records."""
+ corporate=HERE/'data/corporate'
+ corporate.mkdir(parents=True,exist_ok=True)
+ (corporate/'README.md').write_text('# Fictional corporate root\n\nThis fixture contains only the invented Example Consulting organization.\n`reports/2026/example-consulting/` holds the canonical accounting tree; the\nfinancial-records command receives `reports` as its root. No real organization\nrecords or operational configuration are present.\n')
+ for quarter in ('q1','q2','q3','q4'):
+  for section,description in (
+   ('in','Incoming invoices and source documents'),
+   ('out/taxes','Outgoing tax evidence; no tax summary or reviewed sidecar is supplied'),
+   ('statements','Bank/account statement evidence')):
+   target=corporate/'reports/2026/example-consulting'/quarter/section
+   target.mkdir(parents=True,exist_ok=True)
+   (target/'README.md').write_text('# Fictional empty section\n\n'+description+'.\nThis placeholder preserves the canonical folder in Git. No financial record is\npresent here, and this folder is not an executed benchmark case.\n')
+ for jurisdiction in ('ca-federal','ca-qc'):
+  target=corporate/'reports/2026/example-consulting/q4/out/taxes/payroll-remittances'/jurisdiction/'2026-09-30'
+  target.mkdir(parents=True,exist_ok=True)
+  (target/'README.md').write_text('# Proposed fictional payroll bundle\n\nThe benchmark asserts preparation destinations here. It does not publish\ncanonical PDFs or adjacent reviewed JSON sidecars. Originals remain in\n`q4/incoming/unprocessed`; human review and publication are still pending.\n')
+
 def main():
+ generate_skeleton()
  docs=[]
  for name,title,rows,facts in CASES:
   target=HERE/REL/(name+'.pdf'); target.parent.mkdir(parents=True,exist_ok=True)
@@ -64,8 +83,8 @@ def main():
   c.drawString(48,108,'For extraction tests only. Page 1 of 1');c.save()
   filename=(facts.get('dates.submissionDate') or '2026-09-30')+'_'+facts['jurisdiction']+'_payroll-remittance-'+facts['documentRole']+'.pdf'
   destination='2026/example-consulting/q4/out/taxes/payroll-remittances/'+facts['jurisdiction']+'/2026-09-30'
-  (HERE/'data/reports'/destination).mkdir(parents=True,exist_ok=True)
+  (HERE/'data/corporate/reports'/destination).mkdir(parents=True,exist_ok=True)
   docs.append({'id':name,'file':REL+'/'+name+'.pdf','page':1,'expected':facts,
                'destination':destination,'filename':filename,'sidecar':filename+'.json'})
- (HERE/'expected.json').write_text(json.dumps({'schema_version':1,'fictional':True,'documents':docs},indent=2)+'\n')
+ (HERE/'expected.json').write_text(json.dumps({'schema_version':1,'fixture_layout_revision':2,'fictional':True,'documents':docs},indent=2)+'\n')
 if __name__=='__main__':main()

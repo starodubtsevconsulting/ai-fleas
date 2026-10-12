@@ -4,7 +4,7 @@
   "documents": [
     {
       "id": "federal-confirmation",
-      "file": "data/reports/2026/example-consulting/q4/incoming/unprocessed/federal-confirmation.pdf",
+      "file": "data/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/federal-confirmation.pdf",
       "page": 1,
       "expected": {
         "reportingPeriod.end": "2026-09-30",
@@ -27,7 +27,7 @@
     },
     {
       "id": "quebec-confirmation",
-      "file": "data/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-confirmation.pdf",
+      "file": "data/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-confirmation.pdf",
       "page": 1,
       "expected": {
         "reportingPeriod.end": "2026-09-30",
@@ -47,7 +47,7 @@
     },
     {
       "id": "quebec-obligation",
-      "file": "data/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-obligation.pdf",
+      "file": "data/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-obligation.pdf",
       "page": 1,
       "expected": {
         "reportingPeriod.end": "2026-09-30",
@@ -69,5 +69,6 @@
       "filename": "2026-09-30_ca-qc_payroll-remittance-obligation.pdf",
       "sidecar": "2026-09-30_ca-qc_payroll-remittance-obligation.pdf.json"
     }
-  ]
+  ],
+  "fixture_layout_revision": 2
 }
