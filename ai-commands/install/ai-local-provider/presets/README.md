@@ -18,6 +18,8 @@ If minimum requirements are not satisfied, execution stops with `REQUIREMENTS_NO
 
 - `id`, `name`
 - `model`: source, repository/file, quantization and context
+- `model.projector`: optional pinned multimodal projector artifact. When present, the installer verifies it, starts
+  `llama-server` with `--mmproj`, and requires an image-completion verification before reporting success.
 - `runtime`: inference runtime
 - `requirements`: OS, architecture, RAM, disk and GPU constraints
 - `service`: default local API/service configuration

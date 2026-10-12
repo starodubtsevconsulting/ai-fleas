@@ -307,6 +307,11 @@ model_file="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-f
 model_api_alias="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.api_alias')"
 model_sha256="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.sha256')"
 model_manifest="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' model-manifest)" || fail "PRESET_NOT_READY: invalid model file manifest."
+set +e
+projector_manifest="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' projector-manifest)"
+projector_status=$?
+set -e
+if [[ $projector_status -eq 3 ]]; then projector_manifest=""; elif [[ $projector_status -ne 0 ]]; then fail 'PRESET_NOT_READY: invalid multimodal projector manifest.'; fi
 model_revision="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:model.revision' 2>/dev/null || printf 'main')"
 runtime_repository="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.source_repository')"
 runtime_revision="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:runtime.source_revision')"
@@ -352,7 +357,7 @@ fi
 trap 'rm -f -- "$auth_error"' EXIT
 set +e
 ssh "${ssh_provision_args[@]}" "$target" \
-  "sudo bash $(printf '%q' "$remote_provision_script") $(printf '%q ' "$storage_volume" "$model_repository" "$model_file" "$model_sha256" "$runtime_repository" "$runtime_revision" "$context_size" "$gpu_layers" "$listen_address" "$provider_port" "$service_name" "$model_api_alias" "$parallel_slots" "$cache_key_type" "$cache_value_type" "$model_manifest" "$model_revision" "$lazy_mode" "$architecture" "$cuda_toolkit_path" "$cuda_architectures" "$switch_from_user_service" "$cuda_toolkit_major_version" "$gateway_port" "$gateway_service_name" "$gateway_listen_address" "$remote_gateway_script" "$remote_gateway_ui" "$switch_from_user_gateway_service")"
+  "sudo bash $(printf '%q' "$remote_provision_script") $(printf '%q ' "$storage_volume" "$model_repository" "$model_file" "$model_sha256" "$runtime_repository" "$runtime_revision" "$context_size" "$gpu_layers" "$listen_address" "$provider_port" "$service_name" "$model_api_alias" "$parallel_slots" "$cache_key_type" "$cache_value_type" "$model_manifest" "$model_revision" "$lazy_mode" "$architecture" "$cuda_toolkit_path" "$cuda_architectures" "$switch_from_user_service" "$cuda_toolkit_major_version" "$gateway_port" "$gateway_service_name" "$gateway_listen_address" "$remote_gateway_script" "$remote_gateway_ui" "$switch_from_user_gateway_service" "$projector_manifest")"
 provision_code=$?
 set -e
 ssh "${ssh_args[@]}" "$target" "rm -f -- $(printf '%q' "$remote_provision_script")" >/dev/null 2>&1 || true

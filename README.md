@@ -221,6 +221,7 @@ A useful mental model is:
 | **Memory** | Information preserved so it can be retrieved beyond immediate context. |
 | **MCP** | Model Context Protocol: a common interface for exposing tools/resources to AI applications. |
 | **Model** | The trained neural network doing language/reasoning work. |
+| **Multimodal projector** | A model-specific component that converts image features into inputs the language model can use. It must be loaded and verified with the matching model before an endpoint can inspect images or rendered PDF pages; see [Multimodal local serving](ai-commands/install/ai-local-provider/multimodal-serving.md). |
 | **Education** | The conceptual knowledge/language a model was trained toward and has demonstrated in work. |
 | **Declared expertise** | What upstream documentation says the model was designed or trained for. |
 | **Observed expertise / capability** | What controlled work and independent verification show the model can actually do. |

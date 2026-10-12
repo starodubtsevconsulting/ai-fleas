@@ -23,6 +23,13 @@ under `ai-commands/install/ai-local-provider/logs/`. The terminal and log receiv
 so a human or AI collaborator with workspace access can inspect an active or failed
 run. Interactive sudo password input is never echoed or logged.
 
+For a preset with a pinned `model.projector`, installation verifies the projector checksum, starts `llama-server` with
+the projector, and requires a real image-completion response in addition to normal text inference. A model card that
+claims multimodality is not a successful local vision installation.
+
+See [`multimodal-serving.md`](multimodal-serving.md) for the projector, harness, Pi attachment, verification, and
+rollback architecture.
+
 ## Inputs
 
 | Input | Required | Source | Description |

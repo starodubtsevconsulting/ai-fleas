@@ -65,6 +65,10 @@ provisioner installs missing native build dependencies, NVIDIA driver/CUDA toolk
 a checksum-pinned model, an unprivileged systemd service, and verifies health plus real inference. A driver installation that needs a reboot
 stops explicitly and resumes safely when the command is rerun.
 
+For a preset that declares `model.projector`, the provisioner must also checksum-verify the pinned projector, include it
+in the `llama-server` service invocation, and verify an image completion before reporting success. See
+[`multimodal-serving.md`](multimodal-serving.md).
+
 ## Installation modes
 
 Interactive execution is the default behavior. The first choice is:
