@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const commandsRoot = path.dirname(fileURLToPath(import.meta.url));
-const categories = new Set(['install', 'data', 'connect', 'development', 'content', 'system', 'utility']);
+const categories = new Set(['install', 'data', 'connect', 'development', 'content', 'system', 'utility', 'travel']);
 const internalDirectories = new Set(['.venv', '_runtime', 'assets', 'tooling']);
 const rootCompatibilityDirectories = new Set(['.codex']);
 const allowedTypes = new Set(['contract', 'executable', 'adapter', 'provider', 'flow', 'visual']);

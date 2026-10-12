@@ -43,8 +43,12 @@ Rules:
 | `content` | Create or transform human-facing content/media | writing, Medium draft preparation, Obsidian notes, docs, TTS, video, Kdenlive |
 | `system` | Operate AI/runtime/machine/session capabilities | agents, machine profile, monitoring, session |
 | `utility` | Generic reusable helpers that do not fit another capability family | planning, discussion, demo |
+| `travel` | Plan travel logistics and coordinate trip preparation | Montréal–New York travel planning skills |
 
 Prefer an existing category over creating a new one. Add a new category only when several commands share a stable capability type that does not fit the existing list.
+
+The human-requested `travel` category also hosts reusable travel skills. A skill-only folder uses `SKILL.md`;
+it is not an executable command or an authorization binding. Add command metadata only when a command is introduced.
 
 ## Installer and normal-use companions
 
