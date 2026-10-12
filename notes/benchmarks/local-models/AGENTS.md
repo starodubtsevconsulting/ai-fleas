@@ -104,3 +104,15 @@ regression test.
 first line. The multiline-version privacy regression passes within 28 verifier,
 transport and reusable-profile tests; both live read-only profile checks verify
 65,536 context and native vision without inference or directory creation.
+
+## Native Hermes leading image token
+
+**What happened:** The first whole-document challenge pilot attached only the explicit second page; the leading first-page path remained text.
+
+**Root cause:** The installed native CLI's `_split_path_input` splits an unquoted leading path only at a literal space. A newline before prompt prose did not terminate that path token. `_collect_query_images` therefore could not resolve the first attachment.
+
+**How we fixed it:** Quote the leading first-page path before the newline and retain the supported explicit `--image` second-page argument. Reject path characters that cannot be framed safely. Preserve the failed pilot and use a fresh attempt for runtime acceptance.
+
+**How to avoid it:** Test the selected installed collector's actual parser behavior, not only an expected image-count gate. Require genuine native pre-request image count two before accepting whole-document transport.
+
+**Verification:** A read-only regression executes the installed collector functions without launching Hermes or inference: old framing collects one image and quoted framing collects both in order. Six runner tests and fifteen evaluator tests pass; live two-image acceptance remains a separate pilot gate.

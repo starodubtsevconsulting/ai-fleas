@@ -42,6 +42,15 @@ def observations(text):
     return values
 
 
+def hermes_query(prompt,images):
+    """Native file-drop parser needs a quoted path before newline/prose."""
+    if len(images) not in (1,2):raise ValueError('native CLI supports one or two challenge pages')
+    if len(images)==1:return prompt
+    path=str(images[0])
+    if any(char in path for char in ('"','\\','\n','\r')):raise ValueError('image path cannot be framed safely')
+    return '"'+path+'"\n'+prompt
+
+
 def visual(args,run,prepared,variant,identifier,prompt,images):
     folder=run/'raw';folder.mkdir(exist_ok=True)
     control=folder/(identifier+'.controls.jsonl');query=folder/(identifier+'.query.txt')
@@ -52,7 +61,7 @@ def visual(args,run,prepared,variant,identifier,prompt,images):
     else:
         module=shared.hermes_module();env=module.isolated_environment(prepared['home'],prepared['source'],control)
         # Native CLI collects the leading image drop AND the explicit --image.
-        query.write_text((str(images[0])+'\n' if len(images)==2 else '')+prompt)
+        query.write_text(hermes_query(prompt,images))
         argv=[str(prepared['python']),'-m','hermes_cli.main','chat','--query-file',str(query),'--image',str(images[-1]),'--format','stream-json','--oneshot','--reasoning','none','--ignore-rules','--provider','benchmark-native','--model',args.model]
     code,out,err,elapsed=invoke(argv,run,env,args.timeout)
     (folder/(identifier+'.events.jsonl')).write_text(out);(folder/(identifier+'.stderr.log')).write_text(err)
