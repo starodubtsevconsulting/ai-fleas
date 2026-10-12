@@ -1,0 +1,3026 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-12",
+  "fixture": "financial-insights-compatible",
+  "fixture_layout_revision": 4,
+  "fictional": true,
+  "variant": "pi-matched-64k",
+  "configuration": {
+    "verification_mode": "json-aware-vision",
+    "provider_binding": "explicit-cli-transport-alias",
+    "model_binding": "explicit-cli-model-alias",
+    "context_window": 65536,
+    "output_tokens": 2048,
+    "thinking": "off",
+    "server_enable_thinking": false,
+    "sampling": {
+      "temperature": 0,
+      "top_p": 1
+    },
+    "requires_runtime_evidence": true,
+    "supported": true,
+    "platform": "pi",
+    "harness": "Pi",
+    "adapter": "pi-print-json",
+    "enforce_output_tokens": true,
+    "provider": "private-selected-provider-alias",
+    "model": "qwen3.8-flash-next-iq4-nl",
+    "harness_version": "1.1.0",
+    "harness_source_revision": null,
+    "timeout_seconds": 90,
+    "render_dpi": 144,
+    "ground_truth_in_model_context": false,
+    "mechanical_candidate_in_model_context": true,
+    "workflow_agents_initialized": false,
+    "human_review": "pending",
+    "publication": false,
+    "projector_metadata": null,
+    "output_limit_boundary": "declared settings plus recorded actual API controls; null controls remain unavailable"
+  },
+  "runtime_context_evidence": {
+    "verified": true,
+    "model_match": true,
+    "context_window": 65536,
+    "native_image": true,
+    "checked_at": "2026-10-12T20:18:31.817110+00:00",
+    "boundary": "fresh bounded read-only live props check; private probe URL omitted"
+  },
+  "harness_system_prompt_boundary": "Pi custom system prompt replaces default; Hermes ephemeral instruction plus native harness default system behavior retained and context files ignored",
+  "source_sha256": {
+    "federal-confirmation": "f10b3d86dd7fc866aa848b4552d583534c072fb88f7b3f30578dbab4e83122b6",
+    "quebec-confirmation": "83b8ecec1986012d4051648d838a74c635053815e69ddca85b7f62a929d1a46d",
+    "quebec-obligation": "c969cfd6b372a982e4eb5f8e6cd5d4691e3575efff414dea56d007be72bd7b1b"
+  },
+  "variant_manifest_sha256": "6fc0222319bf9d5f8940e4a71129d91322be79ca792fd3960864d761f0cabd4a",
+  "source_versions": {
+    "run.py": "e78d595dfe4ca37f3ef788b88cacbce66b80d88b1e0577eb25d8ffa13b761289",
+    "verify.py": "4abbc419d5ac6834f72cd2db4bc9fed6d03b7c738f5100d4c87e1bc6d7d37632",
+    "variants.json": "6fc0222319bf9d5f8940e4a71129d91322be79ca792fd3960864d761f0cabd4a",
+    "verify-json.prompt.md": "ec5e3252cc5ea1624ae2949b1be6951a569a6acdc45efe4ccee5c00d35a3517e",
+    "hermes-adapter.py": "89442b39b726bb086a1282fbdfad121e3b2fdfd6fb90270c750abff16755dbfc",
+    "selected-profile-data/generate.py": "09fc651a98c45870fefee2f09155dec6f7e51ae21a6ea7b071d6ba3ee2d65c20",
+    "selected-profile-data/expected.json": "cee9fa82a0b75bce48e63f08d12e70f4b30484900f5ffd16a1bd5bd9f1872a60"
+  },
+  "mechanical_source_versions": {
+    "financial-records.command.mjs": "3009188ac297a5a50e671df486f8e362309d74c21de02e465fd4586d00b61ff7",
+    "pdf-reader.mjs": "f722fe8a2f4163f4a05d956f09b49f42644dd1a949f1f023d3b1e3d6f48586f2",
+    "recognizers/payroll-tax-source-recognition.mjs": "01d3ecb649d118e9c943fc3d5b62d30b4dadc24d3727d848716354381213f0c8",
+    "read-plans/payroll-tax-read-plan.mjs": "2665f648678b50613b57853ffdfb22f00a281d3a2fe13bbb50e333d1deb1a856"
+  },
+  "mechanical_source_version_collection": "captured before mechanical execution",
+  "mechanical_invocation_boundary": "shared exported FinancialRecordsCommand.run, same operation engine as registered CLI; no operational command-profile bootstrap",
+  "mechanical": [
+    {
+      "id": "federal-confirmation",
+      "exit_code": 0,
+      "wall_seconds": 0.644,
+      "source_unchanged": true,
+      "source_sha256": "f10b3d86dd7fc866aa848b4552d583534c072fb88f7b3f30578dbab4e83122b6",
+      "operation": [
+        "prepare-tax-from-source",
+        "--root",
+        "<fictional-run-report-root>",
+        "--source",
+        "ai-profile/example/data/financial-insights/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/federal-confirmation.pdf",
+        "--branch",
+        "example-consulting",
+        "--year",
+        "2026",
+        "--quarter",
+        "q4",
+        "--section",
+        "out"
+      ],
+      "proposal": {
+        "schemaVersion": 1,
+        "operation": "prepare-tax-from-source",
+        "status": "prepared",
+        "proposedDestination": "2026/example-consulting/q4/out/taxes/payroll-remittances/ca-federal/2026-09-30",
+        "proposedFilename": "2026-10-03_ca-federal_payroll-remittance-submission-confirmation.pdf",
+        "proposedSidecarFilename": "2026-10-03_ca-federal_payroll-remittance-submission-confirmation.pdf.json",
+        "extraction": {
+          "schemaVersion": 2,
+          "recordType": "payroll-tax-document",
+          "recordId": "sha256:f10b3d86dd7fc866aa848b4552d583534c072fb88f7b3f30578dbab4e83122b6",
+          "adapter": {
+            "id": "canadian-payroll-tax",
+            "version": 2
+          },
+          "source": {
+            "sha256": "f10b3d86dd7fc866aa848b4552d583534c072fb88f7b3f30578dbab4e83122b6",
+            "mediaType": "application/pdf",
+            "textSource": "embedded-pdf-text+local-ocr"
+          },
+          "documentRole": "submission-confirmation",
+          "jurisdiction": "ca-federal",
+          "currency": "CAD",
+          "operationalPeriod": {
+            "year": "2026",
+            "quarter": "q4"
+          },
+          "reportingPeriod": {
+            "end": "2026-09-30"
+          },
+          "dates": {
+            "submissionDate": "2026-10-03",
+            "dueDate": "2026-10-15",
+            "scheduledExecutionDate": "2026-10-11"
+          },
+          "amounts": {
+            "components": {
+              "grossPayroll": 24680.5,
+              "employeeCount": 7
+            },
+            "arithmetic": {
+              "total": 2345.67,
+              "computedTotal": 2345.67,
+              "matches": true
+            }
+          },
+          "completeness": {
+            "physicalPageCount": 1,
+            "expectedPageCount": 1,
+            "complete": true,
+            "warnings": []
+          },
+          "processing": {
+            "state": "processing-pending",
+            "reviewRequired": true
+          },
+          "obligationLifecycle": {
+            "state": "scheduled",
+            "providerStatus": "to-be-processed",
+            "settlement": "pending"
+          },
+          "relations": [
+            {
+              "type": "confirms-submission-of",
+              "targetRef": "tax-obligation:ca-federal:2026-09-30"
+            }
+          ],
+          "provenance": {
+            "reportingPeriod.end": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.submissionDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.dueDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.scheduledExecutionDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.grossPayroll": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.employeeCount": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.total": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.computedTotal": {
+              "source": "derived-arithmetic",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.providerStatus": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "confirmationReferencePresent": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "documentRole": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "jurisdiction": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.state": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.settlement": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            }
+          },
+          "ocrVerificationRequired": [],
+          "unresolvedCriticalFields": [],
+          "confirmationReferencePresent": true
+        },
+        "reviewEligible": true,
+        "applyEligible": true,
+        "proposalRevision": "f6d983cdfd504584fe4e74fe9bf475971f7695b6af842218df2795aa3434cdbd"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected": "2026-09-30",
+            "actual": "2026-09-30",
+            "passed": true
+          },
+          {
+            "field": "currency",
+            "expected": "CAD",
+            "actual": "CAD",
+            "passed": true
+          },
+          {
+            "field": "documentRole",
+            "expected": "submission-confirmation",
+            "actual": "submission-confirmation",
+            "passed": true
+          },
+          {
+            "field": "jurisdiction",
+            "expected": "ca-federal",
+            "actual": "ca-federal",
+            "passed": true
+          },
+          {
+            "field": "dates.submissionDate",
+            "expected": "2026-10-03",
+            "actual": "2026-10-03",
+            "passed": true
+          },
+          {
+            "field": "dates.dueDate",
+            "expected": "2026-10-15",
+            "actual": "2026-10-15",
+            "passed": true
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "expected": "2026-10-11",
+            "actual": "2026-10-11",
+            "passed": true
+          },
+          {
+            "field": "amounts.components.grossPayroll",
+            "expected": 24680.5,
+            "actual": 24680.5,
+            "passed": true
+          },
+          {
+            "field": "amounts.components.employeeCount",
+            "expected": 7,
+            "actual": 7,
+            "passed": true
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected": 2345.67,
+            "actual": 2345.67,
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected": "scheduled",
+            "actual": "scheduled",
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected": "pending",
+            "actual": "pending",
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "expected": "to-be-processed",
+            "actual": "to-be-processed",
+            "passed": true
+          }
+        ],
+        "field_count": 13,
+        "field_matches": 13,
+        "canonical_naming_passed": true,
+        "prepared": true,
+        "human_review": "pending-not-published",
+        "currency_provenance": "command assigns CAD from jurisdiction context; fixture independently prints CAD"
+      }
+    },
+    {
+      "id": "quebec-confirmation",
+      "exit_code": 0,
+      "wall_seconds": 0.553,
+      "source_unchanged": true,
+      "source_sha256": "83b8ecec1986012d4051648d838a74c635053815e69ddca85b7f62a929d1a46d",
+      "operation": [
+        "prepare-tax-from-source",
+        "--root",
+        "<fictional-run-report-root>",
+        "--source",
+        "ai-profile/example/data/financial-insights/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-confirmation.pdf",
+        "--branch",
+        "example-consulting",
+        "--year",
+        "2026",
+        "--quarter",
+        "q4",
+        "--section",
+        "out"
+      ],
+      "proposal": {
+        "schemaVersion": 1,
+        "operation": "prepare-tax-from-source",
+        "status": "prepared",
+        "proposedDestination": "2026/example-consulting/q4/out/taxes/payroll-remittances/ca-qc/2026-09-30",
+        "proposedFilename": "2026-10-04_ca-qc_payroll-remittance-submission-confirmation.pdf",
+        "proposedSidecarFilename": "2026-10-04_ca-qc_payroll-remittance-submission-confirmation.pdf.json",
+        "extraction": {
+          "schemaVersion": 2,
+          "recordType": "payroll-tax-document",
+          "recordId": "sha256:83b8ecec1986012d4051648d838a74c635053815e69ddca85b7f62a929d1a46d",
+          "adapter": {
+            "id": "canadian-payroll-tax",
+            "version": 2
+          },
+          "source": {
+            "sha256": "83b8ecec1986012d4051648d838a74c635053815e69ddca85b7f62a929d1a46d",
+            "mediaType": "application/pdf",
+            "textSource": "embedded-pdf-text+local-ocr"
+          },
+          "documentRole": "submission-confirmation",
+          "jurisdiction": "ca-qc",
+          "currency": "CAD",
+          "operationalPeriod": {
+            "year": "2026",
+            "quarter": "q4"
+          },
+          "reportingPeriod": {
+            "end": "2026-09-30"
+          },
+          "dates": {
+            "submissionDate": "2026-10-04",
+            "scheduledExecutionDate": "2026-10-12"
+          },
+          "amounts": {
+            "components": {},
+            "arithmetic": {
+              "total": 2369.24,
+              "computedTotal": 2369.24,
+              "matches": true
+            }
+          },
+          "completeness": {
+            "physicalPageCount": 1,
+            "expectedPageCount": 1,
+            "complete": true,
+            "warnings": []
+          },
+          "processing": {
+            "state": "processing-pending",
+            "reviewRequired": true
+          },
+          "obligationLifecycle": {
+            "state": "scheduled",
+            "providerStatus": "to-be-processed",
+            "settlement": "pending"
+          },
+          "relations": [
+            {
+              "type": "confirms-submission-of",
+              "targetRef": "tax-obligation:ca-qc:2026-09-30"
+            }
+          ],
+          "provenance": {
+            "reportingPeriod.end": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.submissionDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.scheduledExecutionDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.total": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.computedTotal": {
+              "source": "derived-arithmetic",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.providerStatus": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "confirmationReferencePresent": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "documentRole": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "jurisdiction": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.state": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.settlement": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            }
+          },
+          "ocrVerificationRequired": [],
+          "unresolvedCriticalFields": [],
+          "confirmationReferencePresent": true
+        },
+        "reviewEligible": true,
+        "applyEligible": true,
+        "proposalRevision": "0ce0497349ca04a533160d89d554b8513a2709255ec0132fd0bd899b55c92a04"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected": "2026-09-30",
+            "actual": "2026-09-30",
+            "passed": true
+          },
+          {
+            "field": "currency",
+            "expected": "CAD",
+            "actual": "CAD",
+            "passed": true
+          },
+          {
+            "field": "documentRole",
+            "expected": "submission-confirmation",
+            "actual": "submission-confirmation",
+            "passed": true
+          },
+          {
+            "field": "jurisdiction",
+            "expected": "ca-qc",
+            "actual": "ca-qc",
+            "passed": true
+          },
+          {
+            "field": "dates.submissionDate",
+            "expected": "2026-10-04",
+            "actual": "2026-10-04",
+            "passed": true
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "expected": "2026-10-12",
+            "actual": "2026-10-12",
+            "passed": true
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected": 2369.24,
+            "actual": 2369.24,
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected": "scheduled",
+            "actual": "scheduled",
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected": "pending",
+            "actual": "pending",
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "expected": "to-be-processed",
+            "actual": "to-be-processed",
+            "passed": true
+          }
+        ],
+        "field_count": 10,
+        "field_matches": 10,
+        "canonical_naming_passed": true,
+        "prepared": true,
+        "human_review": "pending-not-published",
+        "currency_provenance": "command assigns CAD from jurisdiction context; fixture independently prints CAD"
+      }
+    },
+    {
+      "id": "quebec-obligation",
+      "exit_code": 0,
+      "wall_seconds": 0.558,
+      "source_unchanged": true,
+      "source_sha256": "c969cfd6b372a982e4eb5f8e6cd5d4691e3575efff414dea56d007be72bd7b1b",
+      "operation": [
+        "prepare-tax-from-source",
+        "--root",
+        "<fictional-run-report-root>",
+        "--source",
+        "ai-profile/example/data/financial-insights/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-obligation.pdf",
+        "--branch",
+        "example-consulting",
+        "--year",
+        "2026",
+        "--quarter",
+        "q4",
+        "--section",
+        "out"
+      ],
+      "proposal": {
+        "schemaVersion": 1,
+        "operation": "prepare-tax-from-source",
+        "status": "prepared",
+        "proposedDestination": "2026/example-consulting/q4/out/taxes/payroll-remittances/ca-qc/2026-09-30",
+        "proposedFilename": "2026-09-30_ca-qc_payroll-remittance-obligation.pdf",
+        "proposedSidecarFilename": "2026-09-30_ca-qc_payroll-remittance-obligation.pdf.json",
+        "extraction": {
+          "schemaVersion": 2,
+          "recordType": "payroll-tax-document",
+          "recordId": "sha256:c969cfd6b372a982e4eb5f8e6cd5d4691e3575efff414dea56d007be72bd7b1b",
+          "adapter": {
+            "id": "canadian-payroll-tax",
+            "version": 2
+          },
+          "source": {
+            "sha256": "c969cfd6b372a982e4eb5f8e6cd5d4691e3575efff414dea56d007be72bd7b1b",
+            "mediaType": "application/pdf",
+            "textSource": "embedded-pdf-text+local-ocr"
+          },
+          "documentRole": "obligation",
+          "jurisdiction": "ca-qc",
+          "currency": "CAD",
+          "operationalPeriod": {
+            "year": "2026",
+            "quarter": "q4"
+          },
+          "reportingPeriod": {
+            "start": "2026-07-01",
+            "end": "2026-09-30"
+          },
+          "dates": {
+            "dueDate": "2026-10-15"
+          },
+          "amounts": {
+            "components": {
+              "incomeTax": 1234.56,
+              "qpp": 789.01,
+              "healthServicesFund": 234.56,
+              "qpip": 111.11,
+              "cnesst": 0
+            },
+            "arithmetic": {
+              "total": 2369.24,
+              "computedTotal": 2369.24,
+              "matches": true
+            }
+          },
+          "completeness": {
+            "physicalPageCount": 1,
+            "expectedPageCount": 1,
+            "complete": true,
+            "warnings": []
+          },
+          "processing": {
+            "state": "processing-pending",
+            "reviewRequired": true
+          },
+          "obligationLifecycle": {
+            "state": "obligation-recorded",
+            "settlement": "pending"
+          },
+          "relations": [],
+          "provenance": {
+            "reportingPeriod.start": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "reportingPeriod.end": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.dueDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.incomeTax": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.qpp": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.healthServicesFund": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.qpip": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.cnesst": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.total": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.computedTotal": {
+              "source": "derived-arithmetic",
+              "confidence": "exact"
+            },
+            "documentRole": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "jurisdiction": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.state": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.settlement": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            }
+          },
+          "ocrVerificationRequired": [],
+          "unresolvedCriticalFields": []
+        },
+        "reviewEligible": true,
+        "applyEligible": true,
+        "proposalRevision": "bae30369f6ceddc784e2d69b956dbe394f26c94844b3226d5b713918210406d0"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected": "2026-09-30",
+            "actual": "2026-09-30",
+            "passed": true
+          },
+          {
+            "field": "currency",
+            "expected": "CAD",
+            "actual": "CAD",
+            "passed": true
+          },
+          {
+            "field": "documentRole",
+            "expected": "obligation",
+            "actual": "obligation",
+            "passed": true
+          },
+          {
+            "field": "jurisdiction",
+            "expected": "ca-qc",
+            "actual": "ca-qc",
+            "passed": true
+          },
+          {
+            "field": "reportingPeriod.start",
+            "expected": "2026-07-01",
+            "actual": "2026-07-01",
+            "passed": true
+          },
+          {
+            "field": "dates.dueDate",
+            "expected": "2026-10-15",
+            "actual": "2026-10-15",
+            "passed": true
+          },
+          {
+            "field": "amounts.components.incomeTax",
+            "expected": 1234.56,
+            "actual": 1234.56,
+            "passed": true
+          },
+          {
+            "field": "amounts.components.qpp",
+            "expected": 789.01,
+            "actual": 789.01,
+            "passed": true
+          },
+          {
+            "field": "amounts.components.healthServicesFund",
+            "expected": 234.56,
+            "actual": 234.56,
+            "passed": true
+          },
+          {
+            "field": "amounts.components.qpip",
+            "expected": 111.11,
+            "actual": 111.11,
+            "passed": true
+          },
+          {
+            "field": "amounts.components.cnesst",
+            "expected": 0,
+            "actual": 0,
+            "passed": true
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected": 2369.24,
+            "actual": 2369.24,
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected": "obligation-recorded",
+            "actual": "obligation-recorded",
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected": "pending",
+            "actual": "pending",
+            "passed": true
+          }
+        ],
+        "field_count": 14,
+        "field_matches": 14,
+        "canonical_naming_passed": true,
+        "prepared": true,
+        "human_review": "pending-not-published",
+        "currency_provenance": "command assigns CAD from jurisdiction context; fixture independently prints CAD"
+      }
+    }
+  ],
+  "vision": [
+    {
+      "id": "federal-confirmation-unchanged",
+      "exit_code": 0,
+      "wall_seconds": 40.41,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2555,
+        "output": 975,
+        "cacheRead": 0,
+        "cacheWrite": 0,
+        "totalTokens": 3530
+      },
+      "assistant_completions_observed": 1,
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": 2048,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "temperature": 0,
+          "top_p": 1,
+          "image_count": 1
+        }
+      ],
+      "transport_verification": {
+        "exit_success": true,
+        "normal_stop": true,
+        "json_object": true,
+        "one_image_observed": true,
+        "thinking_disabled_observed": true,
+        "actual_output_cap": true,
+        "actual_sampling": true,
+        "passed": true
+      },
+      "answer": {
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "status": "match",
+            "observed": "2026-09-30",
+            "evidence": {
+              "page": 1,
+              "quote": "Date payment made to employees: 2026 Sep"
+            }
+          },
+          {
+            "field": "currency",
+            "status": "match",
+            "observed": "CAD",
+            "evidence": {
+              "page": 1,
+              "quote": "Currency: CAD"
+            }
+          },
+          {
+            "field": "documentRole",
+            "status": "match",
+            "observed": "submission-confirmation",
+            "evidence": {
+              "page": 1,
+              "quote": "Federal Payroll Deductions EMPTX PD7A submission confirmation"
+            }
+          },
+          {
+            "field": "jurisdiction",
+            "status": "match",
+            "observed": "ca-federal",
+            "evidence": {
+              "page": 1,
+              "quote": "Federal Payroll Deductions EMPTX PD7A submission confirmation"
+            }
+          },
+          {
+            "field": "dates.submissionDate",
+            "status": "match",
+            "observed": "2026-10-03",
+            "evidence": {
+              "page": 1,
+              "quote": "Confirmation date: 2026-10-03"
+            }
+          },
+          {
+            "field": "dates.dueDate",
+            "status": "match",
+            "observed": "2026-10-15",
+            "evidence": {
+              "page": 1,
+              "quote": "Due Date: 2026-10-15"
+            }
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "status": "match",
+            "observed": "2026-10-11",
+            "evidence": {
+              "page": 1,
+              "quote": "Payment Date: 2026-10-11"
+            }
+          },
+          {
+            "field": "amounts.components.grossPayroll",
+            "status": "match",
+            "observed": 24680.5,
+            "evidence": {
+              "page": 1,
+              "quote": "Gross payroll: 24,680.50"
+            }
+          },
+          {
+            "field": "amounts.components.employeeCount",
+            "status": "match",
+            "observed": 7,
+            "evidence": {
+              "page": 1,
+              "quote": "Number of employees: 7"
+            }
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "status": "match",
+            "observed": 2345.67,
+            "evidence": {
+              "page": 1,
+              "quote": "Amount payable: 2,345.67"
+            }
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "status": "match",
+            "observed": "scheduled",
+            "evidence": {
+              "page": 1,
+              "quote": "Submission scheduling only. No completed or settled payment is evidenced."
+            }
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "status": "match",
+            "observed": "pending",
+            "evidence": {
+              "page": 1,
+              "quote": "No completed or settled payment is evidenced."
+            }
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "status": "match",
+            "observed": "to-be-processed",
+            "evidence": {
+              "page": 1,
+              "quote": "Provider status: To be processed"
+            }
+          }
+        ]
+      },
+      "prompt_sha256": "a1b9f40887724942c1d9bbb5fd91a55393bddf4038b7be3e9ee3b2f26d96a97d",
+      "image_sha256": "5607b9faa2276ebf221b891f47eb535013169191dc63d686de5c8f64228ce28b",
+      "image_bytes": 99518,
+      "document": "federal-confirmation",
+      "case": "unchanged",
+      "seeded_field": null,
+      "seeded_fields": [],
+      "verification": {
+        "passed": true,
+        "schema_valid": true,
+        "extra_fields": [],
+        "duplicate_fields": [],
+        "field_count": 13,
+        "fields_passed": 13,
+        "expected_matches": 13,
+        "expected_contradictions": 0,
+        "contradictions_detected": 0,
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "omissions": 0,
+        "unknowns": 0,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "currency",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "documentRole",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "jurisdiction",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.submissionDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.dueDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.components.grossPayroll",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.components.employeeCount",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "quebec-confirmation-unchanged",
+      "exit_code": 0,
+      "wall_seconds": 31.681,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2429,
+        "output": 737,
+        "cacheRead": 72,
+        "cacheWrite": 0,
+        "totalTokens": 3238
+      },
+      "assistant_completions_observed": 1,
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": 2048,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "temperature": 0,
+          "top_p": 1,
+          "image_count": 1
+        }
+      ],
+      "transport_verification": {
+        "exit_success": true,
+        "normal_stop": true,
+        "json_object": true,
+        "one_image_observed": true,
+        "thinking_disabled_observed": true,
+        "actual_output_cap": true,
+        "actual_sampling": true,
+        "passed": true
+      },
+      "answer": {
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "status": "match",
+            "observed": "2026-09-30",
+            "evidence": {
+              "page": 1,
+              "quote": "Reporting period end: 2026-09-30"
+            }
+          },
+          {
+            "field": "currency",
+            "status": "match",
+            "observed": "CAD",
+            "evidence": {
+              "page": 1,
+              "quote": "Currency: CAD"
+            }
+          },
+          {
+            "field": "documentRole",
+            "status": "match",
+            "observed": "submission-confirmation",
+            "evidence": {
+              "page": 1,
+              "quote": "Revenu Quebec payment submission confirmation"
+            }
+          },
+          {
+            "field": "jurisdiction",
+            "status": "match",
+            "observed": "ca-qc",
+            "evidence": {
+              "page": 1,
+              "quote": "Canada / Quebec payroll remittance"
+            }
+          },
+          {
+            "field": "dates.submissionDate",
+            "status": "match",
+            "observed": "2026-10-04",
+            "evidence": {
+              "page": 1,
+              "quote": "Confirmation date: 2026-10-04"
+            }
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "status": "match",
+            "observed": "2026-10-12",
+            "evidence": {
+              "page": 1,
+              "quote": "Scheduled execution: 2026-10-12"
+            }
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "status": "match",
+            "observed": 2369.24,
+            "evidence": {
+              "page": 1,
+              "quote": "Payment total: 2,369.24"
+            }
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "status": "match",
+            "observed": "scheduled",
+            "evidence": {
+              "page": 1,
+              "quote": "Scheduled execution: 2026-10-12"
+            }
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "status": "match",
+            "observed": "pending",
+            "evidence": {
+              "page": 1,
+              "quote": "No completed or settled payment is evidenced."
+            }
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "status": "match",
+            "observed": "to-be-processed",
+            "evidence": {
+              "page": 1,
+              "quote": "Provider status: To be processed"
+            }
+          }
+        ]
+      },
+      "prompt_sha256": "e26c1d2cce7c47c92a046220dc189e8d374accf0c2655be4ea0083c9d845316b",
+      "image_sha256": "e4c364dc1fe5c8f002212d3d39522c361d15c3b67e52bc7f5b3731f3e44fcbd0",
+      "image_bytes": 84177,
+      "document": "quebec-confirmation",
+      "case": "unchanged",
+      "seeded_field": null,
+      "seeded_fields": [],
+      "verification": {
+        "passed": true,
+        "schema_valid": true,
+        "extra_fields": [],
+        "duplicate_fields": [],
+        "field_count": 10,
+        "fields_passed": 10,
+        "expected_matches": 10,
+        "expected_contradictions": 0,
+        "contradictions_detected": 0,
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "omissions": 0,
+        "unknowns": 0,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "currency",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "documentRole",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "jurisdiction",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.submissionDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "quebec-obligation-unchanged",
+      "exit_code": 0,
+      "wall_seconds": 43.455,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2502,
+        "output": 1060,
+        "cacheRead": 72,
+        "cacheWrite": 0,
+        "totalTokens": 3634
+      },
+      "assistant_completions_observed": 1,
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": 2048,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "temperature": 0,
+          "top_p": 1,
+          "image_count": 1
+        }
+      ],
+      "transport_verification": {
+        "exit_success": true,
+        "normal_stop": true,
+        "json_object": true,
+        "one_image_observed": true,
+        "thinking_disabled_observed": true,
+        "actual_output_cap": true,
+        "actual_sampling": true,
+        "passed": true
+      },
+      "answer": {
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "status": "match",
+            "observed": "2026-09-30",
+            "evidence": {
+              "page": 1,
+              "quote": "Reporting period end: 2026-09-30"
+            }
+          },
+          {
+            "field": "currency",
+            "status": "match",
+            "observed": "CAD",
+            "evidence": {
+              "page": 1,
+              "quote": "Currency: CAD"
+            }
+          },
+          {
+            "field": "documentRole",
+            "status": "match",
+            "observed": "obligation",
+            "evidence": {
+              "page": 1,
+              "quote": "Obligation only. No submission or completed payment is evidenced."
+            }
+          },
+          {
+            "field": "jurisdiction",
+            "status": "match",
+            "observed": "ca-qc",
+            "evidence": {
+              "page": 1,
+              "quote": "Canada / Quebec payroll remittance - synthetic provider form"
+            }
+          },
+          {
+            "field": "reportingPeriod.start",
+            "status": "match",
+            "observed": "2026-07-01",
+            "evidence": {
+              "page": 1,
+              "quote": "Reporting period start: 2026-07-01"
+            }
+          },
+          {
+            "field": "dates.dueDate",
+            "status": "match",
+            "observed": "2026-10-15",
+            "evidence": {
+              "page": 1,
+              "quote": "Due date: 2026-10-15"
+            }
+          },
+          {
+            "field": "amounts.components.incomeTax",
+            "status": "match",
+            "observed": 1234.56,
+            "evidence": {
+              "page": 1,
+              "quote": "Income tax: 1,234.56"
+            }
+          },
+          {
+            "field": "amounts.components.qpp",
+            "status": "match",
+            "observed": 789.01,
+            "evidence": {
+              "page": 1,
+              "quote": "QPP: 789.01"
+            }
+          },
+          {
+            "field": "amounts.components.healthServicesFund",
+            "status": "match",
+            "observed": 234.56,
+            "evidence": {
+              "page": 1,
+              "quote": "Health Services Fund: 234.56"
+            }
+          },
+          {
+            "field": "amounts.components.qpip",
+            "status": "match",
+            "observed": 111.11,
+            "evidence": {
+              "page": 1,
+              "quote": "QPIP: 111.11"
+            }
+          },
+          {
+            "field": "amounts.components.cnesst",
+            "status": "match",
+            "observed": 0,
+            "evidence": {
+              "page": 1,
+              "quote": "CNESST: 0.00"
+            }
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "status": "match",
+            "observed": 2369.24,
+            "evidence": {
+              "page": 1,
+              "quote": "Total remittance: 2,369.24"
+            }
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "status": "match",
+            "observed": "obligation-recorded",
+            "evidence": {
+              "page": 1,
+              "quote": "Obligation only. No submission or completed payment is evidenced."
+            }
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "status": "match",
+            "observed": "pending",
+            "evidence": {
+              "page": 1,
+              "quote": "Obligation only. No submission or completed payment is evidenced."
+            }
+          }
+        ]
+      },
+      "prompt_sha256": "3ac105837d5b8bd87826bd73d85475eba0334d7b63f5059a32e88694c1c38a07",
+      "image_sha256": "36d627a829dcfa56ded78f30f2796cc1bd5700867604e8a19b03ac16a9392d5c",
+      "image_bytes": 89463,
+      "document": "quebec-obligation",
+      "case": "unchanged",
+      "seeded_field": null,
+      "seeded_fields": [],
+      "verification": {
+        "passed": true,
+        "schema_valid": true,
+        "extra_fields": [],
+        "duplicate_fields": [],
+        "field_count": 14,
+        "fields_passed": 14,
+        "expected_matches": 14,
+        "expected_contradictions": 0,
+        "contradictions_detected": 0,
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "omissions": 0,
+        "unknowns": 0,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "currency",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "documentRole",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "jurisdiction",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "reportingPeriod.start",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.dueDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.components.incomeTax",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.components.qpp",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.components.healthServicesFund",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.components.qpip",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.components.cnesst",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "federal-confirmation-wrong-total",
+      "exit_code": 0,
+      "wall_seconds": 38.109,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2483,
+        "output": 912,
+        "cacheRead": 72,
+        "cacheWrite": 0,
+        "totalTokens": 3467
+      },
+      "assistant_completions_observed": 1,
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": 2048,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "temperature": 0,
+          "top_p": 1,
+          "image_count": 1
+        }
+      ],
+      "transport_verification": {
+        "exit_success": true,
+        "normal_stop": true,
+        "json_object": true,
+        "one_image_observed": true,
+        "thinking_disabled_observed": true,
+        "actual_output_cap": true,
+        "actual_sampling": true,
+        "passed": true
+      },
+      "answer": {
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "status": "match",
+            "observed": "2026-09-30",
+            "evidence": {
+              "page": 1,
+              "quote": "2026 Sep"
+            }
+          },
+          {
+            "field": "currency",
+            "status": "match",
+            "observed": "CAD",
+            "evidence": {
+              "page": 1,
+              "quote": "CAD"
+            }
+          },
+          {
+            "field": "documentRole",
+            "status": "match",
+            "observed": "submission-confirmation",
+            "evidence": {
+              "page": 1,
+              "quote": "submission confirmation"
+            }
+          },
+          {
+            "field": "jurisdiction",
+            "status": "match",
+            "observed": "ca-federal",
+            "evidence": {
+              "page": 1,
+              "quote": "Federal Payroll Deductions"
+            }
+          },
+          {
+            "field": "dates.submissionDate",
+            "status": "match",
+            "observed": "2026-10-03",
+            "evidence": {
+              "page": 1,
+              "quote": "2026-10-03"
+            }
+          },
+          {
+            "field": "dates.dueDate",
+            "status": "match",
+            "observed": "2026-10-15",
+            "evidence": {
+              "page": 1,
+              "quote": "2026-10-15"
+            }
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "status": "match",
+            "observed": "2026-10-11",
+            "evidence": {
+              "page": 1,
+              "quote": "2026-10-11"
+            }
+          },
+          {
+            "field": "amounts.components.grossPayroll",
+            "status": "match",
+            "observed": 24680.5,
+            "evidence": {
+              "page": 1,
+              "quote": "24,680.50"
+            }
+          },
+          {
+            "field": "amounts.components.employeeCount",
+            "status": "match",
+            "observed": 7,
+            "evidence": {
+              "page": 1,
+              "quote": "7"
+            }
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "status": "contradiction",
+            "observed": 2345.67,
+            "evidence": {
+              "page": 1,
+              "quote": "2,345.67"
+            }
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "status": "match",
+            "observed": "scheduled",
+            "evidence": {
+              "page": 1,
+              "quote": "Submission scheduling only."
+            }
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "status": "match",
+            "observed": "pending",
+            "evidence": {
+              "page": 1,
+              "quote": "No completed or settled payment is evidenced."
+            }
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "status": "match",
+            "observed": "to-be-processed",
+            "evidence": {
+              "page": 1,
+              "quote": "To be processed"
+            }
+          }
+        ]
+      },
+      "prompt_sha256": "3b04ae71ad1d86b1826664905dab48b91b9c4519f1379c46b4aa13fa4bd2caa8",
+      "image_sha256": "5607b9faa2276ebf221b891f47eb535013169191dc63d686de5c8f64228ce28b",
+      "image_bytes": 99518,
+      "document": "federal-confirmation",
+      "case": "wrong-total",
+      "seeded_field": "amounts.arithmetic.total",
+      "seeded_fields": [
+        "amounts.arithmetic.total"
+      ],
+      "verification": {
+        "passed": true,
+        "schema_valid": true,
+        "extra_fields": [],
+        "duplicate_fields": [],
+        "field_count": 13,
+        "fields_passed": 13,
+        "expected_matches": 12,
+        "expected_contradictions": 1,
+        "contradictions_detected": 1,
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "omissions": 0,
+        "unknowns": 0,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "currency",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "documentRole",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "jurisdiction",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.submissionDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.dueDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.components.grossPayroll",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.components.employeeCount",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected_status": "contradiction",
+            "status": "contradiction",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "federal-confirmation-wrong-date",
+      "exit_code": 0,
+      "wall_seconds": 40.48,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2483,
+        "output": 977,
+        "cacheRead": 72,
+        "cacheWrite": 0,
+        "totalTokens": 3532
+      },
+      "assistant_completions_observed": 1,
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": 2048,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "temperature": 0,
+          "top_p": 1,
+          "image_count": 1
+        }
+      ],
+      "transport_verification": {
+        "exit_success": true,
+        "normal_stop": true,
+        "json_object": true,
+        "one_image_observed": true,
+        "thinking_disabled_observed": true,
+        "actual_output_cap": true,
+        "actual_sampling": true,
+        "passed": true
+      },
+      "answer": {
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "status": "match",
+            "observed": "2026-09-30",
+            "evidence": {
+              "page": 1,
+              "quote": "Date payment made to employees: 2026 Sep"
+            }
+          },
+          {
+            "field": "currency",
+            "status": "match",
+            "observed": "CAD",
+            "evidence": {
+              "page": 1,
+              "quote": "Currency: CAD"
+            }
+          },
+          {
+            "field": "documentRole",
+            "status": "match",
+            "observed": "submission-confirmation",
+            "evidence": {
+              "page": 1,
+              "quote": "Federal Payroll Deductions EMPTX PD7A submission confirmation"
+            }
+          },
+          {
+            "field": "jurisdiction",
+            "status": "match",
+            "observed": "ca-federal",
+            "evidence": {
+              "page": 1,
+              "quote": "Federal Payroll Deductions EMPTX PD7A submission confirmation"
+            }
+          },
+          {
+            "field": "dates.submissionDate",
+            "status": "match",
+            "observed": "2026-10-03",
+            "evidence": {
+              "page": 1,
+              "quote": "Confirmation date: 2026-10-03"
+            }
+          },
+          {
+            "field": "dates.dueDate",
+            "status": "match",
+            "observed": "2026-10-15",
+            "evidence": {
+              "page": 1,
+              "quote": "Due Date: 2026-10-15"
+            }
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "status": "contradiction",
+            "observed": "2026-10-11",
+            "evidence": {
+              "page": 1,
+              "quote": "Payment Date: 2026-10-11"
+            }
+          },
+          {
+            "field": "amounts.components.grossPayroll",
+            "status": "match",
+            "observed": 24680.5,
+            "evidence": {
+              "page": 1,
+              "quote": "Gross payroll: 24,680.50"
+            }
+          },
+          {
+            "field": "amounts.components.employeeCount",
+            "status": "match",
+            "observed": 7,
+            "evidence": {
+              "page": 1,
+              "quote": "Number of employees: 7"
+            }
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "status": "match",
+            "observed": 2345.67,
+            "evidence": {
+              "page": 1,
+              "quote": "Amount payable: 2,345.67"
+            }
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "status": "match",
+            "observed": "scheduled",
+            "evidence": {
+              "page": 1,
+              "quote": "Submission scheduling only. No completed or settled payment is evidenced."
+            }
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "status": "match",
+            "observed": "pending",
+            "evidence": {
+              "page": 1,
+              "quote": "No completed or settled payment is evidenced."
+            }
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "status": "match",
+            "observed": "to-be-processed",
+            "evidence": {
+              "page": 1,
+              "quote": "Provider status: To be processed"
+            }
+          }
+        ]
+      },
+      "prompt_sha256": "f664e24567551e0ad40520333847f2a8903cd7291b759cd99f863a00bfd7ccd7",
+      "image_sha256": "5607b9faa2276ebf221b891f47eb535013169191dc63d686de5c8f64228ce28b",
+      "image_bytes": 99518,
+      "document": "federal-confirmation",
+      "case": "wrong-date",
+      "seeded_field": "dates.scheduledExecutionDate",
+      "seeded_fields": [
+        "dates.scheduledExecutionDate"
+      ],
+      "verification": {
+        "passed": true,
+        "schema_valid": true,
+        "extra_fields": [],
+        "duplicate_fields": [],
+        "field_count": 13,
+        "fields_passed": 13,
+        "expected_matches": 12,
+        "expected_contradictions": 1,
+        "contradictions_detected": 1,
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "omissions": 0,
+        "unknowns": 0,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "currency",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "documentRole",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "jurisdiction",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.submissionDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.dueDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "expected_status": "contradiction",
+            "status": "contradiction",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.components.grossPayroll",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.components.employeeCount",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "quebec-confirmation-wrong-settlement",
+      "exit_code": 0,
+      "wall_seconds": 31.816,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2428,
+        "output": 739,
+        "cacheRead": 72,
+        "cacheWrite": 0,
+        "totalTokens": 3239
+      },
+      "assistant_completions_observed": 1,
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": 2048,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "temperature": 0,
+          "top_p": 1,
+          "image_count": 1
+        }
+      ],
+      "transport_verification": {
+        "exit_success": true,
+        "normal_stop": true,
+        "json_object": true,
+        "one_image_observed": true,
+        "thinking_disabled_observed": true,
+        "actual_output_cap": true,
+        "actual_sampling": true,
+        "passed": true
+      },
+      "answer": {
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "status": "match",
+            "observed": "2026-09-30",
+            "evidence": {
+              "page": 1,
+              "quote": "Reporting period end: 2026-09-30"
+            }
+          },
+          {
+            "field": "currency",
+            "status": "match",
+            "observed": "CAD",
+            "evidence": {
+              "page": 1,
+              "quote": "Currency: CAD"
+            }
+          },
+          {
+            "field": "documentRole",
+            "status": "match",
+            "observed": "submission-confirmation",
+            "evidence": {
+              "page": 1,
+              "quote": "Revenu Quebec payment submission confirmation"
+            }
+          },
+          {
+            "field": "jurisdiction",
+            "status": "match",
+            "observed": "ca-qc",
+            "evidence": {
+              "page": 1,
+              "quote": "Canada / Quebec payroll remittance"
+            }
+          },
+          {
+            "field": "dates.submissionDate",
+            "status": "match",
+            "observed": "2026-10-04",
+            "evidence": {
+              "page": 1,
+              "quote": "Confirmation date: 2026-10-04"
+            }
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "status": "match",
+            "observed": "2026-10-12",
+            "evidence": {
+              "page": 1,
+              "quote": "Scheduled execution: 2026-10-12"
+            }
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "status": "match",
+            "observed": 2369.24,
+            "evidence": {
+              "page": 1,
+              "quote": "Payment total: 2,369.24"
+            }
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "status": "contradiction",
+            "observed": "scheduled",
+            "evidence": {
+              "page": 1,
+              "quote": "Submission scheduling only. No completed or settled payment is evidenced."
+            }
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "status": "contradiction",
+            "observed": "pending",
+            "evidence": {
+              "page": 1,
+              "quote": "No completed or settled payment is evidenced."
+            }
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "status": "contradiction",
+            "observed": "To be processed",
+            "evidence": {
+              "page": 1,
+              "quote": "Provider status: To be processed"
+            }
+          }
+        ]
+      },
+      "prompt_sha256": "f4b2fec18956f122933a29ed5174f964b47526b1888d5f450743b21f31ea836f",
+      "image_sha256": "e4c364dc1fe5c8f002212d3d39522c361d15c3b67e52bc7f5b3731f3e44fcbd0",
+      "image_bytes": 84177,
+      "document": "quebec-confirmation",
+      "case": "wrong-settlement",
+      "seeded_field": "obligationLifecycle.settlement",
+      "seeded_fields": [
+        "obligationLifecycle.settlement",
+        "obligationLifecycle.state",
+        "obligationLifecycle.providerStatus"
+      ],
+      "verification": {
+        "passed": true,
+        "schema_valid": true,
+        "extra_fields": [],
+        "duplicate_fields": [],
+        "field_count": 10,
+        "fields_passed": 10,
+        "expected_matches": 7,
+        "expected_contradictions": 3,
+        "contradictions_detected": 3,
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "omissions": 0,
+        "unknowns": 0,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "currency",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "documentRole",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "jurisdiction",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.submissionDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected_status": "contradiction",
+            "status": "contradiction",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected_status": "contradiction",
+            "status": "contradiction",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "expected_status": "contradiction",
+            "status": "contradiction",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "quebec-confirmation-wrong-currency",
+      "exit_code": 0,
+      "wall_seconds": 31.847,
+      "first_token_seconds": null,
+      "stop_reason": "stop",
+      "usage": {
+        "input": 2429,
+        "output": 739,
+        "cacheRead": 72,
+        "cacheWrite": 0,
+        "totalTokens": 3240
+      },
+      "assistant_completions_observed": 1,
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "outbound_controls": [
+        {
+          "enable_thinking": false,
+          "max_tokens": 2048,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "temperature": 0,
+          "top_p": 1,
+          "image_count": 1
+        }
+      ],
+      "transport_verification": {
+        "exit_success": true,
+        "normal_stop": true,
+        "json_object": true,
+        "one_image_observed": true,
+        "thinking_disabled_observed": true,
+        "actual_output_cap": true,
+        "actual_sampling": true,
+        "passed": true
+      },
+      "answer": {
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "status": "match",
+            "observed": "2026-09-30",
+            "evidence": {
+              "page": 1,
+              "quote": "Reporting period end: 2026-09-30"
+            }
+          },
+          {
+            "field": "currency",
+            "status": "contradiction",
+            "observed": "CAD",
+            "evidence": {
+              "page": 1,
+              "quote": "Currency: CAD"
+            }
+          },
+          {
+            "field": "documentRole",
+            "status": "match",
+            "observed": "submission-confirmation",
+            "evidence": {
+              "page": 1,
+              "quote": "Revenu Quebec payment submission confirmation"
+            }
+          },
+          {
+            "field": "jurisdiction",
+            "status": "match",
+            "observed": "ca-qc",
+            "evidence": {
+              "page": 1,
+              "quote": "Canada / Quebec payroll remittance"
+            }
+          },
+          {
+            "field": "dates.submissionDate",
+            "status": "match",
+            "observed": "2026-10-04",
+            "evidence": {
+              "page": 1,
+              "quote": "Confirmation date: 2026-10-04"
+            }
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "status": "match",
+            "observed": "2026-10-12",
+            "evidence": {
+              "page": 1,
+              "quote": "Scheduled execution: 2026-10-12"
+            }
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "status": "match",
+            "observed": 2369.24,
+            "evidence": {
+              "page": 1,
+              "quote": "Payment total: 2,369.24"
+            }
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "status": "match",
+            "observed": "scheduled",
+            "evidence": {
+              "page": 1,
+              "quote": "Scheduled execution: 2026-10-12"
+            }
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "status": "match",
+            "observed": "pending",
+            "evidence": {
+              "page": 1,
+              "quote": "No completed or settled payment is evidenced."
+            }
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "status": "match",
+            "observed": "to-be-processed",
+            "evidence": {
+              "page": 1,
+              "quote": "Provider status: To be processed"
+            }
+          }
+        ]
+      },
+      "prompt_sha256": "176a3b33a7d5bdeb15d630986c8a5705b289942aa1e86439d3aa8d90553256d0",
+      "image_sha256": "e4c364dc1fe5c8f002212d3d39522c361d15c3b67e52bc7f5b3731f3e44fcbd0",
+      "image_bytes": 84177,
+      "document": "quebec-confirmation",
+      "case": "wrong-currency",
+      "seeded_field": "currency",
+      "seeded_fields": [
+        "currency"
+      ],
+      "verification": {
+        "passed": true,
+        "schema_valid": true,
+        "extra_fields": [],
+        "duplicate_fields": [],
+        "field_count": 10,
+        "fields_passed": 10,
+        "expected_matches": 9,
+        "expected_contradictions": 1,
+        "contradictions_detected": 1,
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "omissions": 0,
+        "unknowns": 0,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "currency",
+            "expected_status": "contradiction",
+            "status": "contradiction",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "documentRole",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "jurisdiction",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.submissionDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "expected_status": "match",
+            "status": "match",
+            "passed": true,
+            "value_correct": true,
+            "source_quote_verified": true,
+            "false_accept": false,
+            "false_reject": false,
+            "omitted": false,
+            "unknown": false
+          }
+        ]
+      }
+    }
+  ],
+  "blocked_stage": null,
+  "blocked_cases": [],
+  "timing": {
+    "preflight_seconds": 0.191,
+    "mechanical_seconds": 1.755,
+    "rendering_seconds": 4.494,
+    "vision_seconds": 257.798,
+    "vision_verification_seconds": 0.005,
+    "total_wall_seconds": 264.291,
+    "boundary": "run setup, copying fictional originals, real preparation, text quote preparation, rendering and inference/evaluation; excludes fixture generation and manual visual inspection"
+  },
+  "summary": {
+    "mechanical_documents": 3,
+    "mechanical_passed": 3,
+    "mechanical_field_count": 37,
+    "mechanical_field_matches": 37,
+    "vision_runs": 7,
+    "vision_passed": 7,
+    "unchanged": {
+      "runs": 3,
+      "field_count": 37,
+      "fields_passed": 37,
+      "expected_matches": 37,
+      "expected_contradictions": 0,
+      "contradictions_detected": 0,
+      "false_accepts": 0,
+      "false_rejects": 0,
+      "omissions": 0,
+      "unknowns": 0
+    },
+    "tampered": {
+      "runs": 4,
+      "field_count": 46,
+      "fields_passed": 46,
+      "expected_matches": 40,
+      "expected_contradictions": 6,
+      "contradictions_detected": 6,
+      "false_accepts": 0,
+      "false_rejects": 0,
+      "omissions": 0,
+      "unknowns": 0
+    }
+  }
+}
