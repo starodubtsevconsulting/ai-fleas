@@ -43,3 +43,5 @@ Harness settings, prompts, evaluators and metrics remain outside this directory.
 Layout revision 4 relocates unchanged source bytes into their profile-owned home.
 The reusable workflow does not own or duplicate financial data.
 Historical consumer records retain their original paths, hashes and measurements.
+
+The sibling [challenge dataset](../financial-insights-challenges/README.md) adds raster, sideways, multi-page and incomplete or conflicting source forms while keeping this dataset unchanged. Its source documents and evaluator references remain owned by the example human profile.

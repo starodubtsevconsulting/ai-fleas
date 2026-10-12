@@ -200,3 +200,34 @@ latency, field accuracy and paired wall-time differences/ratios. Medians, ranges
 and population spread use valid observations; quartiles require five valid arms.
 These measurements describe this trial and do not establish a causal harness
 ranking or matched output lengths/native system context.
+
+## Challenge extraction and verification
+
+The example human profile owns the separate [challenge dataset](../../../../../ai-profile/example/data/financial-insights-challenges/README.md). Its [pipeline scenario](../../../../../ai-workflows/financial-insights/acceptance/financial-insights-challenge-pipeline.scenario.md) defines page extraction and whole-document contextual verification. Add a selected entry to a separate private profile configuration with `data_root` pointing explicitly to `ai-profile/example/data/financial-insights-challenges` (resolved relative to that configuration file). Reuse the matched native-image variant and private transport; keep the baseline configuration unchanged.
+
+From this tools directory, resolve the plan without inference or directory creation:
+
+```sh
+python3 challenge-run.py --profile-config PRIVATE_CHALLENGE_PROFILES_JSON \
+  --test-profile PROFILE_NAME --check-plan
+```
+
+After execution authorization, first prove genuine two-page native transport in a separately labelled pilot:
+
+```sh
+python3 challenge-run.py --profile-config PRIVATE_CHALLENGE_PROFILES_JSON \
+  --test-profile PROFILE_NAME --pilot-multipage \
+  --run-root FRESH_IGNORED_PILOT_ROOT --results FRESH_RESULT_JSON
+```
+
+Run the complete suite in another fresh root:
+
+```sh
+python3 challenge-run.py --profile-config PRIVATE_CHALLENGE_PROFILES_JSON \
+  --test-profile PROFILE_NAME \
+  --run-root FRESH_IGNORED_CHALLENGE_ROOT --results FRESH_RESULT_JSON
+```
+
+Run roots must be new directories under `notes/benchmarks/local-models/runs/` in the visible checkout. Results must be a new file inside that private run root or under `models/qwen3.8-flash-next/benchmarks/gx10/`; public evidence passes a privacy scan. Private configuration, raw proposals and logs remain ignored. Every execution freshly checks actual model, context and native vision. There are no retries or service/profile changes.
+
+The full suite makes six blind page requests and five contextual document requests after actual mechanical preparation. Report the tasks and timings separately. Page checks include visible financial facts and unknown observations for fields absent on that page; joint multi-page semantic classifications count only in whole-document checks. Mechanical non-support is a separate preparation outcome. Unknown printed currency remains unknown, and conflicting printed totals remain distinct from computed sums. Reference answers, support maps and manual transcripts never enter model context. The pilot is one contextual request and cannot count as the full suite. Transport or source drift stops execution with a failed exit; valid-transport accuracy failures remain recorded results.
