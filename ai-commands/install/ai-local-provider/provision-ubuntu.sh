@@ -10,9 +10,11 @@ architecture="${19:-amd64}"; cuda_toolkit_path="${20:-}"; cuda_architectures="${
 switch_from_user_service="${22:-}"; cuda_toolkit_major_version="${23:-}"; service_owner="${SUDO_USER:-}"
 gateway_port="${24:-}"; gateway_service_name="${25:-}"; gateway_listen_address="${26:-}"
 remote_gateway_script="${27:-}"; remote_gateway_ui="${28:-}"; switch_from_user_gateway_service="${29:-}"
+projector_manifest="${30:-}"
 install_root=/opt/ai-local-provider
 source_root="$install_root/src/llama.cpp"; build_root="$install_root/build"; binary_root="$install_root/bin"
 model_root="$storage_volume/ai-local-provider/models"; model_path="$model_root/$model_file"
+projector_path=""
 
 plan_step() { printf '\n[%s] %s\n' "$1" "$2"; }
 [[ "$(id -u)" -eq 0 ]] || { echo 'PROVISION_REQUIRES_ROOT' >&2; exit 6; }
@@ -63,6 +65,11 @@ for model_entry in "${model_entries[@]}"; do
   model_total_bytes=$((model_total_bytes + entry_size))
 done
 [[ "${model_entries[0]%%|*}" == "$model_file" ]] || { echo 'MODEL_MANIFEST_ENTRYPOINT_MISMATCH' >&2; exit 4; }
+if [[ -n "$projector_manifest" ]]; then
+  IFS='|' read -r projector_repository projector_revision projector_file projector_size projector_sha extra <<< "$projector_manifest"
+  [[ -z "${extra:-}" && "$projector_repository" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$ && "$projector_revision" =~ ^[a-f0-9]{40}$ && "$projector_file" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*\.gguf$ && "$projector_size" =~ ^[1-9][0-9]*$ && "$projector_sha" =~ ^[a-f0-9]{64}$ ]] || { echo 'PROJECTOR_MANIFEST_INVALID' >&2; exit 4; }
+  projector_path="$model_root/$projector_file"
+fi
 
 switch_stopped=false; gateway_switch_stopped=false
 install_success=false
@@ -184,6 +191,20 @@ for model_entry in "${model_entries[@]}"; do
   setfacl -m u:ai-local-provider:r-- "$entry_path"
 done
 
+if [[ -n "$projector_path" ]]; then
+  if [[ -f "$projector_path" ]] && [[ "$(stat -c %s "$projector_path")" == "$projector_size" ]] && printf '%s  %s\n' "$projector_sha" "$projector_path" | sha256sum --check --status; then
+    echo "PROJECTOR_ALREADY_VERIFIED: $projector_file"
+  else
+    rm -f -- "$projector_path" 2>/dev/null || true
+    curl --fail --location --retry 5 --continue-at - --output "$projector_path.part" "https://huggingface.co/$projector_repository/resolve/$projector_revision/$projector_file"
+    [[ "$(stat -c %s "$projector_path.part")" == "$projector_size" ]] || { rm -f -- "$projector_path.part"; echo 'PROJECTOR_SIZE_MISMATCH' >&2; exit 8; }
+    printf '%s  %s\n' "$projector_sha" "$projector_path.part" | sha256sum --check --status || { rm -f -- "$projector_path.part"; echo 'PROJECTOR_CHECKSUM_MISMATCH' >&2; exit 8; }
+    mv -- "$projector_path.part" "$projector_path"
+  fi
+  chmod 0644 "$projector_path"
+  setfacl -m u:ai-local-provider:r-- "$projector_path"
+fi
+
 plan_step AI-LOCAL-08 'Reconcile the service'
 cat >"/etc/systemd/system/$service_name.service" <<EOF
 [Unit]
@@ -195,7 +216,7 @@ User=ai-local-provider
 Group=ai-local-provider
 Restart=on-failure
 RestartSec=5
-ExecStart=$binary_root/llama-server -m $model_path --alias $model_api_alias --host $listen_address --port $provider_port -c $context_size -np $parallel_slots -ngl $gpu_layers -ctk $cache_key_type -ctv $cache_value_type${lazy_mode:+ --lazy-mode $lazy_mode}
+ExecStart=$binary_root/llama-server -m $model_path${projector_path:+ --mmproj $projector_path} --alias $model_api_alias --host $listen_address --port $provider_port -c $context_size -np $parallel_slots -ngl $gpu_layers -ctk $cache_key_type -ctv $cache_value_type${lazy_mode:+ --lazy-mode $lazy_mode}
 
 [Install]
 WantedBy=multi-user.target
@@ -216,6 +237,12 @@ for _ in $(seq 1 90); do
       -d '{"messages":[{"role":"user","content":"Reply with exactly READY"}],"temperature":0,"max_tokens":64,"chat_template_kwargs":{"enable_thinking":false}}' \
       "http://127.0.0.1:$provider_port/v1/chat/completions")"
     grep -q 'READY' <<<"$response" || { echo 'PROVIDER_INFERENCE_VERIFICATION_FAILED' >&2; exit 9; }
+    if [[ -n "$projector_path" ]]; then
+      vision_response="$(curl -fsS --max-time 180 -H 'Content-Type: application/json' \
+        -d '{"messages":[{"role":"user","content":[{"type":"text","text":"Reply with exactly VISION_READY"},{"type":"image_url","image_url":{"url":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLPNwAAAABJRU5ErkJggg=="}}]}],"temperature":0,"max_tokens":64,"chat_template_kwargs":{"enable_thinking":false}}' \
+        "http://127.0.0.1:$provider_port/v1/chat/completions")"
+      grep -q 'VISION_READY' <<<"$vision_response" || { echo 'PROVIDER_VISION_VERIFICATION_FAILED' >&2; exit 9; }
+    fi
     if [[ -n "$gateway_port" ]]; then
       plan_step AI-LOCAL-10 'Reconcile the managed API gateway'
       node_binary="$(command -v node)" || { echo 'GATEWAY_NODE_NOT_FOUND' >&2; exit 9; }

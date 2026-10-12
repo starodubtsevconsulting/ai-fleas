@@ -13,6 +13,12 @@ model:
     - file: Qwen3.8-Flash-Next-IQ4_NL-00002-of-00002.gguf
       size_bytes: 102037973504
       sha256: 0299b147e42517ff8fa3a4fa66d370c77ce01c44ed8cbc3451b7a42caad5fc10
+  projector:
+    repository: ggml-org/Qwen3.8-Flash-Next-GGUF
+    revision: 052beeaca7bec4a303e59cc7bc630c4f3a1b845d
+    file: mmproj-Qwen3.8-Flash-Next-Q8_0.gguf
+    size_bytes: 616703104
+    sha256: b2e9b5e4a44c107f8867e67dbf09b607fd99ae33c1a97a60a6720aeb252a9dad
   api_alias: qwen3.8-flash-next-iq4-nl
   sha256: 851652eef30d117a34fdc0d13e05da4c488a8cdad3654d38c4aa69a2d8a1fabc
   size_bytes: 10945440

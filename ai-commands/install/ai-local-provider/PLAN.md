@@ -50,8 +50,9 @@ Fetch and verify the exact reviewed `llama.cpp` revision, compile native CUDA
 <!-- PLAN_STEP: AI-LOCAL-07 -->
 ## AI-LOCAL-07 — Acquire and verify the model
 
-Reuse only a checksum-valid artifact. Otherwise resume/download the pinned model,
-verify SHA-256, and publish it atomically on the selected volume.
+Reuse only checksum-valid model artifacts. Otherwise resume/download the pinned model,
+verify SHA-256, and publish it atomically on the selected volume. For a multimodal
+preset, apply the same verification to its pinned projector artifact.
 
 <!-- PLAN_STEP: AI-LOCAL-08 -->
 ## AI-LOCAL-08 — Reconcile the service
@@ -62,8 +63,9 @@ start the provider.
 <!-- PLAN_STEP: AI-LOCAL-09 -->
 ## AI-LOCAL-09 — Verify the result
 
-Verify provider health and a real chat-completion response. Report success only
-after both checks pass.
+Verify provider health and a real chat-completion response. For a multimodal preset,
+also require a real image-completion response. Report success only after every
+applicable check passes.
 
 <!-- PLAN_STEP: AI-LOCAL-10 -->
 ## AI-LOCAL-10 — Reconcile the managed API gateway
