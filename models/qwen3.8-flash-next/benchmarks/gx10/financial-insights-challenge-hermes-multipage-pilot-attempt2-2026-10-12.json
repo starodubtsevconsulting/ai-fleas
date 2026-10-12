@@ -1,0 +1,563 @@
+{
+  "schema_version": 1,
+  "fictional": true,
+  "fixture": "financial-insights-challenges",
+  "configuration": {
+    "verification_mode": "json-aware-vision",
+    "provider_binding": "explicit-cli-transport-alias",
+    "model_binding": "explicit-cli-model-alias",
+    "context_window": 65536,
+    "output_tokens": 2048,
+    "thinking": "off",
+    "server_enable_thinking": false,
+    "sampling": {
+      "temperature": 0,
+      "top_p": 1
+    },
+    "requires_runtime_evidence": true,
+    "supported": true,
+    "platform": "hermes",
+    "harness": "Hermes",
+    "adapter": "hermes-native-json",
+    "model": "qwen3.8-flash-next-iq4-nl",
+    "harness_version": "Hermes Agent v0.21.5+7438.gf102b16 (2026.9.24) \u00b7 upstream f102b16c",
+    "harness_source_revision": "f102b16c1fbe73b1fcc40a19d0653fe15a0f1584"
+  },
+  "runtime_context_evidence": {
+    "verified": true,
+    "model_match": true,
+    "context_window": 65536,
+    "native_image": true,
+    "checked_at": "2026-10-12T21:01:49.491251+00:00",
+    "boundary": "fresh bounded read-only live props check; private probe URL omitted"
+  },
+  "source_versions": {
+    "challenge-run.py": "72297265f25eedeebeb9b6fdc5dca300acd2eebf4dd18a1a29d29cb80a3fbfb2",
+    "challenge-verify.py": "a9c64f9a810ce79fcee6c76504f3ec3230567eaa488932015bc11d2fd1cfa5b8",
+    "challenge-extract.prompt.md": "0e16c10303d41aca499bc7d098a53b0c515c0e1226e6501ce00faebae24d6d5b",
+    "challenge-check.prompt.md": "1d1c6b9a6c49a21cb0e46514828606f3320fd4b11333405adfd4e0584f4bd74a",
+    "run.py": "e78d595dfe4ca37f3ef788b88cacbce66b80d88b1e0577eb25d8ffa13b761289",
+    "hermes-adapter.py": "89442b39b726bb086a1282fbdfad121e3b2fdfd6fb90270c750abff16755dbfc",
+    "variants.json": "6fc0222319bf9d5f8940e4a71129d91322be79ca792fd3960864d761f0cabd4a",
+    "verify.py": "4abbc419d5ac6834f72cd2db4bc9fed6d03b7c738f5100d4c87e1bc6d7d37632"
+  },
+  "mechanical_source_versions": {
+    "financial-records.command.mjs": "3009188ac297a5a50e671df486f8e362309d74c21de02e465fd4586d00b61ff7",
+    "pdf-reader.mjs": "f722fe8a2f4163f4a05d956f09b49f42644dd1a949f1f023d3b1e3d6f48586f2",
+    "recognizers/payroll-tax-source-recognition.mjs": "01d3ecb649d118e9c943fc3d5b62d30b4dadc24d3727d848716354381213f0c8",
+    "read-plans/payroll-tax-read-plan.mjs": "2665f648678b50613b57853ffdfb22f00a281d3a2fe13bbb50e333d1deb1a856"
+  },
+  "dataset_versions": {
+    "expected.json": "529c42be0b91d8bc8082576dcb8c463aa75f8fd4243da84b32b8084623c13261",
+    "transcripts.json": "b2c7141a9ee89657b39371378decf0182cef119e10ac8de1f71d207852e02c7a",
+    "generate.py": "bfd1cb6370394ff92e3f4ba3b0df21ddf8c0bf43417d52b07ef781be5041af66"
+  },
+  "source_sha256": {
+    "quebec-two-page-obligation": "a966887e9b15454663bf846a7293cc0d8a9232d09865570fe32649d01236e4a4"
+  },
+  "execution_commit": "4e2eb0fec907e772722228b7c8435431b96b7635",
+  "pilot_multipage": true,
+  "source_drift": false,
+  "mechanical": [
+    {
+      "field_checks": [
+        {
+          "path": "reportingPeriod.end",
+          "correct": true
+        },
+        {
+          "path": "currency",
+          "correct": true
+        },
+        {
+          "path": "documentRole",
+          "correct": true
+        },
+        {
+          "path": "jurisdiction",
+          "correct": true
+        },
+        {
+          "path": "reportingPeriod.start",
+          "correct": true
+        },
+        {
+          "path": "dates.dueDate",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.incomeTax",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.qpp",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.healthServicesFund",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.qpip",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.cnesst",
+          "correct": true
+        },
+        {
+          "path": "amounts.arithmetic.total",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.state",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.settlement",
+          "correct": true
+        }
+      ],
+      "accuracy_passed": true,
+      "failure_category": null,
+      "document": "quebec-two-page-obligation",
+      "exit_code": 0,
+      "wall_seconds": 0.5596848329999995,
+      "status": "prepared",
+      "prepared": true,
+      "candidate_available": true,
+      "candidate": {
+        "dates.dueDate": "2026-10-15",
+        "amounts.components.incomeTax": 1210,
+        "amounts.components.qpp": 780,
+        "amounts.components.healthServicesFund": 230,
+        "amounts.components.qpip": 110,
+        "amounts.components.cnesst": 0,
+        "amounts.arithmetic.total": 2330,
+        "currency": "CAD",
+        "reportingPeriod.end": "2026-09-30",
+        "documentRole": "obligation",
+        "jurisdiction": "ca-qc",
+        "reportingPeriod.start": "2026-07-01",
+        "obligationLifecycle.state": "obligation-recorded",
+        "obligationLifecycle.settlement": "pending"
+      },
+      "boundary": "actual mechanical proposal, unsupported/read failure distinct from visual accuracy; full proposal/errors retained privately"
+    }
+  ],
+  "observations": [
+    {
+      "id": "doc-01-check",
+      "wall_seconds": 50.438493917,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          1,
+          2
+        ],
+        "fields": [
+          {
+            "path": "dates.dueDate",
+            "observed": "2026-10-15",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Due date: 2026-10-15"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "observed": 1210,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Income tax: 1,210.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.qpp",
+            "observed": 780,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "QPP: 780.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "observed": 230,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Health Services Fund: 230.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.qpip",
+            "observed": 110,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "QPIP: 110.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "observed": 0,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "CNESST: 0.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": 2330,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "Total remittance: 2,330.00"
+              }
+            ]
+          },
+          {
+            "path": "currency",
+            "observed": "CAD",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "Currency: CAD"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": "2026-09-30",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period end: 2026-09-30"
+              }
+            ]
+          },
+          {
+            "path": "documentRole",
+            "observed": "obligation",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Obligation only; no payment is evidenced."
+              }
+            ]
+          },
+          {
+            "path": "jurisdiction",
+            "observed": "ca-qc",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payroll source deductions TPZ-1015"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.start",
+            "observed": "2026-07-01",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period start: 2026-07-01"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "observed": "obligation-recorded",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Obligation only; no payment is evidenced."
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "observed": "pending",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "No submission or settlement is evidenced."
+              }
+            ]
+          }
+        ],
+        "arithmetic": {
+          "printed_total": 2330,
+          "components_sum": 2330,
+          "discrepancy": false
+        }
+      },
+      "usage": {
+        "input": 5266,
+        "output": 683,
+        "total": 5949,
+        "cache_read": 0,
+        "cache_write": 0
+      },
+      "output_characters": 2239,
+      "output_bytes": 2239,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791838929.169311,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 2,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791838929.165053,
+          "api_request_id": "20261012_170207_3b3b49:9de97a4a-021b-40ec-9efd-cf4a24ee1813:cf4486e9:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791838965.322419,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 36.09198808670044,
+          "started_at": 1791838929.165053,
+          "first_chunk_at": 1791838940.239058,
+          "ended_at": 1791838965.257041,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 5266,
+            "output_tokens": 683,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 5266,
+            "total_tokens": 5949
+          },
+          "api_request_id": "20261012_170207_3b3b49:9de97a4a-021b-40ec-9efd-cf4a24ee1813:cf4486e9:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 11.074005126953125,
+      "api_seconds": 36.09198808670044,
+      "prompt_sha256": "02b9bfa40ead0c661a222959f78a95b4325ede3dc28a00623fac4c439503e737",
+      "images": [
+        {
+          "page": 1,
+          "sha256": "e627319e7f7d61dc21121de16cafbbc691cd7294e8eae3259b0a23b23266aaec",
+          "bytes": 75069
+        },
+        {
+          "page": 2,
+          "sha256": "84754b02c7a1ffded49db5d6e906f7b23950641b7eb5f8f4e33b3f6c7fca16e0",
+          "bytes": 51678
+        }
+      ],
+      "mode": "check",
+      "document": "quebec-two-page-obligation",
+      "page": null,
+      "verification": {
+        "passed": false,
+        "errors": [],
+        "fields": [
+          {
+            "path": "dates.dueDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpp",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpip",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "currency",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "documentRole",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          },
+          {
+            "path": "jurisdiction",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.start",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          }
+        ],
+        "correct_fields": 10,
+        "field_count": 14
+      }
+    }
+  ],
+  "blocked_stage": null,
+  "summary": {
+    "extract": {
+      "wall_seconds": 0,
+      "requests": 0,
+      "field_checks": 0,
+      "correct_fields": 0
+    },
+    "check": {
+      "wall_seconds": 50.438493917,
+      "requests": 1,
+      "field_checks": 14,
+      "correct_fields": 10
+    }
+  },
+  "timing": {
+    "rendering_seconds": 1.8289110000000002,
+    "mechanical_seconds": 0.5596848329999995,
+    "visual_seconds": 50.438493917,
+    "total_wall_seconds": 56.019199457999996
+  },
+  "boundary": "two separately measured model tasks; no tools, publication or record application; raw proposals and logs private"
+}
