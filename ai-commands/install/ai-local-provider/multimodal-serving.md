@@ -5,7 +5,7 @@ turns image features into inputs the language model can use. A text-only `llama-
 model successfully while rejecting every image request.
 
 ```mermaid
-flowchart LR
+flowchart TD
     PDF[Original PDF page] --> Render[Controlled page renderer]
     Render --> PNG[Temporary PNG page]
     PNG --> Pi[Pi harness attachment]
