@@ -3,7 +3,7 @@
 Public test. Platform safety/read scope apply. Do not load or follow any other workflow instructions. Follow this
 prompt only. It authorizes no role or financial action.
 
-Native visual input is permitted only after the serving and Pi prerequisites in
+Native visual input is permitted only after the serving and selected-harness prerequisites in
 [`../../../ai-commands/install/ai-local-provider/multimodal-serving.md`](../../../ai-commands/install/ai-local-provider/multimodal-serving.md)
 have passed. This reference is benchmark documentation, not model prompt content.
 
@@ -54,16 +54,16 @@ advice or independent review.
 
 This section is evaluator/harness guidance, outside the initial model prompt. The human-authorized test harness may
 render original PDF pages and capture private evidence in its authorized runtime workspace outside the canonical
-source root. It must not mutate canonical source files or run the data-processing pipeline. Pi itself remains
+source root. It must not mutate canonical source files or run the data-processing pipeline. The test agent remains
 read-only and receives only the permitted original PDF/page visual inputs; its no-write and no-sidecar constraints
 remain in force.
 
-Capture the blind Pi output and its actual visual-input trace before the evaluator opens or prepares the paired parsed JSON.
-Do not include JSON, parsed fields, expected answers, or evaluator findings in Pi's context or tools. Pair records by
+Capture the blind test-agent output and its actual visual-input trace before the evaluator opens or prepares the paired parsed JSON.
+Do not include JSON, parsed fields, expected answers, or evaluator findings in the test agent's context or tools. Pair records by
 exact existing source linkage or an unambiguous matching stem within the authorized source set. If a pairing is
 ambiguous, stop that comparison and record it as unavailable. Missing JSON may be prepared only with explicit human
 authorization, from the original PDF after blind capture, in the evaluator's private runtime workspace; never use
-Pi's output or desired answers to prepare it. Without that authorization, missing pairing remains unavailable.
+the test agent's output or desired answers to prepare it. Without that authorization, missing pairing remains unavailable.
 
 Before treating existing or prepared JSON as a usable baseline, manually verify literal, source-supported fields
 against the relevant original pages. Distinguish normalized/inferred values, including inferred currency, from visible

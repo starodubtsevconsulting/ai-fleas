@@ -110,7 +110,7 @@ These prompt documents explicitly bypass normal intake, normalization, sidecar, 
 and agent-routing procedures. Reusing a profile-authorized folder and effective model does not initialize or act as a
 managed workflow role. Each prompt also requires reporting whether the selected harness actually passed PDF pages to the model
 as native visual input. Declaring image input in a model binding is metadata, not evidence that the live provider and
-harness accept it; the benchmark trace establishes the observed capability. The provider, projector, Pi attachment,
+harness accept it; the benchmark trace establishes the observed capability. The provider, projector, harness attachment,
 and verification prerequisites are documented in
 [`../../ai-commands/install/ai-local-provider/multimodal-serving.md`](../../ai-commands/install/ai-local-provider/multimodal-serving.md).
 
