@@ -16,6 +16,10 @@ Context supplies `CANONICAL_DATA_ROOT`, nested `PDF_PATH`, and optional period/q
 ```text
 Inspect only the named original PDF and report its tax/payment evidence.
 
+The task concerns Canadian federal and Quebec tax/payment evidence. Look for GST/QST and other taxes, including
+payroll/source deductions, only where the original PDF supports them. Jurisdiction and filenames are discovery cues,
+not proof of tax type, payment status, or currency. Do not assume CAD without source evidence.
+
 Context supplies CANONICAL_DATA_ROOT, PDF_PATH, and optional period. Before reading, verify both paths, that the PDF is
 inside the root, and that it is a PDF. If not, ask once for all corrections and stop. Never list/search the folder or
 inspect another file.

@@ -1,0 +1,99 @@
+# Pi PDF evidence benchmark reporting
+
+Benchmark reporting date: 2026-10-12. This methodology covers the public single,
+week and quarter PDF tax-evidence scenarios. It contains no financial findings.
+
+## Public record for every run
+
+Record every attempted run, including blocked, failed and incomplete runs, in a
+sanitized public metrics record after checking it against this allowlist. Keep
+raw traces, source documents and financial reports private. Use a benchmark-local
+run ID unrelated to profile, task, account or source-document identity.
+
+Allowed public fields are:
+
+* benchmark-local run ID, benchmark date, task version and generic public scenario
+  reference;
+* actual served model ID, quantization, verified projector artifact identifier,
+  runtime context size, harness name/version, output limit, tool/output limits,
+  isolation controls and extraction/attachment method;
+* measured wall time, input/output/total token counts, API-call count, tool-call
+  counts by tool, stop reasons, completion status and aggregate coverage counts;
+* verifier method and result, and explicit limitations or capability gaps stated
+  without private source details.
+
+Missing measurements and unverified properties are `null`, not zero or inferred
+values. Record actual runtime context (8192 for the inspected binding), rather
+than the model's advertised training context. Distinguish requested output limit
+from observed output tokens. Count every attempt separately; do not hide failed
+attempts inside a successful retry. Only include aggregate coverage counts when
+they cannot disclose financial content or identities.
+
+Never publish private roots or paths, source filenames, person/organization names,
+financial amounts, source-document dates, source content, prompts containing
+private inputs, raw traces, private task/profile/account identifiers, or hashes
+of financial contents. Public scenario references and benchmark dates are allowed;
+they do not authorize publishing the selected financial period. Do not attach or
+copy a private financial report into the public metrics record.
+
+## Keep distinct tasks distinct
+
+| Run family | Evidence required | Interpretation |
+| --- | --- | --- |
+| Standalone page vision | Trace shows rendered-page image attachment and model response | Page vision capability only; not autonomous discovery or quarter completion |
+| Autonomous PDF scenario | Actual discovery/tool trace and cited final scenario report | Record failures and context/tool gaps; process exit zero alone is insufficient |
+| Bounded text inference | Fresh stdout/in-memory extraction and cited model report within explicit batch limits | Text evidence task with stated partial coverage; not native visual inspection |
+
+Do not combine these families into one quality score. A passed single-page vision
+probe does not erase an autonomous scenario failure or establish whole-root tax
+coverage. A one-token `length` stop without a report is incomplete even when the
+process exits zero. A tool call is execution evidence, not task acceptance.
+
+Before inference, verify the exact extractor/renderer executable and Pi's actual
+PDF/image attachment support outside the model conversation. Supply concrete
+machine paths only in private launch context. Bound discovery and inspect one
+original PDF/page at a time. Keep source and scenario no-write rules intact;
+authorized launcher runtime preparation and private evidence capture do not
+authorize derived financial files. If native page attachment requires writing
+an image prohibited by the scenario, report that capability as unavailable and
+use only its permitted fresh stdout/in-memory fallback.
+
+## Thinking-control evidence
+
+Inspection of the installed Pi runtime reporting version 1.1.0 found that an
+omitted custom-model `reasoning` property defaults to false. Its `--thinking off`
+option does not itself emit `chat_template_kwargs`. Record the requested Pi
+thinking level, observed outbound server control and observed server behavior as
+separate observations. Derive harness version from the actual runtime's version
+report, not its installation directory name.
+
+The supported opt-in per-run extension hook can add the server control:
+
+```javascript
+export default function (pi) {
+  pi.on("before_provider_request", (event) => ({
+    ...event.payload,
+    chat_template_kwargs: {
+      ...(event.payload.chat_template_kwargs ?? {}),
+      enable_thinking: false,
+    },
+  }));
+}
+```
+
+Select the reviewed extension explicitly with `-e VERIFIED_EXTENSION_PATH` for
+that run, preserving the scenario's context/skill/template/approval isolation
+controls. Keep the concrete extension path private. This does not establish a
+permanent configuration change or replace live verification. The subsequent bounded-text runs verified outbound
+`chat_template_kwargs.enable_thinking: false` and produced final reports with
+normal stops instead of output-budget exhaustion. Their financial acceptance
+still failed. This proves the observed payload and report completion, not the
+server's internal thinking setting. Missing observations remain `null`; requested
+control alone is not a successful test.
+
+## Scenario references
+
+* [Single PDF](../../../../ai-workflows/financial-insights/acceptance/pdf-single-tax.scenario.md)
+* [Week](../../../../ai-workflows/financial-insights/acceptance/pdf-week-tax.scenario.md)
+* [Quarter](../../../../ai-workflows/financial-insights/acceptance/pdf-quarter-tax.scenario.md)
+* [Pi launch contract](../../../../ai-commands/system/pi-agents/pi-agents.command.md)

@@ -18,6 +18,10 @@ selected calendar week. No real path, period, or expected answer belongs in this
 ```text
 Determine taxes actually paid during the supplied calendar week from original PDFs only.
 
+The task concerns Canadian federal and Quebec tax/payment evidence. Look for GST/QST and other taxes, including
+payroll/source deductions, only where the original PDF supports them. Jurisdiction and filenames are discovery cues,
+not proof of tax type, payment status, or currency. Do not assume CAD without source evidence.
+
 Context supplies CANONICAL_DATA_ROOT and inclusive PERIOD_START/PERIOD_END. Before reading financial data, verify the
 root and explicit, unambiguous, ordered dates. If anything is missing or invalid, ask once for all corrections and stop
 without listing the root. Never broaden or replace the root or dates.
