@@ -5,6 +5,7 @@ Model assignment documents use `<domain>-<scope>.prompt.md`. The `Initial prompt
 - [Single PDF](pdf-single-tax.prompt.md): one named original PDF.
 - [Week](pdf-week-tax.prompt.md): confirmed payments within inclusive supplied dates.
 - [Quarter](pdf-quarter-tax.prompt.md): confirmed payments within a supplied quarter.
+- [Q4 cross-business record search](financial-insights-record-search-q4.prompt.md): locate and reconcile AI-compute expenses across three fictional businesses using invoice, credit, duplicate, decoy, and statement evidence.
 
 Use `.scenario.md` for normative behavior/scenario documents rather than the filename of these model assignments. This convention is scoped to these benchmark prompts; unrelated repository files are unchanged. Historical benchmark JSON retains its original `.scenario.md` task paths as execution evidence.
 
@@ -20,3 +21,8 @@ contains the corporate/year/quarter tree, source generator and evaluator-only
 reference facts. [Benchmark tooling](../../../notes/benchmarks/local-models/fixtures/financial-insights-compatible/README.md)
 consumes that data while preserving the canonical destination contract. It does not
 replace blind-vision evidence or authorize canonical publication.
+
+The [cross-business record-search scenario](financial-insights-record-search.scenario.md)
+adds a read-only Q4 workflow-shaped test across incoming invoices, outgoing
+expenses, and statements. It makes no claim that unsupported vendor-invoice
+normalization or general statement reconciliation is implemented.
