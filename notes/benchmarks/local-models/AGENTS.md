@@ -1,5 +1,17 @@
 # Local model benchmark learnings
 
+## Generated PDF fixture Git attributes
+
+**What happened:** Git treated ASCII-encoded ReportLab PDFs as text and flagged their format-required trailing whitespace.
+
+**Root cause:** A PDF without a NUL byte can be classified as text without explicit attributes.
+
+**How we fixed it:** Mark the fixture PDF path as `binary` in `.gitattributes`; preserve the original PDF bytes and cross-reference offsets.
+
+**How to avoid it:** Set scoped binary attributes before staging generated PDF assets. Never strip PDF whitespace to satisfy a source-code whitespace check.
+
+**Verification:** `git check-attr binary diff text -- <fixture.pdf>` reports binary handling, and the complete feature diff passes `git diff --check`.
+
 ## Pi file-tools working directory
 
 **What happened:** A first Pi file-tools setup run searched the repository for
