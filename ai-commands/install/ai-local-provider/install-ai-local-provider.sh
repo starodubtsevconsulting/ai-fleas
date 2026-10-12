@@ -298,7 +298,20 @@ fi
 if [[ "$action" == status ]]; then printf 'SUCCESS: remote provider status inspected.\n'; exit 0; fi
 if [[ "$action" == preflight ]]; then
   [[ "$sudo_mode" != unavailable ]] || fail "INSUFFICIENT_PRIVILEGES: SSH user is not authorized for sudo provisioning."
-  printf 'SUCCESS: machine is compatible; the install action can provision missing prerequisites.\n'
+  diagnostic_service="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:service.name')"
+  diagnostic_gateway_port="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:gateway.port' 2>/dev/null || true)"
+  [[ "$diagnostic_service" =~ ^[A-Za-z0-9][A-Za-z0-9_.@-]*$ ]] || fail 'PRESET_NOT_READY: invalid provider service name.'
+  printf 'Provider service diagnostic: %s\n' "$(ssh "${ssh_args[@]}" "$target" "systemctl is-active $(printf '%q' "$diagnostic_service") 2>/dev/null || true")"
+  if [[ -n "$diagnostic_gateway_port" ]]; then
+    [[ "$diagnostic_gateway_port" =~ ^[0-9]+$ ]] || fail 'PRESET_NOT_READY: invalid gateway port.'
+    listener="$(ssh "${ssh_args[@]}" "$target" "ss -ltn 'sport = :$diagnostic_gateway_port' | awk 'NR > 1 { found=1 } END { print found ? "occupied" : "free" }'")"
+    printf 'Gateway port diagnostic: %s is %s.\n' "$diagnostic_gateway_port" "$listener"
+    if [[ -n "$preserve_user_gateway_service" ]]; then
+      [[ "$preserve_user_gateway_service" =~ ^[A-Za-z0-9][A-Za-z0-9_.@-]*\.service$ ]] || fail 'CONFIGURATION_INVALID: invalid preserved user gateway service.'
+      printf 'Requested preserved gateway diagnostic: %s is %s.\n' "$preserve_user_gateway_service" "$(ssh "${ssh_args[@]}" "$target" "systemctl --user is-active $(printf '%q' "$preserve_user_gateway_service") 2>/dev/null || true")"
+    fi
+  fi
+  printf 'SUCCESS: machine is compatible; review diagnostics, then use --dry-run before installation.\n'
   exit 0
 fi
 node "$command_dir/resolve-config.mjs" "$preset_file" '' preset-ready >/dev/null || fail "PRESET_NOT_READY: $preset does not pin a model repository, file, and quantization."
@@ -332,6 +345,12 @@ gateway_service_name="$(node "$command_dir/resolve-config.mjs" "$preset_file" ''
 gateway_listen_address="$(node "$command_dir/resolve-config.mjs" "$preset_file" '' 'preset-field:gateway.listen_address' 2>/dev/null || true)"
 if [[ -n "$switch_from_user_gateway_service" && -n "$preserve_user_gateway_service" ]]; then fail 'CONFIGURATION_INVALID: gateway switch and preservation are mutually exclusive.'; fi
 if [[ -n "$switch_from_user_gateway_service$preserve_user_gateway_service" && -z "$gateway_port" ]]; then fail 'CONFIGURATION_INVALID: user gateway selection requires a preset gateway.'; fi
+if [[ -n "$gateway_port" && -z "$switch_from_user_gateway_service$preserve_user_gateway_service" ]]; then
+  gateway_listener="$(ssh "${ssh_args[@]}" "$target" "ss -ltn 'sport = :$gateway_port' | awk 'NR > 1 { found=1 } END { print found ? "occupied" : "free" }'")"
+  if [[ "$gateway_listener" == occupied ]]; then
+    fail 'GATEWAY_PRESERVATION_REQUIRED: the preset gateway port is occupied; rerun with --preserve-user-gateway-service <active-unit> to retain it, or --switch-from-user-gateway-service <active-unit> to replace it explicitly.'
+  fi
+fi
 printf 'Plan: clean disposable system data, install the native CUDA toolchain, build pinned llama.cpp, download and verify the pinned model, and provision systemd on %s.\n' "$target"
 if [[ "$dry_run" == true ]]; then printf 'SUCCESS: dry-run plan validated; no changes made.\n'; exit 0; fi
 provision_script="$command_dir/provision-ubuntu.sh"
