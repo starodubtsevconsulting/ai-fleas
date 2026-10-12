@@ -164,7 +164,7 @@ cmake "${cmake_args[@]}"
 build_jobs="$(nproc)"; ((build_jobs > 16)) && build_jobs=16
 cmake --build "$build_root" --config Release --target llama-server --parallel "$build_jobs"
 install -m 0755 "$build_root/bin/llama-server" "$binary_root/llama-server"
-if [[ -n "$gateway_port" ]]; then
+if [[ -n "$gateway_port" && -z "$preserve_user_gateway_service" ]]; then
   gateway_root="$install_root/gateway"
   install -d -m 0755 "$gateway_root"
   install -m 0755 "$remote_gateway_script" "$gateway_root/local-model-gateway.mjs"
