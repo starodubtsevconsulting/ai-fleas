@@ -1,0 +1,4084 @@
+{
+  "schema_version": 1,
+  "fictional": true,
+  "fixture": "financial-insights-challenges",
+  "configuration": {
+    "verification_mode": "json-aware-vision",
+    "provider_binding": "explicit-cli-transport-alias",
+    "model_binding": "explicit-cli-model-alias",
+    "context_window": 65536,
+    "output_tokens": 2048,
+    "thinking": "off",
+    "server_enable_thinking": false,
+    "sampling": {
+      "temperature": 0,
+      "top_p": 1
+    },
+    "requires_runtime_evidence": true,
+    "supported": true,
+    "platform": "hermes",
+    "harness": "Hermes",
+    "adapter": "hermes-native-json",
+    "model": "qwen3.8-flash-next-iq4-nl",
+    "harness_version": "Hermes Agent v0.21.5+7438.gf102b16 (2026.9.24) \u00b7 upstream f102b16c",
+    "harness_source_revision": "f102b16c1fbe73b1fcc40a19d0653fe15a0f1584"
+  },
+  "runtime_context_evidence": {
+    "verified": true,
+    "model_match": true,
+    "context_window": 65536,
+    "native_image": true,
+    "checked_at": "2026-10-12T21:04:38.990307+00:00",
+    "boundary": "fresh bounded read-only live props check; private probe URL omitted"
+  },
+  "source_versions": {
+    "challenge-run.py": "72297265f25eedeebeb9b6fdc5dca300acd2eebf4dd18a1a29d29cb80a3fbfb2",
+    "challenge-verify.py": "a9c64f9a810ce79fcee6c76504f3ec3230567eaa488932015bc11d2fd1cfa5b8",
+    "challenge-extract.prompt.md": "0e16c10303d41aca499bc7d098a53b0c515c0e1226e6501ce00faebae24d6d5b",
+    "challenge-check.prompt.md": "1d1c6b9a6c49a21cb0e46514828606f3320fd4b11333405adfd4e0584f4bd74a",
+    "run.py": "e78d595dfe4ca37f3ef788b88cacbce66b80d88b1e0577eb25d8ffa13b761289",
+    "hermes-adapter.py": "89442b39b726bb086a1282fbdfad121e3b2fdfd6fb90270c750abff16755dbfc",
+    "variants.json": "6fc0222319bf9d5f8940e4a71129d91322be79ca792fd3960864d761f0cabd4a",
+    "verify.py": "4abbc419d5ac6834f72cd2db4bc9fed6d03b7c738f5100d4c87e1bc6d7d37632"
+  },
+  "mechanical_source_versions": {
+    "financial-records.command.mjs": "3009188ac297a5a50e671df486f8e362309d74c21de02e465fd4586d00b61ff7",
+    "pdf-reader.mjs": "f722fe8a2f4163f4a05d956f09b49f42644dd1a949f1f023d3b1e3d6f48586f2",
+    "recognizers/payroll-tax-source-recognition.mjs": "01d3ecb649d118e9c943fc3d5b62d30b4dadc24d3727d848716354381213f0c8",
+    "read-plans/payroll-tax-read-plan.mjs": "2665f648678b50613b57853ffdfb22f00a281d3a2fe13bbb50e333d1deb1a856"
+  },
+  "dataset_versions": {
+    "expected.json": "529c42be0b91d8bc8082576dcb8c463aa75f8fd4243da84b32b8084623c13261",
+    "transcripts.json": "b2c7141a9ee89657b39371378decf0182cef119e10ac8de1f71d207852e02c7a",
+    "generate.py": "bfd1cb6370394ff92e3f4ba3b0df21ddf8c0bf43417d52b07ef781be5041af66"
+  },
+  "source_sha256": {
+    "federal-raster-confirmation": "6dd97c71a24f5ddbb159c9054de93f398bdc76174de18b4f061bbf578d8d1143",
+    "quebec-sideways-confirmation": "c365b29d5b7c8dc0d699b579cf1d7e52bc97b0cbea144d730db1be271fb9353f",
+    "quebec-missing-currency-confirmation": "d7e0c2f683c419ddded74c6677b5b0a913da3c686e76067e1bb7aaf03a745dc7",
+    "quebec-two-page-obligation": "a966887e9b15454663bf846a7293cc0d8a9232d09865570fe32649d01236e4a4",
+    "quebec-conflicting-total-obligation": "1c3e934ef1977a3a8cb2c81f20b0976d7627894e4b773da0ba1649a55b5f8ae5"
+  },
+  "execution_commit": "4e2eb0fec907e772722228b7c8435431b96b7635",
+  "pilot_multipage": false,
+  "source_drift": false,
+  "mechanical": [
+    {
+      "field_checks": [
+        {
+          "path": "reportingPeriod.end",
+          "correct": true
+        },
+        {
+          "path": "currency",
+          "correct": true
+        },
+        {
+          "path": "documentRole",
+          "correct": true
+        },
+        {
+          "path": "jurisdiction",
+          "correct": true
+        },
+        {
+          "path": "dates.submissionDate",
+          "correct": true
+        },
+        {
+          "path": "dates.dueDate",
+          "correct": true
+        },
+        {
+          "path": "dates.scheduledExecutionDate",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.grossPayroll",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.employeeCount",
+          "correct": true
+        },
+        {
+          "path": "amounts.arithmetic.total",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.state",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.providerStatus",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.settlement",
+          "correct": true
+        }
+      ],
+      "accuracy_passed": true,
+      "failure_category": null,
+      "document": "federal-raster-confirmation",
+      "exit_code": 0,
+      "wall_seconds": 0.8063054999999792,
+      "status": "prepared",
+      "prepared": true,
+      "candidate_available": true,
+      "candidate": {
+        "currency": "CAD",
+        "amounts.arithmetic.total": 2345.67,
+        "reportingPeriod.end": "2026-09-30",
+        "documentRole": "submission-confirmation",
+        "jurisdiction": "ca-federal",
+        "dates.submissionDate": "2026-10-03",
+        "dates.dueDate": "2026-10-15",
+        "dates.scheduledExecutionDate": "2026-10-11",
+        "amounts.components.grossPayroll": 24680.5,
+        "amounts.components.employeeCount": 7,
+        "obligationLifecycle.state": "scheduled",
+        "obligationLifecycle.providerStatus": "to-be-processed",
+        "obligationLifecycle.settlement": "pending"
+      },
+      "boundary": "actual mechanical proposal, unsupported/read failure distinct from visual accuracy; full proposal/errors retained privately"
+    },
+    {
+      "field_checks": [
+        {
+          "path": "reportingPeriod.end",
+          "correct": true
+        },
+        {
+          "path": "currency",
+          "correct": true
+        },
+        {
+          "path": "documentRole",
+          "correct": true
+        },
+        {
+          "path": "jurisdiction",
+          "correct": true
+        },
+        {
+          "path": "dates.submissionDate",
+          "correct": true
+        },
+        {
+          "path": "dates.scheduledExecutionDate",
+          "correct": true
+        },
+        {
+          "path": "amounts.arithmetic.total",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.state",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.providerStatus",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.settlement",
+          "correct": true
+        }
+      ],
+      "accuracy_passed": true,
+      "failure_category": null,
+      "document": "quebec-sideways-confirmation",
+      "exit_code": 0,
+      "wall_seconds": 0.39533079200001,
+      "status": "prepared",
+      "prepared": true,
+      "candidate_available": true,
+      "candidate": {
+        "currency": "CAD",
+        "amounts.arithmetic.total": 2369.24,
+        "reportingPeriod.end": "2026-09-30",
+        "documentRole": "submission-confirmation",
+        "jurisdiction": "ca-qc",
+        "dates.submissionDate": "2026-10-04",
+        "dates.scheduledExecutionDate": "2026-10-12",
+        "obligationLifecycle.state": "scheduled",
+        "obligationLifecycle.providerStatus": "to-be-processed",
+        "obligationLifecycle.settlement": "pending"
+      },
+      "boundary": "actual mechanical proposal, unsupported/read failure distinct from visual accuracy; full proposal/errors retained privately"
+    },
+    {
+      "field_checks": [
+        {
+          "path": "reportingPeriod.end",
+          "correct": true
+        },
+        {
+          "path": "currency",
+          "correct": true
+        },
+        {
+          "path": "documentRole",
+          "correct": true
+        },
+        {
+          "path": "jurisdiction",
+          "correct": true
+        },
+        {
+          "path": "dates.submissionDate",
+          "correct": true
+        },
+        {
+          "path": "dates.scheduledExecutionDate",
+          "correct": true
+        },
+        {
+          "path": "amounts.arithmetic.total",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.state",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.providerStatus",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.settlement",
+          "correct": true
+        }
+      ],
+      "accuracy_passed": true,
+      "failure_category": null,
+      "document": "quebec-missing-currency-confirmation",
+      "exit_code": 0,
+      "wall_seconds": 0.3720559579999758,
+      "status": "prepared",
+      "prepared": true,
+      "candidate_available": true,
+      "candidate": {
+        "currency": "CAD",
+        "amounts.arithmetic.total": 2401.18,
+        "reportingPeriod.end": "2026-09-30",
+        "documentRole": "submission-confirmation",
+        "jurisdiction": "ca-qc",
+        "dates.submissionDate": "2026-10-05",
+        "dates.scheduledExecutionDate": "2026-10-13",
+        "obligationLifecycle.state": "scheduled",
+        "obligationLifecycle.providerStatus": "to-be-processed",
+        "obligationLifecycle.settlement": "pending"
+      },
+      "boundary": "actual mechanical proposal, unsupported/read failure distinct from visual accuracy; full proposal/errors retained privately"
+    },
+    {
+      "field_checks": [
+        {
+          "path": "reportingPeriod.end",
+          "correct": true
+        },
+        {
+          "path": "currency",
+          "correct": true
+        },
+        {
+          "path": "documentRole",
+          "correct": true
+        },
+        {
+          "path": "jurisdiction",
+          "correct": true
+        },
+        {
+          "path": "reportingPeriod.start",
+          "correct": true
+        },
+        {
+          "path": "dates.dueDate",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.incomeTax",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.qpp",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.healthServicesFund",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.qpip",
+          "correct": true
+        },
+        {
+          "path": "amounts.components.cnesst",
+          "correct": true
+        },
+        {
+          "path": "amounts.arithmetic.total",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.state",
+          "correct": true
+        },
+        {
+          "path": "obligationLifecycle.settlement",
+          "correct": true
+        }
+      ],
+      "accuracy_passed": true,
+      "failure_category": null,
+      "document": "quebec-two-page-obligation",
+      "exit_code": 0,
+      "wall_seconds": 0.4402981670000372,
+      "status": "prepared",
+      "prepared": true,
+      "candidate_available": true,
+      "candidate": {
+        "dates.dueDate": "2026-10-15",
+        "amounts.components.incomeTax": 1210,
+        "amounts.components.qpp": 780,
+        "amounts.components.healthServicesFund": 230,
+        "amounts.components.qpip": 110,
+        "amounts.components.cnesst": 0,
+        "amounts.arithmetic.total": 2330,
+        "currency": "CAD",
+        "reportingPeriod.end": "2026-09-30",
+        "documentRole": "obligation",
+        "jurisdiction": "ca-qc",
+        "reportingPeriod.start": "2026-07-01",
+        "obligationLifecycle.state": "obligation-recorded",
+        "obligationLifecycle.settlement": "pending"
+      },
+      "boundary": "actual mechanical proposal, unsupported/read failure distinct from visual accuracy; full proposal/errors retained privately"
+    },
+    {
+      "field_checks": [
+        {
+          "path": "reportingPeriod.end",
+          "correct": false
+        },
+        {
+          "path": "currency",
+          "correct": false
+        },
+        {
+          "path": "documentRole",
+          "correct": false
+        },
+        {
+          "path": "jurisdiction",
+          "correct": false
+        },
+        {
+          "path": "reportingPeriod.start",
+          "correct": false
+        },
+        {
+          "path": "dates.dueDate",
+          "correct": false
+        },
+        {
+          "path": "amounts.components.incomeTax",
+          "correct": false
+        },
+        {
+          "path": "amounts.components.qpp",
+          "correct": false
+        },
+        {
+          "path": "amounts.components.healthServicesFund",
+          "correct": false
+        },
+        {
+          "path": "amounts.components.qpip",
+          "correct": false
+        },
+        {
+          "path": "amounts.components.cnesst",
+          "correct": false
+        },
+        {
+          "path": "amounts.arithmetic.total",
+          "correct": false
+        },
+        {
+          "path": "obligationLifecycle.state",
+          "correct": false
+        },
+        {
+          "path": "obligationLifecycle.settlement",
+          "correct": false
+        }
+      ],
+      "accuracy_passed": false,
+      "failure_category": "mechanical-non-support-or-read-failure",
+      "document": "quebec-conflicting-total-obligation",
+      "exit_code": 0,
+      "wall_seconds": 0.3713818749999973,
+      "status": "review-required",
+      "prepared": false,
+      "candidate_available": false,
+      "candidate": {},
+      "boundary": "actual mechanical proposal, unsupported/read failure distinct from visual accuracy; full proposal/errors retained privately"
+    }
+  ],
+  "observations": [
+    {
+      "id": "doc-01-extract-01",
+      "wall_seconds": 43.948822666000005,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          1
+        ],
+        "fields": [
+          {
+            "path": "currency",
+            "observed": "CAD",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Currency: CAD"
+              }
+            ]
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": 2345.67,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Amount payable: 2,345.67"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": "2026-09-30",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period end: 2026-09-30"
+              }
+            ]
+          },
+          {
+            "path": "documentRole",
+            "observed": "submission confirmation",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Federal Payroll Deductions submission confirmation"
+              }
+            ]
+          },
+          {
+            "path": "jurisdiction",
+            "observed": "Canadian",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Synthetic Canadian payroll remittance form - not a government form"
+              }
+            ]
+          },
+          {
+            "path": "dates.submissionDate",
+            "observed": "2026-10-03",
+            "support": "inferred",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Confirmation date: 2026-10-03"
+              }
+            ]
+          },
+          {
+            "path": "dates.dueDate",
+            "observed": "2026-10-15",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Due Date: 2026-10-15"
+              }
+            ]
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "observed": "2026-10-11",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Payment Date: 2026-10-11"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.grossPayroll",
+            "observed": 24680.5,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Gross payroll: 24,680.50"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.employeeCount",
+            "observed": 7,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Number of employees: 7"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "observed": "to-be-processed",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Provider status: To be processed"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "observed": "to-be-processed",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Provider status: To be processed"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "observed": null,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Submission scheduling only. No completed or settled payment is evidenced."
+              }
+            ]
+          }
+        ],
+        "arithmetic": {
+          "printed_total": 2345.67,
+          "components_sum": null,
+          "discrepancy": null
+        }
+      },
+      "usage": {
+        "input": 3071,
+        "output": 592,
+        "total": 3663,
+        "cache_read": 0,
+        "cache_write": 0
+      },
+      "output_characters": 2008,
+      "output_bytes": 2008,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791839104.524894,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 1,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791839104.520812,
+          "api_request_id": "20261012_170503_19058a:d08759a2-bb73-4f00-829e-2343eabc8509:b677117f:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791839132.2090602,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 27.629183053970337,
+          "started_at": 1791839104.520812,
+          "first_chunk_at": 1791839111.0122938,
+          "ended_at": 1791839132.149995,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 3071,
+            "output_tokens": 592,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 3071,
+            "total_tokens": 3663
+          },
+          "api_request_id": "20261012_170503_19058a:d08759a2-bb73-4f00-829e-2343eabc8509:b677117f:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 6.491481781005859,
+      "api_seconds": 27.629183053970337,
+      "prompt_sha256": "ae5500e0595a3b837dc29cd0ab30d094d688fd27aafd7d3c30b20b2a1d1de378",
+      "images": [
+        {
+          "page": 1,
+          "sha256": "a03c912b596c2e8e6ec34e0af37a871130ac8403ed3e90f64a8b81c91868e959",
+          "bytes": 144878
+        }
+      ],
+      "mode": "extract",
+      "document": "federal-raster-confirmation",
+      "page": 1,
+      "verification": {
+        "passed": false,
+        "errors": [],
+        "fields": [
+          {
+            "path": "currency",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "documentRole",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": true
+          },
+          {
+            "path": "jurisdiction",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": false
+          },
+          {
+            "path": "dates.submissionDate",
+            "passed": false,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.dueDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.grossPayroll",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.employeeCount",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": false
+          }
+        ],
+        "correct_fields": 7,
+        "field_count": 13
+      }
+    },
+    {
+      "id": "doc-02-extract-01",
+      "wall_seconds": 23.158970667,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          1
+        ],
+        "fields": [
+          {
+            "path": "currency",
+            "observed": "CAD",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Currency: CAD"
+              }
+            ]
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": 2369.24,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Payment total: 2,369.24"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": "2026-09-30",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period end: 2026-09-30"
+              }
+            ]
+          },
+          {
+            "path": "documentRole",
+            "observed": "Revenu Quebec payment submission confirmation",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payment submission confirmation"
+              }
+            ]
+          },
+          {
+            "path": "jurisdiction",
+            "observed": "Quebec",
+            "support": "inferred",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payment submission confirmation"
+              }
+            ]
+          },
+          {
+            "path": "dates.submissionDate",
+            "observed": "2026-10-04",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Confirmation date: 2026-10-04"
+              }
+            ]
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "observed": "2026-10-12",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Scheduled execution: 2026-10-12"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "observed": "to-be-processed",
+            "support": "inferred",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Provider status: To be processed"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "observed": "to-be-processed",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Provider status: To be processed"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          }
+        ],
+        "arithmetic": {
+          "printed_total": 2369.24,
+          "components_sum": null,
+          "discrepancy": null
+        }
+      },
+      "usage": {
+        "input": 2269,
+        "output": 434,
+        "total": 3483,
+        "cache_read": 780,
+        "cache_write": 0
+      },
+      "output_characters": 1515,
+      "output_bytes": 1515,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791839134.5688372,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 1,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791839134.5650811,
+          "api_request_id": "20261012_170533_34bb06:dd5e5083-fffc-417c-bdd3-d98a7f68832e:5112b793:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791839155.3897028,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 20.76195979118347,
+          "started_at": 1791839134.5650811,
+          "first_chunk_at": 1791839139.760076,
+          "ended_at": 1791839155.327041,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 2269,
+            "output_tokens": 434,
+            "cache_read_tokens": 780,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 3049,
+            "total_tokens": 3483
+          },
+          "api_request_id": "20261012_170533_34bb06:dd5e5083-fffc-417c-bdd3-d98a7f68832e:5112b793:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 5.194994926452637,
+      "api_seconds": 20.76195979118347,
+      "prompt_sha256": "3e5c9653a0def254c94e1c20a4f6fb7dcc85ecb8225cf33fb392a51ca7e105ce",
+      "images": [
+        {
+          "page": 1,
+          "sha256": "d6e5b7c3301f479a77cc7b2bb8abd1372ae7c3d8dd2a6e137af288582ee49876",
+          "bytes": 89522
+        }
+      ],
+      "mode": "extract",
+      "document": "quebec-sideways-confirmation",
+      "page": 1,
+      "verification": {
+        "passed": false,
+        "errors": [],
+        "fields": [
+          {
+            "path": "currency",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "documentRole",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": true
+          },
+          {
+            "path": "jurisdiction",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.submissionDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": false
+          }
+        ],
+        "correct_fields": 5,
+        "field_count": 10
+      }
+    },
+    {
+      "id": "doc-03-extract-01",
+      "wall_seconds": 23.278342124999995,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          1
+        ],
+        "fields": [
+          {
+            "path": "currency",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": 2401.18,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Payment total: 2,401.18"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": "2026-09-30",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period end: 2026-09-30"
+              }
+            ]
+          },
+          {
+            "path": "documentRole",
+            "observed": "payment submission confirmation",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payment submission confirmation"
+              }
+            ]
+          },
+          {
+            "path": "jurisdiction",
+            "observed": "Quebec",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payment submission confirmation"
+              }
+            ]
+          },
+          {
+            "path": "dates.submissionDate",
+            "observed": "2026-10-05",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Confirmation date: 2026-10-05"
+              }
+            ]
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "observed": "2026-10-13",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Scheduled execution: 2026-10-13"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "observed": "to-be-processed",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Provider status: To be processed"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "observed": "to-be-processed",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Provider status: To be processed"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "observed": "not settled",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Submission scheduling only. No completed or settled payment is evidenced."
+              }
+            ]
+          }
+        ],
+        "arithmetic": {
+          "printed_total": 2401.18,
+          "components_sum": null,
+          "discrepancy": null
+        }
+      },
+      "usage": {
+        "input": 2269,
+        "output": 439,
+        "total": 3488,
+        "cache_read": 780,
+        "cache_write": 0
+      },
+      "output_characters": 1567,
+      "output_bytes": 1567,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791839157.421966,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 1,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791839157.419086,
+          "api_request_id": "20261012_170556_f2097f:3cef1853-23c3-4666-aa63-3e08669d6d78:8ba40910:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791839178.6728451,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 21.19241714477539,
+          "started_at": 1791839157.419086,
+          "first_chunk_at": 1791839162.590206,
+          "ended_at": 1791839178.6115031,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 2269,
+            "output_tokens": 439,
+            "cache_read_tokens": 780,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 3049,
+            "total_tokens": 3488
+          },
+          "api_request_id": "20261012_170556_f2097f:3cef1853-23c3-4666-aa63-3e08669d6d78:8ba40910:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 5.171119928359985,
+      "api_seconds": 21.19241714477539,
+      "prompt_sha256": "3e5c9653a0def254c94e1c20a4f6fb7dcc85ecb8225cf33fb392a51ca7e105ce",
+      "images": [
+        {
+          "page": 1,
+          "sha256": "ec926b7dc2b0e14e0df1b5ae75b2bb8dccb284b9a7d908e377e16ab2f45d3583",
+          "bytes": 76625
+        }
+      ],
+      "mode": "extract",
+      "document": "quebec-missing-currency-confirmation",
+      "page": 1,
+      "verification": {
+        "passed": false,
+        "errors": [],
+        "fields": [
+          {
+            "path": "currency",
+            "passed": true,
+            "expected_support": "unknown",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "documentRole",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": true
+          },
+          {
+            "path": "jurisdiction",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.submissionDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": false
+          }
+        ],
+        "correct_fields": 5,
+        "field_count": 10
+      }
+    },
+    {
+      "id": "doc-04-extract-01",
+      "wall_seconds": 22.314244375,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          1
+        ],
+        "fields": [
+          {
+            "path": "dates.dueDate",
+            "observed": "2026-10-15",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Due date: 2026-10-15"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "observed": 1210.0,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Income tax: 1,210.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.qpp",
+            "observed": 780.0,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "QPP: 780.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "observed": 230.0,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Health Services Fund: 230.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.qpip",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          },
+          {
+            "path": "currency",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": "2026-09-30",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period end: 2026-09-30"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.start",
+            "observed": "2026-07-01",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period start: 2026-07-01"
+              }
+            ]
+          }
+        ],
+        "arithmetic": {
+          "printed_total": null,
+          "components_sum": 2220.0,
+          "discrepancy": null
+        }
+      },
+      "usage": {
+        "input": 2278,
+        "output": 413,
+        "total": 3471,
+        "cache_read": 780,
+        "cache_write": 0
+      },
+      "output_characters": 1251,
+      "output_bytes": 1251,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791839180.681615,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 1,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791839180.6784341,
+          "api_request_id": "20261012_170619_ee5940:9cc4e24f-8813-490b-97ae-119bff4a1e94:17827ff5:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791839200.97305,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 20.23196268081665,
+          "started_at": 1791839180.6784341,
+          "first_chunk_at": 1791839185.8545291,
+          "ended_at": 1791839200.9103968,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 2278,
+            "output_tokens": 413,
+            "cache_read_tokens": 780,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 3058,
+            "total_tokens": 3471
+          },
+          "api_request_id": "20261012_170619_ee5940:9cc4e24f-8813-490b-97ae-119bff4a1e94:17827ff5:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 5.176095008850098,
+      "api_seconds": 20.23196268081665,
+      "prompt_sha256": "03cbdd93ecab626b765f1f65b7b2213227fb9ac96b11547623e8789746692c80",
+      "images": [
+        {
+          "page": 1,
+          "sha256": "e627319e7f7d61dc21121de16cafbbc691cd7294e8eae3259b0a23b23266aaec",
+          "bytes": 75069
+        }
+      ],
+      "mode": "extract",
+      "document": "quebec-two-page-obligation",
+      "page": 1,
+      "verification": {
+        "passed": true,
+        "errors": [],
+        "fields": [
+          {
+            "path": "dates.dueDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpp",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpip",
+            "passed": true,
+            "expected_support": "unknown",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "passed": true,
+            "expected_support": "unknown",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": true,
+            "expected_support": "unknown",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "currency",
+            "passed": true,
+            "expected_support": "unknown",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.start",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          }
+        ],
+        "correct_fields": 10,
+        "field_count": 10
+      }
+    },
+    {
+      "id": "doc-04-extract-02",
+      "wall_seconds": 20.603968500000008,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          2
+        ],
+        "fields": [
+          {
+            "path": "dates.dueDate",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          },
+          {
+            "path": "amounts.components.qpp",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          },
+          {
+            "path": "amounts.components.qpip",
+            "observed": 110.0,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "QPIP: 110.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "observed": 0.0,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "CNESST: 0.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": 2330.0,
+            "support": "ambiguous",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "Total remittance: 2,330.00"
+              },
+              {
+                "page": 2,
+                "quote": "QPIP: 110.00"
+              },
+              {
+                "page": 2,
+                "quote": "CNESST: 0.00"
+              }
+            ]
+          },
+          {
+            "path": "currency",
+            "observed": "CAD",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "Currency: CAD"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          },
+          {
+            "path": "reportingPeriod.start",
+            "observed": null,
+            "support": "unknown",
+            "evidence": []
+          }
+        ],
+        "arithmetic": {
+          "printed_total": 2330.0,
+          "components_sum": 110.0,
+          "discrepancy": true
+        }
+      },
+      "usage": {
+        "input": 2278,
+        "output": 361,
+        "total": 3419,
+        "cache_read": 780,
+        "cache_write": 0
+      },
+      "output_characters": 1169,
+      "output_bytes": 1169,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791839203.136147,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 1,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791839203.132788,
+          "api_request_id": "20261012_170642_9f3f82:af4977a6-ec8b-4c0e-8499-25641d621ad1:e57adce4:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791839221.5912352,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 18.389774084091187,
+          "started_at": 1791839203.132788,
+          "first_chunk_at": 1791839208.344844,
+          "ended_at": 1791839221.522562,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 2278,
+            "output_tokens": 361,
+            "cache_read_tokens": 780,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 3058,
+            "total_tokens": 3419
+          },
+          "api_request_id": "20261012_170642_9f3f82:af4977a6-ec8b-4c0e-8499-25641d621ad1:e57adce4:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 5.2120561599731445,
+      "api_seconds": 18.389774084091187,
+      "prompt_sha256": "f4216d6b9eb56e53357b3c5e19a26841a3b577f0a75b1859a8bf0ba51a143a8c",
+      "images": [
+        {
+          "page": 2,
+          "sha256": "84754b02c7a1ffded49db5d6e906f7b23950641b7eb5f8f4e33b3f6c7fca16e0",
+          "bytes": 51678
+        }
+      ],
+      "mode": "extract",
+      "document": "quebec-two-page-obligation",
+      "page": 2,
+      "verification": {
+        "passed": false,
+        "errors": [
+          "false-arithmetic-conflict"
+        ],
+        "fields": [
+          {
+            "path": "dates.dueDate",
+            "passed": true,
+            "expected_support": "unknown",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "passed": true,
+            "expected_support": "unknown",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpp",
+            "passed": true,
+            "expected_support": "unknown",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "passed": true,
+            "expected_support": "unknown",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpip",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": false,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "currency",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "unknown",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.start",
+            "passed": true,
+            "expected_support": "unknown",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          }
+        ],
+        "correct_fields": 9,
+        "field_count": 10
+      }
+    },
+    {
+      "id": "doc-05-extract-01",
+      "wall_seconds": 31.43474170800002,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          1
+        ],
+        "fields": [
+          {
+            "path": "currency",
+            "observed": "CAD",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Currency: CAD"
+              }
+            ]
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": 2300.0,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Total remittance: 2,300.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "observed": 1200.0,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Income tax: 1,200.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.qpp",
+            "observed": 800.0,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "QPP: 800.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "observed": 250.0,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Health Services Fund: 250.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.qpip",
+            "observed": 100.0,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "QPIP: 100.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "observed": 0.0,
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "CNESST: 0.00"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": "2026-09-30",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period end: 2026-09-30"
+              }
+            ]
+          },
+          {
+            "path": "documentRole",
+            "observed": "payroll remittance form",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Synthetic Canadian payroll remittance form - not a government form"
+              }
+            ]
+          },
+          {
+            "path": "jurisdiction",
+            "observed": "Quebec",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payroll source deductions TPZ-1015"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.start",
+            "observed": "2026-07-01",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period start: 2026-07-01"
+              }
+            ]
+          },
+          {
+            "path": "dates.dueDate",
+            "observed": "2026-10-15",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Due date: 2026-10-15"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "observed": "to-be-processed",
+            "support": "inferred",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Obligation source form. No submission or settlement is evidenced."
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "observed": "not evidenced",
+            "support": "printed",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "No submission or settlement is evidenced."
+              }
+            ]
+          }
+        ],
+        "arithmetic": {
+          "printed_total": 2300.0,
+          "components_sum": 2350.0,
+          "discrepancy": true
+        }
+      },
+      "usage": {
+        "input": 2299,
+        "output": 659,
+        "total": 3738,
+        "cache_read": 780,
+        "cache_write": 0
+      },
+      "output_characters": 2088,
+      "output_bytes": 2088,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791839223.7204149,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 1,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791839223.716415,
+          "api_request_id": "20261012_170702_4a9708:f28aced2-3648-4be2-b1ec-cc1b6c40f8bf:a7949d51:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791839253.0083299,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 29.22170901298523,
+          "started_at": 1791839223.716415,
+          "first_chunk_at": 1791839228.9273002,
+          "ended_at": 1791839252.938124,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 2299,
+            "output_tokens": 659,
+            "cache_read_tokens": 780,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 3079,
+            "total_tokens": 3738
+          },
+          "api_request_id": "20261012_170702_4a9708:f28aced2-3648-4be2-b1ec-cc1b6c40f8bf:a7949d51:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 5.210885286331177,
+      "api_seconds": 29.22170901298523,
+      "prompt_sha256": "61907fe54d9acd4ff8b6052f19ff6004bded394536451d6e1aad3ca534c0efb6",
+      "images": [
+        {
+          "page": 1,
+          "sha256": "009ccaae781ce26d5657b408ac3f2ea22f2247fb71c91e60a21199ec18eed429",
+          "bytes": 85863
+        }
+      ],
+      "mode": "extract",
+      "document": "quebec-conflicting-total-obligation",
+      "page": 1,
+      "verification": {
+        "passed": false,
+        "errors": [],
+        "fields": [
+          {
+            "path": "currency",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": false,
+            "expected_support": "ambiguous",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpp",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpip",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "documentRole",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": false
+          },
+          {
+            "path": "jurisdiction",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.start",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.dueDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": null,
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": false
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": null,
+            "observation_correct": false,
+            "evidence_correct": false
+          }
+        ],
+        "correct_fields": 9,
+        "field_count": 14
+      }
+    },
+    {
+      "id": "doc-01-check",
+      "wall_seconds": 32.826221833000005,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          1
+        ],
+        "fields": [
+          {
+            "path": "currency",
+            "observed": "CAD",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Currency: CAD"
+              }
+            ]
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": 2345.67,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Amount payable: 2,345.67"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": "2026-09-30",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period end: 2026-09-30"
+              }
+            ]
+          },
+          {
+            "path": "documentRole",
+            "observed": "submission-confirmation",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Federal Payroll Deductions submission confirmation"
+              }
+            ]
+          },
+          {
+            "path": "jurisdiction",
+            "observed": "ca-federal",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Federal Payroll Deductions submission confirmation"
+              },
+              {
+                "page": 1,
+                "quote": "Synthetic Canadian payroll remittance form - not a government form"
+              }
+            ]
+          },
+          {
+            "path": "dates.submissionDate",
+            "observed": "2026-10-03",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Confirmation date: 2026-10-03"
+              }
+            ]
+          },
+          {
+            "path": "dates.dueDate",
+            "observed": "2026-10-15",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Due Date: 2026-10-15"
+              }
+            ]
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "observed": "2026-10-11",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Payment Date: 2026-10-11"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.grossPayroll",
+            "observed": 24680.5,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Gross payroll: 24,680.50"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.employeeCount",
+            "observed": 7,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Number of employees: 7"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "observed": "scheduled",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Submission scheduling only. No completed or settled payment is evidenced."
+              },
+              {
+                "page": 1,
+                "quote": "Payment Date: 2026-10-11"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "observed": "to-be-processed",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Provider status: To be processed"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "observed": "pending",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Submission scheduling only. No completed or settled payment is evidenced."
+              }
+            ]
+          }
+        ],
+        "arithmetic": {
+          "printed_total": 2345.67,
+          "components_sum": null,
+          "discrepancy": null
+        }
+      },
+      "usage": {
+        "input": 2493,
+        "output": 686,
+        "total": 3959,
+        "cache_read": 780,
+        "cache_write": 0
+      },
+      "output_characters": 2390,
+      "output_bytes": 2390,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791839255.968852,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 1,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791839255.965856,
+          "api_request_id": "20261012_170735_917f3e:06438081-342c-4c27-bcee-b2a6018769bb:b222fcde:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791839286.6914291,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 30.663661003112793,
+          "started_at": 1791839255.965856,
+          "first_chunk_at": 1791839261.575288,
+          "ended_at": 1791839286.629517,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 2493,
+            "output_tokens": 686,
+            "cache_read_tokens": 780,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 3273,
+            "total_tokens": 3959
+          },
+          "api_request_id": "20261012_170735_917f3e:06438081-342c-4c27-bcee-b2a6018769bb:b222fcde:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 5.609431982040405,
+      "api_seconds": 30.663661003112793,
+      "prompt_sha256": "50dfb37cdc582d714e75d8dff7e76fad9e68a3c8346d8e34a72a39cf26803261",
+      "images": [
+        {
+          "page": 1,
+          "sha256": "a03c912b596c2e8e6ec34e0af37a871130ac8403ed3e90f64a8b81c91868e959",
+          "bytes": 144878
+        }
+      ],
+      "mode": "check",
+      "document": "federal-raster-confirmation",
+      "page": null,
+      "verification": {
+        "passed": false,
+        "errors": [],
+        "fields": [
+          {
+            "path": "currency",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "documentRole",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "jurisdiction",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          },
+          {
+            "path": "dates.submissionDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.dueDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.grossPayroll",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.employeeCount",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          }
+        ],
+        "correct_fields": 8,
+        "field_count": 13
+      }
+    },
+    {
+      "id": "doc-02-check",
+      "wall_seconds": 25.710747124999983,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          1
+        ],
+        "fields": [
+          {
+            "path": "currency",
+            "observed": "CAD",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Currency: CAD"
+              }
+            ]
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": 2369.24,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Payment total: 2,369.24"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": "2026-09-30",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period end: 2026-09-30"
+              }
+            ]
+          },
+          {
+            "path": "documentRole",
+            "observed": "submission-confirmation",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payment submission confirmation"
+              }
+            ]
+          },
+          {
+            "path": "jurisdiction",
+            "observed": "ca-qc",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payment submission confirmation"
+              }
+            ]
+          },
+          {
+            "path": "dates.submissionDate",
+            "observed": "2026-10-04",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Confirmation date: 2026-10-04"
+              }
+            ]
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "observed": "2026-10-12",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Scheduled execution: 2026-10-12"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "observed": "scheduled",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Scheduled execution: 2026-10-12"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "observed": "to-be-processed",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Provider status: To be processed"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "observed": "pending",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Submission scheduling only. No completed or settled payment is evidenced."
+              }
+            ]
+          }
+        ],
+        "arithmetic": {
+          "printed_total": 2369.24,
+          "components_sum": null,
+          "discrepancy": null
+        }
+      },
+      "usage": {
+        "input": 2431,
+        "output": 497,
+        "total": 3708,
+        "cache_read": 780,
+        "cache_write": 0
+      },
+      "output_characters": 1755,
+      "output_bytes": 1755,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791839289.181748,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 1,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791839289.178897,
+          "api_request_id": "20261012_170808_fd3bbb:3c16a04a-654e-432f-b149-691d9c649fdc:9982f9a8:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791839312.774831,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 23.521371126174927,
+          "started_at": 1791839289.178897,
+          "first_chunk_at": 1791839294.756824,
+          "ended_at": 1791839312.700268,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 2431,
+            "output_tokens": 497,
+            "cache_read_tokens": 780,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 3211,
+            "total_tokens": 3708
+          },
+          "api_request_id": "20261012_170808_fd3bbb:3c16a04a-654e-432f-b149-691d9c649fdc:9982f9a8:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 5.577927112579346,
+      "api_seconds": 23.521371126174927,
+      "prompt_sha256": "33257d86ce0d4d1fb4d426b098f8973f5ef24cc4dabaffcfd77d2804a0375c35",
+      "images": [
+        {
+          "page": 1,
+          "sha256": "d6e5b7c3301f479a77cc7b2bb8abd1372ae7c3d8dd2a6e137af288582ee49876",
+          "bytes": 89522
+        }
+      ],
+      "mode": "check",
+      "document": "quebec-sideways-confirmation",
+      "page": null,
+      "verification": {
+        "passed": false,
+        "errors": [],
+        "fields": [
+          {
+            "path": "currency",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "documentRole",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "jurisdiction",
+            "passed": true,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.submissionDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "passed": true,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          }
+        ],
+        "correct_fields": 7,
+        "field_count": 10
+      }
+    },
+    {
+      "id": "doc-03-check",
+      "wall_seconds": 26.66005716699999,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          1
+        ],
+        "fields": [
+          {
+            "path": "currency",
+            "observed": null,
+            "support": "unknown",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Payment total: 2,401.18"
+              }
+            ]
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": 2401.18,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Payment total: 2,401.18"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": "2026-09-30",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period end: 2026-09-30"
+              }
+            ]
+          },
+          {
+            "path": "documentRole",
+            "observed": "submission-confirmation",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payment submission confirmation"
+              }
+            ]
+          },
+          {
+            "path": "jurisdiction",
+            "observed": "ca-qc",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payment submission confirmation"
+              }
+            ]
+          },
+          {
+            "path": "dates.submissionDate",
+            "observed": "2026-10-05",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Confirmation date: 2026-10-05"
+              }
+            ]
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "observed": "2026-10-13",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Scheduled execution: 2026-10-13"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "observed": "scheduled",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Scheduled execution: 2026-10-13"
+              },
+              {
+                "page": 1,
+                "quote": "Submission scheduling only. No completed or settled payment is evidenced."
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "observed": "to-be-processed",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Provider status: To be processed"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "observed": "pending",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Submission scheduling only. No completed or settled payment is evidenced."
+              }
+            ]
+          }
+        ],
+        "arithmetic": {
+          "printed_total": 2401.18,
+          "components_sum": null,
+          "discrepancy": null
+        }
+      },
+      "usage": {
+        "input": 2431,
+        "output": 525,
+        "total": 3736,
+        "cache_read": 780,
+        "cache_write": 0
+      },
+      "output_characters": 1865,
+      "output_bytes": 1865,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791839315.1592262,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 1,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791839315.156358,
+          "api_request_id": "20261012_170834_50502c:c97f5685-1788-4412-a8bb-8e2e61a24dcb:b34dd2e9:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791839339.80844,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 24.58628010749817,
+          "started_at": 1791839315.156358,
+          "first_chunk_at": 1791839320.5625541,
+          "ended_at": 1791839339.742638,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 2431,
+            "output_tokens": 525,
+            "cache_read_tokens": 780,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 3211,
+            "total_tokens": 3736
+          },
+          "api_request_id": "20261012_170834_50502c:c97f5685-1788-4412-a8bb-8e2e61a24dcb:b34dd2e9:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 5.406196117401123,
+      "api_seconds": 24.58628010749817,
+      "prompt_sha256": "5803ebf0f4f926ffe392e9029184b122e6b794fac72b3fa5899a451e634310c3",
+      "images": [
+        {
+          "page": 1,
+          "sha256": "ec926b7dc2b0e14e0df1b5ae75b2bb8dccb284b9a7d908e377e16ab2f45d3583",
+          "bytes": 76625
+        }
+      ],
+      "mode": "check",
+      "document": "quebec-missing-currency-confirmation",
+      "page": null,
+      "verification": {
+        "passed": false,
+        "errors": [],
+        "fields": [
+          {
+            "path": "currency",
+            "passed": false,
+            "expected_support": "unknown",
+            "expected_status": "unknown",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "documentRole",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "jurisdiction",
+            "passed": true,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.submissionDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.scheduledExecutionDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          },
+          {
+            "path": "obligationLifecycle.providerStatus",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          }
+        ],
+        "correct_fields": 5,
+        "field_count": 10
+      }
+    },
+    {
+      "id": "doc-04-check",
+      "wall_seconds": 39.93890895800001,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          1,
+          2
+        ],
+        "fields": [
+          {
+            "path": "dates.dueDate",
+            "observed": "2026-10-15",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Due date: 2026-10-15"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "observed": 1210,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Income tax: 1,210.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.qpp",
+            "observed": 780,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "QPP: 780.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "observed": 230,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Health Services Fund: 230.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.qpip",
+            "observed": 110,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "QPIP: 110.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "observed": 0,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "CNESST: 0.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": 2330,
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "Total remittance: 2,330.00"
+              }
+            ]
+          },
+          {
+            "path": "currency",
+            "observed": "CAD",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 2,
+                "quote": "Currency: CAD"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": "2026-09-30",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period end: 2026-09-30"
+              }
+            ]
+          },
+          {
+            "path": "documentRole",
+            "observed": "obligation",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Obligation only; no payment is evidenced."
+              },
+              {
+                "page": 2,
+                "quote": "This page completes the source obligation. No submission or settlement is evidenced."
+              }
+            ]
+          },
+          {
+            "path": "jurisdiction",
+            "observed": "ca-qc",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payroll source deductions TPZ-1015"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.start",
+            "observed": "2026-07-01",
+            "support": "printed",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period start: 2026-07-01"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "observed": "obligation-recorded",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Obligation only; no payment is evidenced."
+              },
+              {
+                "page": 2,
+                "quote": "This page completes the source obligation. No submission or settlement is evidenced."
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "observed": "pending",
+            "support": "inferred",
+            "status": "match",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Obligation only; no payment is evidenced."
+              },
+              {
+                "page": 2,
+                "quote": "No submission or settlement is evidenced."
+              }
+            ]
+          }
+        ],
+        "arithmetic": {
+          "printed_total": 2330,
+          "components_sum": 2330,
+          "discrepancy": false
+        }
+      },
+      "usage": {
+        "input": 4461,
+        "output": 746,
+        "total": 5987,
+        "cache_read": 780,
+        "cache_write": 0
+      },
+      "output_characters": 2518,
+      "output_bytes": 2518,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791839342.2813911,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 2,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791839342.2785301,
+          "api_request_id": "20261012_170901_ca845f:1f3ec8f0-b154-4d03-ac99-94337989156d:0c9fda01:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791839380.218344,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 37.871718883514404,
+          "started_at": 1791839342.2785301,
+          "first_chunk_at": 1791839352.233191,
+          "ended_at": 1791839380.150249,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 4461,
+            "output_tokens": 746,
+            "cache_read_tokens": 780,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 5241,
+            "total_tokens": 5987
+          },
+          "api_request_id": "20261012_170901_ca845f:1f3ec8f0-b154-4d03-ac99-94337989156d:0c9fda01:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 9.954660892486572,
+      "api_seconds": 37.871718883514404,
+      "prompt_sha256": "02b9bfa40ead0c661a222959f78a95b4325ede3dc28a00623fac4c439503e737",
+      "images": [
+        {
+          "page": 1,
+          "sha256": "e627319e7f7d61dc21121de16cafbbc691cd7294e8eae3259b0a23b23266aaec",
+          "bytes": 75069
+        },
+        {
+          "page": 2,
+          "sha256": "84754b02c7a1ffded49db5d6e906f7b23950641b7eb5f8f4e33b3f6c7fca16e0",
+          "bytes": 51678
+        }
+      ],
+      "mode": "check",
+      "document": "quebec-two-page-obligation",
+      "page": null,
+      "verification": {
+        "passed": false,
+        "errors": [],
+        "fields": [
+          {
+            "path": "dates.dueDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpp",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpip",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "currency",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "documentRole",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          },
+          {
+            "path": "jurisdiction",
+            "passed": true,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.start",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "match",
+            "observation_correct": true,
+            "evidence_correct": false
+          }
+        ],
+        "correct_fields": 11,
+        "field_count": 14
+      }
+    },
+    {
+      "id": "doc-05-check",
+      "wall_seconds": 34.389247583999975,
+      "exit_code": 0,
+      "transport_verification": {
+        "one_request": true,
+        "one_response": true,
+        "model": true,
+        "context": true,
+        "no_tools": true,
+        "no_fallback": true,
+        "normal_stop": true,
+        "images": true,
+        "thinking": true,
+        "output_cap": true,
+        "sampling": true,
+        "exit": true,
+        "passed": true,
+        "one_completion": true
+      },
+      "answer": {
+        "pages_seen": [
+          1
+        ],
+        "fields": [
+          {
+            "path": "currency",
+            "observed": "CAD",
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Currency: CAD"
+              }
+            ]
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "observed": 2300.0,
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Total remittance: 2,300.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "observed": 1200.0,
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Income tax: 1,200.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.qpp",
+            "observed": 800.0,
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "QPP: 800.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "observed": 250.0,
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Health Services Fund: 250.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.qpip",
+            "observed": 100.0,
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "QPIP: 100.00"
+              }
+            ]
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "observed": 0.0,
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "CNESST: 0.00"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.end",
+            "observed": "2026-09-30",
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period end: 2026-09-30"
+              }
+            ]
+          },
+          {
+            "path": "documentRole",
+            "observed": "payroll remittance form",
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Synthetic Canadian payroll remittance form - not a government form"
+              }
+            ]
+          },
+          {
+            "path": "jurisdiction",
+            "observed": "Quebec",
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Revenu Quebec payroll source deductions TPZ-1015"
+              }
+            ]
+          },
+          {
+            "path": "reportingPeriod.start",
+            "observed": "2026-07-01",
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Reporting period start: 2026-07-01"
+              }
+            ]
+          },
+          {
+            "path": "dates.dueDate",
+            "observed": "2026-10-15",
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Due date: 2026-10-15"
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "observed": "to-be-processed",
+            "support": "inferred",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Obligation source form. No submission or settlement is evidenced."
+              }
+            ]
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "observed": "not evidenced",
+            "support": "printed",
+            "status": "unavailable",
+            "evidence": [
+              {
+                "page": 1,
+                "quote": "Obligation source form. No submission or settlement is evidenced."
+              }
+            ]
+          }
+        ],
+        "arithmetic": {
+          "printed_total": 2300.0,
+          "components_sum": 2350.0,
+          "discrepancy": true
+        }
+      },
+      "usage": {
+        "input": 2363,
+        "output": 735,
+        "total": 3878,
+        "cache_read": 780,
+        "cache_write": 0
+      },
+      "output_characters": 2434,
+      "output_bytes": 2434,
+      "request_observations": [
+        {
+          "event": "pre",
+          "observer_time": 1791839382.60366,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "image_count": 1,
+          "tool_count": 0,
+          "tools_in_payload": 0,
+          "started_at": 1791839382.600801,
+          "api_request_id": "20261012_170941_93d112:92a3207c-058b-40b1-9993-2db6c00efb14:a6ec1759:api:1",
+          "retry_count": 0,
+          "max_tokens": 2048,
+          "enable_thinking": false,
+          "temperature": 0,
+          "top_p": 1
+        },
+        {
+          "event": "post",
+          "observer_time": 1791839414.97632,
+          "model": "qwen3.8-flash-next-iq4-nl",
+          "context_length": 65536,
+          "api_duration": 32.30323100090027,
+          "started_at": 1791839382.600801,
+          "first_chunk_at": 1791839388.152748,
+          "ended_at": 1791839414.904032,
+          "finish_reason": "stop",
+          "assistant_tool_call_count": 0,
+          "usage": {
+            "input_tokens": 2363,
+            "output_tokens": 735,
+            "cache_read_tokens": 780,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "request_count": 1,
+            "prompt_tokens": 3143,
+            "total_tokens": 3878
+          },
+          "api_request_id": "20261012_170941_93d112:92a3207c-058b-40b1-9993-2db6c00efb14:a6ec1759:api:1"
+        }
+      ],
+      "provider_request_hooks_observed": 1,
+      "model_api_calls": null,
+      "first_token_seconds": 5.551947116851807,
+      "api_seconds": 32.30323100090027,
+      "prompt_sha256": "781afa1e9fa8b2aceb7e4320690370465ee09450e29828808ca934213401a470",
+      "images": [
+        {
+          "page": 1,
+          "sha256": "009ccaae781ce26d5657b408ac3f2ea22f2247fb71c91e60a21199ec18eed429",
+          "bytes": 85863
+        }
+      ],
+      "mode": "check",
+      "document": "quebec-conflicting-total-obligation",
+      "page": null,
+      "verification": {
+        "passed": false,
+        "errors": [],
+        "fields": [
+          {
+            "path": "currency",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "unavailable",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.arithmetic.total",
+            "passed": false,
+            "expected_support": "ambiguous",
+            "expected_status": "ambiguous",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.incomeTax",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "unavailable",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpp",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "unavailable",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.healthServicesFund",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "unavailable",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.qpip",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "unavailable",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "amounts.components.cnesst",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "unavailable",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.end",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "unavailable",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "documentRole",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "unavailable",
+            "observation_correct": false,
+            "evidence_correct": false
+          },
+          {
+            "path": "jurisdiction",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "unavailable",
+            "observation_correct": false,
+            "evidence_correct": true
+          },
+          {
+            "path": "reportingPeriod.start",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "unavailable",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "dates.dueDate",
+            "passed": true,
+            "expected_support": "printed",
+            "expected_status": "unavailable",
+            "observation_correct": true,
+            "evidence_correct": true
+          },
+          {
+            "path": "obligationLifecycle.state",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "unavailable",
+            "observation_correct": false,
+            "evidence_correct": false
+          },
+          {
+            "path": "obligationLifecycle.settlement",
+            "passed": false,
+            "expected_support": "inferred",
+            "expected_status": "unavailable",
+            "observation_correct": false,
+            "evidence_correct": false
+          }
+        ],
+        "correct_fields": 9,
+        "field_count": 14
+      }
+    }
+  ],
+  "blocked_stage": null,
+  "summary": {
+    "extract": {
+      "wall_seconds": 164.73909004100003,
+      "requests": 6,
+      "field_checks": 67,
+      "correct_fields": 45
+    },
+    "check": {
+      "wall_seconds": 159.52518266699997,
+      "requests": 5,
+      "field_checks": 61,
+      "correct_fields": 40
+    }
+  },
+  "timing": {
+    "rendering_seconds": 6.86008075,
+    "mechanical_seconds": 2.3853722919999996,
+    "visual_seconds": 324.26427270799996,
+    "total_wall_seconds": 336.18447275
+  },
+  "boundary": "two separately measured model tasks; no tools, publication or record application; raw proposals and logs private"
+}
