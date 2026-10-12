@@ -22,8 +22,8 @@ The set contains six pages across five PDFs:
 2. a Quebec submission confirmation whose page content is visibly sideways at
    90 degrees (the PDF is not repaired with a rotation tag);
 3. a Quebec submission confirmation that prints an amount but no currency code;
-4. a two-page Quebec obligation, with components and date on page 1 and the
-   printed total on page 2; and
+4. a two-page Quebec obligation, with the date and components spanning both
+   pages and the printed total on page 2; and
 5. a Quebec obligation whose printed total conflicts with the sum of its
    printed components.
 
