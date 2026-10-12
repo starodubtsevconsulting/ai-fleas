@@ -158,3 +158,45 @@ The source must have its own `expected.json` declaring `fictional: true`, contai
 declared PDFs and no symlinks or unlisted financial files. These comparisons
 remain fictional-only: selecting a real profile does not automatically copy or
 publish its records. Default outputs stay in ignored private run directories.
+
+## Repeated comparison of two test profiles
+
+`compare-profiles.py` compares two explicitly selected profile names from the
+private configuration. It requires the same model/transport, budgets, sampling,
+thinking, three fictional PDF hashes, reference facts, prompts and execution
+sources. Platform/harness adapters may differ. Five pairs run sequentially in
+alternating order: A/B, B/A, A/B, B/A, A/B. Each arm preserves the existing seven
+cases and performs its own fresh live-context check.
+
+Validate the plan without inference or creating directories:
+
+```sh
+python3 compare-profiles.py --profile-config PRIVATE_PROFILES_JSON \
+  --profiles PROFILE_A PROFILE_B --pairs 5 --check-plan
+```
+
+Execute with a fresh ignored batch root:
+
+```sh
+python3 compare-profiles.py --profile-config PRIVATE_PROFILES_JSON \
+  --profiles PROFILE_A PROFILE_B --pairs 5 \
+  --run-root FRESH_IGNORED_BATCH_ROOT \
+  --results FRESH_PUBLIC_RESULT_FOLDER/summary.json
+```
+
+Omit `--results` to retain everything privately. Public export requires a new
+dedicated folder and passes a privacy scan before writing structured per-arm
+observations and the summary. Raw logs and private configuration remain ignored.
+Existing paths are never overwritten, and failed/interrupted arms are never
+retried automatically. A private `checkpoint.json` tracks the active arm and
+case stage, then records every terminal observation. Timeout/interruption cleans
+up only the owned child process group, never the server or another run.
+
+Valid-transport accuracy failures continue; transport, source drift or verifier
+infrastructure failures stop the batch and mark remaining arms blocked. Each
+child is bounded to 900 seconds; cases keep their existing 90-second bound.
+The report preserves token/cache buckets, actual output lengths, available API
+latency, field accuracy and paired wall-time differences/ratios. Medians, ranges
+and population spread use valid observations; quartiles require five valid arms.
+These measurements describe this trial and do not establish a causal harness
+ranking or matched output lengths/native system context.

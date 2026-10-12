@@ -198,3 +198,29 @@ reject symlinks and reject unlisted financial files. These public comparison
 runs remain fictional-only; real profile data is not automatically copied or
 exported. Default run outputs remain private ignored artifacts until separately
 reviewed for publication.
+
+## Repeated matched profile comparison
+
+Compare two explicitly selected named test profiles using the unchanged three
+fictional source PDFs and seven cases. Before starting, require identical model,
+context/output budgets, sampling, thinking, source PDF hashes, reference facts,
+prompt and runner/evaluator versions. Platform, harness and adapter may differ.
+Run five pairs sequentially in alternating order: A/B, B/A, A/B, B/A, A/B.
+Each arm uses its existing fresh live-context check and isolated run storage.
+
+Preserve every observation without retries. Accuracy failures with valid transport
+remain in the comparison; a transport or verification-infrastructure failure
+stops the batch and records unlaunched arms as blocked. Save a private checkpoint
+after every completed arm. A child arm has a bounded 900-second process timeout;
+each case retains its existing 90-second timeout.
+
+Report per-arm wall/stage time, field accuracy, failures, observed tokens/cache
+buckets, output lengths and available API/first-token/request metrics. Aggregate
+median, range and population spread; report quartiles only with five valid arms.
+Paired differences and ratios describe this observed trial, not a causal harness
+advantage. Native context and output lengths may differ despite matched task
+settings; never claim output-token matching from configuration alone.
+
+Export only explicitly selected fictional structured observations and a sanitized
+summary. Raw logs, private configuration and endpoints remain ignored/private.
+Do not rewrite earlier comparison evidence or change the dataset mid-trial.
