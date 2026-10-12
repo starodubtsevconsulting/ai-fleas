@@ -52,11 +52,55 @@ process exits zero. A tool call is execution evidence, not task acceptance.
 Before inference, verify the exact extractor/renderer executable and Pi's actual
 PDF/image attachment support outside the model conversation. Supply concrete
 machine paths only in private launch context. Bound discovery and inspect one
-original PDF/page at a time. Keep source and scenario no-write rules intact;
-authorized launcher runtime preparation and private evidence capture do not
-authorize derived financial files. If native page attachment requires writing
-an image prohibited by the scenario, report that capability as unavailable and
-use only its permitted fresh stdout/in-memory fallback.
+original PDF/page at a time. Keep canonical sources unchanged and Pi's scenario
+no-write rules intact. For this human-authorized test, the harness may render
+page images and capture private test evidence in its authorized runtime workspace
+outside the canonical source root. This permits only test preparation and capture,
+not intake, sidecar generation, normalization, persistence into the source data,
+or other data-pipeline execution. Pi itself may not write files. If rendering is
+unavailable within that boundary, record the capability gap and use only the
+scenario's permitted fresh stdout/in-memory fallback, labeled as text/OCR rather
+than vision.
+
+## Blind vision and paired parsed-JSON comparison
+
+Capture each Pi PDF/page output and visual-input trace before the evaluator opens
+or prepares its paired parsed JSON. The JSON, parsed fields and expected answers must remain
+outside Pi's context and tools. Separate evaluator access from the blind inference
+run so parsed data cannot substitute for page vision.
+
+Pair by exact existing source linkage or an unambiguous matching source stem in
+the authorized source set. Ambiguous pairing makes that comparison unavailable;
+never select an unrelated JSON or invent an expected answer. When explicitly
+human-authorized, the evaluator may prepare missing JSON from the original PDF
+in its private runtime workspace after blind capture. Never derive a baseline
+from Pi's output or desired answers. Otherwise, missing pairing is unavailable.
+Record pairing, preparation provenance and runtime references only privately.
+
+Before calling a baseline usable, manually verify its literal, source-supported
+fields against the relevant original pages. Keep normalized or inferred values
+(such as an inferred currency) separate from visibly supported evidence. Record
+corrections, uncertainties and page provenance in a private verifier overlay;
+do not overwrite the existing source baseline without a separate request. A
+prepared baseline requires the same source-page verification as an existing one.
+
+Compare tax type, amount, currency, relevant dates, payment status and settlement
+classification. Count matched, omitted, contradictory, unknown and unavailable
+fields separately; unavailable or absent baseline fields are not correct matches.
+Adjudicate disagreements against the original cited page because parsed JSON can
+also be wrong. Record corrected-baseline and unresolved cases distinctly, without
+claiming financial correctness from agreement alone. Verify inclusion/exclusion,
+duplicate treatment and arithmetic separately from field extraction when the
+scenario asks for period totals.
+
+Retain raw page outputs, paired JSON, field comparisons, citations and any
+adjudication privately. Publish sanitized aggregate comparison counts, comparison
+status, aggregate baseline validation status and counts of prepared, verified or
+corrected fields, and coverage limitations for every attempted page/run, including
+failures and blocked comparisons. The public allowlist above still applies: no financial
+values, source identities, private paths or source-content hashes. A bounded
+selection of pages/candidates can establish extraction results only for that
+selection; it does not prove complete week or quarter discovery or totals.
 
 ## Thinking-control evidence
 
