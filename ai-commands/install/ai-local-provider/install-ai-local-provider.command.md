@@ -298,7 +298,9 @@ gateway as part of the same transaction. It installs the gateway under `/opt/ai-
 system service, checks `/gateway-health`, and sends a real completion through the gateway. To replace a separately owned
 user gateway already occupying the port, pass `--switch-from-user-gateway-service <unit>`. The command stops that unit
 only after the provider itself has passed inference; if gateway startup or routed inference fails, it stops the managed
-gateway and restarts the named user gateway. The command does not edit another gateway's code or routing table.
+gateway and restarts the named user gateway. To retain a user-owned multi-model gateway, pass
+`--preserve-user-gateway-service <unit>` instead. The installer leaves that unit running and requires the
+selected model's real image completion to pass through it. The command does not edit another gateway's code or routing table.
 
 ```mermaid
 sequenceDiagram
