@@ -304,7 +304,7 @@ if [[ "$action" == preflight ]]; then
   printf 'Provider service diagnostic: %s\n' "$(ssh "${ssh_args[@]}" "$target" "systemctl is-active $(printf '%q' "$diagnostic_service") 2>/dev/null || true")"
   if [[ -n "$diagnostic_gateway_port" ]]; then
     [[ "$diagnostic_gateway_port" =~ ^[0-9]+$ ]] || fail 'PRESET_NOT_READY: invalid gateway port.'
-    listener="$(ssh "${ssh_args[@]}" "$target" "ss -ltn 'sport = :$diagnostic_gateway_port' | awk 'NR > 1 { found=1 } END { print found ? "occupied" : "free" }'")"
+    listener="$(ssh "${ssh_args[@]}" "$target" "if ss -ltn 'sport = :$diagnostic_gateway_port' | tail -n +2 | grep -q .; then printf occupied; else printf free; fi")"
     printf 'Gateway port diagnostic: %s is %s.\n' "$diagnostic_gateway_port" "$listener"
     if [[ -n "$preserve_user_gateway_service" ]]; then
       [[ "$preserve_user_gateway_service" =~ ^[A-Za-z0-9][A-Za-z0-9_.@-]*\.service$ ]] || fail 'CONFIGURATION_INVALID: invalid preserved user gateway service.'
@@ -346,7 +346,7 @@ gateway_listen_address="$(node "$command_dir/resolve-config.mjs" "$preset_file" 
 if [[ -n "$switch_from_user_gateway_service" && -n "$preserve_user_gateway_service" ]]; then fail 'CONFIGURATION_INVALID: gateway switch and preservation are mutually exclusive.'; fi
 if [[ -n "$switch_from_user_gateway_service$preserve_user_gateway_service" && -z "$gateway_port" ]]; then fail 'CONFIGURATION_INVALID: user gateway selection requires a preset gateway.'; fi
 if [[ -n "$gateway_port" && -z "$switch_from_user_gateway_service$preserve_user_gateway_service" ]]; then
-  gateway_listener="$(ssh "${ssh_args[@]}" "$target" "ss -ltn 'sport = :$gateway_port' | awk 'NR > 1 { found=1 } END { print found ? "occupied" : "free" }'")"
+  gateway_listener="$(ssh "${ssh_args[@]}" "$target" "if ss -ltn 'sport = :$gateway_port' | tail -n +2 | grep -q .; then printf occupied; else printf free; fi")"
   if [[ "$gateway_listener" == occupied ]]; then
     fail 'GATEWAY_PRESERVATION_REQUIRED: the preset gateway port is occupied; rerun with --preserve-user-gateway-service <active-unit> to retain it, or --switch-from-user-gateway-service <active-unit> to replace it explicitly.'
   fi
