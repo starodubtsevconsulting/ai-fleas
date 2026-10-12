@@ -45,6 +45,17 @@ Each expected field includes `expected_support`:
 * `ambiguous` means the source supplies incompatible evidence that must remain
   visible to review.
 
+The printed phrase `Provider status: To be processed` is normalized to the
+canonical `obligationLifecycle.providerStatus` value `to-be-processed`, with
+`printed` support on each confirmation's cited page. This is separate from the
+derived scheduled and pending lifecycle conclusions.
+
+Reference corrections are append-only. Reference revision 2 corrects only this
+support classification for the three confirmation documents. Preserve source
+bytes, transcripts, revision-1 answer-key hashes and all revision-1 run metrics;
+any corrected scoring records must identify revision 2 rather than overwriting
+the historical observations.
+
 ## CHALLENGE-2: missing currency and conflicting arithmetic
 
 For the missing-currency Quebec confirmation, the raw visual observation for

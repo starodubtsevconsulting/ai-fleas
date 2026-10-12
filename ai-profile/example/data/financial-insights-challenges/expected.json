@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "reference_revision": 2,
   "fictional": true,
   "source_root": "ai-profile/example/data/financial-insights-challenges",
   "documents": [
@@ -33,6 +34,13 @@
         },
         "amounts.arithmetic.total": {
           "value": 2345.67,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.providerStatus": {
+          "value": "to-be-processed",
           "expected_support": "printed",
           "source_pages": [
             1
@@ -101,13 +109,6 @@
             1
           ]
         },
-        "obligationLifecycle.providerStatus": {
-          "value": "to-be-processed",
-          "expected_support": "inferred",
-          "source_pages": [
-            1
-          ]
-        },
         "obligationLifecycle.settlement": {
           "value": "pending",
           "expected_support": "inferred",
@@ -152,6 +153,13 @@
             1
           ]
         },
+        "obligationLifecycle.providerStatus": {
+          "value": "to-be-processed",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
         "reportingPeriod.end": {
           "value": "2026-09-30",
           "expected_support": "printed",
@@ -189,13 +197,6 @@
         },
         "obligationLifecycle.state": {
           "value": "scheduled",
-          "expected_support": "inferred",
-          "source_pages": [
-            1
-          ]
-        },
-        "obligationLifecycle.providerStatus": {
-          "value": "to-be-processed",
           "expected_support": "inferred",
           "source_pages": [
             1
@@ -246,6 +247,13 @@
             1
           ]
         },
+        "obligationLifecycle.providerStatus": {
+          "value": "to-be-processed",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
         "reportingPeriod.end": {
           "value": "2026-09-30",
           "expected_support": "printed",
@@ -283,13 +291,6 @@
         },
         "obligationLifecycle.state": {
           "value": "scheduled",
-          "expected_support": "inferred",
-          "source_pages": [
-            1
-          ]
-        },
-        "obligationLifecycle.providerStatus": {
-          "value": "to-be-processed",
           "expected_support": "inferred",
           "source_pages": [
             1
