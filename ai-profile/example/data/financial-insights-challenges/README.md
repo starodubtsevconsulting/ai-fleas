@@ -18,4 +18,10 @@ input, OCR output, normalized sidecars, or approval to publish records. The
 challenge fixture contract is defined in
 `ai-workflows/financial-insights/acceptance/financial-insights-challenges.scenario.md`.
 
+Reference revision 2 records that the printed `Provider status: To be
+processed` label on all three confirmation forms normalizes to
+`obligationLifecycle.providerStatus: to-be-processed` with printed support.
+Revision 1 reference hashes and run metrics remain historical evidence; any
+corrected scoring uses the separately identified revision 2 key.
+
 Every form has a visible `FICTIONAL TEST FIXTURE` banner and invented data.
