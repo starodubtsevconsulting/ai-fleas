@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "fictional": true,
+  "review_method": "manual transcription from rendered source pages; not OCR",
+  "documents": [
+    {
+      "id": "federal-raster-confirmation",
+      "pages": [
+        {
+          "page": 1,
+          "visible_text": [
+            "Federal Payroll Deductions submission confirmation",
+            "Provider status: To be processed",
+            "Confirmation Number: FICTIONAL-FED-CH-01",
+            "Confirmation date: 2026-10-03",
+            "Date payment made to employees: 2026 Sep",
+            "Reporting period end: 2026-09-30",
+            "Due Date: 2026-10-15",
+            "Payment Date: 2026-10-11",
+            "Gross payroll: 24,680.50",
+            "Number of employees: 7",
+            "Amount payable: 2,345.67",
+            "Currency: CAD"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quebec-sideways-confirmation",
+      "pages": [
+        {
+          "page": 1,
+          "visible_text": [
+            "Revenu Quebec payment submission confirmation",
+            "Provider status: To be processed",
+            "Confirmation reference: FICTIONAL-QC-CH-02",
+            "Reporting period end: 2026-09-30",
+            "Confirmation date: 2026-10-04",
+            "Scheduled execution: 2026-10-12",
+            "Payment total: 2,369.24",
+            "Currency: CAD"
+          ],
+          "layout_note": "All page content is visibly sideways at 90 degrees."
+        }
+      ]
+    },
+    {
+      "id": "quebec-missing-currency-confirmation",
+      "pages": [
+        {
+          "page": 1,
+          "visible_text": [
+            "Revenu Quebec payment submission confirmation",
+            "Provider status: To be processed",
+            "Confirmation reference: FICTIONAL-QC-CH-03",
+            "Reporting period end: 2026-09-30",
+            "Confirmation date: 2026-10-05",
+            "Scheduled execution: 2026-10-13",
+            "Payment total: 2,401.18"
+          ],
+          "absence_note": "No currency code is printed anywhere on this page."
+        }
+      ]
+    },
+    {
+      "id": "quebec-two-page-obligation",
+      "pages": [
+        {
+          "page": 1,
+          "visible_text": [
+            "Revenu Quebec payroll source deductions TPZ-1015",
+            "Reporting period start: 2026-07-01",
+            "Reporting period end: 2026-09-30",
+            "Due date: 2026-10-15",
+            "Income tax: 1,210.00",
+            "QPP: 780.00",
+            "Health Services Fund: 230.00"
+          ],
+          "coverage_note": "Components continue on page 2."
+        },
+        {
+          "page": 2,
+          "visible_text": [
+            "QPIP: 110.00",
+            "CNESST: 0.00",
+            "Total remittance: 2,330.00",
+            "Currency: CAD"
+          ],
+          "coverage_note": "This page completes the source obligation."
+        }
+      ]
+    },
+    {
+      "id": "quebec-conflicting-total-obligation",
+      "pages": [
+        {
+          "page": 1,
+          "visible_text": [
+            "Revenu Quebec payroll source deductions TPZ-1015",
+            "Reporting period start: 2026-07-01",
+            "Reporting period end: 2026-09-30",
+            "Due date: 2026-10-15",
+            "Income tax: 1,200.00",
+            "QPP: 800.00",
+            "Health Services Fund: 250.00",
+            "QPIP: 100.00",
+            "CNESST: 0.00",
+            "Total remittance: 2,300.00",
+            "Currency: CAD"
+          ],
+          "arithmetic_note": "Printed components sum to 2,350.00 while the literal printed total is 2,300.00."
+        }
+      ]
+    }
+  ]
+}

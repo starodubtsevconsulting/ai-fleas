@@ -1,0 +1,592 @@
+{
+  "schema_version": 1,
+  "fictional": true,
+  "source_root": "ai-profile/example/data/financial-insights-challenges",
+  "documents": [
+    {
+      "id": "federal-raster-confirmation",
+      "file": "ai-profile/example/data/financial-insights-challenges/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/federal-raster-confirmation.pdf",
+      "sha256": "6dd97c71a24f5ddbb159c9054de93f398bdc76174de18b4f061bbf578d8d1143",
+      "page_count": 1,
+      "expected": {
+        "reportingPeriod.end": "2026-09-30",
+        "currency": "CAD",
+        "documentRole": "submission-confirmation",
+        "jurisdiction": "ca-federal",
+        "dates.submissionDate": "2026-10-03",
+        "dates.dueDate": "2026-10-15",
+        "dates.scheduledExecutionDate": "2026-10-11",
+        "amounts.components.grossPayroll": 24680.5,
+        "amounts.components.employeeCount": 7,
+        "amounts.arithmetic.total": 2345.67,
+        "obligationLifecycle.state": "scheduled",
+        "obligationLifecycle.providerStatus": "to-be-processed",
+        "obligationLifecycle.settlement": "pending"
+      },
+      "field_provenance": {
+        "currency": {
+          "value": "CAD",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.arithmetic.total": {
+          "value": 2345.67,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "reportingPeriod.end": {
+          "value": "2026-09-30",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "documentRole": {
+          "value": "submission-confirmation",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "jurisdiction": {
+          "value": "ca-federal",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "dates.submissionDate": {
+          "value": "2026-10-03",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "dates.dueDate": {
+          "value": "2026-10-15",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "dates.scheduledExecutionDate": {
+          "value": "2026-10-11",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.components.grossPayroll": {
+          "value": 24680.5,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.components.employeeCount": {
+          "value": 7,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.state": {
+          "value": "scheduled",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.providerStatus": {
+          "value": "to-be-processed",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.settlement": {
+          "value": "pending",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        }
+      },
+      "transcript_pages": [
+        1
+      ]
+    },
+    {
+      "id": "quebec-sideways-confirmation",
+      "file": "ai-profile/example/data/financial-insights-challenges/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-sideways-confirmation.pdf",
+      "sha256": "c365b29d5b7c8dc0d699b579cf1d7e52bc97b0cbea144d730db1be271fb9353f",
+      "page_count": 1,
+      "expected": {
+        "reportingPeriod.end": "2026-09-30",
+        "currency": "CAD",
+        "documentRole": "submission-confirmation",
+        "jurisdiction": "ca-qc",
+        "dates.submissionDate": "2026-10-04",
+        "dates.scheduledExecutionDate": "2026-10-12",
+        "amounts.arithmetic.total": 2369.24,
+        "obligationLifecycle.state": "scheduled",
+        "obligationLifecycle.providerStatus": "to-be-processed",
+        "obligationLifecycle.settlement": "pending"
+      },
+      "field_provenance": {
+        "currency": {
+          "value": "CAD",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.arithmetic.total": {
+          "value": 2369.24,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "reportingPeriod.end": {
+          "value": "2026-09-30",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "documentRole": {
+          "value": "submission-confirmation",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "jurisdiction": {
+          "value": "ca-qc",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "dates.submissionDate": {
+          "value": "2026-10-04",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "dates.scheduledExecutionDate": {
+          "value": "2026-10-12",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.state": {
+          "value": "scheduled",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.providerStatus": {
+          "value": "to-be-processed",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.settlement": {
+          "value": "pending",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        }
+      },
+      "transcript_pages": [
+        1
+      ],
+      "layout_challenge": "content_visibly_sideways_90_degrees_no_rotation_tag"
+    },
+    {
+      "id": "quebec-missing-currency-confirmation",
+      "file": "ai-profile/example/data/financial-insights-challenges/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-missing-currency-confirmation.pdf",
+      "sha256": "d7e0c2f683c419ddded74c6677b5b0a913da3c686e76067e1bb7aaf03a745dc7",
+      "page_count": 1,
+      "expected": {
+        "reportingPeriod.end": "2026-09-30",
+        "currency": "CAD",
+        "documentRole": "submission-confirmation",
+        "jurisdiction": "ca-qc",
+        "dates.submissionDate": "2026-10-05",
+        "dates.scheduledExecutionDate": "2026-10-13",
+        "amounts.arithmetic.total": 2401.18,
+        "obligationLifecycle.state": "scheduled",
+        "obligationLifecycle.providerStatus": "to-be-processed",
+        "obligationLifecycle.settlement": "pending"
+      },
+      "field_provenance": {
+        "currency": {
+          "value": "CAD",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.arithmetic.total": {
+          "value": 2401.18,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "reportingPeriod.end": {
+          "value": "2026-09-30",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "documentRole": {
+          "value": "submission-confirmation",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "jurisdiction": {
+          "value": "ca-qc",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "dates.submissionDate": {
+          "value": "2026-10-05",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "dates.scheduledExecutionDate": {
+          "value": "2026-10-13",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.state": {
+          "value": "scheduled",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.providerStatus": {
+          "value": "to-be-processed",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.settlement": {
+          "value": "pending",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        }
+      },
+      "transcript_pages": [
+        1
+      ],
+      "visual_assessment": {
+        "currency": {
+          "value": null,
+          "expected_support": "unknown",
+          "source_pages": [
+            1
+          ],
+          "observed_value": null
+        }
+      }
+    },
+    {
+      "id": "quebec-two-page-obligation",
+      "file": "ai-profile/example/data/financial-insights-challenges/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-two-page-obligation.pdf",
+      "sha256": "a966887e9b15454663bf846a7293cc0d8a9232d09865570fe32649d01236e4a4",
+      "page_count": 2,
+      "expected": {
+        "reportingPeriod.end": "2026-09-30",
+        "currency": "CAD",
+        "documentRole": "obligation",
+        "jurisdiction": "ca-qc",
+        "reportingPeriod.start": "2026-07-01",
+        "dates.dueDate": "2026-10-15",
+        "amounts.components.incomeTax": 1210.0,
+        "amounts.components.qpp": 780.0,
+        "amounts.components.healthServicesFund": 230.0,
+        "amounts.components.qpip": 110.0,
+        "amounts.components.cnesst": 0.0,
+        "amounts.arithmetic.total": 2330.0,
+        "obligationLifecycle.state": "obligation-recorded",
+        "obligationLifecycle.settlement": "pending"
+      },
+      "field_provenance": {
+        "dates.dueDate": {
+          "value": "2026-10-15",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.components.incomeTax": {
+          "value": 1210.0,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.components.qpp": {
+          "value": 780.0,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.components.healthServicesFund": {
+          "value": 230.0,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.components.qpip": {
+          "value": 110.0,
+          "expected_support": "printed",
+          "source_pages": [
+            2
+          ]
+        },
+        "amounts.components.cnesst": {
+          "value": 0.0,
+          "expected_support": "printed",
+          "source_pages": [
+            2
+          ]
+        },
+        "amounts.arithmetic.total": {
+          "value": 2330.0,
+          "expected_support": "printed",
+          "source_pages": [
+            2
+          ]
+        },
+        "currency": {
+          "value": "CAD",
+          "expected_support": "printed",
+          "source_pages": [
+            2
+          ]
+        },
+        "reportingPeriod.end": {
+          "value": "2026-09-30",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "documentRole": {
+          "value": "obligation",
+          "expected_support": "inferred",
+          "source_pages": [
+            1,
+            2
+          ]
+        },
+        "jurisdiction": {
+          "value": "ca-qc",
+          "expected_support": "inferred",
+          "source_pages": [
+            1,
+            2
+          ]
+        },
+        "reportingPeriod.start": {
+          "value": "2026-07-01",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.state": {
+          "value": "obligation-recorded",
+          "expected_support": "inferred",
+          "source_pages": [
+            1,
+            2
+          ]
+        },
+        "obligationLifecycle.settlement": {
+          "value": "pending",
+          "expected_support": "inferred",
+          "source_pages": [
+            1,
+            2
+          ]
+        }
+      },
+      "transcript_pages": [
+        1,
+        2
+      ],
+      "coverage_requirement": {
+        "required_pages": [
+          1,
+          2
+        ],
+        "complete_only_when_all_pages_seen": true
+      }
+    },
+    {
+      "id": "quebec-conflicting-total-obligation",
+      "file": "ai-profile/example/data/financial-insights-challenges/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-conflicting-total-obligation.pdf",
+      "sha256": "1c3e934ef1977a3a8cb2c81f20b0976d7627894e4b773da0ba1649a55b5f8ae5",
+      "page_count": 1,
+      "expected": {
+        "reportingPeriod.end": "2026-09-30",
+        "currency": "CAD",
+        "documentRole": "obligation",
+        "jurisdiction": "ca-qc",
+        "reportingPeriod.start": "2026-07-01",
+        "dates.dueDate": "2026-10-15",
+        "amounts.components.incomeTax": 1200.0,
+        "amounts.components.qpp": 800.0,
+        "amounts.components.healthServicesFund": 250.0,
+        "amounts.components.qpip": 100.0,
+        "amounts.components.cnesst": 0.0,
+        "amounts.arithmetic.total": 2300.0,
+        "obligationLifecycle.state": "obligation-recorded",
+        "obligationLifecycle.settlement": "pending"
+      },
+      "field_provenance": {
+        "currency": {
+          "value": "CAD",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.arithmetic.total": {
+          "value": 2300.0,
+          "expected_support": "ambiguous",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.components.incomeTax": {
+          "value": 1200.0,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.components.qpp": {
+          "value": 800.0,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.components.healthServicesFund": {
+          "value": 250.0,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.components.qpip": {
+          "value": 100.0,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "amounts.components.cnesst": {
+          "value": 0.0,
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "reportingPeriod.end": {
+          "value": "2026-09-30",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "documentRole": {
+          "value": "obligation",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "jurisdiction": {
+          "value": "ca-qc",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "reportingPeriod.start": {
+          "value": "2026-07-01",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "dates.dueDate": {
+          "value": "2026-10-15",
+          "expected_support": "printed",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.state": {
+          "value": "obligation-recorded",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        },
+        "obligationLifecycle.settlement": {
+          "value": "pending",
+          "expected_support": "inferred",
+          "source_pages": [
+            1
+          ]
+        }
+      },
+      "transcript_pages": [
+        1
+      ],
+      "arithmetic_issue": {
+        "kind": "printed_total_conflicts_with_components",
+        "printed_total": 2300.0,
+        "components_sum": 2350.0,
+        "expected_support": "ambiguous",
+        "source_pages": [
+          1
+        ]
+      }
+    }
+  ]
+}
