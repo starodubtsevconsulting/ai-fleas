@@ -20,8 +20,7 @@ from urllib.parse import urlsplit
 from verify import compare_mechanical, compare_vision, parse_answer, set_path
 HERE=Path(__file__).resolve().parent
 REPO=HERE.parents[4]
-WORKFLOW_DATA=REPO/'ai-workflows/financial-insights/data'
-SOURCE_REPORTS=WORKFLOW_DATA/'corporate/reports'
+DEFAULT_DATA_ROOT=REPO/'ai-profile/example/data/financial-insights'
 
 def save(path,value):
     path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(value,indent=2)+'\n')
@@ -120,7 +119,29 @@ def inference(args,run,hook,env,identifier,prompt,image,variant):
     transport['passed']=all(transport.values())
     return {'id':identifier,'exit_code':code,'wall_seconds':round(elapsed,3),'first_token_seconds':None,'stop_reason':message.get('stopReason'),'usage':usage,'assistant_completions_observed':len(messages),'provider_request_hooks_observed':len(controls),'model_api_calls':None,'outbound_controls':controls,'transport_verification':transport,'answer':answer,'prompt_sha256':hashlib.sha256(prompt.encode()).hexdigest(),'image_sha256':hashlib.sha256(image.read_bytes()).hexdigest(),'image_bytes':image.stat().st_size}
 
-PROFILE_FIELDS={'variant','agent_dir','provider','model','harness_source','variants','server_props_url'}
+def load_dataset(root):
+    """Fictional-only source boundary; never copy unlisted profile records."""
+    root=Path(root)
+    if root.is_symlink() or (root/'expected.json').is_symlink():raise ValueError('dataset symlink prohibited')
+    reference=json.loads((root/'expected.json').read_text())
+    if not isinstance(reference,dict) or reference.get('fictional') is not True:raise ValueError('dataset must explicitly be fictional')
+    origin=reference.get('source_root');documents=reference.get('documents')
+    if not isinstance(origin,str) or Path(origin).is_absolute() or not isinstance(documents,list) or not documents:raise ValueError('invalid dataset reference')
+    files=set()
+    for doc in documents:
+        if not isinstance(doc,dict) or not isinstance(doc.get('file'),str):raise ValueError('invalid source declaration')
+        relative=Path(doc['file']).relative_to(origin)
+        if relative.is_absolute() or '..' in relative.parts or relative.suffix.lower()!='.pdf' or relative.parts[:2]!=('corporate','reports'):raise ValueError('invalid contained PDF path')
+        target=root/relative
+        if not target.is_file() or target.is_symlink():raise ValueError('source PDF unavailable')
+        target.resolve().relative_to(root.resolve())
+        files.add(relative.as_posix());doc['source_relative']=relative.as_posix()
+    for path in (root/'corporate/reports').rglob('*'):
+        if path.is_symlink():raise ValueError('dataset symlink prohibited')
+        if path.is_file() and path.relative_to(root).as_posix() not in files and path.name!='README.md':raise ValueError('unlisted source records cannot be copied')
+    return reference
+
+PROFILE_FIELDS={'variant','agent_dir','provider','model','harness_source','variants','server_props_url','data_root'}
 
 
 def select_test_profile(args,filename,name):
@@ -135,13 +156,13 @@ def select_test_profile(args,filename,name):
     if any(not isinstance(value,str) or not value.strip() for value in profile.values()):raise ValueError('test-profile values must be nonempty strings')
     if not {'variant','agent_dir','provider','model','server_props_url'}<=set(profile):raise ValueError('test-profile fields missing')
     resolved=dict(profile)
-    for key in ('agent_dir','harness_source','variants'):
+    for key in ('agent_dir','harness_source','variants','data_root'):
         if key in resolved:resolved[key]=str((config_path.parent/Path(resolved[key])).resolve())
     for key,value in resolved.items():
         if key=='server_props_url':continue
         supplied=getattr(args,key,None)
         if supplied is not None:
-            if key in ('agent_dir','harness_source','variants'):supplied=str(Path(supplied).resolve())
+            if key in ('agent_dir','harness_source','variants','data_root'):supplied=str(Path(supplied).resolve())
             if supplied!=value:raise ValueError('explicit CLI setting conflicts with selected test profile: '+key)
         setattr(args,key,value)
     return resolved
@@ -214,7 +235,7 @@ def live_profile_check(profile,variant):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--test-profile');p.add_argument('--profile-config');p.add_argument('--check-profile',action='store_true');p.add_argument('--variants');p.add_argument('--harness-source');p.add_argument('--runtime-evidence');p.add_argument('--variant');p.add_argument('--run-root');p.add_argument('--results')
+    p.add_argument('--data-root');p.add_argument('--test-profile');p.add_argument('--profile-config');p.add_argument('--check-profile',action='store_true');p.add_argument('--variants');p.add_argument('--harness-source');p.add_argument('--runtime-evidence');p.add_argument('--variant');p.add_argument('--run-root');p.add_argument('--results')
     for flag in ('agent-dir','provider','model'):p.add_argument('--'+flag)
     p.add_argument('--date',default='2026-10-12');p.add_argument('--pi',default='pi');p.add_argument('--renderer',default='pdftoppm');p.add_argument('--timeout',type=int,default=90)
     args=p.parse_args();start=time.monotonic()
@@ -235,6 +256,9 @@ def main():
         supplied=getattr(args,binding)
         if configured and supplied and configured!=supplied:p.error('explicit '+binding+' conflicts with selected named variant')
         if configured:setattr(args,binding,configured)
+    data_root=Path(args.data_root or DEFAULT_DATA_ROOT).resolve()
+    try:expected=load_dataset(data_root)
+    except (ValueError,OSError):p.error('selected source must be a contained fictional-only dataset with declared PDFs')
     is_pi=variant.get('adapter')=='pi-print-json' and variant.get('supported')
     is_hermes=variant.get('adapter')=='hermes-native-json' and variant.get('supported')
     is_visual=is_pi or is_hermes
@@ -262,12 +286,12 @@ def main():
     if not variant.get('supported') or variant.get('adapter')=='hermes-cli-preflight':
         observation=hermes_preflight(args.harness_source,variant) if variant.get('adapter')=='hermes-cli-preflight' else {'status':'blocked','reason':variant.get('blocked_reason'),'inference_started':False}
         run.mkdir(parents=True)
-        result={'schema_version':1,'date':args.date,'fixture':'financial-insights-compatible','fixture_layout_revision':3,'fictional':True,'variant':args.variant,'status':'blocked','adapter_preflight':observation,'mechanical_source_versions':mechanical_source_versions(),'mechanical_source_version_collection':'captured during adapter preflight; mechanical engine not executed','inference_started':False,'configuration':variant,'total_wall_seconds':round(time.monotonic()-start,3)}
+        result={'schema_version':1,'date':args.date,'fixture':'financial-insights-compatible','fixture_layout_revision':4,'fictional':True,'variant':args.variant,'status':'blocked','adapter_preflight':observation,'mechanical_source_versions':mechanical_source_versions(),'mechanical_source_version_collection':'captured during adapter preflight; mechanical engine not executed','inference_started':False,'configuration':variant,'total_wall_seconds':round(time.monotonic()-start,3)}
         save(run/'results.json',result);save(output,result);print(json.dumps(result),flush=True);return
     for executable in ('node',)+((args.pi,args.renderer) if is_pi else ((args.renderer,) if is_hermes else ())):
         if not shutil.which(executable):p.error('missing executable '+executable)
-    run.mkdir(parents=True);root=run/'data/corporate/reports';shutil.copytree(SOURCE_REPORTS,root)
-    expected=json.loads((WORKFLOW_DATA/'expected.json').read_text());mechanical=[];proposals={};texts={};hashes={}
+    run.mkdir(parents=True);root=run/'data/corporate/reports';shutil.copytree(data_root/'corporate/reports',root)
+    mechanical=[];proposals={};texts={};hashes={}
     hook=env=version=None;hermes_prepared=None
     if is_pi:hook,env,version=setup_pi(args,run,variant)
     if is_hermes:
@@ -286,7 +310,7 @@ def main():
     engine=REPO/'ai-commands/data/financial-records/financial-records.command.mjs'
     bridge='import {FinancialRecordsCommand} from '+json.dumps(engine.as_uri())+'; const args=process.argv.slice(1); const command=new FinancialRecordsCommand(); const proposal=await command.run(args); const pdf=await command.pdfReader.read(args[args.indexOf("--source")+1]); console.log(JSON.stringify({proposal,sourceText:pdf.normalizedText}));'
     for doc in expected['documents']:
-        source=root/Path(doc['file']).relative_to(SOURCE_REPORTS.relative_to(REPO));before=hashlib.sha256(source.read_bytes()).hexdigest();hashes[doc['id']]=before
+        source=root/Path(doc['source_relative']).relative_to('corporate/reports');before=hashlib.sha256(source.read_bytes()).hexdigest();hashes[doc['id']]=before
         operation=['prepare-tax-from-source','--root',str(root),'--source',str(source),'--branch','example-consulting','--year','2026','--quarter','q4','--section','out']
         code,out,err,elapsed=execute(['node','--input-type=module','-e',bridge,*operation],REPO,30)
         (run/(doc['id']+'.mechanical.stderr.log')).write_text(err)
@@ -307,7 +331,7 @@ def main():
             prompt_base=(HERE/'verify-json.prompt.md').read_text();images={}
             for doc in expected['documents']:
                 prefix=run/'images'/doc['id'];prefix.parent.mkdir(exist_ok=True)
-                source=root/Path(doc['file']).relative_to(SOURCE_REPORTS.relative_to(REPO))
+                source=root/Path(doc['source_relative']).relative_to('corporate/reports')
                 code,out,err,elapsed=execute([args.renderer,'-r','144','-singlefile','-png',str(source),str(prefix)],run,30);rendering_seconds+=elapsed
                 if code:raise RuntimeError('render failed before inference')
                 images[doc['id']]=prefix.with_suffix('.png')
@@ -346,6 +370,6 @@ def main():
     for case_group in ('unchanged','tampered'):
         events=[e for e in vision if (e['case']=='unchanged')==(case_group=='unchanged')]
         summary[case_group]={'runs':len(events),**{key:sum(e['verification'][key] for e in events) for key in ('field_count','fields_passed','expected_matches','expected_contradictions','contradictions_detected','false_accepts','false_rejects','omissions','unknowns')}}
-    result={'schema_version':1,'date':args.date,'fixture':'financial-insights-compatible','fixture_layout_revision':3,'fictional':True,'variant':args.variant,'configuration':{**variant,'provider':'private-selected-provider-alias' if vision else None,'model':args.model if vision else None,'harness_version':version,'harness_source_revision':hermes_prepared.get('code_revision') if hermes_prepared else None,'timeout_seconds':args.timeout,'render_dpi':144 if vision else None,'ground_truth_in_model_context':False,'mechanical_candidate_in_model_context':bool(vision),'workflow_agents_initialized':False,'human_review':'pending','publication':False,'projector_metadata':None,'output_limit_boundary':'declared settings plus recorded actual API controls; null controls remain unavailable' },'runtime_context_evidence':runtime_evidence,'harness_system_prompt_boundary':'Pi custom system prompt replaces default; Hermes ephemeral instruction plus native harness default system behavior retained and context files ignored','source_sha256':hashes,'variant_manifest_sha256':hashlib.sha256(manifest_path.read_bytes()).hexdigest(),'source_versions':{name:hashlib.sha256(path.read_bytes()).hexdigest() for name,path in {**{name:HERE/name for name in ('run.py','verify.py','variants.json','verify-json.prompt.md','hermes-adapter.py')},**{str((WORKFLOW_DATA/name).relative_to(REPO)):WORKFLOW_DATA/name for name in ('generate.py','expected.json')}}.items()},'mechanical_source_versions':mechanical_versions,'mechanical_source_version_collection':'captured before mechanical execution','mechanical_invocation_boundary':'shared exported FinancialRecordsCommand.run, same operation engine as registered CLI; no operational command-profile bootstrap','mechanical':mechanical,'vision':vision,'blocked_stage':blocked,'blocked_cases':blocked_cases,'timing':{'preflight_seconds':round(preflight,3),'mechanical_seconds':round(mechanical_seconds,3),'rendering_seconds':round(rendering_seconds,3),'vision_seconds':round(sum(x['wall_seconds'] for x in vision),3),'vision_verification_seconds':round(verification_seconds,3),'total_wall_seconds':round(time.monotonic()-start,3),'boundary':'run setup, copying fictional originals, real preparation, text quote preparation, rendering and inference/evaluation; excludes fixture generation and manual visual inspection'},'summary':summary}
+    result={'schema_version':1,'date':args.date,'fixture':'financial-insights-compatible','fixture_layout_revision':4,'fictional':True,'variant':args.variant,'configuration':{**variant,'provider':'private-selected-provider-alias' if vision else None,'model':args.model if vision else None,'harness_version':version,'harness_source_revision':hermes_prepared.get('code_revision') if hermes_prepared else None,'timeout_seconds':args.timeout,'render_dpi':144 if vision else None,'ground_truth_in_model_context':False,'mechanical_candidate_in_model_context':bool(vision),'workflow_agents_initialized':False,'human_review':'pending','publication':False,'projector_metadata':None,'output_limit_boundary':'declared settings plus recorded actual API controls; null controls remain unavailable' },'runtime_context_evidence':runtime_evidence,'harness_system_prompt_boundary':'Pi custom system prompt replaces default; Hermes ephemeral instruction plus native harness default system behavior retained and context files ignored','source_sha256':hashes,'variant_manifest_sha256':hashlib.sha256(manifest_path.read_bytes()).hexdigest(),'source_versions':{name:hashlib.sha256(path.read_bytes()).hexdigest() for name,path in {**{name:HERE/name for name in ('run.py','verify.py','variants.json','verify-json.prompt.md','hermes-adapter.py')},**{'selected-profile-data/'+name:data_root/name for name in ('generate.py','expected.json')}}.items()},'mechanical_source_versions':mechanical_versions,'mechanical_source_version_collection':'captured before mechanical execution','mechanical_invocation_boundary':'shared exported FinancialRecordsCommand.run, same operation engine as registered CLI; no operational command-profile bootstrap','mechanical':mechanical,'vision':vision,'blocked_stage':blocked,'blocked_cases':blocked_cases,'timing':{'preflight_seconds':round(preflight,3),'mechanical_seconds':round(mechanical_seconds,3),'rendering_seconds':round(rendering_seconds,3),'vision_seconds':round(sum(x['wall_seconds'] for x in vision),3),'vision_verification_seconds':round(verification_seconds,3),'total_wall_seconds':round(time.monotonic()-start,3),'boundary':'run setup, copying fictional originals, real preparation, text quote preparation, rendering and inference/evaluation; excludes fixture generation and manual visual inspection'},'summary':summary}
     save(run/'results.json',result);save(output,result);print(json.dumps(summary),flush=True)
 if __name__=='__main__':main()

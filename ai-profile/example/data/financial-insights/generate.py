@@ -6,9 +6,9 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[2]
-WORKFLOW_DATA = HERE
-REL = 'ai-workflows/financial-insights/data/corporate/reports/2026/example-consulting/q4/incoming/unprocessed'
+REPO = HERE.parents[3]
+DATA_ROOT = HERE
+REL = 'ai-profile/example/data/financial-insights/corporate/reports/2026/example-consulting/q4/incoming/unprocessed'
 COMMON = {'reportingPeriod.end':'2026-09-30','currency':'CAD'}
 CASES = [
  ('federal-confirmation','Federal Payroll Deductions EMPTX PD7A submission confirmation',[
@@ -46,9 +46,9 @@ CASES = [
 ]
 def generate_skeleton():
  """Track canonical empty sections without inventing financial records."""
- corporate=WORKFLOW_DATA/'corporate'
+ corporate=DATA_ROOT/'corporate'
  corporate.mkdir(parents=True,exist_ok=True)
- (corporate/'README.md').write_text('# Fictional corporate root\n\nThis workflow test dataset contains only the invented Example Consulting organization.\n`reports/2026/example-consulting/` holds the canonical accounting tree; the\nfinancial-records command receives `reports` as its root. No real organization\nrecords or operational configuration are present.\n')
+ (corporate/'README.md').write_text('# Fictional corporate root\n\nThis profile sample dataset contains only the invented Example Consulting organization.\n`reports/2026/example-consulting/` holds the canonical accounting tree; the\nfinancial-records command receives `reports` as its root. No real organization\nrecords or operational configuration are present.\n')
  for quarter in ('q1','q2','q3','q4'):
   for section,description in (
    ('in','Incoming invoices and source documents'),
@@ -85,8 +85,8 @@ def main():
   c.drawString(48,108,'For extraction tests only. Page 1 of 1');c.save()
   filename=(facts.get('dates.submissionDate') or '2026-09-30')+'_'+facts['jurisdiction']+'_payroll-remittance-'+facts['documentRole']+'.pdf'
   destination='2026/example-consulting/q4/out/taxes/payroll-remittances/'+facts['jurisdiction']+'/2026-09-30'
-  (WORKFLOW_DATA/'corporate/reports'/destination).mkdir(parents=True,exist_ok=True)
+  (DATA_ROOT/'corporate/reports'/destination).mkdir(parents=True,exist_ok=True)
   docs.append({'id':name,'file':REL+'/'+name+'.pdf','page':1,'expected':facts,
                'destination':destination,'filename':filename,'sidecar':filename+'.json'})
- (HERE/'expected.json').write_text(json.dumps({'schema_version':1,'fixture_layout_revision':3,'fictional':True,'documents':docs},indent=2)+'\n')
+ (HERE/'expected.json').write_text(json.dumps({'schema_version':1,'fixture_layout_revision':4,'source_root':'ai-profile/example/data/financial-insights','fictional':True,'documents':docs},indent=2)+'\n')
 if __name__=='__main__':main()

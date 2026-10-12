@@ -15,7 +15,7 @@ Single-page results do not establish week or quarter completeness. Unknown evide
 The [Financial Insights compatible scenario](financial-insights-compatible.scenario.md)
 defines a separate workflow-shaped benchmark: supported fictional payroll forms,
 actual mechanical preparation, then contextual visual verification of candidate
-JSON with seeded-error controls. Its [workflow-owned dataset](../data/README.md)
+JSON with seeded-error controls. Its [profile-owned fictional dataset](../../../ai-profile/example/data/financial-insights/README.md)
 contains the corporate/year/quarter tree, source generator and evaluator-only
 reference facts. [Benchmark tooling](../../../notes/benchmarks/local-models/fixtures/financial-insights-compatible/README.md)
 consumes that data while preserving the canonical destination contract. It does not

@@ -1,7 +1,7 @@
 import copy
 import unittest
 from verify import compare_vision, compare_mechanical, parse_answer
-from run import validate_variant, hermes_module, validate_live_props, probe_headers, select_test_profile, NoProbeRedirect, live_profile_check
+from run import validate_variant, hermes_module, validate_live_props, probe_headers, select_test_profile, NoProbeRedirect, live_profile_check, load_dataset
 DOC={'expected':{'amount':12.34,'currency':'CAD'},'destination':'target','filename':'x.pdf','sidecar':'x.pdf.json'}
 TEXT='Amount payable: 12.34 Currency CAD'
 def answer(status='match',amount=12.34):return {'fields':[{'field':'amount','status':status,'observed':amount,'evidence':{'page':1,'quote':'12.34'}},{'field':'currency','status':'match','observed':'CAD','evidence':{'page':1,'quote':'Currency CAD'}}]}
@@ -113,6 +113,23 @@ class Verification(unittest.TestCase):
    with patch.object(Path,'read_text',return_value=json.dumps(catalog)),patch('run.urllib.request.build_opener',return_value=opener):
     with self.assertRaises(ValueError):live_profile_check(profile,variant)
    self.assertEqual(opener.open.call_args.kwargs['timeout'],5)
+ def test_fictional_only_data_guard(self):
+  import json
+  from pathlib import Path
+  from unittest.mock import patch
+  reference={'fictional':False,'source_root':'sample','documents':[]}
+  with patch.object(Path,'read_text',return_value=json.dumps(reference)),patch.object(Path,'is_symlink',return_value=False):
+   with self.assertRaises(ValueError):load_dataset(Path('/fictional/data'))
+ def test_data_escape_and_unlisted_records(self):
+  import json
+  from pathlib import Path
+  from unittest.mock import patch
+  reference={'fictional':True,'source_root':'sample','documents':[{'file':'sample/corporate/reports/a.pdf'}]}
+  with patch.object(Path,'read_text',return_value=json.dumps(reference)),patch.object(Path,'is_symlink',return_value=False),patch.object(Path,'is_file',return_value=True),patch.object(Path,'rglob',return_value=iter([Path('/fictional/data/corporate/reports/unlisted.pdf')])):
+   with self.assertRaises(ValueError):load_dataset(Path('/fictional/data'))
+  reference['documents'][0]['file']='sample/corporate/reports/../outside.pdf'
+  with patch.object(Path,'read_text',return_value=json.dumps(reference)),patch.object(Path,'is_symlink',return_value=False):
+   with self.assertRaises(ValueError):load_dataset(Path('/fictional/data'))
  def test_parse(self):
   self.assertEqual(parse_answer('```json\n{}\n```'),{})
   with self.assertRaises(ValueError):parse_answer('[]')

@@ -1,11 +1,12 @@
 {
   "schema_version": 1,
-  "fixture_layout_revision": 3,
+  "fixture_layout_revision": 4,
+  "source_root": "ai-profile/example/data/financial-insights",
   "fictional": true,
   "documents": [
     {
       "id": "federal-confirmation",
-      "file": "ai-workflows/financial-insights/data/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/federal-confirmation.pdf",
+      "file": "ai-profile/example/data/financial-insights/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/federal-confirmation.pdf",
       "page": 1,
       "expected": {
         "reportingPeriod.end": "2026-09-30",
@@ -28,7 +29,7 @@
     },
     {
       "id": "quebec-confirmation",
-      "file": "ai-workflows/financial-insights/data/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-confirmation.pdf",
+      "file": "ai-profile/example/data/financial-insights/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-confirmation.pdf",
       "page": 1,
       "expected": {
         "reportingPeriod.end": "2026-09-30",
@@ -48,7 +49,7 @@
     },
     {
       "id": "quebec-obligation",
-      "file": "ai-workflows/financial-insights/data/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-obligation.pdf",
+      "file": "ai-profile/example/data/financial-insights/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-obligation.pdf",
       "page": 1,
       "expected": {
         "reportingPeriod.end": "2026-09-30",
