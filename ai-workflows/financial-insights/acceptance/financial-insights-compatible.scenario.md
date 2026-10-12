@@ -17,14 +17,34 @@ forms; it makes no claim that the command supports GST/QST forms.
 
 ## Prerequisites and layout
 
-All identities, amounts, references and document contents are fictional and
+Fixture layout revision 2 adds the corporate storage root and the complete
+2026 organization/quarter skeleton. All identities, amounts, references and document contents are fictional and
 independently inspectable. Original forms preserve the supported layout and
 labels without copying private identifiers or source values. The command root
-is `data/reports`, containing `2026/example-consulting/q4/`; unprocessed originals are
+is `data/corporate/reports`, containing `2026/example-consulting/q4/`; unprocessed originals are
 staged separately from the proposed canonical bundle:
 
 ```text
-data/reports/2026/example-consulting/q4/
+data/corporate/
+  reports/2026/example-consulting/
+    q1/{in/, out/taxes/, statements/}
+    q2/{in/, out/taxes/, statements/}
+    q3/{in/, out/taxes/, statements/}
+    q4/{in/, out/taxes/, statements/}
+```
+
+The `in` folders reserve incoming invoices and source documents; `out` reserves
+outgoing/vendor evidence with its tax section; `statements` reserves bank/account
+activity. Explanatory placeholders track empty sections without pretending that
+an invoice, bank statement, tax summary or completed sidecar exists. The corporate
+root groups the fictional organization; the command root remains its `reports`
+child so the engine still receives the normative year/business/quarter tree.
+Q1-Q3 are empty skeletons, not newly exercised benchmark periods.
+
+The existing three source PDFs remain in Q4 staging:
+
+```text
+data/corporate/reports/2026/example-consulting/q4/
   incoming/unprocessed/
     federal-confirmation.pdf
     quebec-confirmation.pdf
@@ -33,6 +53,11 @@ data/reports/2026/example-consulting/q4/
     ca-federal/2026-09-30/
     ca-qc/2026-09-30/
 ```
+
+Recorded benchmark evidence from layout revision 1 retains its original
+`data/reports` paths and source hashes; do not rewrite historical results to
+claim it ran against revision 2. PDF contents and logical destination proposals
+remain unchanged.
 
 The reporting period remains Q3 ending September 30, 2026. Q4 is the open
 operational bucket for later submission activity. Destination proposals must

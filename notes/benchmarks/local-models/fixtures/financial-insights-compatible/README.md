@@ -15,11 +15,32 @@ candidates test whether that context causes blind agreement.
 
 ## Record layout and scope
 
-The fixture mirrors the workflow report hierarchy with a fictional business.
-The mechanical command root is `data/reports`, not its parent or the quarter:
+Layout revision 2 mirrors the full corporate storage root with one fictional
+organization and all four 2026 quarters:
 
 ```text
-data/reports/2026/example-consulting/q4/
+data/corporate/
+  reports/2026/example-consulting/
+    q1/{in/, out/taxes/, statements/}
+    q2/{in/, out/taxes/, statements/}
+    q3/{in/, out/taxes/, statements/}
+    q4/{in/, out/taxes/, statements/}
+```
+
+`in` reserves incoming invoices, `out` outgoing/vendor documents with its tax
+section, and `statements` bank/account evidence. Empty sections contain
+explanatory README placeholders, not invented records or test passes.
+The three supported payroll PDFs retain their exact contents in Q4 staging.
+The year/business/quarter structure follows the shared `statements` and `taxes`
+filesystem-provider contract. Q1-Q3 remain unpopulated and untested.
+
+Historical October 12 benchmark JSON records retain revision 1 `data/reports`
+paths and their original source hashes. Their measured runs were not repeated
+for this additive structure change; revision 2 changes storage layout only.
+The mechanical command root is `data/corporate/reports`, not its parent or the quarter:
+
+```text
+data/corporate/reports/2026/example-consulting/q4/
   incoming/unprocessed/
     federal-confirmation.pdf
     quebec-confirmation.pdf
