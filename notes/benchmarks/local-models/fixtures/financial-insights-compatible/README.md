@@ -15,16 +15,16 @@ candidates test whether that context causes blind agreement.
 
 ## Record layout and scope
 
-The corporate/year/quarter tree is [Financial Insights workflow data](../../../../../ai-workflows/financial-insights/data/README.md).
-The workflow data directory also owns its generator and evaluator-only
+The corporate/year/quarter tree is [Financial Insights workflow data](../../../../../ai-profile/example/data/financial-insights/README.md).
+The example profile data directory also owns its generator and evaluator-only
 expected facts. Benchmark tools remain here and reference that single source, without copies or
 symlinks. Only isolated execution copies belong in ignored run directories.
 
-Workflow data layout revision 3 mirrors the full corporate storage root with one fictional
+Profile data layout revision 4 mirrors the full corporate storage root with one fictional
 organization and all four 2026 quarters:
 
 ```text
-ai-workflows/financial-insights/data/corporate/
+ai-profile/example/data/financial-insights/corporate/
   reports/2026/example-consulting/
     q1/{in/, out/taxes/, statements/}
     q2/{in/, out/taxes/, statements/}
@@ -42,12 +42,12 @@ filesystem-provider contract. Q1-Q3 remain unpopulated and untested.
 Historical October 12 benchmark JSON records retain revision 1 `data/reports`
 paths and their original source hashes. Their measured runs were not repeated
 for later storage changes. Revision 2 added the corporate skeleton; revision 3
-relocates its unchanged contents into workflow-owned data. Historical records
+relocates its unchanged contents into profile-owned data. Historical records
 retain their executed paths and hashes.
-The mechanical command root is `ai-workflows/financial-insights/data/corporate/reports`, not its parent or the quarter:
+The mechanical command root is `ai-profile/example/data/financial-insights/corporate/reports`, not its parent or the quarter:
 
 ```text
-ai-workflows/financial-insights/data/corporate/reports/2026/example-consulting/q4/
+ai-profile/example/data/financial-insights/corporate/reports/2026/example-consulting/q4/
   incoming/unprocessed/
     federal-confirmation.pdf
     quebec-confirmation.pdf
@@ -142,7 +142,19 @@ metadata is bounded to its first line; full diagnostic output stays private.
 All results concern synthetic readable forms. Vision is advisory; human review
 and publication gates remain outstanding.
 
-Generate or inspect workflow-owned source data with
-[`ai-workflows/financial-insights/data/generate.py`](../../../../../ai-workflows/financial-insights/data/generate.py).
+Generate or inspect profile-owned source data with
+[`ai-profile/example/data/financial-insights/generate.py`](../../../../../ai-profile/example/data/financial-insights/generate.py).
 The adjacent `expected.json` is an evaluator answer key, withheld from model
 inputs; it is not a reviewed per-document normalization sidecar.
+
+## Explicit profile data selection
+
+The default is the public fictional data root
+`ai-profile/example/data/financial-insights/`. Financial data belongs to its
+human-owned profile; reusable workflows and harness tooling consume it.
+`--data-root PATH` or a private test profile's `data_root` selects another
+explicit root. Configured paths resolve relative to the profile configuration.
+The source must have its own `expected.json` declaring `fictional: true`, contained
+declared PDFs and no symlinks or unlisted financial files. These comparisons
+remain fictional-only: selecting a real profile does not automatically copy or
+publish its records. Default outputs stay in ignored private run directories.

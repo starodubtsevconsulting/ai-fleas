@@ -17,16 +17,17 @@ forms; it makes no claim that the command supports GST/QST forms.
 
 ## Prerequisites and layout
 
-Workflow data layout revision 3 stores the fictional corporate records under
-`ai-workflows/financial-insights/data/`. This is workflow-owned test data, not
-benchmark evidence. The complete 2026 organization/quarter skeleton remains. All identities, amounts, references and document contents are fictional and
+Profile data layout revision 4 stores the fictional corporate records under
+`ai-profile/example/data/financial-insights/`. Financial records belong to their
+human-owned profile; reusable workflows and benchmark tools consume selected
+data rather than owning it. The complete 2026 organization/quarter skeleton remains. All identities, amounts, references and document contents are fictional and
 independently inspectable. Original forms preserve the supported layout and
 labels without copying private identifiers or source values. The command root
-is `ai-workflows/financial-insights/data/corporate/reports`, containing `2026/example-consulting/q4/`; unprocessed originals are
+is `ai-profile/example/data/financial-insights/corporate/reports`, containing `2026/example-consulting/q4/`; unprocessed originals are
 staged separately from the proposed canonical bundle:
 
 ```text
-ai-workflows/financial-insights/data/corporate/
+ai-profile/example/data/financial-insights/corporate/
   reports/2026/example-consulting/
     q1/{in/, out/taxes/, statements/}
     q2/{in/, out/taxes/, statements/}
@@ -45,7 +46,7 @@ Q1-Q3 are empty skeletons, not newly exercised benchmark periods.
 The existing three source PDFs remain in Q4 staging:
 
 ```text
-ai-workflows/financial-insights/data/corporate/reports/2026/example-consulting/q4/
+ai-profile/example/data/financial-insights/corporate/reports/2026/example-consulting/q4/
   incoming/unprocessed/
     federal-confirmation.pdf
     quebec-confirmation.pdf
@@ -58,9 +59,9 @@ ai-workflows/financial-insights/data/corporate/reports/2026/example-consulting/q
 Recorded benchmark evidence from layout revision 1 retains its original
 `data/reports` paths and source hashes; do not rewrite historical results to
 claim it ran against a later layout. Revision 2 records retain their original
-benchmark-local corporate paths. Revision 3 relocates the unchanged PDF bytes
-and empty sections to workflow-owned data; logical destination proposals stay
-unchanged. The dataset generator and evaluator-only expected facts live beside the workflow
+benchmark-local corporate paths. Revision 3 used workflow-owned storage; revision 4 relocates the unchanged PDF
+bytes and empty sections to the public example profile; logical destination proposals stay
+unchanged. The dataset generator and evaluator-only expected facts live beside the profile
 data. Expected facts are reference answers, not approved normalized sidecars,
 and are never model input. Harness runners, prompts, evaluators and metrics remain in their
 benchmark locations and copy only this fictional workflow tree into isolated
@@ -185,3 +186,15 @@ without inference or creating directories. Actual runs use a fresh isolated home
 and output boundary. Switching harnesses changes no server service or operational
 profile. Runtime capacity is verified per run; configuration changes remain
 separate authorized operations.
+
+## Selected profile data
+
+The default dataset is the fully fictional public example profile. `--data-root`
+or a private test profile's `data_root` selects an explicit source; discovery of
+another profile never authorizes reading its records. The data root contains its
+own generator, reference facts and corporate tree. Before copying sources, require
+`expected.json` to declare `fictional: true`, validate contained source paths,
+reject symlinks and reject unlisted financial files. These public comparison
+runs remain fictional-only; real profile data is not automatically copied or
+exported. Default run outputs remain private ignored artifacts until separately
+reviewed for publication.
