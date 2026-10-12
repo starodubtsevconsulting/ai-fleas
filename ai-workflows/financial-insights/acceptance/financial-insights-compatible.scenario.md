@@ -1,0 +1,122 @@
+# Financial Insights compatible extraction and visual verification
+
+This is the normative business scenario for a fictional, public benchmark of
+Financial Insights record preparation. The human requests structured extraction
+from original PDFs, then a contextual visual check of the resulting candidate
+JSON. The benchmark operator selects an explicit execution variant; an
+independent deterministic evaluator checks the result against human-verified
+printed facts. This scenario grants no operational workflow or publication
+authority.
+
+The [tax payment flow](../flows/tax-payment.flow.md) owns canonical naming,
+review, persistence and lifecycle semantics. The
+[financial-records contract](../../../ai-commands/data/financial-records/financial-records.command.md)
+owns the executable extraction behavior. Do not duplicate its recognizers in a
+model prompt. This fixture covers supported federal and Quebec payroll-tax
+forms; it makes no claim that the command supports GST/QST forms.
+
+## Prerequisites and layout
+
+All identities, amounts, references and document contents are fictional and
+independently inspectable. Original forms preserve the supported layout and
+labels without copying private identifiers or source values. The command root
+is `data/reports`, containing `2026/example-consulting/q4/`; unprocessed originals are
+staged separately from the proposed canonical bundle:
+
+```text
+data/reports/2026/example-consulting/q4/
+  incoming/unprocessed/
+    federal-confirmation.pdf
+    quebec-confirmation.pdf
+    quebec-obligation.pdf
+  out/taxes/payroll-remittances/
+    ca-federal/2026-09-30/
+    ca-qc/2026-09-30/
+```
+
+The reporting period remains Q3 ending September 30, 2026. Q4 is the open
+operational bucket for later submission activity. Destination proposals must
+preserve that distinction and the command's canonical obligation/confirmation
+filenames. The run root is an isolated fictional input/output boundary within
+the visible checkout, not a production report store. Adjacent canonical
+`<pdf>.json` paths are asserted proposals; their presence must not be fabricated
+as evidence of approved normalization.
+
+The evaluator's answer key is derived from visual inspection of each original
+page and checked arithmetic. It is never supplied as model input. Candidate
+JSON from mechanical preparation is allowed visual-check input; an independently
+verified answer key is not.
+
+## FI-COMPAT-1: mechanical preparation
+
+1. Copy only the fictional originals into a fresh contained run input root.
+2. Invoke the actual registered `financial-records prepare-tax-from-source`
+   operation with explicit root, source, branch, year, open quarter and `out`
+   section context. A test adapter may call the command's actual exported
+   preparation engine, as its unit tests do; identify that execution route and
+   do not invent profile authorization. Retain actual errors and bounded JSON
+   output (and the exit status for executable routes).
+3. Preserve originals and record source hashes. Save the read-only proposal as
+   a schema-2 review-pending benchmark artifact; assert document role, jurisdiction, reporting period,
+   dates, components, totals, currency provenance, lifecycle and destination.
+4. Evaluate candidate fields against independently checked original-page facts.
+   Record failures, unsupported cases and review warnings honestly.
+
+Preparation is not publication. Do not call apply, invent a human approval,
+initialize agents or treat a model check as the required independent reviewer.
+Any OCR-only human-verification requirement remains outstanding.
+
+## FI-COMPAT-2: contextual visual verification
+
+1. Give the selected model the original rendered page image and the mechanical
+   candidate JSON, plus form family, Canada/Quebec context and field meanings.
+2. Ask it to report each checked field as match, contradiction or unknown,
+   with document/page evidence, the printed value where visible, and proposed
+   corrections. Preserve distinctions among printed, inferred and unsupported
+   values. A dollar sign and jurisdiction context alone do not establish a
+   printed currency code. A submission, schedule or print date does not prove
+   settlement or a different date role.
+3. Save the model response and evaluate its schema and evidence. Do not
+   automatically overwrite candidate JSON or canonical records.
+
+This measures informed verification. Keep the existing blind PDF-vision
+benchmark separate: its model does not see candidate JSON, so its results are
+not interchangeable with this contextual task.
+
+## FI-COMPAT-3: confirmation-bias and failure controls
+
+Run unchanged candidates and copies with one evaluator-seeded wrong total,
+date, settlement state or currency. Preserve originals and unmodified proposals.
+The visual checker must identify the seeded contradiction without falsely
+rejecting correct printed facts. Unsupported assertions must remain unknown or
+be identified as unsupported; no guess counts as a correction.
+
+The deterministic evaluator reports field matches, contradictions detected,
+omissions, false positives and false negatives, with separate unchanged and
+tampered-case denominators. A completed process is not a passed test. Missing
+images, malformed JSON, incomplete page coverage, unavailable transport or
+unsupported adapter produces a failed or blocked observation, never a pass.
+
+## Variants, evidence and stop condition
+
+A variant declares platform, harness, exact model binding, context/output
+limits, sampling, thinking setting and verification mode. Support mechanical-only
+and Pi JSON-aware visual-check arms with the same fixture and evaluator.
+Unimplemented platform adapters, including a generic Hermes visual route,
+remain blocked; configuration labels alone do
+not prove portability. Operational profiles keep their existing registered
+settings. A benchmark variant authorizes only the fictional run root and does
+not register agents or create another operational sub-profile.
+
+For every run preserve fixture/schema versions, source hashes, exact bounded
+command arguments, prompt identity, effective configuration, exit statuses,
+field-level outcomes and stage/whole-run wall time. Record model latency and
+tokens when available; distinguish unavailable metrics from zero. State whether
+setup, fixture generation and manual inspection are excluded from timing.
+Public results contain only fictional evidence and sanitized configuration;
+private transport settings, credentials and real financial documents stay out.
+
+Finish when each selected arm has an observed passed, failed or blocked result,
+the evaluator has scored controls and seeded cases, and shareable evidence
+records limitations. An accuracy failure is a benchmark finding, not permission
+to rewrite the answer key or claim production readiness.

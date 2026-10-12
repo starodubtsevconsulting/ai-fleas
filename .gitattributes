@@ -1,1 +1,2 @@
 notes/benchmarks/local-models/fixtures/pdf-tax-evidence/documents/*.pdf binary
+notes/benchmarks/local-models/fixtures/financial-insights-compatible/data/**/*.pdf binary

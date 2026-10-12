@@ -1,0 +1,792 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-12",
+  "fixture": "financial-insights-compatible",
+  "fictional": true,
+  "variant": "mechanical-only",
+  "configuration": {
+    "platform": "local-command-engine",
+    "harness": "financial-records",
+    "adapter": "shared-exported-engine",
+    "verification_mode": "mechanical-only",
+    "model": null,
+    "supported": true,
+    "provider": null,
+    "harness_version": null,
+    "timeout_seconds": 90,
+    "render_dpi": null,
+    "ground_truth_in_model_context": false,
+    "mechanical_candidate_in_model_context": false,
+    "workflow_agents_initialized": false,
+    "human_review": "pending",
+    "publication": false,
+    "projector_metadata": null,
+    "output_limit_boundary": "declared model settings; actual outbound output limit remains unknown if hook value null"
+  },
+  "source_sha256": {
+    "federal-confirmation": "f10b3d86dd7fc866aa848b4552d583534c072fb88f7b3f30578dbab4e83122b6",
+    "quebec-confirmation": "83b8ecec1986012d4051648d838a74c635053815e69ddca85b7f62a929d1a46d",
+    "quebec-obligation": "c969cfd6b372a982e4eb5f8e6cd5d4691e3575efff414dea56d007be72bd7b1b"
+  },
+  "variant_manifest_sha256": "748fa92fadc53774533ba95dc8e737dd9728cf8dada5dcd38d80a3f85318866e",
+  "source_versions": {
+    "generate.py": "517a0663adee3098eab33867fa8a1b41995ab4ea3989077e69981f2076cc8160",
+    "run.py": "097a0d043eb658e0ac08eaea259610ecda18ebb72b80a8e139af384f45152815",
+    "verify.py": "4abbc419d5ac6834f72cd2db4bc9fed6d03b7c738f5100d4c87e1bc6d7d37632",
+    "expected.json": "d1c0ea8bbfb1590d1a2338b809460ded30abbe3a3ef77a97238599e9d0cece6a",
+    "variants.json": "748fa92fadc53774533ba95dc8e737dd9728cf8dada5dcd38d80a3f85318866e",
+    "verify-json.prompt.md": "ec5e3252cc5ea1624ae2949b1be6951a569a6acdc45efe4ccee5c00d35a3517e"
+  },
+  "mechanical_invocation_boundary": "shared exported FinancialRecordsCommand.run, same operation engine as registered CLI; no operational command-profile bootstrap",
+  "mechanical": [
+    {
+      "id": "federal-confirmation",
+      "exit_code": 0,
+      "wall_seconds": 0.619,
+      "source_unchanged": true,
+      "source_sha256": "f10b3d86dd7fc866aa848b4552d583534c072fb88f7b3f30578dbab4e83122b6",
+      "operation": [
+        "prepare-tax-from-source",
+        "--root",
+        "<fictional-run-report-root>",
+        "--source",
+        "data/reports/2026/example-consulting/q4/incoming/unprocessed/federal-confirmation.pdf",
+        "--branch",
+        "example-consulting",
+        "--year",
+        "2026",
+        "--quarter",
+        "q4",
+        "--section",
+        "out"
+      ],
+      "proposal": {
+        "schemaVersion": 1,
+        "operation": "prepare-tax-from-source",
+        "status": "prepared",
+        "proposedDestination": "2026/example-consulting/q4/out/taxes/payroll-remittances/ca-federal/2026-09-30",
+        "proposedFilename": "2026-10-03_ca-federal_payroll-remittance-submission-confirmation.pdf",
+        "proposedSidecarFilename": "2026-10-03_ca-federal_payroll-remittance-submission-confirmation.pdf.json",
+        "extraction": {
+          "schemaVersion": 2,
+          "recordType": "payroll-tax-document",
+          "recordId": "sha256:f10b3d86dd7fc866aa848b4552d583534c072fb88f7b3f30578dbab4e83122b6",
+          "adapter": {
+            "id": "canadian-payroll-tax",
+            "version": 2
+          },
+          "source": {
+            "sha256": "f10b3d86dd7fc866aa848b4552d583534c072fb88f7b3f30578dbab4e83122b6",
+            "mediaType": "application/pdf",
+            "textSource": "embedded-pdf-text+local-ocr"
+          },
+          "documentRole": "submission-confirmation",
+          "jurisdiction": "ca-federal",
+          "currency": "CAD",
+          "operationalPeriod": {
+            "year": "2026",
+            "quarter": "q4"
+          },
+          "reportingPeriod": {
+            "end": "2026-09-30"
+          },
+          "dates": {
+            "submissionDate": "2026-10-03",
+            "dueDate": "2026-10-15",
+            "scheduledExecutionDate": "2026-10-11"
+          },
+          "amounts": {
+            "components": {
+              "grossPayroll": 24680.5,
+              "employeeCount": 7
+            },
+            "arithmetic": {
+              "total": 2345.67,
+              "computedTotal": 2345.67,
+              "matches": true
+            }
+          },
+          "completeness": {
+            "physicalPageCount": 1,
+            "expectedPageCount": 1,
+            "complete": true,
+            "warnings": []
+          },
+          "processing": {
+            "state": "processing-pending",
+            "reviewRequired": true
+          },
+          "obligationLifecycle": {
+            "state": "scheduled",
+            "providerStatus": "to-be-processed",
+            "settlement": "pending"
+          },
+          "relations": [
+            {
+              "type": "confirms-submission-of",
+              "targetRef": "tax-obligation:ca-federal:2026-09-30"
+            }
+          ],
+          "provenance": {
+            "reportingPeriod.end": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.submissionDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.dueDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.scheduledExecutionDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.grossPayroll": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.employeeCount": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.total": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.computedTotal": {
+              "source": "derived-arithmetic",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.providerStatus": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "confirmationReferencePresent": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "documentRole": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "jurisdiction": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.state": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.settlement": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            }
+          },
+          "ocrVerificationRequired": [],
+          "unresolvedCriticalFields": [],
+          "confirmationReferencePresent": true
+        },
+        "reviewEligible": true,
+        "applyEligible": true,
+        "proposalRevision": "f6d983cdfd504584fe4e74fe9bf475971f7695b6af842218df2795aa3434cdbd"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected": "2026-09-30",
+            "actual": "2026-09-30",
+            "passed": true
+          },
+          {
+            "field": "currency",
+            "expected": "CAD",
+            "actual": "CAD",
+            "passed": true
+          },
+          {
+            "field": "documentRole",
+            "expected": "submission-confirmation",
+            "actual": "submission-confirmation",
+            "passed": true
+          },
+          {
+            "field": "jurisdiction",
+            "expected": "ca-federal",
+            "actual": "ca-federal",
+            "passed": true
+          },
+          {
+            "field": "dates.submissionDate",
+            "expected": "2026-10-03",
+            "actual": "2026-10-03",
+            "passed": true
+          },
+          {
+            "field": "dates.dueDate",
+            "expected": "2026-10-15",
+            "actual": "2026-10-15",
+            "passed": true
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "expected": "2026-10-11",
+            "actual": "2026-10-11",
+            "passed": true
+          },
+          {
+            "field": "amounts.components.grossPayroll",
+            "expected": 24680.5,
+            "actual": 24680.5,
+            "passed": true
+          },
+          {
+            "field": "amounts.components.employeeCount",
+            "expected": 7,
+            "actual": 7,
+            "passed": true
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected": 2345.67,
+            "actual": 2345.67,
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected": "scheduled",
+            "actual": "scheduled",
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected": "pending",
+            "actual": "pending",
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "expected": "to-be-processed",
+            "actual": "to-be-processed",
+            "passed": true
+          }
+        ],
+        "field_count": 13,
+        "field_matches": 13,
+        "canonical_naming_passed": true,
+        "prepared": true,
+        "human_review": "pending-not-published",
+        "currency_provenance": "command assigns CAD from jurisdiction context; fixture independently prints CAD"
+      }
+    },
+    {
+      "id": "quebec-confirmation",
+      "exit_code": 0,
+      "wall_seconds": 0.622,
+      "source_unchanged": true,
+      "source_sha256": "83b8ecec1986012d4051648d838a74c635053815e69ddca85b7f62a929d1a46d",
+      "operation": [
+        "prepare-tax-from-source",
+        "--root",
+        "<fictional-run-report-root>",
+        "--source",
+        "data/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-confirmation.pdf",
+        "--branch",
+        "example-consulting",
+        "--year",
+        "2026",
+        "--quarter",
+        "q4",
+        "--section",
+        "out"
+      ],
+      "proposal": {
+        "schemaVersion": 1,
+        "operation": "prepare-tax-from-source",
+        "status": "prepared",
+        "proposedDestination": "2026/example-consulting/q4/out/taxes/payroll-remittances/ca-qc/2026-09-30",
+        "proposedFilename": "2026-10-04_ca-qc_payroll-remittance-submission-confirmation.pdf",
+        "proposedSidecarFilename": "2026-10-04_ca-qc_payroll-remittance-submission-confirmation.pdf.json",
+        "extraction": {
+          "schemaVersion": 2,
+          "recordType": "payroll-tax-document",
+          "recordId": "sha256:83b8ecec1986012d4051648d838a74c635053815e69ddca85b7f62a929d1a46d",
+          "adapter": {
+            "id": "canadian-payroll-tax",
+            "version": 2
+          },
+          "source": {
+            "sha256": "83b8ecec1986012d4051648d838a74c635053815e69ddca85b7f62a929d1a46d",
+            "mediaType": "application/pdf",
+            "textSource": "embedded-pdf-text+local-ocr"
+          },
+          "documentRole": "submission-confirmation",
+          "jurisdiction": "ca-qc",
+          "currency": "CAD",
+          "operationalPeriod": {
+            "year": "2026",
+            "quarter": "q4"
+          },
+          "reportingPeriod": {
+            "end": "2026-09-30"
+          },
+          "dates": {
+            "submissionDate": "2026-10-04",
+            "scheduledExecutionDate": "2026-10-12"
+          },
+          "amounts": {
+            "components": {},
+            "arithmetic": {
+              "total": 2369.24,
+              "computedTotal": 2369.24,
+              "matches": true
+            }
+          },
+          "completeness": {
+            "physicalPageCount": 1,
+            "expectedPageCount": 1,
+            "complete": true,
+            "warnings": []
+          },
+          "processing": {
+            "state": "processing-pending",
+            "reviewRequired": true
+          },
+          "obligationLifecycle": {
+            "state": "scheduled",
+            "providerStatus": "to-be-processed",
+            "settlement": "pending"
+          },
+          "relations": [
+            {
+              "type": "confirms-submission-of",
+              "targetRef": "tax-obligation:ca-qc:2026-09-30"
+            }
+          ],
+          "provenance": {
+            "reportingPeriod.end": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.submissionDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.scheduledExecutionDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.total": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.computedTotal": {
+              "source": "derived-arithmetic",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.providerStatus": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "confirmationReferencePresent": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "documentRole": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "jurisdiction": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.state": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.settlement": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            }
+          },
+          "ocrVerificationRequired": [],
+          "unresolvedCriticalFields": [],
+          "confirmationReferencePresent": true
+        },
+        "reviewEligible": true,
+        "applyEligible": true,
+        "proposalRevision": "0ce0497349ca04a533160d89d554b8513a2709255ec0132fd0bd899b55c92a04"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected": "2026-09-30",
+            "actual": "2026-09-30",
+            "passed": true
+          },
+          {
+            "field": "currency",
+            "expected": "CAD",
+            "actual": "CAD",
+            "passed": true
+          },
+          {
+            "field": "documentRole",
+            "expected": "submission-confirmation",
+            "actual": "submission-confirmation",
+            "passed": true
+          },
+          {
+            "field": "jurisdiction",
+            "expected": "ca-qc",
+            "actual": "ca-qc",
+            "passed": true
+          },
+          {
+            "field": "dates.submissionDate",
+            "expected": "2026-10-04",
+            "actual": "2026-10-04",
+            "passed": true
+          },
+          {
+            "field": "dates.scheduledExecutionDate",
+            "expected": "2026-10-12",
+            "actual": "2026-10-12",
+            "passed": true
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected": 2369.24,
+            "actual": 2369.24,
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected": "scheduled",
+            "actual": "scheduled",
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected": "pending",
+            "actual": "pending",
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.providerStatus",
+            "expected": "to-be-processed",
+            "actual": "to-be-processed",
+            "passed": true
+          }
+        ],
+        "field_count": 10,
+        "field_matches": 10,
+        "canonical_naming_passed": true,
+        "prepared": true,
+        "human_review": "pending-not-published",
+        "currency_provenance": "command assigns CAD from jurisdiction context; fixture independently prints CAD"
+      }
+    },
+    {
+      "id": "quebec-obligation",
+      "exit_code": 0,
+      "wall_seconds": 0.637,
+      "source_unchanged": true,
+      "source_sha256": "c969cfd6b372a982e4eb5f8e6cd5d4691e3575efff414dea56d007be72bd7b1b",
+      "operation": [
+        "prepare-tax-from-source",
+        "--root",
+        "<fictional-run-report-root>",
+        "--source",
+        "data/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-obligation.pdf",
+        "--branch",
+        "example-consulting",
+        "--year",
+        "2026",
+        "--quarter",
+        "q4",
+        "--section",
+        "out"
+      ],
+      "proposal": {
+        "schemaVersion": 1,
+        "operation": "prepare-tax-from-source",
+        "status": "prepared",
+        "proposedDestination": "2026/example-consulting/q4/out/taxes/payroll-remittances/ca-qc/2026-09-30",
+        "proposedFilename": "2026-09-30_ca-qc_payroll-remittance-obligation.pdf",
+        "proposedSidecarFilename": "2026-09-30_ca-qc_payroll-remittance-obligation.pdf.json",
+        "extraction": {
+          "schemaVersion": 2,
+          "recordType": "payroll-tax-document",
+          "recordId": "sha256:c969cfd6b372a982e4eb5f8e6cd5d4691e3575efff414dea56d007be72bd7b1b",
+          "adapter": {
+            "id": "canadian-payroll-tax",
+            "version": 2
+          },
+          "source": {
+            "sha256": "c969cfd6b372a982e4eb5f8e6cd5d4691e3575efff414dea56d007be72bd7b1b",
+            "mediaType": "application/pdf",
+            "textSource": "embedded-pdf-text+local-ocr"
+          },
+          "documentRole": "obligation",
+          "jurisdiction": "ca-qc",
+          "currency": "CAD",
+          "operationalPeriod": {
+            "year": "2026",
+            "quarter": "q4"
+          },
+          "reportingPeriod": {
+            "start": "2026-07-01",
+            "end": "2026-09-30"
+          },
+          "dates": {
+            "dueDate": "2026-10-15"
+          },
+          "amounts": {
+            "components": {
+              "incomeTax": 1234.56,
+              "qpp": 789.01,
+              "healthServicesFund": 234.56,
+              "qpip": 111.11,
+              "cnesst": 0
+            },
+            "arithmetic": {
+              "total": 2369.24,
+              "computedTotal": 2369.24,
+              "matches": true
+            }
+          },
+          "completeness": {
+            "physicalPageCount": 1,
+            "expectedPageCount": 1,
+            "complete": true,
+            "warnings": []
+          },
+          "processing": {
+            "state": "processing-pending",
+            "reviewRequired": true
+          },
+          "obligationLifecycle": {
+            "state": "obligation-recorded",
+            "settlement": "pending"
+          },
+          "relations": [],
+          "provenance": {
+            "reportingPeriod.start": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "reportingPeriod.end": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "dates.dueDate": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.incomeTax": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.qpp": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.healthServicesFund": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.qpip": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.components.cnesst": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.total": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "amounts.arithmetic.computedTotal": {
+              "source": "derived-arithmetic",
+              "confidence": "exact"
+            },
+            "documentRole": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "jurisdiction": {
+              "source": "labelled-embedded-text",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.state": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            },
+            "obligationLifecycle.settlement": {
+              "source": "derived-rule",
+              "confidence": "exact"
+            }
+          },
+          "ocrVerificationRequired": [],
+          "unresolvedCriticalFields": []
+        },
+        "reviewEligible": true,
+        "applyEligible": true,
+        "proposalRevision": "bae30369f6ceddc784e2d69b956dbe394f26c94844b3226d5b713918210406d0"
+      },
+      "verification": {
+        "passed": true,
+        "fields": [
+          {
+            "field": "reportingPeriod.end",
+            "expected": "2026-09-30",
+            "actual": "2026-09-30",
+            "passed": true
+          },
+          {
+            "field": "currency",
+            "expected": "CAD",
+            "actual": "CAD",
+            "passed": true
+          },
+          {
+            "field": "documentRole",
+            "expected": "obligation",
+            "actual": "obligation",
+            "passed": true
+          },
+          {
+            "field": "jurisdiction",
+            "expected": "ca-qc",
+            "actual": "ca-qc",
+            "passed": true
+          },
+          {
+            "field": "reportingPeriod.start",
+            "expected": "2026-07-01",
+            "actual": "2026-07-01",
+            "passed": true
+          },
+          {
+            "field": "dates.dueDate",
+            "expected": "2026-10-15",
+            "actual": "2026-10-15",
+            "passed": true
+          },
+          {
+            "field": "amounts.components.incomeTax",
+            "expected": 1234.56,
+            "actual": 1234.56,
+            "passed": true
+          },
+          {
+            "field": "amounts.components.qpp",
+            "expected": 789.01,
+            "actual": 789.01,
+            "passed": true
+          },
+          {
+            "field": "amounts.components.healthServicesFund",
+            "expected": 234.56,
+            "actual": 234.56,
+            "passed": true
+          },
+          {
+            "field": "amounts.components.qpip",
+            "expected": 111.11,
+            "actual": 111.11,
+            "passed": true
+          },
+          {
+            "field": "amounts.components.cnesst",
+            "expected": 0,
+            "actual": 0,
+            "passed": true
+          },
+          {
+            "field": "amounts.arithmetic.total",
+            "expected": 2369.24,
+            "actual": 2369.24,
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.state",
+            "expected": "obligation-recorded",
+            "actual": "obligation-recorded",
+            "passed": true
+          },
+          {
+            "field": "obligationLifecycle.settlement",
+            "expected": "pending",
+            "actual": "pending",
+            "passed": true
+          }
+        ],
+        "field_count": 14,
+        "field_matches": 14,
+        "canonical_naming_passed": true,
+        "prepared": true,
+        "human_review": "pending-not-published",
+        "currency_provenance": "command assigns CAD from jurisdiction context; fixture independently prints CAD"
+      }
+    }
+  ],
+  "vision": [],
+  "blocked_stage": null,
+  "timing": {
+    "preflight_seconds": 0.004,
+    "mechanical_seconds": 1.878,
+    "rendering_seconds": 0,
+    "vision_seconds": 0,
+    "vision_verification_seconds": 0,
+    "total_wall_seconds": 1.885,
+    "boundary": "run setup, copying fictional originals, real preparation, text quote preparation, rendering and inference/evaluation; excludes fixture generation and manual visual inspection"
+  },
+  "summary": {
+    "mechanical_documents": 3,
+    "mechanical_passed": 3,
+    "mechanical_field_count": 37,
+    "mechanical_field_matches": 37,
+    "vision_runs": 0,
+    "vision_passed": 0,
+    "unchanged": {
+      "runs": 0,
+      "field_count": 0,
+      "fields_passed": 0,
+      "expected_matches": 0,
+      "expected_contradictions": 0,
+      "contradictions_detected": 0,
+      "false_accepts": 0,
+      "false_rejects": 0,
+      "omissions": 0,
+      "unknowns": 0
+    },
+    "tampered": {
+      "runs": 0,
+      "field_count": 0,
+      "fields_passed": 0,
+      "expected_matches": 0,
+      "expected_contradictions": 0,
+      "contradictions_detected": 0,
+      "false_accepts": 0,
+      "false_rejects": 0,
+      "omissions": 0,
+      "unknowns": 0
+    }
+  },
+  "mechanical_source_versions": {
+    "financial-records.command.mjs": "3009188ac297a5a50e671df486f8e362309d74c21de02e465fd4586d00b61ff7",
+    "pdf-reader.mjs": "f722fe8a2f4163f4a05d956f09b49f42644dd1a949f1f023d3b1e3d6f48586f2",
+    "recognizers/payroll-tax-source-recognition.mjs": "01d3ecb649d118e9c943fc3d5b62d30b4dadc24d3727d848716354381213f0c8",
+    "read-plans/payroll-tax-read-plan.mjs": "2665f648678b50613b57853ffdfb22f00a281d3a2fe13bbb50e333d1deb1a856"
+  },
+  "mechanical_source_version_collection": "collected after run from unchanged tracked public source; no historical timestamp claim"
+}

@@ -17,7 +17,9 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 As of Financial Insights v2, this workflow uses only **one worker agent**:
 * `bookkeeper` - Handles bookkeeping tasks, tax preparation, and financial analysis
 
-The `admin` agent is automatically provided by the Personal Governor and is not listed in `agents.yml`.
+`agents.yml` declares `admin` as its initializer and `bookkeeper` as its worker.
+Admin follows the canonical human-owned bootstrap contract; it is not an
+automatically initialized Governor-provided worker.
 
 ### Why Only Bookkeeper?
 
@@ -40,9 +42,19 @@ See `../../AGENTS.md` for full instructions.
 
 ## Configuration
 
-Runtime configuration is stored in `../../ai-profile/sc/commands-config/hermes-agents/config.yml`:
+Runtime configuration belongs to the selected authorized profile's configurable
+command roots. Do not assume the repository-local private `ai-profile/sc` tree
+is the operational source. The following Hermes keys apply to that profile's
+`commands-config/hermes-agents/config.yml`:
 * `workflow_agents.financial-insights.roles` - List of agent IDs
 * `auxiliary_models.financial-insights` - Model settings and task timeouts
+
+Effective platform selection uses the profile default, then workflow platform,
+then role platform override. Pi version-2 model choices belong to that
+profile's existing `pi-agents` configuration; optional scenario sessions do not
+initialize managed roles. See the [compatible benchmark scenario](acceptance/financial-insights-compatible.scenario.md)
+and its [configuration guide](../../notes/benchmarks/local-models/fixtures/financial-insights-compatible/README.md#selecting-configuration).
+Test variant IDs are benchmark settings, not new work-profile authority.
 
 ## Common Commands
 

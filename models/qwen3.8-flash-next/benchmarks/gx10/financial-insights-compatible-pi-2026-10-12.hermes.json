@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-12",
+  "fixture": "financial-insights-compatible",
+  "fictional": true,
+  "variant": "hermes-json-aware",
+  "status": "blocked",
+  "adapter_preflight": {
+    "adapter": "hermes-cli",
+    "status": "blocked",
+    "inference_started": false,
+    "native_image_cli": true,
+    "context_window": 8192,
+    "output_tokens": 2048,
+    "minimum_context_window": 64000,
+    "reason": "context-below-hermes-minimum",
+    "detail": "Keep the actual server context; do not inflate metadata or relabel the provider."
+  },
+  "inference_started": false,
+  "configuration": {
+    "platform": "hermes",
+    "harness": "Hermes",
+    "adapter": "hermes-cli-preflight",
+    "verification_mode": "json-aware-vision",
+    "supported": false,
+    "blocked_reason": "installed Hermes minimum-context and isolation preflight required; no inference",
+    "context_window": 8192,
+    "output_tokens": 2048
+  },
+  "total_wall_seconds": 0.007,
+  "mechanical_source_versions": {
+    "financial-records.command.mjs": "3009188ac297a5a50e671df486f8e362309d74c21de02e465fd4586d00b61ff7",
+    "pdf-reader.mjs": "f722fe8a2f4163f4a05d956f09b49f42644dd1a949f1f023d3b1e3d6f48586f2",
+    "recognizers/payroll-tax-source-recognition.mjs": "01d3ecb649d118e9c943fc3d5b62d30b4dadc24d3727d848716354381213f0c8",
+    "read-plans/payroll-tax-read-plan.mjs": "2665f648678b50613b57853ffdfb22f00a281d3a2fe13bbb50e333d1deb1a856"
+  },
+  "mechanical_source_version_collection": "collected after run from unchanged tracked public source; no historical timestamp claim"
+}
