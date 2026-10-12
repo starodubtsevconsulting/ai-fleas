@@ -1,0 +1,5 @@
+date,transaction_id,description,amount,currency
+2026-10-20,DEMO-TXN-CNS-001,Vendor payment; invoice DEMO-AI-204,-62.15,CAD
+2026-10-27,DEMO-TXN-CNS-002,Vendor payment; invoice DEMO-STO-206,-24.00,CAD
+2026-11-16,DEMO-TXN-CNS-003,Refund; credit DEMO-CN-204 for invoice DEMO-AI-204,8.30,CAD
+2026-12-05,DEMO-TXN-CNS-004,Office supplies; no invoice reference,-12.40,CAD

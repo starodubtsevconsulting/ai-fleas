@@ -1,0 +1,339 @@
+{
+  "schema_version": 1,
+  "dataset_id": "fictional-financial-insights-search-q4-2026-v1",
+  "fictional": true,
+  "currency": "CAD",
+  "period": {
+    "year": 2026,
+    "quarter": "q4"
+  },
+  "businesses": [
+    "example-consulting",
+    "example-lodging",
+    "example-media"
+  ],
+  "documents": [
+    {
+      "id": "client-consulting",
+      "business": "example-consulting",
+      "section": "in",
+      "file": "doc-001.pdf",
+      "kind": "customer-invoice",
+      "ref": "DEMO-CNS-2601",
+      "date": "2026-10-04",
+      "due": "2026-11-03",
+      "from": "Example Consulting (fictional)",
+      "to": "Sample Client Cedar (fictional)",
+      "description": "Planning and advisory services",
+      "amount": "2450.00",
+      "status": "payment status not shown",
+      "source": "corporate/reports/2026/example-consulting/q4/in/doc-001.pdf",
+      "sha256": "ce8561f5e80902e2afd9e9e9d9dd822df1d337bc16f1cdb19d006beeb38efce1"
+    },
+    {
+      "id": "client-lodging",
+      "business": "example-lodging",
+      "section": "in",
+      "file": "doc-001.pdf",
+      "kind": "customer-invoice",
+      "ref": "DEMO-LOD-2601",
+      "date": "2026-10-09",
+      "due": "2026-11-08",
+      "from": "Example Lodging (fictional)",
+      "to": "Sample Guest Birch (fictional)",
+      "description": "Short-stay accommodation services",
+      "amount": "895.00",
+      "status": "payment status not shown",
+      "source": "corporate/reports/2026/example-lodging/q4/in/doc-001.pdf",
+      "sha256": "c4492d3bca23975889702e912c144c41a30b9e7127d81ea2c837459091c3a9e0"
+    },
+    {
+      "id": "client-media",
+      "business": "example-media",
+      "section": "in",
+      "file": "doc-001.pdf",
+      "kind": "customer-invoice",
+      "ref": "DEMO-MED-2601",
+      "date": "2026-10-12",
+      "due": "2026-11-11",
+      "from": "Example Media Studio (fictional)",
+      "to": "Sample Client Maple (fictional)",
+      "description": "Audio and video production services",
+      "amount": "1275.50",
+      "status": "payment status not shown",
+      "source": "corporate/reports/2026/example-media/q4/in/doc-001.pdf",
+      "sha256": "c9cfe2af059ccf269d4bd6ff683d66517b8d6a8a190ac9e594ea8dcec2e791ef"
+    },
+    {
+      "id": "ai-consulting-paid",
+      "business": "example-consulting",
+      "section": "out/expenses",
+      "file": "doc-002.pdf",
+      "kind": "vendor-invoice",
+      "category": "AI compute and model inference",
+      "ref": "DEMO-AI-204",
+      "date": "2026-10-05",
+      "due": "2026-11-04",
+      "from": "Fictional Compute Works",
+      "to": "Example Consulting (fictional)",
+      "description": "AI model inference and compute usage",
+      "amount": "62.15",
+      "status": "statement payment matched",
+      "source": "corporate/reports/2026/example-consulting/q4/out/expenses/doc-002.pdf",
+      "sha256": "d88b6b1df8038e4995c859354660fa8a46f1dfeb357bbed3a21cd589c07bfe58"
+    },
+    {
+      "id": "ai-lodging-paid",
+      "business": "example-lodging",
+      "section": "out/expenses",
+      "file": "doc-002.pdf",
+      "kind": "vendor-invoice",
+      "category": "AI compute and model inference",
+      "ref": "DEMO-AI-101",
+      "date": "2026-10-08",
+      "due": "2026-11-07",
+      "from": "Fictional Compute Works",
+      "to": "Example Lodging (fictional)",
+      "description": "AI model inference and compute usage",
+      "amount": "48.30",
+      "status": "statement payment matched",
+      "source": "corporate/reports/2026/example-lodging/q4/out/expenses/doc-002.pdf",
+      "sha256": "76bb22f45d4259f4a94d48976758a7dd4ec0363937ca4f619de11e5580be03ba"
+    },
+    {
+      "id": "ai-media-unmatched",
+      "business": "example-media",
+      "section": "out/expenses",
+      "file": "doc-002.pdf",
+      "kind": "vendor-invoice",
+      "category": "AI compute and model inference",
+      "ref": "DEMO-AI-307",
+      "date": "2026-11-03",
+      "due": "2026-12-03",
+      "from": "Fictional Compute Works",
+      "to": "Example Media Studio (fictional)",
+      "description": "AI model inference and compute usage",
+      "amount": "31.40",
+      "status": "payment status not shown",
+      "source": "corporate/reports/2026/example-media/q4/out/expenses/doc-002.pdf",
+      "sha256": "748d8f1bb85310d872ddf5605c88a3f20f22bf0796722e31907332fc75203bd0"
+    },
+    {
+      "id": "cloud-storage-decoy",
+      "business": "example-consulting",
+      "section": "out/expenses",
+      "file": "doc-003.pdf",
+      "kind": "vendor-invoice",
+      "category": "cloud file storage",
+      "ref": "DEMO-STO-206",
+      "date": "2026-10-11",
+      "due": "2026-11-10",
+      "from": "Fictional Cloud Archive",
+      "to": "Example Consulting (fictional)",
+      "description": "Cloud file storage and backup plan; no AI compute or model inference",
+      "amount": "24.00",
+      "status": "statement payment matched",
+      "source": "corporate/reports/2026/example-consulting/q4/out/expenses/doc-003.pdf",
+      "sha256": "4a77b64f9a3dd50fb5da6f3b0892e6859d69a058c28109433c0873fca51d1d9c"
+    },
+    {
+      "id": "ai-consulting-unpaid",
+      "business": "example-consulting",
+      "section": "out/expenses",
+      "file": "doc-004.pdf",
+      "kind": "vendor-invoice",
+      "category": "AI compute and model inference",
+      "ref": "DEMO-AI-209",
+      "date": "2026-11-14",
+      "due": "2026-12-14",
+      "from": "Fictional Compute Works",
+      "to": "Example Consulting (fictional)",
+      "description": "AI model inference and compute usage",
+      "amount": "29.99",
+      "status": "explicitly unpaid",
+      "source": "corporate/reports/2026/example-consulting/q4/out/expenses/doc-004.pdf",
+      "sha256": "b41a65d1a6216b9c0af06f4148e55e0a28455af891a0f73113b76fbed9104031"
+    },
+    {
+      "id": "ai-credit",
+      "business": "example-consulting",
+      "section": "out/expenses",
+      "file": "doc-005.pdf",
+      "kind": "vendor-credit-note",
+      "category": "AI compute credit",
+      "ref": "DEMO-CN-204",
+      "related_ref": "DEMO-AI-204",
+      "date": "2026-11-12",
+      "from": "Fictional Compute Works",
+      "to": "Example Consulting (fictional)",
+      "description": "Service adjustment credit applied to invoice DEMO-AI-204; refund issued",
+      "amount": "8.30",
+      "status": "credit applied and refund matched",
+      "source": "corporate/reports/2026/example-consulting/q4/out/expenses/doc-005.pdf",
+      "sha256": "7f65ade3d2c7bce00368912338a8951dc1614518d80b03eb187ba4ff6fa32ebe"
+    },
+    {
+      "id": "duplicate-ai-invoice",
+      "business": "example-consulting",
+      "section": "out/expenses",
+      "file": "doc-006.pdf",
+      "kind": "duplicate-copy",
+      "category": "AI compute and model inference",
+      "ref": "DEMO-AI-101",
+      "related_ref": "DEMO-AI-101",
+      "date": "2026-10-08",
+      "due": "2026-11-07",
+      "from": "Fictional Compute Works",
+      "to": "Example Lodging (fictional)",
+      "description": "Copy of DEMO-AI-101 filed under the wrong business folder",
+      "amount": "48.30",
+      "status": "duplicate; exclude from totals",
+      "source": "corporate/reports/2026/example-consulting/q4/out/expenses/doc-006.pdf",
+      "sha256": "a4b7589df83e746bfaa958b5dc7e03203ba1fd381e6579d248de7b1588248c64"
+    }
+  ],
+  "statements": [
+    {
+      "business": "example-consulting",
+      "source": "corporate/reports/2026/example-consulting/q4/statements/statement-q4-2026.csv",
+      "sha256": "6c7ea84af9cec4ceba9cec478e6eba0024b4c58126d6af337a9e7cc19851d1f6",
+      "rows": [
+        [
+          "2026-10-20",
+          "DEMO-TXN-CNS-001",
+          "Vendor payment; invoice DEMO-AI-204",
+          "-62.15",
+          "CAD"
+        ],
+        [
+          "2026-10-27",
+          "DEMO-TXN-CNS-002",
+          "Vendor payment; invoice DEMO-STO-206",
+          "-24.00",
+          "CAD"
+        ],
+        [
+          "2026-11-16",
+          "DEMO-TXN-CNS-003",
+          "Refund; credit DEMO-CN-204 for invoice DEMO-AI-204",
+          "8.30",
+          "CAD"
+        ],
+        [
+          "2026-12-05",
+          "DEMO-TXN-CNS-004",
+          "Office supplies; no invoice reference",
+          "-12.40",
+          "CAD"
+        ]
+      ]
+    },
+    {
+      "business": "example-lodging",
+      "source": "corporate/reports/2026/example-lodging/q4/statements/statement-q4-2026.csv",
+      "sha256": "1cc2d43a85e7ceac8ede7e91d69b4c9af48e4e9fe43b09f945458dd46ada6b07",
+      "rows": [
+        [
+          "2026-10-21",
+          "DEMO-TXN-LOD-001",
+          "Vendor payment; invoice DEMO-AI-101",
+          "-48.30",
+          "CAD"
+        ],
+        [
+          "2026-10-30",
+          "DEMO-TXN-LOD-002",
+          "Guest receipt; invoice DEMO-LOD-2601",
+          "895.00",
+          "CAD"
+        ]
+      ]
+    },
+    {
+      "business": "example-media",
+      "source": "corporate/reports/2026/example-media/q4/statements/statement-q4-2026.csv",
+      "sha256": "49bdb918b5698dfb00fa42824bd47db1874abcf2f65e47163730d46d2d03b929",
+      "rows": [
+        [
+          "2026-11-15",
+          "DEMO-TXN-MED-001",
+          "Client receipt; invoice DEMO-MED-2601",
+          "1275.50",
+          "CAD"
+        ],
+        [
+          "2026-12-01",
+          "DEMO-TXN-MED-002",
+          "Office supply purchase; no invoice reference",
+          "-19.00",
+          "CAD"
+        ]
+      ]
+    }
+  ],
+  "search_answers": {
+    "ai_compute_unique_invoices_gross": {
+      "included_invoice_refs": [
+        "DEMO-AI-204",
+        "DEMO-AI-101",
+        "DEMO-AI-307",
+        "DEMO-AI-209"
+      ],
+      "amounts_cad": [
+        62.15,
+        48.3,
+        31.4,
+        29.99
+      ],
+      "total_cad": 171.84,
+      "exclusions": {
+        "cloud_storage_invoice": "DEMO-STO-206",
+        "duplicate_copy": "DEMO-AI-101 duplicate"
+      }
+    },
+    "credit_note": {
+      "ref": "DEMO-CN-204",
+      "related_invoice": "DEMO-AI-204",
+      "amount_cad": 8.3,
+      "invoice_net_of_credit_cad": 163.54
+    },
+    "matched_statement_activity": {
+      "gross_vendor_payments_cad": 110.45,
+      "refund_cad": 8.3,
+      "net_cash_outflow_cad": 102.15,
+      "invoice_refs_with_payment_evidence": [
+        "DEMO-AI-204",
+        "DEMO-AI-101"
+      ],
+      "no_matching_payment_evidence": [
+        "DEMO-AI-307",
+        "DEMO-AI-209"
+      ],
+      "explicitly_unpaid_invoice_refs": [
+        "DEMO-AI-209"
+      ],
+      "unmatched_invoice_amount_cad": 61.39,
+      "exclusions": {
+        "cloud_storage_invoice": "DEMO-STO-206",
+        "duplicate_copy": "DEMO-AI-101 duplicate"
+      }
+    },
+    "customer_invoices": {
+      "DEMO-CNS-2601": {
+        "business": "example-consulting",
+        "amount_cad": 2450.0,
+        "payment_status": "not shown"
+      },
+      "DEMO-LOD-2601": {
+        "business": "example-lodging",
+        "amount_cad": 895.0,
+        "payment_status": "payment matched in statement"
+      },
+      "DEMO-MED-2601": {
+        "business": "example-media",
+        "amount_cad": 1275.5,
+        "payment_status": "payment matched in statement"
+      }
+    }
+  }
+}
