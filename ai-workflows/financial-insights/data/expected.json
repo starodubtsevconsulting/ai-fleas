@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "fixture_layout_revision": 3,
+  "fictional": true,
+  "documents": [
+    {
+      "id": "federal-confirmation",
+      "file": "ai-workflows/financial-insights/data/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/federal-confirmation.pdf",
+      "page": 1,
+      "expected": {
+        "reportingPeriod.end": "2026-09-30",
+        "currency": "CAD",
+        "documentRole": "submission-confirmation",
+        "jurisdiction": "ca-federal",
+        "dates.submissionDate": "2026-10-03",
+        "dates.dueDate": "2026-10-15",
+        "dates.scheduledExecutionDate": "2026-10-11",
+        "amounts.components.grossPayroll": 24680.5,
+        "amounts.components.employeeCount": 7,
+        "amounts.arithmetic.total": 2345.67,
+        "obligationLifecycle.state": "scheduled",
+        "obligationLifecycle.settlement": "pending",
+        "obligationLifecycle.providerStatus": "to-be-processed"
+      },
+      "destination": "2026/example-consulting/q4/out/taxes/payroll-remittances/ca-federal/2026-09-30",
+      "filename": "2026-10-03_ca-federal_payroll-remittance-submission-confirmation.pdf",
+      "sidecar": "2026-10-03_ca-federal_payroll-remittance-submission-confirmation.pdf.json"
+    },
+    {
+      "id": "quebec-confirmation",
+      "file": "ai-workflows/financial-insights/data/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-confirmation.pdf",
+      "page": 1,
+      "expected": {
+        "reportingPeriod.end": "2026-09-30",
+        "currency": "CAD",
+        "documentRole": "submission-confirmation",
+        "jurisdiction": "ca-qc",
+        "dates.submissionDate": "2026-10-04",
+        "dates.scheduledExecutionDate": "2026-10-12",
+        "amounts.arithmetic.total": 2369.24,
+        "obligationLifecycle.state": "scheduled",
+        "obligationLifecycle.settlement": "pending",
+        "obligationLifecycle.providerStatus": "to-be-processed"
+      },
+      "destination": "2026/example-consulting/q4/out/taxes/payroll-remittances/ca-qc/2026-09-30",
+      "filename": "2026-10-04_ca-qc_payroll-remittance-submission-confirmation.pdf",
+      "sidecar": "2026-10-04_ca-qc_payroll-remittance-submission-confirmation.pdf.json"
+    },
+    {
+      "id": "quebec-obligation",
+      "file": "ai-workflows/financial-insights/data/corporate/reports/2026/example-consulting/q4/incoming/unprocessed/quebec-obligation.pdf",
+      "page": 1,
+      "expected": {
+        "reportingPeriod.end": "2026-09-30",
+        "currency": "CAD",
+        "documentRole": "obligation",
+        "jurisdiction": "ca-qc",
+        "reportingPeriod.start": "2026-07-01",
+        "dates.dueDate": "2026-10-15",
+        "amounts.components.incomeTax": 1234.56,
+        "amounts.components.qpp": 789.01,
+        "amounts.components.healthServicesFund": 234.56,
+        "amounts.components.qpip": 111.11,
+        "amounts.components.cnesst": 0,
+        "amounts.arithmetic.total": 2369.24,
+        "obligationLifecycle.state": "obligation-recorded",
+        "obligationLifecycle.settlement": "pending"
+      },
+      "destination": "2026/example-consulting/q4/out/taxes/payroll-remittances/ca-qc/2026-09-30",
+      "filename": "2026-09-30_ca-qc_payroll-remittance-obligation.pdf",
+      "sidecar": "2026-09-30_ca-qc_payroll-remittance-obligation.pdf.json"
+    }
+  ]
+}

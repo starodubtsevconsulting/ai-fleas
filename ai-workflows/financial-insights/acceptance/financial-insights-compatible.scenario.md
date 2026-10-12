@@ -17,15 +17,16 @@ forms; it makes no claim that the command supports GST/QST forms.
 
 ## Prerequisites and layout
 
-Fixture layout revision 2 adds the corporate storage root and the complete
-2026 organization/quarter skeleton. All identities, amounts, references and document contents are fictional and
+Workflow data layout revision 3 stores the fictional corporate records under
+`ai-workflows/financial-insights/data/`. This is workflow-owned test data, not
+benchmark evidence. The complete 2026 organization/quarter skeleton remains. All identities, amounts, references and document contents are fictional and
 independently inspectable. Original forms preserve the supported layout and
 labels without copying private identifiers or source values. The command root
-is `data/corporate/reports`, containing `2026/example-consulting/q4/`; unprocessed originals are
+is `ai-workflows/financial-insights/data/corporate/reports`, containing `2026/example-consulting/q4/`; unprocessed originals are
 staged separately from the proposed canonical bundle:
 
 ```text
-data/corporate/
+ai-workflows/financial-insights/data/corporate/
   reports/2026/example-consulting/
     q1/{in/, out/taxes/, statements/}
     q2/{in/, out/taxes/, statements/}
@@ -44,7 +45,7 @@ Q1-Q3 are empty skeletons, not newly exercised benchmark periods.
 The existing three source PDFs remain in Q4 staging:
 
 ```text
-data/corporate/reports/2026/example-consulting/q4/
+ai-workflows/financial-insights/data/corporate/reports/2026/example-consulting/q4/
   incoming/unprocessed/
     federal-confirmation.pdf
     quebec-confirmation.pdf
@@ -56,8 +57,14 @@ data/corporate/reports/2026/example-consulting/q4/
 
 Recorded benchmark evidence from layout revision 1 retains its original
 `data/reports` paths and source hashes; do not rewrite historical results to
-claim it ran against revision 2. PDF contents and logical destination proposals
-remain unchanged.
+claim it ran against a later layout. Revision 2 records retain their original
+benchmark-local corporate paths. Revision 3 relocates the unchanged PDF bytes
+and empty sections to workflow-owned data; logical destination proposals stay
+unchanged. The dataset generator and evaluator-only expected facts live beside the workflow
+data. Expected facts are reference answers, not approved normalized sidecars,
+and are never model input. Harness runners, prompts, evaluators and metrics remain in their
+benchmark locations and copy only this fictional workflow tree into isolated
+run storage.
 
 The reporting period remains Q3 ending September 30, 2026. Q4 is the open
 operational bucket for later submission activity. Destination proposals must
