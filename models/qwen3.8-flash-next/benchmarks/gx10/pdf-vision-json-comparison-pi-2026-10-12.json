@@ -1,0 +1,448 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-12",
+  "status": "completed-quality-failed",
+  "deployment": "gx10",
+  "model": {
+    "directory": "qwen3.8-flash-next",
+    "id": "qwen3.8-flash-next-iq4-nl",
+    "quantization": "IQ4_NL",
+    "verified_projector_artifact": null
+  },
+  "configuration": {
+    "harness": "Pi",
+    "harness_version": "1.1.0",
+    "runtime_context_tokens": 8192,
+    "configured_output_limit": 2048,
+    "input_method": "original-PDF page rendered PNG at 144dpi",
+    "isolation": {
+      "tools": false,
+      "context_files": false,
+      "skills": false,
+      "templates": false,
+      "extensions": "explicit verified payload hook only",
+      "sessions": "fresh ephemeral",
+      "baseline_supplied_to_model": false
+    },
+    "raw_artifacts": "private-only",
+    "call_count_definition": "model_api_calls counts observed completion events; actual transport requests uninstrumented"
+  },
+  "workload": {
+    "suite": "original-pdf-blind-vision-json-comparison",
+    "public_scenarios": [
+      "pdf-single-tax",
+      "pdf-week-tax",
+      "pdf-quarter-tax"
+    ],
+    "private_financial_inputs": "excluded from public record"
+  },
+  "observations": {
+    "runs": [
+      {
+        "run_id": "doc-A-page-1",
+        "family": "standalone-page-vision",
+        "task_version": "blind-vision-parsed-json-v1",
+        "wall_seconds": 19.971,
+        "process_exit_code": 0,
+        "completion": "complete",
+        "stop_reason": "stop",
+        "model_api_calls": 1,
+        "actual_transport_requests": null,
+        "tool_calls": 0,
+        "input_tokens": 2242,
+        "output_tokens": 393,
+        "total_tokens": 2635,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "reasoning_tokens_reported": 0,
+        "cache_accounting": "harness reported total retained; no derived reconciliation",
+        "configuration": {
+          "harness": "Pi",
+          "harness_version": "1.1.0",
+          "model_id": "qwen3.8-flash-next-iq4-nl",
+          "runtime_context_tokens": 8192,
+          "requested_output_cap": 2048,
+          "visual_attachment_count": 1,
+          "input_method": "original-PDF page rendered PNG at 144dpi",
+          "tools": [],
+          "payload_enable_thinking": false,
+          "observed_server_thinking_behavior": null,
+          "baseline_supplied_to_model": false
+        },
+        "preliminary_comparison": {
+          "result": "unavailable",
+          "reason": "no existing paired baseline at preliminary stage"
+        },
+        "final_comparison": {
+          "method": "evaluator-only manually source-page-validated reference",
+          "counts": {
+            "match": 8,
+            "mismatch": 1,
+            "missing": 0,
+            "unavailable": 2
+          },
+          "not_requested_count": null,
+          "result": "fail"
+        }
+      },
+      {
+        "run_id": "doc-B-page-1",
+        "family": "standalone-page-vision",
+        "task_version": "blind-vision-parsed-json-v1",
+        "wall_seconds": 25.648,
+        "process_exit_code": 0,
+        "completion": "complete",
+        "stop_reason": "stop",
+        "model_api_calls": 1,
+        "actual_transport_requests": null,
+        "tool_calls": 0,
+        "input_tokens": 2118,
+        "output_tokens": 565,
+        "total_tokens": 2769,
+        "cache_read_tokens": 86,
+        "cache_write_tokens": 0,
+        "reasoning_tokens_reported": 0,
+        "cache_accounting": "harness reported total retained; no derived reconciliation",
+        "configuration": {
+          "harness": "Pi",
+          "harness_version": "1.1.0",
+          "model_id": "qwen3.8-flash-next-iq4-nl",
+          "runtime_context_tokens": 8192,
+          "requested_output_cap": 2048,
+          "visual_attachment_count": 1,
+          "input_method": "original-PDF page rendered PNG at 144dpi",
+          "tools": [],
+          "payload_enable_thinking": false,
+          "observed_server_thinking_behavior": null,
+          "baseline_supplied_to_model": false
+        },
+        "preliminary_comparison": {
+          "result": "unavailable",
+          "reason": "no existing paired baseline at preliminary stage"
+        },
+        "final_comparison": {
+          "method": "evaluator-only manually source-page-validated reference",
+          "counts": {
+            "match": 8,
+            "mismatch": 2,
+            "missing": 1,
+            "unavailable": 1
+          },
+          "not_requested_count": null,
+          "result": "fail"
+        }
+      },
+      {
+        "run_id": "doc-B-page-2",
+        "family": "standalone-page-vision",
+        "task_version": "blind-vision-parsed-json-v1",
+        "wall_seconds": 29.581,
+        "process_exit_code": 0,
+        "completion": "complete",
+        "stop_reason": "stop",
+        "model_api_calls": 1,
+        "actual_transport_requests": null,
+        "tool_calls": 0,
+        "input_tokens": 2118,
+        "output_tokens": 676,
+        "total_tokens": 2880,
+        "cache_read_tokens": 86,
+        "cache_write_tokens": 0,
+        "reasoning_tokens_reported": 0,
+        "cache_accounting": "harness reported total retained; no derived reconciliation",
+        "configuration": {
+          "harness": "Pi",
+          "harness_version": "1.1.0",
+          "model_id": "qwen3.8-flash-next-iq4-nl",
+          "runtime_context_tokens": 8192,
+          "requested_output_cap": 2048,
+          "visual_attachment_count": 1,
+          "input_method": "original-PDF page rendered PNG at 144dpi",
+          "tools": [],
+          "payload_enable_thinking": false,
+          "observed_server_thinking_behavior": null,
+          "baseline_supplied_to_model": false
+        },
+        "preliminary_comparison": {
+          "result": "unavailable",
+          "reason": "no existing paired baseline at preliminary stage"
+        },
+        "final_comparison": {
+          "method": "evaluator-only manually source-page-validated reference",
+          "counts": {
+            "match": 14,
+            "mismatch": 0,
+            "missing": 0,
+            "unavailable": 4
+          },
+          "not_requested_count": null,
+          "result": "pass"
+        }
+      },
+      {
+        "run_id": "doc-C-page-1",
+        "family": "standalone-page-vision",
+        "task_version": "blind-vision-parsed-json-v1",
+        "wall_seconds": 35.783,
+        "process_exit_code": 0,
+        "completion": "complete",
+        "stop_reason": "stop",
+        "model_api_calls": 1,
+        "actual_transport_requests": null,
+        "tool_calls": 0,
+        "input_tokens": 2156,
+        "output_tokens": 851,
+        "total_tokens": 3093,
+        "cache_read_tokens": 86,
+        "cache_write_tokens": 0,
+        "reasoning_tokens_reported": 0,
+        "cache_accounting": "harness reported total retained; no derived reconciliation",
+        "configuration": {
+          "harness": "Pi",
+          "harness_version": "1.1.0",
+          "model_id": "qwen3.8-flash-next-iq4-nl",
+          "runtime_context_tokens": 8192,
+          "requested_output_cap": 2048,
+          "visual_attachment_count": 1,
+          "input_method": "original-PDF page rendered PNG at 144dpi",
+          "tools": [],
+          "payload_enable_thinking": false,
+          "observed_server_thinking_behavior": null,
+          "baseline_supplied_to_model": false
+        },
+        "preliminary_comparison": {
+          "result": "unavailable",
+          "reason": "no existing paired baseline at preliminary stage"
+        },
+        "final_comparison": {
+          "method": "evaluator-only manually source-page-validated reference",
+          "counts": {
+            "match": 14,
+            "mismatch": 0,
+            "missing": 0,
+            "unavailable": 2
+          },
+          "not_requested_count": null,
+          "result": "pass"
+        }
+      },
+      {
+        "run_id": "doc-D-page-1",
+        "family": "standalone-page-vision",
+        "task_version": "blind-vision-parsed-json-v1",
+        "wall_seconds": 14.393,
+        "process_exit_code": 0,
+        "completion": "complete",
+        "stop_reason": "stop",
+        "model_api_calls": 1,
+        "actual_transport_requests": null,
+        "tool_calls": 0,
+        "input_tokens": 2156,
+        "output_tokens": 258,
+        "total_tokens": 2500,
+        "cache_read_tokens": 86,
+        "cache_write_tokens": 0,
+        "reasoning_tokens_reported": 0,
+        "cache_accounting": "harness reported total retained; no derived reconciliation",
+        "configuration": {
+          "harness": "Pi",
+          "harness_version": "1.1.0",
+          "model_id": "qwen3.8-flash-next-iq4-nl",
+          "runtime_context_tokens": 8192,
+          "requested_output_cap": 2048,
+          "visual_attachment_count": 1,
+          "input_method": "original-PDF page rendered PNG at 144dpi",
+          "tools": [],
+          "payload_enable_thinking": false,
+          "observed_server_thinking_behavior": null,
+          "baseline_supplied_to_model": false
+        },
+        "preliminary_comparison": {
+          "status": "superseded-by-manually-validated-reference",
+          "run_id": "doc-D-page-1",
+          "counts": {
+            "match": 8,
+            "mismatch": 1,
+            "unavailable": 1
+          },
+          "adjudicated_failures": 2,
+          "result": "fail",
+          "adjudication": "Omitted visible component amount and inferred non-explicit currency."
+        },
+        "final_comparison": {
+          "method": "evaluator-only manually source-page-validated reference",
+          "counts": {
+            "match": 7,
+            "mismatch": 1,
+            "missing": 1,
+            "unavailable": 2
+          },
+          "not_requested_count": null,
+          "result": "fail"
+        }
+      },
+      {
+        "run_id": "doc-E-page-1",
+        "family": "standalone-page-vision",
+        "task_version": "blind-vision-parsed-json-v1",
+        "wall_seconds": 40.657,
+        "process_exit_code": 0,
+        "completion": "complete",
+        "stop_reason": "stop",
+        "model_api_calls": 1,
+        "actual_transport_requests": null,
+        "tool_calls": 0,
+        "input_tokens": 2156,
+        "output_tokens": 989,
+        "total_tokens": 3231,
+        "cache_read_tokens": 86,
+        "cache_write_tokens": 0,
+        "reasoning_tokens_reported": 0,
+        "cache_accounting": "harness reported total retained; no derived reconciliation",
+        "configuration": {
+          "harness": "Pi",
+          "harness_version": "1.1.0",
+          "model_id": "qwen3.8-flash-next-iq4-nl",
+          "runtime_context_tokens": 8192,
+          "requested_output_cap": 2048,
+          "visual_attachment_count": 1,
+          "input_method": "original-PDF page rendered PNG at 144dpi",
+          "tools": [],
+          "payload_enable_thinking": false,
+          "observed_server_thinking_behavior": null,
+          "baseline_supplied_to_model": false
+        },
+        "preliminary_comparison": {
+          "status": "superseded-by-manually-validated-reference",
+          "run_id": "doc-E-page-1",
+          "counts": {
+            "match": 6,
+            "mismatch": 2,
+            "unavailable": 0
+          },
+          "adjudicated_failures": 1,
+          "result": "fail",
+          "adjudication": "Omitted visible document print date; currency normalization discrepancy is not a visual extraction error."
+        },
+        "final_comparison": {
+          "method": "evaluator-only manually source-page-validated reference",
+          "counts": {
+            "match": 13,
+            "mismatch": 0,
+            "missing": 1,
+            "unavailable": 2
+          },
+          "not_requested_count": null,
+          "result": "fail"
+        }
+      },
+      {
+        "run_id": "doc-F-page-1",
+        "family": "standalone-page-vision",
+        "task_version": "blind-vision-parsed-json-v1",
+        "wall_seconds": 42.973,
+        "process_exit_code": 0,
+        "completion": "complete",
+        "stop_reason": "stop",
+        "model_api_calls": 1,
+        "actual_transport_requests": null,
+        "tool_calls": 0,
+        "input_tokens": 2118,
+        "output_tokens": 1057,
+        "total_tokens": 3261,
+        "cache_read_tokens": 86,
+        "cache_write_tokens": 0,
+        "reasoning_tokens_reported": 0,
+        "cache_accounting": "harness reported total retained; no derived reconciliation",
+        "configuration": {
+          "harness": "Pi",
+          "harness_version": "1.1.0",
+          "model_id": "qwen3.8-flash-next-iq4-nl",
+          "runtime_context_tokens": 8192,
+          "requested_output_cap": 2048,
+          "visual_attachment_count": 1,
+          "input_method": "original-PDF page rendered PNG at 144dpi",
+          "tools": [],
+          "payload_enable_thinking": false,
+          "observed_server_thinking_behavior": null,
+          "baseline_supplied_to_model": false
+        },
+        "preliminary_comparison": {
+          "status": "superseded-by-manually-validated-reference",
+          "run_id": "doc-F-page-1",
+          "counts": {
+            "match": 9,
+            "mismatch": 1,
+            "unavailable": 1
+          },
+          "adjudicated_failures": 0,
+          "result": "pass",
+          "adjudication": "Visible requested fields correct; normalized baseline currency not printed explicitly, so null retained."
+        },
+        "final_comparison": {
+          "method": "evaluator-only manually source-page-validated reference",
+          "counts": {
+            "match": 12,
+            "mismatch": 2,
+            "missing": 0,
+            "unavailable": 4
+          },
+          "not_requested_count": null,
+          "result": "fail"
+        }
+      }
+    ],
+    "coverage": {
+      "selected_documents": 6,
+      "physical_pages_reviewed": 7,
+      "blind_runs_evaluated": 7,
+      "existing_baselines_reviewed": 3,
+      "missing_document_baselines_prepared": 3,
+      "private_reference_files": 6
+    },
+    "baseline_validation": {
+      "verification_after_blind_capture": true,
+      "baseline_supplied_to_model": false,
+      "existing_original_baselines_modified": 0,
+      "existing_baselines_with_contextual_currency": 3,
+      "existing_baselines_with_visible_field_omissions": 2,
+      "source_discrepancies": 1,
+      "scope": "literal source-supported fields manually checked against original pages; normalized contextual values kept separate; corrections and provenance private",
+      "prepared_field_count": null,
+      "verified_field_count": null,
+      "corrected_field_count": null
+    },
+    "payload_verification": {
+      "calls": 7,
+      "every_call_one_image": true,
+      "every_call_no_tools": true,
+      "every_call_thinking_false": true,
+      "server_internal_thinking": null
+    }
+  },
+  "result": {
+    "inference_completion": "7 of 7 completed",
+    "final_quality": "fail",
+    "page_passes": 2,
+    "page_failures": 5,
+    "field_checks": {
+      "match": 76,
+      "mismatch": 6,
+      "unavailable": 17,
+      "missing": 3
+    },
+    "not_requested_count": null,
+    "aggregate_period_result": "inconclusive",
+    "preliminary_status": "superseded; preliminary paired comparisons retained per run for traceability",
+    "limitations": [
+      "Six selected PDFs only; no full-period coverage or liability total established.",
+      "Currency normalization is contextual, not literal ISO evidence.",
+      "Output schema omitted due dates and reporting periods.",
+      "Unknown settlement is not proof of paid or unpaid.",
+      "Original source discrepancies preserved; no original documents/JSON overwritten.",
+      "Field-scoped reference; no blanket claim all upstream metadata is reliable.",
+      "Field-count metrics are scoped checks, not overall financial accuracy.",
+      "Actual transport request counts and detailed baseline prepared/verified/corrected field counts were not measured."
+    ]
+  }
+}

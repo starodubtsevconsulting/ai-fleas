@@ -49,3 +49,33 @@ Report:
 Cite findings as `filename, page N`. Never guess unclear amounts, currency, dates, status, or period. Do not claim tax
 advice or independent review.
 ```
+
+## Evaluator boundary and paired-JSON verification
+
+This section is evaluator/harness guidance, outside the initial model prompt. The human-authorized test harness may
+render original PDF pages and capture private evidence in its authorized runtime workspace outside the canonical
+source root. It must not mutate canonical source files or run the data-processing pipeline. Pi itself remains
+read-only and receives only the permitted original PDF/page visual inputs; its no-write and no-sidecar constraints
+remain in force.
+
+Capture the blind Pi output and its actual visual-input trace before the evaluator opens or prepares the paired parsed JSON.
+Do not include JSON, parsed fields, expected answers, or evaluator findings in Pi's context or tools. Pair records by
+exact existing source linkage or an unambiguous matching stem within the authorized source set. If a pairing is
+ambiguous, stop that comparison and record it as unavailable. Missing JSON may be prepared only with explicit human
+authorization, from the original PDF after blind capture, in the evaluator's private runtime workspace; never use
+Pi's output or desired answers to prepare it. Without that authorization, missing pairing remains unavailable.
+
+Before treating existing or prepared JSON as a usable baseline, manually verify literal, source-supported fields
+against the relevant original pages. Distinguish normalized/inferred values, including inferred currency, from visible
+evidence. Preserve correction, uncertainty and page provenance in a private verifier overlay and runtime references;
+do not overwrite the source baseline without a separate request.
+
+Compare tax type, amount, currency, relevant dates, payment status and settlement classification. Record matches,
+omissions, contradictions and unavailable/unknown fields separately. Parsed JSON is a comparison baseline, not
+infallible truth: adjudicate disagreements against the original cited page and leave unresolved cases explicit.
+Keep raw field comparisons, source linkage, images and reports private. Publish only sanitized aggregate metrics and
+outcomes, baseline validation status and aggregate prepared/verified/corrected field counts for every attempted
+page/run under the
+[benchmark reporting methodology](../../../models/qwen3.8-flash-next/benchmarks/gx10/pdf-evidence-pi-2026-10-12.md).
+Do not publish financial values, source identifiers or source-content hashes. Limited candidate/page coverage does
+not establish week or quarter completeness.
