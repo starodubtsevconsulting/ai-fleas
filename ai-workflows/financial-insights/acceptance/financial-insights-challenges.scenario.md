@@ -66,4 +66,4 @@ Keep rendered QA images and command logs in the ignored
 `notes/benchmarks/local-models/runs/fi-challenge-data-2026-10-12/` location.
 The suite is ready for evaluator integration when page count, source hashes,
 page transcripts, support states and arithmetic facts agree with the rendered
-originals. Current runners do not yet score this extended schema.
+originals. The separate [challenge pipeline](financial-insights-challenge-pipeline.scenario.md) scores this extended schema through page extraction and whole-document contextual verification; runtime acceptance still requires its explicit pilot and execution gates.
