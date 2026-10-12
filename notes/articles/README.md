@@ -12,6 +12,7 @@ Articles are listed newest first.
 
 | Date | Article |
 | --- | --- |
+| 2026-10-11 | [I Booked a Flight. Then I Built a Skill.](2026-10-11-i-booked-a-flight-and-built-a-skill.md) |
 | 2026-10-07 | [Your Local AI Has a Brain. Where Does It Keep Its Memory?](2026-10-07-your-local-ai-has-a-brain-where-does-it-keep-its-memory.md) |
 | 2026-10-06 | [My Local Coding Agent Wasn't Just Stupid. It Was Blind.](2026-10-06-my-local-coding-agent-wasnt-just-stupid-it-was-blind.md) |
 | 2026-10-06 | [Before You Buy Local AI, Decide What You Are Optimizing For](2026-10-06-before-you-buy-local-ai-decide-what-you-are-optimizing-for.md) |
