@@ -6,8 +6,9 @@ Before reading a cache as an answer, compare its organization/accounts, period, 
 
 For each cached question, record:
 
-- The exact question and a direct numeric answer, with currency and period.
+- The exact question and a direct numeric answer, with units and period; include currency for amounts.
 - Organization/account scope and paid, invoiced, or other basis.
+- For service counts, define the stay-date basis and status evidence; distinguish reservations, served bookings, distinct identified lead customers, and recorded guest-visits. Preserve unknown customer identity and attendance rather than converting them into confident counts.
 - Included rows and original document paths with pages/rows; the arithmetic must reproduce the answer.
 - Exclusions, unresolved items, and account/date coverage gaps.
 - Verification date and status, such as verified for stated coverage or supported subtotal with gaps. Preserve the difference between inspecting extracted text and visually inspecting source pages.
