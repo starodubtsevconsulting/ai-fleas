@@ -4,11 +4,12 @@
   "description": "A private profile binds a reusable read-only record-search prompt to an authorized reports root and independently selectable execution configurations. Do not put source facts, real names, or a local path in a public profile.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "scenario_id", "task_profile", "data_root", "period", "businesses", "search_request", "output_destination", "comparison", "execution_profiles"],
+  "required": ["schema_version", "scenario_id", "task_profile", "role_context", "data_root", "period", "businesses", "search_request", "output_destination", "comparison", "execution_profiles"],
   "properties": {
     "schema_version": {"const": 1},
     "scenario_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
     "task_profile": {"type": "string", "minLength": 1, "description": "Private workflow and data authorization identifier."},
+    "role_context": {"const": "bookkeeper", "description": "The bounded read-only role method included in the reusable prompt."},
     "data_root": {"type": "string", "minLength": 1, "description": "Private, authorized local reports root. It must never be copied into public artifacts."},
     "period": {
       "type": "object",

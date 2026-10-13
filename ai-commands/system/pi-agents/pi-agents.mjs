@@ -115,7 +115,7 @@ function main() {
       metadata.maxTokens = positive(binding.max_tokens, `${label} max tokens`);
       if (metadata.maxTokens > contextWindow) fail('max tokens exceeds context window');
     }
-    return { providerId, modelId: model.provider_model, connection, contextWindow, definition: { baseUrl: baseUrl.replace(/\/$/, ''), api: 'openai-completions', apiKey: 'local', ...(Object.keys(headers).length ? { headers } : {}), models: [{ id: model.provider_model, contextWindow, ...metadata }] } };
+    return { providerId, modelId: model.provider_model, connection, contextWindow, definition: { baseUrl: baseUrl.replace(/\/$/, ''), api: 'openai-completions', apiKey: 'local', ...(Object.keys(headers).length ? { headers } : {}), models: [{ id: model.provider_model, contextWindow, reasoning: true, compat: { thinkingFormat: 'qwen-chat-template', supportsReasoningEffort: false }, ...metadata }] } };
   };
   let mainBinding = selected.models?.main;
   if (options['--model']) {
@@ -133,7 +133,7 @@ function main() {
     if (!existing) models.providers[resolved.providerId] = resolved.definition;
     else if (!existing.models.some(model => model.id === resolved.modelId)) existing.models.push(...resolved.definition.models);
   }
-  const settings = { defaultProvider: mainModel.providerId, defaultModel: mainModel.modelId, defaultThinkingLevel: 'low', extensions: ['./auxiliary-compaction.ts'] };
+  const settings = { defaultProvider: mainModel.providerId, defaultModel: mainModel.modelId, defaultThinkingLevel: 'off', extensions: ['./auxiliary-compaction.ts'] };
   const extension = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'auxiliary-compaction.ts'), 'utf8');
   const auxiliary = { provider: auxiliaryModel.providerId, model: auxiliaryModel.modelId };
   const workflowsRoot = path.resolve(profileDir, profile.ai_workflows_root || fail('ai_workflows_root is required'));
@@ -163,7 +163,7 @@ function main() {
     Object.assign(settings, existingSettings, {
       defaultProvider: mainModel.providerId,
       defaultModel: mainModel.modelId,
-      defaultThinkingLevel: 'low',
+      defaultThinkingLevel: 'off',
       extensions: [...extensions, './auxiliary-compaction.ts'],
     });
   }

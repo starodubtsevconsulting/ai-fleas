@@ -30,3 +30,6 @@ normalization or general statement reconciliation is implemented.
 
 The [parameterized private record-search scenario](financial-insights-record-search-generic.scenario.md)
 defines the profile contract for private real-data runs and private evidence.
+The [staged Bookkeeper scenario](financial-insights-record-search-staged.scenario.md)
+breaks broad real-data lookups into inventory, JSON classification, source
+verification, and final-report turns.
