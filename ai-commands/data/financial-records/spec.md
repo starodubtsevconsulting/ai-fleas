@@ -8,6 +8,8 @@ The flow's intake completion invariant also applies: copying is not completion. 
 
 For visible Wave sales-invoice PDF collection, see the [Wave invoices skill](skills/wave-invoices/SKILL.md). It is procedural browser guidance, not a supported `financial-records` adapter or generic invoice extractor.
 
+For visible AWS billing-invoice collection, see the [AWS billing invoices skill](skills/aws-billing-invoices/SKILL.md). It is procedural browser guidance, not a supported AWS adapter or generic invoice extractor.
+
 ## Purpose
 
 Provide a portable evidence API for Financial Insights record recognition, extraction, reconciliation, and completeness.

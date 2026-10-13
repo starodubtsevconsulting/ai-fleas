@@ -11,9 +11,11 @@ Follow the [Financial Insights record organization flow](../../../ai-workflows/f
 
 The flow's intake completion invariant also applies: copying is not completion. In the same authorized intake operation, prepare/review canonical normalization and validate adjacent extraction independently, then verify authorized redundant-copy cleanup before claiming intake complete. Preserve the durable canonical original evidence and complementary sidecars; exact duplicate intake/download sources and derivatives are not permanent records by default. Transactional apply still preserves its input: cleanup is a separate authorized operation after identity, source binding, coverage, metadata and references validate. No cleanup subcommand or automatic deletion is introduced; unavailable or failed cleanup remains cleanup-pending in the quarter summary. Start intake, quarter-readiness and inventory work with a scoped catch-up scan for unfinished names/destinations and absent, invalid or stale sidecars, including images and cleanup-pending redundant intake/download copies. Reuse unchanged validated pairs without regeneration, but finish authorized pending cleanup before skipping the record; changed sources require renewed source-bound preparation/review. Use only actually supported adapters and publication routes; isolate failures and record per-record pending reasons/next actions in the one quarter summary. This contract adds no background watcher or generic executable scan/reconcile operation.
 
-## Wave invoice browser guidance
+## Provider invoice browser guidance
 
 For visible Wave sales-invoice PDF collection, use the [Wave invoices skill](skills/wave-invoices/SKILL.md). This is browser guidance only: the command does not implement Wave collection or generic invoice extraction, and this link adds no command ID or runtime capability.
+
+For visible AWS billing-invoice collection, use the [AWS billing invoices skill](skills/aws-billing-invoices/SKILL.md). It is browser guidance only and adds no AWS adapter or generic invoice extraction capability.
 
 ## Shared execution target
 

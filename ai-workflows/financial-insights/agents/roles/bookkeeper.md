@@ -34,6 +34,8 @@ procedure does not grant account access, browser capability, or publication auth
 
 For requested Wave sales invoices, follow the [Wave invoices skill](../../../../ai-commands/data/financial-records/skills/wave-invoices/SKILL.md). Confirm the correct business, switch the invoice list from **Unpaid** to **All invoices**, and check the full requested quarter by invoice date, with draft handling stated explicitly. This visible-browser procedure does not add Wave collection or generic invoice extraction to the `financial-records` runtime.
 
+For requested AWS billing invoices, follow the [AWS billing invoices skill](../../../../ai-commands/data/financial-records/skills/aws-billing-invoices/SKILL.md). Verify billing period and printed invoice details, then match payment to the authorized statement and send each downloaded source through normalization, validated adjacent extraction, and duplicate cleanup. This visible-browser procedure does not add AWS collection or generic invoice extraction to the `financial-records` runtime.
+
 ## Read-only record-search method
 
 Use bounded selector searches in the [worked-solution index](../../walkthroughs/README.md)
