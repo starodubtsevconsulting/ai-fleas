@@ -1,0 +1,17 @@
+# Cache financial questions with the data
+
+Verified questions and answers belong beside the selected profile's financial data, using its existing FAQ convention and business/period layout. Reusable worked use cases and methods belong in the workflow. A cached answer contains private financial facts and must not be copied into public instructional examples.
+
+Before reading a cache as an answer, compare its organization/accounts, period, currency, accounting basis, category or tax jurisdiction/program, and coverage with the current request. Read its source citations and verification date. A missing date, unsupported zero, conflicting source, new statement, changed extraction, or different scope requires revalidation. A FAQ is a derived answer, not primary financial evidence; use it as a discovery aid when it cannot establish a current result.
+
+For each cached question, record:
+
+- The exact question and a direct numeric answer, with currency and period.
+- Organization/account scope and paid, invoiced, or other basis.
+- Included rows and original document paths with pages/rows; the arithmetic must reproduce the answer.
+- Exclusions, unresolved items, and account/date coverage gaps.
+- Verification date and status, such as verified for stated coverage or supported subtotal with gaps. Preserve the difference between inspecting extracted text and visually inspecting source pages.
+
+Create or update the data FAQ only through an authorized write route or an explicit human-authorized data edit. Preserve unrelated content. Correct a stale answer explicitly so that two contradictory answers do not appear equally current; retain historical context where useful. An answer calculation alone does not authorize publishing source records or changing canonical JSON.
+
+Operational use may reuse a cached answer after its scope and sources are revalidated. A blind benchmark must exclude cached answers and evaluator reference answers from the solving agent's permitted inputs, including searches over the data tree. Record that exclusion in the run's configuration and evidence; otherwise label the run as cache-assisted rather than an independent solution. Compare reference answers only after the solving agent returns its result.

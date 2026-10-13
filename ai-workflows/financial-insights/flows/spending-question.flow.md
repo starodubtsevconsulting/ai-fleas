@@ -72,6 +72,8 @@ Internal checkpoints and bounded batches support recovery within the same reques
    limitation must not silently become zero spending or prevent reporting the
    supported amount already established.
 
+When an authorized data FAQ is available, apply the [data FAQ cache contract](data-faq-cache.md): validate scope, sources, freshness, and coverage before reusing an answer. Cache real Q&A with the data only when writing is authorized. Blind benchmark inputs must exclude cached and evaluator answers.
+
 ## Minimal work table
 
 Each row represents a transaction or an explicitly unresolved candidate, with:
