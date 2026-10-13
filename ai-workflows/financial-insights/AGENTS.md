@@ -80,6 +80,14 @@ This verifies that the roster contains the expected agents and roles.
 
 ## Self-Learning
 
+### Mortgage extraction needs a ledger and a stopping checkpoint
+
+* What happened: bounded quarter-payment trials repeatedly re-extracted already available statement pages and performed unrelated account-balance calculations; one final response led with a wrong count/total before supplying a correction, while another run timed out without an answer.
+* Root cause: flattened statement columns made row alignment ambiguous, and the agent had no completed payment ledger or explicit stopping checkpoint. Assumed payment frequency and repeated free-form arithmetic did not reliably preserve the observed rows.
+* How we fixed it: clarified the mortgage worked use case to prefer column-preserving extraction, resolve only specific ambiguous fields, checkpoint one row per posted debit/reversal, and mechanically count and sum signed integer-cent amounts before finalizing one consistent answer.
+* How to avoid: scan all covered pages once; re-read only unresolved fields. Preserve unknown principal/interest and unaligned rows instead of guessing. Stop after the payment ledger, coverage and arithmetic agree; do not turn a mortgage question into a full-account balance audit.
+* Verification: private trial traces preserve the inconsistent final response and timeout separately from financial facts. Documentation and fictional arithmetic are checked; this new guidance has not yet been tested in another model run and does not establish autonomous acceptance.
+
 ### Reader units and recovery roots are executable constraints
 
 * What happened: a follow-up lookup read the selected worked example and answered correctly, but documentation reads exceeded the character budget, one offset was beyond the file, and a final listing inspected the parent outside its authorized data subtree.
