@@ -1,0 +1,28 @@
+# Worked use case: chalet income by booking platform
+
+Fictional instructional example; every platform, path, transaction, date, and amount below is invented, not executed evidence.
+
+**Request:** “How much money did the chalet make in Q2 2027, by booking platform?”
+
+**Plan:** resolve the chalet's incoming records and platform exports; select one consistent period and revenue basis; separate guest charges, tax pass-through, platform fees, retained income, and bank settlement. Return the useful measures together when “made” is ambiguous, with their definitions.
+
+1. **Discover sources and coverage.** Inventory the authorized chalet `in` folders, reservation/payment exports, payout summaries, refund records, and receiving-account statements. Include adjacent quarters where exports contain earlier transactions or late payouts. Read every relevant page/batch; a filename, export date, or folder quarter does not establish the transaction period. Pair each original with its existing JSON and inspect originals when fields are missing or conflict. A FAQ can guide discovery but cannot replace primary evidence.
+2. **Choose the period basis.** This example uses completed stays wholly within April–June for booking revenue, and separately reports cash received in that period. Preserve reservation dates, stay dates, payment dates, and payout dates. For a cross-quarter stay, declare whether revenue is allocated by nights or counted by arrival/checkout; do not mix those policies. Cancelled, refunded, no-show, and pending bookings require their actual financial treatment rather than automatic inclusion or exclusion. A cancellation can generate a retained fee without a served stay.
+3. **Normalize the platform's actual fields.** Retain platform/reservation and payout identifiers, original currency, source row, service status, pretax room and other host revenue, taxes collected, guest service fees, host/platform fees, refunds/adjustments, host entitlement, co-host distribution, payout date, and settled bank amount. Distinguish a guest's total charge from the host's revenue. Taxes collected for remittance are not room revenue. Guest fees paid directly to the platform are not host fees. A co-host share is a distribution of the relevant host entitlement, not another booking. Do not invent absent fields or equate an unlabeled “gross” with the same measure across platforms.
+
+| Platform / reservation | Pretax booking revenue CAD | Tax pass-through CAD | Guest charge CAD | Host platform fees CAD | Retained after platform fees CAD |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Platform A / EX-A10 | 100.00 | 15.00 | 115.00 | 10.00 | 90.00 |
+| Platform B / EX-B20 | 200.00 | 30.00 | 230.00 | 30.00 | 170.00 |
+| **Total** | **300.00** | **45.00** | **345.00** | **40.00** | **260.00** |
+
+In this invented example, no other guest fees, refunds, adjustments, or co-host shares apply. The sources are `2027/chalet/Q2/in/platform-a/stays.pdf` p1 row 1 and `2027/chalet/Q2/in/platform-b/stays.pdf` p1 row 1. These paths are illustrative and relative to the authorized reports root.
+
+4. **Deduplicate and reconcile.** The payment and payout exports both repeat EX-A10 and EX-B20: link those representations by reservation and payout reference; do not add them as separate revenue. Reconcile `guest charge = pretax revenue + tax` for this schema, and `retained after platform fees = pretax revenue − host platform fees`. Real schemas can have additional components. Reconcile payout batches to their component reservations, then to bank credits, allowing documented timing, tax remittance, adjustments, co-host distributions, and conversion differences. An unmatched deposit is pending evidence, not new platform revenue. Keep currencies separate unless an explicitly documented conversion basis supports combining them.
+5. **Calculate and answer.** Platform A contributed CAD 100.00 pretax booking revenue and CAD 90.00 retained after platform fees; Platform B contributed CAD 200.00 and CAD 170.00 respectively. Total pretax revenue is **CAD 300.00** and retained income after these fees is **CAD 260.00**. Guest charges total CAD 345.00, including CAD 45.00 tax pass-through. These are different measures, not competing totals. “Retained” here is before other operating expenses and income tax; it is not business profit.
+
+The invented bank reconciliation shows A's CAD 90.00 payout settled June 25, while B's CAD 170.00 payout settled July 3. Therefore only **CAD 90.00 bank cash received in Q2** is linked to these stays. If the question instead asks all Q2 cash receipts, independently scan the complete Q2 statement for earlier-period stays paid in Q2; do not assume this stay-based ledger covers them.
+
+**Answer:** “The supplied Q2 completed-stay records show CAD 300.00 pretax booking revenue: Platform A CAD 100.00 and Platform B CAD 200.00. After platform fees, CAD 260.00 was retained before other expenses. The guest-charge total of CAD 345.00 includes CAD 45.00 taxes. Of the retained amount, CAD 90.00 reached the bank in Q2 and CAD 170.00 settled in July.” Attach the normalized ledger, source pages, payout reconciliation, and scope gaps.
+
+**Recover:** if only payout records exist, report supported payouts by platform and their settlement basis; pretax booking revenue remains unknown until components are supported. If one platform reports gross guest charges and another net host payouts, do not sum those fields as one revenue total. Preserve missing bookings, unsettled transactions, unknown fee/tax treatment, and currency gaps. Cache the scoped real answer beside the data under the [FAQ cache contract](../flows/data-faq-cache.md).
