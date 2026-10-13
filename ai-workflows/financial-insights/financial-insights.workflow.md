@@ -1,108 +1,67 @@
 # Financial Insights workflow
 
-Use for explicitly requested internal financial sense-making: organize financial records, preserve source evidence,
-understand cash activity, and provide bounded financial observations for human or Personal Governor decisions.
+## Purpose and entry
 
-This workflow is not professional accounting, tax, legal, investment-advisory, or bookkeeping advice. Report evidence,
-uncertainty, assumptions, and missing records rather than silently converting incomplete data into facts.
+Organize explicitly authorized financial records, reconcile the requested period and prepare evidence for human decisions or accountant handover. Report observed facts, calculations, assumptions and missing evidence separately. This workflow is internal financial sense-making, not professional accounting, tax, legal or investment advice.
 
-## Portable record model
+Start with verified profile/workflow/project authority, selected businesses/accounts/currencies, period and basis, actual storage mapping, permitted effects and available command adapters. Scope or capability gaps block dependent operations. The [quarter-handover flow](flows/quarter-handover.flow.md) is the authoritative ordered procedure below; this documentation is not an executable Router projection.
 
-The canonical [record organization flow](flows/record-organization.flow.md) defines source-adjacent CSV/JSON and one quarter summary under `<reports-root>/<year>/_common/qN/summary.md`, with an annual summary for matters spanning quarters. Business records stay under the mapped `<business>/qN/{in,out,statements}` structure. Existing layouts and JSON sidecar conventions remain compatible.
+## Route the request
 
-`_common` is a derived shared overview, never a financial entity or primary source. Read relevant mapped summaries within authorized scope despite generic underscore filters; unrelated reserved/private folders remain excluded. Avoid parallel knowledge/readiness/handover folders and durable combined extracts; compose aggregates from adjacent records on demand. This documentation does not implement a generic CSV exporter or change persistence authority.
+| Request | Normative route and completion |
+| --- | --- |
+| Quarter preparation, readiness or accountant handover | [Quarter handover](flows/quarter-handover.flow.md); stop at the requested proven milestone. |
+| Place a record or catch up unfinished intake | [Record organization](flows/record-organization.flow.md); normalization and validated adjacent extraction must both pass. |
+| Find an invoice, statement or payment fact | [Record lookup](flows/record-lookup.flow.md); return verified requested facts and coverage, without requiring full-quarter closure. |
+| Calculate spending | [Spending question](flows/spending-question.flow.md); discover, reconcile and return the supported exact total/basis. |
+| Prepare tax payment evidence/form | [Tax payment](flows/tax-payment.flow.md); preserve human final submission and independent settlement proof. |
+| Financial dimension of a Governor decision | [Governor question](flows/governor-financial-question.flow.md); return a bounded evidence packet and actual review state. |
 
-## Record lookup
+Select and read only the relevant [worked example](walkthroughs/README.md), in bounded chunks. Its fictional facts and benchmark references are not operational evidence. Existing records remain legitimate inputs; exact paths and source contents outrank filename guesses.
 
-The [Bookkeeper worked solutions](walkthroughs/README.md) show fictional spending,
-invoice lookup, and outstanding-invoice investigations. Read the index and only
-the relevant example, then adapt the method to the authorized data and tools.
-These examples teach operational choices; they are not executed evidence or
-evaluator answers.
+## Quarter stages
 
-Spending questions follow the normative [spending-question flow](flows/spending-question.flow.md).
-The Bookkeeper receives one human request and independently plans, discovers the
-actual storage mapping, scans outgoing documents and statement rows, reuses or
-extracts structured evidence, normalizes and reconciles transactions, and returns
-an exact supported numeric answer with coverage. Missing or invalid sidecars may
-be addressed through authorized read-only extraction into private run evidence;
-this does not normalize or publish canonical records. Harness/model selection and
-evidence recording belong to configuration, while the agent owns the full task.
+The configured [roster](agents.yml) declares **Admin** as initializer/administration endpoint and **Bookkeeper** as the only operational worker. Bookkeeper owns all five stages; PDF/OCR, extraction, analysis and statement retrieval are capabilities, not additional agents. Admin coordination/emulation follows its own contract and cannot replace an independent review or human approval.
 
-For a request to find an existing invoice, receipt, bill, or statement, first resolve the selected project and its
-canonical storage from the active profile. Search that storage using the requested period, entity, record direction,
-and topic, allowing for the project's actual folder layout and synonymous filenames. When the year is omitted, search
-the current year first, then broaden the search; report the year of any match rather than assuming it. Inspect the
-candidate document when its content is available, and return its exact location with any unresolved ambiguity.
+| Stage | Inputs | Bookkeeper action / existing mechanics | Output and completion evidence | Recovery |
+| --- | --- | --- | --- | --- |
+| 1. Inspect | Verified scope, originals/sidecars, quarter summary | Resolve mapping, read summary and run scoped catch-up inventory | Exact paths, coverage and separate normalization/extraction findings | Unverified scope blocks; changed scope restarts inspection. |
+| 2. Process | Unfinished or newly received records | Supported `financial-records`, PDF/OCR and reviewed publisher routes | Canonical identity plus independently validated source-adjacent extraction | Invalid/stale fields return here; unsupported effects stay pending. |
+| 3. Collect | Named evidence/coverage gaps | Authorized `statements`, `taxes` and document/browser capabilities | Original records for exact account/period, or explicit missing reason/next action | Every received source returns to Process. |
+| 4. Reconcile | Validated extracts, original evidence and coverage | `financial-analysis` and bounded source matching | Income/expense/payment matches, transfers deduplicated, fees/FX and obligation/settlement distinguished | Missing record → Collect; invalid extraction → Process. |
+| 5. Handover and close | Reconciliation, exceptions, required review | Existing summary checklist and authorized delivery | Separate evidence for ready, sent, accountant-reviewed and closure-approved | Reopen affected milestones on new gaps; preserve prior events. |
 
-Admin follows this lookup route when handling an authorized Financial Insights request directly or emulating a
-configured workflow role. A saved-project label or visible folder alone does not establish workflow scope; use the
-verified profile and project binding.
+```mermaid
+flowchart TD
+  I[Inspect] --> P[Process]
+  P --> C[Collect missing records]
+  C -->|Records received| P
+  P -->|Validated and coverage assessed| R[Reconcile]
+  R -->|Missing evidence| C
+  R -->|Invalid extraction| P
+  R -->|Readiness evidence or accepted exceptions| H[Handover and close]
+  H -->|New gap| I
+```
 
-Finding a record does not finish its processing. For a PDF already present in canonical storage, check whether it has
-a valid structured sidecar. If not, use a profile-authorized implementation of the `financial-records` contract to
-recognize its content and period, propose a canonical name and destination, extract schema-versioned fields with
-provenance, and review the proposal and extracted values. Normalize the file and publish its JSON sidecar only through
-the authorized persistence path after eligibility and collision checks. Skip an already canonical PDF with a valid
-sidecar. Leave uncertain, incompatible, or colliding records unchanged and report what needs review. The portable
-command contract alone is not an executable processor. The current UI staged intake supports open-quarter `In` PDFs;
-do not assume its Add or normalization path supports an existing `Out` record. If no authorized processor supports the
-record's section, report processing as pending rather than rename or extract it ad hoc.
+The [quarter flow](flows/quarter-handover.flow.md) defines stage owners, proof, event transitions, blocked/resume behavior and fictional acceptance scenarios. Independent supported work may continue while one record is blocked. A required independent review must come from a real authorized reviewer; the roster does not declare a separate Financial Reviewer. Keep the gate pending when unavailable. The older [Governor delegation acceptance scenario](acceptance/governor-delegation.md) requires distinct actors and is not satisfied by the current two-endpoint roster or relabelled utility agents.
 
-The current portable executable can recognize a snow-removal service contract from a PDF and return bounded,
-review-pending evidence. It does not establish `Out` normalization or a valid extraction sidecar; leave the source
-unchanged after that result. The target execution boundary for recognition, normalization, extraction, and reconciliation is one executable
-`financial-records` command with profile-authorized adapters. Both no-UI agents and the platform backend should call
-that command so they use the same classification, naming, extraction, and collision rules. Until that implementation
-and backend integration exist, the portable contract describes the desired behavior; it does not grant access to the
-platform's private driver or make unsupported sections processable.
+## Records and status
 
-## Document intake
+Follow the canonical [record organization flow](flows/record-organization.flow.md): original PDF/image and validated adjacent CSV/JSON; one `<reports-root>/<year>/_common/qN/summary.md`; annual matters separate. `_common` is a derived overview, not an entity or primary source. Read relevant authorized summaries despite generic underscore filters; preserve existing layout/JSON conventions and exclude unrelated private folders.
 
-Placing a record is not completed intake: follow the [intake completion invariant](flows/record-organization.flow.md#intake-completion-invariant) to normalize and validate adjacent extraction in the same authorized operation. Begin intake, quarter-readiness and inventory work with a scoped catch-up scan; skip valid unchanged records and keep separate normalization/extraction blockers in the one quarter summary. These obligations do not add a background watcher or make unsupported adapters executable.
+The summary holds coverage, unfinished reasons/next actions, cross-source explanations and the [seven milestone checkboxes](flows/record-organization.flow.md#quarter-status-checklist). Ready, sent, reviewed and closed are independent evidence-based milestones. Missing material evidence leaves readiness pending unless the accountant explicitly accepts named exceptions; acceptance does not establish reconciliation or closure. Do not create competing knowledge/readiness/preparation folders, duplicate status files or durable combined extracts. Compose combined data from adjacent records on demand.
 
-Evidence-preserving intake follows:
+## Command and persistence boundaries
 
-`source -> recognize/classify -> structured extraction -> review -> canonical persistence -> reconciliation`
+Load only profile-authorized implementations of [financial-records](../../ai-commands/data/financial-records/financial-records.command.md), [statements](../../ai-commands/data/statements/statements.command.md), [taxes](../../ai-commands/data/taxes/taxes.command.md) and [financial-analysis](../../ai-commands/data/financial-analysis/financial-analysis.command.md). Official Wise collection routes to the command-owned [Wise statements skill](../../ai-commands/data/statements/skills/wise-statements/SKILL.md), then Process; an activity export does not replace an official balance statement.
 
-PDF text, OCR, vision, statement adapters, and extraction are profile-authorized commands/tools, not separate reasoning
-agents. Filename or metadata alone is not sufficient evidence when document content is available. Ambiguous
-classification, period, ownership, totals, currency, destination, or collisions remain review-pending. Never silently
-overwrite canonical records.
+Canonical changes follow [versioned-data](versioned-data.md), proposal review, eligibility/collision checks and the authorized publisher. No silent overwrite. Read-only extraction can prepare evidence but cannot claim canonical persistence. The portable contract is not proof of an executable adapter: current staged UI intake supports open-quarter `In` PDFs; do not assume existing `Out` normalization is supported. Snow-removal recognition returns bounded review-pending evidence, not completed `Out` normalization or a valid sidecar. UI and no-UI routes should use the same command implementation; until supported integration exists, report unsupported sections pending rather than access private drivers or reproduce an ad hoc engine. Existing human-facing UI behavior remains compatible until separately migrated and acceptance-tested. No generic exporter or continuous watcher is installed by this document.
 
-Filesystem-present records are legitimate inputs. Reconciliation reuses the same classification, extraction,
-provenance, collision, and review rules and is idempotent for already canonical records.
+## Privacy and Governor boundary
 
-Agent access and durable mutations follow [`versioned-data.md`](versioned-data.md): Analyst/Reviewer are read-only;
-Records / Bookkeeping proposes changes through a version-controlled publisher. Existing human-facing UI storage/write
-behavior remains compatible until separately migrated and acceptance-tested.
+Governor requests only bounded financial context; Bookkeeper returns the [evidence contract](evidence-contract.md) packet, calculations, uncertainty, coverage and actual review state. Governor retains cross-workflow strategy and human goals; unrelated private Governor memory does not cross the boundary. Same-context self-review cannot satisfy independence. Keep real identities, records, credentials, provider configuration, account identifiers and machine paths in private authorized stores; public examples remain fictional/sanitized. External messaging requires explicit human authorization.
 
-## Operational agents
-
-- **Financial Analyst** — cash flow, trends, anomalies, scenarios, and sourced evidence for buy/sell/spend/retain
-  questions. It distinguishes observed records from assumptions and does not make the human's strategic decision.
-- **Records / Bookkeeping Agent** — intake, classification, completeness, reconciliation, and orchestration of
-  authorized statements/taxes/PDF/OCR/extraction commands.
-- **Financial Reviewer** — independent provenance, missing-data, arithmetic/period, assumption, and evidence review of
-  material conclusions.
-
-Development roles may exist while building this workflow but are not the ordinary operational financial team.
-
-## Personal Governor boundary
-
-The Personal Governor may request bounded financial evidence for decisions with a financial dimension. Financial
-Insights returns sourced facts, calculations, assumptions, uncertainty, scenarios, and missing evidence. The Governor
-combines them with human-owned goals, opportunity cost, capacity, and other authorized workflow evidence.
-
-Financial Insights does not receive unrelated private Governor memory merely because the Governor asked the question.
-Material conclusions requiring independent review go to a separate Financial Reviewer; same-context self-review does
-not satisfy that gate.
-
-## Commands and privacy
-
-Load only commands needed for the request. Portable commands include `statements`, `taxes`, `financial-records`, and `financial-analysis`; profiles may authorize
-provider-specific extraction/OCR/document adapters behind those contracts. Governor-facing outputs follow
-[`evidence-contract.md`](evidence-contract.md).
+## Benchmarks and browser assistance
 
 Standalone original-PDF model-and-harness benchmarks use explicitly named prompt documents at three scales (see the [prompt convention](acceptance/README.md)):
 
@@ -120,31 +79,6 @@ and verification prerequisites are documented in
 
 ## Browser-assisted tax-payment entry
 
-The [workflow-compatible benchmark scenario](acceptance/financial-insights-compatible.scenario.md)
-separately tests mechanical preparation and contextual visual checking on
-fictional supported payroll forms in the canonical report hierarchy. The
-[profile-owned fictional dataset](../../ai-profile/example/data/financial-insights/README.md) contains the corporate records,
-generator and evaluator-only reference facts; [benchmark tooling](../../notes/benchmarks/local-models/fixtures/financial-insights-compatible/README.md)
-consumes that data and records metrics separately. Benchmark variants select harness/model settings without changing operational profiles or
-waiving review and publication gates.
+Follow the [tax-payment flow](flows/tax-payment.flow.md) and [tax-payment-entry skill](skills/tax-payment-entry/SKILL.md) for reviewed source-PDF/JSON binding, side-by-side human verification, deliberate field-by-field visible entry and post-submit reconciliation. Re-read each settled field and verify payee, period, dates, components and total before final review. **The human activates final submission.** Passwords/MFA remain human-entered; security challenges or provider-required human entry stop automation. No hidden APIs, script injection, deceptive timing or anti-bot workarounds. Provider confirmation proves submitted/scheduled state until posted settlement is reconciled.
 
-When the human authorizes visible browser assistance for a tax payment, treat deliberate field entry as a safety and
-reliability requirement. Enter one field at a time, wait for the page to settle, read back and validate the visible
-value, and only then move to the next field. Do not use rapid multi-field bursts. Pause at meaningful form boundaries
-so the human can inspect the state, and re-verify the payee, reporting period, due or payment date, amount components,
-and calculated total before advancing to a final review page.
-
-Use the [`tax-payment-entry` skill](skills/tax-payment-entry/SKILL.md) for source-PDF binding, side-by-side human
-verification, visible form entry, the final-submission boundary, and post-submit reconciliation evidence.
-Follow the [`tax-payment` flow](flows/tax-payment.flow.md) so canonical PDF naming and validated JSON publication happen
-as one reviewed normalization transaction before any payment form is prepared.
-
-This pacing rule is not permission to impersonate a human or evade provider controls. Do not use randomized timing,
-hidden APIs, script injection, anti-bot workarounds, or other deceptive interaction. If the provider requires genuine
-human entry, presents a security challenge, or blocks automation, stop and hand control to the human. Passwords, MFA,
-and other secret authentication input remain human-entered. The agent may prepare and verify the form only within the
-human's current authorization; the human must activate the final submission control. After submission, record the
-provider confirmation as submitted or scheduled evidence until settlement is independently reconciled.
-
-Keep real corporation identities, records, credentials, provider configuration, account identifiers, and
-machine-specific paths in private profiles/stores. Public examples use fictional/sanitized values.
+The [compatible benchmark scenario](acceptance/financial-insights-compatible.scenario.md), [fictional dataset](../../ai-profile/example/data/financial-insights/README.md) and [benchmark tooling](../../notes/benchmarks/local-models/fixtures/financial-insights-compatible/README.md) test supported preparation/visual checking separately. Benchmark variants change harness/model settings, not operational scope or review/publication gates.
