@@ -6,6 +6,10 @@ These are **working article sources**, not publication records. Use the Writing 
 
 Keep short engineering/research notes directly under `notes/`; keep article-length publishable drafts here.
 
+## Visual world and UX reference
+
+See [SC and AI Fleas human-agency visual world](../design/human-agency-visual-world.md) for the geometric architectural surrealism concept, reference images, footer gallery UX and scene-generation direction.
+
 ## Article index
 
 Articles are listed newest first.
