@@ -80,6 +80,14 @@ This verifies that the roster contains the expected agents and roles.
 
 ## Self-Learning
 
+### Reader units and recovery roots are executable constraints
+
+* What happened: a follow-up lookup read the selected worked example and answered correctly, but documentation reads exceeded the character budget, one offset was beyond the file, and a final listing inspected the parent outside its authorized data subtree.
+* Root cause: the reader's offset/limit counted lines while the agent treated them as characters; checking neighboring evidence was mistaken for permission to list an unauthorized parent.
+* How we fixed it: the record-lookup flow now requires explicit reader units, character/byte slices with continuation offsets and room for tool labels, and recovery only inside the authorized root.
+* How to avoid: never pass a character budget as a line limit. Bound every documentation/data result using the actual reader semantics. Keep exact source paths and scope roots in checkpoints; guidance does not grant broader data access. If settlement proof is outside scope, return payment unproven rather than listing parents or siblings.
+* Verification: the observed follow-up passes financial accuracy and actual guide reading, but fails output and folder-bound compliance. Its immutable transcript retains those deviations; the documentation fix has not yet been verified by another model run.
+
 ### Correct answers do not prove guide or output-bound compliance
 
 * What happened: a real scoped lookup returned the correct financial answer and checked an original PDF mechanically, but read only the worked-use-case index, exceeded its output budget on that index read, and initially dropped a nested period directory from two source paths.
