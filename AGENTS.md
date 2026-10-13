@@ -193,6 +193,10 @@ Extract learnings about:
 * Root cause: the model could choose its own discovery and inspection sequence across a broad reports tree. A tool-enabled stage must be bounded by document count as well as tool permission.
 * How to avoid: issue one verification call per candidate (or a very small fixed batch), pass the exact candidate source paths and paired statement paths in the prompt, permit only the read capability needed for those paths, and record each candidate's elapsed time independently. A timeout is failed verification evidence and must not be converted into a confirmed record.
 
+* Verification outcome: the same Pi/model configuration completed isolated candidate verification in 29.87 seconds and returned schema-valid `verified`, `excluded`, `review_pending`, and `limitations` fields. Preserve `review_pending` when the named evidence does not support confirmation; never promote it to a total.
+
+* Portable private evidence preparation: do not make a run depend on a workstation-level `pdftotext` binary. Include a PDF excerpt only when an extractor is available; otherwise pass an explicit unavailable marker and preserve a review-pending outcome rather than aborting stage preparation.
+
 * When simplifying the financial-insights workflow to fewer agents, update **ALL** of these locations together:
   1. `ai-workflows/financial-insights/agents.yml` - remove extra agent entries
   2. `ai-workflows/financial-insights/agents/roles/` - delete unused role definition files
