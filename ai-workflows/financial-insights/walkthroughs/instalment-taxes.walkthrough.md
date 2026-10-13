@@ -6,6 +6,8 @@ Fictional instructional example. Parties, dates, amounts and observations below 
 
 **Plan:** read the authorized profile mapping and applicable workflow rules; inventory the relevant notices and statements; distinguish taxpayers and tax programs; extract the notice schedule; verify ambiguous fields; reconcile actual payments separately; prepare dated reminders with unresolved amounts clearly identified. The method is independent of harness, model and tool brand.
 
+For a narrow amount/date/status question, apply the [record-lookup flow](../flows/record-lookup.flow.md): select and read this guide before data inspection, preserve exact nested paths from inventory, and bound documentation and data outputs alike. Read only the relevant sections when the request does not include calendars or annual totals.
+
 ## 1. Discover the applicable papers
 
 List one mapped tax section in batches of at most 50 paths, preserving the next cursor. Include adjacent-quarter filing locations and existing private knowledge when their dates cover the request. Pair original PDFs or phone images with sidecars without excluding sources that lack JSON. Record a checkpoint containing the section, completed batch and remaining cursor. Read at most 10 sidecars per call, returning selected fields and parse failures rather than whole documents.

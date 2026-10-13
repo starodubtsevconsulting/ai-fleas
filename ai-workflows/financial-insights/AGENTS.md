@@ -10,6 +10,7 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 * `evidence-contract.md` - Evidence format and quality standards
 * `acceptance/governor-delegation.md` - Delegation patterns for Admin
 * `flows/spending-question.flow.md` - Normative autonomous spending-answer method and completion scenarios
+* `flows/record-lookup.flow.md` - Normative scoped lookup, exact paths, source verification and separate accuracy/procedure grading
 * `walkthroughs/README.md` - Selection index for fictional Bookkeeper worked use cases; read only relevant examples
 
 ## Agent Management
@@ -78,6 +79,14 @@ node platforms/gpt-agents/agents/financial-insights-roster.test.mjs
 This verifies that the roster contains the expected agents and roles.
 
 ## Self-Learning
+
+### Correct answers do not prove guide or output-bound compliance
+
+* What happened: a real scoped lookup returned the correct financial answer and checked an original PDF mechanically, but read only the worked-use-case index, exceeded its output budget on that index read, and initially dropped a nested period directory from two source paths.
+* Root cause: guide selection did not explicitly require reading the selected example; the growing index was treated as one unbounded read; paths were reconstructed rather than preserved from inventory.
+* How we fixed it: added the normative record-lookup flow and linked it from the Bookkeeper role and index. Require bounded selector searches and example chunks before data, exact nested paths, bounded sidecar fields, original-source checks and separate obligation/settlement dates.
+* How to avoid: checkpoint exact paths and selected guidance; re-list the last verified parent after a path error; apply output budgets to documentation too. Keep user answers concise and omit full tax/account identifiers. Grade numerical accuracy, guide compliance and scope/tool bounds separately.
+* Verification: the observed run supports financial accuracy and autonomous recovery, with partial guide/bounds compliance; it does not prove full worked-case execution. The new fictional acceptance cases cover a Q3 liability filed in Q4, path recovery and missing payment proof. A separate real run must verify the changed procedure.
 
 ### Tax payment dates and statement direction
 
