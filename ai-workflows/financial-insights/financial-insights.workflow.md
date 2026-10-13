@@ -8,22 +8,9 @@ uncertainty, assumptions, and missing records rather than silently converting in
 
 ## Portable record model
 
-A configured project may use:
+The canonical [record organization flow](flows/record-organization.flow.md) defines source-adjacent CSV/JSON and one quarter summary under `<reports-root>/<year>/_common/qN/summary.md`, with an annual summary for matters spanning quarters. Business records stay under the mapped `<business>/qN/{in,out,statements}` structure. Existing layouts and JSON sidecar conventions remain compatible.
 
-```text
-<project>/
-  <year>/
-    <quarter>/
-      In/
-      Out/
-      Statements/
-  .ai-workflow-suite/workflows/financial-insights/state.yml
-```
-
-`In` holds incoming-value evidence, `Out` outgoing/vendor evidence, and `Statements` period account activity.
-Entries beginning with `_` are reserved/private by convention and are not discovered as financial entities or report
-sources. Profiles map this logical structure to their authorized storage; the public workflow never prescribes real
-organization names or machine paths.
+`_common` is a derived shared overview, never a financial entity or primary source. Read relevant mapped summaries within authorized scope despite generic underscore filters; unrelated reserved/private folders remain excluded. Avoid parallel knowledge/readiness/handover folders and durable combined extracts; compose aggregates from adjacent records on demand. This documentation does not implement a generic CSV exporter or change persistence authority.
 
 ## Record lookup
 
@@ -71,6 +58,8 @@ and backend integration exist, the portable contract describes the desired behav
 platform's private driver or make unsupported sections processable.
 
 ## Document intake
+
+Placing a record is not completed intake: follow the [intake completion invariant](flows/record-organization.flow.md#intake-completion-invariant) to normalize and validate adjacent extraction in the same authorized operation. Begin intake, quarter-readiness and inventory work with a scoped catch-up scan; skip valid unchanged records and keep separate normalization/extraction blockers in the one quarter summary. These obligations do not add a background watcher or make unsupported adapters executable.
 
 Evidence-preserving intake follows:
 

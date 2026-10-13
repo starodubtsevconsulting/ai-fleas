@@ -1,5 +1,9 @@
 # statements Spec
 
+## Shared record organization
+
+Follow the [Financial Insights record organization flow](../../../ai-workflows/financial-insights/flows/record-organization.flow.md) within the selected profile's authorized mapping. Keep source-adjacent CSV/JSON, preserve existing `.pdf.json` schema conventions and provenance, and use one mapped `_common/qN/summary.md` for current coverage and unresolved work. Compose aggregates on demand instead of retaining duplicate extracts. This contract does not add a generic CSV exporter, change supported operations, or waive persistence gates. Existing command output/checkpoint behavior remains compatible; publication or cleanup needs its authorized route.
+
 ## Purpose
 
 Define the operating rules for the `statements` command.

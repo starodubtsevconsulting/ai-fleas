@@ -9,9 +9,14 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 * `financial-insights.workflow.md` - Workflow documentation
 * `evidence-contract.md` - Evidence format and quality standards
 * `acceptance/governor-delegation.md` - Delegation patterns for Admin
+* [Record organization flow](flows/record-organization.flow.md) - Canonical adjacent records, shared quarter summary and on-demand aggregation
 * `flows/spending-question.flow.md` - Normative autonomous spending-answer method and completion scenarios
 * `flows/record-lookup.flow.md` - Normative scoped lookup, exact paths, source verification and separate accuracy/procedure grading
 * `walkthroughs/README.md` - Selection index for fictional Bookkeeper worked use cases; read only relevant examples
+
+## Record intake invariant
+
+Follow the [intake completion invariant](flows/record-organization.flow.md#intake-completion-invariant): placing a source is not completed intake. Normalize and validate adjacent extraction in the same authorized operation; begin intake, quarter-readiness and inventory work with a scoped catch-up scan. Skip unchanged validated records, keep normalization and extraction states separate, and put unfinished reasons/next actions in the one quarter summary. Supported adapter, review and publication boundaries still apply; this rule does not install a continuous folder watcher.
 
 ## Agent Management
 
@@ -79,6 +84,15 @@ node platforms/gpt-agents/agents/financial-insights-roster.test.mjs
 This verifies that the roster contains the expected agents and roles.
 
 ## Self-Learning
+
+### One source pair and one quarter overview
+
+* What happened: combined extracts and separate knowledge/readiness/preparation folders duplicated adjacent records and quarter status.
+* Root cause: extraction intermediates and derived status were treated as separate durable record concepts.
+* How we fixed it: the record-organization flow defines adjacent source CSV/JSON and one `_common/qN/summary.md`, with annual matters separate and aggregates composed on demand.
+* How to avoid: preserve source provenance and existing JSON naming; update one summary, retain unique evidence, and remove only regenerable intermediates through authorized effects. Revalidate summaries and keep reconciliation pending until supported.
+* Verification: documentation links and diff checks cover this contract change; no runtime migration or exporter acceptance is claimed. Learning was recorded using the self-learning contract's format; no profile-aware CLI execution is claimed.
+
 
 ### Mortgage extraction needs a ledger and a stopping checkpoint
 

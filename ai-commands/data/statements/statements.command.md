@@ -1,5 +1,9 @@
 # statements.command
 
+## Shared record organization
+
+Follow the [Financial Insights record organization flow](../../../ai-workflows/financial-insights/flows/record-organization.flow.md) within the selected profile's authorized mapping. Keep source-adjacent CSV/JSON, preserve existing `.pdf.json` schema conventions and provenance, and use one mapped `_common/qN/summary.md` for current coverage and unresolved work. Compose aggregates on demand instead of retaining duplicate extracts. This contract does not add a generic CSV exporter, change supported operations, or waive persistence gates. Existing command output/checkpoint behavior remains compatible; publication or cleanup needs its authorized route.
+
 ## Purpose
 
 Use `statements` to inspect accounting statement PDFs and extract source-backed candidates for tax payments. Statements
@@ -66,7 +70,7 @@ STATEMENTS_PROVIDER="fs"
 
 ## Expected Folder Structure
 
-Provider `fs` uses the same canonical accounting structure as `taxes`. Organize each business by year and quarter:
+Provider `fs` uses the existing filesystem compatibility structure shared with `taxes`:
 
 ```text
 <reports-root>/
@@ -94,11 +98,9 @@ Provider `fs` uses the same canonical accounting structure as `taxes`. Organize 
             └── statements/*.pdf
 ```
 
-`<quarter>` may be `q1` through `q4`. A tax note directly under
-`<quarter>/taxes/taxes.md` is accepted for compatibility, while
-`<quarter>/out/taxes/taxes.md` is canonical for new notes. An annual
-`<reports-root>/<year>/statements/` directory is a temporary cleanup location,
-not the preferred structure.
+`<quarter>` may be `q1` through `q4`. The tree above documents existing command filesystem compatibility: legacy `<quarter>/taxes/taxes.md` and `<quarter>/out/taxes/taxes.md` notes remain readable. For new current overviews, use the [record organization flow](../../../ai-workflows/financial-insights/flows/record-organization.flow.md) and its single `_common/qN/summary.md`; preserve raw tax forms and bundles in their mapped source folders. Do not copy the summary into a competing `taxes.md` or checklist.
+
+The current `taxes` command discovers legacy `taxes.md`, not the new quarter summary. If summary ingestion is unsupported, report that limitation and use the existing statement-candidate route when eligible; do not claim runtime support from this documentation. An annual `<reports-root>/<year>/statements/` directory remains a legacy cleanup location, not the preferred structure.
 
 ## Intent Mapping
 

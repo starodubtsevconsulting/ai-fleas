@@ -82,11 +82,9 @@ supplies `<reports-root>`. Organize each business by year and quarter like this:
             └── statements/*.pdf
 ```
 
-`<quarter>` may be `q1` through `q4`. A tax note directly under
-`<quarter>/taxes/taxes.md` is also accepted. The canonical location for new
-notes is `<quarter>/out/taxes/taxes.md`. An annual
-`<reports-root>/<year>/statements/` directory is a temporary cleanup location,
-not the preferred structure.
+`<quarter>` may be `q1` through `q4`. The tree above documents existing command filesystem compatibility: legacy `<quarter>/taxes/taxes.md` and `<quarter>/out/taxes/taxes.md` notes remain readable. For new current overviews, use the [record organization flow](../../../ai-workflows/financial-insights/flows/record-organization.flow.md) and its single `_common/qN/summary.md`; preserve raw tax forms and bundles in their mapped source folders. Do not copy the summary into a competing `taxes.md` or checklist.
+
+The current `taxes` command discovers legacy `taxes.md`, not the new quarter summary. If summary ingestion is unsupported, report that limitation and use the existing statement-candidate route when eligible; do not claim runtime support from this documentation. An annual `<reports-root>/<year>/statements/` directory remains a legacy cleanup location, not the preferred structure.
 
 Example profile override:
 
