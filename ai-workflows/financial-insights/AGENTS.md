@@ -10,7 +10,7 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 * `evidence-contract.md` - Evidence format and quality standards
 * `acceptance/governor-delegation.md` - Delegation patterns for Admin
 * `flows/spending-question.flow.md` - Normative autonomous spending-answer method and completion scenarios
-* `walkthroughs/README.md` - Selection index for fictional Bookkeeper worked solutions; read only relevant examples
+* `walkthroughs/README.md` - Selection index for fictional Bookkeeper worked use cases; read only relevant examples
 
 ## Agent Management
 
@@ -78,6 +78,14 @@ node platforms/gpt-agents/agents/financial-insights-roster.test.mjs
 This verifies that the roster contains the expected agents and roles.
 
 ## Self-Learning
+
+### Tax payment dates and statement direction
+
+* What happened: a tax document's quarter, print date, or paid filename could imply a Q2 payment, and flattened statement text could make a government deposit look like an outgoing payment.
+* Root cause: liability period, requested date, posted settlement date, and debit/credit direction are separate facts; payee labels also do not establish tax program or refund purpose.
+* How we fixed it: added the fictional tax-payments worked use case with confirmation-to-bank-reference matching, source-table inspection, separate jurisdiction/program fields, and explicit conflicting declaration/request amounts.
+* How to avoid: count confirmed posted payments on the declared cash basis once; preserve scheduled payments, unknown credits, federal/municipal categories, payroll contributions, and mismatches separately. Never infer settlement from a filename or net an unexplained government credit.
+* Verification: the fictional provincial subtotal is CAD 840.00; a July request, federal and municipal debits, and an unclassified deposit are excluded for stated reasons. This example is instructional, not executed evidence.
 
 ### Worked solutions make procedural rules actionable
 
