@@ -199,6 +199,8 @@ Extract learnings about:
 
 * Harness-comparison evidence: never write both harnesses' validated result to one stage-level output path. Store `response.json`, timing, and the typed stage output within each execution directory, then create an aggregate that contains only comparison metrics and scope. A schema-valid result from one candidate is not a final financial conclusion.
 
+* Interrupted verification retries: preserve the original candidate attempt and create an explicit numbered retry directory. Retries must use the bounded evidence packet and disabled tools; this changed a stalled direct-read attempt into a schema-valid Pi result in 25.42 seconds.
+
 * When simplifying the financial-insights workflow to fewer agents, update **ALL** of these locations together:
   1. `ai-workflows/financial-insights/agents.yml` - remove extra agent entries
   2. `ai-workflows/financial-insights/agents/roles/` - delete unused role definition files
