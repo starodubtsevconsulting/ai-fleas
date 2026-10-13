@@ -17,6 +17,14 @@ schema or verification rules. Providers other than `fs` must be implemented and 
 The command must not hardcode personal absolute paths. Its portable fallback is `~/accounting`; put machine-specific
 roots in the selected profile or pass `--reports-root`.
 
+## Command-owned collection skill
+
+For authorized official Wise statement collection, use the [Wise statements browser skill](skills/wise-statements/SKILL.md).
+It records the observed download route, human mobile approval, verification, and source-adjacent extraction conventions.
+The selected profile must authorize `statements`; resolve account/browser access and destination authorization from the
+effective scope and current direct human instructions where allowed. This is an operational guide within this command, not a new command ID or executable subcommand: the existing `tax-candidates` CLI
+does not implement browser downloads or a generic CSV exporter. It grants no payment or account-change authority.
+
 ## Inputs
 
 | Input | Required | Source | Description |

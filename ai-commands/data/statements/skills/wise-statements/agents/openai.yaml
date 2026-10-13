@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wise Statements"
+  short_description: "Collect official Wise balance statements"
+  default_prompt: "Use $wise-statements to download my official Wise statement for the requested currency and period."

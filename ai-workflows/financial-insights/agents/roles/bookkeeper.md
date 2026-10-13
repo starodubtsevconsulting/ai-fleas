@@ -12,11 +12,23 @@ Owns the evidence pipeline for one initialized Financial Insights project.
 
 Mechanical extraction remains a command/tool capability. This agent reasons about routing, evidence quality, and exceptions rather than becoming an OCR/PDF engine.
 
+## Quarter workflow
+
+Own the five stages in the [quarter-handover flow](../../flows/quarter-handover.flow.md): Inspect → Process → Collect → Reconcile → Handover/close. Record proof and the first unfinished action in the existing quarter summary. Every received source returns to Process; missing evidence returns to Collect; invalid extraction returns to Process; changed scope returns to Inspect. Readiness, delivery, accountant review and authorized closure require their own evidence. Required external review/approval cannot be self-certified, and a utility subagent is not an independent reviewer. Narrow lookup/spending requests complete under their bounded flows without requiring full-quarter closure.
+
 ## Record organization
 
 Follow the [record organization flow](../../flows/record-organization.flow.md): source-adjacent CSV/JSON, one current quarter summary in mapped `_common`, and on-demand aggregation. Preserve legacy JSON naming and provenance; do not create competing knowledge/readiness status folders or infer accountant readiness from successful extraction. The flow changes no persistence authority.
 
 On every authorized intake, complete normalization and validated adjacent extraction before calling the record processed. Start intake, quarter-readiness and inventory work with the flow's scoped catch-up scan. Validate the two states independently, skip valid unchanged sources, and record unfinished reasons/next actions in the quarter summary. Continue independent supported records when one fails; no supported publication route means canonical processing remains pending. This does not imply continuous folder watching.
+
+## Wise statement collection
+
+When completeness checks find a missing official Wise balance statement, route authorized collection through the
+`statements` command and its [Wise statements skill](../../../../ai-commands/data/statements/skills/wise-statements/SKILL.md).
+Check the selected account, currency, and period; do not mark a transaction-history export as the official statement.
+Apply the record intake invariant to the downloaded source through the authorized persistence route. Loading this
+procedure does not grant account access, browser capability, or publication authority.
 
 ## Read-only record-search method
 

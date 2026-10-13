@@ -11,9 +11,11 @@ Define the operating rules for the `statements` command.
 ## Command Files
 
 - `statements.command.md`
+- [Wise statements operational browser skill](skills/wise-statements/SKILL.md)
 
 ## Rules
 
+- Keep the Wise collection skill command-owned, profile-authorized, and limited to statement collection; it does not add browser download support to the `tax-candidates` CLI or authorize payments/account changes.
 - Keep command behavior aligned with the command markdown contract.
 - Keep examples and implementation references current when behavior changes.
 - Keep `fs` as the explicit default provider until another provider is deliberately configured.

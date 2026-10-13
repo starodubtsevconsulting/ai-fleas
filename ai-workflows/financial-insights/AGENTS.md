@@ -9,7 +9,9 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 * `financial-insights.workflow.md` - Workflow documentation
 * `evidence-contract.md` - Evidence format and quality standards
 * `acceptance/governor-delegation.md` - Delegation patterns for Admin
+* [Quarter handover flow](flows/quarter-handover.flow.md) - Ordered Inspect → Process → Collect → Reconcile → Handover/close stages, accountable Bookkeeper, evidence, recovery and independent milestones
 * [Record organization flow](flows/record-organization.flow.md) - Canonical adjacent records, shared quarter summary and on-demand aggregation
+* [Wise statements skill](../../ai-commands/data/statements/skills/wise-statements/SKILL.md) - Command-owned official Wise balance-statement collection, routed from workflow and Bookkeeper guidance
 * `flows/spending-question.flow.md` - Normative autonomous spending-answer method and completion scenarios
 * `flows/record-lookup.flow.md` - Normative scoped lookup, exact paths, source verification and separate accuracy/procedure grading
 * `walkthroughs/README.md` - Selection index for fictional Bookkeeper worked use cases; read only relevant examples
@@ -84,6 +86,14 @@ node platforms/gpt-agents/agents/financial-insights-roster.test.mjs
 This verifies that the roster contains the expected agents and roles.
 
 ## Self-Learning
+
+### Financial operation procedures belong to their commands
+
+* What happened: a reusable Wise statement procedure was installed as a personal skill outside the repository.
+* Root cause: personal skill discovery was used instead of the owning AI command's maintained procedure location.
+* How we fixed it: moved the procedure to `ai-commands/data/statements/skills/wise-statements` and linked it from the command contract and spec.
+* How to avoid: keep reusable financial operation procedures under `ai-commands/<category>/<command>/skills/`, linked from their owning command; do not create a separate personal installation for these procedures. Command authorization and supported runtime operations remain unchanged.
+* Verification: validate the skill, resolve its relative links, and confirm the superseded personal installation is absent.
 
 ### One source pair and one quarter overview
 
