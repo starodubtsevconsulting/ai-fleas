@@ -21,3 +21,11 @@ Define the operating rules for the `taxes` command.
 
 - When this command is selected in the Command panel, show this spec in the Spec panel.
 - Clicking the Spec panel title opens this file in the central dialog.
+
+## Visible tax-payment preparation guide
+
+The command-owned [tax-payment-entry skill](skills/tax-payment-entry/SKILL.md) guides an authorized Bookkeeper
+through visible payment-form preparation. Evidence normalization belongs to `financial-records` and retains its
+strict reviewed PDF/JSON contract. The existing `taxes` CLI produces tax summaries/candidates; it does not execute
+browser operations or payments. Loading the guide adds no account access or payment authority. The human alone
+activates final submission.

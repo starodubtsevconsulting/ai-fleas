@@ -39,9 +39,11 @@ Internal checkpoints and bounded batches support recovery within the same reques
 4. **Read or extract.** Reuse valid structured sidecars, retaining their original
    document links. Check whether a sidecar includes full statement rows or only a
    truncated preview. For missing, incomplete, or conflicting fields, use an
-   authorized read-only text/PDF/OCR extractor and keep derived evidence in the
-   configured private scratch/evidence location. Leave canonical documents and
-   sidecars unchanged. If no extraction capability is available, record the gap
+   authorized text/PDF/OCR extractor. For a read-only question, keep working rows
+   in memory or an authorized visible runtime checkpoint, leaving canonical records
+   unchanged. When the request also authorizes intake, normalize and validate
+   adjacent extraction through the [record organization flow](record-organization.flow.md)
+   and supported persistence route; do not keep a separate durable extraction cache. If no extraction capability is available, record the gap
    and continue with other evidence. Text extraction is not visual verification;
    report vision only when source pages were actually supplied and inspected.
 5. **Normalize transaction rows.** Create the work table below from document

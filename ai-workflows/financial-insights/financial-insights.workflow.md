@@ -11,11 +11,12 @@ Start with verified profile/workflow/project authority, selected businesses/acco
 | Request | Normative route and completion |
 | --- | --- |
 | Quarter preparation, readiness or accountant handover | [Quarter handover](flows/quarter-handover.flow.md); stop at the requested proven milestone. |
-| Place a record or catch up unfinished intake | [Record organization](flows/record-organization.flow.md); normalization and validated adjacent extraction must both pass. |
+| Place a record or catch up unfinished intake | [Record organization](flows/record-organization.flow.md); normalization, validated adjacent extraction and verified or unnecessary cleanup must all pass. |
+| Remove redundant copies after validated normalization/extraction | [Duplicate cleanup](flows/duplicate-cleanup.flow.md); retain unique evidence, verify exact removals and resume blocked cleanup without regenerating valid extracts. |
 | Find an invoice, statement or payment fact | [Record lookup](flows/record-lookup.flow.md); return verified requested facts and coverage, without requiring full-quarter closure. |
 | Calculate spending | [Spending question](flows/spending-question.flow.md); discover, reconcile and return the supported exact total/basis. |
 | Prepare tax payment evidence/form | [Tax payment](flows/tax-payment.flow.md); preserve human final submission and independent settlement proof. |
-| Financial dimension of a Governor decision | [Governor question](flows/governor-financial-question.flow.md); return a bounded evidence packet and actual review state. |
+| Bounded financial question from an authorized human or workflow | [Financial question](flows/financial-question.flow.md); return a bounded evidence packet and actual review state. |
 
 Select and read only the relevant [worked example](walkthroughs/README.md), in bounded chunks. Its fictional facts and benchmark references are not operational evidence. Existing records remain legitimate inputs; exact paths and source contents outrank filename guesses.
 
@@ -25,8 +26,8 @@ The configured [roster](agents.yml) declares **Admin** as initializer/administra
 
 | Stage | Inputs | Bookkeeper action / existing mechanics | Output and completion evidence | Recovery |
 | --- | --- | --- | --- | --- |
-| 1. Inspect | Verified scope, originals/sidecars, quarter summary | Resolve mapping, read summary and run scoped catch-up inventory | Exact paths, coverage and separate normalization/extraction findings | Unverified scope blocks; changed scope restarts inspection. |
-| 2. Process | Unfinished or newly received records | Supported `financial-records`, PDF/OCR and reviewed publisher routes | Canonical identity plus independently validated source-adjacent extraction | Invalid/stale fields return here; unsupported effects stay pending. |
+| 1. Inspect | Verified scope, originals/sidecars, quarter summary | Resolve mapping, read summary and run scoped catch-up inventory | Exact paths, coverage and separate normalization/extraction/cleanup findings | Unverified scope blocks; changed scope restarts inspection. |
+| 2. Process | Unfinished or newly received records | Supported `financial-records`, PDF/OCR and reviewed publisher routes | Canonical identity, independently validated source-adjacent extraction, and verified or unnecessary duplicate cleanup | Invalid/stale fields return here; unsupported effects stay pending. |
 | 3. Collect | Named evidence/coverage gaps | Authorized `statements`, `taxes` and document/browser capabilities | Original records for exact account/period, or explicit missing reason/next action | Every received source returns to Process. |
 | 4. Reconcile | Validated extracts, original evidence and coverage | `financial-analysis` and bounded source matching | Income/expense/payment matches, transfers deduplicated, fees/FX and obligation/settlement distinguished | Missing record → Collect; invalid extraction → Process. |
 | 5. Handover and close | Reconciliation, exceptions, required review | Existing summary checklist and authorized delivery | Separate evidence for ready, sent, accountant-reviewed and closure-approved | Reopen affected milestones on new gaps; preserve prior events. |
@@ -43,7 +44,7 @@ flowchart TD
   H -->|New gap| I
 ```
 
-The [quarter flow](flows/quarter-handover.flow.md) defines stage owners, proof, event transitions, blocked/resume behavior and fictional acceptance scenarios. Independent supported work may continue while one record is blocked. A required independent review must come from a real authorized reviewer; the roster does not declare a separate Financial Reviewer. Keep the gate pending when unavailable. The older [Governor delegation acceptance scenario](acceptance/governor-delegation.md) requires distinct actors and is not satisfied by the current two-endpoint roster or relabelled utility agents.
+The [quarter flow](flows/quarter-handover.flow.md) defines stage owners, proof, event transitions, blocked/resume behavior and fictional acceptance scenarios. Independent supported work may continue while one record is blocked. A required independent review must come from a real authorized reviewer; the roster does not declare a separate Financial Reviewer. Keep the gate pending when unavailable.
 
 ## Records and status
 
@@ -57,9 +58,11 @@ Load only profile-authorized implementations of [financial-records](../../ai-com
 
 Canonical changes follow [versioned-data](versioned-data.md), proposal review, eligibility/collision checks and the authorized publisher. No silent overwrite. Read-only extraction can prepare evidence but cannot claim canonical persistence. The portable contract is not proof of an executable adapter: current staged UI intake supports open-quarter `In` PDFs; do not assume existing `Out` normalization is supported. Snow-removal recognition returns bounded review-pending evidence, not completed `Out` normalization or a valid sidecar. UI and no-UI routes should use the same command implementation; until supported integration exists, report unsupported sections pending rather than access private drivers or reproduce an ad hoc engine. Existing human-facing UI behavior remains compatible until separately migrated and acceptance-tested. No generic exporter or continuous watcher is installed by this document.
 
-## Privacy and Governor boundary
+## Requester and privacy boundaries
 
-Governor requests only bounded financial context; Bookkeeper returns the [evidence contract](evidence-contract.md) packet, calculations, uncertainty, coverage and actual review state. Governor retains cross-workflow strategy and human goals; unrelated private Governor memory does not cross the boundary. Same-context self-review cannot satisfy independence. Keep real identities, records, credentials, provider configuration, account identifiers and machine paths in private authorized stores; public examples remain fictional/sanitized. External messaging requires explicit human authorization.
+Bookkeeper owns financial facts, record processing, reconciliation, calculations and quarter status. An authorized external requester may supply a bounded question and consume the [evidence packet](evidence-contract.md); it is not a workflow role, supervisor, mandatory stage or approval gate. Direct human bookkeeping does not depend on an external planner. Lifecycle and administration remain under their own contracts.
+
+Return only authorized context, provenance, uncertainty, coverage and actual review state. Same-context self-review cannot satisfy required independence. Keep real identities, records, credentials, provider configuration, account identifiers and machine paths in private authorized stores; public examples remain fictional/sanitized. External messaging requires explicit human authorization and recipient eligibility.
 
 ## Benchmarks and browser assistance
 
@@ -79,6 +82,8 @@ and verification prerequisites are documented in
 
 ## Browser-assisted tax-payment entry
 
-Follow the [tax-payment flow](flows/tax-payment.flow.md) and [tax-payment-entry skill](skills/tax-payment-entry/SKILL.md) for reviewed source-PDF/JSON binding, side-by-side human verification, deliberate field-by-field visible entry and post-submit reconciliation. Re-read each settled field and verify payee, period, dates, components and total before final review. **The human activates final submission.** Passwords/MFA remain human-entered; security challenges or provider-required human entry stop automation. No hidden APIs, script injection, deceptive timing or anti-bot workarounds. Provider confirmation proves submitted/scheduled state until posted settlement is reconciled.
+Follow the [tax-payment flow](flows/tax-payment.flow.md) and [tax-payment-entry skill](../../ai-commands/data/taxes/skills/tax-payment-entry/SKILL.md) for reviewed source-PDF/JSON binding, side-by-side human verification, deliberate field-by-field visible entry and post-submit reconciliation. Re-read each settled field and verify payee, period, dates, components and total before final review. **The human activates final submission.** Passwords/MFA remain human-entered; security challenges or provider-required human entry stop automation. No hidden APIs, script injection, deceptive timing or anti-bot workarounds. Provider confirmation proves submitted/scheduled state until posted settlement is reconciled.
+
+Tax normalization also has the [current executable restrictions](flows/tax-payment.flow.md#implementation-boundary), including fixed operational-Q3 apply/reconcile rejection; verify actual closure separately.
 
 The [compatible benchmark scenario](acceptance/financial-insights-compatible.scenario.md), [fictional dataset](../../ai-profile/example/data/financial-insights/README.md) and [benchmark tooling](../../notes/benchmarks/local-models/fixtures/financial-insights-compatible/README.md) test supported preparation/visual checking separately. Benchmark variants change harness/model settings, not operational scope or review/publication gates.

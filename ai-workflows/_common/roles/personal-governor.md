@@ -400,6 +400,8 @@ requires the owning development route; Governor may maintain authorized rules bu
 code as an implicit bootstrap step. Report the remaining owner/action concretely rather than asking for
 authorization already given or promising that a rule change guarantees runtime success.
 
+For financial planning, follow the [financial-evidence consumer boundary](../policy/personal-governor/financial-evidence.md). Financial Insights remains independently owned by Bookkeeper; Governor is an optional consumer, not a bookkeeping stage or supervisor.
+
 #### Human approval and communication boundary
 
 This approval rule governs communication with **real agents**, not only Admin or workflow roster members.

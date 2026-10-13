@@ -48,7 +48,7 @@ flowchart TD
 
 ## Establish the evidence view
 
-1. Follow the [`tax-payment` flow](../../flows/tax-payment.flow.md). Resolve the exact source remittance PDF from the
+1. Follow the [`tax-payment` flow](../../../../../ai-workflows/financial-insights/flows/tax-payment.flow.md). Resolve the exact source remittance PDF from the
    authorized financial-records project. Before entering values in the bank form, require the PDF to have the reviewed
    canonical filename and destination plus an adjacent `<canonical-pdf>.json` sidecar produced by the
    profile-authorized `financial-records` normalization path. Require the sidecar to be schema-versioned and bound to
@@ -98,7 +98,7 @@ and stop before the control that submits, confirms, pays, schedules, or otherwis
 The human must activate that final control. After the human reports submission, inspect the provider confirmation and
 capture only the minimum authorized evidence needed for reconciliation. Classify it as `submitted` or `scheduled`,
 not `paid` or `settled`, until a later bank record independently confirms settlement. When the provider produces a
-separate confirmation PDF, normalize it into the existing reporting-period tax-case bundle with a distinct
+separate confirmation PDF, normalize it into the existing operational-quarter tax-case bundle, preserving the reporting period separately with a distinct
 submission-confirmation filename and adjacent JSON sidecar. Use the actual submission/confirmation date in its
 filename; keep any scheduled execution date in structured data. Never add `_payed`, `_paid`, or another mutable-status
 suffix. Preserve provider confirmation identifiers only in the authorized private financial-records store; never

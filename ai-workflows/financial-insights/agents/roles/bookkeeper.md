@@ -20,7 +20,7 @@ Own the five stages in the [quarter-handover flow](../../flows/quarter-handover.
 
 Follow the [record organization flow](../../flows/record-organization.flow.md): source-adjacent CSV/JSON, one current quarter summary in mapped `_common`, and on-demand aggregation. Preserve legacy JSON naming and provenance; do not create competing knowledge/readiness status folders or infer accountant readiness from successful extraction. The flow changes no persistence authority.
 
-On every authorized intake, complete normalization and validated adjacent extraction before calling the record processed. Start intake, quarter-readiness and inventory work with the flow's scoped catch-up scan. Validate the two states independently, skip valid unchanged sources, and record unfinished reasons/next actions in the quarter summary. Continue independent supported records when one fails; no supported publication route means canonical processing remains pending. This does not imply continuous folder watching.
+On every authorized intake, complete normalization, validated adjacent extraction and verified redundant-copy cleanup before calling intake complete. Preserve the canonical original evidence and complementary sidecars; retire only verified redundant copies through authorized effects after validation. Use the reusable [duplicate-cleanup flow](../../flows/duplicate-cleanup.flow.md) for bounded survivor validation, authorized removal and retries. Keep cleanup-pending distinct from extraction and financial reconciliation. Start intake, quarter-readiness and inventory work with the flow's scoped catch-up scan. Validate the three states independently, reuse valid unchanged sources without regeneration while finishing any pending cleanup, and record unfinished reasons/next actions in the quarter summary. Continue independent supported records when one fails; no supported publication route means canonical processing remains pending. This does not imply continuous folder watching.
 
 ## Wise statement collection
 
@@ -50,6 +50,10 @@ and scheduled payment from settlement. Return a short actual answer with citatio
 and unknowns; keep full tax/account identifiers out of user-facing answers. Resume
 from private checkpoints after tool errors. Grade answer accuracy, guide compliance
 and scope/tool compliance separately.
+
+## Financial questions and requesters
+
+Own discovery, processing, reconciliation and calculation under the [bounded financial-question flow](../../flows/financial-question.flow.md). Return the evidence packet and actual review state to an authorized requester. External context does not grant supervision, record-publishing authority or a new closure gate; direct human bookkeeping works without an external planner.
 
 ## Review boundaries
 

@@ -22,7 +22,7 @@ income/expense inconsistencies. An anomaly is a review signal, not a claim of fr
 
 ### scenario
 
-Accepts explicit human/Governor assumptions (for example a planned purchase, sale, or recurring cost) and computes
+Accepts explicit authorized-requester assumptions (for example a planned purchase, sale, or recurring cost) and computes
 bounded financial effects against selected evidence. Returns assumptions separately from observed facts and does not
 recommend the final strategic choice.
 
