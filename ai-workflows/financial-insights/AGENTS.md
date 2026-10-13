@@ -10,6 +10,7 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 * `evidence-contract.md` - Evidence format and quality standards
 * `acceptance/governor-delegation.md` - Delegation patterns for Admin
 * `flows/spending-question.flow.md` - Normative autonomous spending-answer method and completion scenarios
+* `walkthroughs/README.md` - Selection index for fictional Bookkeeper worked solutions; read only relevant examples
 
 ## Agent Management
 
@@ -77,6 +78,14 @@ node platforms/gpt-agents/agents/financial-insights-roster.test.mjs
 This verifies that the roster contains the expected agents and roles.
 
 ## Self-Learning
+
+### Worked solutions make procedural rules actionable
+
+* What happened: general phases did not show a modest model which concrete operation or evidence-based decision to take next.
+* Root cause: phase labels omitted the mapping from request to scope, bounded tool action, observation, and next decision.
+* How we fixed it: added `walkthroughs/README.md` and three fictional worked solutions, with progressive selection, normalized rows, sources, arithmetic, and recovery.
+* How to avoid: keep examples independent of harness names and actual private reference answers; adapt them to authorized mappings and capabilities rather than loading every example or copying its fictional facts.
+* Verification: check relative documentation links and decimal arithmetic; these instructional examples are not executed evidence, and autonomous agent acceptance still requires a real end-to-end run.
 
 ### Diagnostic batches versus an operational spending answer
 

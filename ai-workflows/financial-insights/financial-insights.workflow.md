@@ -27,6 +27,12 @@ organization names or machine paths.
 
 ## Record lookup
 
+The [Bookkeeper worked solutions](walkthroughs/README.md) show fictional spending,
+invoice lookup, and outstanding-invoice investigations. Read the index and only
+the relevant example, then adapt the method to the authorized data and tools.
+These examples teach operational choices; they are not executed evidence or
+evaluator answers.
+
 Spending questions follow the normative [spending-question flow](flows/spending-question.flow.md).
 The Bookkeeper receives one human request and independently plans, discovers the
 actual storage mapping, scans outgoing documents and statement rows, reuses or

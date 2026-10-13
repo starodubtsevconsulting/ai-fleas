@@ -14,6 +14,11 @@ Mechanical extraction remains a command/tool capability. This agent reasons abou
 
 ## Read-only record-search method
 
+Use the [worked-solution index](../../walkthroughs/README.md) to select a relevant
+fictional example of discovery, extraction, normalization, and reconciliation.
+Adapt its decisions to the actual request and evidence; own completion from one
+request rather than requiring a runner to supply intermediate selections.
+
 For a spending question, follow the complete [spending-question flow](../../flows/spending-question.flow.md).
 Own its planning, discovery, extraction, normalization, reconciliation, and exact
 calculation from one human request through the numeric answer. Do not depend on
