@@ -7,6 +7,7 @@ Read this index, then the example closest to the request. Combine only the relev
 | Request | Read | Transferable decisions |
 | --- | --- | --- |
 | How much did I spend on a category? | [AI spending](ai-spending.walkthrough.md) | Period and basis, outgoing discovery, independent statement scan, extraction, normalization, deduplication, currency, subtotal |
+| How much did I spend on Amazon shopping? | [Vendor purchases](vendor-purchases.walkthrough.md) | Retail versus cloud/subscriptions, order and shipment payment matching, refunds, card settlement, unmatched charges, account coverage |
 | Where is an invoice? | [Find an invoice](find-invoice.walkthrough.md) | Resolve client versus vendor, bounded filename/content search, source confirmation, conflicts |
 | Which invoices remain outstanding? | [Unpaid invoices](unpaid-invoices.walkthrough.md) | As-of date, payment matching, partial payments, unmatched evidence, grouped deposits |
 | How much tax did I pay to Quebec? | [Tax payments](tax-payments.walkthrough.md) | Payment versus liability dates, posted debit versus request/deposit, recipient versus program, bank-reference matching, discrepancies |
