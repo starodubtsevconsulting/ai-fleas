@@ -31,6 +31,8 @@ profile. It is never named in public artifacts.
 ## Initial prompt
 
 ```text
+Act as the Financial Insights Bookkeeper for this read-only scenario. Follow this method: read applicable `AGENTS.md` workflow rules first; establish the selected year, organizations, quarter, and sections; inventory candidates in bounded batches; use parsed JSON as mechanical extraction where available; verify material, ambiguous, or conflicting facts against the PDF/image; match payments only against statements; then total only confirmed records, preserving source currencies and separating exclusions and review-pending items. Cite every conclusion to its relative source path and page or row. Do not initialize a workflow role, claim readiness, or make canonical mutations.
+
 Perform a read-only record search for the following request across the authorized reports root resolved by the selected workflow profile:
 
 Authorized reports root: {{DATA_ROOT}}

@@ -177,6 +177,22 @@ Extract learnings about:
 
 ## Financial Insights Workflow Setup (ai-workflows/financial-insights)
 
+### Pi/Qwen bounded classification gotchas
+
+* What happened: a Pi scenario configured with `--thinking off` returned either an empty visible response or a long non-JSON answer for a bounded JSON classification task.
+* Root cause: Pi's `qwen-chat-template` adapter emits `chat_template_kwargs.enable_thinking` only when the model is marked `reasoning: true`. Marking the model non-reasoning suppressed the Qwen request flag entirely. Separately, a full final-report prompt conflicted with the classification-stage JSON contract, and a token cap alone cannot force valid JSON.
+* How we fixed it: declare Qwen as `reasoning: true` while keeping Pi's effective thinking level `off`; this sends Qwen's explicit `enable_thinking: false`. Generate a separate, short classification prompt rather than appending a stage instruction to the final-report prompt. Treat a completed non-JSON response as failed stage evidence, never as candidates.
+* How to avoid: verify a real structured stage response with JSON parsing before progressing to PDF/statement verification. Keep a per-stage output budget, but use enforced structured output or a response normalizer only after it validates the exact schema; do not infer validity from a successful Pi exit code.
+* Verification: `node --test ai-commands/system/pi-agents/scenario-launch.test.mjs`; then run a private bounded scenario and require a parseable JSON object with the stage's exact keys.
+
+* What happened: Pi returned a valid stage object inside one `json` Markdown fence after a short prose preamble, so a recorder that called `json.loads` on the entire response rejected successful work.
+* Root cause: a prompt that says “JSON only” is not a wire-level structured-output guarantee.
+* How we fixed it: the private evidence recorder accepts exactly one object, either raw or in one fenced JSON block, then validates the stage's exact top-level keys before writing the stage artifact. It rejects multiple objects, prose-only output, and malformed fences.
+
+* What happened: a verification stage that gave Pi read and shell tools plus five shortlisted candidates timed out at the enforced 600-second Pi limit without a final response.
+* Root cause: the model could choose its own discovery and inspection sequence across a broad reports tree. A tool-enabled stage must be bounded by document count as well as tool permission.
+* How to avoid: issue one verification call per candidate (or a very small fixed batch), pass the exact candidate source paths and paired statement paths in the prompt, permit only the read capability needed for those paths, and record each candidate's elapsed time independently. A timeout is failed verification evidence and must not be converted into a confirmed record.
+
 * When simplifying the financial-insights workflow to fewer agents, update **ALL** of these locations together:
   1. `ai-workflows/financial-insights/agents.yml` - remove extra agent entries
   2. `ai-workflows/financial-insights/agents/roles/` - delete unused role definition files
