@@ -1,6 +1,6 @@
 # Versioned Financial Insights data
 
-Financial records are authoritative **data**, not Personal Governor memory. Agents should normally receive a read-only
+Financial records are authoritative **data**, separate from any requester's private memory. Agents should normally receive a read-only
 projection of that data. Durable agent-originated mutations use a source-controlled publishing path so changes are
 reviewable and reversible.
 
@@ -31,11 +31,14 @@ The first migration step is therefore additive:
 
 ## Access classes
 
-- Financial Analyst: read-only financial evidence; no canonical data mutation.
-- Financial Reviewer: read-only exact evidence/revision; no canonical data mutation.
-- Records / Bookkeeping Agent: read-only source access plus permission to **propose** mutations through the configured
+- Bookkeeper: read-only source access plus permission to **propose** mutations through the configured
   versioned-data publisher. No unrestricted SMB/filesystem write credential.
+- Authorized external independent reviewer: read-only exact evidence/revision when independent review is required;
+  no canonical mutation. This is an external gate, not a declared Financial Insights worker role.
 - Controlled publisher: the only agent-facing capability holding canonical write authority.
+
+Bookkeeper is the sole operational worker. If the required reviewer or authorized publisher is unavailable, keep
+that stage pending; workflow ownership and direct filesystem access do not permit bypassing its gate.
 
 ## Mutation classes
 

@@ -8,9 +8,12 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 * `agents/roles/bookkeeper.md` - Role definition for bookkeeper agent
 * `financial-insights.workflow.md` - Workflow documentation
 * `evidence-contract.md` - Evidence format and quality standards
-* `acceptance/governor-delegation.md` - Delegation patterns for Admin
+* [Financial question](flows/financial-question.flow.md) - Requester-neutral bounded financial evidence; external consumers do not control bookkeeping
 * [Quarter handover flow](flows/quarter-handover.flow.md) - Ordered Inspect → Process → Collect → Reconcile → Handover/close stages, accountable Bookkeeper, evidence, recovery and independent milestones
+* [Duplicate cleanup flow](flows/duplicate-cleanup.flow.md) - Reusable bounded comparison, validated survivor, authorized removal and cleanup recovery
 * [Record organization flow](flows/record-organization.flow.md) - Canonical adjacent records, shared quarter summary and on-demand aggregation
+* [Tax payment flow](flows/tax-payment.flow.md) - Reviewed payroll-tax evidence, operational-period routing and human submission
+* [Tax payment entry skill](../../ai-commands/data/taxes/skills/tax-payment-entry/SKILL.md) - Command-owned visible payment-form guidance; the taxes CLI does not execute browser payments
 * [Wise statements skill](../../ai-commands/data/statements/skills/wise-statements/SKILL.md) - Command-owned official Wise balance-statement collection, routed from workflow and Bookkeeper guidance
 * `flows/spending-question.flow.md` - Normative autonomous spending-answer method and completion scenarios
 * `flows/record-lookup.flow.md` - Normative scoped lookup, exact paths, source verification and separate accuracy/procedure grading
@@ -18,7 +21,7 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 
 ## Record intake invariant
 
-Follow the [intake completion invariant](flows/record-organization.flow.md#intake-completion-invariant): placing a source is not completed intake. Normalize and validate adjacent extraction in the same authorized operation; begin intake, quarter-readiness and inventory work with a scoped catch-up scan. Skip unchanged validated records, keep normalization and extraction states separate, and put unfinished reasons/next actions in the one quarter summary. Supported adapter, review and publication boundaries still apply; this rule does not install a continuous folder watcher.
+Follow the [intake completion invariant](flows/record-organization.flow.md#intake-completion-invariant): placing a source is not completed intake. Normalize, validate adjacent extraction and verify authorized redundant-copy cleanup in the same authorized operation; begin intake, quarter-readiness and inventory work with a scoped catch-up scan. Skip unchanged validated records, keep normalization, extraction and cleanup states separate, and put unfinished reasons/next actions in the one quarter summary. Supported adapter, review and publication boundaries still apply; this rule does not install a continuous folder watcher.
 
 ## Agent Management
 
@@ -29,7 +32,7 @@ As of Financial Insights v2, this workflow uses only **one worker agent**:
 
 `agents.yml` declares `admin` as its initializer and `bookkeeper` as its worker.
 Admin follows the canonical human-owned bootstrap contract; it is not an
-automatically initialized Governor-provided worker.
+automatically initialized external-planner-provided worker.
 
 ### Why Only Bookkeeper?
 
@@ -164,3 +167,11 @@ When you work on the financial-insights workflow:
 This AGENTS.md captures workflow-specific patterns - use it before modifying workflow config.
 
 See `ai-commands/utility/self-learning/self-learning.command.md` for the full self-learning contract.
+
+## Flow audit: role and command ownership alignment
+
+* What happened: tax guidance retained an undeclared Financial Reviewer and a workflow-owned operational skill after the Bookkeeper-only simplification.
+* Root cause: downstream review wording and procedure ownership were not aligned with the roster and command boundaries.
+* How we fixed it: use required authorized external review, command-owned tax-payment guidance, and the existing single quarter summary for pending work.
+* How to avoid: consult the [financial-records command contract](../../ai-commands/data/financial-records/financial-records.command.md) and actual supported routes before promising normalization. Its tax apply/reconcile currently reject operational Q3 for every year; that restriction does not establish actual quarter closure or authorize moving open-Q3 work to Q4.
+* Verification: skill metadata and documentation links validated; the fixed Q3 rejection was inspected in source, not exercised as runtime acceptance evidence.

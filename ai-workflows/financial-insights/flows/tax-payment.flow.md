@@ -56,7 +56,10 @@ across every sidecar.
 ## Sequence
 
 1. **Resolve scope.** Verify the profile, project, branch/business, year, open operational quarter, `Out` tax section,
-   and exact source folder. Exclude underscore-prefixed entries and symlinks. Detect whether the reporting period is
+   and exact source folder. Exclude symlinks and explicitly unauthorized or reserved folders; do not skip an
+   authorized source PDF solely because its filename begins with an underscore. Inspect its contents and process
+   unfinished normalization through supported routes. Read mapped `_common` summaries as derived context, not primary
+   source evidence. Detect whether the reporting period is
    closed. Never mutate the closed quarter; route later remittance activity to the verified open operational quarter
    while preserving the original reporting period and carry-forward reason in structured data.
 2. **Prepare without writes.** Through the shared `financial-records` engine, recursively inspect each PDF and return
@@ -65,17 +68,19 @@ across every sidecar.
    sidecar name, and collision state. Unsupported or ambiguous files remain unchanged.
 3. **Review the exact proposal.** Open the source PDF visibly. Show the human the current filename, proposed canonical
    filename, destination, extracted-field preview, warnings, and arithmetic. Bind approval to the exact PDF hash,
-   adapter/schema versions, and proposal revision. The Financial Reviewer independently approves or rejects material
-   evidence; review does not publish.
+   adapter/schema versions, and proposal revision. The Bookkeeper coordinates the review. Where independent review is required, an authorized external reviewer
+   approves or rejects the exact material evidence; unavailable review remains pending and cannot be self-certified.
+   Human source/OCR verification remains required by the selected command. Review does not publish.
 4. **Apply as one logical transaction.** Re-read and rehash the source, rerun preparation, compare it with the reviewed
    revision, and recheck scope and collisions. Publish the canonical PDF and adjacent JSON through the authorized
-   versioned-data publisher. Never overwrite or invent a suffix. If rename or sidecar publication fails, restore or
+   versioned-data publisher. The current tax command publishes a canonical copy and preserves the original source;
+   it does not rename or delete that original automatically. Never overwrite or invent a suffix. If rename or sidecar publication fails, restore or
    preserve the original source and report a partial/review-required state; never claim normalization from only one
    artifact.
 5. **Reconcile.** Re-read the canonical PDF and sidecar, verify their hash/schema/provenance relationship, and classify
    the result as normalized, review-required, collision, unsupported, or incomplete. Reconciliation is idempotent.
 6. **Prepare payment.** Only after successful reconciliation, use the
-   [`tax-payment-entry` skill](../skills/tax-payment-entry/SKILL.md). Keep the canonical PDF open beside the banking
+   [`tax-payment-entry` skill](../../../ai-commands/data/taxes/skills/tax-payment-entry/SKILL.md). Keep the canonical PDF open beside the banking
    form and map every entered bank field through the reviewed JSON back to its PDF provenance.
 7. **Human submission and later settlement.** Stop at the provider's final submission control. The human submits.
    Normalize a separately produced provider confirmation into the existing tax-case bundle as submission evidence,
@@ -88,3 +93,9 @@ The UI and no-UI route must call the same portable `financial-records` prepare/r
 Do not reproduce recognizers, naming, extraction schemas, or collision rules in prompts or a second backend. Existing
 launcher actions may be retained as compatibility surfaces only when they call this shared engine and preserve the
 same review and publication gates.
+
+The current tax executable has a fixed restriction: apply and reconcile reject operational `q3` for every year;
+its documented supported handover route uses Q4. This is not a dynamic quarter-closure resolver or evidence that
+a particular Q3 is closed. Verify actual closure from authorized evidence separately. If a genuinely open Q3 needs
+normalization, report the unsupported operation; do not move its records into Q4 to bypass the restriction.
+Generic document completeness and arbitrary tax families are not implemented merely because this flow describes them.

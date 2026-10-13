@@ -1,7 +1,6 @@
 # Financial Insights evidence contract
 
-This contract defines the bounded packet Financial Insights may return to a human, Personal Governor, or another
-authorized workflow.
+This contract defines the bounded packet Financial Insights may return to an authorized human or workflow requester.
 
 ## Packet
 
@@ -16,11 +15,8 @@ authorized workflow.
 - review state and exact reviewed revision when independent review applies.
 
 Do not include unrelated source documents, credentials, raw account identifiers, unrestricted extracted text, or
-unrelated Governor/private-profile memory.
+unrelated private memory.
 
 ## Decision boundary
 
-Financial Insights answers the financial dimension of a question. The Personal Governor may combine this packet with
-human goals, opportunity cost, capacity, technical evidence, and other authorized workflow outputs. The packet does not
-encode a final buy/sell/spend decision unless the human explicitly asked only for a mechanical financial rule whose
-inputs and authority are already defined.
+Financial Insights supplies financial facts, calculations, scenarios and limitations. A packet grants its recipient no authority to publish records, direct workflow roles, waive review or change quarter status. It does not encode a final buy/sell/spend decision unless the human explicitly asked only for a mechanical financial rule whose inputs and authority are already defined. External decisions and approvals remain with their authorized owners.

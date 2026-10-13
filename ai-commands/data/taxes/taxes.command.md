@@ -161,3 +161,11 @@ ${AI_COMMANDS_ROOT}/taxes/taxes.command.sh summary --provider fs --year 2026
 ${AI_COMMANDS_ROOT}/taxes/taxes.command.sh summary --year 2026 --show
 ${AI_COMMANDS_ROOT}/taxes/taxes.command.sh summary --year 2026 --reports-root /path/to/reports --no-open
 ```
+
+## Visible tax-payment preparation guide
+
+The command-owned [tax-payment-entry skill](skills/tax-payment-entry/SKILL.md) guides an authorized Bookkeeper
+through visible payment-form preparation. Evidence normalization belongs to `financial-records` and retains its
+strict reviewed PDF/JSON contract. The existing `taxes` CLI produces tax summaries/candidates; it does not execute
+browser operations or payments. Loading the guide adds no account access or payment authority. The human alone
+activates final submission.

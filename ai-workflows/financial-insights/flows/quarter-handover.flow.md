@@ -26,9 +26,9 @@ The configured **Bookkeeper** is accountable for all five operational stages. **
 
 - **Owner:** Bookkeeper.
 - **Inputs:** unfinished existing or newly received records and validated scope.
-- **Mechanics:** supported [financial-records](../../../ai-commands/data/financial-records/financial-records.command.md) adapters and authorized PDF/OCR tools; follow the [intake invariant](record-organization.flow.md#intake-completion-invariant) and [versioned publisher](../versioned-data.md).
-- **Outputs/proof:** source identity/destination normalized through the reviewed persistence route, and independently validated adjacent extraction with source-hash binding, applicable schema/coverage, page/row provenance, currencies and applicable arithmetic. Preserve original source bytes, legacy JSON naming, uncertain OCR fields and collision evidence. Do not require both CSV and JSON for every source. Skip unchanged already-valid pairs.
-- **Transition:** only normalization plus validated extraction completes intake. Continue to Collect for remaining coverage gaps, otherwise Reconcile. Unsupported formats, missing adapter/publication authority, collisions or review-required fields remain unfinished with a reason, owner and next action in the summary. A filename or existing sidecar alone proves neither state. No generic exporter or continuous watcher is assumed.
+- **Mechanics:** supported [financial-records](../../../ai-commands/data/financial-records/financial-records.command.md) adapters and authorized PDF/OCR tools; follow the [intake invariant](record-organization.flow.md#intake-completion-invariant) and [versioned publisher](../versioned-data.md). Finish redundant-copy removal using the reusable [duplicate-cleanup flow](duplicate-cleanup.flow.md).
+- **Outputs/proof:** source identity/destination normalized through the reviewed persistence route, and independently validated adjacent extraction with source-hash binding, applicable schema/coverage, page/row provenance, currencies and applicable arithmetic. Preserve original source bytes, legacy JSON naming, uncertain OCR fields and collision evidence. Do not require both CSV and JSON for every source. Reuse unchanged already-valid pairs without regeneration, while finishing pending authorized cleanup. Verify redundant-copy cleanup through the authorized route after the durable canonical pair validates; record cleanup-pending separately when blocked.
+- **Transition:** only normalization plus validated extraction and verified redundant-copy cleanup (or no redundant copies) completes intake. Continue to Collect for remaining coverage gaps, otherwise Reconcile. Unsupported formats, missing adapter/publication authority, collisions or review-required fields remain unfinished with a reason, owner and next action in the summary. A filename or existing sidecar alone proves neither state. No generic exporter or continuous watcher is assumed.
 
 ### 3. Collect
 
@@ -62,7 +62,7 @@ These are procedural events recorded concisely in the existing summary, not a se
 | --- | --- |
 | Any / scope-changed | Inspect; reverify authority and invalidate only affected proof. |
 | Inspect, Collect or later / copied-record or records-arrived | Process; received originals are not completed intake. |
-| Process / normalization-complete + extraction-validated | Collect if coverage missing, otherwise Reconcile; retain both validation results. |
+| Process / normalization-complete + extraction-validated + cleanup-verified-or-unnecessary | Collect if coverage missing, otherwise Reconcile; retain both validation results. |
 | Inspect or Reconcile / documents-missing | Collect; record exact missing coverage and next action. |
 | Reconcile / extraction-invalid | Process; preserve failed binding/review evidence. |
 | Reconcile / unresolved-difference | Remain pending; investigate bounded matches or Collect named evidence. |
