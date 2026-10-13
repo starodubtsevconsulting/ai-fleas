@@ -17,6 +17,7 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 * [Tax payment entry skill](../../ai-commands/data/taxes/skills/tax-payment-entry/SKILL.md) - Command-owned visible payment-form guidance; the taxes CLI does not execute browser payments
 * [Wise statements skill](../../ai-commands/data/statements/skills/wise-statements/SKILL.md) - Command-owned official Wise balance-statement collection, routed from workflow and Bookkeeper guidance
 * [Wave invoices skill](../../ai-commands/data/financial-records/skills/wave-invoices/SKILL.md) - Visible-browser Wave sales-invoice PDF collection guidance; not a financial-records runtime capability
+* [AWS billing invoices skill](../../ai-commands/data/financial-records/skills/aws-billing-invoices/SKILL.md) - Visible-browser AWS invoice collection guidance; not a financial-records runtime capability
 * `flows/spending-question.flow.md` - Normative autonomous spending-answer method and completion scenarios
 * `flows/record-lookup.flow.md` - Normative scoped lookup, exact paths, source verification and separate accuracy/procedure grading
 * `walkthroughs/README.md` - Selection index for fictional Bookkeeper worked use cases; read only relevant examples

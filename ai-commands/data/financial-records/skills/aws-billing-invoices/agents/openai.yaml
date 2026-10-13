@@ -1,0 +1,4 @@
+interface:
+  display_name: "AWS Billing Invoices"
+  short_description: "Collect AWS invoice PDFs for bookkeeping"
+  default_prompt: "Use $aws-billing-invoices to collect and match AWS invoice PDFs for a requested period."
