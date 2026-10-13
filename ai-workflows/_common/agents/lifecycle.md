@@ -27,6 +27,12 @@ platform binding supplies runtime configuration.
 A changed common or workflow-specific contract requires the workflow's declared reload or reinitialization path before an
 existing agent may rely on it. Partial initialization or conversational replacement of contract rules is prohibited.
 
+Direct-human [role emulation](human-role-emulation.md) is not initialization, reinitialization, readiness, or a lifecycle
+operation. It creates no instance, singleton, receipt, or durable role authority and cannot bypass protected lifecycle
+or memory operations.
+For that bounded request, load the current canonical emulation and target-role contracts directly. This does not claim
+that an existing managed instance was reloaded; its later managed work still follows the declared reload requirements.
+
 ## Required Admin and optional Judge roles
 
 Every agent-enabled workflow declares exactly one persistent human-facing `Admin` infrastructure agent. A workflow may

@@ -8,6 +8,10 @@ bounded work envelope.
 Agents never select, address, or return directly to another workflow Agent. They receive work from the Router and return
 one result event to the same Router runtime. Tool or transport availability does not create a peer route.
 
+A direct-human [role-emulation request](../../_common/agents/human-role-emulation.md) is local task work, not peer
+routing or a Router dispatch. It cannot forge a Router envelope, endpoint result, transition, receipt, or independent
+acceptance; active managed runs remain controller-dispatched.
+
 ## Runtime envelope
 
 Every Router dispatch contains:

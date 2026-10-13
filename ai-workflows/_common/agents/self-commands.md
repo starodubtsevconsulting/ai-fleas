@@ -7,6 +7,9 @@ current agent must verify its exact host task/instance ID and canonical identity
 any effect. A title, cwd, remembered conversation, or another agent's binding is not identity evidence. The selected
 role and platform may add stricter preflight, sources, handoff, and cleanup rules but cannot widen the common scope.
 
+The separate [human-role-emulation contract](human-role-emulation.md) never invokes or satisfies a self command: an
+emulated role cannot create a readiness token, role instance, clone, or lifecycle authority.
+
 An archived agent is terminal under the [common lifecycle](lifecycle.md). None of these commands permits
 restoring, unarchiving, resuming, retrying, or cloning it. Initialize a fresh instance when the human requests
 that role again; do not offer the archived chat as an option.

@@ -53,7 +53,10 @@ identity or scope blocks mutation instead of silently entering an implementation
 
 Apply this route in either case: the human directly asks Admin to delegate a coding task, or the human
 asks Admin to do Dev work and the selected profile sets `execution_delegates.dev.coder.routing_policy: all-coder-work`.
-Under that policy, route every Coder-owned implementation task, including small tasks, until the profile policy changes.
+Under that policy, route every Coder-owned implementation task, including small tasks, except when the human explicitly
+requests local Coder emulation for the current bounded task under the common
+[human-role-emulation contract](../_common/agents/human-role-emulation.md). That request is the existing local-implementation
+override for this task only; it does not change profile policy. A direct request to delegate still uses the configured route.
 
 For each routed task:
 
