@@ -9,6 +9,7 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 * `financial-insights.workflow.md` - Workflow documentation
 * `evidence-contract.md` - Evidence format and quality standards
 * `acceptance/governor-delegation.md` - Delegation patterns for Admin
+* `flows/spending-question.flow.md` - Normative autonomous spending-answer method and completion scenarios
 
 ## Agent Management
 
@@ -76,6 +77,14 @@ node platforms/gpt-agents/agents/financial-insights-roster.test.mjs
 This verifies that the roster contains the expected agents and roles.
 
 ## Self-Learning
+
+### Diagnostic batches versus an operational spending answer
+
+* What happened: isolated classification/verification calls succeeded, but the human's spending question still had no answer.
+* Root cause: the diagnostic runner selected candidates and owned aggregation, so successful component checks did not prove autonomous bookkeeping.
+* How we fixed it: the normative spending-question flow assigns discovery, independent statement scanning, extraction, normalization, reconciliation, and arithmetic to the Bookkeeper from one request.
+* How to avoid: root-level bounded Pi/Qwen notes about disabled tools, one-candidate packets, and external result aggregation describe diagnostic experiments only. They do not replace the operational agent's tools or full-task ownership. Bound its tool work internally and preserve checkpoints. Return an evidence-supported numeric subtotal with explicit coverage gaps when a complete total cannot be established.
+* Verification: derive end-to-end acceptance from `flows/spending-question.flow.md`; require the agent to discover its own records and produce a reproducible numeric answer. Intermediate JSON validity is component evidence only.
 
 When you work on the financial-insights workflow:
 

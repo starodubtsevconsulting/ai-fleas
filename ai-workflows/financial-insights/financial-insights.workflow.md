@@ -27,6 +27,15 @@ organization names or machine paths.
 
 ## Record lookup
 
+Spending questions follow the normative [spending-question flow](flows/spending-question.flow.md).
+The Bookkeeper receives one human request and independently plans, discovers the
+actual storage mapping, scans outgoing documents and statement rows, reuses or
+extracts structured evidence, normalizes and reconciles transactions, and returns
+an exact supported numeric answer with coverage. Missing or invalid sidecars may
+be addressed through authorized read-only extraction into private run evidence;
+this does not normalize or publish canonical records. Harness/model selection and
+evidence recording belong to configuration, while the agent owns the full task.
+
 For a request to find an existing invoice, receipt, bill, or statement, first resolve the selected project and its
 canonical storage from the active profile. Search that storage using the requested period, entity, record direction,
 and topic, allowing for the project's actual folder layout and synonymous filenames. When the year is omitted, search
