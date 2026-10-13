@@ -72,7 +72,7 @@ Internal checkpoints and bounded batches support recovery within the same reques
    limitation must not silently become zero spending or prevent reporting the
    supported amount already established.
 
-When an authorized data FAQ is available, apply the [data FAQ cache contract](data-faq-cache.md): validate scope, sources, freshness, and coverage before reusing an answer. Cache real Q&A with the data only when writing is authorized. Blind benchmark inputs must exclude cached and evaluator answers.
+When an authorized data FAQ is available, apply the [data FAQ cache contract](data-faq-cache.md): validate scope, sources, freshness, and coverage before reusing an answer. For the [unified record layout](record-organization.flow.md), keep cross-source Q&A and current coverage in the one applicable summary only when writing is authorized; do not add a parallel FAQ file. Blind benchmark inputs must exclude cached and evaluator answers.
 
 ## Minimal work table
 
@@ -89,13 +89,12 @@ Each row represents a transaction or an explicitly unresolved candidate, with:
 | Verification | Content inspected, extraction method, conflicts and missing evidence |
 
 No field is invented to satisfy the table. Use explicit unknown values. Keep a
-coverage checklist separately so a short candidate table cannot imply complete
-quarter coverage.
+coverage checklist distinct from transaction rows so a short candidate table cannot imply complete
+quarter coverage; persist current status only in the applicable quarter summary when authorized.
 
 ## Failure and recovery
 
-Bound tool calls by folder/document count and output size. Persist intermediate
-inventory and normalized rows privately when supported, then continue from the
+Bound tool calls by folder/document count and output size. Use in-memory inventory and normalized rows or an authorized visible runtime checkpoint when supported, following the [record organization flow](record-organization.flow.md); remove regenerable intermediates after completion rather than retain combined copies. Continue from the
 last completed checkpoint after a failed batch. A timeout is failed work, not an
 excluded transaction. Narrow the next batch rather than repeatedly scanning the
 whole tree. If a required tool is unavailable, state the affected coverage and

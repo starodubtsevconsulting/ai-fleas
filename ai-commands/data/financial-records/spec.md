@@ -1,5 +1,11 @@
 # financial-records Spec
 
+## Shared record organization
+
+Follow the [Financial Insights record organization flow](../../../ai-workflows/financial-insights/flows/record-organization.flow.md) within the selected profile's authorized mapping. Keep source-adjacent CSV/JSON, preserve existing `.pdf.json` schema conventions and provenance, and use one mapped `_common/qN/summary.md` for current coverage and unresolved work. Compose aggregates on demand instead of retaining duplicate extracts. This contract does not add a generic CSV exporter, change supported operations, or waive persistence gates. Existing command output/checkpoint behavior remains compatible; publication or cleanup needs its authorized route.
+
+The flow's intake completion invariant also applies: copying is not completion. In the same authorized intake operation, prepare/review canonical normalization and validate adjacent extraction independently before claiming the record processed. Start intake, quarter-readiness and inventory work with a scoped catch-up scan for unfinished names/destinations and absent, invalid or stale sidecars, including images. Skip unchanged validated pairs; changed sources require renewed source-bound preparation/review. Use only actually supported adapters and publication routes; isolate failures and record per-record pending reasons/next actions in the one quarter summary. This contract adds no background watcher or generic executable scan/reconcile operation.
+
 ## Purpose
 
 Provide a portable evidence API for Financial Insights record recognition, extraction, reconciliation, and completeness.

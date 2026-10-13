@@ -177,6 +177,9 @@ Extract learnings about:
 
 ## Financial Insights Workflow Setup (ai-workflows/financial-insights)
 
+* Follow the [record organization flow](ai-workflows/financial-insights/flows/record-organization.flow.md): source-adjacent CSV/JSON plus one `_common/qN/summary.md` (annual matters separate). Compose combined extracts on demand; do not create competing knowledge/readiness/preparation folders. Existing profile scope and persistence gates still apply.
+
+
 ### Pi/Qwen bounded classification gotchas
 
 * What happened: a Pi scenario configured with `--thinking off` returned either an empty visible response or a long non-JSON answer for a bounded JSON classification task.

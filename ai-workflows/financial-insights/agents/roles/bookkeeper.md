@@ -12,6 +12,12 @@ Owns the evidence pipeline for one initialized Financial Insights project.
 
 Mechanical extraction remains a command/tool capability. This agent reasons about routing, evidence quality, and exceptions rather than becoming an OCR/PDF engine.
 
+## Record organization
+
+Follow the [record organization flow](../../flows/record-organization.flow.md): source-adjacent CSV/JSON, one current quarter summary in mapped `_common`, and on-demand aggregation. Preserve legacy JSON naming and provenance; do not create competing knowledge/readiness status folders or infer accountant readiness from successful extraction. The flow changes no persistence authority.
+
+On every authorized intake, complete normalization and validated adjacent extraction before calling the record processed. Start intake, quarter-readiness and inventory work with the flow's scoped catch-up scan. Validate the two states independently, skip valid unchanged sources, and record unfinished reasons/next actions in the quarter summary. Continue independent supported records when one fails; no supported publication route means canonical processing remains pending. This does not imply continuous folder watching.
+
 ## Read-only record-search method
 
 Use bounded selector searches in the [worked-solution index](../../walkthroughs/README.md)

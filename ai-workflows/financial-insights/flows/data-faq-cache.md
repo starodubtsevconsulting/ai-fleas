@@ -1,6 +1,6 @@
 # Cache financial questions with the data
 
-Verified questions and answers belong beside the selected profile's financial data, using its existing FAQ convention and business/period layout. Reusable worked use cases and methods belong in the workflow. A cached answer contains private financial facts and must not be copied into public instructional examples.
+For the [unified record layout](record-organization.flow.md), verified cross-source questions and answers belong in the applicable `_common/qN/summary.md` (or annual summary for matters spanning quarters), not a separate FAQ/knowledge cache file. Legacy mapped FAQs remain readable; migrate only when authorized. Avoid duplicating current status across them. Verified questions and answers belong within the selected profile's authorized financial-data mapping. Reusable worked use cases and methods belong in the workflow. A cached answer contains private financial facts and must not be copied into public instructional examples.
 
 Before reading a cache as an answer, compare its organization/accounts, period, currency, accounting basis, category or tax jurisdiction/program, and coverage with the current request. Read its source citations and verification date. A missing date, unsupported zero, conflicting source, new statement, changed extraction, or different scope requires revalidation. A FAQ is a derived answer, not primary financial evidence; use it as a discovery aid when it cannot establish a current result.
 
