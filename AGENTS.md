@@ -201,6 +201,8 @@ Extract learnings about:
 
 * Interrupted verification retries: preserve the original candidate attempt and create an explicit numbered retry directory. Retries must use the bounded evidence packet and disabled tools; this changed a stalled direct-read attempt into a schema-valid Pi result in 25.42 seconds.
 
+* Final-report input: a verification stage is per candidate and per harness. A report must consume an explicit, execution-specific aggregate of all selected candidate outputs; never point it at one generic `verified.json`, which can represent only one candidate or a stale last writer.
+
 * When simplifying the financial-insights workflow to fewer agents, update **ALL** of these locations together:
   1. `ai-workflows/financial-insights/agents.yml` - remove extra agent entries
   2. `ai-workflows/financial-insights/agents/roles/` - delete unused role definition files
