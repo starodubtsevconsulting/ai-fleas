@@ -197,6 +197,8 @@ Extract learnings about:
 
 * Portable private evidence preparation: do not make a run depend on a workstation-level `pdftotext` binary. Include a PDF excerpt only when an extractor is available; otherwise pass an explicit unavailable marker and preserve a review-pending outcome rather than aborting stage preparation.
 
+* Harness-comparison evidence: never write both harnesses' validated result to one stage-level output path. Store `response.json`, timing, and the typed stage output within each execution directory, then create an aggregate that contains only comparison metrics and scope. A schema-valid result from one candidate is not a final financial conclusion.
+
 * When simplifying the financial-insights workflow to fewer agents, update **ALL** of these locations together:
   1. `ai-workflows/financial-insights/agents.yml` - remove extra agent entries
   2. `ai-workflows/financial-insights/agents/roles/` - delete unused role definition files
