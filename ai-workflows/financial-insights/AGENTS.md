@@ -10,11 +10,13 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 * `evidence-contract.md` - Evidence format and quality standards
 * [Financial question](flows/financial-question.flow.md) - Requester-neutral bounded financial evidence; external consumers do not control bookkeeping
 * [Quarter handover flow](flows/quarter-handover.flow.md) - Ordered Inspect → Process → Collect → Reconcile → Handover/close stages, accountable Bookkeeper, evidence, recovery and independent milestones
+* [Statement reconstruction flow](flows/statement-reconstruction.flow.md) - Reusable source-linked statement evidence function for bounded questions and reconciliation
 * [Duplicate cleanup flow](flows/duplicate-cleanup.flow.md) - Reusable bounded comparison, validated survivor, authorized removal and cleanup recovery
 * [Record organization flow](flows/record-organization.flow.md) - Canonical adjacent records, shared quarter summary and on-demand aggregation
 * [Tax payment flow](flows/tax-payment.flow.md) - Reviewed payroll-tax evidence, operational-period routing and human submission
 * [Tax payment entry skill](../../ai-commands/data/taxes/skills/tax-payment-entry/SKILL.md) - Command-owned visible payment-form guidance; the taxes CLI does not execute browser payments
 * [Wise statements skill](../../ai-commands/data/statements/skills/wise-statements/SKILL.md) - Command-owned official Wise balance-statement collection, routed from workflow and Bookkeeper guidance
+* [Wave invoices skill](../../ai-commands/data/financial-records/skills/wave-invoices/SKILL.md) - Visible-browser Wave sales-invoice PDF collection guidance; not a financial-records runtime capability
 * `flows/spending-question.flow.md` - Normative autonomous spending-answer method and completion scenarios
 * `flows/record-lookup.flow.md` - Normative scoped lookup, exact paths, source verification and separate accuracy/procedure grading
 * `walkthroughs/README.md` - Selection index for fictional Bookkeeper worked use cases; read only relevant examples

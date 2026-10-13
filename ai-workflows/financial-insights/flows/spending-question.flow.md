@@ -61,6 +61,11 @@ Internal checkpoints and bounded batches support recovery within the same reques
    For upgrades whose receipt already nets the old plan's credit, count the net
    cash receipt once; do not subtract the embedded credit again. Resolve date
    eligibility from the chosen basis, including records filed in the wrong quarter.
+   Exclude `statement_salary_payments` projections from additive expense
+   ingestion. When a statement transaction and projection row refer to the same
+   stable source-row identity, link them and count the underlying cash movement
+   once. A salary projection is derived classification evidence, not another
+   expense or payroll-liability posting.
 7. **Calculate exactly.** Sum included signed transaction amounts using decimal
    arithmetic or integer minor units. Keep currencies separate unless supported
    settlement amounts or an explicit conversion policy permit a combined amount.

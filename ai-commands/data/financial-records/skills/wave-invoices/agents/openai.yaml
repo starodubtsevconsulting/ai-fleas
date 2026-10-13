@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wave Invoices"
+  short_description: "Collect Wave sales invoice PDFs"
+  default_prompt: "Use $wave-invoices to collect the requested Wave sales invoice PDFs."

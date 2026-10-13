@@ -6,6 +6,8 @@ Before reading a cache as an answer, compare its organization/accounts, period, 
 
 For each cached question, record:
 
+The [derived salary-payment projection](statement-reconstruction.flow.md#approved-salary-payment-projection) is a separate narrowly defined source-linked projection, not a FAQ answer or generic aggregate cache. Its authorized JSON may hold the detailed salary-payment rows; the quarter summary may link to its path, freshness/status and limitations without duplicating its ledger or full subtotals. Normal FAQ answer rules below continue to apply to cached Q&A.
+
 - The exact question and a direct numeric answer, with units and period; include currency for amounts.
 - Organization/account scope and paid, invoiced, or other basis.
 - For service counts, define the stay-date basis and status evidence; distinguish reservations, served bookings, distinct identified lead customers, and recorded guest-visits. Preserve unknown customer identity and attendance rather than converting them into confident counts.

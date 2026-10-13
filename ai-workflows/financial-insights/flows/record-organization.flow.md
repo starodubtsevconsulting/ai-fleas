@@ -17,10 +17,24 @@ The Bookkeeper and other authorized flows use one source record with adjacent ex
   <business>/qN/
     in/
     out/
+      salary/
+        salary-payments.json  # only when authorized salary reconstruction applies
     statements/
 ```
 
 `_common` is a shared derived overview, not a financial entity or primary source. When the authorized mapping includes it, discovery must read the relevant summaries despite generic underscore-folder filters. Continue to ignore unrelated reserved/private folders; this exception grants no broader access. Preserve existing business-specific nesting and case conventions through the profile mapping. Legacy layouts remain readable; this contract does not authorize a mass migration.
+
+## Record types and canonical locations
+
+| Location/type | Role and authority |
+| --- | --- |
+| Source originals in `in/`, `out/`, and `statements/` | Primary evidence. Keep a validated source-adjacent CSV and/or JSON when the applicable intake contract requires extraction; these files preserve source bindings and provenance. |
+| `out/salary/salary-payments.json` | One authorized, source-linked derived projection for statement-supported salary cash. Its location under `out/` is a topic grouping; metadata marks it derived, non-posting, and non-additive. It is not a source expense, primary evidence, receipt, payroll register, or posting. Do not create a PDF or adjacent CSV copy for this JSON. |
+| `_common/qN/summary.md` | Shared quarter status, coverage, review state, concise unresolved items, and links to detailed evidence. It does not repeat the projection ledger or its full subtotals. |
+
+The salary projection is the only approved durable derived-view type defined here; its write still requires the current profile/task persistence authority. The folder topic does not determine artifact type: original invoices and receipts in `out/` remain source evidence, while `salary-payments.json` is identified as a derived projection by its metadata and contract. This does not authorize other aggregates.
+
+The workflow defines one approved exception to the default on-demand-only aggregate rule: for authorized salary reconstruction, retain the [salary-payment projection](statement-reconstruction.flow.md#approved-salary-payment-projection) as one derived JSON file at `<business>/qN/out/salary/salary-payments.json` per business quarter, when the current profile/task permits that persistence. It is a source-linked derivative with no posting or additive-expense effect, not primary evidence, a generic extraction cache, or a receipt. This output type does not authorize other aggregate files, CSV/PDF copies, manifests, or standing publication. Keep adjacent source CSV/JSON rules unchanged.
 
 ## Intake completion invariant
 
@@ -48,7 +62,7 @@ Run the reusable [duplicate-cleanup flow](duplicate-cleanup.flow.md) after durab
 4. Check destination collisions before any authorized write. Never overwrite another source or sidecar silently. If `invoice.pdf` and `invoice.png` would both map to `invoice.csv`, flag the collision and request or propose distinct source identities through the authorized route; do not merge them under one source basename. Distinguish duplicate evidence from two distinct payments and preserve unique evidence.
 5. Maintain only the applicable `_common/qN/summary.md` as the current quarter overview: collected records and coverage, missing records, unresolved reconciliation/questions, and accountant handover status. Include concise cross-source explanations or reusable Q&A here with citations, scope/basis and verification date. Keep only matters spanning quarters in `annual/summary.md`; link to quarter summaries instead of duplicating their status lists.
 6. Revalidate summaries against current sources and sidecars before relying on them. Correct stale conclusions explicitly, preserving pending items and useful unique historical evidence. Do not maintain parallel knowledge, readiness, handover or preparation status folders.
-7. Compose combined tables from adjacent records on demand, with provenance, deduplication and reconciliation. Do not keep durable aggregate CSVs, extracted-text caches or archive copies of regenerable intermediates by default. Use in-memory work or an authorized visible runtime checkpoint when needed, then remove regenerable intermediates after completion. Retain genuinely unique evidence and explicitly user-approved exports; do not delete them as caches.
+7. Compose combined tables from adjacent records on demand, with provenance, deduplication and reconciliation. Do not keep durable aggregate CSVs, extracted-text caches or archive copies of regenerable intermediates by default. Use in-memory work or an authorized visible runtime checkpoint when needed, then remove regenerable intermediates after completion. Retain genuinely unique evidence and explicitly user-approved exports; do not delete them as caches. The sole approved exception in this workflow is the narrowly scoped salary-payment JSON projection linked above; follow its schema, freshness and downstream non-additive-consumption rules exactly.
 
 ## Quarter status checklist
 

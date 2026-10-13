@@ -6,6 +6,8 @@ From one human question, the Bookkeeper discovers the authorized records and ret
 
 The selected profile supplies scope and available tools. Harness and model are configuration. A runner may capture evidence and grade the answer, but must not supply the reference answer or choose the documents for the agent.
 
+When a scoped question requires rebuilding transaction evidence from statements because the primary report or usable schedule is missing, use the [statement reconstruction flow](statement-reconstruction.flow.md) for the statement-derived rows, matching, currency subtotals, and coverage. Continue this lookup's answer and citation requirements; the reconstruction flow does not establish invoice revenue, gross income, deductions, or tax conclusions from bank amounts.
+
 ## Ordered method
 
 1. **Select and read the guide.** Read applicable rules, then search the selector rows in the [worked-use-case index](../walkthroughs/README.md) with bounded output rather than loading the entire growing index. Select the closest example and read it in bounded chunks before inspecting financial data, continuing until its relevant procedure is covered. Reading only the index is not completion of this step. Record the selected guide and the decisions relevant to the request. Use its method, never its fictional facts. Do not load every example. Keep documentation reads within the same output budget as data reads.

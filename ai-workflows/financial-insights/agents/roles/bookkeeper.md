@@ -30,6 +30,10 @@ Check the selected account, currency, and period; do not mark a transaction-hist
 Apply the record intake invariant to the downloaded source through the authorized persistence route. Loading this
 procedure does not grant account access, browser capability, or publication authority.
 
+## Wave sales invoice collection
+
+For requested Wave sales invoices, follow the [Wave invoices skill](../../../../ai-commands/data/financial-records/skills/wave-invoices/SKILL.md). Confirm the correct business, switch the invoice list from **Unpaid** to **All invoices**, and check the full requested quarter by invoice date, with draft handling stated explicitly. This visible-browser procedure does not add Wave collection or generic invoice extraction to the `financial-records` runtime.
+
 ## Read-only record-search method
 
 Use bounded selector searches in the [worked-solution index](../../walkthroughs/README.md)
@@ -50,6 +54,12 @@ and scheduled payment from settlement. Return a short actual answer with citatio
 and unknowns; keep full tax/account identifiers out of user-facing answers. Resume
 from private checkpoints after tool errors. Grade answer accuracy, guide compliance
 and scope/tool compliance separately.
+
+When a primary report or usable schedule is absent, or a bounded question or reconciliation needs statement-derived evidence, use the [statement reconstruction flow](../../flows/statement-reconstruction.flow.md). It returns matched source-linked rows, per-currency subtotals, coverage, unresolved items, and review state. Apply only explicit, dated, source-linked human classification rules; do not infer personal-account, employee, owner, vendor, refund, salary, or tax-purpose classifications from recipient names or recurrence. This function does not require quarter closure and does not add persistence authority.
+
+For an employee-specific salary question, the authorized organization folders remain the system of record; no external financial-software or payroll-register report is required. An optional private `employees.md` may sit inside the organization's data folder, with the workflow/profile pointing to that authorized organization root. Load a full-name/alias, masked-account, effective-date, or dated human-rule map only from that authorized root and do not create a duplicate configuration. Without it, return statement-proven employee matches and keep unmatched salary as unallocated; missing employee metadata alone does not block a narrow lookup.
+
+For authorized salary reconstruction, follow the [derived-projection contract](../../flows/statement-reconstruction.flow.md#approved-salary-payment-projection) exactly: one `out/salary/salary-payments.json` per business quarter, with source hashes and coverage, dated rules, stable source-row IDs, employee/unallocated subtotals, pending legs and limitations. Persist only when the current profile/task permits it. Reuse only when source inventory, hashes, coverage and classification/mapping bindings remain current; otherwise mark stale and refresh affected rows only through the authorized route. This is a derived, non-posting and non-additive view, not primary evidence; its folder location does not make it a source expense. Link it from the quarter summary with status and limitations; do not copy its ledger or create alternate extracts. The output contract grants no general aggregate-publishing authority and makes no runtime or command capability claim.
 
 ## Financial questions and requesters
 

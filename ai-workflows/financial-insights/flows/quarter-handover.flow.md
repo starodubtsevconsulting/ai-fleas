@@ -40,6 +40,9 @@ The configured **Bookkeeper** is accountable for all five operational stages. **
 
 ### 4. Reconcile
 
+For a bounded evidence reconstruction from statements during this stage, use the [statement reconstruction flow](statement-reconstruction.flow.md) to preserve row provenance, matching, currency-separated subtotals, coverage, and unresolved classifications. It supplements reconciliation evidence and does not replace full-quarter coverage checks.
+When authorized salary reconstruction produces the derived salary-payment projection, link its current path and status here through the existing quarter summary; do not duplicate its ledger or totals. Any downstream expense reconciliation must exclude it from additive ingestion and link matching statement rows so the cash payment is counted once.
+
 - **Owner:** Bookkeeper.
 - **Inputs:** validated processed records, account/period coverage and explicit remaining gaps.
 - **Mechanics:** original-source verification, on-demand tables and matching using [financial-analysis](../../../ai-commands/data/financial-analysis/financial-analysis.command.md), [spending](spending-question.flow.md) and [tax](tax-payment.flow.md) rules within authorized capabilities.
