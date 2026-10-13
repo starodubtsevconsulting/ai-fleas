@@ -17,6 +17,7 @@ contract must resolve this index and every applicable linked rule; conversationa
 | Reliable peer delivery and acknowledgement | [`_common/agents/delivery.md`](_common/agents/delivery.md) |
 | Active state, readiness, Admin/Judge foundations, and initialization | [`_common/agents/lifecycle.md`](_common/agents/lifecycle.md) |
 | Self-scoped `INIT`, `CLONE`, and `END`/`STOP` commands | [`_common/agents/self-commands.md`](_common/agents/self-commands.md) |
+| Direct-human, task-scoped role emulation | [`_common/agents/human-role-emulation.md`](_common/agents/human-role-emulation.md) |
 
 Existing focused policies remain independently authoritative where applicable:
 

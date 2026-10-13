@@ -20,6 +20,10 @@ reachable in the same workspace or repository. A path, cwd, sibling folder, tick
 role's profile scope. The separately declared human-owned Admin exception requires a direct human request naming and
 validating the exact target profile; governed agents cannot invoke or inherit that exception.
 
+A direct human role-emulation request is handled by the separate [human-role-emulation contract](human-role-emulation.md).
+It is local task authorization, not a claimed managed identity or peer packet, so managed peer-binding refusal does not
+apply to it; all real managed-packet exact-ID checks remain unchanged.
+
 ## Role-name matching and exact-instance resolution
 
 Match a requested role name to one configured canonical role while ignoring capitalization only. Capitalization, display

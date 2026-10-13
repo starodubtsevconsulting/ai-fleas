@@ -5,6 +5,10 @@ model ability, filesystem access, command existence, or another agent's authorit
 ambiguous, stale, or conflicting capability data fails closed. Workflow contracts may narrow this base but may not silently
 weaken it.
 
+The [human-role-emulation contract](human-role-emulation.md) permits a directly human-requested, task-bounded local role
+effect for any base role or unbound chat, after verification of the selected role's actual boundary. It grants neither a
+missing capability nor a credential, host permission, command, independent approval, or standing configuration change.
+
 ## Role capability declaration
 
 Every concrete role contract must place `## Capability declaration` immediately after its identity or role-header chapter
