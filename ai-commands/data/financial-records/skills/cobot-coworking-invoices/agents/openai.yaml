@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cobot Coworking Invoices"
+  short_description: "Collect and normalize Cobot coworking invoices"
+  default_prompt: "Use $cobot-coworking-invoices to collect, normalize, and reconcile Cobot coworking invoices."

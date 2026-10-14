@@ -1,0 +1,3 @@
+display_name: Hydro-Québec electricity bills
+short_description: Download and extract Hydro-Québec electricity bills
+default_prompt: Collect Hydro-Québec electricity bills for the requested period, verify the service account, normalize them, and create source-adjacent CSV extracts.
