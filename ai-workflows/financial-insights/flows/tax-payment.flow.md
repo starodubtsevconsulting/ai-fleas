@@ -41,7 +41,9 @@ to the obligation with a source-hash-bound `settles` or `partially-settles` rela
 into the tax bundle. A provider status such as `to be processed` supports submitted, scheduled, processing, or
 settlement-pending state only. It does not prove paid or settled.
 
-Do not encode mutable state in canonical filenames. Suffixes such as `_payed` and `_paid` are prohibited. Store two
+Do not encode mutable state in canonical filenames. Suffixes such as `_payed` and `_paid` are prohibited. A reserved
+`_payed/` folder may hold human-filed payment-proof documents, but intake excludes it by default and the folder or
+filename never establishes settlement. Store two
 independent axes in structured data:
 
 - processing: `processing-pending`, `review-required`, `normalized`, `incomplete`, `unsupported`, or `collision`;
@@ -56,7 +58,8 @@ across every sidecar.
 ## Sequence
 
 1. **Resolve scope.** Verify the profile, project, branch/business, year, open operational quarter, `Out` tax section,
-   and exact source folder. Exclude symlinks and explicitly unauthorized or reserved folders; do not skip an
+   and exact source folder. Exclude symlinks and explicitly unauthorized or reserved folders, including `_payed/`,
+   unless the requested reconciliation explicitly includes that human-proof bundle; do not skip an
    authorized source PDF solely because its filename begins with an underscore. Inspect its contents and process
    unfinished normalization through supported routes. Read mapped `_common` summaries as derived context, not primary
    source evidence. Detect whether the reporting period is

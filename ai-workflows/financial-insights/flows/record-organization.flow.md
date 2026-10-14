@@ -17,18 +17,20 @@ The Bookkeeper and other authorized flows use one source record with adjacent ex
   <business>/qN/
     in/
     out/
+      _payed/              # human-filed payment-proof bundle; excluded from intake scans
       salary/
         salary-payments.json  # only when authorized salary reconstruction applies
     statements/
 ```
 
-`_common` is a shared derived overview, not a financial entity or primary source. When the authorized mapping includes it, discovery must read the relevant summaries despite generic underscore-folder filters. Continue to ignore unrelated reserved/private folders; this exception grants no broader access. Preserve existing business-specific nesting and case conventions through the profile mapping. Legacy layouts remain readable; this contract does not authorize a mass migration.
+`_common` is a shared derived overview, not a financial entity or primary source. `_payed` is a reserved human-proof bundle for documents a person has filed as payment evidence. Intake and catch-up scans exclude `_payed` by default; a Bookkeeper may inspect it only when reconciling a linked payment question. A `_payed` location or filename does not prove settlement: retain the document's processing and settlement state and require an authoritative posted transaction where the tax-payment flow requires one. When the authorized mapping includes `_common`, discovery must read the relevant summaries despite generic underscore-folder filters. Continue to ignore unrelated reserved/private folders; this exception grants no broader access. Preserve existing business-specific nesting and case conventions through the profile mapping. Legacy layouts remain readable; this contract does not authorize a mass migration.
 
 ## Record types and canonical locations
 
 | Location/type | Role and authority |
 | --- | --- |
 | Source originals in `in/`, `out/`, and `statements/` | Primary evidence. Keep a validated source-adjacent CSV and/or JSON when the applicable intake contract requires extraction; these files preserve source bindings and provenance. |
+| Files in `out/_payed/` | Human-filed payment-proof evidence. Excluded from automatic intake and duplicate-cleanup scans; inspect and link it during the relevant reconciliation. Do not treat its name or folder as settlement proof. |
 | `out/salary/salary-payments.json` | One authorized, source-linked derived projection for statement-supported salary cash. Its location under `out/` is a topic grouping; metadata marks it derived, non-posting, and non-additive. It is not a source expense, primary evidence, receipt, payroll register, or posting. Do not create a PDF or adjacent CSV copy for this JSON. |
 | `_common/qN/summary.md` | Shared quarter status, coverage, review state, concise unresolved items, and links to detailed evidence. It does not repeat the projection ledger or its full subtotals. |
 
@@ -56,7 +58,7 @@ Run the reusable [duplicate-cleanup flow](duplicate-cleanup.flow.md) after durab
 
 ## Ordered method
 
-1. For intake, quarter-readiness or inventory work, run the scoped intake/catch-up scan above for original PDF/image records and adjacent sidecars. Preserve sources and exact paths; process eligible unfinished work through supported authorized routes before reporting intake completion. A bounded read-only question inspects only relevant records and reports discovered intake gaps; it does not require quarter-wide scanning, writing a summary, or completing unrelated intake.
+1. For intake, quarter-readiness or inventory work, run the scoped intake/catch-up scan above for original PDF/image records and adjacent sidecars, excluding reserved `_payed/` bundles unless the requested reconciliation explicitly includes them. Preserve sources and exact paths; process eligible unfinished work through supported authorized routes before reporting intake completion. A bounded read-only question inspects only relevant records and reports discovered intake gaps; it does not require quarter-wide scanning, writing a summary, or completing unrelated intake.
 2. Keep an extracted CSV beside its respective source with the same basename: `invoice.pdf` pairs with `invoice.csv`. JSON stores structured metadata and CSV stores tabular fields. Do not force both formats for every source. Preserve existing JSON schema/naming conventions, including `invoice.pdf.json`; do not require renaming it to `invoice.json`.
 3. Preserve source-hash bindings (including existing `source.hash` fields), provenance, page/row references, original and normalized names, currency, signed amounts, and full statement coverage dates. An OCR or uncertain image extraction remains explicitly draft/review-pending until checked. Extraction completeness and arithmetic agreement do not establish reconciliation or accountant closure.
 4. Check destination collisions before any authorized write. Never overwrite another source or sidecar silently. If `invoice.pdf` and `invoice.png` would both map to `invoice.csv`, flag the collision and request or propose distinct source identities through the authorized route; do not merge them under one source basename. Distinguish duplicate evidence from two distinct payments and preserve unique evidence.
