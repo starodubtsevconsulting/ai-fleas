@@ -64,9 +64,9 @@ When money moves through more than one covered account, model the linked legs as
 
 ## Booking-platform hubs
 
-A booking-management export can be a hub rather than an income source. When a hub such as Lodgify mirrors Airbnb and Booking.com reservations, map each hub row to its underlying provider and use the provider's reservation, payout and fee evidence for classification. Do not count the hub's booking or total-amount column as additional income. Retain hub-specific subscription, processing or marketplace fees as expense candidates only when the fee is evidenced and not already present in the provider or bank record. A declined or cancelled hub row is excluded from income. Unmapped hub rows remain review-pending.
+A booking-management export can be a hub rather than an income source. When a hub mirrors reservations from booking providers, map each hub row to its underlying provider and use the provider's reservation, payout and fee evidence for classification. Do not count the hub's booking or total-amount column as additional income. Retain hub-specific subscription, processing or marketplace fees as expense candidates only when the fee is evidenced and not already present in the provider or bank record. A declined or cancelled hub row is excluded from income. Unmapped hub rows remain review-pending.
 
-Keep hub exports in the business quarter's `out/lodgify/` folder as supporting evidence. They are not income records; an explicit booking-reconciliation run may read them and must apply this hub rule.
+Keep hub exports in the mapped business quarter's provider folder under `out/` as supporting evidence. They are not income records; an explicit booking-reconciliation run may read them and must apply this hub rule. Keep the actual provider mapping in the private organization profile.
 
 ## Ordered method
 

@@ -17,7 +17,7 @@ Do not treat a portal's “paid” label as bank-settlement evidence. Match sett
 
 ## Normalize and extract
 
-Use the printed invoice number and invoice date for the canonical filename, never the browser download filename. Keep each PDF and its normalized CSV beside each other with exactly the same basename and different extensions in the existing period/vendor folder, for example `reports/2026/it-consulting/q3/out/internet & phones/`. Use one normalized CSV per source and do not create a competing combined copy. Keep any unique native detail export separately with a clear `-details.csv` suffix.
+Use the printed invoice number and invoice date for the canonical filename, never the browser download filename. Keep each PDF and its normalized CSV beside each other with exactly the same basename and different extensions in the mapped period/vendor folder, for example `reports/YYYY/<business>/qN/out/internet & phones/`. Use one normalized CSV per source and do not create a competing combined copy. Keep any unique native detail export separately with a clear `-details.csv` suffix.
 
 The normalized CSV should include: source-relative path, source SHA-256, `operational_quarter`, `record_kind`, `vendor_normalized` (`videotron`), invoice number/date, service start/end, due date, printed subtotal, GST, QST, total amount, currency (`CAD`), portal status, amount paid when printed, review status, extraction status, accounting role, page reference, source locator, and settlement provenance. Preserve printed values and their page/source provenance; leave unavailable fields blank and mark the record `review_pending` rather than inferring them.
 
