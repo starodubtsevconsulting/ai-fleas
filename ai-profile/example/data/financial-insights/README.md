@@ -6,6 +6,12 @@ skeleton, three supported fictional payroll forms, and an additive Q4 search
 fixture for three invented businesses. No real financial records, organization
 identifiers, operational profiles or credentials are included.
 
+The separate [fictional business-context map](business-context.md) illustrates
+activities, income origins, accounts, service partners and money routes as clues.
+Its invented confirmations and expectations are explicitly labelled; they do not
+describe verified relationships in these benchmark fixtures or replace evaluator
+reference facts.
+
 ```text
 corporate/reports/2026/example-consulting/
   q1/{in/, out/taxes/, statements/}

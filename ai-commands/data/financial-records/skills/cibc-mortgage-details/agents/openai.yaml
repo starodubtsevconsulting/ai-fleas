@@ -1,0 +1,3 @@
+display_name: CIBC mortgage details
+short_description: Save and extract CIBC mortgage payment history
+default_prompt: Retrieve the visible CIBC mortgage details page for the requested quarter, save it as a PDF, and create a normalized adjacent CSV separating principal and interest.

@@ -1,0 +1,3 @@
+display_name: Grok billing invoices
+short_description: Download and extract Grok subscription invoices
+default_prompt: Collect Grok invoices for the requested period, normalize them, and create source-adjacent CSV extracts.

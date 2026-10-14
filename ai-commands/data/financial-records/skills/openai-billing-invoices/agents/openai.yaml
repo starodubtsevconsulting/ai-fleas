@@ -1,0 +1,3 @@
+display_name: OpenAI billing invoices
+short_description: Download and extract OpenAI billing invoices
+default_prompt: Collect OpenAI billing invoices for the requested period, normalize them, and create source-adjacent CSV extracts.

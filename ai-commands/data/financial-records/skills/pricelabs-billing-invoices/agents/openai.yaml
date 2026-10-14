@@ -1,0 +1,4 @@
+interface:
+  display_name: "PriceLabs billing invoices"
+  short_description: "Collect and normalize PriceLabs invoice PDFs"
+  default_prompt: "Use $pricelabs-billing-invoices to collect authenticated PriceLabs invoice PDFs, preserve printed status, and write one normalized adjacent CSV per source PDF."

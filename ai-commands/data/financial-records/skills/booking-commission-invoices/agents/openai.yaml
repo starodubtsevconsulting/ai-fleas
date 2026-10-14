@@ -1,0 +1,4 @@
+interface:
+  display_name: "Booking.com commission invoices"
+  short_description: "Collect and match property commission invoices"
+  default_prompt: "Use $booking-commission-invoices to collect the requested property's commission invoices, create adjacent CSVs and compare them with bank debits."
