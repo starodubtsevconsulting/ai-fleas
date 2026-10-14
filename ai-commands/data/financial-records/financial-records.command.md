@@ -15,6 +15,8 @@ The flow's intake completion invariant also applies: copying is not completion. 
 
 For visible Wave sales-invoice PDF collection, use the [Wave invoices skill](skills/wave-invoices/SKILL.md). This is browser guidance only: the command does not implement Wave collection or generic invoice extraction, and this link adds no command ID or runtime capability.
 
+For property commission invoice collection, use the [Booking.com commission invoices skill](skills/booking-commission-invoices/SKILL.md). Verify the property, distinguish service and payment periods, and preserve portal-versus-bank date differences. This is browser guidance only and adds no runtime adapter or payment authority.
+
 ## Shared execution target
 
 This file defines the full capability contract. A read-only `recognize` executable handles snow-removal service
