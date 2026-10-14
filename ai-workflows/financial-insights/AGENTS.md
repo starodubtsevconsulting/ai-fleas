@@ -27,7 +27,7 @@ Follow the [intake completion invariant](flows/record-organization.flow.md#intak
 
 ## Public procedure privacy
 
-Keep real account display names, client relationships, invoice and payment identifiers, dates and amounts, property and service addresses, actual account routes, and business-specific report paths in the private profile or source-adjacent records. A public provider skill may name the provider and explain its generic interface, but must not link that provider to a real person or organization. Before publishing a worked example or skill, check its title, directory name, frontmatter, filenames, paths and sample reconciliation rows for identifying details. Use clearly fictional examples or placeholders in public files.
+Keep real account display names, client relationships, invoice and payment identifiers, dates and amounts, property and service addresses, actual account routes, and business-specific report paths in the private profile or source-adjacent records. A public provider skill may name the provider and explain its generic interface, but must not link that provider to a real person or organization. Before publishing, check file titles, directory names, frontmatter, filenames, paths, sample reconciliation rows, commit messages, PR titles and descriptions, and review comments for identifying details. Use clearly fictional examples or placeholders in public material.
 
 ## Agent Management
 
