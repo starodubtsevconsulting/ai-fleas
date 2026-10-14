@@ -9,12 +9,12 @@ Use the Airbnb host reservation detail print view as the canonical PDF source fo
 
 ## Procedure
 
-1. In the authenticated Airbnb host account, open **Earnings → Paid** and enumerate every Q3 paid reservation. Use the detailed paid-transactions export as the cross-check so no booking is skipped.
+1. In the authenticated Airbnb host account, open **Earnings → Paid** and enumerate every paid reservation in the requested period. Use the detailed paid-transactions export as the cross-check so no booking is skipped.
 2. Open each reservation's detail page, click the page's **Print** button, choose **Save as PDF** in the browser print dialog, click **Save**, and save one PDF per confirmation code. Do not use the monthly Earnings report download for this evidence.
 3. Save the PDF in the mapped quarter source folder and create a same-basename CSV beside it. Preserve the source hash and page provenance.
 4. Extract at least: confirmation code, guest, listing, check-in, checkout, booking date, nights, guest-paid room amount, guest-paid taxes, guest total, host room fee, host taxes, Airbnb service fee, co-host payout, host payout total, currency and source URL.
 5. Normalize the vendor as `airbnb`, classify the record as a reservation-detail receipt/support record, and mark uncertain fields review-pending. Do not treat guest names or review text as accounting totals.
-6. Reconcile the sum of host payout totals to the Airbnb paid-transactions export and to the matching deposits in the verified receiving account. Track Airbnb remitted-tax transfers separately as pass-through tax evidence; do not add them to rental income.
+6. Reconcile the sum of host payout totals to the Airbnb paid-transactions export and to deposits in the verified receiving account. Track Airbnb remitted-tax transfers separately as pass-through tax evidence; do not add them to rental income.
 7. Keep the legacy reservation PDFs and adjacent CSVs as the accountant-facing booking evidence. Monthly earnings PDFs are optional summaries only; when the user selects legacy-only evidence, move monthly summary PDFs and their sidecars to the Synology recycle-bin path preserving their original relative path.
 
 ## Evidence and cleanup rules

@@ -25,6 +25,10 @@ This workflow configures agents for financial data analysis, bookkeeping, and ta
 
 Follow the [intake completion invariant](flows/record-organization.flow.md#intake-completion-invariant): placing a source is not completed intake. Normalize, validate adjacent extraction and verify authorized redundant-copy cleanup in the same authorized operation; begin intake, quarter-readiness and inventory work with a scoped catch-up scan. Exclude every folder whose name begins with `_` from ordinary intake; read `_common` for applicable summary context and inspect `_payed` only when the requested reconciliation explicitly includes its human-proof contents. A reserved folder or filename does not prove settlement. Skip unchanged validated records, keep normalization, extraction and cleanup states separate, and put unfinished reasons/next actions in the one quarter summary. Supported adapter, review and publication boundaries still apply; this rule does not install a continuous folder watcher.
 
+## Public procedure privacy
+
+Keep real account display names, client relationships, invoice and payment identifiers, dates and amounts, property and service addresses, actual account routes, and business-specific report paths in the private profile or source-adjacent records. A public provider skill may name the provider and explain its generic interface, but must not link that provider to a real person or organization. Before publishing a worked example or skill, check its title, directory name, frontmatter, filenames, paths and sample reconciliation rows for identifying details. Use clearly fictional examples or placeholders in public files.
+
 ## Agent Management
 
 ### Only Bookkeeper
@@ -78,7 +82,7 @@ Test variant IDs are benchmark settings, not new work-profile authority.
 ./ai-commands/system/hermes-agents/hermes-agents.command.sh reconcile --work-profile sc --workflow financial-insights
 
 # Verify configuration
-node ai-commands/system/hermes-agents/src/resolve-workflow-scope.mjs /Users/sergii/projects/sc/ai-fleas/ai-profile sc financial-insights
+node ai-commands/system/hermes-agents/src/resolve-workflow-scope.mjs "$PWD/ai-profile" <profile-id> financial-insights
 ```
 
 ## Testing

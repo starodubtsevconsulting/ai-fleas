@@ -15,7 +15,7 @@ The printed page is the source record. Preserve the PDF bytes and record the ret
 
 ## Normalize and extract
 
-Keep the PDF and normalized CSV beside each other in the business quarter's mortgage folder, for example `reports/YYYY/<business>/qN/out/mortgage/`, with the same basename and different extensions. Extract the account number, mortgage number, currency, as-of date, balance, payment frequency and amount, fixed/variable rate, maturity date and balance, and each Q3 payment's date, principal, interest and total paid. Use the visible labels and page references; leave unavailable fields blank and mark them `review_pending` rather than inferring them.
+Keep the PDF and normalized CSV beside each other in the mapped business quarter's mortgage folder, for example `reports/YYYY/<business>/qN/out/mortgage/`, with the same basename and different extensions. Extract the account number, mortgage number, currency, as-of date, balance, payment frequency and amount, fixed/variable rate, maturity date and balance, and each requested-period payment's date, principal, interest and total paid. Use the visible labels and page references; leave unavailable fields blank and mark them `review_pending` rather than inferring them.
 
 The mortgage principal and interest are different accounting roles. Principal reduces the loan balance and is not an expense. Interest is a financing-cost candidate that still requires business/property allocation and accountant review. Match each payment to the bank statement separately; the mortgage page is not settlement evidence. Do not count the same payment from both the mortgage page and the bank statement.
 

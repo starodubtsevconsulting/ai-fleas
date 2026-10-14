@@ -19,7 +19,7 @@ Use this skill when a signed-in PriceLabs account is the source for vendor invoi
 
 Use `vendor_normalized=pricelabs`, `record_kind=vendor_invoice`, `currency=USD`, and `accounting_role=business expense`. Preserve invoice number, invoice date, service dates, due date, paid date, amount, amount paid, and printed status. Mark fully paid invoices `review_status=confirmed` only for the invoice record; bank settlement matching remains separate. Mark unpaid or outstanding invoices `review_status=review_pending`, keep `amount_paid=0.00` when printed, and never infer that payment occurred.
 
-Assign `operational_quarter=2026-Q3` when the service period starts in Q3 for this intake. If the service period crosses a quarter boundary, record that in notes and do not move the source out of its source-adjacent folder. The invoice date may be later than the service start.
+Assign `operational_quarter` from the requested period and the source's service dates. If the service period crosses a quarter boundary, record that in notes and do not move the source out of its source-adjacent folder. The invoice date may be later than the service start.
 
 PriceLabs’ native listing-details CSV lists the billed listing and sync metadata. It is supporting context only, not a second invoice total. Preserve it beside the PDF with a `-details.csv` suffix when it contains unique listing or sync evidence; remove only byte-identical duplicate downloads after validating the survivor. The normalized invoice CSV remains the accounting extract. Never create a combined export; regenerate one from adjacent CSVs when needed.
 
