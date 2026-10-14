@@ -12,6 +12,7 @@ Start with verified profile/workflow/project authority, selected businesses/acco
 | --- | --- |
 | Quarter preparation, readiness or accountant handover | [Quarter handover](flows/quarter-handover.flow.md); stop at the requested proven milestone. |
 | Place a record or catch up unfinished intake | [Record organization](flows/record-organization.flow.md); normalization, validated adjacent extraction and verified or unnecessary cleanup must all pass. |
+| Port completed intake to a website | [Website API publication](flows/website-api-publication.flow.md); use validated CSV rows and source metadata through the authorized tenant API, then verify readback. The SC statement batch and document proposal adapters are available when their prerequisites are met; generic CSV preparation and tenant mapping remain pending for unsupported sources. |
 | Remove redundant copies after validated normalization/extraction | [Duplicate cleanup](flows/duplicate-cleanup.flow.md); retain unique evidence, verify exact removals and resume blocked cleanup without regenerating valid extracts. |
 | Find an invoice, statement or payment fact | [Record lookup](flows/record-lookup.flow.md); return verified requested facts and coverage, without requiring full-quarter closure. |
 | Reconstruct source-linked transaction evidence from account statements | [Statement reconstruction](flows/statement-reconstruction.flow.md); return matched rows, currency-separated subtotals, coverage and unresolved items for the bounded question or reconciliation step. |
