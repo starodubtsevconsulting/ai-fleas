@@ -14,9 +14,9 @@ Use this flow when a bank statement contains a tax debit whose confirmation docu
 3. Open **Transaction history** and search a bounded date range containing the statement debit.
 4. Match the transaction type, payment date, amount, and statement reference. Open the row to inspect the completed payment details.
 5. Confirm the status is `Completed`, then capture the confirmation number, tax-account number, payment date, remittance or employee-payment period, due date, source account, and any payroll components.
-6. Use the detail page's **Print** action, then Chrome **Save as PDF**. Save the PDF beside the Q3 tax records with a normalized filename such as `rbc-tax-confirmation-2026-07-14-federal-emptx-9172442.pdf`.
+6. Use the detail page's **Print** action, then Chrome **Save as PDF**. Save the PDF beside the mapped quarter's tax records with a normalized filename such as `rbc-tax-confirmation-YYYY-MM-DD-<program>-<reference>.pdf`. Keep actual confirmation and account identifiers only in the private source and adjacent extract.
 7. Create one adjacent CSV with the same stem. Include the source PDF path and SHA-256, exact amounts, dates, confirmation number, tax account, status, period, and evidence text. Keep `posting_status=not_posted` unless an accountant-posting step explicitly changes it.
-8. Update the matched RBC statement row and Q3 summary. Replace `reference_only`/missing-document status only when the confirmation agrees on date, amount, account, and route.
+8. Update the matched RBC statement row and quarter summary. Replace `reference_only`/missing-document status only when the confirmation agrees on date, amount, account, and route.
 
 ## Guardrails
 

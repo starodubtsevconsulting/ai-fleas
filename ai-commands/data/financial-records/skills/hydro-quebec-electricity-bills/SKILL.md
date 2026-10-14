@@ -9,13 +9,13 @@ Use this guide through the authorized Financial Insights Bookkeeper workflow. It
 
 ## Verify the account before downloading
 
-Open the signed-in **Hydro-Québec Customer Space** and go to **Billing → Billing and payment history**. Confirm the account number and the **service address shown by the account’s “Service addresses” details**, not only the mailing address shown in the account list. Open that details view for every candidate account and record the address and contract number before collecting anything. The portal may expose several accounts; select the account whose service address belongs to the organization or property being booked. Do not use a residential account merely because it is visible in the session. If the required chalet account is absent, or the service address cannot be verified, record the account-scope mismatch as `review_pending` and stop rather than downloading the wrong household bills.
+Open the signed-in **Hydro-Québec Customer Space** and go to **Billing → Billing and payment history**. Confirm the account number and the **service address shown by the account’s “Service addresses” details**, not only the mailing address shown in the account list. Open that details view for every candidate account and record the address and contract number before collecting anything. The portal may expose several accounts; select the account whose service address belongs to the authorized organization or property. Do not use a personal account merely because it is visible in the session. If the target account is absent, or the service address cannot be verified, record the account-scope mismatch as `review_pending` and stop rather than downloading the wrong bills.
 
 ## Retrieve bills
 
 For the requested quarter, open each bill whose invoice date or covered service period belongs to that quarter. Download the original PDF and verify the printed vendor, account/contract number, service address, invoice date, service start/end, amount before taxes, GST/QST, total, due date, and payment status. A portal payment label is not bank-settlement evidence; match the bill separately against the bank or card statement.
 
-Save the PDF in the existing period/property folder, for example `reports/2026/chalet/q3/out/electricity/`. Use a stable basename derived from the printed bill or account identifier. Create exactly one normalized CSV beside the PDF with the same basename and a `.csv` extension. Do not create a second combined copy.
+Save the PDF in the existing period/property folder, for example `reports/YYYY/<business>/qN/out/electricity/`. Use a stable basename derived from the printed bill or account identifier. Create exactly one normalized CSV beside the PDF with the same basename and a `.csv` extension. Do not create a second combined copy.
 
 ## Normalize and extract
 
