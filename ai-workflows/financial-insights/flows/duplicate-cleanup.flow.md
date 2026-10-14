@@ -8,7 +8,7 @@ A reusable bounded flow in [Financial Insights](../financial-insights.workflow.m
 
 Verify exact profile/workflow/project authority, mapped roots, selected records, permitted effects and the available cleanup route. Inputs are exact source and sidecar paths, canonical identity/ownership, applicable schemas, source-hash bindings and normalization/extraction proof. Discovery can identify unfinished records, but deletion waits for durable canonical publication and validated extraction. Read-only callers report a bounded proposed removal set and blockers; this flow adds no write authority.
 
-Use existing authorized file tools or publisher effects. For the Synology reports tree, the cleanup effect is a reversible move into the root `recycle-bin/` under the same sync root, preserving the original relative path beneath that folder. Permanent deletion and Mac Trash are not the cleanup route. The [financial-records command](../../../ai-commands/data/financial-records/financial-records.command.md) transactional apply preserves its input; this flow does not change that behavior or implement a cleanup adapter, deletion CLI or automatic watcher.
+Use existing authorized file tools or publisher effects. For Synology-backed reports, follow the [Synology reversible-removal contract](../../../ai-commands/connect/synology/synology.command.md#reversible-removal-from-a-synced-folder) for the move, collision, synchronization and recycle-bin rules. The [financial-records command](../../../ai-commands/data/financial-records/financial-records.command.md) transactional apply preserves its input; this flow does not change that behavior or implement a cleanup adapter, deletion CLI or automatic watcher.
 
 ## Steps
 
