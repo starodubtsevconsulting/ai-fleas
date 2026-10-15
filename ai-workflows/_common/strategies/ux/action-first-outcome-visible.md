@@ -29,4 +29,4 @@ Use [Start before sign-in](../../methods/ux/start-before-sign-in.md) when a usef
 
 Apply the [review method](../../methods/ux/action-first-review.md) through the existing workflow. Evaluate how easily a person can identify the next action, recognize its benefit, and complete the affected journey. Record observed usability feedback separately from reviewer inspection; do not invent conversion targets or claim comprehension from a screenshot alone.
 
-Profiles select this strategy through their existing instructions/specification. Selection is an instruction-level default, not a new runtime configuration key or proof that a running agent reloaded it.
+The workflow declares supported strategy IDs, methods, parameters, and defaults. Profiles select values through its supported property overrides. The application resolves and validates effective settings before use; prose or a Markdown link does not activate this strategy.

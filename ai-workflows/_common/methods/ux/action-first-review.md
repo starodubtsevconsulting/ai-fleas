@@ -2,7 +2,7 @@
 
 ## Inputs
 
-Load the selected profile's UX instructions, the [UX policy](../../policy/action-first-ux.md), the [selected strategy](../../strategies/ux/action-first-outcome-visible.md) or explicit alternative, the affected user task/routes, current interface, and delivery scope.
+Read the selecting workflow's validated effective UX parameters and their source references, the [UX policy](../../policy/action-first-ux.md), the [selected strategy](../../strategies/ux/action-first-outcome-visible.md) or explicit alternative, the affected user task/routes, current interface, and delivery scope.
 
 This is a validation method. Applicable design methods, such as [Start before sign-in](start-before-sign-in.md), define the experience; their platform derivatives add implementation guidance. Record the selected platform and methods in the review context.
 
