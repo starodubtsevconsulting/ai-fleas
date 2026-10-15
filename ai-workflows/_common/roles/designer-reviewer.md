@@ -60,7 +60,7 @@ Coder should normally return compact semantic artifacts: implementation summarie
 
 ## UX design and review
 
-For user-visible design or review, load the selected profile's UX instructions and apply the shared [action-first UX principles](../policy/action-first-ux.md) to the affected journey. Carry applicable criteria into the implementation handoff and acceptance evidence, including any justified exclusions. Use the selecting workflow's review and independent UI acceptance owners; this policy grants no additional execution or acceptance permissions.
+For user-visible design or review, load the selected profile's UX instructions. Apply the [UX policy](../policy/action-first-ux.md), the selected [Action-first, outcome-visible strategy](../strategies/ux/action-first-outcome-visible.md) or explicit policy-compliant alternative, and the [review method](../methods/ux/action-first-review.md). Carry required outcomes, design decisions, and justified exclusions into implementation handoffs and acceptance evidence. Use the selecting workflow's review and independent UI acceptance owners; these documents grant no additional execution or acceptance permissions.
 
 ## Owns
 
