@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "workflow-parameters.v1",
+  "workflowId": "dev",
+  "properties": {
+    "ux": {
+      "type": "object",
+      "default": {},
+      "properties": {
+        "policy": {
+          "type": "string",
+          "default": "understandable-action-and-value",
+          "enum": [
+            "understandable-action-and-value"
+          ]
+        },
+        "strategy": {
+          "type": "string",
+          "default": "action-first-outcome-visible",
+          "enum": [
+            "action-first-outcome-visible"
+          ]
+        },
+        "reviewMethod": {
+          "type": "string",
+          "default": "action-first-review",
+          "enum": [
+            "action-first-review"
+          ]
+        },
+        "designMethods": {
+          "type": "array",
+          "default": [
+            "start-before-sign-in"
+          ],
+          "items": {
+            "type": "string",
+            "enum": [
+              "start-before-sign-in"
+            ]
+          }
+        },
+        "platforms": {
+          "type": "array",
+          "default": [
+            "web",
+            "desktop",
+            "mobile",
+            "terminal"
+          ],
+          "items": {
+            "type": "string",
+            "enum": [
+              "web",
+              "desktop",
+              "mobile",
+              "terminal"
+            ]
+          }
+        },
+        "web": {
+          "type": "object",
+          "default": {},
+          "properties": {
+            "startBeforeSignIn": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "references": {
+    "understandable-action-and-value": "../_common/policy/action-first-ux.md",
+    "action-first-outcome-visible": "../_common/strategies/ux/action-first-outcome-visible.md",
+    "action-first-review": "../_common/methods/ux/action-first-review.md",
+    "start-before-sign-in": "../_common/methods/ux/start-before-sign-in.md",
+    "web.start-before-sign-in": "../_common/methods/ux/start-before-sign-in/web.md"
+  }
+}
