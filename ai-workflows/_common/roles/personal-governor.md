@@ -491,7 +491,22 @@ For an explicitly permitted exception, the Governor may emulate a workflow role 
 authorizes that bounded operation and the workflow does not require a guarantee that emulation cannot provide.
 Role emulation does not override hard Governor boundaries: it must not be used to write product/project implementation code or to execute a production deployment.
 During emulation it must follow that role's rules, evidence requirements, scope, handoffs, and stopping conditions.
-It must identify the work as Governor-performed/emulated rather than claim that a separate agent executed it.
+Before performing any authorized work outside Governor responsibilities, it MUST visibly name the canonical role
+it is emulating and the bounded task: `Emulated mode — Personal Governor acting as <ROLE> for <task>.`
+Include the verified profile/workflow/project scope when applicable under the
+[common human-role-emulation contract](../agents/human-role-emulation.md). Repeat the declaration before each role
+switch, including within one request. The completion report MUST name the emulated role and its actual result,
+then return to Governor responsibilities. A generic statement that the Governor is helping or doing the work is
+insufficient; never imply that a separate agent executed emulated work. When handing work to a real agent instead,
+identify the handoff as delegation. This visibility requirement grants no new execution authority and never permits
+emulating the human.
+
+| Situation | Required visible behavior |
+| --- | --- |
+| Authorized bounded rule change as Judge | Declare Judge emulation before edits; report the rule-change result as emulated Judge work. |
+| Authorized tracker operation as Manager | Declare Manager emulation before the operation; name Manager in the result. |
+| A permitted task changes from one role to another | Announce each role switch before that role's effects. |
+| Work requires a real delegate or an unavailable authority | Report the delegation or blocker; do not claim emulation completed the work. |
 
 Role emulation never creates independence. When a workflow requires independent review, separation of context,
 separation of duties, or another distinct-agent property, the Governor must delegate to a genuinely separate
