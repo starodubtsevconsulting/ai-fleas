@@ -4,6 +4,10 @@
 
 Apply this linked [Dev workflow](../dev.workflow.md) flow when an assignment changes a user-visible page, component, navigation path, form, or responsive layout. It supplies design and verification checkpoints within the existing planning, implementation, testing, review, and UI acceptance stages. It does not create a new role or replace independent UI acceptance.
 
+## UX principles
+
+Apply the shared [action-first UX principles](../../_common/policy/action-first-ux.md) to affected user journeys. Load any UX selection or refinement in the selected profile's agent instructions/specification. Designer / Reviewer records applicable principles in acceptance criteria; Coder receives them in the bounded implementation handoff; UI Acceptance Tester checks them in the independent visible journey. Record exclusions and evidence in the review template; this adds no role permissions or new runtime configuration fields.
+
 ## Entry
 
 Identify the authorized project, affected routes and states, intended user task, existing design system, current rendered behavior, and delivery scope. Identify every language the affected page or app supports and how a user switches between them. Inspect the actual interface before assuming what is on screen. Use the [UX review template](../guides/ux-ui-review-template.md) to record the chosen checks and evidence. Include only applicable checks; explain exclusions that could affect acceptance.
