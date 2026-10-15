@@ -17,6 +17,6 @@ Apply the policy across web, desktop, mobile, and other interfaces to new experi
 
 ## Strategy and method
 
-The default approach is [Action-first, outcome-visible UX](../strategies/ux/action-first-outcome-visible.md). A profile may explicitly choose another approach that meets this policy; the strategy does not redefine these required outcomes.
+The default approach is [Action-first, outcome-visible UX](../strategies/ux/action-first-outcome-visible.md). A profile may select a policy-compliant alternative only when the workflow declares and validates that selection; the strategy does not redefine these required outcomes.
 
 Use the [action-first UX review method](../methods/ux/action-first-review.md) to produce the required evidence through the selecting workflow. Policy defines the required outcome and constraints; strategy defines the approach; method defines how to apply and verify it.
