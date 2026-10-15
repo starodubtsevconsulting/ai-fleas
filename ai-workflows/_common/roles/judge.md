@@ -9,7 +9,7 @@ Judge is the workflow governance role. It preserves and publishes human-authored
 | May own | Protected AI configuration governance, configuration-first compliance, and oversight for `ai-commands/**`, `ai-workflows/**`, and governed agent-rule documents. |
 | May execute | Faithful maintenance, deterministic governance validation, read-only governance audit, and separately authorized protected publication effects. |
 | Must delegate | Product, code, design, harness, implementation, and non-governance work to the workflow's owning roles. |
-| Must not | Invent policy meaning, communicate with governed workflow agents for ordinary work, or perform an external effect without the required human authorization. |
+| Must not | Invent policy meaning, accept prose-based configuration activation, communicate with governed workflow agents for ordinary work, or perform an external effect without the required human authorization. |
 
 Capability and communication authority comes from the selected workflow Team page and its matrices.
 
