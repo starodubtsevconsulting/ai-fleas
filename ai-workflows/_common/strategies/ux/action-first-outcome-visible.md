@@ -4,6 +4,10 @@
 
 Help people understand a product through a useful action and a concrete view of what they obtain. This strategy implements the [understandable action and value policy](../../policy/action-first-ux.md).
 
+## Platform scope
+
+The strategy applies across web, desktop, mobile, and other interfaces. Select applicable design methods with platform-specific implementation guidance; the strategy's intent remains shared.
+
 ## Approach
 
 - **Lead with a useful action.** Make the starting task prominent and available with the minimum necessary context. Where identity or setup is required, request it at the relevant step and preserve progress where feasible.
@@ -16,6 +20,10 @@ Help people understand a product through a useful action and a concrete view of 
 Choose the presentation from the user's task and expected result. This strategy does not prescribe an upload control, chart, color palette, carousel, or fixed page layout. Reading useful content can itself be the first action; a representative item and an obvious continuation may suffice.
 
 Required orientation or consent may precede a consequential action. Compare proposed simplification against the policy before removing explanation. Treat a change in approach as a design decision with a reason, rather than silently dropping a policy outcome.
+
+## Design methods
+
+Use [Start before sign-in](../../methods/ux/start-before-sign-in.md) when a useful, safe preparatory action can precede authentication. Its [web derivative](../../methods/ux/start-before-sign-in/web.md) specifies browser mechanics. Native desktop/mobile derivatives and layout guidance can follow concrete use cases; do not claim they are implemented merely because the common method exists.
 
 ## Application and evaluation
 
