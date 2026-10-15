@@ -9,3 +9,4 @@ required_commands:
   - test
   - review
   - source-control
+parameters: configuration/parameters.json
