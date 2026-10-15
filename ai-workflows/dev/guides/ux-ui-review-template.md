@@ -7,6 +7,8 @@ Copy this compact record into the selected project's work item or PR. Fill only 
 - User task and affected routes/components:
 - Candidate revision and environment:
 - Current behavior and intended change:
+- Selected UX principles/profile instructions and any justified exclusions:
+- First useful action, visible expected result, and required setup/context:
 - Supported languages and switch/route behavior (or not applicable):
 - Viewports checked (width and height; include phone, desktop, and any affected breakpoint):
 - States checked (for example default, empty, loading, error, success):
@@ -16,6 +18,11 @@ Copy this compact record into the selected project's work item or PR. Fill only 
 | Check | Observation and evidence | Result: pass / fail / not run |
 | --- | --- | --- |
 | Primary task and navigation path | | |
+| First useful action visible and usable without unnecessary explanation/setup | | |
+| Concrete result/demo communicates value; available, illustrative, and planned behavior distinguished | | |
+| Progressive context/setup, progress preservation, and essential decision information | | |
+| Clear primary next step and loading/success/error/recovery feedback | | |
+| Meaning conveyed by labels/text as well as color/graphics | | |
 | Content hierarchy, wording, and readability | | |
 | Changed visible content and behavior in every supported language | | |
 | Language switch, localized routes/links, and accessible labels | | |
