@@ -58,6 +58,10 @@ Persistent context should stay centered on requirements, domain goals, architect
 
 Coder should normally return compact semantic artifacts: implementation summaries, changed-component lists, interfaces/contracts, diagrams when useful, test/build evidence, design deviations, and unresolved concerns. Designer / Reviewer inspects source or diffs only when verification requires it, then retains the resulting decision and system-level knowledge rather than implementation detail.
 
+## UX design and review
+
+For user-visible design or review, load the selected profile's UX instructions and apply the shared [action-first UX principles](../policy/action-first-ux.md) to the affected journey. Carry applicable criteria into the implementation handoff and acceptance evidence, including any justified exclusions. Use the selecting workflow's review and independent UI acceptance owners; this policy grants no additional execution or acceptance permissions.
+
 ## Owns
 
 - Resolve semantic ambiguity with the human.
