@@ -7,7 +7,7 @@ Copy this compact record into the selected project's work item or PR. Fill only 
 - User task and affected routes/components:
 - Candidate revision and environment:
 - Current behavior and intended change:
-- Selected UX principles/profile instructions and any justified exclusions:
+- Applicable UX policy, selected strategy, review method, profile instructions, and justified exclusions:
 - First useful action, visible expected result, and required setup/context:
 - Supported languages and switch/route behavior (or not applicable):
 - Viewports checked (width and height; include phone, desktop, and any affected breakpoint):
