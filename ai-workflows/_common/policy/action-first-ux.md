@@ -13,7 +13,7 @@ The interface must:
 
 ## Scope and authority
 
-Apply the policy to new interfaces and affected journeys through the selecting profile and workflow. Keep the scope proportional to the assignment. An exclusion requires a concrete reason in acceptance evidence. This policy grants no additional execution authority and preserves existing localization, accessibility, role separation, and independent acceptance requirements.
+Apply the policy across web, desktop, mobile, and other interfaces to new experiences and affected journeys through the selecting profile and workflow. Keep the scope proportional to the assignment. An exclusion requires a concrete reason in acceptance evidence. This policy grants no additional execution authority and preserves existing localization, accessibility, role separation, and independent acceptance requirements.
 
 ## Strategy and method
 
