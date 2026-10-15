@@ -6,9 +6,20 @@ Apply this linked [Dev workflow](../dev.workflow.md) flow when an assignment cha
 
 ## UX policy, strategy, and method
 
-Load the selected profile's UX instructions. The [UX policy](../../_common/policy/action-first-ux.md) defines required outcomes and constraints; [Action-first, outcome-visible UX](../../_common/strategies/ux/action-first-outcome-visible.md) is the default strategy; the [review method](../../_common/methods/ux/action-first-review.md) defines application and evidence. A profile may explicitly select a policy-compliant alternative strategy.
+Read the effective `parameters.ux` values resolved from the workflow-owned
+[parameter declaration](../configuration/parameters.json) and the selected profile's exact Dev workflow override.
+The application validates defaults and overrides before use and exposes values, reference paths, and source locations.
+Do not activate UX selections through profile prose, comments, directory placement, or guessed properties.
+Missing effective parameters on an adapter that cannot resolve them is a configuration gap, not permission to infer activation.
 
-Designer / Reviewer carries the policy and selected strategy into acceptance criteria and the Coder handoff. The existing review and independent UI acceptance owners apply the method and record observations in the review template. Record justified exclusions; these documents add no role permissions or runtime configuration fields.
+Use the selected policy, strategy, review method, design methods, and platforms from those effective values.
+For web work, the web derivative applies only when `web.startBeforeSignIn` is true and
+`start-before-sign-in` is among the selected design methods; still evaluate the method's applicability.
+A platform's presence selects scope, not proof that a native implementation exists.
+
+Designer / Reviewer carries the resolved values into acceptance criteria and implementation handoffs.
+The selecting workflow's existing review and independent UI acceptance owners record evidence against those values.
+Configuration changes require a workflow context refresh before they can govern an existing task.
 
 ## Entry
 
