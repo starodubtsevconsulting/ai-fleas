@@ -4,6 +4,12 @@
 
 Apply this linked [Dev workflow](../dev.workflow.md) flow when an assignment changes a user-visible page, component, navigation path, form, or responsive layout. It supplies design and verification checkpoints within the existing planning, implementation, testing, review, and UI acceptance stages. It does not create a new role or replace independent UI acceptance.
 
+## UX policy, strategy, and method
+
+Load the selected profile's UX instructions. The [UX policy](../../_common/policy/action-first-ux.md) defines required outcomes and constraints; [Action-first, outcome-visible UX](../../_common/strategies/ux/action-first-outcome-visible.md) is the default strategy; the [review method](../../_common/methods/ux/action-first-review.md) defines application and evidence. A profile may explicitly select a policy-compliant alternative strategy.
+
+Designer / Reviewer carries the policy and selected strategy into acceptance criteria and the Coder handoff. The existing review and independent UI acceptance owners apply the method and record observations in the review template. Record justified exclusions; these documents add no role permissions or runtime configuration fields.
+
 ## Entry
 
 Identify the authorized project, affected routes and states, intended user task, existing design system, current rendered behavior, and delivery scope. Identify every language the affected page or app supports and how a user switches between them. Inspect the actual interface before assuming what is on screen. Use the [UX review template](../guides/ux-ui-review-template.md) to record the chosen checks and evidence. Include only applicable checks; explain exclusions that could affect acceptance.
