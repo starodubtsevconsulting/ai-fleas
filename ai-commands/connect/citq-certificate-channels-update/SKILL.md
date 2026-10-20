@@ -1,11 +1,11 @@
 ---
 name: citq-certificate-channels-update
-description: Distribute an issued Québec tourist accommodation certificate from CITQ to a Lodgify-managed site, any separate property website, Airbnb, and Booking.com; verify registration details, the digital PDF, and guest-facing certificate photos.
+description: Distribute an issued Québec tourist accommodation certificate from CITQ to Lodgify, Airbnb, Booking.com, and ChaletWhisper or another secondary chalet booking platform; verify registration details, the digital PDF, and guest-facing certificate photos.
 ---
 
 # CITQ certificate across connected booking channels
 
-This skill covers the handoff from an **already issued** Québec tourist accommodation certificate to an existing Lodgify-managed property, its website, any separate property website, Airbnb, and Booking.com. It does not file a CITQ registration or renewal application. Keep property-specific identifiers, addresses, and certificate files out of this reusable skill.
+This skill covers the handoff from an **already issued** Québec tourist accommodation certificate to an existing Lodgify-managed property and website, Airbnb, Booking.com, and ChaletWhisper or another secondary, lower-fee chalet booking platform. Treat each booking platform as its own destination even if Lodgify manages the mainstream channels. It does not file a CITQ registration or renewal application. Keep property-specific identifiers, addresses, and certificate files out of this reusable skill.
 
 ## Get and verify the certificate
 
@@ -26,12 +26,11 @@ flowchart TD
     C -- Yes --> H
     H --> I[Update Booking.com licence and send original PDF]
     I --> J[Replace expired gallery photo in Lodgify and publish website]
-    J --> N{Separate property website?}
-    N -- Yes --> O[Inspect its live gallery and photo source]
-    O --> P[Replace expired photo through site editor or documented media path]
-    P --> K{Current photo visible on every site and channel?}
+    J --> N{Secondary chalet booking platform?}
+    N -- Yes --> O[Update its listing and certificate photo in its admin editor]
+    O --> K{Current photo visible on every site and channel?}
     N -- No --> K
-    K -- No --> L[Add photo manually on missing channel]
+    K -- No --> L[Update photo in the missing channel editor]
     K -- Yes --> M[Verify public number, expiry and one current photo]
     L --> M
 ```
@@ -53,12 +52,11 @@ flowchart TD
 
 Stop after one verified successful submission. If the error persists, preserve the observed form state and Support case, explain the specific blocker, and avoid repeated submissions or creation of a replacement listing. Report what Airbnb actually saved and any remaining mismatch; send Support a closing note only when the host asks or has authorized it.
 
-## Update Lodgify, Booking.com, and guest-facing photos
+## Update Lodgify, Booking.com, ChaletWhisper, and guest-facing photos
 
 - In Lodgify, verify the property address and connected Airbnb and Booking.com listing IDs before editing. A connection does not prove that licence fields or photos sync. Inspect the live channel settings and then the destination listings.
 - Québec requires the six-digit registration number in promotions, the expiry date on transactional platform listings, delivery of the **digital certificate** to each such platform, and display of the certificate at the property's main entrance. See the [Québec display and transmission guidance](https://www.quebec.ca/tourisme-loisirs-sport/hebergement-touristique/affichage). A gallery image is a separate guest-facing presentation choice; it does not replace the original digitally sealed PDF sent to the platforms or the physical entrance display.
 - For Booking.com, open **Property → Room details** (sometimes called **Property layout**), edit the existing rental unit, and find **Tell us your registration number**. The licence section may be absent from **General info & property status** even when Booking.com's general guidance points there. For each relevant unit, keep the registration category and number aligned with the certificate; update the expiry, street name, building number, and postal code in their separate fields; upload the original PDF under **Upload image of registration certificate** (PDF is accepted); then use **Continue** to save. Reopen the unit and verify the persisted expiry, address fields, and PDF download link. Do not enter a CITQ number in **Land registration numbers**: that ownership identifier is different from a short-term-rental licence. If the unit's licence controls are unavailable or saving fails, use partner support for the existing property and verify what was saved. The guest-facing fine print may still show the previous expiry immediately after a successful Extranet save; refresh and check it separately, and ask partner support if it stays stale. Do not infer success from the property's Open/Bookable status or its public address.
 - For a guest-facing certificate photo, render the certificate portion of the issued PDF to a legible PNG or JPEG. Use a short, stable filename such as `certificat-citq-YYYY.png` and a caption that states the number and expiry. Keep the original PDF intact for verification. Check the Lodgify photo gallery for expired or duplicate certificate images; replace them only with the host's authorization. Leave one current certificate image. Publish the Lodgify website if needed, then verify its live gallery; saving a rental photo alone may leave the live website on its previous publication.
 - Check the public Airbnb and Booking.com galleries after Lodgify sync. If either lacks the current image, upload it directly in that platform's photo editor and remove superseded copies with the required authorization. Recheck each public gallery, the displayed number and expiry, and the Lodgify website independently. A photo visible in Lodgify does not prove it reached either channel.
-- If the host has a separate property website, inspect its live gallery independently. It may use its own media store and receive no Lodgify photo sync. Prefer its authenticated photo editor. If no editor exists, trace the documented photo source and use an authorized, reversible media update: verify the source image, back up the expired file outside the public gallery, install one current image with a clear filename, and reload the guest-facing page to verify the number and expiry. Do not assume a server file copy succeeded merely because the file exists; check the rendered gallery and remove stale copies from the public selection. Record the missing editor as a product task if repeat updates would otherwise require server access.
-- Compare any separate website's displayed property address with the certificate as well. If authorized to correct it, save the exact address in its property editor and verify both the property card and detail view after a fresh reload; in-memory views can retain the previous address until refresh.
+- Treat ChaletWhisper, when used, as an additional booking platform rather than a mirror of the Lodgify website. In its property admin, compare the listing address and any registration fields with the issued certificate; correct authorized discrepancies and save. Use its photo manager to replace the expired certificate image with one current, legible image. Provide the original digital PDF through the platform's certificate control when available. Verify the guest-facing listing after a fresh reload: the address, number, expiry, and gallery should agree, with no old certificate photo. The same checks apply to another independent chalet booking platform. Do not infer that its listing updated from Lodgify, Airbnb, or Booking.com.
