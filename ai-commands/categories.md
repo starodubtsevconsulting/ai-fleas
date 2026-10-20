@@ -44,11 +44,13 @@ Rules:
 | `system` | Operate AI/runtime/machine/session capabilities | agents, machine profile, monitoring, session |
 | `utility` | Generic reusable helpers that do not fit another capability family | planning, discussion, demo |
 | `travel` | Plan travel logistics and coordinate trip preparation | Montréal–New York travel planning skills |
+| `short-term-rental` | Operate rental pricing, registration, and booking-channel listing details | PriceLabs pricing, CITQ certificate distribution |
 
 Prefer an existing category over creating a new one. Add a new category only when several commands share a stable capability type that does not fit the existing list.
 
 The human-requested `travel` category also hosts reusable travel skills. A skill-only folder uses `SKILL.md`;
 it is not an executable command or an authorization binding. Add command metadata only when a command is introduced.
+The human-requested `short-term-rental` category similarly groups reusable rental operations skills across providers.
 
 ## Installer and normal-use companions
 
