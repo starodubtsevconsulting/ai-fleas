@@ -33,6 +33,8 @@ See [`categories.md`](categories.md) for the normative rules.
 
 - [Montréal–New York travel skill](travel/montreal-ny-travel/SKILL.md): booking comparisons, airport transfers, MPC preparation, and calendar reminders.
 
+- [CITQ certificate channel update skill](connect/citq-certificate-channels-update/SKILL.md): distribute an issued Québec certificate through Lodgify, Airbnb, and Booking.com; verify registration details and guest-facing photos.
+
 - [macOS keep awake](system/macos-keep-awake/macos-keep-awake.command.md): UI-first Angular/Electron utility with native confirmation and owned power assertions; guarded interactive CLI remains available.
 
 `install` is limited to initial installation and minimum bootstrap. Routine operation and profile/workflow tuning belong
