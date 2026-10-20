@@ -33,7 +33,7 @@ See [`categories.md`](categories.md) for the normative rules.
 
 - [Montréal–New York travel skill](travel/montreal-ny-travel/SKILL.md): booking comparisons, airport transfers, MPC preparation, and calendar reminders.
 
-- [Short-term rental registration skill](connect/short-term-rental-registration/SKILL.md): certificate renewal on Airbnb and address or software-sync blockers.
+- [CITQ certificate to Airbnb skill](connect/citq-certificate-airbnb-update/SKILL.md): retrieve an issued Québec certificate, then update Airbnb and resolve address or software-sync blockers.
 
 - [macOS keep awake](system/macos-keep-awake/macos-keep-awake.command.md): UI-first Angular/Electron utility with native confirmation and owned power assertions; guarded interactive CLI remains available.
 
