@@ -81,6 +81,8 @@ the same bounded Coder route while retaining ownership of design and independent
 1. Manager resolves the work target, ticket when applicable, and required agents.
 2. Designer / Reviewer defines requirements, acceptance criteria, and implementation design through the
    [planning flow](flows/planning.flow.md).
+   For mobile application or mobile-specific journey work, apply the
+   [mobile development flow](flows/mobile-development.flow.md) across applicable planning, implementation, testing, documentation, and delivery steps.
    For a macOS binary or packaging/signing/distribution/update change, apply the
    [macOS distribution flow](flows/macos-distribution.flow.md) from planning through channel-specific acceptance and closure.
    For a new public website, an explicit SEO task, or changes to public routes, languages, content, metadata,
