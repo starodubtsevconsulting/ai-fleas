@@ -3,9 +3,12 @@ title: "I Built an Email App Because I Was Tired of Being Polite"
 subtitle: "An AI filter keeps my friend's request and removes the part I need to recover from."
 author: Sergii Starodubtsev
 date: "2026-11-08"
-version: 1
+version: 2
 locale: en
-status: draft
+status: published
+medium_url: https://medium.com/@aifleas/i-built-an-email-app-because-i-was-tired-of-being-polite-9a452b82f414
+publication_target: profile-home
+medium_topics: [Artificial Intelligence, Automation, Productivity]
 project: ai-fleas
 intended_reader: people building personal AI tools and anyone who finds blunt messages from familiar people difficult to answer calmly
 tags: [artificial-intelligence, email, automation, personal-tools]
@@ -81,4 +84,4 @@ Now I can spend my effort on the reply I'll actually send.
 
 *More experiments in building personal AI tools: [AI Fleas](../../README.md).*
 
-*Illustrations generated with ChatGPT using the author's AI Fleas human and robot character references. The email examples are invented to demonstrate the filter; they reproduce no private correspondence. See the [visual provenance](assets/2026-11-08-polite-email-filter-visuals.provenance.md).*
+*The email examples are invented (or not) to demonstrate the filter; they reproduce no private correspondence. See the [visual provenance](assets/2026-11-08-polite-email-filter-visuals.provenance.md).*
