@@ -9,7 +9,7 @@ The author supplied the account of building the email application and filter. Th
 
 Generation briefs: retain the recognizable black-haired human in a black hoodie and white-and-orange AI FLEAS robot; draw a casual friend requesting access rather than a workplace superior; make the robot visibly struggle while preserving meaning and removing hostility. For the architecture illustration, show distinct nodes, directional arrows and an ownership boundary, with the characters as annotations.
 
-Earlier office-themed and cartoon-only candidates are not part of this public article's visual inventory. Medium adaptation has not been created or published by this source update.
+Earlier office-themed and cartoon-only candidates are not part of this public article's visual inventory. Medium adaptation published with direct author authorization on 2026-11-08: https://medium.com/@aifleas/i-built-an-email-app-because-i-was-tired-of-being-polite-9a452b82f414
 
 ## Selected asset hashes
 
