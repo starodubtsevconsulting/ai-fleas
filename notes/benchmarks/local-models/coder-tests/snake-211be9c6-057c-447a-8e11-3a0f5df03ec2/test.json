@@ -1,0 +1,21 @@
+{
+  "title": "Snake",
+  "repositoryUrl": "https://github.com/starodubtsevconsulting/ai-fleas",
+  "inputFolder": "notes/benchmarks/local-models/fixtures/hermes-financial-recognizer-coding/starter",
+  "outputFolder": "notes/benchmarks/local-models/coder-tests",
+  "resultDirectory": "notes/benchmarks/local-models/coder-tests/snake-211be9c6-057c-447a-8e11-3a0f5df03ec2",
+  "baseCommit": "f062196060b438cf90fea24c32a04038279becad",
+  "model": "qwen3-8-flash-next-gsq-rco-iq1-m-21f1e203-bba88856",
+  "settings": {
+    "contextTokens": 32768,
+    "maxOutputTokens": 4096,
+    "thinking": "medium",
+    "temperature": 1,
+    "topP": 0.95,
+    "topK": 20,
+    "minP": 0
+  },
+  "runner": {
+    "timeoutSeconds": 180
+  }
+}

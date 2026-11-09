@@ -1,0 +1,9 @@
+{
+  "status": "completed",
+  "independentAcceptance": "not-run",
+  "files": [
+    "index.html",
+    "recognizers/snow-removal-contract-recognizer.mjs"
+  ],
+  "durationMs": 128947
+}

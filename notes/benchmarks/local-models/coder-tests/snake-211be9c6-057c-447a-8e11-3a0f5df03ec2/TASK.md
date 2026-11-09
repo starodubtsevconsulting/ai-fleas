@@ -1,0 +1,3 @@
+# Snake
+
+Create index.html containing a complete playable Snake game. Use one self-contained HTML file with inline CSS and JavaScript; do not use external assets, network requests, dependencies or build tools. Include a grid playfield, timed movement, food appearing only on empty cells, growth, scoring, wall and self-collision game-over detection, restart and pause/resume controls. Support arrow keys and WASD, prevent immediate direction reversal, and show concise keyboard instructions and the current score. Make the interface usable on a normal desktop browser. Inspect the finished HTML before reporting completion; do not claim independent tests were run.

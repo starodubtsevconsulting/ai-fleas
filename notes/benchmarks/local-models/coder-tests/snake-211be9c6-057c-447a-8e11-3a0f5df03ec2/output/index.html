@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snake</title>
+<style>
+  body {
+    margin: 0;
+    background: #1b1f24;
+    color: #e8ecf1;
+    font-family: "Segoe UI", Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .wrap {
+    padding: 24px;
+    text-align: center;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    letter-spacing: 1px;
+  }
+  .hud {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+  .hud span { background: #2a3038; padding: 6px 12px; border-radius: 6px; }
+  canvas {
+    background: #101418;
+    border: 2px solid #3c4652;
+    border-radius: 6px;
+    display: block;
+    margin: 0 auto;
+  }
+  .hint {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #9fb0c0;
+  }
+  .controls {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  button {
+    font: inherit;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #4a5666;
+    background: #2a3038;
+    color: #e8ecf1;
+    cursor: pointer;
+  }
+  button:hover { background: #38414d; }
+  .status { margin-top: 10px; min-height: 22px; font-size: 14px; color: #ff8b7a; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>SNAKE</h1>
+  <div class="hud">
+    <span>Score: <b id="score">0</b></span>
+    <span>Best: <b id="best">0</b></span>
+  </div>
+  <canvas id="game" width="600" height="420"></canvas>
+  <div class="hint">
+    Move with Arrow keys or WASD &mdash; P pauses/resumes &mdash; R restarts.
+  </div>
+  <div class="controls">
+    <button id="pauseBtn" type="button">Pause / Resume</button>
+    <button id="restartBtn" type="button">Restart</button>
+  </div>
+  <div class="status" id="status"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var canvas = document.getElementById("game");
+  var ctx = canvas.getContext("2d");
+  var cell = 20;
+  var cols = canvas.width / cell;   // 30
+  var rows = canvas.height / cell;  // 21
+  var scoreEl = document.getElementById("score");
+  var bestEl = document.getElementById("best");
+  var statusEl = document.getElementById("status");
+
+  var snake, dir, nextDir, food, score, best = 0,
+      over = false, paused = false, timer = null, speed = 120;
+
+  function occupied(x, y) {
+    for (var i = 0; i < snake.length; i++) {
+      if (snake[i].x === x && snake[i].y === y) return true;
+    }
+    return false;
+  }
+
+  function placeFood() {
+    var empty = [];
+    for (var y = 0; y < rows; y++) {
+      for (var x = 0; x < cols; x++) {
+        if (!occupied(x, y)) empty.push({ x: x, y: y });
+      }
+    }
+    if (empty.length === 0) { food = null; return; }
+    var spot = empty[Math.floor(Math.random() * empty.length)];
+    food = { x: spot.x, y: spot.y };
+  }
+
+  function reset() {
+    var cy = Math.floor(rows / 2), cx = Math.floor(cols / 4);
+    snake = [
+      { x: cx, y: cy },
+      { x: cx - 1, y: cy },
+      { x: cx - 2, y: cy }
+    ];
+    dir = { x: 1, y: 0 };
+    nextDir = dir;
+    score = 0;
+    over = false;
+    paused = false;
+    scoreEl.textContent = "0";
+    statusEl.textContent = "";
+    placeFood();
+    clearInterval(timer);
+    timer = setInterval(tick, speed);
+    draw();
+  }
+
+  function endGame(msg) {
+    over = true;
+    clearInterval(timer);
+    timer = null;
+    if (score > best) { best = score; bestEl.textContent = best; }
+    statusEl.textContent = "Game over: " + msg + " — press R or Restart.";
+    draw();
+  }
+
+  function tick() {
+    if (paused || over) return;
+    dir = nextDir;
+    var head = snake[0];
+    var nx = head.x + dir.x, ny = head.y + dir.y;
+
+    if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) {
+      endGame("hit the wall");
+      return;
+    }
+    var willGrow = (food && nx === food.x && ny === food.y);
+    // Tail vacates this step unless growing, so ignore it in self-check when not growing.
+    for (var i = 0; i < snake.length - (willGrow ? 0 : 1); i++) {
+      if (snake[i].x === nx && snake[i].y === ny) {
+        endGame("bit itself");
+        return;
+      }
+    }
+
+    snake.unshift({ x: nx, y: ny });
+    if (willGrow) {
+      score += 10;
+      scoreEl.textContent = score;
+      placeFood();
+    } else {
+      snake.pop();
+    }
+    draw();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // subtle grid
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.lineWidth = 1;
+    for (var x = 0.5; x <= canvas.width; x += cell) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (var y = 0.5; y <= canvas.height; y += cell) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+
+    // food
+    if (food) {
+      ctx.fillStyle = "#ff6b5e";
+      ctx.beginPath();
+      ctx.arc(food.x * cell + cell / 2, food.y * cell + cell / 2, cell / 2 - 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // snake
+    for (var i = 0; i < snake.length; i++) {
+      ctx.fillStyle = i === 0 ? "#8ee66a" : "#57b341";
+      ctx.fillRect(snake[i].x * cell + 1, snake[i].y * cell + 1, cell - 2, cell - 2);
+    }
+    // eyes on head
+    var h = snake[0];
+    ctx.fillStyle = "#101418";
+    var ex1 = h.x * cell + cell / 2 + dir.x * 4 - dir.y * 4,
+        ey1 = h.y * cell + cell / 2 + dir.y * 4 - dir.x * 4;
+    var ex2 = h.x * cell + cell / 2 + dir.x * 4 + dir.y * 4,
+        ey2 = h.y * cell + cell / 2 + dir.y * 4 + dir.x * 4;
+    ctx.fillRect(ex1 - 1.5, ey1 - 1.5, 3, 3);
+    ctx.fillRect(ex2 - 1.5, ey2 - 1.5, 3, 3);
+
+    if (over) {
+      ctx.fillStyle = "rgba(16,20,24,0.55)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ff8b7a";
+      ctx.font = "bold 22px Segoe UI, Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
+    } else if (paused) {
+      ctx.fillStyle = "rgba(16,20,24,0.55)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ffd27a";
+      ctx.font = "bold 22px Segoe UI, Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+    }
+  }
+
+  function setDir(dx, dy) {
+    // Prevent immediate reversal relative to the current applied direction.
+    if (dx === -dir.x && dy === -dir.y) return;
+    nextDir = { x: dx, y: dy };
+  }
+
+  function togglePause() {
+    paused = !paused;
+    statusEl.textContent = paused ? "Paused — press P or the button to resume." : "";
+    draw();
+  }
+
+  document.addEventListener("keydown", function (e) {
+    var k = e.key.toLowerCase();
+    if (k === "arrowup" || k === "w") { setDir(0, -1); e.preventDefault(); }
+    else if (k === "arrowdown" || k === "s") { setDir(0, 1); e.preventDefault(); }
+    else if (k === "arrowleft" || k === "a") { setDir(-1, 0); e.preventDefault(); }
+    else if (k === "arrowright" || k === "d") { setDir(1, 0); e.preventDefault(); }
+    else if (k === "p") { if (!over) togglePause(); }
+    else if (k === "r") { reset(); }
+  });
+
+  document.getElementById("pauseBtn").addEventListener("click", function () {
+    if (!over) togglePause();
+  });
+  document.getElementById("restartBtn").addEventListener("click", function () {
+    reset();
+  });
+
+  reset();
+})();
+</script>
+</body>
+</html>
