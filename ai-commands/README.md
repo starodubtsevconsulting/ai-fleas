@@ -28,12 +28,14 @@ Current categories:
 - `system`
 - `utility`
 - `travel`
+- `short-term-rental`
 
 See [`categories.md`](categories.md) for the normative rules.
 
 - [Montréal–New York travel skill](travel/montreal-ny-travel/SKILL.md): booking comparisons, airport transfers, MPC preparation, and calendar reminders.
 
-- [CITQ certificate channel update skill](connect/citq-certificate-channels-update/SKILL.md): distribute an issued Québec certificate through Lodgify, Airbnb, and Booking.com; verify registration details and guest-facing photos.
+- [CITQ certificate channel update skill](short-term-rental/citq-certificate-channels-update/SKILL.md): distribute an issued Québec certificate through Lodgify, Airbnb, Booking.com, and a secondary booking site.
+- [PriceLabs rental pricing skill](short-term-rental/pricelabs-rental-pricing/SKILL.md): inspect and update minimum nightly prices where PriceLabs feeds Lodgify and booking channels.
 
 - [macOS keep awake](system/macos-keep-awake/macos-keep-awake.command.md): UI-first Angular/Electron utility with native confirmation and owned power assertions; guarded interactive CLI remains available.
 
