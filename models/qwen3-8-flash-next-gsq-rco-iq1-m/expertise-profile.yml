@@ -1,0 +1,46 @@
+schema_version: ai-fleas-model-expertise.v1
+model_family: Qwen served coding candidate
+applies_to:
+  provider_models:
+    - qwen3-8-flash-next-gsq-rco-iq1-m-21f1e203-bba88856
+profile_status: evidence-backed-provisional
+purpose: Guide bounded coding handoffs from observed execution rather than assumed competence.
+communication:
+  observed_scope: >
+    A Pi coding experiment completed a browser-game implementation in about 326
+    seconds using 32768 allocated context tokens and 8192 output tokens. The
+    result had incorrect Tetris geometry. Execution completion is not correctness.
+  direct_starting_language:
+    - Give one concrete file change, exact starting files and explicit permitted read/write paths.
+    - Use short instructions, concrete examples, and observable domain invariants.
+  translate_first:
+    - Explain any unfamiliar domain rule with a positive example and a misleading example.
+    - State what must remain unchanged and the exact stop condition.
+  handoff_rule: >
+    Assign one bounded implementation outcome. Require inspection of permitted
+    files before editing, preserve existing interfaces, and stop when scope or
+    evidence is missing. Do not assign builds, tests, Git, deployment or secrets.
+  verification_rule: >
+    The coordinator inspects the actual diff and delegates meaningful checks and
+    independent acceptance. A completed Pi response or plausible game screenshot
+    does not prove correctness. Report unverified behavior explicitly.
+observed:
+  - task: Single self-contained HTML browser game.
+    harness: Pi with read/edit/write tools.
+    result: The process completed and generated a result, but game geometry was incorrect.
+    measured_parameters:
+      context_tokens: 32768
+      max_output_tokens: 8192
+      thinking: off
+      temperature: 1
+      top_p: 0.95
+      top_k: 20
+      min_p: 0
+      deadline_seconds: 600
+    interpretation_limit: One measured task does not establish general coding, tool-use or domain competence.
+inferred_but_unverified: []
+unknown:
+  - Reliability across repositories and languages.
+  - Correctness on unfamiliar domain rules and multi-file changes.
+  - General independent debugging or test-writing competence.
+  - Equivalence across quantizations, serving backends or harness versions.

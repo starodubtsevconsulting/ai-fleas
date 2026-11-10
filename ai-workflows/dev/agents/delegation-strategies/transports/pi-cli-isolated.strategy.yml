@@ -1,0 +1,35 @@
+schema_version: local-coder-transport-strategy.v1
+applies_to:
+  platform: pi-cli
+  transport: pi-cli-isolated
+session:
+  policy: fresh-isolated-process-per-bounded-assignment
+  context_reuse: disabled
+  task_delivery: closed-stdin
+  tools: [read, edit, write]
+  automatic_context_extensions_skills_templates_mcp: disabled
+scope:
+  project_selection: exact-profile-allowlist
+  initial_checkout: clean-named-visible-branch
+  file_effects: explicit-packet-roots-only
+  branch_drift: deny-before-file-effect-and-completion
+  links_metadata_secrets_and_outside_paths: denied
+  operating_system_sandbox: not-claimed
+status:
+  durable_job_identity: required
+  uncertain_process_ownership: operator-reconciliation-no-replay
+  overlapping_project_writes: forbidden
+  cancellation: verify-process-identity-and-process-release
+  live_cancellation_acceptance: not-yet-established-for-this-delegate
+timing:
+  hard_process_deadline_seconds_default: 600
+  termination_grace_seconds: 1
+  wait_policy: poll-durable-status-until-verified-terminal-result
+  after_interruption:
+    - inspect-the-exact-process-and-private-job-record
+    - inspect-visible-diff-before-any-new-assignment
+    - never-replay-uncertain-work
+scratch:
+  temporary_directories: forbidden
+  runtime_state: private-owner-only-isolated-job-directory
+  implementation_files: only-explicit-authorized-visible-paths

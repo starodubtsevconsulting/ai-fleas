@@ -1,0 +1,29 @@
+schema_version: local-coder-strategy.v1
+applies_to:
+  provider_model: qwen3-8-flash-next-gsq-rco-iq1-m-21f1e203-bba88856
+expertise_profile: ../../../../../models/qwen3-8-flash-next-gsq-rco-iq1-m/expertise-profile.yml
+strategy:
+  default: focused-implementation
+  task_routes:
+    known_code_path:
+      strategy: focused-implementation
+    unknown_code_path:
+      preflight: read-only-discovery
+      strategy: focused-implementation
+  goal_backed_continuation: disabled-unverified
+assignment:
+  preferred_scope: one-cohesive-change
+  require:
+    - exact-project-and-named-branch
+    - explicit-read-roots-and-write-roots
+    - known-starting-files-and-interface-boundary
+    - concrete-domain-invariants-and-examples
+    - stop-condition-and-independent-completion-evidence
+  command_execution: forbidden-to-model
+verification:
+  owner: coordinator-and-independent-command-runner
+  completion_text_alone_is_sufficient: false
+  require:
+    - inspect-actual-file-diff
+    - execute-meaningful-focused-checks-independently
+    - verify-domain-behavior-and-report-unverified-results
