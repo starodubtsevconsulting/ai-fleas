@@ -1,0 +1,3 @@
+# Tetris
+
+Create index.html containing a complete playable Tetris game. Use one self-contained HTML file with inline CSS and JavaScript; do not use external assets, network requests, dependencies or build tools. Include a visible playfield, falling tetrominoes, collision detection, rotation, line clearing, scoring, game-over state and restart. Support left/right movement, down for faster falling, Space for hard drop and a pause/resume control. Display keyboard instructions and make the interface usable on a normal desktop browser. Inspect the finished HTML before reporting completion; do not claim independent tests were run.
