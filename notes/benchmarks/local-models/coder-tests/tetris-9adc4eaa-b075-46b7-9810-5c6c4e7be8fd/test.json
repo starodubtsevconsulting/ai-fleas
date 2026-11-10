@@ -1,0 +1,21 @@
+{
+  "title": "Tetris",
+  "repositoryUrl": "https://github.com/starodubtsevconsulting/ai-fleas",
+  "inputFolder": "notes/benchmarks/local-models/fixtures/hermes-financial-recognizer-coding/starter",
+  "outputFolder": "notes/benchmarks/local-models/coder-tests",
+  "resultDirectory": "notes/benchmarks/local-models/coder-tests/tetris-9adc4eaa-b075-46b7-9810-5c6c4e7be8fd",
+  "baseCommit": "f062196060b438cf90fea24c32a04038279becad",
+  "model": "qwen3-8-flash-next-gsq-rco-iq1-m-21f1e203-bba88856",
+  "settings": {
+    "contextTokens": 32768,
+    "maxOutputTokens": 4096,
+    "thinking": "off",
+    "temperature": 1,
+    "topP": 0.95,
+    "topK": 20,
+    "minP": 0
+  },
+  "runner": {
+    "timeoutSeconds": 180
+  }
+}
